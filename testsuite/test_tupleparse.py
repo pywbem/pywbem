@@ -9,6 +9,7 @@ import pytest
 from pywbem import tupletree, tupleparse
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
     Real32, Real64, ParseError
 import pytest_extensions
@@ -337,7 +338,7 @@ testcases_tupleparse_roundtrip = [
     (
         "CIMParameter with string typed value",
         dict(
-            obj=CIMParameter('Param', 'string'),
+            obj=CIMParameter('Parm', 'string'),
         ),
         None, None, True
     ),
@@ -358,7 +359,7 @@ testcases_tupleparse_roundtrip = [
     (
         "CIMParameter with reference typed value",
         dict(
-            obj=CIMParameter('RefParam', 'reference'),
+            obj=CIMParameter('RefParm', 'reference'),
         ),
         None, None, True
     ),
@@ -366,7 +367,7 @@ testcases_tupleparse_roundtrip = [
         "CIMParameter with reference typed value and ref class",
         dict(
             obj=CIMParameter(
-                'RefParam', 'reference',
+                'RefParm', 'reference',
                 reference_class='CIM_Foo'
             ),
         ),
@@ -377,7 +378,7 @@ testcases_tupleparse_roundtrip = [
         "qualifiers",
         dict(
             obj=CIMParameter(
-                'RefParam', 'reference',
+                'RefParm', 'reference',
                 reference_class='CIM_Foo',
                 qualifiers=[
                     CIMQualifier('Key', True),
@@ -482,6 +483,8 @@ def test_tupleparse_roundtrip(
 
     # The code to be tested
     parsed_obj = tupleparse.parse_any(tt)
+
+    assert exp_exc_types is None, "Expected exception was not raised"
 
     assert parsed_obj == obj, "CIM-XML of input obj:\n%s" % xml_str
 
@@ -614,10 +617,18 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
+        "Use of empty attribute value",
+        dict(
+            xml_str='<NAMESPACE NAME=""/>',
+            exp_result=u'',
+        ),
+        None, None, True
+    ),
+    (
         "Invalid element in CIM-XML",
         dict(
             xml_str=''
-            '<FOO></FOO>',
+            '<XXX/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -625,28 +636,21 @@ testcases_tupleparse_xml = [
 
     # KEYVALUE tests with general invalidities
     (
-        "KEYVALUE with invalid child element VALUETYPE",
+        "KEYVALUE with invalid child element",
         dict(
             xml_str=''
-            '<KEYVALUE><VALUETYPE></VALUETYPE></KEYVALUE>',
+            '<KEYVALUE>'
+            '  <XXX/>'
+            '</KEYVALUE>',
             exp_result=None,
         ),
         ParseError, None, True
     ),
     (
-        "KEYVALUE with invalid child element KEYVALUE",
+        "KEYVALUE with invalid attribute",
         dict(
             xml_str=''
-            '<KEYVALUE><KEYVALUE></KEYVALUE></KEYVALUE>',
-            exp_result=None,
-        ),
-        ParseError, None, True
-    ),
-    (
-        "KEYVALUE with invalid attribute KEYVALUE",
-        dict(
-            xml_str=''
-            '<KEYVALUE KEYVALUE="bla"></KEYVALUE>',
+            '<KEYVALUE XXX="bla">a</KEYVALUE>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -655,7 +659,7 @@ testcases_tupleparse_xml = [
         "KEYVALUE with invalid value for attribute VALUETYPE",
         dict(
             xml_str=''
-            '<KEYVALUE VALUETYPE="bla"></KEYVALUE>',
+            '<KEYVALUE VALUETYPE="bla">a</KEYVALUE>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -664,22 +668,13 @@ testcases_tupleparse_xml = [
         "KEYVALUE with invalid value for attribute TYPE",
         dict(
             xml_str=''
-            '<KEYVALUE TYPE="bla"></KEYVALUE>',
+            '<KEYVALUE TYPE="bla">a</KEYVALUE>',
             exp_result=None,
         ),
         ParseError, None, True
     ),
 
-    # KEYVALUE tests without VALUETYPE and without TYPE
-    (
-        "KEYVALUE without VALUETYPE or TYPE (empty string, short form)",
-        dict(
-            xml_str=''
-            '<KEYVALUE/>',
-            exp_result=u'',
-        ),
-        None, None, True
-    ),
+    # KEYVALUE tests without VALUETYPE (defaults to string) and without TYPE
     (
         "KEYVALUE without VALUETYPE or TYPE (empty string)",
         dict(
@@ -798,16 +793,15 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # KEYVALUE tests without VALUETYPE but with TYPE string
+    # KEYVALUE tests without VALUETYPE (defaults to string) but with TYPE string
     (
-        "KEYVALUE without VALUETYPE and TYPE that is generally valid but "
-        "not allowed with the default VALUETYPE",
+        "KEYVALUE without VALUETYPE and contradicting TYPE uint8",
         dict(
             xml_str=''
-            '<KEYVALUE TYPE="uint8"></KEYVALUE>',
-            exp_result=None,
+            '<KEYVALUE TYPE="uint8">42</KEYVALUE>',
+            exp_result=Uint8(42),
         ),
-        ParseError, None, True
+        None, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE string (ASCII string)",
@@ -919,7 +913,7 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # KEYVALUE tests without VALUETYPE but with TYPE char16
+    # KEYVALUE tests without VALUETYPE (defaults to string) but with TYPE char16
     (
         "KEYVALUE without VALUETYPE with TYPE char16 (invalid empty char)",
         dict(
@@ -985,7 +979,7 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # KEYVALUE tests without VALUETYPE but with TYPE datetime
+    # KEYVALUE tests without VALUETYPE (def. to string) but with TYPE datetime
     (
         "KEYVALUE without VALUETYPE with TYPE datetime (empty string)",
         dict(
@@ -1043,14 +1037,13 @@ testcases_tupleparse_xml = [
 
     # KEYVALUE tests with VALUETYPE string and TYPE string
     (
-        "KEYVALUE with VALUETYPE string and TYPE that is generally valid but "
-        "not allowed with that VALUETYPE",
+        "KEYVALUE with VALUETYPE string and contradicting TYPE uint8",
         dict(
             xml_str=''
-            '<KEYVALUE VALUETYPE="string" TYPE="uint8"></KEYVALUE>',
-            exp_result=None,
+            '<KEYVALUE VALUETYPE="string" TYPE="uint8">42</KEYVALUE>',
+            exp_result=Uint8(42),
         ),
-        ParseError, None, True
+        None, None, True
     ),
     (
         "KEYVALUE with VALUETYPE string and TYPE string (empty string)",
@@ -1881,12 +1874,12 @@ testcases_tupleparse_xml = [
 
     # KEYBINDING tests
     (
-        "KEYBINDING with invalid extra child element",
+        "KEYBINDING with invalid child element",
         dict(
             xml_str=''
             '<KEYBINDING NAME="Foo">'
-            '  <KEYVALUE></KEYVALUE>'
-            '  <XXX></XXX>'
+            '  <KEYVALUE>a</KEYVALUE>'
+            '  <XXX/>'
             '</KEYBINDING>',
             exp_result=None,
         ),
@@ -1897,7 +1890,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<KEYBINDING NAME="Foo">'
-            '  <KEYVALUE></KEYVALUE>'
+            '  <KEYVALUE>a</KEYVALUE>'
             '  xxx'
             '</KEYBINDING>',
             exp_result=None,
@@ -1905,11 +1898,11 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "KEYBINDING with invalid extra attribute",
+        "KEYBINDING with invalid attribute",
         dict(
             xml_str=''
             '<KEYBINDING NAME="Foo" XXX="bla">'
-            '  <KEYVALUE></KEYVALUE>'
+            '  <KEYVALUE>a</KEYVALUE>'
             '</KEYBINDING>',
             exp_result=None,
         ),
@@ -1920,11 +1913,44 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<KEYBINDING>'
-            '  <KEYVALUE></KEYVALUE>'
+            '  <KEYVALUE>a</KEYVALUE>'
             '</KEYBINDING>',
             exp_result=None,
         ),
         ParseError, None, True
+    ),
+    (
+        "KEYBINDING with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<KEYBINDING NAME="Foo">'
+            '  <KEYVALUE>a</KEYVALUE>'
+            '</KEYBINDING>',
+            exp_result={u'Foo': u'a'},
+        ),
+        None, None, True
+    ),
+    (
+        "KEYBINDING with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<KEYBINDING NAME="Foo\xC3\xA9">'
+            b'  <KEYVALUE>a</KEYVALUE>'
+            b'</KEYBINDING>',
+            exp_result={u'Foo\u00E9': u'a'},
+        ),
+        None, None, True
+    ),
+    (
+        "KEYBINDING with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<KEYBINDING NAME="Foo\xF0\x90\x85\x82">'
+            b'  <KEYVALUE>a</KEYVALUE>'
+            b'</KEYBINDING>',
+            exp_result={u'Foo\U00010142': u'a'},
+        ),
+        None, None, True
     ),
     (
         "KEYBINDING with KEYVALUE child (normal case)",
@@ -1962,7 +1988,63 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # TODO: VALUE tests
+    # VALUE tests
+    (
+        "VALUE with invalid child element",
+        dict(
+            xml_str=''
+            '<VALUE>'
+            '  <XXX/>'
+            '</VALUE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE with invalid attribute",
+        dict(
+            xml_str=''
+            '<VALUE XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE with ASCII string",
+        dict(
+            xml_str=''
+            '<VALUE>abc</VALUE>',
+            exp_result=u'abc',
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with ASCII string with WS",
+        dict(
+            xml_str=''
+            '<VALUE> a  b  c </VALUE>',
+            exp_result=u' a  b  c ',
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with non-ASCII UCS-2 string",
+        dict(
+            xml_str=b''
+            b'<VALUE>\xC3\xA9</VALUE>',
+            exp_result=u'\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with non-UCS-2 string",
+        dict(
+            xml_str=b''
+            b'<VALUE>\xF0\x90\x85\x82</VALUE>',
+            exp_result=u'\U00010142',  # GREEK ACROPHONIC ATTIC ONE DRACHMA
+        ),
+        None, None, True
+    ),
 
     # VALUE.ARRAY tests
     (
@@ -1970,7 +2052,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<VALUE.ARRAY>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '  <VALUE>a</VALUE>'
             '</VALUE.ARRAY>',
             exp_result=None,
@@ -1983,7 +2065,7 @@ testcases_tupleparse_xml = [
             xml_str=''
             '<VALUE.ARRAY>'
             '  <VALUE>a</VALUE>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.ARRAY>',
             exp_result=None,
         ),
@@ -2002,7 +2084,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.ARRAY with invalid extra attribute",
+        "VALUE.ARRAY with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.ARRAY XXX="bla">'
@@ -2016,8 +2098,7 @@ testcases_tupleparse_xml = [
         "VALUE.ARRAY that is empty",
         dict(
             xml_str=''
-            '<VALUE.ARRAY>'
-            '</VALUE.ARRAY>',
+            '<VALUE.ARRAY/>',
             exp_result=[
             ],
         ),
@@ -2123,18 +2204,158 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # TODO: VALUE.REFERENCE tests
+    # VALUE.REFERENCE tests
+    (
+        "VALUE.REFERENCE with invalid child element",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  <XXX/>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.REFERENCE with invalid text content",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  xxx'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.REFERENCE with invalid attribute",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE XXX="bla">'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.REFERENCE with missing child element",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.REFERENCE with ref value that is a INSTANCENAME",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</VALUE.REFERENCE>',
+            exp_result=CIMInstanceName('CIM_Foo'),
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with ref value that is a LOCALINSTANCEPATH",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </LOCALINSTANCEPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=CIMInstanceName('CIM_Foo', namespace='foo'),
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with ref value that is a INSTANCEPATH",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </INSTANCEPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo', namespace='foo', host='woot.com',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with ref value that is a CLASSNAME",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</VALUE.REFERENCE>',
+            exp_result=CIMClassName('CIM_Foo'),
+        ),
+        None, None, False
+    ),
+    (
+        "VALUE.REFERENCE with ref value that is a LOCALCLASSPATH",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=CIMClassName('CIM_Foo', namespace='foo'),
+        ),
+        None, None, False
+    ),
+    (
+        "VALUE.REFERENCE with ref value that is a CLASSPATH",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=CIMClassName(
+                'CIM_Foo', namespace='foo', host='woot.com',
+            ),
+        ),
+        None, None, False
+    ),
 
     # VALUE.REFARRAY tests
     (
-        "VALUE.REFARRAY with invalid extra child element",
+        "VALUE.REFARRAY with invalid child element",
         dict(
             xml_str=''
             '<VALUE.REFARRAY>'
             '  <VALUE.REFERENCE>'
             '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '  </VALUE.REFERENCE>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.REFARRAY>',
             exp_result=None,
         ),
@@ -2155,7 +2376,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.REFARRAY with invalid extra attribute",
+        "VALUE.REFARRAY with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.REFARRAY XXX="bla">'
@@ -2171,8 +2392,7 @@ testcases_tupleparse_xml = [
         "VALUE.REFARRAY that is empty",
         dict(
             xml_str=''
-            '<VALUE.REFARRAY>'
-            '</VALUE.REFARRAY>',
+            '<VALUE.REFARRAY/>',
             exp_result=[
             ],
         ),
@@ -2268,7 +2488,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<VALUE.NULL>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.NULL>',
             exp_result=None,
         ),
@@ -2289,8 +2509,7 @@ testcases_tupleparse_xml = [
         "VALUE.NULL with invalid attribute",
         dict(
             xml_str=''
-            '<VALUE.NULL XXX="bla">'
-            '</VALUE.NULL>',
+            '<VALUE.NULL XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -2299,8 +2518,7 @@ testcases_tupleparse_xml = [
         "VALUE.NULL (normal case)",
         dict(
             xml_str=''
-            '<VALUE.NULL>'
-            '</VALUE.NULL>',
+            '<VALUE.NULL/>',
             exp_result=None,
         ),
         None, None, True
@@ -2308,12 +2526,12 @@ testcases_tupleparse_xml = [
 
     # VALUE.OBJECT tests
     (
-        "VALUE.OBJECT with invalid extra child element",
+        "VALUE.OBJECT with invalid child element",
         dict(
             xml_str=''
             '<VALUE.OBJECT>'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.OBJECT>',
             exp_result=None,
         ),
@@ -2324,7 +2542,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<VALUE.OBJECT>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.OBJECT>',
             exp_result=None,
         ),
@@ -2343,7 +2561,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.OBJECT with invalid extra attribute",
+        "VALUE.OBJECT with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.OBJECT XXX="bla">'
@@ -2357,8 +2575,7 @@ testcases_tupleparse_xml = [
         "VALUE.OBJECT with missing child",
         dict(
             xml_str=''
-            '<VALUE.OBJECT>'
-            '</VALUE.OBJECT>',
+            '<VALUE.OBJECT/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -2396,7 +2613,7 @@ testcases_tupleparse_xml = [
 
     # VALUE.NAMEDINSTANCE tests
     (
-        "VALUE.NAMEDINSTANCE with invalid extra child element",
+        "VALUE.NAMEDINSTANCE with invalid child element",
         dict(
             xml_str=''
             '<VALUE.NAMEDINSTANCE>'
@@ -2406,7 +2623,7 @@ testcases_tupleparse_xml = [
             '    </KEYBINDING>'
             '  </INSTANCENAME>'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
@@ -2430,7 +2647,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.NAMEDINSTANCE with invalid extra attribute",
+        "VALUE.NAMEDINSTANCE with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.NAMEDINSTANCE XXX="bla">'
@@ -2441,6 +2658,15 @@ testcases_tupleparse_xml = [
             '  </INSTANCENAME>'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</VALUE.NAMEDINSTANCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.NAMEDINSTANCE with missing children",
+        dict(
+            xml_str=''
+            '<VALUE.NAMEDINSTANCE/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -2512,7 +2738,7 @@ testcases_tupleparse_xml = [
 
     # VALUE.INSTANCEWITHPATH tests
     (
-        "VALUE.INSTANCEWITHPATH with invalid extra child element",
+        "VALUE.INSTANCEWITHPATH with invalid child element",
         dict(
             xml_str=''
             '<VALUE.INSTANCEWITHPATH>'
@@ -2530,7 +2756,7 @@ testcases_tupleparse_xml = [
             '    </INSTANCENAME>'
             '  </INSTANCEPATH>'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
@@ -2562,7 +2788,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.INSTANCEWITHPATH with invalid extra attribute",
+        "VALUE.INSTANCEWITHPATH with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.INSTANCEWITHPATH XXX="bla">'
@@ -2581,6 +2807,15 @@ testcases_tupleparse_xml = [
             '  </INSTANCEPATH>'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</VALUE.INSTANCEWITHPATH>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "VALUE.INSTANCEWITHPATH with missing children",
+        dict(
+            xml_str=''
+            '<VALUE.INSTANCEWITHPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -2678,12 +2913,12 @@ testcases_tupleparse_xml = [
 
     # VALUE.NAMEDOBJECT tests
     (
-        "VALUE.NAMEDOBJECT with invalid extra child element",
+        "VALUE.NAMEDOBJECT with invalid child element",
         dict(
             xml_str=''
             '<VALUE.NAMEDOBJECT>'
             '  <CLASS NAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.NAMEDOBJECT>',
             exp_result=None,
         ),
@@ -2702,7 +2937,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.NAMEDOBJECT with invalid extra attribute",
+        "VALUE.NAMEDOBJECT with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.NAMEDOBJECT XXX="bla">'
@@ -2716,8 +2951,7 @@ testcases_tupleparse_xml = [
         "VALUE.NAMEDOBJECT with missing children",
         dict(
             xml_str=''
-            '<VALUE.NAMEDOBJECT>'
-            '</VALUE.NAMEDOBJECT>',
+            '<VALUE.NAMEDOBJECT/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -2792,7 +3026,7 @@ testcases_tupleparse_xml = [
 
     # VALUE.OBJECTWITHLOCALPATH tests
     (
-        "VALUE.OBJECTWITHLOCALPATH with invalid extra child element",
+        "VALUE.OBJECTWITHLOCALPATH with invalid child element",
         dict(
             xml_str=''
             '<VALUE.OBJECTWITHLOCALPATH>'
@@ -2803,7 +3037,7 @@ testcases_tupleparse_xml = [
             '    <CLASSNAME NAME="CIM_Foo"/>'
             '  </LOCALCLASSPATH>'
             '  <CLASS NAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.OBJECTWITHLOCALPATH>',
             exp_result=None,
         ),
@@ -2828,7 +3062,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.OBJECTWITHLOCALPATH with invalid extra attribute",
+        "VALUE.OBJECTWITHLOCALPATH with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.OBJECTWITHLOCALPATH XXX="bla">'
@@ -2848,8 +3082,7 @@ testcases_tupleparse_xml = [
         "VALUE.OBJECTWITHLOCALPATH with missing children",
         dict(
             xml_str=''
-            '<VALUE.OBJECTWITHLOCALPATH>'
-            '</VALUE.OBJECTWITHLOCALPATH>',
+            '<VALUE.OBJECTWITHLOCALPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -2951,7 +3184,7 @@ testcases_tupleparse_xml = [
 
     # VALUE.OBJECTWITHPATH tests
     (
-        "VALUE.OBJECTWITHPATH with invalid extra child element",
+        "VALUE.OBJECTWITHPATH with invalid child element",
         dict(
             xml_str=''
             '<VALUE.OBJECTWITHPATH>'
@@ -2965,7 +3198,7 @@ testcases_tupleparse_xml = [
             '    <CLASSNAME NAME="CIM_Foo"/>'
             '  </CLASSPATH>'
             '  <CLASS NAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
@@ -2993,7 +3226,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "VALUE.OBJECTWITHPATH with invalid extra attribute",
+        "VALUE.OBJECTWITHPATH with invalid attribute",
         dict(
             xml_str=''
             '<VALUE.OBJECTWITHPATH XXX="bla">'
@@ -3016,8 +3249,7 @@ testcases_tupleparse_xml = [
         "VALUE.OBJECTWITHPATH with missing children",
         dict(
             xml_str=''
-            '<VALUE.OBJECTWITHPATH>'
-            '</VALUE.OBJECTWITHPATH>',
+            '<VALUE.OBJECTWITHPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3203,11 +3435,11 @@ testcases_tupleparse_xml = [
 
     # NAMESPACE tests
     (
-        "NAMESPACE with invalid extra child element",
+        "NAMESPACE with invalid child element",
         dict(
             xml_str=''
             '<NAMESPACE NAME="a">'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</NAMESPACE>',
             exp_result=None,
         ),
@@ -3225,11 +3457,10 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "NAMESPACE with invalid extra attribute",
+        "NAMESPACE with invalid attribute",
         dict(
             xml_str=''
-            '<NAMESPACE NAME="a" XXX="bla">'
-            '</NAMESPACE>',
+            '<NAMESPACE NAME="a" XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3238,14 +3469,13 @@ testcases_tupleparse_xml = [
         "NAMESPACE with missing required attribute NAME",
         dict(
             xml_str=''
-            '<NAMESPACE>'
-            '</NAMESPACE>',
+            '<NAMESPACE/>',
             exp_result=None,
         ),
         ParseError, None, True
     ),
     (
-        "NAMESPACE with NAME (normal case, short form)",
+        "NAMESPACE with NAME using ASCII characters",
         dict(
             xml_str=''
             '<NAMESPACE NAME="foo"/>',
@@ -3254,21 +3484,11 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        "NAMESPACE with NAME (normal case, long form)",
-        dict(
-            xml_str=''
-            '<NAMESPACE NAME="foo">'
-            '</NAMESPACE>',
-            exp_result=u'foo',
-        ),
-        None, None, True
-    ),
-    (
         "NAMESPACE with NAME using non-ASCII UCS-2 characters",
         dict(
             xml_str=b''
-            b'<NAMESPACE NAME="\xC3\xA9"/>',
-            exp_result=u'\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
+            b'<NAMESPACE NAME="foo\xC3\xA9"/>',
+            exp_result=u'foo\u00E9',
         ),
         None, None, True
     ),
@@ -3276,20 +3496,20 @@ testcases_tupleparse_xml = [
         "NAMESPACE with NAME using non-UCS-2 characters",
         dict(
             xml_str=b''
-            b'<NAMESPACE NAME="\xF0\x90\x85\x82"/>',
-            exp_result=u'\U00010142',  # GREEK ACROPHONIC ATTIC ONE DRACHMA
+            b'<NAMESPACE NAME="foo\xF0\x90\x85\x82"/>',
+            exp_result=u'foo\U00010142',
         ),
         None, None, True
     ),
 
     # LOCALNAMESPACEPATH tests
     (
-        "LOCALNAMESPACEPATH with invalid extra child element",
+        "LOCALNAMESPACEPATH with invalid child element",
         dict(
             xml_str=''
             '<LOCALNAMESPACEPATH>'
             '  <NAMESPACE NAME="a"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</LOCALNAMESPACEPATH>',
             exp_result=None,
         ),
@@ -3308,11 +3528,10 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "LOCALNAMESPACEPATH with invalid extra attribute",
+        "LOCALNAMESPACEPATH with invalid attribute",
         dict(
             xml_str=''
-            '<LOCALNAMESPACEPATH XXX="bla">'
-            '</LOCALNAMESPACEPATH>',
+            '<LOCALNAMESPACEPATH XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3321,8 +3540,7 @@ testcases_tupleparse_xml = [
         "LOCALNAMESPACEPATH with no component (empty)",
         dict(
             xml_str=''
-            '<LOCALNAMESPACEPATH>'
-            '</LOCALNAMESPACEPATH>',
+            '<LOCALNAMESPACEPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3356,7 +3574,7 @@ testcases_tupleparse_xml = [
         "HOST with invalid child element",
         dict(
             xml_str=''
-            '<HOST>woot.com<X>/</HOST>',
+            '<HOST>woot.com<XXX/></HOST>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3365,7 +3583,7 @@ testcases_tupleparse_xml = [
         "HOST with invalid attribute",
         dict(
             xml_str=''
-            '<HOST X="x">woot.com</HOST>',
+            '<HOST XXX="bla">woot.com</HOST>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3436,7 +3654,7 @@ testcases_tupleparse_xml = [
 
     # NAMESPACEPATH tests
     (
-        "NAMESPACEPATH with invalid extra child element",
+        "NAMESPACEPATH with invalid child element",
         dict(
             xml_str=''
             '<NAMESPACEPATH>'
@@ -3444,7 +3662,7 @@ testcases_tupleparse_xml = [
             '  <LOCALNAMESPACEPATH>'
             '    <NAMESPACE NAME="foo"/>'
             '  </LOCALNAMESPACEPATH>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
@@ -3466,7 +3684,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "NAMESPACEPATH with invalid extra attribute",
+        "NAMESPACEPATH with invalid attribute",
         dict(
             xml_str=''
             '<NAMESPACEPATH XXX="bla">'
@@ -3475,6 +3693,15 @@ testcases_tupleparse_xml = [
             '    <NAMESPACE NAME="foo"/>'
             '  </LOCALNAMESPACEPATH>'
             '</NAMESPACEPATH>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "NAMESPACEPATH with missing children",
+        dict(
+            xml_str=''
+            '<NAMESPACEPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3534,11 +3761,11 @@ testcases_tupleparse_xml = [
 
     # CLASSNAME tests
     (
-        "CLASSNAME with invalid extra child element",
+        "CLASSNAME with invalid child element",
         dict(
             xml_str=''
             '<CLASSNAME NAME="a">'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</CLASSNAME>',
             exp_result=None,
         ),
@@ -3556,11 +3783,10 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "CLASSNAME with invalid extra attribute",
+        "CLASSNAME with invalid attribute",
         dict(
             xml_str=''
-            '<CLASSNAME NAME="a" XXX="bla">'
-            '</CLASSNAME>',
+            '<CLASSNAME NAME="a" XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3569,27 +3795,16 @@ testcases_tupleparse_xml = [
         "CLASSNAME with missing required attribute NAME",
         dict(
             xml_str=''
-            '<CLASSNAME>'
-            '</CLASSNAME>',
+            '<CLASSNAME/>',
             exp_result=None,
         ),
         ParseError, None, True
     ),
     (
-        "CLASSNAME with NAME (normal case, short form)",
+        "CLASSNAME with NAME using ASCII characters",
         dict(
             xml_str=''
             '<CLASSNAME NAME="CIM_Foo"/>',
-            exp_result=CIMClassName('CIM_Foo'),
-        ),
-        None, None, True
-    ),
-    (
-        "CLASSNAME with NAME (normal case, long form)",
-        dict(
-            xml_str=''
-            '<CLASSNAME NAME="CIM_Foo">'
-            '</CLASSNAME>',
             exp_result=CIMClassName('CIM_Foo'),
         ),
         None, None, True
@@ -3615,7 +3830,7 @@ testcases_tupleparse_xml = [
 
     # LOCALCLASSPATH tests
     (
-        "LOCALCLASSPATH with invalid extra child element",
+        "LOCALCLASSPATH with invalid child element",
         dict(
             xml_str=''
             '<LOCALCLASSPATH>'
@@ -3623,7 +3838,7 @@ testcases_tupleparse_xml = [
             '    <NAMESPACE NAME="foo"/>'
             '  </LOCALNAMESPACEPATH>'
             '  <CLASSNAME NAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
@@ -3645,7 +3860,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "LOCALCLASSPATH with invalid extra attribute",
+        "LOCALCLASSPATH with invalid attribute",
         dict(
             xml_str=''
             '<LOCALCLASSPATH XXX="bla">'
@@ -3654,6 +3869,15 @@ testcases_tupleparse_xml = [
             '  </LOCALNAMESPACEPATH>'
             '  <CLASSNAME NAME="CIM_Foo"/>'
             '</LOCALCLASSPATH>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "LOCALCLASSPATH with missing children",
+        dict(
+            xml_str=''
+            '<LOCALCLASSPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3716,7 +3940,7 @@ testcases_tupleparse_xml = [
 
     # CLASSPATH tests
     (
-        "CLASSPATH with invalid extra child element",
+        "CLASSPATH with invalid child element",
         dict(
             xml_str=''
             '<CLASSPATH>'
@@ -3727,7 +3951,7 @@ testcases_tupleparse_xml = [
             '    </LOCALNAMESPACEPATH>'
             '  </NAMESPACEPATH>'
             '  <CLASSNAME NAME="CIM_Foo"/>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</CLASSPATH>',
             exp_result=None,
         ),
@@ -3752,7 +3976,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "CLASSPATH with invalid extra attribute",
+        "CLASSPATH with invalid attribute",
         dict(
             xml_str=''
             '<CLASSPATH XXX="bla">'
@@ -3764,6 +3988,15 @@ testcases_tupleparse_xml = [
             '  </NAMESPACEPATH>'
             '  <CLASSNAME NAME="CIM_Foo"/>'
             '</CLASSPATH>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "CLASSPATH with missing children",
+        dict(
+            xml_str=''
+            '<CLASSPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3836,11 +4069,11 @@ testcases_tupleparse_xml = [
 
     # INSTANCENAME tests
     (
-        "INSTANCENAME with invalid extra child element",
+        "INSTANCENAME with invalid child element",
         dict(
             xml_str=''
             '<INSTANCENAME CLASSNAME="Foo">'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</INSTANCENAME>',
             exp_result=None,
         ),
@@ -3858,11 +4091,10 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "INSTANCENAME with invalid extra attribute",
+        "INSTANCENAME with invalid attribute",
         dict(
             xml_str=''
-            '<INSTANCENAME CLASSNAME="Foo" XXX="bla">'
-            '</INSTANCENAME>',
+            '<INSTANCENAME CLASSNAME="Foo" XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -3871,28 +4103,35 @@ testcases_tupleparse_xml = [
         "INSTANCENAME with missing required attribute CLASSNAME",
         dict(
             xml_str=''
-            '<INSTANCENAME>'
-            '</INSTANCENAME>',
+            '<INSTANCENAME/>',
             exp_result=None,
         ),
         ParseError, None, True
     ),
     (
-        "INSTANCENAME without keys (= singleton instance of a keyless class)",
+        "INSTANCENAME with CLASSNAME using ASCII characters",
         dict(
             xml_str=''
-            '<INSTANCENAME CLASSNAME="CIM_Foo">'
-            '</INSTANCENAME>',
+            '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             exp_result=CIMInstanceName('CIM_Foo'),
         ),
         None, None, True
     ),
     (
-        "INSTANCENAME without keys (short form)",
+        "INSTANCENAME with CLASSNAME using non-ASCII UCS-2 characters",
         dict(
-            xml_str=''
-            '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
-            exp_result=CIMInstanceName('CIM_Foo'),
+            xml_str=b''
+            b'<INSTANCENAME CLASSNAME="CIM_Foo\xC3\xA9"/>',
+            exp_result=CIMInstanceName(u'CIM_Foo\u00E9'),
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with CLASSNAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<INSTANCENAME CLASSNAME="CIM_Foo\xF0\x90\x85\x82"/>',
+            exp_result=CIMInstanceName(u'CIM_Foo\U00010142'),
         ),
         None, None, True
     ),
@@ -4006,7 +4245,7 @@ testcases_tupleparse_xml = [
 
     # LOCALINSTANCEPATH tests
     (
-        "LOCALINSTANCEPATH with invalid extra child element",
+        "LOCALINSTANCEPATH with invalid child element",
         dict(
             xml_str=''
             '<LOCALINSTANCEPATH>'
@@ -4018,7 +4257,7 @@ testcases_tupleparse_xml = [
             '      <KEYVALUE>Foo</KEYVALUE>'
             '    </KEYBINDING>'
             '  </INSTANCENAME>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
@@ -4044,7 +4283,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "LOCALINSTANCEPATH with invalid extra attribute",
+        "LOCALINSTANCEPATH with invalid attribute",
         dict(
             xml_str=''
             '<LOCALINSTANCEPATH XXX="bla">'
@@ -4057,6 +4296,15 @@ testcases_tupleparse_xml = [
             '    </KEYBINDING>'
             '  </INSTANCENAME>'
             '</LOCALINSTANCEPATH>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "LOCALINSTANCEPATH with missing children",
+        dict(
+            xml_str=''
+            '<LOCALINSTANCEPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -4132,7 +4380,7 @@ testcases_tupleparse_xml = [
 
     # INSTANCEPATH tests
     (
-        "INSTANCEPATH with invalid extra child element",
+        "INSTANCEPATH with invalid child element",
         dict(
             xml_str=''
             '<INSTANCEPATH>'
@@ -4147,7 +4395,7 @@ testcases_tupleparse_xml = [
             '      <KEYVALUE>Foo</KEYVALUE>'
             '    </KEYBINDING>'
             '  </INSTANCENAME>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</INSTANCEPATH>',
             exp_result=None,
         ),
@@ -4176,7 +4424,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "INSTANCEPATH with invalid extra attribute",
+        "INSTANCEPATH with invalid attribute",
         dict(
             xml_str=''
             '<INSTANCEPATH XXX="bla">'
@@ -4192,6 +4440,15 @@ testcases_tupleparse_xml = [
             '    </KEYBINDING>'
             '  </INSTANCENAME>'
             '</INSTANCEPATH>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "INSTANCEPATH with missing children",
+        dict(
+            xml_str=''
+            '<INSTANCEPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -4277,7 +4534,7 @@ testcases_tupleparse_xml = [
 
     # OBJECTPATH tests
     (
-        "OBJECTPATH with invalid extra child element",
+        "OBJECTPATH with invalid child element",
         dict(
             xml_str=''
             '<OBJECTPATH>'
@@ -4290,7 +4547,7 @@ testcases_tupleparse_xml = [
             '    </NAMESPACEPATH>'
             '    <CLASSNAME NAME="CIM_Foo"/>'
             '  </CLASSPATH>'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</OBJECTPATH>',
             exp_result=None,
         ),
@@ -4317,7 +4574,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "OBJECTPATH with invalid extra attribute",
+        "OBJECTPATH with invalid attribute",
         dict(
             xml_str=''
             '<OBJECTPATH XXX="bla">'
@@ -4339,8 +4596,7 @@ testcases_tupleparse_xml = [
         "OBJECTPATH with missing child",
         dict(
             xml_str=''
-            '<OBJECTPATH>'
-            '</OBJECTPATH>',
+            '<OBJECTPATH/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -4411,7 +4667,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<INSTANCE CLASSNAME="CIM_Foo">'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</INSTANCE>',
             exp_result=None,
         ),
@@ -4429,11 +4685,10 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "INSTANCE with invalid extra attribute",
+        "INSTANCE with invalid attribute",
         dict(
             xml_str=''
-            '<INSTANCE CLASSNAME="CIM_Foo" XXX="bla">'
-            '</INSTANCE>',
+            '<INSTANCE CLASSNAME="CIM_Foo" XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
@@ -4452,7 +4707,7 @@ testcases_tupleparse_xml = [
                     CIMProperty('Pstring', type='string', value=None,
                                 propagated=False),
                 ],
-                # TODO 1/18 AM: Enable once instance qualifiers supported
+                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
                 # qualifiers=[
                 #     CIMQualifier('Association', value=None, type='boolean'),
                 # ],
@@ -4461,11 +4716,46 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
+        "INSTANCE with missing required attribute CLASSNAME",
+        dict(
+            xml_str=''
+            '<INSTANCE/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "INSTANCE with CLASSNAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            exp_result=CIMInstance('CIM_Foo'),
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCE with CLASSNAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<INSTANCE CLASSNAME="CIM_Foo\xC3\xA9"/>',
+            exp_result=CIMInstance(u'CIM_Foo\u00E9'),
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCE with CLASSNAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<INSTANCE CLASSNAME="CIM_Foo\xF0\x90\x85\x82"/>',
+            exp_result=CIMInstance(u'CIM_Foo\U00010142'),
+        ),
+        None, None, True
+    ),
+    (
         "INSTANCE without qualifiers or properties",
         dict(
             xml_str=''
-            '<INSTANCE CLASSNAME="CIM_Foo">'
-            '</INSTANCE>',
+            '<INSTANCE CLASSNAME="CIM_Foo"/>',
             exp_result=CIMInstance('CIM_Foo'),
         ),
         None, None, True
@@ -4474,11 +4764,10 @@ testcases_tupleparse_xml = [
         "INSTANCE with xml:lang attribute",
         dict(
             xml_str=''
-            '<INSTANCE CLASSNAME="CIM_Foo" xml:lang="en_us">'
-            '</INSTANCE>',
+            '<INSTANCE CLASSNAME="CIM_Foo" xml:lang="en_us"/>',
             exp_result=CIMInstance('CIM_Foo'),
         ),
-        None, None, False  # TODO 1/18 AM: Enable once xml:lang supported
+        None, None, False  # TODO 1/18 AM #1033: Enable once xml:lang supported
     ),
     (
         "INSTANCE with properties",
@@ -4513,7 +4802,7 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM: Enable once instance qualifiers supported
+                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
                 # qualifiers=[
                 #     CIMQualifier('Association', value=None, type='boolean'),
                 #     CIMQualifier('Abstract', value=None, type='boolean'),
@@ -4533,7 +4822,7 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM: Enable once instance qualifiers supported
+                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
                 # qualifiers=[
                 #     CIMQualifier('Association', value=None, type='boolean'),
                 # ],
@@ -4555,7 +4844,7 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM: Enable once instance qualifiers supported
+                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
                 # qualifiers=[
                 #     CIMQualifier('Association', value=None, type='boolean'),
                 # ],
@@ -4577,7 +4866,7 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM: Enable once instance qualifiers supported
+                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
                 # qualifiers=[
                 #     CIMQualifier('Association', value=None, type='boolean'),
                 # ],
@@ -4596,7 +4885,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<CLASS NAME="CIM_Foo">'
-            '  <XXX></XXX>'
+            '  <XXX/>'
             '</CLASS>',
             exp_result=None,
         ),
@@ -4614,21 +4903,55 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        "CLASS with invalid extra attribute",
+        "CLASS with invalid attribute",
         dict(
             xml_str=''
-            '<CLASS NAME="CIM_Foo" XXX="bla">'
-            '</CLASS>',
+            '<CLASS NAME="CIM_Foo" XXX="bla"/>',
             exp_result=None,
         ),
         ParseError, None, True
     ),
     (
+        "CLASS with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<CLASS/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "CLASS with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<CLASS NAME="CIM_Foo"/>',
+            exp_result=CIMClass('CIM_Foo'),
+        ),
+        None, None, True
+    ),
+    (
+        "CLASS with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<CLASS NAME="CIM_Foo\xC3\xA9"/>',
+            exp_result=CIMClass(u'CIM_Foo\u00E9'),
+        ),
+        None, None, True
+    ),
+    (
+        "CLASS with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<CLASS NAME="CIM_Foo\xF0\x90\x85\x82"/>',
+            exp_result=CIMClass(u'CIM_Foo\U00010142'),
+        ),
+        None, None, True
+    ),
+    (
         "CLASS without qualifiers, properties or methods",
         dict(
             xml_str=''
-            '<CLASS NAME="CIM_Foo">'
-            '</CLASS>',
+            '<CLASS NAME="CIM_Foo"/>',
             exp_result=CIMClass('CIM_Foo'),
         ),
         None, None, True
@@ -4637,8 +4960,7 @@ testcases_tupleparse_xml = [
         "CLASS with superclass",
         dict(
             xml_str=''
-            '<CLASS NAME="CIM_Foo" SUPERCLASS="CIM_Bar">'
-            '</CLASS>',
+            '<CLASS NAME="CIM_Foo" SUPERCLASS="CIM_Bar"/>',
             exp_result=CIMClass('CIM_Foo', superclass='CIM_Bar'),
         ),
         None, None, True
@@ -4736,42 +5058,117 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # TODO (EXTEND): PROPERTY tests
+    # PROPERTY tests
     (
-        "PROPERTY with string typed value",
-        dict(
-            xml_str=''
-            '<PROPERTY NAME="Spotty" TYPE="string">'
-            '  <VALUE>Foot</VALUE>'
-            '</PROPERTY>',
-            exp_result=CIMProperty('Spotty', 'Foot', propagated=False),
-        ),
-        None, None, True
-    ),
-    (
-        "PROPERTY with uint16 typed value",
-        dict(
-            xml_str=''
-            '<PROPERTY NAME="Age" TYPE="uint16">'
-            '  <VALUE>32</VALUE>'
-            '</PROPERTY>',
-            exp_result=CIMProperty('Age', Uint16(32), propagated=False),
-        ),
-        None, None, True
-    ),
-    (
-        "PROPERTY with empty string typed value",
+        "PROPERTY with invalid child element",
         dict(
             xml_str=''
             '<PROPERTY NAME="Foo" TYPE="string">'
-            '  <VALUE></VALUE>'
+            '  <XXX/>'
             '</PROPERTY>',
-            exp_result=CIMProperty('Foo', '', type='string', propagated=False),
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with invalid text content",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string">'
+            '  xxx'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with invalid attribute",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with children in incorrect order (tolerated)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string">'
+            '  <VALUE>abc</VALUE>'
+            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '</PROPERTY>',
+            exp_result=CIMProperty(
+                'Foo', type='string', value='abc',
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', value=None, type='boolean'),
+                ],
+            ),
         ),
         None, None, True
     ),
     (
-        "PROPERTY with None string typed value",
+        "PROPERTY with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PROPERTY TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string"/>',
+            exp_result=CIMProperty('Foo', value=None, type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY NAME="Foo\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMProperty(u'Foo\u00E9', value=None, type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
+            exp_result=CIMProperty(u'Foo\U00010142', value=None, type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with CLASSORIGIN and PROPAGATED attributes",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string" CLASSORIGIN="CIM_Foo"'
+            ' PROPAGATED="true"/>',
+            exp_result=CIMProperty('Foo', value=None, type='string',
+                                   class_origin='CIM_Foo', propagated=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with missing required attribute TYPE",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with string typed value that is None",
         dict(
             xml_str=''
             '<PROPERTY NAME="Foo" TYPE="string"/>',
@@ -4781,26 +5178,584 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        "PROPERTY with qualifier",
+        "PROPERTY with string typed value that is empty",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string">'
+            '  <VALUE></VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Foo', value='', type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with string typed value with ASCII characters",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Spotty" TYPE="string">'
+            '  <VALUE>Foot</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Spotty', value='Foot', type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with string typed value with non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY NAME="Spotty" TYPE="string">'
+            b'  <VALUE>\xC3\xA9</VALUE>'
+            b'</PROPERTY>',
+            exp_result=CIMProperty('Spotty', value=u'\u00E9', type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with string typed value with non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY NAME="Spotty" TYPE="string">'
+            b'  <VALUE>\xF0\x90\x85\x82</VALUE>'
+            b'</PROPERTY>',
+            exp_result=CIMProperty('Spotty', value=u'\U00010142', type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with char16 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="char16"/>',
+            exp_result=CIMProperty('Foo', value=None, type='char16',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with char16 typed value with ASCII character",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Spotty" TYPE="char16">'
+            '  <VALUE>F</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Spotty', value='F', type='char16',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with char16 typed value with non-ASCII UCS-2 character",
+        dict(
+            xml_str=b''
+            b'<PROPERTY NAME="Spotty" TYPE="char16">'
+            b'  <VALUE>\xC3\xA9</VALUE>'
+            b'</PROPERTY>',
+            exp_result=CIMProperty('Spotty', value=u'\u00E9', type='char16',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with char16 typed value with non-UCS-2 character",
+        dict(
+            xml_str=b''
+            b'<PROPERTY NAME="Spotty" TYPE="char16">'
+            b'  <VALUE>\xF0\x90\x85\x82</VALUE>'
+            b'</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="uint8"/>',
+            exp_result=CIMProperty('Foo', value=None, type='uint8',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (decimal value)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>42</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(42), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (decimal value with plus)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>+42</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(42), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (hex value)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>0x42</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(0x42), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (hex value with 0X in upper case)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>0X42</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(0x42), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (hex value with plus)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>+0x42</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(0x42), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (decimal value with WS)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>  42  </VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(42), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (invalid value: just WS)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>  </VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (invalid value: empty)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE></VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (invalid value: letters)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>abc</VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (minimum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>0</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(0), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (below minimum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>-1</VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>255</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint8(255), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint8 typed value (above maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint8">'
+            '  <VALUE>256</VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with uint16 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="uint16"/>',
+            exp_result=CIMProperty('Foo', value=None, type='uint16',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint16 typed value (maximum)",
         dict(
             xml_str=''
             '<PROPERTY NAME="Age" TYPE="uint16">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
-            '    <VALUE>TRUE</VALUE>'
-            '  </QUALIFIER>'
+            '  <VALUE>65535</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint16(65535), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint32 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="uint32"/>',
+            exp_result=CIMProperty('Foo', value=None, type='uint32',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint32 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint32">'
+            '  <VALUE>4294967295</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint32(4294967295), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint64 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="uint64"/>',
+            exp_result=CIMProperty('Foo', value=None, type='uint64',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with uint64 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint64">'
+            '  <VALUE>18446744073709551615</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Uint64(18446744073709551615),
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint8 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="sint8"/>',
+            exp_result=CIMProperty('Foo', value=None, type='sint8',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint8 typed value (minimum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint8">'
+            '  <VALUE>-128</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Sint8(-128), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint8 typed value (below minimum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint8">'
+            '  <VALUE>-129</VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with sint8 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint8">'
+            '  <VALUE>127</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Sint8(127), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint8 typed value (above maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint8">'
+            '  <VALUE>128</VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with sint16 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="sint16"/>',
+            exp_result=CIMProperty('Foo', value=None, type='sint16',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint16 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint16">'
+            '  <VALUE>32767</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Sint16(32767), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint32 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="sint32"/>',
+            exp_result=CIMProperty('Foo', value=None, type='sint32',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint32 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint32">'
+            '  <VALUE>2147483647</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Sint32(2147483647), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint64 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="sint64"/>',
+            exp_result=CIMProperty('Foo', value=None, type='sint64',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with sint64 typed value (maximum)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="sint64">'
+            '  <VALUE>9223372036854775807</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Sint64(9223372036854775807),
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real32 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="real32"/>',
+            exp_result=CIMProperty('Foo', value=None, type='real32',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real32 typed value (42.0)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="real32">'
+            '  <VALUE>42.0</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Real32(42.0), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real32 typed value (.0)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="real32">'
+            '  <VALUE>.0</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Real32(0.0), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real32 typed value (-.1e-12)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="real32">'
+            '  <VALUE>-.1e-12</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Real32(-0.1E-12), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real32 typed value (.1E12)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="real32">'
+            '  <VALUE>.1E12</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Real32(0.1E+12), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real32 typed value (+.1e+12)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="real32">'
+            '  <VALUE>+.1e+12</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Real32(0.1E+12), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real64 typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="real64"/>',
+            exp_result=CIMProperty('Foo', value=None, type='real64',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with real64 typed value (+.1e+12)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="real64">'
+            '  <VALUE>+.1e+12</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty('Age', Real64(0.1E+12), propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with datetime typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="datetime"/>',
+            exp_result=CIMProperty('Foo', value=None, type='datetime',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with datetime typed value (point in time)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="datetime">'
+            '  <VALUE>20140924193040.654321+120</VALUE>'
             '</PROPERTY>',
             exp_result=CIMProperty(
-                'Age', None, type='uint16',
-                propagated=False,
-                qualifiers=[
-                    CIMQualifier('Key', True),
-                ]
+                'Age', CIMDateTime('20140924193040.654321+120'),
+                propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with datetime typed value (interval)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="datetime">'
+            '  <VALUE>00000183132542.234567:000</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty(
+                'Age', CIMDateTime('00000183132542.234567:000'),
+                propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with EmbeddedObject=instance and value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY EmbeddedObject="instance" NAME="Foo" TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string',
+                embedded_object='instance', propagated=False,
             ),
         ),
         None, None, True
     ),
     (
-        "PROPERTY with embedded instance",
+        "PROPERTY with EmbeddedObject=instance and invalid value",
+        dict(
+            xml_str=''
+            '<PROPERTY EmbeddedObject="instance" NAME="Foo" TYPE="string">'
+            '  <VALUE>'
+            '    &lt;PROPERTY NAME=&quot;one&quot; TYPE=&quot;uint8&quot;&gt;'
+            '      &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '    &lt;/PROPERTY&gt;'
+            '  </VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with EmbeddedObject=instance and instance value",
         dict(
             xml_str=''
             '<PROPERTY EmbeddedObject="instance" NAME="Foo" TYPE="string">'
@@ -4824,15 +5779,296 @@ testcases_tupleparse_xml = [
                         CIMProperty('two', Uint8(2), propagated=False),
                     ],
                 ),
+                embedded_object='instance',
                 propagated=False,
             ),
         ),
         None, None, True
     ),
-
-    # TODO (EXTEND): PROPERTY.ARRAY tests
     (
-        "PROPERTY.ARRAY with string array typed value",
+        "PROPERTY with EmbeddedObject=object and value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY EmbeddedObject="object" NAME="Foo" TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string',
+                embedded_object='object', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with EmbeddedObject=object and invalid value",
+        dict(
+            xml_str=''
+            '<PROPERTY EmbeddedObject="object" NAME="Foo" TYPE="string">'
+            '  <VALUE>'
+            '    &lt;PROPERTY NAME=&quot;one&quot; TYPE=&quot;uint8&quot;&gt;'
+            '      &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '    &lt;/PROPERTY&gt;'
+            '  </VALUE>'
+            '</PROPERTY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY with EmbeddedObject=object and instance value",
+        dict(
+            xml_str=''
+            '<PROPERTY EmbeddedObject="object" NAME="Foo" TYPE="string">'
+            '  <VALUE>'
+            '    &lt;INSTANCE CLASSNAME=&quot;Foo_Class&quot;&gt;'
+            '      &lt;PROPERTY NAME=&quot;one&quot; TYPE=&quot;uint8&quot;&gt;'
+            '        &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '      &lt;/PROPERTY&gt;'
+            '      &lt;PROPERTY NAME=&quot;two&quot; TYPE=&quot;uint8&quot;&gt;'
+            '        &lt;VALUE&gt;2&lt;/VALUE&gt;'
+            '      &lt;/PROPERTY&gt;'
+            '    &lt;/INSTANCE&gt;'
+            '  </VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty(
+                'Foo',
+                CIMInstance(
+                    'Foo_Class',
+                    properties=[
+                        CIMProperty('one', Uint8(1), propagated=False),
+                        CIMProperty('two', Uint8(2), propagated=False),
+                    ],
+                ),
+                embedded_object='object',
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with EmbeddedObject=object and class value",
+        dict(
+            xml_str=''
+            '<PROPERTY EmbeddedObject="object" NAME="Foo" TYPE="string">'
+            '  <VALUE>'
+            '    &lt;CLASS NAME=&quot;Foo_Class&quot;&gt;'
+            '      &lt;PROPERTY NAME=&quot;one&quot; TYPE=&quot;uint8&quot;&gt;'
+            '        &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '      &lt;/PROPERTY&gt;'
+            '      &lt;PROPERTY NAME=&quot;two&quot; TYPE=&quot;uint8&quot;&gt;'
+            '        &lt;VALUE&gt;2&lt;/VALUE&gt;'
+            '      &lt;/PROPERTY&gt;'
+            '    &lt;/CLASS&gt;'
+            '  </VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty(
+                'Foo',
+                CIMClass(
+                    'Foo_Class',
+                    properties=[
+                        CIMProperty('one', Uint8(1), propagated=False),
+                        CIMProperty('two', Uint8(2), propagated=False),
+                    ],
+                ),
+                embedded_object='object',
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with qualifier but no value (NULL)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Age" TYPE="uint16">'
+            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '</PROPERTY>',
+            exp_result=CIMProperty(
+                'Age', None, type='uint16',
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', True),
+                ]
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with qualifier and value",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string">'
+            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '  <VALUE>abc</VALUE>'
+            '</PROPERTY>',
+            exp_result=CIMProperty(
+                'Foo', type='string', value='abc',
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', value=None, type='boolean'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+
+    # PROPERTY.ARRAY tests
+    (
+        "PROPERTY.ARRAY with invalid child element",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
+            '  <XXX/>'
+            '</PROPERTY.ARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with invalid text content",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
+            '  xxx'
+            '</PROPERTY.ARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with invalid attribute",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with children in incorrect order (tolerated)",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY/>'
+            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '</PROPERTY.ARRAY>',
+            exp_result=CIMProperty(
+                'Foo', value=[], type='string', propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', value=None, type='boolean'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY.ARRAY NAME="Foo\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMProperty(
+                u'Foo\u00E9', value=None, type='string', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY.ARRAY NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
+            exp_result=CIMProperty(
+                u'Foo\U00010142', value=None, type='string', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with CLASSORIGIN and PROPAGATED attributes",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string" CLASSORIGIN="CIM_Foo"'
+            ' PROPAGATED="true"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
+                class_origin='CIM_Foo', propagated=True
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with ARRAYSIZE attribute",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string" ARRAYSIZE="10"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True, array_size=10,
+                propagated=False
+            ),
+        ),
+        None, None, False  # TODO 1/18 AM #1031: Enable once ARRAYSIZE implem.
+    ),
+    (
+        "PROPERTY.ARRAY with missing required attribute TYPE",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with string array typed value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with string array typed value that is empty",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=CIMProperty(
+                'Foo', value=[], type='string', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with string array typed value and 3 items",
         dict(
             xml_str=''
             '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
@@ -4843,19 +6079,25 @@ testcases_tupleparse_xml = [
             '  </VALUE.ARRAY>'
             '</PROPERTY.ARRAY>',
             exp_result=CIMProperty(
-                'Foo', ['a', 'b', 'c'],
+                'Foo', value=['a', 'b', 'c'], type='string', is_array=True,
                 propagated=False,
             ),
         ),
         None, None, True
     ),
     (
-        "PROPERTY.ARRAY with None string array typed value",
+        "PROPERTY.ARRAY with string array typed value and some NULL items",
         dict(
             xml_str=''
-            '<PROPERTY.ARRAY NAME="Foo" TYPE="string"/>',
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE.NULL/>'
+            '    <VALUE>b</VALUE>'
+            '    <VALUE.NULL/>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
             exp_result=CIMProperty(
-                'Foo', None, type='string', is_array=True,
+                'Foo', value=[None, 'b', None], type='string', is_array=True,
                 propagated=False,
             ),
         ),
@@ -4876,8 +6118,8 @@ testcases_tupleparse_xml = [
             '  </VALUE.ARRAY>'
             '</PROPERTY.ARRAY>',
             exp_result=CIMProperty(
-                'Foo', [Uint8(x) for x in [1, 2, 3]],
-                propagated=False,
+                'Foo', value=[Uint8(x) for x in [1, 2, 3]], type='uint8',
+                is_array=True, propagated=False,
                 qualifiers=[
                     CIMQualifier('Key', True),
                 ]
@@ -4886,19 +6128,68 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        "PROPERTY.ARRAY with embedded instances",
+        "PROPERTY.ARRAY with EmbeddedObject=instance and value that is None",
         dict(
             xml_str=''
-            '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo" '
+            '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo"'
+            ' TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
+                embedded_object='instance', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=instance and item that is NULL",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo"'
+            ' TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE.NULL/>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=CIMProperty(
+                'Foo', value=[None], type='string', is_array=True,
+                embedded_object='instance', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=instance and invalid item",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo"'
+            ' TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>'
+            '      &lt;PROPERTY.ARRAY NAME=&quot;one&quot; '
+            '       TYPE=&quot;uint8&quot;&gt;'
+            '        &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '      &lt;/PROPERTY&gt;'
+            '    </VALUE>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=instance and instance item",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo"'
             ' TYPE="string">'
             '  <VALUE.ARRAY>'
             '    <VALUE>'
             '      &lt;INSTANCE CLASSNAME=&quot;Foo_Class&quot;&gt;'
-            '        &lt;PROPERTY NAME=&quot;one&quot; '
+            '        &lt;PROPERTY NAME=&quot;one&quot;'
             '         TYPE=&quot;uint8&quot;&gt;'
             '          &lt;VALUE&gt;1&lt;/VALUE&gt;'
             '        &lt;/PROPERTY&gt;'
-            '        &lt;PROPERTY NAME=&quot;two&quot; '
+            '        &lt;PROPERTY NAME=&quot;two&quot;'
             '         TYPE=&quot;uint8&quot;&gt;'
             '          &lt;VALUE&gt;2&lt;/VALUE&gt;'
             '        &lt;/PROPERTY&gt;'
@@ -4908,7 +6199,7 @@ testcases_tupleparse_xml = [
             '</PROPERTY.ARRAY>',
             exp_result=CIMProperty(
                 'Foo',
-                [
+                value=[
                     CIMInstance(
                         'Foo_Class',
                         properties=[
@@ -4917,27 +6208,256 @@ testcases_tupleparse_xml = [
                         ],
                     ),
                 ],
+                embedded_object='instance', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=object and value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="object" NAME="Foo"'
+            ' TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
+                embedded_object='object', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=object and item that is NULL",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="object" NAME="Foo"'
+            ' TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE.NULL/>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=CIMProperty(
+                'Foo', value=[None], type='string', is_array=True,
+                embedded_object='object', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=object and invalid item",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="object" NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>'
+            '      &lt;PROPERTY NAME=&quot;one&quot; TYPE=&quot;uint8&quot;&gt;'
+            '        &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '      &lt;/PROPERTY&gt;'
+            '    </VALUE>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=object and instance item",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="object" NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>'
+            '      &lt;INSTANCE CLASSNAME=&quot;Foo_Class&quot;&gt;'
+            '        &lt;PROPERTY NAME=&quot;one&quot;'
+            '         TYPE=&quot;uint8&quot;&gt;'
+            '          &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '        &lt;/PROPERTY&gt;'
+            '        &lt;PROPERTY NAME=&quot;two&quot;'
+            '         TYPE=&quot;uint8&quot;&gt;'
+            '          &lt;VALUE&gt;2&lt;/VALUE&gt;'
+            '        &lt;/PROPERTY&gt;'
+            '      &lt;/INSTANCE&gt;'
+            '    </VALUE>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=CIMProperty(
+                'Foo',
+                value=[
+                    CIMInstance(
+                        'Foo_Class',
+                        properties=[
+                            CIMProperty('one', Uint8(1), propagated=False),
+                            CIMProperty('two', Uint8(2), propagated=False),
+                        ],
+                    ),
+                ],
+                embedded_object='object', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EmbeddedObject=object and class item",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EmbeddedObject="object" NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>'
+            '      &lt;CLASS NAME=&quot;Foo_Class&quot;&gt;'
+            '        &lt;PROPERTY NAME=&quot;one&quot;'
+            '         TYPE=&quot;uint8&quot;&gt;'
+            '          &lt;VALUE&gt;1&lt;/VALUE&gt;'
+            '        &lt;/PROPERTY&gt;'
+            '        &lt;PROPERTY NAME=&quot;two&quot;'
+            '         TYPE=&quot;uint8&quot;&gt;'
+            '          &lt;VALUE&gt;2&lt;/VALUE&gt;'
+            '        &lt;/PROPERTY&gt;'
+            '      &lt;/CLASS&gt;'
+            '    </VALUE>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=CIMProperty(
+                'Foo',
+                value=[
+                    CIMClass(
+                        'Foo_Class',
+                        properties=[
+                            CIMProperty('one', Uint8(1), propagated=False),
+                            CIMProperty('two', Uint8(2), propagated=False),
+                        ],
+                    ),
+                ],
+                embedded_object='object', is_array=True,
                 propagated=False,
             ),
         ),
         None, None, True
     ),
 
-    # TODO (EXTEND): PROPERTY.REFERENCE tests
+    # PROPERTY.REFERENCE tests
     (
-        "PROPERTY.REFERENCE with value None",
+        "PROPERTY.REFERENCE with invalid child element",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <XXX/>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with invalid text content",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  xxx'
+            '</PROPERTY.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with invalid attribute",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with children in incorrect order (tolerated)",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo',
+                value=CIMInstanceName('CIM_Foo'),
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', value=None, type='boolean'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with NAME using ASCII characters",
         dict(
             xml_str=''
             '<PROPERTY.REFERENCE NAME="Foo"/>',
             exp_result=CIMProperty(
-                'Foo', None, type='reference',
+                'Foo', value=None, type='reference',
                 propagated=False,
             ),
         ),
         None, None, True
     ),
     (
-        "PROPERTY.REFERENCE with value",
+        "PROPERTY.REFERENCE with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY.REFERENCE NAME="Foo\xC3\xA9"/>',
+            exp_result=CIMProperty(
+                u'Foo\u00E9', value=None, type='reference',
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PROPERTY.REFERENCE NAME="Foo\xF0\x90\x85\x82"/>',
+            exp_result=CIMProperty(
+                u'Foo\U00010142', value=None, type='reference',
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with CLASSORIGIN and PROPAGATED attributes",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo" CLASSORIGIN="CIM_Foo"'
+            ' PROPAGATED="true"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='reference',
+                class_origin='CIM_Foo', propagated=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='reference', propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with ref value that is a INSTANCENAME",
         dict(
             xml_str=''
             '<PROPERTY.REFERENCE NAME="Foo">'
@@ -4947,11 +6467,130 @@ testcases_tupleparse_xml = [
             '</PROPERTY.REFERENCE>',
             exp_result=CIMProperty(
                 'Foo',
-                CIMInstanceName('CIM_Foo'),
+                value=CIMInstanceName('CIM_Foo'),
                 propagated=False,
             ),
         ),
         None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with ref value that is a LOCALINSTANCEPATH",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <LOCALINSTANCEPATH>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '      <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    </LOCALINSTANCEPATH>'
+            '  </VALUE.REFERENCE>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo',
+                value=CIMInstanceName('CIM_Foo', namespace='foo'),
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with ref value that is a INSTANCEPATH",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCEPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    </INSTANCEPATH>'
+            '  </VALUE.REFERENCE>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo',
+                value=CIMInstanceName(
+                    'CIM_Foo', namespace='foo', host='woot.com',
+                ),
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 1/18 AM #1035: Clarify class path support
+        "PROPERTY.REFERENCE with ref value that is a CLASSNAME (not used)",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo', type='reference',
+                value=None,  # CIMClassName('CIM_Foo'),
+                propagated=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        # TODO 1/18 AM #1035: Clarify class path support
+        "PROPERTY.REFERENCE with ref value that is a LOCALCLASSPATH (not used)",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <LOCALCLASSPATH>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </LOCALCLASSPATH>'
+            '  </VALUE.REFERENCE>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo', type='reference',
+                value=None,  # CIMClassName('CIM_Foo', namespace='foo'),
+                propagated=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        # TODO 1/18 AM #1035: Clarify class path support
+        "PROPERTY.REFERENCE with ref value that is a CLASSPATH (not used)",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </CLASSPATH>'
+            '  </VALUE.REFERENCE>'
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo', type='reference',
+                value=None,
+                # value=CIMClassName(
+                #     'CIM_Foo', namespace='foo', host='woot.com',
+                # ),
+                propagated=False,
+            ),
+        ),
+        None, None, False
     ),
     (
         "PROPERTY.REFERENCE with value and qualifiers",
@@ -4976,28 +6615,19 @@ testcases_tupleparse_xml = [
         ),
         None, None, True
     ),
-
-    # TODO (EXTEND): PARAMETER tests
     (
-        "PARAMETER with string typed value",
+        "PROPERTY.REFERENCE that is None and with qualifiers",
         dict(
             xml_str=''
-            '<PARAMETER NAME="Param" TYPE="string"/>',
-            exp_result=CIMParameter('Param', 'string'),
-        ),
-        None, None, True
-    ),
-    (
-        "PARAMETER with string typed value and qualifiers",
-        dict(
-            xml_str=''
-            '<PARAMETER NAME="Param" TYPE="string">'
+            '<PROPERTY.REFERENCE NAME="Foo">'
             '  <QUALIFIER NAME="Key" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
-            '</PARAMETER>',
-            exp_result=CIMParameter(
-                'Param', 'string',
+            '</PROPERTY.REFERENCE>',
+            exp_result=CIMProperty(
+                'Foo', type='reference',
+                value=None,
+                propagated=False,
                 qualifiers=[
                     CIMQualifier('Key', True),
                 ]
@@ -5006,13 +6636,307 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
 
-    # TODO (EXTEND): PARAMETER.REFERENCE tests
+    # PARAMETER tests
     (
-        "PARAMETER.REFERENCE without value",
+        "PARAMETER with invalid child element",
         dict(
             xml_str=''
-            '<PARAMETER.REFERENCE NAME="RefParam"/>',
-            exp_result=CIMParameter('RefParam', 'reference'),
+            '<PARAMETER NAME="Parm" TYPE="string">'
+            '  <XXX/>'
+            '</PARAMETER>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER with invalid text content",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="string">'
+            '  xxx'
+            '</PARAMETER>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER with invalid attribute",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PARAMETER TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="string"/>',
+            exp_result=CIMParameter('Parm', type='string'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER NAME="Parm\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMParameter(u'Parm\u00E9', type='string'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER NAME="Parm\xF0\x90\x85\x82" TYPE="string"/>',
+            exp_result=CIMParameter(u'Parm\U00010142', type='string'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER with missing required attribute TYPE",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER of type string",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="string"/>',
+            exp_result=CIMParameter('Parm', type='string'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type char16",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="char16"/>',
+            exp_result=CIMParameter('Parm', type='char16'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type boolean",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="boolean"/>',
+            exp_result=CIMParameter('Parm', type='boolean'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type uint8",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="uint8"/>',
+            exp_result=CIMParameter('Parm', type='uint8'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type uint16",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="uint16"/>',
+            exp_result=CIMParameter('Parm', type='uint16'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type uint32",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="uint32"/>',
+            exp_result=CIMParameter('Parm', type='uint32'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type uint64",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="uint64"/>',
+            exp_result=CIMParameter('Parm', type='uint64'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type sint8",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="sint8"/>',
+            exp_result=CIMParameter('Parm', type='sint8'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type sint16",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="sint16"/>',
+            exp_result=CIMParameter('Parm', type='sint16'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type sint32",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="sint32"/>',
+            exp_result=CIMParameter('Parm', type='sint32'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type sint64",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="sint64"/>',
+            exp_result=CIMParameter('Parm', type='sint64'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type real32",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="real32"/>',
+            exp_result=CIMParameter('Parm', type='real32'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type real64",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="real64"/>',
+            exp_result=CIMParameter('Parm', type='real64'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type datetime",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="datetime"/>',
+            exp_result=CIMParameter('Parm', type='datetime'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER of type reference",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="reference"/>',
+            exp_result=CIMParameter('Parm', type='reference'),
+        ),
+        None, None, True
+        # TODO 1/18 AM: Should this not be rejected as invalid type?
+    ),
+    (
+        "PARAMETER with two qualifiers",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="string">'
+            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '  <QUALIFIER NAME="In" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '</PARAMETER>',
+            exp_result=CIMParameter(
+                'Parm', type='string',
+                qualifiers=[
+                    CIMQualifier('Key', True),
+                    CIMQualifier('In', True),
+                ]
+            ),
+        ),
+        None, None, True
+    ),
+
+    # PARAMETER.REFERENCE tests
+    (
+        "PARAMETER.REFERENCE with invalid child element",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFERENCE NAME="Parm">'
+            '  <XXX/>'
+            '</PARAMETER.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE with invalid text content",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFERENCE NAME="Parm">'
+            '  xxx'
+            '</PARAMETER.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE with invalid attribute",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFERENCE NAME="Parm" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFERENCE/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFERENCE NAME="Parm"/>',
+            exp_result=CIMParameter('Parm', type='reference'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER.REFERENCE NAME="Parm\xC3\xA9"/>',
+            exp_result=CIMParameter(u'Parm\u00E9', type='reference'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER.REFERENCE NAME="Parm\xF0\x90\x85\x82"/>',
+            exp_result=CIMParameter(u'Parm\U00010142', type='reference'),
         ),
         None, None, True
     ),
@@ -5020,40 +6944,103 @@ testcases_tupleparse_xml = [
         "PARAMETER.REFERENCE with reference class",
         dict(
             xml_str=''
-            '<PARAMETER.REFERENCE NAME="RefParam" REFERENCECLASS="CIM_Foo"/>',
+            '<PARAMETER.REFERENCE NAME="Parm" REFERENCECLASS="CIM_Foo"/>',
             exp_result=CIMParameter(
-                'RefParam', 'reference', reference_class='CIM_Foo'
+                'Parm', type='reference', reference_class='CIM_Foo'
             ),
         ),
         None, None, True
     ),
     (
-        "PARAMETER.REFERENCE with reference class and qualifiers",
+        "PARAMETER.REFERENCE with two qualifiers",
         dict(
             xml_str=''
-            '<PARAMETER.REFERENCE NAME="RefParam" REFERENCECLASS="CIM_Foo">'
+            '<PARAMETER.REFERENCE NAME="Parm" REFERENCECLASS="CIM_Foo">'
             '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '  <QUALIFIER NAME="In" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER.REFERENCE>',
             exp_result=CIMParameter(
-                'RefParam', 'reference',
-                reference_class='CIM_Foo',
+                'Parm', type='reference', reference_class='CIM_Foo',
                 qualifiers=[
                     CIMQualifier('Key', True),
+                    CIMQualifier('In', True),
                 ]
             ),
         ),
         None, None, True
     ),
 
-    # TODO (EXTEND): PARAMETER.ARRAY tests
+    # PARAMETER.ARRAY tests
     (
-        "PARAMETER.ARRAY string typed",
+        "PARAMETER.ARRAY with invalid child element",
         dict(
             xml_str=''
-            '<PARAMETER.ARRAY NAME="Array" TYPE="string"/>',
-            exp_result=CIMParameter('Array', 'string', is_array=True),
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="string">'
+            '  <XXX/>'
+            '</PARAMETER.ARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with invalid text content",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="string">'
+            '  xxx'
+            '</PARAMETER.ARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with invalid attribute",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="string"/>',
+            exp_result=CIMParameter('Parm', type='string', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER.ARRAY NAME="Parm\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMParameter(
+                u'Parm\u00E9', type='string', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER.ARRAY NAME="Parm\xF0\x90\x85\x82" TYPE="string"/>',
+            exp_result=CIMParameter(
+                u'Parm\U00010142', type='string', is_array=True),
         ),
         None, None, True
     ),
@@ -5061,39 +7048,238 @@ testcases_tupleparse_xml = [
         "PARAMETER.ARRAY fixed array",
         dict(
             xml_str=''
-            '<PARAMETER.ARRAY ARRAYSIZE="10" NAME="Array" TYPE="string"/>',
+            '<PARAMETER.ARRAY ARRAYSIZE="10" NAME="Parm" TYPE="string"/>',
             exp_result=CIMParameter(
-                'Array', 'string', is_array=True, array_size=10
+                'Parm', type='string', is_array=True, array_size=10
             ),
         ),
         None, None, True
     ),
     (
-        "PARAMETER.ARRAY fixed array with qualifiers",
+        "PARAMETER.ARRAY with missing required attribute TYPE",
         dict(
             xml_str=''
-            '<PARAMETER.ARRAY ARRAYSIZE="10" NAME="Array" TYPE="string">'
+            '<PARAMETER.ARRAY NAME="Parm"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type string",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="string"/>',
+            exp_result=CIMParameter('Parm', type='string', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type char16",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="char16"/>',
+            exp_result=CIMParameter('Parm', type='char16', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type boolean",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="boolean"/>',
+            exp_result=CIMParameter('Parm', type='boolean', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type uint8",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="uint8"/>',
+            exp_result=CIMParameter('Parm', type='uint8', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type uint16",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="uint16"/>',
+            exp_result=CIMParameter('Parm', type='uint16', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type uint32",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="uint32"/>',
+            exp_result=CIMParameter('Parm', type='uint32', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type uint64",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="uint64"/>',
+            exp_result=CIMParameter('Parm', type='uint64', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type sint8",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="sint8"/>',
+            exp_result=CIMParameter('Parm', type='sint8', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type sint16",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="sint16"/>',
+            exp_result=CIMParameter('Parm', type='sint16', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type sint32",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="sint32"/>',
+            exp_result=CIMParameter('Parm', type='sint32', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type sint64",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="sint64"/>',
+            exp_result=CIMParameter('Parm', type='sint64', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type real32",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="real32"/>',
+            exp_result=CIMParameter('Parm', type='real32', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type real64",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="real64"/>',
+            exp_result=CIMParameter('Parm', type='real64', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY of type datetime",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="datetime"/>',
+            exp_result=CIMParameter('Parm', type='datetime', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with two qualifiers",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="string">'
             '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '  <QUALIFIER NAME="In" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER.ARRAY>',
             exp_result=CIMParameter(
-                'Array', 'string', is_array=True, array_size=10,
+                'Parm', type='string', is_array=True,
                 qualifiers=[
                     CIMQualifier('Key', True),
+                    CIMQualifier('In', True),
                 ]
             ),
         ),
         None, None, True
     ),
 
-    # TODO (EXTEND): PARAMETER.REFARRAY tests
+    # PARAMETER.REFARRAY tests
     (
-        "PARAMETER.REFARRAY",
+        "PARAMETER.REFARRAY with invalid child element",
         dict(
             xml_str=''
-            '<PARAMETER.REFARRAY NAME="RefArray"/>',
-            exp_result=CIMParameter('RefArray', 'reference', is_array=True),
+            '<PARAMETER.REFARRAY NAME="Parm">'
+            '  <XXX/>'
+            '</PARAMETER.REFARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY with invalid text content",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFARRAY NAME="Parm">'
+            '  xxx'
+            '</PARAMETER.REFARRAY>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY with invalid attribute",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFARRAY NAME="Parm" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFARRAY/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<PARAMETER.REFARRAY NAME="Parm"/>',
+            exp_result=CIMParameter('Parm', type='reference', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER.REFARRAY NAME="Parm\xC3\xA9"/>',
+            exp_result=CIMParameter(
+                u'Parm\u00E9', type='reference', is_array=True),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<PARAMETER.REFARRAY NAME="Parm\xF0\x90\x85\x82"/>',
+            exp_result=CIMParameter(
+                u'Parm\U00010142', type='reference', is_array=True),
         ),
         None, None, True
     ),
@@ -5101,98 +7287,2229 @@ testcases_tupleparse_xml = [
         "PARAMETER.REFARRAY with reference class",
         dict(
             xml_str=''
-            '<PARAMETER.REFARRAY NAME="RefArray" '
-            ' REFERENCECLASS="CIM_Foo"/>',
+            '<PARAMETER.REFARRAY NAME="Parm" REFERENCECLASS="CIM_Foo"/>',
             exp_result=CIMParameter(
-                'RefArray', 'reference', is_array=True,
+                'Parm', type='reference', is_array=True,
                 reference_class='CIM_Foo'
             ),
         ),
         None, None, True
     ),
     (
-        "PARAMETER.REFARRAY fixed size with reference class",
+        "PARAMETER.REFARRAY with fixed size",
         dict(
             xml_str=''
-            '<PARAMETER.REFARRAY ARRAYSIZE="10" NAME="RefArray" '
-            ' REFERENCECLASS="CIM_Foo"/>',
+            '<PARAMETER.REFARRAY NAME="Array" ARRAYSIZE="10"/>',
             exp_result=CIMParameter(
-                'RefArray', 'reference', is_array=True, array_size=10,
-                reference_class='CIM_Foo'
+                'Array', type='reference', is_array=True, array_size=10,
             ),
         ),
         None, None, True
     ),
     (
-        "PARAMETER.REFARRAY fixed size with reference class and qualifiers",
+        "PARAMETER.REFARRAY with two qualifiers",
         dict(
             xml_str=''
-            '<PARAMETER.REFARRAY ARRAYSIZE="10" NAME="RefArray" '
-            ' REFERENCECLASS="CIM_Foo">'
+            '<PARAMETER.REFARRAY NAME="Parm">'
             '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '  <QUALIFIER NAME="Id" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER.REFARRAY>',
             exp_result=CIMParameter(
-                'RefArray', 'reference', is_array=True, array_size=10,
-                reference_class='CIM_Foo',
+                'Parm', type='reference', is_array=True,
                 qualifiers=[
                     CIMQualifier('Key', True),
+                    CIMQualifier('Id', True),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+
+    # METHOD tests
+    (
+        "METHOD with invalid child element",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="string">'
+            '  <XXX/>'
+            '</METHOD>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "METHOD with invalid text content",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="string">'
+            '  xxx'
+            '</METHOD>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "METHOD with invalid attribute",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "METHOD with children in incorrect order (tolerated)",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="string">'
+            '  <PARAMETER NAME="Parm1" TYPE="uint32"/>'
+            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '</METHOD>',
+            exp_result=CIMMethod(
+                'Foo', return_type='string',
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', value=None, type='boolean'),
+                ],
+                parameters=[
+                    CIMParameter('Parm1', type='uint32'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHOD with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<METHOD TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "METHOD with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="string"/>',
+            exp_result=CIMMethod('Foo', return_type='string',
+                                 propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "METHOD with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<METHOD NAME="Foo\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMMethod(u'Foo\u00E9', return_type='string',
+                                 propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "METHOD with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<METHOD NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
+            exp_result=CIMMethod(u'Foo\U00010142', return_type='string',
+                                 propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "METHOD with CLASSORIGIN and PROPAGATED attributes",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="string" CLASSORIGIN="CIM_Foo"'
+            ' PROPAGATED="true"/>',
+            exp_result=CIMMethod('Foo', return_type='string',
+                                 class_origin='CIM_Foo', propagated=True),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1038: Clarify how to deal with METHOD without TYPE
+        # In DSP0201, TYPE is optional and omitting it means a void return
+        # type. That is not supported in DSP0004.
+        # In pywbem, the tupleparser defines TYPE as optional, but then fails
+        # when creating the CIMMethod object because that rejects
+        # return_type=None.
+        # So we cannot even define a testcase for this situation (we cannot
+        # expect a ParseError due to a missing TYPE, and we cannot test the
+        # handling of an omitted TYPE).
+        "METHOD without optional attribute TYPE",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo"/>',
+            exp_result=None,
+        ),
+        ParseError, None, False  # Disabled for now, see comment above
+    ),
+    (
+        "METHOD with two qualifiers",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Age" TYPE="uint16">'
+            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '  <QUALIFIER NAME="Counter" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '</METHOD>',
+            exp_result=CIMMethod(
+                'Age', return_type='uint16',
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', True),
+                    CIMQualifier('Counter', True),
                 ]
             ),
         ),
         None, None, True
     ),
+    (
+        "METHOD with multiple parameters of different kind (in opposite order "
+        "of declaration in DTD, and decreasing order of names)",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Age" TYPE="uint16">'
+            '  <PARAMETER.REFARRAY NAME="Parm4" REFERENCECLASS="CIM_Foo"/>'
+            '  <PARAMETER.ARRAY NAME="Parm3" TYPE="uint32"/>'
+            '  <PARAMETER.REFERENCE NAME="Parm2" REFERENCECLASS="CIM_Foo"/>'
+            '  <PARAMETER NAME="Parm1" TYPE="uint32"/>'
+            '</METHOD>',
+            exp_result=CIMMethod(
+                'Age', return_type='uint16',
+                propagated=False,
+                parameters=[
+                    CIMParameter('Parm4', type='reference', is_array=True,
+                                 reference_class='CIM_Foo'),
+                    CIMParameter('Parm3', type='uint32', is_array=True),
+                    CIMParameter('Parm2', type='reference',
+                                 reference_class='CIM_Foo'),
+                    CIMParameter('Parm1', type='uint32'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHOD with one qualifier and one parameter",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Age" TYPE="uint16">'
+            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '    <VALUE>TRUE</VALUE>'
+            '  </QUALIFIER>'
+            '  <PARAMETER NAME="Parm" TYPE="uint32"/>'
+            '</METHOD>',
+            exp_result=CIMMethod(
+                'Age', return_type='uint16',
+                propagated=False,
+                qualifiers=[
+                    CIMQualifier('Key', True),
+                ],
+                parameters=[
+                    CIMParameter('Parm', type='uint32'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
 
-    # TODO: METHOD tests
+    # SCOPE tests
+    (
+        "SCOPE with invalid child element",
+        dict(
+            xml_str=''
+            '<SCOPE>'
+            '  <XXX/>'
+            '</SCOPE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "SCOPE with invalid text content",
+        dict(
+            xml_str=''
+            '<SCOPE>'
+            '  xxx'
+            '</SCOPE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "SCOPE with invalid attribute",
+        dict(
+            xml_str=''
+            '<SCOPE XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "SCOPE with boolean attribute 'true' (lower case)",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="true"/>',
+            exp_result={
+                u'CLASS': True,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE with boolean attribute 'TrUe' (mixed case)",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="TrUe"/>',
+            exp_result={
+                u'CLASS': True,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE with boolean attribute 'TRUE' (upper case)",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="TrUe"/>',
+            exp_result={
+                u'CLASS': True,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE with boolean attribute 'false' (lower case)",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="false"/>',
+            exp_result={
+                u'CLASS': False,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE with boolean attribute 'FaLsE' (mixed case)",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="FaLsE"/>',
+            exp_result={
+                u'CLASS': False,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE with boolean attribute 'FALSE' (upper case)",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="FALSE"/>',
+            exp_result={
+                u'CLASS': False,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1040: Enable once invalid attr values are rejected
+        "SCOPE with invalid boolean attribute",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS="XXX"/>',
+            exp_result=None,
+        ),
+        ParseError, None, False
+    ),
+    (
+        # TODO 2/18 AM #1040: Enable once invalid attr values are rejected
+        "SCOPE with invalid empty boolean attribute",
+        dict(
+            xml_str=''
+            '<SCOPE CLASS=""/>',
+            exp_result=None,
+        ),
+        ParseError, None, False
+    ),
+    (
+        "SCOPE with all supported scope attributes with different values",
+        dict(
+            xml_str=''
+            '<SCOPE'
+            ' REFERENCE="true"'
+            ' CLASS="true"'
+            ' ASSOCIATION="false"'
+            ' PROPERTY="false"'
+            ' PARAMETER="false"'
+            ' INDICATION="true"'
+            ' METHOD="true"'
+            '/>',
+            exp_result={
+                u'CLASS': True,
+                u'ASSOCIATION': False,
+                u'REFERENCE': True,
+                u'PROPERTY': False,
+                u'METHOD': True,
+                u'PARAMETER': False,
+                u'INDICATION': True,
+            },
+        ),
+        None, None, True
+    ),
 
-    # TODO: SCOPE tests
+    # QUALIFIER tests
+    (
+        "QUALIFIER with invalid child element",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string">'
+            '  <XXX/>'
+            '</QUALIFIER>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER with invalid text content",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string">'
+            '  xxx'
+            '</QUALIFIER>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER with invalid attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<QUALIFIER TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<QUALIFIER NAME="Qual\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMQualifier(
+                u'Qual\u00E9', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<QUALIFIER NAME="Qual\xF0\x90\x85\x82" TYPE="string"/>',
+            exp_result=CIMQualifier(
+                u'Qual\U00010142', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with OVERRIDABLE attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="true"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                overridable=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with OVERRIDABLE attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="TrUe"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                overridable=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with OVERRIDABLE attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="false"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                overridable=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with OVERRIDABLE attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="FaLsE"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                overridable=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with TOSUBCLASS attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="true"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                tosubclass=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with TOSUBCLASS attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="TrUe"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                tosubclass=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with TOSUBCLASS attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="false"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                tosubclass=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with TOSUBCLASS attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="FaLsE"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                tosubclass=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with TOINSTANCE attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="true"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                toinstance=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with TOINSTANCE attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="TrUe"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                toinstance=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with TOINSTANCE attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="false"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                toinstance=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with TOINSTANCE attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="FaLsE"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                toinstance=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with TRANSLATABLE attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="true"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                translatable=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with TRANSLATABLE attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="TrUe"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                translatable=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with TRANSLATABLE attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="false"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                translatable=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with TRANSLATABLE attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="FaLsE"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                translatable=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with PROPAGATED attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="true"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                propagated=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with PROPAGATED attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="TrUe"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                propagated=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with PROPAGATED attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="false"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER with PROPAGATED attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="FaLsE"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                propagated=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER with missing required attribute TYPE",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER with boolean typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="boolean"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='boolean',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with boolean typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="boolean">'
+            '  <VALUE>true</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=True, type='boolean',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with boolean typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="boolean">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='boolean',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with string typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with string typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string">'
+            '  <VALUE>abc</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value='abc', type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with string typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with char16 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="char16"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='char16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with char16 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="char16">'
+            '  <VALUE>a</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value='a', type='char16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with char16 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="char16">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='char16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint8 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint8"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='uint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint8 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint8">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='uint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint8 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint8">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='uint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint16 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint16"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='uint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint16 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint16">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='uint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint16 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint16">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='uint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint32 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint32"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='uint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint32 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint32">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='uint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint32 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint32">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='uint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint64 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint64"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='uint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint64 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint64">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='uint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with uint64 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="uint64">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='uint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint8 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint8"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='sint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint8 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint8">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='sint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint8 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint8">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='sint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint16 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint16"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='sint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint16 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint16">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='sint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint16 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint16">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='sint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint32 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint32"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='sint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint32 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint32">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='sint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint32 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint32">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='sint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint64 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint64"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='sint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint64 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint64">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42, type='sint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with sint64 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="sint64">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='sint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with real32 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="real32"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='real32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with real32 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="real32">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42.0, type='real32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with real32 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="real32">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='real32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with real64 typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="real64"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='real64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with real64 typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="real64">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=42.0, type='real64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with real64 typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="real64">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='real64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with datetime typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="datetime"/>',
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='datetime',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with datetime typed simple value",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="datetime">'
+            '  <VALUE>20140924193040.654321+120</VALUE>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value='20140924193040.654321+120', type='datetime',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with datetime typed array value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="datetime">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=CIMQualifier(
+                'Qual', value=[], type='datetime',
+            ),
+        ),
+        None, None, True
+    ),
 
-    # TODO: QUALIFIER tests
-
-    # TODO: QUALIFIER.DECLARATION tests
-
-    # TODO: EMBEDDEDOBJECT tests
+    # QUALIFIER.DECLARATION tests
+    (
+        "QUALIFIER.DECLARATION with invalid child element",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string">'
+            '  <XXX/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with invalid text content",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string">'
+            '  xxx'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with invalid attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string" XXX="bla"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with missing required attribute NAME",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION TYPE="string"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with NAME using ASCII characters",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with NAME using non-ASCII UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<QUALIFIER.DECLARATION NAME="Qual\xC3\xA9" TYPE="string"/>',
+            exp_result=CIMQualifierDeclaration(
+                u'Qual\u00E9', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with NAME using non-UCS-2 characters",
+        dict(
+            xml_str=b''
+            b'<QUALIFIER.DECLARATION NAME="Qual\xF0\x90\x85\x82"'
+            b' TYPE="string"/>',
+            exp_result=CIMQualifierDeclaration(
+                u'Qual\U00010142', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with OVERRIDABLE attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' OVERRIDABLE="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                overridable=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with OVERRIDABLE attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' OVERRIDABLE="TrUe"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                overridable=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with OVERRIDABLE attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' OVERRIDABLE="false"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                overridable=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with OVERRIDABLE attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' OVERRIDABLE="FaLsE"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                overridable=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with TOSUBCLASS attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOSUBCLASS="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                tosubclass=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with TOSUBCLASS attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOSUBCLASS="TrUe"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                tosubclass=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with TOSUBCLASS attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOSUBCLASS="false"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                tosubclass=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with TOSUBCLASS attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOSUBCLASS="FaLsE"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                tosubclass=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with TOINSTANCE attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOINSTANCE="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                toinstance=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with TOINSTANCE attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOINSTANCE="TrUe"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                toinstance=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with TOINSTANCE attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOINSTANCE="false"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                toinstance=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with TOINSTANCE attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOINSTANCE="FaLsE"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                toinstance=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with TRANSLATABLE attribute (true)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TRANSLATABLE="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                translatable=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with TRANSLATABLE attribute (TrUe)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TRANSLATABLE="TrUe"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                translatable=True,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with TRANSLATABLE attribute (false)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TRANSLATABLE="false"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                translatable=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
+        "QUALIFIER.DECLARATION with TRANSLATABLE attribute (FaLsE)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TRANSLATABLE="FaLsE"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                translatable=False,
+            ),
+        ),
+        None, None, False
+    ),
+    (
+        "QUALIFIER.DECLARATION with missing required attribute TYPE",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with boolean typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='boolean',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with boolean typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean">'
+            '  <VALUE>true</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=True, type='boolean',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with boolean typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean" ISARRAY="true">'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='boolean', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with boolean typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='boolean', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with string typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with string typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string">'
+            '  <VALUE>abc</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value='abc', type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with string typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='string', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with string typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with char16 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='char16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with char16 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16">'
+            '  <VALUE>a</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value='a', type='char16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with char16 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='char16', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with char16 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='char16', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint8 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint8 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='uint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint8 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint8', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint8 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='uint8', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint16 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint16 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='uint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint16 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint16', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint16 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='uint16', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint32 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint32 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='uint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint32 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint32', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint32 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='uint32', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint64 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint64 typed simple default alue",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='uint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint64 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='uint64', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint64 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='uint64', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint8 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint8 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='sint8',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint8 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint8', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint8 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='sint8', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint16 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint16 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='sint16',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint16 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint16', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint16 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='sint16', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint32 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint32 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='sint32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint32 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint32', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint32 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='sint32', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint64 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint64 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42, type='sint64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint64 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='sint64', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint64 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='sint64', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real32 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='real32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real32 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42.0, type='real32',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real32 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='real32', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real32 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='real32', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real64 typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='real64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real64 typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64">'
+            '  <VALUE>42</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=42.0, type='real64',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real64 typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64" ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='real64', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real64 typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='real64', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with datetime typed simple default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='datetime',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with datetime typed simple default value",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime">'
+            '  <VALUE>20140924193040.654321+120</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value='20140924193040.654321+120', type='datetime',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with datetime typed array default value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime"'
+            ' ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='datetime', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with datetime typed array default value (empty)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=[], type='datetime', is_array=True,
+            ),
+        ),
+        None, None, True
+    ),
 
     # TODO: IPARAMVALUE tests
-
     # TODO: PARAMVALUE tests
-
     # TODO: EXPPARAMVALUE tests
-
     # TODO: RETURNVALUE tests
-
     # TODO: IRETURNVALUE tests
-
     # TODO: IMETHODCALL tests
-
     # TODO: IMETHODRESPONSE tests
-
     # TODO: METHODCALL tests
-
     # TODO: METHODRESPONSE tests
-
     # TODO: EXPMETHODCALL tests
-
     # TODO: EXPMETHODRESPONSE tests
-
     # TODO: MESSAGE tests
-
     # TODO: SIMPLEREQ tests
-
     # TODO: SIMPLERSP tests
-
-    # TODO: MULTIREQ tests
-
-    # TODO: MULTIRSP tests
-
     # TODO: SIMPLEEXPREQ tests
-
     # TODO: SIMPLEEXPRSP tests
-
-    # TODO: MULTIEXPREQ tests
-
-    # TODO: MULTIEXPRSP tests
 
 ]
 
@@ -5218,5 +9535,7 @@ def test_tupleparse_xml(
 
     # The code to be tested
     result = tupleparse.parse_any(tt)
+
+    assert exp_exc_types is None, "Expected exception was not raised"
 
     assert result == exp_result, "Input CIM-XML:\n%s" % xml_str

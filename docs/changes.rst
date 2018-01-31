@@ -459,8 +459,9 @@ Bug fixes
   UCS-2 characters. Such characters are now rejected by raising ParseError.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
-  tolerated invalid child elements under INSTANCE or ERROR elements. This
-  now results in a ParseError being raised.
+  tolerated invalid child elements under INSTANCE, ERROR and
+  PROPERTY.REFERENCE elements.
+  This now results in a ParseError being raised.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
   did not set the `propagated` attribute to False in `CIMProperty` objects
