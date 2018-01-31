@@ -606,8 +606,7 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
-        # TODO 1/18 AM: Why do we support single quotes on XML attr. values?
-        "Ill-formed XML (use of single quotes around value on attribute)",
+        "Verify that single quoted attr values work (see XML spec AttValue)",
         dict(
             xml_str='<NAMESPACE NAME=\'abc\'/>',
             exp_result=u'abc',
