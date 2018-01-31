@@ -313,6 +313,15 @@ Enhancements
 * Improved the messages in ParseError exceptions raised when parsing CIM-XML
   received from a WBEM server.
 
+* The type of keybinding names in `CIMInstanceName` objects is now checked
+  to be a string (or None, for unnamed keys). The requirement for a string
+  has always been documented. This was changed as part of addressing issue
+  #1026.
+
+* Fixed the support for unnamed keys (i.e. instance paths with KEYVALUE
+  or VALUE.REFERENCE elements without a parent KEYBINDINGS element).
+  DSP0201 allows for this as a special case. (Issue #1026).
+
 Bug fixes
 ^^^^^^^^^
 
