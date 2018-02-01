@@ -395,9 +395,9 @@ class MOFParseError(Error):
         return self._msg
 
     def __str__(self):
-        ret_str = 'MOFParseError: '
+        ret_str = 'MOFParseError:\n'
         if self.lineno is not None:
-            ret_str += '%s:%s: %smsg=%s\n%s' % \
+            ret_str += '%s:%s:%s msg=%s\n%s' % \
                 (self.file, self.lineno, self.column, self.msg, self.context)
         else:
             ret_str += '%s' % self.msg
@@ -414,9 +414,10 @@ class MOFParseError(Error):
             <context - MOF segment>
             <context - location indicator>
         """
-        ret_str = 'Syntax error in '
-        if self.file is not None and self.lineno is not None:
-            ret_str += '%s line %s:' % (self.file, self.lineno)
+        ret_str = 'Syntax error:'
+        disp_file = 'NoFile' if self.file is None else self.file
+        if self.lineno is not None:
+            ret_str += '%s:%s:%s' % (disp_file, self.lineno, self.column)
         if self.msg:
             ret_str += " %s" % self.msg
         if self.context is not None:

@@ -1541,6 +1541,7 @@ def test_CIMInstanceName_hash(
 
 
 class Test_CIMInstanceName_repr(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMInstanceName.__repr__().
     """
@@ -1667,6 +1668,7 @@ class CIMInstanceNameToXML(ValidationTestCase):
 
 
 class Test_CIMInstanceName_from_wbem_uri(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMInstanceName.from_wbem_uri().
     """
@@ -2343,7 +2345,209 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             assert isinstance(obj.host, type(exp_host))
 
 
+class Test_CIMInstanceName_from_instance(object):
+    # pylint: disable=too-few-public-methods
+    """
+    Test the static method that creates CIMInstance name from the combination
+    of a CIMClass and CIMInstance.
+    """
+    testcases = [
+        # Testcases for CIMInstanceName.from_instance().
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * cls_kwargs: Dict with Attributes from which test class is
+        #   constructed
+        # * inst_kwargs: Dict with Attributes from which test inst is
+        #   constructed
+        # * exp_result: Dict of all expected attributes of resulting
+        #     CIMInstanceName without host and namespace if expected to suceed.
+        #     Exception type, if expected to fail.
+        # * strict: Value of strict attribute on from_instance call
+        # * condition: Condition for testcase to run.
+        (
+            "Verify class with single key type string works",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', None, type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                keybindings={('P1', 'Ham')}
+            ),
+            # strict, condition
+            True, True,
+        ),
+        (
+            "Verify class with two keys type string works",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', None, type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                    CIMProperty('P2', None, type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', value='Ham'),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                keybindings={('P1', 'Ham'), ('P2', 'Cheese')}
+            ),
+            # strict, condition
+            True, True,
+        ),
+        (
+            "Verify class with single key type strict=true, no key in inst"
+            ' fails.',
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', None, type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            ValueError,
+            # strict, condition
+            True, True,
+        ),
+        (
+            "Verify class strict=False and no key prop in instace passes",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', None, type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P2', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                keybindings={('P1', None)}
+            ),
+            # strict, condition
+            False, True,
+        ),
+        (
+            "Verify class with two not in instance strict=false works",
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                    CIMProperty('P1', None, type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                    CIMProperty('P2', 'DEFAULT', type='string',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                properties=[
+                ]
+            ),
+            dict(
+                classname='CIM_Foo',
+                keybindings={('P1', None), ('P2', 'DEFAULT')}
+            ),
+            # strict,condition
+            False, True,
+        ),
+
+
+        # TODO add tests for reference property as key, strict=False,
+        # mismatch of class/instance name
+    ]
+
+    @pytest.mark.parametrize(
+        # * ns: Namespace for CIMInstanceName on from_instance call or None
+        # * host: Host for CIMInstanceName on from_instance call or None
+        'ns, host', [
+            [None, None],
+            ['root/blah', None],
+            [None, 'Fred'],
+            ['root/blah', 'Fred'],
+        ]
+    )
+    @pytest.mark.parametrize(
+        "desc, cls_kwargs, inst_kwargs, exp_result, strict, condition",
+        testcases)
+    def test_CIMInstanceName_from_instance(
+            self, desc, cls_kwargs, inst_kwargs, exp_result, strict, ns, host,
+            condition):
+        """All test cases for CIMInstanceName.from_instance."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if condition == 'pdb':
+            import pdb
+            pdb.set_trace()
+
+        cls = CIMClass(**cls_kwargs)
+
+        inst = CIMInstance(**inst_kwargs)
+
+        if isinstance(exp_result, dict):
+            exp_inst_name = CIMInstanceName(**exp_result)
+            # Add correct expected instance name namespace and host attributes
+            exp_inst_name.namespace = ns
+            exp_inst_name.host = host
+
+            # Create the test CIMInstanceName with method being tested
+            act_name = CIMInstanceName.from_instance(cls, inst,
+                                                     namespace=ns,
+                                                     host=host,
+                                                     strict=strict)
+
+            assert isinstance(act_name, CIMInstanceName)
+            assert exp_inst_name == act_name
+
+        else:
+            with pytest.raises(exp_result):
+
+                CIMInstanceName.from_instance(cls, inst,
+                                              namespace=ns,
+                                              host=host,
+                                              strict=strict)
+
+
 class Test_CIMInstanceName_to_wbem_uri_str(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMInstanceName.to_wbem_uri() and .__str__().
     """
@@ -4365,7 +4569,7 @@ def test_CIMInstance_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMInstance_str(object):
+class Test_CIMInstance_str(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMInstance.__str__().
 
@@ -4420,7 +4624,7 @@ class Test_CIMInstance_str(object):
         assert exp_path in s
 
 
-class Test_CIMInstance_repr(object):
+class Test_CIMInstance_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMInstance.__repr__().
     """
@@ -7079,7 +7283,7 @@ def test_CIMProperty_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMProperty_str(object):
+class Test_CIMProperty_str(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMProperty.__str__().
 
@@ -7173,7 +7377,7 @@ class Test_CIMProperty_str(object):
         assert exp_is_array in s
 
 
-class Test_CIMProperty_repr(object):
+class Test_CIMProperty_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMProperty.__repr__().
     """
@@ -8649,7 +8853,7 @@ def test_CIMQualifier_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMQualifier_str(object):
+class Test_CIMQualifier_str(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMQualifier.__str__().
 
@@ -8695,7 +8899,7 @@ class Test_CIMQualifier_str(object):
         assert exp_type in s
 
 
-class Test_CIMQualifier_repr(object):
+class Test_CIMQualifier_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMQualifier.__repr__().
     """
@@ -8771,7 +8975,7 @@ class CIMQualifierToXML(ValidationTestCase):
                       root_elem_CIMQualifier)
 
 
-class Test_CIMQualifier_tomof(object):
+class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMQualifier.tomof().
     """
@@ -9596,7 +9800,7 @@ def test_CIMClassName_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMClassName_repr(object):
+class Test_CIMClassName_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMClassName.__repr__().
     """
@@ -9678,6 +9882,7 @@ class CIMClassNameToXML(ValidationTestCase):
 
 
 class Test_CIMClassName_from_wbem_uri(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMClassName.from_wbem_uri().
     """
@@ -9985,6 +10190,7 @@ class Test_CIMClassName_from_wbem_uri(object):
 
 
 class Test_CIMClassName_to_wbem_uri_str(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMClassName.to_wbem_uri() and .__str__().
     """
@@ -11504,7 +11710,7 @@ def test_CIMClass_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMClass_str(object):
+class Test_CIMClass_str(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMClass.__str__().
 
@@ -11556,7 +11762,7 @@ class Test_CIMClass_str(object):
         assert exp_classname in s
 
 
-class Test_CIMClass_repr(object):
+class Test_CIMClass_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMClass.__repr__().
     """
@@ -11648,7 +11854,7 @@ class CIMClassToXML(ValidationTestCase):
                       root_elem_CIMClass)
 
 
-class Test_CIMClass_tomof(object):
+class Test_CIMClass_tomof(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMClass.tomof().
     """
@@ -12771,7 +12977,7 @@ def test_CIMMethod_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMMethod_str(object):
+class Test_CIMMethod_str(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMMethod.__str__().
 
@@ -12820,7 +13026,7 @@ class Test_CIMMethod_str(object):
         assert exp_return_type in s
 
 
-class Test_CIMMethod_repr(object):
+class Test_CIMMethod_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMMethod.__repr__().
     """
@@ -12907,7 +13113,7 @@ class CIMMethodToXML(ValidationTestCase):
             root_elem_CIMMethod)
 
 
-class Test_CIMMethod_tomof(object):
+class Test_CIMMethod_tomof(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMMethod.tomof().
     """
@@ -14305,7 +14511,7 @@ def test_CIMParameter_hash(
     assert (hash1 == hash2) == exp_hash_equal
 
 
-class Test_CIMParameter_str(object):
+class Test_CIMParameter_str(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMParameter.__str__().
 
@@ -14361,7 +14567,7 @@ class Test_CIMParameter_str(object):
         assert exp_is_array in s
 
 
-class Test_CIMParameter_repr(object):
+class Test_CIMParameter_repr(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMParameter.__repr__().
     """
@@ -14486,7 +14692,7 @@ class CIMParameterToXML(ValidationTestCase):
                       root_elem_CIMParameter_refarray)
 
 
-class Test_CIMParameter_tomof(object):
+class Test_CIMParameter_tomof(object):  # pylint: disable=too-few-public-methods
     """
     Test CIMParameter.tomof().
     """
@@ -15886,6 +16092,7 @@ def test_CIMQualifierDeclaration_hash(
 
 
 class Test_CIMQualifierDeclaration_str(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMQualifierDeclaration.__str__().
 
@@ -15943,6 +16150,7 @@ class Test_CIMQualifierDeclaration_str(object):
 
 
 class Test_CIMQualifierDeclaration_repr(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMQualifierDeclaration.__repr__().
     """
@@ -16021,6 +16229,7 @@ class CIMQualifierDeclarationToXML(unittest.TestCase):
 
 
 class Test_CIMQualifierDeclaration_tomof(object):
+    # pylint: disable=too-few-public-methods
     """
     Test CIMQualifierDeclaration.tomof().
     """
@@ -16466,7 +16675,7 @@ Qualifier Q1 : string,
             assert mof == exp_mof
 
 
-class Test_tocimxml(object):
+class Test_tocimxml(object):  # pylint: disable=too-few-public-methods
 
     @unimplemented
     def test_all(self):
@@ -16809,7 +17018,7 @@ class Test_cimvalue(object):
                 cimvalue(value, type)
 
 
-class Test_mofstr(object):
+class Test_mofstr(object):  # pylint: disable=too-few-public-methods
     """Test cases for cim_obj.mofstr()."""
 
     # Default input arguments if not specified in testcase

@@ -28,6 +28,7 @@ from __future__ import absolute_import, print_function
 
 import os
 from datetime import datetime
+import logging
 import operator
 try:
     from collections import OrderedDict
@@ -37,16 +38,19 @@ import six
 import pytest
 from testfixtures import OutputCapture
 
+from testfixtures import LogCapture
+
+
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
-    CIMParameter, cimtype, \
+    CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
-    CIMError, DEFAULT_NAMESPACE, Uint32, CIM_ERR_FAILED
+    CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED
 
 from pywbem.cim_obj import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 
-from pywbem_mock import FakedWBEMConnection
+from pywbem_mock import FakedWBEMConnection, PYWBEM_MOCK_LOGGER
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
     install_dmtf_schema, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, SCRIPT_DIR
@@ -565,8 +569,7 @@ def conn():
     """
     Create the FakedWBEMConnection and return it
     """
-    verbose = VERBOSE
-    return FakedWBEMConnection(verbose=verbose)
+    return FakedWBEMConnection()
 
 
 @pytest.fixture
@@ -574,8 +577,7 @@ def conn_lite():
     """
     Create the FakedWBEMConnection with the repo_lite flag set and return it.
     """
-    verbose = VERBOSE
-    return FakedWBEMConnection(verbose=verbose, repo_lite=True)
+    return FakedWBEMConnection(repo_lite=True)
 
 
 #########################################################################
@@ -640,6 +642,51 @@ class TestFakedWBEMConnection(object):
         assert conn.stats_enabled is False
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
+
+
+result1 = (
+    u"mock_imethodcall method=GetClass, namespace=root/cimv2, "
+    u"response_params_rqd=None, params={'IncludeClassOrigin': None,"
+    u" 'ClassName': CIMClassName(classname=u'CIM_Foo', "
+    u"namespace=None, host=None), 'IncludeQualifiers': False,"
+    u" 'PropertyList': None, 'LocalOnly': None}",
+
+    u"mock result [('IRETURNVALUE', {}, [CIMClass(classname"
+    u"u'CIM_Foo', superclass=None, properties=NocaseDict(["
+    u"('InstanceID', CIMProperty(name=u'InstanceID', value=None,"
+    u" type=u'string', reference_class=None, embedded_object=None,"
+    u" is_array=False, array_size=None, class_origin=None, "
+    u"propagated=None, qualifiers=NocaseDict([])))]), "
+    u"methods=NocaseDict([('Fuzzy', CIMMethod(name=u'Fuzzy',"
+    u" return_type=u'string', class_origin=None, propagated=False,"
+    u" parameters=NocaseDict([]), qualifiers=NocaseDict([]))), "
+    u"('Delete', CIMMethod(name=u'Delete', return_type=u'uint32',"
+    u" class_origin=None, propagated=False, parameters="
+    u"NocaseDict([]), qualifiers=NocaseDict([])))]), "
+    u"qualifiers=NocaseDict([]), path=CIMClassName(classname",
+    u"=u'CIM_Foo', namespace=u'root/cimv2', host=u'FakedUrl'))])]")
+
+result2 = (
+    u"mock_imethodcall method=GetClass, namespace=root/cimv2, "
+    u"response_params_rqd=None, params={'IncludeClassOrigin': None,"
+    u" 'ClassName': CIMClassName(classname=u'CIM_Foo', "
+    u"namespace=None, host=None), 'IncludeQualifiers': False,"
+    u" 'PropertyList': None, 'LocalOnly': None}",
+
+    u"mock result [('IRETURNVALUE', {}, [CIMClass(classname"
+    u"u'CIM_Foo', superclass=None, properties=NocaseDict(["
+    u"('InstanceID', CIMProperty(name=u'InstanceID', value=None,"
+    u" type=u'string', reference_class=None, embedded_object=None,"
+    u" is_array=False, array_size=None, class_origin=None, "
+    u"propagated=None, qualifiers=NocaseDict([])))]), "
+    u"methods=NocaseDict([('Fuzzy', CIMMethod(name=u'Fuzzy',"
+    u" return_type=u'string', class_origin=None, propagated=False,"
+    u" parameters=NocaseDict([]), qualifiers=NocaseDict([]))), "
+    u"('Delete', CIMMethod(name=u'Delete', return_type=u'uint32',"
+    u" class_origin=None, propagated=False, parameters="
+    u"NocaseDict([]), qualifiers=NocaseDict([])))]), "
+    u"qualifiers=NocaseDict([]), path=CIMClassName(classname",
+    u"=u'CIM_Foo', namespace=u'root/cimv2', host=u'FakedUrl'))])]")
 
 
 class TestRepoMethods(object):
@@ -1129,7 +1176,7 @@ class TestRepoMethods(object):
         assert 'Association' in qual_repo
         conn.compile_mof_str(q2, ns)
 
-        # the get repo repeated because each compile unit redoes the
+        # The get repo repeated because each compile unit redoes the
         # individual repos. What we should do is to clear each namespace
         # repo instead of clearing the whole class/qualifier, etc. repo
         # TODO modify the merge function to clear each namespace in the repo.
@@ -1275,7 +1322,8 @@ class TestRepoMethods(object):
 
         for inst_name in inst_names:
             conn.GetInstance(inst_name)
-            # TODO test returned instance
+
+        # TODO test returned instance
 
     # pylint: disable=no-self-use
     def test_compile_dmtf_schema(self, conn):
@@ -1292,6 +1340,59 @@ class TestRepoMethods(object):
         # pylint: disable=protected-access
         assert len(conn._get_class_repo(ns)) == TOTAL_CLASSES
         assert len(conn._get_qualifier_repo(ns)) == TOTAL_QUALIFIERS
+
+    @pytest.mark.parametrize(
+        "cls, level, exp_err, result", [
+            ['CIM_Foo', 'DEBUG', None, result1],
+            ['CIM_Foox', 'DEBUG', CIMError, result1],
+        ]
+    )
+    def test_logging(self, tst_class, cls, level, exp_err, result):
+        """
+        Test ability to output logs
+        """
+
+        with LogCapture() as l:  # noqa:E741
+            logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
+            logger.setLevel(logging.getLevelName(level))
+
+            conn = FakedWBEMConnection()
+
+            conn.add_cimobjects(tst_class)
+            if exp_err is None:
+                cls = conn.GetClass(cls, IncludeQualifiers=False)
+                print('GetClass Finished')
+                print(l)
+                l.check
+                (
+                    ('pywbem.mock', 'DEBUG', result[0]),
+                    ('pywbem.mock', 'DEBUG', result[1]),
+                )
+                l.uninstall()
+            else:
+                with pytest.raises(exp_err):
+                    cls = conn.GetClass(cls, IncludeQualifiers=False)
+                    print(l)
+                    l.check(
+                        ('pywbem.mock', 'DEBUG', result[0]),
+                        ('pywbem.mock', 'DEBUG', result[1]),
+                    )
+                    l.uninstall()
+
+    def test_compile_err(self, conn):
+        # pylint: disable=no-self-use
+        """
+        Test compile that has an error
+        """
+
+        q1 = """
+            Qualifier Association : boolean = false,
+                Scope(associations),
+                Flavor(DisableOverride, ToSubclass);
+        """
+
+        with pytest.raises(MOFParseError):
+            conn.compile_mof_str(q1)
 
 
 class TestClassOperations(object):
@@ -2249,6 +2350,7 @@ class TestInstanceOperations(object):
         if not exp_err:
             for inst in new_insts:
                 rtn_inst_name = conn.CreateInstance(inst, ns)
+                print('\nrtn_inst_name %r' % rtn_inst_name)
                 rtn_inst = conn.GetInstance(rtn_inst_name)
 
                 inst.path.namespace = rtn_inst.path.namespace
@@ -3963,7 +4065,7 @@ class TestInvokeMethod(object):
 
         if 'params' in inputs:
             for param in inputs['params']:
-                self.xp_input_params[param] = \
+                self.exp_input_params[param] = \
                     CIMParameter(param, cimtype(param[param]),
                                  value=param[param])
 

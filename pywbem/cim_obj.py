@@ -2544,6 +2544,72 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         return _ensure_unicode(''.join(ret))
 
+    @staticmethod
+    def from_instance(class_, instance, namespace=None, host=None,
+                      strict=False):
+        """
+        Given a class and corresponding instance, create and return the
+        CIMInstanceName from the class key properties and instance key
+        property values.
+
+        If a property value does not exist in the instance it gets the
+        value from the class default_value unless strict is set. If strict
+        is True, all key properties must exist in the instance
+
+        Parameters:
+
+            class_ (:class:~pywbem.CIMClass`):
+                CIMClass from which the key properties will be retrieved.
+
+            instance: (:class:~pywbem.CIMInstance`):
+                CIMInstance containing the key property values.
+
+            namespace: (:term:``string`):
+                Namespace to include in created CIMInstanceName or None.
+
+            host:  (:term:``string`):
+                Host name to include in created CIMInstanceName or None.
+
+            strict: (:class:`py:bool`):
+                If True, all key properties are required in instance. Default
+                False
+
+        Returns:
+            :class:`CIMInstanceName` built from the key properties in the
+            class using the key property values in the instance.
+
+        Raises:
+            ValueError: Class and instance names do not match or the
+            strict attribute is True and key property does not exist in
+            the instance.
+
+        """
+        keybindings = NocaseDict()
+        if class_.classname != instance.classname:
+            raise ValueError('Class name %s does not match instance '
+                             'classname %s' %
+                             (class_.classname, instance.classname))
+
+        for prop in class_.properties:
+            if 'key' in class_.properties[prop].qualifiers:
+                pname = class_.properties[prop].name  # get original name
+
+                if prop in instance:
+                    keybindings[pname] = instance[prop]
+                else:
+                    if strict:
+                        raise ValueError('Key Property %s in class %s '
+                                         'but not in instance.' %
+                                         (pname, class_.classname))
+                    else:
+                        default_value = class_.properties[prop].value
+                        keybindings[pname] = default_value
+
+        return CIMInstanceName(class_.classname,
+                               keybindings,
+                               namespace=namespace,
+                               host=host)
+
 
 class CIMInstance(_CIMComparisonMixin):
     """
