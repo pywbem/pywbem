@@ -298,6 +298,9 @@ Enhancements
   This enhancement is documented in the pywbem documentation section 10,
   MockSupport. . See issue #838.
 
+* Docs: Clarified that CIM-XML multi-requests are not supported by pywbem
+  and why that is not a functional limitation.
+
 Bug fixes
 ^^^^^^^^^
 
