@@ -1267,11 +1267,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for p in Params:
                 if isinstance(p, CIMParameter):
                     ptuple = (p.name, p.value, p.type, p.embedded_object)
-                else:  # tuple of name, value
+                else:  # p is a tuple of name, value
                     ptuple = (p[0], p[1], infer_type(p[1]),
                               infer_embedded_object(p[1]))
                 ptuples.append(ptuple)
-        for ptuple in params.items():
+        for n, v in params.items():
+            ptuple = (n, v, infer_type(v), infer_embedded_object(v))
             ptuples.append(ptuple)
 
         plist = [cim_xml.PARAMVALUE(n, paramvalue(v), t, embedded_object=eo)
