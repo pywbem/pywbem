@@ -398,7 +398,6 @@ class ValueMapping(object):
         except AttributeError:
             typename = element_obj.return_type  # Method
 
-        # TODO: We should make type_from_name() and cimtype() part of the API
         cimtype = type_from_name(typename)
 
         if not issubclass(cimtype, CIMInt):
