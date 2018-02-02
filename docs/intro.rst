@@ -512,6 +512,13 @@ specified when following the links to the standards:
 * The supported WBEM protocol is CIM-XML; it conforms to :term:`DSP0200` and
   :term:`DSP0201`.
 
+  Limitations:
+
+  - Multi-requests are not supported. This is not a functional limitation
+    though, because the use of multi-requests is entirely determined by the
+    client: If a client does not send multi-requests, the server does not send
+    back multi-responses.
+
 * The CIM-XML representation of :ref:`CIM objects` as produced by their
   ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to :term:`DSP0201`.
 
