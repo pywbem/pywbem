@@ -1122,10 +1122,10 @@ def parse_qualifier_declaration(tup_tree):
     except KeyError:
         is_array = False
 
-    try:
-        array_size = int(attrl['ARRAYSIZE'])
-    except KeyError:
-        array_size = None
+    array_size = attr.get('ARRAYSIZE', None)
+    if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        array_size = int(array_size)
 
     flavors = {}
     for flavor in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
@@ -1294,13 +1294,18 @@ def parse_property_array(tup_tree):
 
     values = unpack_value(tup_tree)
     attrl = attrs(tup_tree)
+
+    array_size = attrl.get('ARRAYSIZE', None)
+    if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        array_size = int(array_size)
+
     embedded_object = None
     if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
         try:
             embedded_object = attrl['EmbeddedObject']
         except KeyError:
             embedded_object = attrl['EMBEDDEDOBJECT']
-
     if embedded_object is not None:
         values = parse_embeddedObject(values)
 
@@ -1312,8 +1317,8 @@ def parse_property_array(tup_tree):
                                                           'false')),
                       qualifiers=quals,
                       is_array=True,
+                      array_size=array_size,
                       embedded_object=embedded_object)
-    # TODO #1031: Add support and tests for arraysize
 
     return obj
 
@@ -1472,6 +1477,7 @@ def parse_parameter_array(tup_tree):
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
         array_size = int(array_size)
 
     return CIMParameter(attrl['NAME'],
@@ -1503,6 +1509,7 @@ def parse_parameter_refarray(tup_tree):
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
         array_size = int(array_size)
 
     return CIMParameter(attrl['NAME'], 'reference',

@@ -6020,7 +6020,7 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        "PROPERTY.ARRAY with ARRAYSIZE attribute",
+        "PROPERTY.ARRAY fixed array",
         dict(
             xml_str=''
             '<PROPERTY.ARRAY NAME="Foo" TYPE="string" ARRAYSIZE="10"/>',
@@ -6029,7 +6029,7 @@ testcases_tupleparse_xml = [
                 propagated=False
             ),
         ),
-        None, None, False  # TODO 1/18 AM #1031: Enable once ARRAYSIZE implem.
+        None, None, True
     ),
     (
         "PROPERTY.ARRAY with missing required attribute TYPE",
@@ -8590,6 +8590,19 @@ testcases_tupleparse_xml = [
             b' TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
                 u'Qual\U00010142', value=None, type='string',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION fixed array",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string" ARRAYSIZE="10"'
+            ' ISARRAY="true"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                is_array=True, array_size=10,
             ),
         ),
         None, None, True
