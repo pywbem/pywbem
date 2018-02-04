@@ -1186,10 +1186,9 @@ def parse_qualifier(tup_tree):
 
     for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
               'TRANSLATABLE', 'PROPAGATED']:
-        rtn_val = attrl.get(i)
-
-        # TODO 2/18 AM #1042: Add support for mixed case boolean values,
-        # consider using unpack_boolean()
+        rtn_val = attrl.get(i, None)
+        if rtn_val is not None:
+            rtn_val = rtn_val.lower()
 
         # TODO 2/18 AM #1039: Clarify whether to set defaults for omitted attrs.
         # DSP0201 defines these defaults:
