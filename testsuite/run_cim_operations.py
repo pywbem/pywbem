@@ -2244,7 +2244,7 @@ class CreateInstance(ClientTest):
 
         tst_instance = CIMInstance(
             'PyWBEM_AllTypes',
-            value=[
+            properties=[
                 ('InstanceId', instance_id),
                 ('scalBool', True),
                 ('scalUint8', Uint8(42)),
@@ -2275,6 +2275,7 @@ class CreateInstance(ClientTest):
                 ('arrayDateTime', [dt, dt]),
                 ('arrayTimeDelta', [td, td]),
             ])
+
 
         tst_instance.path = CIMInstanceName(
             'PyWBEM_AllTypes', {'InstanceId': instance_id})
@@ -3335,6 +3336,10 @@ class ClassOperations(ClientClassTest):
                         'MyUint8': CIMProperty('MyUint8', Uint8(99),
                                                type='uint8')})
 
+        # force propagated False for all properties
+        for p in test_class.properties:
+            test_class.properties[p].propagated = False
+
         return test_class
 
     def create_class(self):
@@ -3392,6 +3397,8 @@ class ClassOperations(ClientClassTest):
                                                    is_array=True),
                         'MyStr': CIMProperty('MyStr', 'This is a test',
                                              type='string')})
+        for p in test_class.properties:
+            test_class.properties[p].propagated = False
         return test_class
 
 
