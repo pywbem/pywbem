@@ -1029,12 +1029,15 @@ def parse_instance(tup_tree):
         <!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
                                          PROPERTY.REFERENCE)*)>
         <!ATTLIST INSTANCE
-            %ClassName;>
+            %ClassName;
+            xml:lang NMTOKEN #IMPLIED>
     """
 
-    check_node(tup_tree, 'INSTANCE', ['CLASSNAME'], [],
+    check_node(tup_tree, 'INSTANCE', ['CLASSNAME'], ['xml:lang'],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
                 'PROPERTY.REFERENCE'])
+
+    # The 'xml:lang' attribute is tolerated but ignored.
 
     # Note: The check above does not enforce the ordering constraint in the DTD
     # that QUALIFIER elements must appear before PROPERTY* elements.
@@ -1165,13 +1168,16 @@ def parse_qualifier(tup_tree):
             %CIMName;
             %CIMType;              #REQUIRED
             %Propagated;
-            %QualifierFlavor;>
+            %QualifierFlavor;
+            xml:lang NMTOKEN #IMPLIED>
     """
 
     check_node(tup_tree, 'QUALIFIER', ['NAME', 'TYPE'],
                ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
-                'TRANSLATABLE', 'PROPAGATED'],
+                'TRANSLATABLE', 'PROPAGATED', 'xml:lang'],
                ['VALUE', 'VALUE.ARRAY'])
+
+    # The 'xml:lang' attribute is tolerated but ignored.
 
     attrl = attrs(tup_tree)
     val = unpack_value(tup_tree)
@@ -1224,13 +1230,16 @@ def parse_property(tup_tree):
             %CIMType;              #REQUIRED
             %ClassOrigin;
             %Propagated;
-            %EmbeddedObject;>
+            %EmbeddedObject;
+            xml:lang NMTOKEN #IMPLIED>
     """
 
     check_node(tup_tree, 'PROPERTY', ['TYPE', 'NAME'],
                ['CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
-                'EMBEDDEDOBJECT'],
+                'EMBEDDEDOBJECT', 'xml:lang'],
                ['QUALIFIER', 'VALUE'])
+
+    # The 'xml:lang' attribute is tolerated but ignored.
 
     attrl = attrs(tup_tree)
     try:
@@ -1273,14 +1282,17 @@ def parse_property_array(tup_tree):
             %ArraySize;
             %ClassOrigin;
             %Propagated;
-            %EmbeddedObject;>
+            %EmbeddedObject;
+            xml:lang NMTOKEN #IMPLIED>
     """
 
     check_node(tup_tree, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
                ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
-                'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT'],
+                'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT', 'xml:lang'],
                ['QUALIFIER', 'VALUE.ARRAY'])
     # TODO: Remove 'REFERENCECLASS' from attrs list, above.
+
+    # The 'xml:lang' attribute is tolerated but ignored.
 
     values = unpack_value(tup_tree)
     attrl = attrs(tup_tree)

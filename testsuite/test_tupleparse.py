@@ -4767,7 +4767,7 @@ testcases_tupleparse_xml = [
             '<INSTANCE CLASSNAME="CIM_Foo" xml:lang="en_us"/>',
             exp_result=CIMInstance('CIM_Foo'),
         ),
-        None, None, False  # TODO 1/18 AM #1033: Enable once xml:lang supported
+        None, None, True
     ),
     (
         "INSTANCE with properties",
@@ -5143,6 +5143,16 @@ testcases_tupleparse_xml = [
             xml_str=b''
             b'<PROPERTY NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
             exp_result=CIMProperty(u'Foo\U00010142', value=None, type='string',
+                                   propagated=False),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY with xml:lang attribute",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string" xml:lang="en_us"/>',
+            exp_result=CIMProperty('Foo', value=None, type='string',
                                    propagated=False),
         ),
         None, None, True
@@ -6001,6 +6011,18 @@ testcases_tupleparse_xml = [
             b'<PROPERTY.ARRAY NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
             exp_result=CIMProperty(
                 u'Foo\U00010142', value=None, type='string', is_array=True,
+                propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with xml:lang attribute",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string" xml:lang="en_us"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
                 propagated=False,
             ),
         ),
@@ -7738,6 +7760,15 @@ testcases_tupleparse_xml = [
             exp_result=CIMQualifier(
                 u'Qual\U00010142', value=None, type='string',
             ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER with xml:lang attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string" xml:lang="en_us"/>',
+            exp_result=CIMQualifier('Qual', value=None, type='string'),
         ),
         None, None, True
     ),
