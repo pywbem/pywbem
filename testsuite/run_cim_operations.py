@@ -3337,7 +3337,8 @@ class ClassOperations(ClientClassTest):
                                                type='uint8')})
 
         # force propagated False for all properties
-        # Effictive V0.12.0 this is required.
+        # Effective V 0.12.0 propagated must be set to compare with
+        # info returned from server.
         for p in test_class.properties:
             test_class.properties[p].propagated = False
 
@@ -3593,10 +3594,11 @@ class ModifyClass(ClassOperations):
                 print('NOTE: This server/namespace does not support '
                       'CreateClass since it returned INVALID_CLASS')
 
-        # Now modify the original class by adding a new property
+        # Modify the original class by adding a new property
         new_property = CIMProperty('Str2', None,
                                    type='string',
-                                   is_array=False)
+                                   is_array=False,
+                                   propagated=False)
 
         test_class.properties['Str2'] = new_property
 
