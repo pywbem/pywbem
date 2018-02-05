@@ -2276,7 +2276,6 @@ class CreateInstance(ClientTest):
                 ('arrayTimeDelta', [td, td]),
             ])
 
-
         tst_instance.path = CIMInstanceName(
             'PyWBEM_AllTypes', {'InstanceId': instance_id})
 
