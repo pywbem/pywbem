@@ -698,7 +698,7 @@ def parse_host(tup_tree):
         <!ELEMENT HOST (#PCDATA)>
     """
 
-    check_node(tup_tree, 'HOST', allow_pcdata=True)
+    check_node(tup_tree, 'HOST', [], [], [], allow_pcdata=True)
 
     return pcdata(tup_tree)
 
@@ -964,9 +964,10 @@ def parse_keyvalue(tup_tree):
                allow_pcdata=True)
 
     data = pcdata(tup_tree)
+    attrl = attrs(tup_tree)
 
-    valuetype = attrs(tup_tree).get('VALUETYPE', 'string')
-    cimtype = attrs(tup_tree).get('TYPE', None)
+    valuetype = attrl.get('VALUETYPE', 'string')
+    cimtype = attrl.get('TYPE', None)
 
     # Default the CIM type from VALUETYPE if not specified in TYPE
     if cimtype is None:
@@ -1006,14 +1007,15 @@ def parse_class(tup_tree):
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.REFERENCE',
                 'PROPERTY.ARRAY', 'METHOD'])
 
-    superclass = attrs(tup_tree).get('SUPERCLASS')
+    attrl = attrs(tup_tree)
 
+    superclass = attrl.get('SUPERCLASS', None)
     properties = list_of_matching(tup_tree, ['PROPERTY', 'PROPERTY.REFERENCE',
                                              'PROPERTY.ARRAY'])
     qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
     methods = list_of_matching(tup_tree, ['METHOD'])
 
-    return CIMClass(attrs(tup_tree)['NAME'],
+    return CIMClass(attrl['NAME'],
                     superclass=superclass,
                     properties=properties,
                     qualifiers=qualifiers,
@@ -1041,7 +1043,7 @@ def parse_instance(tup_tree):
     # Note: The check above does not enforce the ordering constraint in the DTD
     # that QUALIFIER elements must appear before PROPERTY* elements.
 
-    # TODO: Add support for qualifiers (on instances)
+    # TODO #1030: Add support for qualifiers (on instances)
     qualifiers = {}
 
     props = list_of_matching(tup_tree, ['PROPERTY.REFERENCE', 'PROPERTY',
@@ -1056,8 +1058,17 @@ def parse_instance(tup_tree):
 
 
 def parse_scope(tup_tree):
-    """Parse SCOPE element.
+    """
+    Parse a SCOPE element and return a dictionary with an item for each
+    specified scope attribute.
 
+    The keys of the dictionary items are the scope names in upper case; the
+    values are the Python boolean values True or False.
+
+    Unspecified scope attributes are not represented in the returned dictionary;
+    the user is expected to assume their default value of False.
+
+    The returned dictionary does not preserve order of the scope attributes.
       ::
 
         <!ELEMENT SCOPE EMPTY>
@@ -1074,8 +1085,10 @@ def parse_scope(tup_tree):
     check_node(tup_tree, 'SCOPE', [],
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
-    return OrderedDict([(k, v.lower() == 'true')
-                        for k, v in attrs(tup_tree).items()])
+
+    # TODO 2/18 AM #1040: Reject invalid boolean values of scope attributes
+    return dict([(k, v.lower() == 'true')
+                 for k, v in attrs(tup_tree).items()])
 
 
 def parse_qualifier_declaration(tup_tree):
@@ -1098,23 +1111,31 @@ def parse_qualifier_declaration(tup_tree):
                 'TOINSTANCE', 'TRANSLATABLE'],
                ['SCOPE', 'VALUE', 'VALUE.ARRAY'])
 
-    attr = attrs(tup_tree)
-    qname = attr['NAME']
-    _type = attr['TYPE']
+    attrl = attrs(tup_tree)
+    qname = attrl['NAME']
+    _type = attrl['TYPE']
+
     try:
-        is_array = attr['ISARRAY'].lower() == 'true'
+        # TODO 2/18 AM #1041: Reject invalid boolean values
+        # Consider using unpack_boolean() for that.
+        is_array = attrl['ISARRAY'].lower() == 'true'
     except KeyError:
         is_array = False
+
     try:
-        array_size = int(attr['ARRAYSIZE'])
+        array_size = int(attrl['ARRAYSIZE'])
     except KeyError:
         array_size = None
 
     flavors = {}
     for flavor in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
         try:
-            flavors[flavor.lower()] = attr[flavor].lower() == 'true'
+            # TODO 2/18 AM #1041: Reject invalid boolean values
+            # Consider using unpack_boolean() for that.
+            flavors[flavor.lower()] = attrl[flavor].lower() == 'true'
         except KeyError:
+            # This causes the flavor not to be set, so it results in the
+            # default value defined in the CIMQualifierDeclaration() ctor (None)
             pass
 
     scopes = None
@@ -1165,6 +1186,20 @@ def parse_qualifier(tup_tree):
               'TRANSLATABLE', 'PROPAGATED']:
         rtn_val = attrl.get(i)
 
+        # TODO 2/18 AM #1042: Add support for mixed case boolean values,
+        # consider using unpack_boolean()
+
+        # TODO 2/18 AM #1039: Clarify whether to set defaults for omitted attrs.
+        # DSP0201 defines these defaults:
+        # * OVERRIDABLE: true
+        # * TOSUBCLASS: true
+        # * TOINSTANCE: false
+        # * TRANSLATABLE: false
+        # * PROPAGATED: false
+        # If we do this, then I suggest changing the for-loop into a series
+        # of unpack_boolean() for each possible attribute, specifying the
+        # desired default.
+
         if rtn_val == 'true':
             rtn_val = True
         elif rtn_val == 'false':
@@ -1201,7 +1236,7 @@ def parse_property(tup_tree):
                 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE'])
 
-    quals = {}
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
@@ -1226,7 +1261,7 @@ def parse_property(tup_tree):
     return CIMProperty(attrl['NAME'],
                        val,
                        attrl['TYPE'],
-                       class_origin=attrl.get('CLASSORIGIN'),
+                       class_origin=attrl.get('CLASSORIGIN', None),
                        propagated=unpack_boolean(attrl.get('PROPAGATED',
                                                            'false')),
                        qualifiers=quals,
@@ -1253,7 +1288,7 @@ def parse_property_array(tup_tree):
                ['QUALIFIER', 'VALUE.ARRAY'])
     # TODO: Remove 'REFERENCECLASS' from attrs list, above.
 
-    quals = {}
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
@@ -1272,13 +1307,13 @@ def parse_property_array(tup_tree):
     obj = CIMProperty(attrl['NAME'],
                       values,
                       attrl['TYPE'],
-                      class_origin=attrl.get('CLASSORIGIN'),
+                      class_origin=attrl.get('CLASSORIGIN', None),
                       propagated=unpack_boolean(attrl.get('PROPAGATED',
                                                           'false')),
                       qualifiers=quals,
                       is_array=True,
                       embedded_object=embedded_object)
-    # TODO: Add support and tests for arraysize and propagated
+    # TODO #1031: Add support and tests for arraysize
 
     return obj
 
@@ -1296,7 +1331,8 @@ def parse_property_reference(tup_tree):
     """
 
     check_node(tup_tree, 'PROPERTY.REFERENCE', ['NAME'],
-               ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'])
+               ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'],
+               ['QUALIFIER', 'VALUE.REFERENCE'])
 
     value = list_of_matching(tup_tree, ['VALUE.REFERENCE'])
 
@@ -1309,7 +1345,7 @@ def parse_property_reference(tup_tree):
                          "'VALUE.REFERENCE' (allowed are zero or one)" %
                          name(tup_tree))
 
-    quals = dict()
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
@@ -1317,8 +1353,8 @@ def parse_property_reference(tup_tree):
 
     pref = CIMProperty(attrl['NAME'], value, type='reference',
                        qualifiers=quals,
-                       reference_class=attrl.get('REFERENCECLASS'),
-                       class_origin=attrl.get('CLASSORIGIN'),
+                       reference_class=attrl.get('REFERENCECLASS', None),
+                       class_origin=attrl.get('CLASSORIGIN', None),
                        propagated=unpack_boolean(attrl.get('PROPAGATED',
                                                            'false')))
 
@@ -1352,11 +1388,17 @@ def parse_method(tup_tree):
 
     attrl = attrs(tup_tree)
 
+    # TODO 2/18 AM #1038: Clarify how to deal with omitted TYPE of METHOD
+    # In DSP0201, TYPE is optional and omitting it means a void return
+    # type. That is not supported in DSP0004.
+    # This code here fails when creating the CIMMethod object with an omitted
+    # TYPE attribute.
+
     return CIMMethod(attrl['NAME'],
-                     return_type=attrl.get('TYPE'),
+                     return_type=attrl.get('TYPE', None),
                      parameters=parameters,
                      qualifiers=qualifiers,
-                     class_origin=attrl.get('CLASSORIGIN'),
+                     class_origin=attrl.get('CLASSORIGIN', None),
                      propagated=unpack_boolean(attrl.get('PROPAGATED',
                                                          'false')))
 
@@ -1371,9 +1413,9 @@ def parse_parameter(tup_tree):
             %CIMType;              #REQUIRED>
     """
 
-    check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'])
+    check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'], [], ['QUALIFIER'])
 
-    quals = {}
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
@@ -1393,9 +1435,10 @@ def parse_parameter_reference(tup_tree):
             %ReferenceClass;>
     """
 
-    check_node(tup_tree, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'])
+    check_node(tup_tree, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'],
+               ['QUALIFIER'])
 
-    quals = {}
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
@@ -1403,7 +1446,7 @@ def parse_parameter_reference(tup_tree):
 
     return CIMParameter(attrl['NAME'],
                         type='reference',
-                        reference_class=attrl.get('REFERENCECLASS'),
+                        reference_class=attrl.get('REFERENCECLASS', None),
                         qualifiers=quals)
 
 
@@ -1419,15 +1462,15 @@ def parse_parameter_array(tup_tree):
     """
 
     check_node(tup_tree, 'PARAMETER.ARRAY', ['NAME', 'TYPE'],
-               ['ARRAYSIZE'])
+               ['ARRAYSIZE'], ['QUALIFIER'])
 
-    quals = {}
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
     attrl = attrs(tup_tree)
 
-    array_size = attrl.get('ARRAYSIZE')
+    array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
         array_size = int(array_size)
 
@@ -1450,21 +1493,21 @@ def parse_parameter_refarray(tup_tree):
     """
 
     check_node(tup_tree, 'PARAMETER.REFARRAY', ['NAME'],
-               ['REFERENCECLASS', 'ARRAYSIZE'])
+               ['REFERENCECLASS', 'ARRAYSIZE'], ['QUALIFIER'])
 
-    quals = {}
+    quals = OrderedDict()
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
-    attr = attrs(tup_tree)
+    attrl = attrs(tup_tree)
 
-    array_size = attr.get('ARRAYSIZE')
+    array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
         array_size = int(array_size)
 
-    return CIMParameter(attr['NAME'], 'reference',
+    return CIMParameter(attrl['NAME'], 'reference',
                         is_array=True,
-                        reference_class=attr.get('REFERENCECLASS'),
+                        reference_class=attrl.get('REFERENCECLASS', None),
                         array_size=array_size,
                         qualifiers=quals)
 
@@ -1574,6 +1617,7 @@ def parse_methodcall(tup_tree):
 
     check_node(tup_tree, 'METHODCALL', ['NAME'], [],
                ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
+
     path = list_of_matching(tup_tree, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
     if len(path) == 0:
         raise ParseError("Element %r misses a required child element "
@@ -1878,7 +1922,7 @@ def parse_any(tup_tree):
 
     nodename = name(tup_tree).lower().replace('.', '_')
     fn_name = 'parse_' + nodename
-    funct_name = globals().get(fn_name)
+    funct_name = globals().get(fn_name, None)
     if funct_name is None:
         raise ParseError("Invalid element %r" % name(tup_tree))
     else:
@@ -2054,7 +2098,7 @@ def unpack_boolean(data):
     elif data == 'false':
         return False
     elif data == '':
-        # TODO 1/18 AM: Clarify whether an empty string should be supported
+        # TODO 1/18 AM #1032: Clarify whether an empty string should be supp.
         return None
     else:
         raise ParseError("Invalid boolean value %r" % data)

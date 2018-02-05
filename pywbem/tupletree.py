@@ -41,9 +41,9 @@ XML Element (i.e. <tag>):
 
 The NAME is the name of the element.
 
-The ATTRS are a name-value hash of element attributes.
+The ATTRS are a name-value dictionary of element attributes, not pres. order.
 
-The CONTENTS is a list of child elements.
+The CONTENTS is a list of child elements, preserving order.
 
 The fourth element is reserved.
 """
@@ -92,10 +92,13 @@ class CIMContentHandler(xml.sax.ContentHandler):
         self.root = self.element
 
     def startElement(self, name, attrs):
+        # Note: attrs is a SAX Attributes object which implements a subset of
+        # dictionary methods, but does not preserve order. So this handler
+        # cannot preserve attribute order, because it is already lost when it
+        # gets control.
         if self.element:
             self.elements.append(self.element)
-        # Avoid dict comprehension to support python2.6.
-        attr_dict = {}
+        attr_dict = {}  # No order preservation possible, see note above
         for k, v in attrs.items():
             attr_dict[k] = v
         element = (name, attr_dict, list(), None)
