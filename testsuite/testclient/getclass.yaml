@@ -38,7 +38,7 @@
           is_array: true
           array_size: null
           class_origin: null
-          propagated: null
+          propagated: false
           qualifiers:
             deprecated:
               pywbem_object: CIMQualifier
@@ -51,35 +51,6 @@
               toinstance: null
               overridable: null
               translatable: null
-            mappingstrings:
-              pywbem_object: CIMQualifier
-              name: MappingStrings
-              value:
-              - MIF.DMTF|System Power Controls|001.2
-              type: string
-              propagated: null
-              tosubclass: null
-              toinstance: null
-              overridable: null
-              translatable: null
-            values:
-              pywbem_object: CIMQualifier
-              name: Values
-              value:
-              - Unknown
-              - Not Supported
-              - Disabled
-              - Enabled
-              - Power Saving Modes Entered Automatically
-              - Power State Settable
-              - Power Cycling Supported
-              - Timed Power On Supported
-              type: string
-              propagated: null
-              tosubclass: null
-              toinstance: null
-              overridable: null
-              translatable: true
             description:
               pywbem_object: CIMQualifier
               name: Description
@@ -111,6 +82,35 @@
               toinstance: null
               overridable: null
               translatable: null
+            values:
+              pywbem_object: CIMQualifier
+              name: Values
+              value:
+              - Unknown
+              - Not Supported
+              - Disabled
+              - Enabled
+              - Power Saving Modes Entered Automatically
+              - Power State Settable
+              - Power Cycling Supported
+              - Timed Power On Supported
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+            mappingstrings:
+              pywbem_object: CIMQualifier
+              name: MappingStrings
+              value:
+              - MIF.DMTF|System Power Controls|001.2
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: null
       methods:
         requeststatechange:
           pywbem_object: CIMMethod
@@ -127,17 +127,6 @@
               is_array: null
               array_size: null
               qualifiers:
-                modelcorrespondence:
-                  pywbem_object: CIMQualifier
-                  name: ModelCorrespondence
-                  value:
-                  - CIM_EnabledLogicalElement.RequestedState
-                  type: string
-                  propagated: null
-                  tosubclass: null
-                  toinstance: null
-                  overridable: null
-                  translatable: null
                 in:
                   pywbem_object: CIMQualifier
                   name: IN
@@ -148,27 +137,6 @@
                   toinstance: null
                   overridable: false
                   translatable: null
-                values:
-                  pywbem_object: CIMQualifier
-                  name: Values
-                  value:
-                  - Enabled
-                  - Disabled
-                  - Shut Down
-                  - Offline
-                  - Test
-                  - Defer
-                  - Quiesce
-                  - Reboot
-                  - Reset
-                  - DMTF Reserved
-                  - Vendor Reserved
-                  type: string
-                  propagated: null
-                  tosubclass: null
-                  toinstance: null
-                  overridable: null
-                  translatable: true
                 description:
                   pywbem_object: CIMQualifier
                   name: Description
@@ -205,6 +173,38 @@
                   toinstance: null
                   overridable: null
                   translatable: null
+                values:
+                  pywbem_object: CIMQualifier
+                  name: Values
+                  value:
+                  - Enabled
+                  - Disabled
+                  - Shut Down
+                  - Offline
+                  - Test
+                  - Defer
+                  - Quiesce
+                  - Reboot
+                  - Reset
+                  - DMTF Reserved
+                  - Vendor Reserved
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
+                modelcorrespondence:
+                  pywbem_object: CIMQualifier
+                  name: ModelCorrespondence
+                  value:
+                  - CIM_EnabledLogicalElement.RequestedState
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: null
             job:
               pywbem_object: CIMParameter
               name: Job
@@ -223,6 +223,16 @@
                   toinstance: null
                   overridable: false
                   translatable: null
+                out:
+                  pywbem_object: CIMQualifier
+                  name: OUT
+                  value: true
+                  type: boolean
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: false
+                  translatable: null
                 description:
                   pywbem_object: CIMQualifier
                   name: Description
@@ -234,16 +244,6 @@
                   toinstance: null
                   overridable: null
                   translatable: true
-                out:
-                  pywbem_object: CIMQualifier
-                  name: OUT
-                  value: true
-                  type: boolean
-                  propagated: null
-                  tosubclass: null
-                  toinstance: null
-                  overridable: false
-                  translatable: null
             timeoutperiod:
               pywbem_object: CIMParameter
               name: TimeoutPeriod
@@ -252,6 +252,16 @@
               is_array: null
               array_size: null
               qualifiers:
+                in:
+                  pywbem_object: CIMQualifier
+                  name: IN
+                  value: true
+                  type: boolean
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: false
+                  translatable: null
                 description:
                   pywbem_object: CIMQualifier
                   name: Description
@@ -269,52 +279,7 @@
                   toinstance: null
                   overridable: null
                   translatable: true
-                in:
-                  pywbem_object: CIMQualifier
-                  name: IN
-                  value: true
-                  type: boolean
-                  propagated: null
-                  tosubclass: null
-                  toinstance: null
-                  overridable: false
-                  translatable: null
           qualifiers:
-            modelcorrespondence:
-              pywbem_object: CIMQualifier
-              name: ModelCorrespondence
-              value:
-              - CIM_EnabledLogicalElement.RequestedState
-              type: string
-              propagated: null
-              tosubclass: null
-              toinstance: null
-              overridable: null
-              translatable: null
-            values:
-              pywbem_object: CIMQualifier
-              name: Values
-              value:
-              - Completed with No Error
-              - Not Supported
-              - Unknown or Unspecified Error
-              - Cannot complete within Timeout Period
-              - Failed
-              - Invalid Parameter
-              - In Use
-              - DMTF Reserved
-              - Method Parameters Checked - Job Started
-              - Invalid State Transition
-              - Use of Timeout Parameter Not Supported
-              - Busy
-              - Method Reserved
-              - Vendor Specific
-              type: string
-              propagated: null
-              tosubclass: null
-              toinstance: null
-              overridable: null
-              translatable: true
             description:
               pywbem_object: CIMQualifier
               name: Description
@@ -360,12 +325,47 @@
               toinstance: null
               overridable: null
               translatable: null
+            values:
+              pywbem_object: CIMQualifier
+              name: Values
+              value:
+              - Completed with No Error
+              - Not Supported
+              - Unknown or Unspecified Error
+              - Cannot complete within Timeout Period
+              - Failed
+              - Invalid Parameter
+              - In Use
+              - DMTF Reserved
+              - Method Parameters Checked - Job Started
+              - Invalid State Transition
+              - Use of Timeout Parameter Not Supported
+              - Busy
+              - Method Reserved
+              - Vendor Specific
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: true
+            modelcorrespondence:
+              pywbem_object: CIMQualifier
+              name: ModelCorrespondence
+              value:
+              - CIM_EnabledLogicalElement.RequestedState
+              type: string
+              propagated: null
+              tosubclass: null
+              toinstance: null
+              overridable: null
+              translatable: null
         setpowerstate:
           pywbem_object: CIMMethod
           name: SetPowerState
           return_type: uint32
           class_origin: null
-          propagated: null
+          propagated: false
           parameters:
             powerstate:
               pywbem_object: CIMParameter
@@ -375,24 +375,6 @@
               is_array: null
               array_size: null
               qualifiers:
-                values:
-                  pywbem_object: CIMQualifier
-                  name: Values
-                  value:
-                  - Full Power
-                  - Power Save - Low Power Mode
-                  - Power Save - Standby
-                  - Power Save - Other
-                  - Power Cycle
-                  - Power Off
-                  - Hibernate
-                  - Soft Off
-                  type: string
-                  propagated: null
-                  tosubclass: null
-                  toinstance: null
-                  overridable: null
-                  translatable: true
                 description:
                   pywbem_object: CIMQualifier
                   name: Description
@@ -421,6 +403,24 @@
                   toinstance: null
                   overridable: null
                   translatable: null
+                values:
+                  pywbem_object: CIMQualifier
+                  name: Values
+                  value:
+                  - Full Power
+                  - Power Save - Low Power Mode
+                  - Power Save - Standby
+                  - Power Save - Other
+                  - Power Cycle
+                  - Power Off
+                  - Hibernate
+                  - Soft Off
+                  type: string
+                  propagated: null
+                  tosubclass: null
+                  toinstance: null
+                  overridable: null
+                  translatable: true
             time:
               pywbem_object: CIMParameter
               name: Time
@@ -466,16 +466,6 @@
               overridable: null
               translatable: true
       qualifiers:
-        umlpackagepath:
-          pywbem_object: CIMQualifier
-          name: UMLPackagePath
-          value: CIM::System::SystemElements
-          type: string
-          propagated: null
-          tosubclass: null
-          toinstance: null
-          overridable: null
-          translatable: null
         version:
           pywbem_object: CIMQualifier
           name: Version
@@ -486,6 +476,16 @@
           toinstance: null
           overridable: null
           translatable: true
+        umlpackagepath:
+          pywbem_object: CIMQualifier
+          name: UMLPackagePath
+          value: CIM::System::SystemElements
+          type: string
+          propagated: null
+          tosubclass: null
+          toinstance: null
+          overridable: null
+          translatable: null
         description:
           pywbem_object: CIMQualifier
           name: Description

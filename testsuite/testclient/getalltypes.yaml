@@ -22,72 +22,95 @@
             pywbem_object: CIMInstance
             classname: PyWBEM_AllTypes
             properties:
-                ID: "42"
-                PString: Fritz
+                ID:
+                    pywbem_object: CIMProperty
+                    name: ID
+                    type: string
+                    value: "42"
+                    propagated: false
+                PString:
+                    pywbem_object: CIMProperty
+                    name: PString
+                    type: string
+                    value: Fritz
+                    propagated: false
                 PChar16:
                     pywbem_object: CIMProperty
                     name: PChar16
                     type: char16
                     value: F
+                    propagated: false
                 PUint8:
                     pywbem_object: CIMProperty
                     name: PUint8
                     type: uint8
                     value: 8
+                    propagated: false
                 PUint16:
                     pywbem_object: CIMProperty
                     name: PUint16
                     type: uint16
                     value: 16
+                    propagated: false
                 PUint32:
                     pywbem_object: CIMProperty
                     name: PUint32
                     type: uint32
                     value: 32
+                    propagated: false
                 PUint64:
                     pywbem_object: CIMProperty
                     name: PUint64
                     type: uint64
                     value: 64
+                    propagated: false
                 PSint8:
                     pywbem_object: CIMProperty
                     name: PSint8
                     type: sint8
                     value: -8
+                    propagated: false
                 PSint16:
                     pywbem_object: CIMProperty
                     name: PSint16
                     type: sint16
                     value: -16
+                    propagated: false
                 PSint32:
                     pywbem_object: CIMProperty
                     name: PSint32
                     type: sint32
                     value: -32
+                    propagated: false
                 PSint64:
                     pywbem_object: CIMProperty
                     name: PSint64
                     type: sint64
                     value: -64
+                    propagated: false
                 PReal32:
                     pywbem_object: CIMProperty
                     name: PReal32
                     type: real32
                     value: -32.1
+                    propagated: false
                 PReal64:
                     pywbem_object: CIMProperty
                     name: PReal64
                     type: real64
                     value: 64.1
+                    propagated: false
                 PDatetime1:
                     pywbem_object: CIMProperty
                     name: PDatetime1
+                    propagated: false
                     value:
                         pywbem_object: CIMDateTime
                         dtarg: "20160318201500.123456-060"
                 PDatetime2:
                     pywbem_object: CIMProperty
                     name: PDatetime2
+                    propagated: false
                     value:
                         pywbem_object: CIMDateTime
                         dtarg: "00001234567890.123456:000"
@@ -95,6 +118,7 @@
                     pywbem_object: CIMProperty
                     name: pRef1
                     reference_class: PyWBEM_End1
+                    propagated: false
                     value:
                         pywbem_object: CIMInstanceName
                         classname: PyWBEM_End1
@@ -103,6 +127,7 @@
                 pRef2:
                     pywbem_object: CIMProperty
                     name: pRef2
+                    propagated: false
                     value:
                         pywbem_object: CIMInstanceName
                         classname: PyWBEM_End2
@@ -111,11 +136,16 @@
                 pEmbeddedInst:
                     pywbem_object: CIMProperty
                     name: pEmbeddedInst
+                    propagated: false
                     value:
                         pywbem_object: CIMInstance
                         classname: PyWBEM_Embedded1
                         properties:
-                            ID: "2"
+                            ID:
+                                pywbem_object: CIMProperty
+                                name: ID
+                                value: "2"
+                                propagated: false
             path:
                 pywbem_object: CIMInstanceName
                 classname: PyWBEM_AllTypes

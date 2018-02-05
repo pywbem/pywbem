@@ -7783,6 +7783,12 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
 
 def byname(nlist):
     """
-    Convert a list of named objects into a map indexed by name
+    Convert a list of named objects into an ordered dictionary indexed by name.
+
+    Deprecated: This function is internal and has been deprecated in pywbem
+    0.12.
     """
-    return dict([(x.name, x) for x in nlist])
+    warnings.warn("The internal byname() function has been deprecated, with "
+                  "no replacement.", DeprecationWarning,
+                  stacklevel=_stacklevel_above_module(__name__))
+    return OrderedDict([(x.name, x) for x in nlist])

@@ -23,9 +23,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -37,9 +49,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Alice
-                    Address: Alice Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Alice
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Alice Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -51,9 +75,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Charlie
-                    Address: Charlie Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Charlie
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Charlie Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -188,9 +224,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -532,8 +580,16 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    Name: Fritz
-                    Address: Fritz Town
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -545,8 +601,16 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    Name: Alice
-                    Address: Alice Town
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Alice
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Alice Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -763,9 +827,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassname: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
+                    CreationClassname:
+                        pywbem_object: CIMProperty
+                        name: CreationClassname
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -918,7 +994,11 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    Name: Fritz
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -1017,9 +1097,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -1031,9 +1123,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Alice
-                    Address: Alice Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Alice
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Alice Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -1045,9 +1149,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Charlie
-                    Address: Charlie Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Charlie
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Charlie Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -1196,7 +1312,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 ElementName:
                     pywbem_object: CIMProperty
@@ -1208,7 +1324,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 PowerState:
                     pywbem_object: CIMProperty
@@ -1220,7 +1336,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 Description:
                     pywbem_object: CIMProperty
@@ -1234,7 +1350,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 PowerManagementSupported:
                     pywbem_object: CIMProperty
@@ -1246,7 +1362,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 NameFormat:
                     pywbem_object: CIMProperty
@@ -1258,7 +1374,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 Caption:
                     pywbem_object: CIMProperty
@@ -1270,7 +1386,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 OperationalStatus:
                     pywbem_object: CIMProperty
@@ -1283,7 +1399,7 @@
                     is_array: true
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 PowerManagementCapabilities:
                     pywbem_object: CIMProperty
@@ -1296,7 +1412,7 @@
                     is_array: true
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 CreationClassName:
                     pywbem_object: CIMProperty
@@ -1308,7 +1424,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
                 Name:
                     pywbem_object: CIMProperty
@@ -1320,7 +1436,7 @@
                     is_array: false
                     array_size: null
                     class_origin: null
-                    propagated: null
+                    propagated: false
                     qualifiers: {}
             path:
                 pywbem_object: CIMInstanceName
@@ -1837,9 +1953,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person
@@ -1929,9 +2057,21 @@
                 pywbem_object: CIMInstance
                 classname: PyWBEM_Person
                 properties:
-                    CreationClassName: PyWBEM_Person
-                    Name: Fritz
-                    Address: Fritz Town
+                    CreationClassName:
+                        pywbem_object: CIMProperty
+                        name: CreationClassName
+                        value: PyWBEM_Person
+                        propagated: false
+                    Name:
+                        pywbem_object: CIMProperty
+                        name: Name
+                        value: Fritz
+                        propagated: false
+                    Address:
+                        pywbem_object: CIMProperty
+                        name: Address
+                        value: Fritz Town
+                        propagated: false
                 path:
                     pywbem_object: CIMInstanceName
                     classname: PyWBEM_Person

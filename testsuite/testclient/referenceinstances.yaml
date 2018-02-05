@@ -37,6 +37,7 @@
           type: reference
           reference_class: CIM_ManagedElement
           is_array: false
+          propagated: false
         collection:
           pywbem_object: CIMProperty
           name: Collection
@@ -49,6 +50,7 @@
           type: reference
           reference_class: CIM_Collection
           is_array: false
+          propagated: false
       path:
         pywbem_object: CIMInstanceName
         classname: PyWBEM_MemberOfPersonCollection
@@ -216,6 +218,7 @@
               name: Alice
           type: reference
           is_array: false
+          propagated: false
         collection:
           pywbem_object: CIMProperty
           name: Collection
@@ -227,6 +230,7 @@
               instanceid: PersonCollection
           type: reference
           is_array: false
+          propagated: false
       path:
         pywbem_object: CIMInstanceName
         classname: PyWBEM_MemberOfPersonCollection

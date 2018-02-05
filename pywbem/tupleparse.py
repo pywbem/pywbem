@@ -78,6 +78,7 @@ representation of CIM in XML by having the following properties:
 # This module is meant to be safe for 'import *'.
 
 from __future__ import absolute_import
+import re
 import six
 try:
     from collections import OrderedDict
@@ -86,7 +87,8 @@ except ImportError:
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration, tocimobj, byname
+    CIMQualifierDeclaration
+from .cim_types import CIMDateTime, type_from_name
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError
 
@@ -103,15 +105,20 @@ def filter_tuples(list_):
 
 
 def pcdata(tup_tree):
-    """Return the concatenated character data within a tup_tree.
+    """
+    Return the concatenated character data within the child nodes of a
+    tuple tree node, as a unicode string. Whitespace is preserved.
 
-    The tup_tree must not have non-character children."""
+    The child nodes must be text nodes (no element nodes).
+    """
     for inst in tup_tree[2]:
         if not isinstance(inst, six.string_types):
             raise ParseError("Element %r has unexpected child elements: %r"
                              "(allowed is only text content)" %
                              (name(tup_tree), inst))
-    return ''.join(tup_tree[2])
+    data = u''.join(tup_tree[2])
+    assert isinstance(data, six.text_type)
+    return data
 
 
 def name(tup_tree):
@@ -131,21 +138,27 @@ def kids(tup_tree):
 
 # pylint: disable=too-many-arguments
 def check_node(tup_tree, nodename, required_attrs=None, optional_attrs=None,
-               allowed_children=None,
-               allow_pcdata=False):
+               allowed_children=None, allow_pcdata=False):
     # pylint: disable=too-many-branches
-    """Check static local constraints on a single node.
+    """
+    Check static local constraints on a tuple tree node.
 
-    The node must have the given name.  The required attrs must be
-    present, and the optional attrs may be.
+    The node must have the given nodename.
 
-    If allowed_children is not None, the node may have children of the
-    given types.  It can be [] for nodes that may not have any
-    children.  If it's None, it is assumed the children are validated
-    in some other way.
+    Required_attrs is a list of attribute names that must be present.
+    None means the same as an empty list: No attributes are required.
 
-    If allow_pcdata is true, then non-whitespace text children are allowed.
-    (Whitespace text nodes are always allowed.)
+    Optional_attrs is a list of attribute names that may be present.
+    None means the same as an empty list: No attributes are optional.
+
+    Present attributes that are neither required nor optional, are rejected.
+
+    If allowed_children is not None, the node may have children of the given
+    types.  It can be [] for nodes that may not have any children.  If it's
+    None, no validation of the children is performed.
+
+    If allow_pcdata is True, then non-whitespace text nodes are allowed as
+    children. (Whitespace text nodes are always allowed as children.)
     """
 
     if name(tup_tree) != nodename:
@@ -370,20 +383,29 @@ def parse_declgroup(tup_tree):
 #
 
 def parse_value(tup_tree):
-    """Return VALUE contents as a string
+    """
+    Parse a VALUE element and return its text content as a unicode string.
+    Whitespace is preserved.
+
+    The conversion of the text representation of the value to a CIM data type
+    object requires CIM type information which is not available on the VALUE
+    element and therefore will be done when parsing higher level elements that
+    have that information.
 
       ::
 
         <!ELEMENT VALUE (#PCDATA)>
     """
 
-    check_node(tup_tree, 'VALUE', [], [], [], True)
+    check_node(tup_tree, 'VALUE', [], [], [], allow_pcdata=True)
 
     return pcdata(tup_tree)
 
 
 def parse_value_array(tup_tree):
-    """Return list of strings.
+    """
+    Parse a VALUE.ARRAY element and return the items in the array as a list of
+    unicode strings. Whitespace is preserved.
 
       ::
 
@@ -392,11 +414,16 @@ def parse_value_array(tup_tree):
 
     check_node(tup_tree, 'VALUE.ARRAY', [], [], ['VALUE'])
 
+    # TODO 1/18 AM: Add support for VALUE.NULL
+
     return list_of_same(tup_tree, ['VALUE'])
 
 
 def parse_value_reference(tup_tree):
     """
+    Parse a VALUE.REFERENCE element and return the instance path or class path
+    it represents as a CIMInstanceName or CIMClassName object, respectively.
+
       ::
 
         <!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME |
@@ -404,19 +431,22 @@ def parse_value_reference(tup_tree):
                                    INSTANCENAME)>
     """
 
-    check_node(tup_tree, 'VALUE.REFERENCE', [])
+    check_node(tup_tree, 'VALUE.REFERENCE')
 
     child = one_child(tup_tree,
                       ['CLASSPATH', 'LOCALCLASSPATH', 'CLASSNAME',
                        'INSTANCEPATH', 'LOCALINSTANCEPATH',
                        'INSTANCENAME'])
 
-    # The VALUE.REFERENCE wrapper element is discarded
     return child
 
 
 def parse_value_refarray(tup_tree):
     """
+    Parse a VALUE.REFARRAY element and return the array of instance paths or
+    class paths it represents as a list of CIMInstanceName or CIMClassName
+    objects, respectively.
+
       ::
 
         <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
@@ -424,9 +454,12 @@ def parse_value_refarray(tup_tree):
 
     check_node(tup_tree, 'VALUE.REFARRAY')
 
+    # list_of_various() has the same effect as list_of_same() when used with a
+    # single allowed child element, but is a little faster.
     children = list_of_various(tup_tree, ['VALUE.REFERENCE'])
 
-    # The VALUE.REFARRAY wrapper element is discarded
+    # TODO 1/18 AM: Add support for VALUE.NULL
+
     return children
 
 
@@ -460,10 +493,9 @@ def parse_value_namedinstance(tup_tree):
                          "(INSTANCENAME, INSTANCE))" %
                          (name(tup_tree), k))
 
-    instancename = parse_instancename(k[0])
+    inst_path = parse_instancename(k[0])
     instance = parse_instance(k[1])
-
-    instance.path = instancename
+    instance.path = inst_path
 
     return instance
 
@@ -487,11 +519,12 @@ def parse_value_instancewithpath(tup_tree):
                          "(expecting two child elements "
                          "(INSTANCEPATH, INSTANCE))" %
                          (name(tup_tree), k))
-    path = parse_instancepath(k[0])
-    instance = parse_instance(k[1])
 
-    instance.path = path
-    return (instance)
+    inst_path = parse_instancepath(k[0])
+    instance = parse_instance(k[1])
+    instance.path = inst_path
+
+    return instance
 
 
 def parse_value_namedobject(tup_tree):
@@ -507,12 +540,12 @@ def parse_value_namedobject(tup_tree):
     if len(k) == 1:
         _object = parse_class(k[0])
     elif len(k) == 2:
-        path = parse_instancename(kids(tup_tree)[0])
+        inst_path = parse_instancename(kids(tup_tree)[0])
 
         # redefines _object from pywbem.cim_obj.CIMClass to ...CIMInstance
         _object = parse_instance(kids(tup_tree)[1])
 
-        _object.path = path
+        _object.path = inst_path
     else:
         raise ParseError("Element %r has invalid number of child elements %r "
                          "(expecting one or two child elements "
@@ -543,13 +576,15 @@ def parse_value_objectwithlocalpath(tup_tree):
                          (name(tup_tree), k))
 
     if name(k[0]) == 'LOCALCLASSPATH':
+        # Note: Before pywbem 0.12, CIMClass did not have a path, therefore
+        # classpath and class are returned as a tuple.
         _object = (parse_localclasspath(k[0]),
                    parse_class(k[1]))
     else:
-        path = parse_localinstancepath(k[0])
-        # redefines _object from tuple to CIMInstance
+        inst_path = parse_localinstancepath(k[0])
+        # redefines _object from tuple to CIMInstance with path
         _object = parse_instance(k[1])
-        _object.path = path
+        _object.path = inst_path
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
@@ -573,12 +608,15 @@ def parse_value_objectwithpath(tup_tree):
                          (name(tup_tree), k))
 
     if name(k[0]) == 'CLASSPATH':
-        _object = (parse_classpath(k[0]), parse_class(k[1]))
+        # Note: Before pywbem 0.12, CIMClass did not have a path, therefore
+        # classpath and class are returned as a tuple.
+        _object = (parse_classpath(k[0]),
+                   parse_class(k[1]))
     else:
-        path = parse_instancepath(k[0])
-        # redefines _object from tuple to CIMInstance
+        inst_path = parse_instancepath(k[0])
+        # redefines _object from tuple to CIMInstance with path
         _object = parse_instance(k[1])
-        _object.path = path
+        _object.path = inst_path
 
     return (name(tup_tree), attrs(tup_tree), _object)
 
@@ -590,6 +628,9 @@ def parse_value_objectwithpath(tup_tree):
 
 def parse_namespacepath(tup_tree):
     """
+    Parse a NAMESPACEPATH element and return the host and namespace it
+    represents as a tuple (host, namespace).
+
       ::
 
         <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
@@ -606,13 +647,19 @@ def parse_namespacepath(tup_tree):
                          (name(tup_tree), k))
 
     host = parse_host(k[0])
-    localnspath = parse_localnamespacepath(k[1])
+    namespace = parse_localnamespacepath(k[1])
 
-    return (host, localnspath)
+    return (host, namespace)
 
 
 def parse_localnamespacepath(tup_tree):
     """
+    Parse a LOCALNAMESPACEPATH element and return the namespace it represents
+    as a unicode string.
+
+    The namespace is formed by joining the namespace components (one from each
+    NAMESPACE child element) with a slash (e.g. to "root/cimv2").
+
       ::
 
         <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
@@ -625,13 +672,17 @@ def parse_localnamespacepath(tup_tree):
                          "(expecting one or more child elements 'NAMESPACE')" %
                          name(tup_tree))
 
+    # list_of_various() has the same effect as list_of_same() when used with a
+    # single allowed child element, but is a little faster.
     ns_list = list_of_various(tup_tree, ['NAMESPACE'])
 
-    return '/'.join(ns_list)
+    return u'/'.join(ns_list)
 
 
 def parse_host(tup_tree):
     """
+    Parse a HOST element and return its text content as a unicode string.
+
       ::
 
         <!ELEMENT HOST (#PCDATA)>
@@ -643,7 +694,9 @@ def parse_host(tup_tree):
 
 
 def parse_namespace(tup_tree):
-    """Parse NAMESPACE element for namespace name
+    """
+    Parse a NAMESPACE element and return the namespace component it represents
+    (e.g. "root") as a unicode string.
 
       ::
 
@@ -659,6 +712,9 @@ def parse_namespace(tup_tree):
 
 def parse_classpath(tup_tree):
     """
+    Parse a CLASSPATH element and return the class path it represents as a
+    CIMClassName object.
+
       ::
 
         <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
@@ -674,15 +730,19 @@ def parse_classpath(tup_tree):
                          "(NAMESPACEPATH, CLASSNAME))" %
                          (name(tup_tree), k))
 
-    nspath = parse_namespacepath(k[0])
-    classname = parse_classname(k[1])
+    host, namespace = parse_namespacepath(k[0])
+    class_path = parse_classname(k[1])
+    class_path.host = host
+    class_path.namespace = namespace
 
-    return CIMClassName(classname.classname,
-                        host=nspath[0], namespace=nspath[1])
+    return class_path
 
 
 def parse_localclasspath(tup_tree):
     """
+    Parse a LOCALCLASSPATH element and return the class path it represents as a
+    CIMClassName object.
+
       ::
 
         <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
@@ -698,14 +758,17 @@ def parse_localclasspath(tup_tree):
                          "(LOCALNAMESPACEPATH, CLASSNAME))" %
                          (name(tup_tree), k))
 
-    localnspath = parse_localnamespacepath(k[0])
-    classname = parse_classname(k[1])
+    namespace = parse_localnamespacepath(k[0])
+    class_path = parse_classname(k[1])
+    class_path.namespace = namespace
 
-    return CIMClassName(classname.classname, namespace=localnspath)
+    return class_path
 
 
 def parse_classname(tup_tree):
-    """Parse a CLASSNAME element and return a CIMClassName.
+    """
+    Parse a CLASSNAME element and return the class path it represents as a
+    CIMClassName object.
 
       ::
 
@@ -715,11 +778,17 @@ def parse_classname(tup_tree):
     """
 
     check_node(tup_tree, 'CLASSNAME', ['NAME'], [], [])
-    return CIMClassName(attrs(tup_tree)['NAME'])
+
+    classname = attrs(tup_tree)['NAME']
+    class_path = CIMClassName(classname)
+
+    return class_path
 
 
 def parse_instancepath(tup_tree):
-    """Parse a INSTANCEPATH element returning the instance name.
+    """
+    Parse an INSTANCEPATH element and return the instance path it represents as
+    a CIMInstanceName object.
 
       ::
 
@@ -736,17 +805,18 @@ def parse_instancepath(tup_tree):
                          "(NAMESPACEPATH, INSTANCENAME))" %
                          (name(tup_tree), k))
 
-    nspath = parse_namespacepath(k[0])
-    instancename = parse_instancename(k[1])
+    host, namespace = parse_namespacepath(k[0])
+    inst_path = parse_instancename(k[1])
+    inst_path.host = host
+    inst_path.namespace = namespace
 
-    instancename.host = nspath[0]
-    instancename.namespace = nspath[1]
-
-    return instancename
+    return inst_path
 
 
 def parse_localinstancepath(tup_tree):
-    """Parse a LOCALINSTANCEPATH element:
+    """
+    Parse a LOCALINSTANCEPATH element and return the instance path it
+    represents as a CIMInstanceName object.
 
       ::
 
@@ -763,16 +833,17 @@ def parse_localinstancepath(tup_tree):
                          "(LOCALNAMESPACEPATH, INSTANCENAME))" %
                          (name(tup_tree), k))
 
-    localnspath = parse_localnamespacepath(k[0])
-    instancename = parse_instancename(k[1])
+    namespace = parse_localnamespacepath(k[0])
+    inst_path = parse_instancename(k[1])
+    inst_path.namespace = namespace
 
-    instancename.namespace = localnspath
-
-    return instancename
+    return inst_path
 
 
 def parse_instancename(tup_tree):
-    """Parse XML INSTANCENAME into CIMInstanceName object.
+    """
+    Parse an INSTANCENAME element and return the instance path it represents as
+    a CIMInstanceName object.
 
       ::
 
@@ -800,16 +871,13 @@ def parse_instancename(tup_tree):
                              "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))" %
                              (name(tup_tree), k0_name))
 
-        # TODO: This is probably not the best representation of these forms...
-        # it may be we have a bug here, it is suspicious that the result of a
-        # parse...() function is used directly as a keybinding value. Also not
-        # clear why key name is not set. Need to extend the testclient test
-        # cases to make sure we go through all cases of INSTANCENAME parsing
-        # (e.g. GetInstance on association instance).
+        # TODO 1/18 AM: Clarify how to represent unnamed keys - not supp. now
         val = parse_any(kid0)
         return CIMInstanceName(classname, {None: val})
     elif k0_name == 'KEYBINDING':
         kbs = {}
+        # list_of_various() has the same effect as list_of_same() when used
+        # with a single allowed child element, but is a little faster.
         for key_bind in list_of_various(tup_tree, ['KEYBINDING']):
             kbs.update(key_bind)
         return CIMInstanceName(classname, kbs)
@@ -835,7 +903,11 @@ def parse_objectpath(tup_tree):
 
 
 def parse_keybinding(tup_tree):
-    """Returns one-item dictionary from name to Python value.
+    """
+    Parse a KEYBINDING element and return the keybinding as a one-item
+    dictionary from name to value, where the value is a CIM data type object,
+    based upon the type information in the child elements, if present. If no
+    type information is present, numeric values are returned as int or float.
 
       ::
 
@@ -852,7 +924,23 @@ def parse_keybinding(tup_tree):
 
 
 def parse_keyvalue(tup_tree):
-    """Parse VALUETYPE into Python primitive value.
+    """
+    Parse a KEYVALUE element and return the keybinding value as a CIM data type
+    object, based upon the type information in its VALUETYPE and TYPE
+    attributes, if present.
+
+    If TYPE is specified, its value is used to create the corresponding CIM
+    data type object. in this case, VALUETYPE is ignored and may be omitted.
+    Discrepancies between TYPE and VALUETYPE are not checked.
+
+    Note that DSP0201 does not detail how such discrepancies should be
+    resolved, including the precedence of the DTD-defined default for VALUETYPE
+    over a specified TYPE value.
+
+    If TYPE is not specified but VALUETYPE is specified, the CIM type is
+    defaulted for a VALUETYPE of 'string' and 'boolean'. For a VALUETYPE of
+    'numeric', the CIM type remains undetermined and the numeric values are
+    returned as Python int/long or float objects.
 
       ::
 
@@ -862,37 +950,27 @@ def parse_keyvalue(tup_tree):
             %CIMType;              #IMPLIED>
     """
 
-    check_node(tup_tree, 'KEYVALUE', ['VALUETYPE'], ['TYPE'], [], True)
+    check_node(tup_tree, 'KEYVALUE', [], ['VALUETYPE', 'TYPE'], [],
+               allow_pcdata=True)
 
-    pdta = pcdata(tup_tree)
+    data = pcdata(tup_tree)
 
-    if 'VALUETYPE' not in attrs(tup_tree):
-        return pdta
+    valuetype = attrs(tup_tree).get('VALUETYPE', 'string')
+    cimtype = attrs(tup_tree).get('TYPE', None)
 
-    val_type = attrs(tup_tree).get('VALUETYPE')
+    # Default the CIM type from VALUETYPE if not specified in TYPE
+    if cimtype is None:
+        if valuetype == 'string':
+            cimtype = 'string'
+        elif valuetype == 'boolean':
+            cimtype = 'boolean'
+        elif valuetype == 'numeric':
+            pass
+        else:
+            raise ParseError("Element %r has invalid 'VALUETYPE' attribute "
+                             "value %r" % (name(tup_tree), valuetype))
 
-    if val_type == 'string':
-        return pdta
-    elif val_type == 'boolean':
-        return unpack_boolean(pdta)
-    elif val_type == 'numeric':
-
-        try:
-
-            # TODO: Use TYPE attribute to create CIM typed value, e.g.:
-            #   if 'TYPE' in attrs(tup_tree):
-            #      return cimvalue(p.strip(), attrs(tup_tree)['TYPE'])
-            # This also solves the issue that int in Py2 cannot represent the
-            # longer CIM numeric types.
-            return int(pdta.strip())
-
-        except ValueError:
-            raise ParseError("Element %r has invalid numeric content %r" %
-                             (name(tup_tree), pdta))
-    else:
-        raise ParseError("Element %r has invalid 'VALUETYPE' attribute value "
-                         "%r" %
-                         (name(tup_tree), val_type))
+    return unpack_single_value(data, cimtype)
 
 
 #
@@ -920,13 +998,10 @@ def parse_class(tup_tree):
 
     superclass = attrs(tup_tree).get('SUPERCLASS')
 
-    properties = byname(list_of_matching(tup_tree,
-                                         ['PROPERTY',
-                                          'PROPERTY.REFERENCE',
-                                          'PROPERTY.ARRAY']))
-
-    qualifiers = byname(list_of_matching(tup_tree, ['QUALIFIER']))
-    methods = byname(list_of_matching(tup_tree, ['METHOD']))
+    properties = list_of_matching(tup_tree, ['PROPERTY', 'PROPERTY.REFERENCE',
+                                             'PROPERTY.ARRAY'])
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
+    methods = list_of_matching(tup_tree, ['METHOD'])
 
     return CIMClass(attrs(tup_tree)['NAME'],
                     superclass=superclass,
@@ -949,7 +1024,7 @@ def parse_instance(tup_tree):
             %ClassName;>
     """
 
-    check_node(tup_tree, 'INSTANCE', ['CLASSNAME'],
+    check_node(tup_tree, 'INSTANCE', ['CLASSNAME'], [],
                ['QUALIFIER', 'PROPERTY', 'PROPERTY.ARRAY',
                 'PROPERTY.REFERENCE'])
 
@@ -1042,11 +1117,12 @@ def parse_qualifier_declaration(tup_tree):
                                  (name(tup_tree), name(child)))
             scopes = parse_any(child)
         else:
+            # name is 'VALUE' or 'VALUE.ARRAY'
             if value is not None:
                 raise ParseError("Element %r has more than one child element "
                                  "%r (allowed is only one)" %
                                  (name(tup_tree), name(child)))
-            value = tocimobj(_type, parse_any(child))
+            value = unpack_value(tup_tree)
 
     return CIMQualifierDeclaration(qname, _type, value, is_array,
                                    array_size, scopes, **flavors)
@@ -1071,9 +1147,9 @@ def parse_qualifier(tup_tree):
                ['VALUE', 'VALUE.ARRAY'])
 
     attrl = attrs(tup_tree)
+    val = unpack_value(tup_tree)
 
-    qual = CIMQualifier(attrl['NAME'], unpack_value(tup_tree),
-                        type=attrl['TYPE'])
+    qual = CIMQualifier(attrl['NAME'], val, type=attrl['TYPE'])
 
     for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
               'TRANSLATABLE', 'PROPAGATED']:
@@ -1111,7 +1187,7 @@ def parse_property(tup_tree):
     """
 
     check_node(tup_tree, 'PROPERTY', ['TYPE', 'NAME'],
-               ['NAME', 'CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
+               ['CLASSORIGIN', 'PROPAGATED', 'EmbeddedObject',
                 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE'])
 
@@ -1141,7 +1217,8 @@ def parse_property(tup_tree):
                        val,
                        attrl['TYPE'],
                        class_origin=attrl.get('CLASSORIGIN'),
-                       propagated=unpack_boolean(attrl.get('PROPAGATED')),
+                       propagated=unpack_boolean(attrl.get('PROPAGATED',
+                                                           'false')),
                        qualifiers=quals,
                        embedded_object=embedded_object)
 
@@ -1186,6 +1263,8 @@ def parse_property_array(tup_tree):
                       values,
                       attrl['TYPE'],
                       class_origin=attrl.get('CLASSORIGIN'),
+                      propagated=unpack_boolean(attrl.get('PROPAGATED',
+                                                          'false')),
                       qualifiers=quals,
                       is_array=True,
                       embedded_object=embedded_object)
@@ -1224,13 +1303,14 @@ def parse_property_reference(tup_tree):
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
         quals[qual.name] = qual
 
-    attributes = attrs(tup_tree)
+    attrl = attrs(tup_tree)
 
-    pref = CIMProperty(attributes['NAME'], value, type='reference',
+    pref = CIMProperty(attrl['NAME'], value, type='reference',
                        qualifiers=quals,
-                       reference_class=attributes.get('REFERENCECLASS'),
-                       class_origin=attributes.get('CLASSORIGIN'),
-                       propagated=attributes.get('PROPAGATED'))
+                       reference_class=attrl.get('REFERENCECLASS'),
+                       class_origin=attrl.get('CLASSORIGIN'),
+                       propagated=unpack_boolean(attrl.get('PROPAGATED',
+                                                           'false')))
 
     return pref
 
@@ -1253,12 +1333,12 @@ def parse_method(tup_tree):
                ['QUALIFIER', 'PARAMETER', 'PARAMETER.REFERENCE',
                 'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'])
 
-    qualifiers = byname(list_of_matching(tup_tree, ['QUALIFIER']))
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
-    parameters = byname(list_of_matching(tup_tree, ['PARAMETER',
-                                                    'PARAMETER.REFERENCE',
-                                                    'PARAMETER.ARRAY',
-                                                    'PARAMETER.REFARRAY', ]))
+    parameters = list_of_matching(tup_tree, ['PARAMETER',
+                                             'PARAMETER.REFERENCE',
+                                             'PARAMETER.ARRAY',
+                                             'PARAMETER.REFARRAY'])
 
     attrl = attrs(tup_tree)
 
@@ -1267,7 +1347,8 @@ def parse_method(tup_tree):
                      parameters=parameters,
                      qualifiers=qualifiers,
                      class_origin=attrl.get('CLASSORIGIN'),
-                     propagated=unpack_boolean(attrl.get('PROPAGATED')))
+                     propagated=unpack_boolean(attrl.get('PROPAGATED',
+                                                         'false')))
 
 
 def parse_parameter(tup_tree):
@@ -1280,7 +1361,7 @@ def parse_parameter(tup_tree):
             %CIMType;              #REQUIRED>
     """
 
-    check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'], [])
+    check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'])
 
     quals = {}
     for qual in list_of_matching(tup_tree, ['QUALIFIER']):
@@ -1465,11 +1546,11 @@ def parse_imethodcall(tup_tree):
                          "(LOCALNAMESPACEPATH, IPARAMVALUE*))" %
                          name(tup_tree))
 
-    localnspath = parse_localnamespacepath(k[0])
+    namespace = parse_localnamespacepath(k[0])
 
     params = [parse_iparamvalue(x) for x in k[1:]]
 
-    return (name(tup_tree), attrs(tup_tree), localnspath, params)
+    return (name(tup_tree), attrs(tup_tree), namespace, params)
 
 
 def parse_methodcall(tup_tree):
@@ -1569,7 +1650,7 @@ def parse_iparamvalue(tup_tree):
     :return: NAME, VALUE pair.
     """
 
-    check_node(tup_tree, 'IPARAMVALUE', ['NAME'], [])
+    check_node(tup_tree, 'IPARAMVALUE', ['NAME'])
 
     child = optional_child(tup_tree,
                            ['VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
@@ -1628,7 +1709,7 @@ def parse_simplersp(tup_tree):
         <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
     """
 
-    check_node(tup_tree, 'SIMPLERSP', [], [])
+    check_node(tup_tree, 'SIMPLERSP')
 
     child = one_child(tup_tree, ['METHODRESPONSE', 'IMETHODRESPONSE'])
 
@@ -1654,7 +1735,7 @@ def parse_methodresponse(tup_tree):
             %CIMName;>
     """
 
-    check_node(tup_tree, 'METHODRESPONSE', ['NAME'], [])
+    check_node(tup_tree, 'METHODRESPONSE', ['NAME'])
 
     return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree,
                                                             ['ERROR',
@@ -1678,7 +1759,7 @@ def parse_imethodresponse(tup_tree):
             %CIMName;>
     """
 
-    check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'], [])
+    check_node(tup_tree, 'IMETHODRESPONSE', ['NAME'])
 
     return name(tup_tree), attrs(tup_tree), list_of_various(tup_tree,
                                                             ['ERROR',
@@ -1697,7 +1778,7 @@ def parse_error(tup_tree):
             DESCRIPTION CDATA #IMPLIED>
     """
 
-    check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'])
+    check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'], [])
 
     return (name(tup_tree), attrs(tup_tree), None)
 
@@ -1753,8 +1834,7 @@ def parse_ireturnvalue(tup_tree):
     # can be done in context of the intrinsic operation receiving its return
     # value. The DTD is so broad simply because it needs to cover the possible
     # return values of all intrinsic operations.
-
-    check_node(tup_tree, 'IRETURNVALUE', [], [])
+    check_node(tup_tree, 'IRETURNVALUE')
 
     values = list_of_same(tup_tree, ['CLASSNAME', 'INSTANCENAME',
                                      'VALUE', 'VALUE.OBJECTWITHPATH',
@@ -1861,18 +1941,13 @@ def unpack_value(tup_tree):
     Python value.
 
     Looks at the TYPE of the node to work out how to decode it.
-    Handles nodes with no value (e.g. in CLASS.)
+    Handles nodes with no value (e.g. when representing NULL by omitting VALUE)
     """
-
-    # TODO: Handle VALUE.REFERENCE, VALUE.REFARRAY.
-    # Investigation is needed on this to do: Double check whether
-    # unpack_value() is called for VALUE.REFERENCE, VALUE.REFARRAY at all. Is
-    # this about an error or about simplification?  Also, make sure that
-    # testclient has test cases covering this.
 
     valtype = attrs(tup_tree)['TYPE']
 
     raw_val = list_of_matching(tup_tree, ['VALUE', 'VALUE.ARRAY'])
+
     if not raw_val:
         return None
     elif len(raw_val) > 1:
@@ -1883,14 +1958,79 @@ def unpack_value(tup_tree):
     raw_val = raw_val[0]
 
     if isinstance(raw_val, list):
-        return [tocimobj(valtype, x) for x in raw_val]
-    elif not raw_val and valtype != 'string':
+        return [unpack_single_value(data, valtype) for data in raw_val]
+    else:
+        return unpack_single_value(raw_val, valtype)
+
+
+def unpack_single_value(data, cimtype):
+    """
+    Unpack a single (non-array) CIM typed string value of any CIM type except
+    'reference' and return it as a CIM data type object, or Python
+    int/long/float, or None.
+
+    data (unicode string): CIM-XML string value, or None (in which case None is
+      returned).
+
+    cimtype (string): CIM data type name (e.g. 'datetime') except 'reference',
+      or None (in which case a numeric value is assumed).
+    """
+    if cimtype in ('string', 'char16', 'datetime'):
+        return unpack_string(data, cimtype)
+    elif cimtype == 'boolean':
+        return unpack_boolean(data)
+    else:  # None or 'numeric'
+        return unpack_numeric(data, cimtype)
+
+
+def unpack_string(data, cimtype):
+    """
+    Unpack a CIM-XML string value of one of the CIM types ('string', 'char16',
+    'datetime') and return it as a CIM data type object, or None.
+
+    data (unicode string): CIM-XML string value, or None (in which case None is
+      returned).
+
+    cimtype (string): CIM data type name (e.g. 'datetime').
+    """
+
+    if data is None:
         return None
-    return tocimobj(valtype, raw_val)
+
+    if cimtype == 'string':
+        value = data
+    elif cimtype == 'datetime':
+        try:
+            value = CIMDateTime(data)
+        except ValueError as exc:
+            raise ParseError("Invalid datetime value: %r (%s)" % (data, exc))
+    elif cimtype == 'char16':
+        value = data
+        if value == '':
+            raise ParseError("Char16 value is empty")
+        if len(value) > 1:
+            # More than one character, or one character from the UCS-4 set in
+            # a narrow Python build (which represents it using surrogates).
+            raise ParseError("Char16 value has more than one UCS-2 character: "
+                             "%r" % data)
+        if len(value) == 1 and ord(value) > 0xFFFF:
+            # One character from the UCS-4 set in a wide Python build.
+            raise ParseError("Char16 value is a character outside of the "
+                             "UCS-2 range: %r" % data)
+    else:
+        raise ParseError("Invalid CIM type name %r for string: %r" %
+                         (cimtype, data))
+    return value
 
 
 def unpack_boolean(data):
-    """Unpack a boolean, represented as "TRUE" or "FALSE" in CIM."""
+    """
+    Unpack a string value of CIM type 'boolean' and return its CIM data type
+    object, or None.
+
+    data (unicode string): CIM-XML string value, or None (in which case None is
+      returned).
+    """
 
     if data is None:
         return None
@@ -1904,6 +2044,64 @@ def unpack_boolean(data):
     elif data == 'false':
         return False
     elif data == '':
+        # TODO 1/18 AM: Clarify whether an empty string should be supported
         return None
     else:
-        raise ParseError("Invalid boolean %r" % data)
+        raise ParseError("Invalid boolean value %r" % data)
+
+
+CIMXML_HEX_PATTERN = re.compile(r'^(\+|\-)?0[xX][0-9a-fA-F]+$')
+
+
+def unpack_numeric(data, cimtype):
+    """
+    Unpack a string value of a numeric CIM type and return its CIM data type
+    object, or None.
+
+    data (unicode string): CIM-XML string value, or None (in which case None is
+      returned).
+
+    cimtype (string): CIM data type name (e.g. 'uint8'), or None (in which case
+      the value is returned as a Python int/long or float).
+    """
+
+    if data is None:
+        return None
+
+    # DSP0201 defines numeric values to be whitespace-tolerant
+    data = data.strip()
+
+    # Decode the CIM-XML string representation into a Python number
+    #
+    # Some notes:
+    # * For integer numbers, only decimal and hexadecimal strings are allowed -
+    #   no binary or octal.
+    # * In Python 2, int() automatically returns a long, if needed.
+    # * For real values, DSP0201 defines a subset of the syntax supported by
+    #   Python float(), including the special states Inf, -Inf, NaN. The only
+    #   known difference is that DSP0201 requires a digit after the decimal
+    #   dot, while Python does not.
+    if CIMXML_HEX_PATTERN.match(data):
+        value = int(data, 16)
+    else:
+        try:
+            value = int(data)
+        except ValueError:
+            try:
+                value = float(data)
+            except ValueError:
+                raise ParseError("Invalid numeric value %r" % data)
+
+    # Convert the Python number into a CIM data type
+    if cimtype is None:
+        return value  # int/long or float (used for keybindings)
+    else:
+
+        # Tupleparse ensures a numeric type when calling this function.
+        CIMType = type_from_name(cimtype)
+
+        try:
+            value = CIMType(value)
+        except ValueError as exc:
+            raise ParseError(str(exc))
+        return value
