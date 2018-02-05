@@ -1,5 +1,5 @@
 - name: InvokeMethod1
-  description: Pass two input parameters as list of tuple(name,value), no output parameters
+  description: Pass two input parameters via Params as list of tuple(name,value), no output parameters
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -76,7 +76,7 @@
       </CIM>
 
 - name: InvokeMethod2
-  description: Pass two input parameters as list of CIMParameter objects, no output parameters
+  description: Pass two input parameters via Params as list of CIMParameter objects, no output parameters
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -224,6 +224,77 @@
       <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">
       <VALUE>42</VALUE>
       </PARAMVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethod4
+  description: Pass one input parameter via **params as list of tuple(name,value), no output parameters
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      indicationSendCount:
+        pywbem_object: Uint32
+        x: 0
+  pywbem_response:
+    result:
+    - 0
+    - {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider%3ATest_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
       </METHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>
