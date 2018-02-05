@@ -3337,6 +3337,7 @@ class ClassOperations(ClientClassTest):
                                                type='uint8')})
 
         # force propagated False for all properties
+        # Effictive V0.12.0 this is required.
         for p in test_class.properties:
             test_class.properties[p].propagated = False
 
