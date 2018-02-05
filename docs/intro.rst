@@ -516,6 +516,13 @@ specified when following the links to the standards:
 * The CIM-XML representation of :ref:`CIM objects` as produced by their
   ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to :term:`DSP0201`.
 
+  Limitations:
+
+  - The `xml:lang` attribute supported by :term:`DSP0201` on some CIM-XML
+    elements that can have string values is tolerated in the CIM-XML received
+    by pywbem, but is ignored and is not represented on the corresponding
+    :ref:`CIM objects`.
+
 * The MOF as produced by the ``tomof()`` methods on :ref:`CIM objects` and as
   parsed by the MOF compiler conforms to :term:`DSP0004`.
 

@@ -478,6 +478,10 @@ Bug fixes
   in the `array_size` attribute of the returned `CIMProperty` objects.
   (Issue #1031).
 
+* Fixed the issue that the `xml:lang` attributes that are allowed on some
+  CIM-XML elements have been rejected by raising `ParseError`. They are now
+  tolerated but ignored (Issue #1033).
+
 Cleanup
 ^^^^^^^
 
