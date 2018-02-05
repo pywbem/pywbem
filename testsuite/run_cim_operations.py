@@ -2244,7 +2244,7 @@ class CreateInstance(ClientTest):
 
         tst_instance = CIMInstance(
             'PyWBEM_AllTypes',
-            value=[
+            properties=[
                 ('InstanceId', instance_id),
                 ('scalBool', True),
                 ('scalUint8', Uint8(42)),
@@ -3335,6 +3335,12 @@ class ClassOperations(ClientClassTest):
                         'MyUint8': CIMProperty('MyUint8', Uint8(99),
                                                type='uint8')})
 
+        # force propagated False for all properties
+        # Effective V 0.12.0 propagated must be set to compare with
+        # info returned from server.
+        for p in test_class.properties:
+            test_class.properties[p].propagated = False
+
         return test_class
 
     def create_class(self):
@@ -3392,6 +3398,8 @@ class ClassOperations(ClientClassTest):
                                                    is_array=True),
                         'MyStr': CIMProperty('MyStr', 'This is a test',
                                              type='string')})
+        for p in test_class.properties:
+            test_class.properties[p].propagated = False
         return test_class
 
 
@@ -3585,10 +3593,11 @@ class ModifyClass(ClassOperations):
                 print('NOTE: This server/namespace does not support '
                       'CreateClass since it returned INVALID_CLASS')
 
-        # Now modify the original class by adding a new property
+        # Modify the original class by adding a new property
         new_property = CIMProperty('Str2', None,
                                    type='string',
-                                   is_array=False)
+                                   is_array=False,
+                                   propagated=False)
 
         test_class.properties['Str2'] = new_property
 
