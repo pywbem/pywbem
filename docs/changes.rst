@@ -482,6 +482,10 @@ Bug fixes
   CIM-XML elements have been rejected by raising `ParseError`. They are now
   tolerated but ignored (Issue #1033).
 
+* Fixed the issue that mixed case values (e.g. "True") for the boolean
+  attributes of the QUALIFIER element in CIM-XML was not supported and resulted
+  in `ParseError` to be raised (Issue #1042).
+
 Cleanup
 ^^^^^^^
 

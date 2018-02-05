@@ -7785,7 +7785,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with OVERRIDABLE attribute (TrUe)",
         dict(
             xml_str=''
@@ -7795,7 +7794,7 @@ testcases_tupleparse_xml = [
                 overridable=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with OVERRIDABLE attribute (false)",
@@ -7810,7 +7809,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with OVERRIDABLE attribute (FaLsE)",
         dict(
             xml_str=''
@@ -7820,7 +7818,7 @@ testcases_tupleparse_xml = [
                 overridable=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with TOSUBCLASS attribute (true)",
@@ -7835,7 +7833,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with TOSUBCLASS attribute (TrUe)",
         dict(
             xml_str=''
@@ -7845,7 +7842,7 @@ testcases_tupleparse_xml = [
                 tosubclass=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with TOSUBCLASS attribute (false)",
@@ -7860,7 +7857,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with TOSUBCLASS attribute (FaLsE)",
         dict(
             xml_str=''
@@ -7870,7 +7866,7 @@ testcases_tupleparse_xml = [
                 tosubclass=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with TOINSTANCE attribute (true)",
@@ -7885,7 +7881,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with TOINSTANCE attribute (TrUe)",
         dict(
             xml_str=''
@@ -7895,7 +7890,7 @@ testcases_tupleparse_xml = [
                 toinstance=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with TOINSTANCE attribute (false)",
@@ -7910,7 +7905,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with TOINSTANCE attribute (FaLsE)",
         dict(
             xml_str=''
@@ -7920,7 +7914,7 @@ testcases_tupleparse_xml = [
                 toinstance=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with TRANSLATABLE attribute (true)",
@@ -7935,7 +7929,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with TRANSLATABLE attribute (TrUe)",
         dict(
             xml_str=''
@@ -7945,7 +7938,7 @@ testcases_tupleparse_xml = [
                 translatable=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with TRANSLATABLE attribute (false)",
@@ -7960,7 +7953,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with TRANSLATABLE attribute (FaLsE)",
         dict(
             xml_str=''
@@ -7970,7 +7962,7 @@ testcases_tupleparse_xml = [
                 translatable=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with PROPAGATED attribute (true)",
@@ -7985,7 +7977,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with PROPAGATED attribute (TrUe)",
         dict(
             xml_str=''
@@ -7995,7 +7986,7 @@ testcases_tupleparse_xml = [
                 propagated=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with PROPAGATED attribute (false)",
@@ -8010,7 +8001,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER with PROPAGATED attribute (FaLsE)",
         dict(
             xml_str=''
@@ -8020,7 +8010,7 @@ testcases_tupleparse_xml = [
                 propagated=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER with missing required attribute TYPE",
@@ -8652,7 +8642,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with OVERRIDABLE attribute (TrUe)",
         dict(
             xml_str=''
@@ -8663,7 +8652,7 @@ testcases_tupleparse_xml = [
                 overridable=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with OVERRIDABLE attribute (false)",
@@ -8679,7 +8668,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with OVERRIDABLE attribute (FaLsE)",
         dict(
             xml_str=''
@@ -8690,7 +8678,7 @@ testcases_tupleparse_xml = [
                 overridable=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with TOSUBCLASS attribute (true)",
@@ -8706,7 +8694,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with TOSUBCLASS attribute (TrUe)",
         dict(
             xml_str=''
@@ -8717,7 +8704,7 @@ testcases_tupleparse_xml = [
                 tosubclass=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with TOSUBCLASS attribute (false)",
@@ -8733,7 +8720,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with TOSUBCLASS attribute (FaLsE)",
         dict(
             xml_str=''
@@ -8744,7 +8730,7 @@ testcases_tupleparse_xml = [
                 tosubclass=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with TOINSTANCE attribute (true)",
@@ -8760,7 +8746,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with TOINSTANCE attribute (TrUe)",
         dict(
             xml_str=''
@@ -8771,7 +8756,7 @@ testcases_tupleparse_xml = [
                 toinstance=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with TOINSTANCE attribute (false)",
@@ -8787,7 +8772,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with TOINSTANCE attribute (FaLsE)",
         dict(
             xml_str=''
@@ -8798,7 +8782,7 @@ testcases_tupleparse_xml = [
                 toinstance=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with TRANSLATABLE attribute (true)",
@@ -8814,7 +8798,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with TRANSLATABLE attribute (TrUe)",
         dict(
             xml_str=''
@@ -8825,7 +8808,7 @@ testcases_tupleparse_xml = [
                 translatable=True,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with TRANSLATABLE attribute (false)",
@@ -8841,7 +8824,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1042: Enable once mixed case boolean values are supp.
         "QUALIFIER.DECLARATION with TRANSLATABLE attribute (FaLsE)",
         dict(
             xml_str=''
@@ -8852,7 +8834,7 @@ testcases_tupleparse_xml = [
                 translatable=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
         "QUALIFIER.DECLARATION with missing required attribute TYPE",
