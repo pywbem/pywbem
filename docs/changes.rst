@@ -460,8 +460,8 @@ Bug fixes
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
   tolerated invalid child elements under INSTANCE, ERROR and
-  PROPERTY.REFERENCE elements.
-  This now results in a ParseError being raised.
+  PROPERTY.REFERENCE elements, and invalid attributes on the PROPERTY.ARRAY
+  element. This now results in a ParseError being raised.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
   did not set the `propagated` attribute to False in `CIMProperty` objects
