@@ -80,10 +80,6 @@ representation of CIM in XML by having the following properties:
 from __future__ import absolute_import
 import re
 import six
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
@@ -1122,10 +1118,10 @@ def parse_qualifier_declaration(tup_tree):
     except KeyError:
         is_array = False
 
-    try:
-        array_size = int(attrl['ARRAYSIZE'])
-    except KeyError:
-        array_size = None
+    array_size = attrl.get('ARRAYSIZE', None)
+    if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        array_size = int(array_size)
 
     flavors = {}
     for flavor in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
@@ -1236,10 +1232,6 @@ def parse_property(tup_tree):
                 'EMBEDDEDOBJECT'],
                ['QUALIFIER', 'VALUE'])
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     attrl = attrs(tup_tree)
     try:
         val = unpack_value(tup_tree)
@@ -1248,6 +1240,8 @@ def parse_property(tup_tree):
         raise ParseError("Cannot parse content of 'VALUE' child element of "
                          "'PROPERTY' element with name %r: %s" %
                          (attrl['NAME'], msg))
+
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
     embedded_object = None
     if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
@@ -1264,7 +1258,7 @@ def parse_property(tup_tree):
                        class_origin=attrl.get('CLASSORIGIN', None),
                        propagated=unpack_boolean(attrl.get('PROPAGATED',
                                                            'false')),
-                       qualifiers=quals,
+                       qualifiers=qualifiers,
                        embedded_object=embedded_object)
 
 
@@ -1288,19 +1282,22 @@ def parse_property_array(tup_tree):
                ['QUALIFIER', 'VALUE.ARRAY'])
     # TODO: Remove 'REFERENCECLASS' from attrs list, above.
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     values = unpack_value(tup_tree)
     attrl = attrs(tup_tree)
+
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
+
+    array_size = attrl.get('ARRAYSIZE', None)
+    if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        array_size = int(array_size)
+
     embedded_object = None
     if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
         try:
             embedded_object = attrl['EmbeddedObject']
         except KeyError:
             embedded_object = attrl['EMBEDDEDOBJECT']
-
     if embedded_object is not None:
         values = parse_embeddedObject(values)
 
@@ -1310,10 +1307,10 @@ def parse_property_array(tup_tree):
                       class_origin=attrl.get('CLASSORIGIN', None),
                       propagated=unpack_boolean(attrl.get('PROPAGATED',
                                                           'false')),
-                      qualifiers=quals,
+                      qualifiers=qualifiers,
                       is_array=True,
+                      array_size=array_size,
                       embedded_object=embedded_object)
-    # TODO #1031: Add support and tests for arraysize
 
     return obj
 
@@ -1345,14 +1342,12 @@ def parse_property_reference(tup_tree):
                          "'VALUE.REFERENCE' (allowed are zero or one)" %
                          name(tup_tree))
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     attrl = attrs(tup_tree)
 
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
+
     pref = CIMProperty(attrl['NAME'], value, type='reference',
-                       qualifiers=quals,
+                       qualifiers=qualifiers,
                        reference_class=attrl.get('REFERENCECLASS', None),
                        class_origin=attrl.get('CLASSORIGIN', None),
                        propagated=unpack_boolean(attrl.get('PROPAGATED',
@@ -1379,14 +1374,14 @@ def parse_method(tup_tree):
                ['QUALIFIER', 'PARAMETER', 'PARAMETER.REFERENCE',
                 'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'])
 
-    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
+    attrl = attrs(tup_tree)
 
     parameters = list_of_matching(tup_tree, ['PARAMETER',
                                              'PARAMETER.REFERENCE',
                                              'PARAMETER.ARRAY',
                                              'PARAMETER.REFARRAY'])
 
-    attrl = attrs(tup_tree)
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
     # TODO 2/18 AM #1038: Clarify how to deal with omitted TYPE of METHOD
     # In DSP0201, TYPE is optional and omitting it means a void return
@@ -1415,14 +1410,12 @@ def parse_parameter(tup_tree):
 
     check_node(tup_tree, 'PARAMETER', ['NAME', 'TYPE'], [], ['QUALIFIER'])
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     attrl = attrs(tup_tree)
 
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
+
     return CIMParameter(attrl['NAME'], type=attrl['TYPE'],
-                        qualifiers=quals)
+                        qualifiers=qualifiers)
 
 
 def parse_parameter_reference(tup_tree):
@@ -1438,16 +1431,14 @@ def parse_parameter_reference(tup_tree):
     check_node(tup_tree, 'PARAMETER.REFERENCE', ['NAME'], ['REFERENCECLASS'],
                ['QUALIFIER'])
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     attrl = attrs(tup_tree)
+
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
     return CIMParameter(attrl['NAME'],
                         type='reference',
                         reference_class=attrl.get('REFERENCECLASS', None),
-                        qualifiers=quals)
+                        qualifiers=qualifiers)
 
 
 def parse_parameter_array(tup_tree):
@@ -1464,21 +1455,20 @@ def parse_parameter_array(tup_tree):
     check_node(tup_tree, 'PARAMETER.ARRAY', ['NAME', 'TYPE'],
                ['ARRAYSIZE'], ['QUALIFIER'])
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     attrl = attrs(tup_tree)
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
         array_size = int(array_size)
+
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
     return CIMParameter(attrl['NAME'],
                         type=attrl['TYPE'],
                         is_array=True,
                         array_size=array_size,
-                        qualifiers=quals)
+                        qualifiers=qualifiers)
 
 
 def parse_parameter_refarray(tup_tree):
@@ -1495,21 +1485,20 @@ def parse_parameter_refarray(tup_tree):
     check_node(tup_tree, 'PARAMETER.REFARRAY', ['NAME'],
                ['REFERENCECLASS', 'ARRAYSIZE'], ['QUALIFIER'])
 
-    quals = OrderedDict()
-    for qual in list_of_matching(tup_tree, ['QUALIFIER']):
-        quals[qual.name] = qual
-
     attrl = attrs(tup_tree)
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
+        # TODO 2/18 AM #1044: Clarify if hex support is needed.
         array_size = int(array_size)
+
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
     return CIMParameter(attrl['NAME'], 'reference',
                         is_array=True,
                         reference_class=attrl.get('REFERENCECLASS', None),
                         array_size=array_size,
-                        qualifiers=quals)
+                        qualifiers=qualifiers)
 
 
 #

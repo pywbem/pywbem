@@ -41,7 +41,8 @@ XML Element (i.e. <tag>):
 
 The NAME is the name of the element.
 
-The ATTRS are a name-value dictionary of element attributes, not pres. order.
+The ATTRS are a name-value dictionary of element attributes, not preserving
+order.
 
 The CONTENTS is a list of child elements, preserving order.
 

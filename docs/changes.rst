@@ -473,6 +473,11 @@ Bug fixes
   already had been supported for array values sent to the server, or in CIM-XML
   created by `toximcml()` methods (Issue #1022).
 
+* Fixed the issue that the size of a fixed-size array property declaration was
+  ignored when retrieving classes from CIM operations. It is now represented
+  in the `array_size` attribute of the returned `CIMProperty` objects.
+  (Issue #1031).
+
 Cleanup
 ^^^^^^^
 
