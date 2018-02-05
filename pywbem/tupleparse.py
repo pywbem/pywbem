@@ -79,11 +79,12 @@ representation of CIM in XML by having the following properties:
 
 from __future__ import absolute_import
 import re
+import warnings
 import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration
+    CIMQualifierDeclaration, _stacklevel_above_module
 from .cim_types import CIMDateTime, type_from_name
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError
@@ -2092,13 +2093,16 @@ def unpack_boolean(data):
     # CIM-XML says "These values MUST be treated as case-insensitive"
     # (even though the XML definition requires them to be lowercase.)
 
-    data = data.strip().lower()                   # ignore space
-    if data == 'true':
+    data_ = data.strip().lower()                   # ignore space
+    if data_ == 'true':
         return True
-    elif data == 'false':
+    elif data_ == 'false':
         return False
-    elif data == '':
-        # TODO 1/18 AM #1032: Clarify whether an empty string should be supp.
+    elif data_ == '':
+        warnings.warn("WBEM server sent invalid empty boolean value in a "
+                      "CIM-XML response.",
+                      UserWarning,
+                      stacklevel=_stacklevel_above_module(__name__))
         return None
     else:
         raise ParseError("Invalid boolean value %r" % data)
