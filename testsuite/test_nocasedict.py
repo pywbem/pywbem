@@ -197,7 +197,13 @@ class TestHasKey(BaseTest):
         """Method to test haskey"""
         self.assertTrue('DOG' in self.dic)
         self.assertTrue('budgie' in self.dic)
-        self.assertTrue(1234 not in self.dic)
+
+        try:
+            1234 in self.dic
+        except TypeError:
+            pass
+        else:
+            self.fail('TypeError expected')
 
 
 class TestKeys(BaseTest):
@@ -791,6 +797,27 @@ class TestRepr(unittest.TestCase):
         dic2['Dog'] = 'Cat'
 
         self.assertEqual(repr(dic1), repr(dic2))
+
+
+class Test_unnamed_keys(object):
+    """Class to test unnamed keys (key is None) for NocaseDict"""
+
+    def test_unnamed_keys(self):
+        """Test unnamed keys."""
+
+        dic = NocaseDict()
+        dic.allow_unnamed_keys = True
+
+        dic[None] = 'a'
+        assert None in dic
+        assert len(dic) == 1
+
+        a_val = dic[None]
+        assert a_val == 'a'
+
+        del dic[None]
+        assert None not in dic
+        assert len(dic) == 0
 
 
 if __name__ == '__main__':

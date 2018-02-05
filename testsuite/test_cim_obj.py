@@ -376,6 +376,10 @@ class Test_CIMInstanceName_init(object):
     timedelta1_td = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
     timedelta1_obj = CIMDateTime(timedelta1_td)
 
+    ncd_unnamed_key = NocaseDict()
+    ncd_unnamed_key.allow_unnamed_keys = True
+    ncd_unnamed_key[None] = 'abc'
+
     def test_CIMInstanceName_init_pos_args(self):
         # pylint: disable=unused-argument
         """Test position of arguments in CIMInstanceName.__init__()."""
@@ -418,6 +422,16 @@ class Test_CIMInstanceName_init(object):
         ),
 
         # Keybinding tests
+        (
+            "Verify that keybinding with name None succeeds (since 0.12",
+            dict(
+                classname='CIM_Foo',
+                keybindings=dict(ncd_unnamed_key)),
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=ncd_unnamed_key),
+            None, CHECK_0_12_0
+        ),
         (
             "Verify keybindings order preservation with list of CIMProperty",
             dict(
@@ -815,22 +829,12 @@ class Test_CIMInstanceName_init(object):
             True
         ),
         (
-            "Verify that keybinding with name None fails (with TypeError "
-            "before 0.12",
+            "Verify that keybinding with name None fails (before 0.12",
             dict(
                 classname='CIM_Foo',
                 keybindings={None: 'abc'}),
             TypeError,
             not CHECK_0_12_0
-        ),
-        (
-            "Verify that keybinding with name None fails (with ValueError "
-            "since 0.12",
-            dict(
-                classname='CIM_Foo',
-                keybindings={None: 'abc'}),
-            ValueError,
-            CHECK_0_12_0
         ),
         (
             "Verify that keybinding with inconsistent name fails",
@@ -1016,12 +1020,8 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
 
         # Setting keybindings with key being None
 
-        if CHECK_0_12_0:
-            with self.assertRaises(ValueError):
-                obj.keybindings = {None: 'bar'}
-        else:
-            obj.keybindings = {None: 'bar'}
-            self.assertEqual(obj.keybindings[None], 'bar')
+        obj.keybindings = {None: 'bar'}
+        self.assertEqual(obj.keybindings[None], 'bar')
 
 
 class CIMInstanceNameDict(DictionaryTestCase):

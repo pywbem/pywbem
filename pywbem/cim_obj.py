@@ -433,6 +433,10 @@ class NocaseDict(object):
         # is the tuple (original key, value).
         self._data = OrderedDict()
 
+        # Flag indicating whether unnamed keys (a key of `None`) is allowed.
+        # Can be set to allow unnamed keys.
+        self.allow_unnamed_keys = False
+
         # Step 1: Initialize from at most one positional argument
         if len(args) == 1:
             arg = args[0]
@@ -485,6 +489,15 @@ class NocaseDict(object):
 
     # Basic accessor and settor methods
 
+    def _real_key(self, key):
+        if isinstance(key, six.string_types):
+            return key.lower()
+        elif self.allow_unnamed_keys and key is None:
+            return None
+        else:
+            raise TypeError("NocaseDict key %r must be a string, but is %s" %
+                            (key, builtin_type(key)))
+
     def __getitem__(self, key):
         """
         Invoked when retrieving the value for a key, using `val = d[key]`.
@@ -494,9 +507,7 @@ class NocaseDict(object):
         only string typed keys will exist, so the key type is not tested here
         and specifying non-string typed keys will simply lead to a KeyError.
         """
-        k = key
-        if isinstance(key, six.string_types):
-            k = k.lower()
+        k = self._real_key(key)
         try:
             return self._data[k][1]
         except KeyError:
@@ -512,10 +523,7 @@ class NocaseDict(object):
 
         Raises `TypeError` if the specified key does not have string type.
         """
-        if not isinstance(key, six.string_types):
-            raise TypeError('NocaseDict key %s must be string type, '
-                            'but is %s' % (key, builtin_type(key)))
-        k = key.lower()
+        k = self._real_key(key)
         self._data[k] = (key, value)
 
     def __delitem__(self, key):
@@ -527,9 +535,7 @@ class NocaseDict(object):
         only string typed keys will exist, so the key type is not tested here
         and specifying non-string typed keys will simply lead to a KeyError.
         """
-        k = key
-        if isinstance(key, six.string_types):
-            k = k.lower()
+        k = self._real_key(key)
         try:
             del self._data[k]
         except KeyError:
@@ -549,9 +555,7 @@ class NocaseDict(object):
 
         The key is looked up case-insensitively.
         """
-        k = key
-        if isinstance(key, six.string_types):
-            k = k.lower()
+        k = self._real_key(key)
         return k in self._data
 
     def get(self, key, default=None):
@@ -774,7 +778,7 @@ class NocaseDict(object):
         hashable objects which compare equal must have the same hash value.
         This method ensures that that condition is satisfied.
         """
-        fs = frozenset([(key, self._data[key][1]) for key in self._data])
+        fs = frozenset([(k, self._data[k][1]) for k in self._data])
         return hash(fs)
 
 
@@ -1447,6 +1451,7 @@ def _stacklevel_above_module(mod_name):
 def _cim_keybinding(key, value):
     """
     Return a keybinding value, from dict item input (key+value).
+    Key may be None (for unnamed keys).
 
     The returned value will be a CIM-typed value, except if it was provided as
     Python number type (in which case it will remain that type).
@@ -1454,10 +1459,7 @@ def _cim_keybinding(key, value):
     Invalid types or values cause TypeError or ValueError to be raised.
     """
 
-    if key is None:
-        raise ValueError("Invalid keybinding name: None")
-
-    if isinstance(value, CIMProperty):
+    if key is not None and isinstance(value, CIMProperty):
         if value.name.lower() != key.lower():
             raise ValueError("Invalid keybinding name: CIMProperty.name must "
                              "be dictionary key %s, but is %s" %
@@ -1490,13 +1492,13 @@ def _cim_keybinding(key, value):
         return value
 
     if isinstance(value, (CIMClass, CIMInstance)):
-        raise TypeError("Value of keybinding %s cannot be an "
+        raise TypeError("Value of keybinding %r cannot be an "
                         "embedded object: %s" % (key, type(value)))
 
     if isinstance(value, list):
-        raise TypeError("Value of keybinding %s cannot be a list" % key)
+        raise TypeError("Value of keybinding %r cannot be a list" % key)
 
-    raise TypeError("Value of keybinding %s has an invalid type: %s" %
+    raise TypeError("Value of keybinding %r has an invalid type: %s" %
                     (key, type(value)))
 
 
@@ -1720,6 +1722,14 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The order of keybindings in the instance path is preserved.
 
+        The keybinding name may be `None` in objects of this class that are
+        created by pywbem, in the special case a WBEM server has returned an
+        instance path with an unnamed keybinding (i.e. a KEYVALUE or
+        VALUE.REFERENCE element without a parent KEYBINDINGS element). This is
+        allowed as per :term:`DSP0201`. When creating objects of this class, it
+        is not allowed to specify unnamed keybindings, i.e. the keybinding name
+        must not be `None`.
+
         This attribute is settable; setting it will cause the current
         keybindings to be replaced with the new keybindings. For details, see
         the description of the same-named constructor parameter.
@@ -1755,6 +1765,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
         self._keybindings = NocaseDict()
+        self._keybindings.allow_unnamed_keys = True
         if keybindings:
             try:
                 # This is used for iterables:

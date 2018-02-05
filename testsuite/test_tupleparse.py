@@ -3945,21 +3945,20 @@ testcases_tupleparse_xml = [
         ),
         None, None, True
     ),
-    # TODO 1/18 AM: Enable this test once there is support for unnamed keys
-    # (
-    #     "INSTANCENAME with KEYVALUE for one key (= key value without name)",
-    #     dict(
-    #         xml_str=''
-    #         '<INSTANCENAME CLASSNAME="CIM_Foo">'
-    #       '    <KEYVALUE VALUETYPE="string">Foo</KEYVALUE>'
-    #         '</INSTANCENAME>',
-    #         exp_result=CIMInstanceName(
-    #             'CIM_Foo',
-    #             [(None, 'Foo')],
-    #         ),
-    #     ),
-    #     None, None, True
-    # ),
+    (
+        "INSTANCENAME with KEYVALUE for one key (unnamed key)",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYVALUE VALUETYPE="string">Foo</KEYVALUE>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                [(None, 'Foo')],
+            ),
+        ),
+        None, None, True
+    ),
     (
         "INSTANCENAME with KEYVALUE for two string keys (invalid)",
         dict(
@@ -3972,24 +3971,22 @@ testcases_tupleparse_xml = [
         ),
         ParseError, None, True
     ),
-    # TODO 1/18 AM: Enable this test once there is support for unnamed keys
-    # (
-    #     "INSTANCENAME with VALUE.REFERENCE for one reference key (= key "
-    #     "value without name)",
-    #     dict(
-    #         xml_str=''
-    #         '<INSTANCENAME CLASSNAME="CIM_Foo">'
-    #         '  <VALUE.REFERENCE>'
-    #         '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
-    #         '  </VALUE.REFERENCE>'
-    #         '</INSTANCENAME>',
-    #         exp_result=CIMInstanceName(
-    #             'CIM_Foo',
-    #             [(None, CIMInstanceName('CIM_Bar'))],
-    #         ),
-    #     ),
-    #     None, None, True
-    # ),
+    (
+        "INSTANCENAME with VALUE.REFERENCE for one ref. key (unnamed key)",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '  </VALUE.REFERENCE>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                [(None, CIMInstanceName('CIM_Bar'))],
+            ),
+        ),
+        None, None, True
+    ),
     (
         "INSTANCENAME with VALUE.REFERENCE for two reference keys (invalid)",
         dict(
