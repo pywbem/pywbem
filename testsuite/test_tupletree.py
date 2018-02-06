@@ -163,7 +163,7 @@ def dom_to_tupletree(node):
         attr_node = node.attributes.item(i)
         attrs[attr_node.nodeName] = attr_node.nodeValue
 
-    # XXX: Cannot handle comments, cdata, processing instructions, etc.
+    # TODO: Cannot handle comments, cdata, processing instructions, etc.
 
     # it's so easy in retrospect!
     return (name, attrs, contents, None)
