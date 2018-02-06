@@ -490,6 +490,10 @@ class NocaseDict(object):
     # Basic accessor and settor methods
 
     def _real_key(self, key):
+        """
+        Return the normalized key to be used for the internal dictionary,
+        from the input key.
+        """
         if isinstance(key, six.string_types):
             return key.lower()
         elif self.allow_unnamed_keys and key is None:

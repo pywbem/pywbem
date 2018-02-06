@@ -208,7 +208,7 @@ def one_child(tup_tree, acceptable):
 
     k = kids(tup_tree)
 
-    if len(k) == 0:
+    if not k:
         raise ParseError("Element %r misses required child element %r" %
                          (name(tup_tree), acceptable))
     if len(k) > 1:
@@ -1593,7 +1593,7 @@ def parse_imethodcall(tup_tree):
 
     k = kids(tup_tree)
 
-    if len(k) < 1:
+    if not k:
         raise ParseError("Element %r has no child elements "
                          "(expecting child elements "
                          "(LOCALNAMESPACEPATH, IPARAMVALUE*))" %
@@ -1619,7 +1619,7 @@ def parse_methodcall(tup_tree):
                ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
 
     path = list_of_matching(tup_tree, ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
-    if len(path) == 0:
+    if not path:
         raise ParseError("Element %r misses a required child element "
                          "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'" %
                          name(tup_tree))
@@ -1985,9 +1985,9 @@ def parse_embeddedObject(val):  # pylint: disable=invalid-name
         return parse_instance(tup_tree)
     elif name(tup_tree) == 'CLASS':
         return parse_class(tup_tree)
-    else:
-        raise ParseError("Invalid top-level element %r in embedded object "
-                         "value" % name(tup_tree))
+
+    raise ParseError("Invalid top-level element %r in embedded object value" %
+                     name(tup_tree))
 
 
 def unpack_value(tup_tree):
@@ -2013,8 +2013,8 @@ def unpack_value(tup_tree):
 
     if isinstance(raw_val, list):
         return [unpack_single_value(data, valtype) for data in raw_val]
-    else:
-        return unpack_single_value(raw_val, valtype)
+
+    return unpack_single_value(raw_val, valtype)
 
 
 def unpack_single_value(data, cimtype):
@@ -2033,8 +2033,8 @@ def unpack_single_value(data, cimtype):
         return unpack_string(data, cimtype)
     elif cimtype == 'boolean':
         return unpack_boolean(data)
-    else:  # None or 'numeric'
-        return unpack_numeric(data, cimtype)
+    # None or 'numeric'
+    return unpack_numeric(data, cimtype)
 
 
 def unpack_string(data, cimtype):
@@ -2149,13 +2149,12 @@ def unpack_numeric(data, cimtype):
     # Convert the Python number into a CIM data type
     if cimtype is None:
         return value  # int/long or float (used for keybindings)
-    else:
 
-        # Tupleparse ensures a numeric type when calling this function.
-        CIMType = type_from_name(cimtype)
+    # The caller ensured a numeric type for cimtype
+    CIMType = type_from_name(cimtype)
+    try:
+        value = CIMType(value)
+    except ValueError as exc:
+        raise ParseError(str(exc))
 
-        try:
-            value = CIMType(value)
-        except ValueError as exc:
-            raise ParseError(str(exc))
-        return value
+    return value

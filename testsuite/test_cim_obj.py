@@ -20,8 +20,8 @@ import re
 import inspect
 import os.path
 from datetime import timedelta, datetime
-import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import warnings
+import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 try:
     from collections import OrderedDict
 except ImportError:

@@ -34,6 +34,7 @@ from pywbem_mock._wbemconnection_mock import _uprint
 
 
 def main():
+    """Main routine"""
 
     if len(sys.argv) > 1:
         mode = sys.argv[1]  # 'small', 'ucs2', 'all'
