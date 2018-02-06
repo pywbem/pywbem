@@ -2384,7 +2384,7 @@ class Test_CIMInstanceName_from_instance(object):
             ),
             dict(
                 classname='CIM_Foo',
-                keybindings={('P1', 'Ham')}
+                keybindings={'P1': 'Ham'}
             ),
             # strict, condition
             True, True,
@@ -2411,7 +2411,7 @@ class Test_CIMInstanceName_from_instance(object):
             ),
             dict(
                 classname='CIM_Foo',
-                keybindings={('P1', 'Ham'), ('P2', 'Cheese')}
+                keybindings={'P1': 'Ham', 'P2': 'Cheese'}
             ),
             # strict, condition
             True, True,
@@ -2457,13 +2457,13 @@ class Test_CIMInstanceName_from_instance(object):
             ),
             dict(
                 classname='CIM_Foo',
-                keybindings={('P1', None)}
+                keybindings={'P1': None}
             ),
             # strict, condition
             False, True,
         ),
         (
-            "Verify class with two not in instance strict=false works",
+            "Verify class with two keys not in instance strict=false works",
             dict(
                 classname='CIM_Foo',
                 properties=[
@@ -2482,15 +2482,36 @@ class Test_CIMInstanceName_from_instance(object):
             ),
             dict(
                 classname='CIM_Foo',
-                keybindings={('P1', None), ('P2', 'DEFAULT')}
+                keybindings={'P1': None, 'P2': 'DEFAULT'}
             ),
             # strict,condition
             False, True,
         ),
-
-
-        # TODO add tests for reference property as key, strict=False,
-        # mismatch of class/instance name
+        (
+            "Verify class with reference properies as keys",
+            dict(
+                classname='CIM_Ref',
+                properties=[
+                    CIMProperty('R1', None, type='reference',
+                                qualifiers={'Key': CIMQualifier('Key',
+                                                                value=True)}),
+                    CIMProperty('R2', type='string', value='Cheese'),
+                ]
+            ),
+            dict(
+                classname='CIM_Ref',
+                properties=[
+                    CIMProperty('R1', value=CIMInstanceName('CIM_X',
+                                                            {'x': "X"})),
+                ]
+            ),
+            dict(
+                classname='CIM_Ref',
+                keybindings={'R1': CIMInstanceName('CIM_X', {'x': "X"})}
+            ),
+            # strict, condition
+            True, True,
+        ),
     ]
 
     @pytest.mark.parametrize(
