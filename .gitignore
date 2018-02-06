@@ -1,6 +1,7 @@
 .project
 /.settings/
 .pydevproject
+/.pytest_cache
 /.cache/
 /.tox/
 .ipynb_checkpoints/
