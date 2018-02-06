@@ -1119,12 +1119,7 @@ def parse_qualifier_declaration(tup_tree):
     qname = attrl['NAME']
     _type = attrl['TYPE']
 
-    try:
-        # TODO 2/18 AM #1041: Reject invalid boolean values
-        # Consider using unpack_boolean() for that.
-        is_array = attrl['ISARRAY'].lower() == 'true'
-    except KeyError:
-        is_array = False
+    is_array = unpack_boolean(attrl.get('ISARRAY', 'false'))
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
@@ -1134,9 +1129,7 @@ def parse_qualifier_declaration(tup_tree):
     flavors = {}
     for flavor in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
         try:
-            # TODO 2/18 AM #1041: Reject invalid boolean values
-            # Consider using unpack_boolean() for that.
-            flavors[flavor.lower()] = attrl[flavor].lower() == 'true'
+            flavors[flavor.lower()] = unpack_boolean(attrl[flavor])
         except KeyError:
             # This causes the flavor not to be set, so it results in the
             # default value defined in the CIMQualifierDeclaration() ctor (None)

@@ -8562,6 +8562,56 @@ testcases_tupleparse_xml = [
         ParseError, None, True
     ),
     (
+        "QUALIFIER.DECLARATION with invalid ISARRAY attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' ISARRAY="xxx"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with invalid OVERRIDABLE attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' OVERRIDABLE="xxx"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with invalid TOSUBCLASS attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOSUBCLASS="xxx"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with invalid TOINSTANCE attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TOINSTANCE="xxx"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with invalid TRANSLATABLE attribute",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' TRANSLATABLE="xxx"/>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
         "QUALIFIER.DECLARATION with missing required attribute NAME",
         dict(
             xml_str=''
@@ -8613,6 +8663,41 @@ testcases_tupleparse_xml = [
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
                 is_array=True, array_size=10,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION array value with ISARRAY=True",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' ISARRAY="True"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string', is_array=True
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION simple value with explicit ISARRAY=False",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
+            ' ISARRAY="False"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string', is_array=False
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION simple value without ISARRAY (default False)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string', is_array=False
             ),
         ),
         None, None, True
