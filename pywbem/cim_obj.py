@@ -7603,6 +7603,8 @@ def cimvalue(value, type):
 
           - :term:`string`. The string must be an untyped WBEM URI representing
             an instance path (see :term:`DSP0207`).
+          - :class:`~pywbem.CIMInstanceName`. An instance path.
+          - :class:`~pywbem.CIMClassName`. A class path.
 
     Returns:
 
@@ -7638,7 +7640,7 @@ def cimvalue(value, type):
 
     # REF type
     if type == 'reference':
-        if isinstance(value, CIMInstanceName):
+        if isinstance(value, (CIMInstanceName, CIMClassName)):
             return value
         if isinstance(value, six.string_types):
             return CIMInstanceName.from_wbem_uri(value)

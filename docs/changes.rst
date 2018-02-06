@@ -142,6 +142,11 @@ Incompatible changes
   specify consistent values for these attributes, this change should not affect
   users of pywbem.
 
+* Values of CIM type 'reference' in CIM objects (`CIMProperty`,
+  `CIMParameter`, `CIMQualifier`, and `CIMQualifierDeclaration`) may now be
+  `CIMClassName` objects (i.e. class paths). This has been changed for
+  consistency with DSP0201 (Issue #1035).
+
 Deprecations
 ^^^^^^^^^^^^
 
