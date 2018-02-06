@@ -7639,24 +7639,22 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1040: Enable once invalid attr values are rejected
         "SCOPE with invalid boolean attribute",
         dict(
             xml_str=''
             '<SCOPE CLASS="XXX"/>',
             exp_result=None,
         ),
-        ParseError, None, False
+        ParseError, None, True
     ),
     (
-        # TODO 2/18 AM #1040: Enable once invalid attr values are rejected
         "SCOPE with invalid empty boolean attribute",
         dict(
             xml_str=''
             '<SCOPE CLASS=""/>',
             exp_result=None,
         ),
-        ParseError, None, False
+        ParseError, None, True
     ),
     (
         "SCOPE with all supported scope attributes with different values",

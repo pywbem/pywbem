@@ -494,6 +494,10 @@ Bug fixes
   does not conform to DSP0201. Empty boolean values now cause a `UserWarning`
   to be issued, but otherwise continue to work as before. (Issue #1032).
 
+* Fixed the issue that invalid values were accepted for the boolean attributes
+  of the SCOPE element in CIM-XML received from a WBEM server. They now cause
+  `ParseError` to be raised (Issue #1040).
+
 Cleanup
 ^^^^^^^
 
