@@ -489,6 +489,11 @@ Bug fixes
   attributes of the QUALIFIER element in CIM-XML was not supported and resulted
   in `ParseError` to be raised (Issue #1042).
 
+* Fixed the issue that an empty boolean value in a CIM-XML response returned
+  from a WBEM server was accepted and treated as a NULL value. This treatment
+  does not conform to DSP0201. Empty boolean values now cause a `UserWarning`
+  to be issued, but otherwise continue to work as before. (Issue #1032).
+
 Cleanup
 ^^^^^^^
 

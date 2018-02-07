@@ -1140,7 +1140,7 @@ testcases_tupleparse_xml = [
             '<KEYVALUE VALUETYPE="boolean"></KEYVALUE>',
             exp_result=None,
         ),
-        None, None, True
+        None, UserWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (WS string)",
@@ -1149,7 +1149,7 @@ testcases_tupleparse_xml = [
             '<KEYVALUE VALUETYPE="boolean">  </KEYVALUE>',
             exp_result=None,
         ),
-        None, None, True
+        None, UserWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (ASCII string)",
@@ -1241,7 +1241,7 @@ testcases_tupleparse_xml = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean"></KEYVALUE>',
             exp_result=None,
         ),
-        None, None, True
+        None, UserWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (WS string)",
@@ -1250,7 +1250,7 @@ testcases_tupleparse_xml = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">  </KEYVALUE>',
             exp_result=None,
         ),
-        None, None, True
+        None, UserWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (ASCII string)",
