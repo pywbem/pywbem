@@ -386,7 +386,7 @@ Bug fixes
 
 * Docs: Clarified in the description of the `return_type` init parameter of
   `CIMMethod` that array return types, void return types, and reference
-  return types are all not supported in pywbem.
+  return types are all not supported in pywbem. See issue #1038, for void.
 
 * Fixed the bug that an (unsupported!) reference type could be specified for
   the return value of CIM methods, by raising `ValueError` if
