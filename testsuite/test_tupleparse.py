@@ -4707,10 +4707,9 @@ testcases_tupleparse_xml = [
                     CIMProperty('Pstring', type='string', value=None,
                                 propagated=False),
                 ],
-                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
-                # qualifiers=[
-                #     CIMQualifier('Association', value=None, type='boolean'),
-                # ],
+                qualifiers=[
+                    CIMQualifier('Association', value=None, type='boolean'),
+                ],
             ),
         ),
         None, None, True
@@ -4802,11 +4801,10 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
-                # qualifiers=[
-                #     CIMQualifier('Association', value=None, type='boolean'),
-                #     CIMQualifier('Abstract', value=None, type='boolean'),
-                # ],
+                qualifiers=[
+                    CIMQualifier('Association', value=None, type='boolean'),
+                    CIMQualifier('Abstract', value=None, type='boolean'),
+                ],
                 properties=[],
             ),
         ),
@@ -4822,10 +4820,9 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
-                # qualifiers=[
-                #     CIMQualifier('Association', value=None, type='boolean'),
-                # ],
+                qualifiers=[
+                    CIMQualifier('Association', value=None, type='boolean'),
+                ],
                 properties=[
                     CIMProperty('Pstring', type='string', value=None,
                                 propagated=False),
@@ -4844,10 +4841,9 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
-                # qualifiers=[
-                #     CIMQualifier('Association', value=None, type='boolean'),
-                # ],
+                qualifiers=[
+                    CIMQualifier('Association', value=None, type='boolean'),
+                ],
                 properties=[
                     CIMProperty('Puint8array', type='uint8', value=None,
                                 is_array=True, propagated=False),
@@ -4866,10 +4862,9 @@ testcases_tupleparse_xml = [
             '</INSTANCE>',
             exp_result=CIMInstance(
                 'CIM_Foo',
-                # TODO 1/18 AM #1030: Enable once instance qualifiers supported
-                # qualifiers=[
-                #     CIMQualifier('Association', value=None, type='boolean'),
-                # ],
+                qualifiers=[
+                    CIMQualifier('Association', value=None, type='boolean'),
+                ],
                 properties=[
                     CIMProperty('Pref', type='reference', value=None,
                                 propagated=False),

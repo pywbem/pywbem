@@ -322,6 +322,9 @@ Enhancements
   or VALUE.REFERENCE elements without a parent KEYBINDINGS element).
   DSP0201 allows for this as a special case. (Issue #1026).
 
+* Added support for instance qualifiers when parsing received CIM-XML responses
+  (Issue #1030).
+
 Bug fixes
 ^^^^^^^^^
 

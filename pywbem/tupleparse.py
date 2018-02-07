@@ -1042,8 +1042,7 @@ def parse_instance(tup_tree):
     # Note: The check above does not enforce the ordering constraint in the DTD
     # that QUALIFIER elements must appear before PROPERTY* elements.
 
-    # TODO #1030: Add support for qualifiers (on instances)
-    qualifiers = {}
+    qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
     props = list_of_matching(tup_tree, ['PROPERTY.REFERENCE', 'PROPERTY',
                                         'PROPERTY.ARRAY'])
