@@ -817,7 +817,7 @@ class Test_unnamed_keys(object):
 
         del dic[None]
         assert None not in dic
-        assert len(dic) == 0
+        assert not dic
 
 
 if __name__ == '__main__':

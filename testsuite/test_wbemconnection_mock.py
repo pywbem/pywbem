@@ -1064,7 +1064,7 @@ class TestRepoMethods(object):
         conn.compile_mof_str(qmof, ns)
         conn.compile_mof_str(cmof, ns)
 
-        with OutputCapture() as output:  # noqa: F841
+        with OutputCapture():
             conn.display_repository()
         tst_file_name = 'test_wbemconnection_mock_repo_unicode.txt'
         tst_file = os.path.join(SCRIPT_DIR, tst_file_name)

@@ -5,10 +5,10 @@
 """
 import os
 import xml
-import pytest
-import unittest
 import pprint
+import unittest
 import six
+import pytest
 from pkg_resources import resource_filename
 
 from pywbem import tupletree, ParseError
@@ -342,6 +342,7 @@ class Test_check_invalid_utf8_sequences(object):
     )
     def test_check_invalid_utf8_sequences(
             self, desc, utf8_string, exp_exc_type, condition):
+        """Tests for check_invalid_utf8_sequences()"""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -449,6 +450,7 @@ class Test_check_invalid_xml_chars(object):
     )
     def test_check_invalid_xml_chars(
             self, desc, xml_string, exp_exc_type, condition):
+        """Tests for check_invalid_xml_chars()"""
 
         if not condition:
             pytest.skip("Condition for test case not met")
