@@ -956,6 +956,53 @@ class TestLexerSimple(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    def test_no_ws_delimiter(self):
+        """Test that no whitespace is needed to delimit tokens."""
+        input_data = "0f"
+        exp_tokens = [
+            self.lex_token('decimalValue', 0, 1, 0),
+            self.lex_token('IDENTIFIER', 'f', 1, 1),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_ignore_space(self):
+        """Test that space is ignored, but triggers new token."""
+        input_data = "a b"
+        exp_tokens = [
+            self.lex_token('IDENTIFIER', 'a', 1, 0),
+            self.lex_token('IDENTIFIER', 'b', 1, 2),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_ignore_cr(self):
+        """Test that CR is ignored, but triggers new token."""
+        input_data = "a\rb"
+        exp_tokens = [
+            self.lex_token('IDENTIFIER', 'a', 1, 0),
+            self.lex_token('IDENTIFIER', 'b', 1, 2),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_ignore_tab(self):
+        """Test that TAB is ignored, but triggers new token."""
+        input_data = "a\tb"
+        exp_tokens = [
+            self.lex_token('IDENTIFIER', 'a', 1, 0),
+            self.lex_token('IDENTIFIER', 'b', 1, 2),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_invalid_token(self):
+        """Test that an invalid token is recognized as error."""
+        input_data = "a%b cd"
+        exp_tokens = [
+            self.lex_token('IDENTIFIER', 'a', 1, 0),
+            self.lex_token('error', '%b cd', 1, 1),
+            self.lex_token('IDENTIFIER', 'b', 1, 2),
+            self.lex_token('IDENTIFIER', 'cd', 1, 4),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
 
 class TestLexerNumber(BaseTestLexer):
     """Number testcases for the lexical analyzer."""
@@ -1327,25 +1374,37 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_error_09(self):
         """Test '09' (decimal: no leading zeros; octal: digit out of range)."""
-        input_data = "09"
+        input_data = "09 bla"
         exp_tokens = [
-            self.lex_token('error', input_data, 1, 0),
+            self.lex_token('error', '09', 1, 0),
+            self.lex_token('IDENTIFIER', 'bla', 1, 3),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_error_008(self):
         """Test '008' (decimal: no leading zeros; octal: digit out of range)."""
-        input_data = "008"
+        input_data = "008 bla"
         exp_tokens = [
-            self.lex_token('error', input_data, 1, 0),
+            self.lex_token('error', '008', 1, 0),
+            self.lex_token('IDENTIFIER', 'bla', 1, 4),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_error_2b(self):
         """Test '2b' (decimal: b means binary; binary: digit out of range)."""
-        input_data = "2b"
+        input_data = "2b bla"
         exp_tokens = [
-            self.lex_token('error', input_data, 1, 0),
+            self.lex_token('error', '2b', 1, 0),
+            self.lex_token('IDENTIFIER', 'bla', 1, 3),
+        ]
+        self.run_assert_lexer(input_data, exp_tokens)
+
+    def test_error_9b(self):
+        """Test '9b' (decimal: b means binary; binary: digit out of range)."""
+        input_data = "9b bla"
+        exp_tokens = [
+            self.lex_token('error', '9b', 1, 0),
+            self.lex_token('IDENTIFIER', 'bla', 1, 3),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
@@ -1353,19 +1412,21 @@ class TestLexerNumber(BaseTestLexer):
         # pylint: disable=invalid-name
         """Test '02B' (decimal: B means binary; binary: digit out of range;
         octal: B means binary)."""
-        input_data = "02B"
+        input_data = "02B bla"
         exp_tokens = [
-            self.lex_token('error', input_data, 1, 0),
+            self.lex_token('error', '02B', 1, 0),
+            self.lex_token('IDENTIFIER', 'bla', 1, 4),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
     def test_error_0dot(self):
         """Test '0.' (not a valid float, is parsed as a decimal '0' followed by
         an illegal character '.' which is skipped in t_error()."""
-        input_data = "0."
+        input_data = "0. bla"
         exp_tokens = [
             self.lex_token('decimalValue', 0, 1, 0),
-            # The '.' is skipped
+            self.lex_token('error', '. bla', 1, 1),
+            self.lex_token('IDENTIFIER', 'bla', 1, 3),
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
