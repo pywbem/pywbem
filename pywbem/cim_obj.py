@@ -2548,38 +2548,47 @@ class CIMInstanceName(_CIMComparisonMixin):
     def from_instance(class_, instance, namespace=None, host=None,
                       strict=False):
         """
-        Given a class and corresponding instance, create and return the
-        CIMInstanceName from the class key properties and instance key
-        property values.
+        Given a class and corresponding instance, create and return a
+        :class:`~pywbem.CIMInstanceName` from the class key properties and
+        instance key property values.
 
-        If a property value does not exist in the instance it gets the
-        value from the class default_value unless strict is set. If strict
-        is True, all key properties must exist in the instance
+        If the `strict` parameter is True, and a property value does not exist
+        in the instance the values are retrieved from the class default_value.
+
+        If the `strict` parameter is False all key properties in the `class_`
+        must exist in the `instance` or a ValueError exception is raised.
 
         Parameters:
 
-            class_ (:class:~pywbem.CIMClass`):
-                CIMClass from which the key properties will be retrieved.
+            class_ (:class:`~pywbem.CIMClass`):
+                CIMClass from which the list of key properties will be
+                retrieved. The class MUST contain all of the key properties
+                that are required to create the CIMInstanceName. Thus, for
+                example, if the class were retrieved from a server, generally,
+                the request `LocalOnly` parameter should be False to assure all
+                superclass properties are retrieved.
 
-            instance: (:class:~pywbem.CIMInstance`):
+            instance (:class:`~pywbem.CIMInstance`):
                 CIMInstance containing the key property values.
 
-            namespace: (:term:``string`):
+            namespace (:term:`string`):
                 Namespace to include in created CIMInstanceName or None.
 
-            host:  (:term:``string`):
+            host (:term:`string`):
                 Host name to include in created CIMInstanceName or None.
 
-            strict: (:class:`py:bool`):
+            strict (:class:`py:bool`):
                 If True, all key properties are required in instance. Default
-                False
+                False.
 
         Returns:
-            :class:`CIMInstanceName` built from the key properties in the
-            class using the key property values in the instance.
+            :class:`~pywbem.CIMInstanceName`:
+                :class:`~pywbem.CIMInstanceName` built from the key properties
+                in the `class_` parameter using the key property values in the
+                `instance` parameter.
 
         Raises:
-            ValueError: Class and instance names do not match or the
+          ValueError: Class and instance names do not match or the
             strict attribute is True and key property does not exist in
             the instance.
 
@@ -2598,8 +2607,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                     keybindings[pname] = instance[prop]
                 else:
                     if strict:
-                        raise ValueError('Key Property %s in class %s '
-                                         'but not in instance.' %
+                        raise ValueError('Key property %r of class %r '
+                                         'missing in instance.' %
                                          (pname, class_.classname))
                     else:
                         default_value = class_.properties[prop].value

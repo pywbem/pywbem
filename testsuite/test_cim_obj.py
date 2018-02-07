@@ -2411,7 +2411,7 @@ class Test_CIMInstanceName_from_instance(object):
             ),
             dict(
                 classname='CIM_Foo',
-                keybindings={'P1': 'Ham', 'P2': 'Cheese'}
+                keybindings=[('P1', 'Ham'), ('P2', 'Cheese')]
             ),
             # strict, condition
             True, True,
@@ -2482,7 +2482,7 @@ class Test_CIMInstanceName_from_instance(object):
             ),
             dict(
                 classname='CIM_Foo',
-                keybindings={'P1': None, 'P2': 'DEFAULT'}
+                keybindings=[('P1', None), ('P2', 'DEFAULT')]
             ),
             # strict,condition
             False, True,

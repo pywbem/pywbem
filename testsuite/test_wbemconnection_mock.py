@@ -628,7 +628,6 @@ class TestFakedWBEMConnection(object):
         conn = FakedWBEMConnection(response_delay=3)
         repr_ = '%r' % conn
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
-        # print(repr_)
 
     def test_attr(self):
         # pylint: disable=no-self-use
@@ -1361,8 +1360,6 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_class)
             if exp_err is None:
                 cls = conn.GetClass(cls, IncludeQualifiers=False)
-                print('GetClass Finished')
-                print(l)
                 l.check
                 (
                     ('pywbem.mock', 'DEBUG', result[0]),
@@ -1372,7 +1369,6 @@ class TestRepoMethods(object):
             else:
                 with pytest.raises(exp_err):
                     cls = conn.GetClass(cls, IncludeQualifiers=False)
-                    print(l)
                     l.check(
                         ('pywbem.mock', 'DEBUG', result[0]),
                         ('pywbem.mock', 'DEBUG', result[1]),
@@ -2350,7 +2346,6 @@ class TestInstanceOperations(object):
         if not exp_err:
             for inst in new_insts:
                 rtn_inst_name = conn.CreateInstance(inst, ns)
-                print('\nrtn_inst_name %r' % rtn_inst_name)
                 rtn_inst = conn.GetInstance(rtn_inst_name)
 
                 inst.path.namespace = rtn_inst.path.namespace
