@@ -4971,27 +4971,21 @@ class CIMMethod(_CIMComparisonMixin):
 
             Must not be `None` or ``"reference"``.
 
-            Support for void return types: Pywbem also does not support void
+            Support for void return types: Pywbem does not support void method
             return types, consistent with the CIM architecture and MOF syntax
-            (see :term:`DSP0004`).
-            As a side note, the CIM-XML protocol (see :term:`DSP0200` and
-            :term:`DSP0201`) is able to represent method declarations and
-            method invocations with void return types.
+            (see :term:`DSP0004`). Note that void return types could be
+            represented in CIM-XML (see :term:`DSP0201`).
 
             Support for reference return types: Pywbem does not support
-            reference return types of methods.
-            The CIM architecture and MOF syntax support reference return types.
-            The CIM-XML protocol supports the invocation of methods with
-            reference return types, but it does not support the representation
-            of class declarations with methods that have reference return
-            types. As a result, it is not possible to create such classes in a
-            WBEM server using the CIM-XML protocol. For consistency, pywbem
-            does not support reference return types, not even for method
-            invocations.
+            reference return types of methods. The CIM architecture and MOF
+            syntax support reference return types, and the CIM-XML protocol
+            supports the invocation of methods with reference return types.
+            However, CIM-XML does not support the representation of class
+            declarations with methods that have reference return types.
 
             Support for array return types: Pywbem does not support array
             return types of methods, consistent with the CIM architecture,
-            MOF syntax and the CIM-XML protocol.
+            MOF syntax and CIM-XML.
 
           parameters (:term:`parameters input object`):
             Parameter declarations for the method.

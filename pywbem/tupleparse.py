@@ -1381,9 +1381,14 @@ def parse_method(tup_tree):
 
     qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
-    # TODO #1038: Clarify how to deal with omitted TYPE of METHOD
+    return_type = attrl.get('TYPE', None)
+    if not return_type:
+        raise ParseError("Element %r missing attribute 'TYPE' (a void method "
+                         "return type is not supported in CIM)" %
+                         name(tup_tree))
+
     return CIMMethod(attrl['NAME'],
-                     return_type=attrl.get('TYPE', None),
+                     return_type=return_type,
                      parameters=parameters,
                      qualifiers=qualifiers,
                      class_origin=attrl.get('CLASSORIGIN', None),

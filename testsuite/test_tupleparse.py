@@ -7446,22 +7446,13 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 2/18 AM #1038: Clarify how to deal with METHOD without TYPE
-        # In DSP0201, TYPE is optional and omitting it means a void return
-        # type. That is not supported in DSP0004.
-        # In pywbem, the tupleparser defines TYPE as optional, but then fails
-        # when creating the CIMMethod object because that rejects
-        # return_type=None.
-        # So we cannot even define a testcase for this situation (we cannot
-        # expect a ParseError due to a missing TYPE, and we cannot test the
-        # handling of an omitted TYPE).
-        "METHOD without optional attribute TYPE",
+        "METHOD without attribute TYPE (void return type)",
         dict(
             xml_str=''
             '<METHOD NAME="Foo"/>',
             exp_result=None,
         ),
-        ParseError, None, False  # Disabled for now, see comment above
+        ParseError, None, True
     ),
     (
         "METHOD with two qualifiers",
