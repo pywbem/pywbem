@@ -16566,6 +16566,7 @@ class Test_cimvalue(object):
     ref1_str = 'http://host/ns:CN.k1="abc"'
     ref1_obj = CIMInstanceName(classname='CN', keybindings=dict(k1="abc"),
                                namespace='ns', host='host')
+    ref2_obj = CIMClassName('CIM_Foo')
 
     testcases_succeeds = [
         # Testcases where cimvalue() succeeds.
@@ -16720,6 +16721,7 @@ class Test_cimvalue(object):
 
         (ref1_str, 'reference', ref1_obj, None, CHECK_0_12_0),
         (ref1_obj, 'reference', ref1_obj, None, CHECK_0_12_0),
+        (ref2_obj, 'reference', ref2_obj, None, CHECK_0_12_0),
     ]
 
     @pytest.mark.parametrize(
@@ -16765,7 +16767,6 @@ class Test_cimvalue(object):
         ('000000:000', 'datetime', ValueError),  # invalid dt value
 
         ('foo', 'reference', ValueError),  # invalid ref value
-        (CIMClassName('CIM_Foo'), 'reference', TypeError),  # invalid type
     ]
 
     @pytest.mark.parametrize(

@@ -6540,7 +6540,6 @@ testcases_tupleparse_xml = [
         None, None, True
     ),
     (
-        # TODO 1/18 AM #1035: Clarify class path support
         "PROPERTY.REFERENCE with ref value that is a CLASSNAME (not used)",
         dict(
             xml_str=''
@@ -6551,14 +6550,13 @@ testcases_tupleparse_xml = [
             '</PROPERTY.REFERENCE>',
             exp_result=CIMProperty(
                 'Foo', type='reference',
-                value=None,  # CIMClassName('CIM_Foo'),
+                value=CIMClassName('CIM_Foo'),
                 propagated=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
-        # TODO 1/18 AM #1035: Clarify class path support
         "PROPERTY.REFERENCE with ref value that is a LOCALCLASSPATH (not used)",
         dict(
             xml_str=''
@@ -6574,14 +6572,13 @@ testcases_tupleparse_xml = [
             '</PROPERTY.REFERENCE>',
             exp_result=CIMProperty(
                 'Foo', type='reference',
-                value=None,  # CIMClassName('CIM_Foo', namespace='foo'),
+                value=CIMClassName('CIM_Foo', namespace='foo'),
                 propagated=False,
             ),
         ),
-        None, None, False
+        None, None, True
     ),
     (
-        # TODO 1/18 AM #1035: Clarify class path support
         "PROPERTY.REFERENCE with ref value that is a CLASSPATH (not used)",
         dict(
             xml_str=''
@@ -6600,10 +6597,9 @@ testcases_tupleparse_xml = [
             '</PROPERTY.REFERENCE>',
             exp_result=CIMProperty(
                 'Foo', type='reference',
-                value=None,
-                # value=CIMClassName(
-                #     'CIM_Foo', namespace='foo', host='woot.com',
-                # ),
+                value=CIMClassName(
+                    'CIM_Foo', namespace='foo', host='woot.com',
+                ),
                 propagated=False,
             ),
         ),
