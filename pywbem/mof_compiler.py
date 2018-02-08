@@ -241,20 +241,13 @@ def t_hexValue(t):
 def t_binaryValue(t):
     r'[+-]?[0-9]+[bB]'
     # We must match [0-9], and then check the validity of the binary number.
-    # If we match [01], the invalid number "02" (not in binary range, leading
-    # zeros not allowed for decimal) would match 'decimalValue' and only
-    # the zero would be taken out.
+    # If we match [0-1], the invalid binary number "2b" would match
+    # 'decimalValue' 2 and 'IDENTIFIER 'b'.
     if re.search(r'[2-9]', t.value) is not None:
-        # TODO #1063: Raise an error for invalid binary digits
-        msg = "Skipping invalid binary number '%s' in line %d" % \
-            (t.value, t.lineno)
-        try:
-            msg += " col %d" % _find_column(t.lexer.parser.mof, t)
-        except AttributeError:
-            pass  # adding t.lexpos does not make too much sense
-        t.lexer.parser.log(msg)
+        msg = "Invalid binary number %r" % t.value
+        t.lexer.last_msg = msg
         t.type = 'error'
-        t.lexer.skip(len(t.value))
+        # Setting error causes the value to be automatically skipped
     else:
         t.value = int(t.value[0:-1], 2)
     return t
@@ -263,20 +256,13 @@ def t_binaryValue(t):
 def t_octalValue(t):
     r'[+-]?0[0-9]+'
     # We must match [0-9], and then check the validity of the octal number.
-    # If we match [0-7], the invalid number "08" (not in octal range, leading
-    # zeros not allowed for decimal) would match 'decimalValue' and only
-    # the zero would be taken out, and the 8 would be another decimalValue.
+    # If we match [0-7], the invalid octal number "08" would match
+    # 'decimalValue' 0 and 'decimalValue' 8.
     if re.search(r'[8-9]', t.value) is not None:
-        # TODO #1063: Raise an error for invalid octal digits
-        msg = "Skipping invalid octal number '%s' in line %d" % \
-            (t.value, t.lineno)
-        try:
-            msg += " col %d" % _find_column(t.lexer.parser.mof, t)
-        except AttributeError:
-            pass  # adding t.lexpos does not make too much sense
-        t.lexer.parser.log(msg)
+        msg = "Invalid octal number %r" % t.value
+        t.lexer.last_msg = msg
         t.type = 'error'
-        t.lexer.skip(len(t.value))
+        # Setting error causes the value to be automatically skipped
     else:
         t.value = int(t.value, 8)
     return t
@@ -334,15 +320,10 @@ t_ignore = ' \r\t'
 def t_error(t):
     """ Lexer error callback from PLY Lexer with token in error.
     """
-    # TODO #1063: Raise an error for invalid tokens
-    msg = "Skipping first character of invalid token '%s' in line %d" % \
-        (t.value, t.lineno)
-    try:
-        msg += " col %d" % _find_column(t.lexer.parser.mof, t)
-    except AttributeError:
-        pass  # adding t.lexpos does not make too much sense
-    t.lexer.parser.log(msg)
+    msg = "Illegal character %r" % t.value[0]
+    t.lexer.last_msg = msg
     t.lexer.skip(1)
+    return t  # Return the error token for the YACC parser to handle
 
 
 class MOFParseError(Error):
@@ -433,12 +414,13 @@ class MOFParseError(Error):
             <context - MOF segment>
             <context - location indicator>
         """
-        ret_str = 'Syntax error:'
+        ret_str = 'Syntax error in '
         if self.file is not None and self.lineno is not None:
-            ret_str += '%s:%s:' % (self.file, self.lineno)
+            ret_str += '%s line %s:' % (self.file, self.lineno)
         if self.msg:
             ret_str += " %s" % self.msg
         if self.context is not None:
+            ret_str += '\n'
             ret_str += '\n'.join(self.context)
         return ret_str
 
@@ -453,7 +435,9 @@ def p_error(p):
     if p is None:
         raise MOFParseError(msg='Unexpected end of file')
 
-    raise MOFParseError(parser_token=p)
+    msg = p.lexer.last_msg
+    p.lexer.last_msg = None
+    raise MOFParseError(parser_token=p, msg=msg)
 
 
 # pylint: disable=unused-argument
@@ -1748,7 +1732,7 @@ def _find_column(input_, token):
         if input_[i] == '\n':
             break
         i -= 1
-    column = (token.lexpos - i) + 1
+    column = token.lexpos - i - 1
     return column
 
 
@@ -1777,7 +1761,7 @@ def _get_error_context(input_, token):
             i = 0
         lines.insert(0, input_[i:end].strip('\r\n'))
     pointer = ''
-    for dummy_ch in token.value:
+    for dummy_ch in str(token.value):
         pointer += '^'
     pointline = ''
     i = 0
@@ -2284,6 +2268,7 @@ class MOFCompiler(object):
         self.parser.handle = handle
         self.lexer = _lex(verbose)
         self.lexer.parser = self.parser
+        self.lexer.last_msg = None
         self.parser.qualcache = {}
         self.parser.classnames = {}
         if handle:
