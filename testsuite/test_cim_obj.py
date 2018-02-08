@@ -6315,6 +6315,11 @@ class Test_CIMProperty_init(object):
             ValueError, True
         ),
         (
+            "Verify that an invalid type fails (since 0.12)",
+            dict(name='FooProp', value=None, type='xxx'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
             "Verify that qualifier with inconsistent key / name fails "
             "(since 0.12)",
             dict(name='FooProp', value='abc',
@@ -6761,9 +6766,9 @@ testcases_CIMProperty_hash = [
     (
         "Reference class, equal with same lexical case",
         dict(
-            obj1=CIMProperty('Prop1', value=None, type='ref',
+            obj1=CIMProperty('Prop1', value=None, type='reference',
                              reference_class='CIM_Ref'),
-            obj2=CIMProperty('Prop1', value=None, type='ref',
+            obj2=CIMProperty('Prop1', value=None, type='reference',
                              reference_class='CIM_Ref'),
             exp_hash_equal=True,
         ),
@@ -6772,9 +6777,9 @@ testcases_CIMProperty_hash = [
     (
         "Reference class, equal with different lexical case",
         dict(
-            obj1=CIMProperty('Prop1', value=None, type='ref',
+            obj1=CIMProperty('Prop1', value=None, type='reference',
                              reference_class='CIM_Ref'),
-            obj2=CIMProperty('Prop1', value=None, type='ref',
+            obj2=CIMProperty('Prop1', value=None, type='reference',
                              reference_class='Cim_ref'),
             exp_hash_equal=True,
         ),
@@ -6783,9 +6788,9 @@ testcases_CIMProperty_hash = [
     (
         "Reference class, different",
         dict(
-            obj1=CIMProperty('Prop1', value=None, type='ref',
+            obj1=CIMProperty('Prop1', value=None, type='reference',
                              reference_class='CIM_Ref'),
-            obj2=CIMProperty('Prop1', value=None, type='ref',
+            obj2=CIMProperty('Prop1', value=None, type='reference',
                              reference_class='CIM_Ref_x'),
             exp_hash_equal=False,
         ),
@@ -8257,6 +8262,11 @@ class Test_CIMQualifier_init(object):
             "Verify that value None without type fails",
             dict(name='FooQual', value=None),
             ValueError if CHECK_0_12_0 else TypeError, True
+        ),
+        (
+            "Verify that an invalid type fails (since 0.12)",
+            dict(name='FooQual', value=None, type='xxx'),
+            ValueError, CHECK_0_12_0
         ),
         (
             "Verify that value [None] without type fails",
@@ -12219,7 +12229,7 @@ class Test_CIMMethod_init(object):
             "(since 0.12)",
             dict(
                 name='M',
-                parameters=dict(P1=CIMParameter('P1_X', 'abc'))),
+                parameters=dict(P1=CIMParameter('P1_X', type='string'))),
             ValueError, None, CHECK_0_12_0
         ),
         (
@@ -12227,7 +12237,7 @@ class Test_CIMMethod_init(object):
             "(since 0.12)",
             dict(
                 name='M',
-                qualifiers=dict(Q1=CIMQualifier('Q1_X', 'abc'))),
+                qualifiers=dict(Q1=CIMQualifier('Q1_X', value='abc'))),
             ValueError, None, CHECK_0_12_0
         ),
         (
@@ -12242,6 +12252,13 @@ class Test_CIMMethod_init(object):
             dict(
                 name='M',
                 return_type='reference'),
+            ValueError, None, CHECK_0_12_0
+        ),
+        (
+            "Verify that invalid return_type fails (since 0.12)",
+            dict(
+                name='M',
+                return_type='xxx'),
             ValueError, None, CHECK_0_12_0
         ),
     ]
@@ -13691,6 +13708,11 @@ class Test_CIMParameter_init(object):
             ValueError, CHECK_0_12_0
         ),
         (
+            "Verify that invalid type fails (since 0.12)",
+            dict(name='M', type='xxx'),
+            ValueError, CHECK_0_12_0
+        ),
+        (
             "Verify that qualifier with inconsistent key / name fails "
             "(since 0.12)",
             dict(name='M', type='string',
@@ -14053,9 +14075,9 @@ testcases_CIMParameter_hash = [
     (
         "Reference class, equal with same lexical case",
         dict(
-            obj1=CIMParameter('Parm1', type='ref',
+            obj1=CIMParameter('Parm1', type='reference',
                               reference_class='CIM_Ref'),
-            obj2=CIMParameter('Parm1', type='ref',
+            obj2=CIMParameter('Parm1', type='reference',
                               reference_class='CIM_Ref'),
             exp_hash_equal=True,
         ),
@@ -14064,9 +14086,9 @@ testcases_CIMParameter_hash = [
     (
         "Reference class, equal with different lexical case",
         dict(
-            obj1=CIMParameter('Parm1', type='ref',
+            obj1=CIMParameter('Parm1', type='reference',
                               reference_class='CIM_Ref'),
-            obj2=CIMParameter('Parm1', type='ref',
+            obj2=CIMParameter('Parm1', type='reference',
                               reference_class='Cim_ref'),
             exp_hash_equal=True,
         ),
@@ -14075,9 +14097,9 @@ testcases_CIMParameter_hash = [
     (
         "Reference class, different",
         dict(
-            obj1=CIMParameter('Parm1', type='ref',
+            obj1=CIMParameter('Parm1', type='reference',
                               reference_class='CIM_Ref'),
-            obj2=CIMParameter('Parm1', type='ref',
+            obj2=CIMParameter('Parm1', type='reference',
                               reference_class='CIM_Ref_x'),
             exp_hash_equal=False,
         ),
@@ -15317,6 +15339,11 @@ class Test_CIMQualifierDeclaration_init(object):
         (
             "Verify that type None fails (since 0.12)",
             dict(name='FooQual', type=None),
+            ValueError, CHECK_0_12_0
+        ),
+        (
+            "Verify that invalid type fails (since 0.12)",
+            dict(name='FooQual', type='xxx'),
             ValueError, CHECK_0_12_0
         ),
         (

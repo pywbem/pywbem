@@ -330,6 +330,10 @@ Enhancements
 * Added support for instance qualifiers when parsing received CIM-XML responses
   (Issue #1030).
 
+* CIM data type names specified for the `type` or `return_type` parameter
+  of CIM objects are now checked for validity, and `ValueError` is raised
+  if not valid (Issue 1043).
+
 Bug fixes
 ^^^^^^^^^
 

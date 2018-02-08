@@ -350,6 +350,25 @@ WBEM_URI_NAMESPACE_TYPES = [
     'cimxml-wbem', 'cimxml-wbems',
 ]
 
+# CIM data type names, used for checking
+ALL_CIMTYPES = set([
+    'boolean',
+    'string',
+    'char16',
+    'datetime',
+    'uint8',
+    'uint16',
+    'uint32',
+    'uint64',
+    'sint8',
+    'sint16',
+    'sint32',
+    'sint64',
+    'real32',
+    'real64',
+    'reference',
+])
+
 
 class NocaseDict(object):
     # pylint: disable=too-many-lines
@@ -4212,8 +4231,11 @@ class CIMProperty(_CIMComparisonMixin):
             Name of the CIM data type of the property (e.g. ``"uint8"``).
 
             `None` will cause the type to be inferred from the `value`
-            parameter, raising `ValueError` if it cannot be inferred (for
-            example when `value` is `None` or a Python integer).
+            parameter, raising :exc:`~py:exceptions.ValueError` if it cannot be
+            inferred (for example when `value` is `None` or a Python integer).
+
+            :exc:`~py:exceptions.ValueError` is raised if the type is not a
+            valid CIM data type (see :ref:`CIM data types`).
 
           class_origin (:term:`string`):
             The CIM class origin of the property (the name
@@ -4431,8 +4453,16 @@ class CIMProperty(_CIMComparisonMixin):
     def type(self, type):
         # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
+
+        type = _ensure_unicode(type)
+
+        # We perform this check after the initialization to avoid errors
+        # in test tools that show the object with repr().
+        if type not in ALL_CIMTYPES:
+            raise ValueError("Invalid CIM type: %s" % type)
+
         # pylint: disable=attribute-defined-outside-init
-        self._type = _ensure_unicode(type)
+        self._type = type
 
     @property
     def reference_class(self):
@@ -4971,7 +5001,11 @@ class CIMMethod(_CIMComparisonMixin):
 
             Must not be `None` or ``"reference"``.
 
-            Support for void return types: Pywbem does not support void method
+            :exc:`~py:exceptions.ValueError` is raised if the type is `None`,
+            ``"reference"``, or not a valid CIM data type (see
+            :ref:`CIM data types`).
+
+            Support for void return types: Pywbem also does not support void
             return types, consistent with the CIM architecture and MOF syntax
             (see :term:`DSP0004`). Note that void return types could be
             represented in CIM-XML (see :term:`DSP0201`).
@@ -5076,15 +5110,17 @@ class CIMMethod(_CIMComparisonMixin):
     def return_type(self, return_type):
         """Setter method; for a description see the getter method."""
 
-        # pylint: disable=attribute-defined-outside-init
-        self._return_type = _ensure_unicode(return_type)
+        return_type = _ensure_unicode(return_type)
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
-        if return_type is None:
-            raise ValueError('return_type must not be None')
-        if return_type.lower() == 'reference':
-            raise ValueError('return_type must not be "reference"')
+        if return_type not in ALL_CIMTYPES:
+            raise ValueError("Invalid CIM type: %s" % return_type)
+        if return_type == 'reference':
+            raise ValueError("Method cannot have a reference return type")
+
+        # pylint: disable=attribute-defined-outside-init
+        self._return_type = return_type
 
     @property
     def class_origin(self):
@@ -5467,6 +5503,9 @@ class CIMParameter(_CIMComparisonMixin):
 
             Must not be `None`.
 
+            :exc:`~py:exceptions.ValueError` is raised if the type is `None` or
+            not a valid CIM data type (see :ref:`CIM data types`).
+
           reference_class (:term:`string`):
             For reference parameters, the name of the class referenced by the
             parameter, as declared in the class defining the method.
@@ -5585,13 +5624,16 @@ class CIMParameter(_CIMComparisonMixin):
     def type(self, type):
         # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
-        # pylint: disable=attribute-defined-outside-init
-        self._type = _ensure_unicode(type)
+
+        type = _ensure_unicode(type)
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
-        if type is None:
-            raise ValueError("CIMParameter 'type' parameter must not be None")
+        if type not in ALL_CIMTYPES:
+            raise ValueError("Invalid CIM type: %s" % type)
+
+        # pylint: disable=attribute-defined-outside-init
+        self._type = type
 
     @property
     def reference_class(self):
@@ -6135,8 +6177,11 @@ class CIMQualifier(_CIMComparisonMixin):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
             `None` will cause the type to be inferred from the `value`
-            parameter, raising `ValueError` if it cannot be inferred (for
-            example when `value` is `None` or a Python integer).
+            parameter, raising :exc:`~py:exceptions.ValueError` if it cannot be
+            inferred (for example when `value` is `None` or a Python integer).
+
+            :exc:`~py:exceptions.ValueError` is raised if the type is not a
+            valid CIM data type (see :ref:`CIM data types`).
 
           propagated (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value has been
@@ -6261,8 +6306,16 @@ class CIMQualifier(_CIMComparisonMixin):
     def type(self, type):
         # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
+
+        type = _ensure_unicode(type)
+
+        # We perform this check after the initialization to avoid errors
+        # in test tools that show the object with repr().
+        if type not in ALL_CIMTYPES:
+            raise ValueError("Invalid CIM type: %s" % type)
+
         # pylint: disable=attribute-defined-outside-init
-        self._type = _ensure_unicode(type)
+        self._type = type
 
     @property
     def value(self):
@@ -6670,6 +6723,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
             Must not be `None`.
 
+            :exc:`~py:exceptions.ValueError` is raised if the type is `None` or
+            not a valid CIM data type (see :ref:`CIM data types`).
+
           value (:term:`CIM data type` or other suitable types):
             Default value of the qualifier.
 
@@ -6822,14 +6878,15 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         # pylint: disable=redefined-builtin
         """Setter method; for a description see the getter method."""
 
-        # pylint: disable=attribute-defined-outside-init
-        self._type = _ensure_unicode(type)
+        type = _ensure_unicode(type)
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
-        if type is None:
-            raise ValueError("CIMQualifierDeclaration 'type' parameter must "
-                             "not be None")
+        if type not in ALL_CIMTYPES:
+            raise ValueError("Invalid CIM type: %s" % type)
+
+        # pylint: disable=attribute-defined-outside-init
+        self._type = type
 
     @property
     def value(self):
