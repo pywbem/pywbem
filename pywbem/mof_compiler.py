@@ -245,7 +245,7 @@ def t_binaryValue(t):
     # zeros not allowed for decimal) would match 'decimalValue' and only
     # the zero would be taken out.
     if re.search(r'[2-9]', t.value) is not None:
-        # TODO 01/18 AM Replace skipping with raising an error
+        # TODO #1063: Raise an error for invalid binary digits
         msg = "Skipping invalid binary number '%s' in line %d" % \
             (t.value, t.lineno)
         try:
@@ -267,7 +267,7 @@ def t_octalValue(t):
     # zeros not allowed for decimal) would match 'decimalValue' and only
     # the zero would be taken out, and the 8 would be another decimalValue.
     if re.search(r'[8-9]', t.value) is not None:
-        # TODO 01/18 AM Replace skipping with raising an error
+        # TODO #1063: Raise an error for invalid octal digits
         msg = "Skipping invalid octal number '%s' in line %d" % \
             (t.value, t.lineno)
         try:
@@ -334,7 +334,7 @@ t_ignore = ' \r\t'
 def t_error(t):
     """ Lexer error callback from PLY Lexer with token in error.
     """
-    # TODO 01/18 AM Replace skipping with raising an error
+    # TODO #1063: Raise an error for invalid tokens
     msg = "Skipping first character of invalid token '%s' in line %d" % \
         (t.value, t.lineno)
     try:
@@ -2131,7 +2131,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.classes[self.default_namespace] = \
                 NocaseDict({cc.classname: cc})
 
-        # TODO KS #991: CreateClass should reject if the class already exists
+        # TODO #991: CreateClass should reject if the class already exists
         try:
             self.class_names[self.default_namespace].append(cc.classname)
         except KeyError:

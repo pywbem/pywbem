@@ -707,6 +707,7 @@ class NocaseDict(object):
         The comparison is based on matching key/value pairs.
         The keys are looked up case-insensitively.
         """
+        # TODO #1062: Could compare hash values for better performance
         for key, self_value in self.iteritems():
             if key not in other:
                 return False
@@ -855,8 +856,6 @@ def cmpdict(dict1, dict2):
         return 0
     if dict1 is None or dict2 is None:
         return 1
-    # TODO 01/18 AM Could compare hash(dict) for better perf
-    #      That requires more unicode cleanliness (test_clienti.py fails)
     if dict1 == dict2:
         return 0
     return 1
@@ -7333,8 +7332,8 @@ def tocimxmlstr(value, indent=None):
 # internally in the CIM object classes, instead of tocimobj(). However,
 # tocimobj() is still used internally in the tupleparser, plus it is part of
 # the public API.
-# TODO 12/16 AM #904: Migr. remaining uses of tocimobj() to cimvalue() and depr.
-#
+# TODO #904: Migrate remaining uses of tocimobj() to cimvalue() and deprecate
+
 # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
     """

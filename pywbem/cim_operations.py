@@ -1146,7 +1146,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # of end_of_sequence/enumeration_context
         # (IRETURNVALUE*, PARAMVALUE?)
         else:
-            # TODO KS #919: Further tests on this IRETURN or PARAMVALUE
+            # TODO #919: Further tests on this IRETURN or PARAMVALUE
             # Could be IRETURNVALUE or a PARAMVALUE
             return tup_tree
 

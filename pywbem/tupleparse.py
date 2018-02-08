@@ -1128,7 +1128,7 @@ def parse_qualifier_declaration(tup_tree):
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
-        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        # TODO #1044: Clarify if hex support is needed.
         array_size = int(array_size)
 
     flavors = {}
@@ -1195,17 +1195,7 @@ def parse_qualifier(tup_tree):
         if rtn_val is not None:
             rtn_val = rtn_val.lower()
 
-        # TODO 2/18 AM #1039: Clarify whether to set defaults for omitted attrs.
-        # DSP0201 defines these defaults:
-        # * OVERRIDABLE: true
-        # * TOSUBCLASS: true
-        # * TOINSTANCE: false
-        # * TRANSLATABLE: false
-        # * PROPAGATED: false
-        # If we do this, then I suggest changing the for-loop into a series
-        # of unpack_boolean() for each possible attribute, specifying the
-        # desired default.
-
+        # TODO #1039: Clarify whether to default omitted qualifier flavors
         if rtn_val == 'true':
             rtn_val = True
         elif rtn_val == 'false':
@@ -1304,7 +1294,7 @@ def parse_property_array(tup_tree):
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
-        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        # TODO #1044: Clarify if hex support is needed.
         array_size = int(array_size)
 
     embedded_object = None
@@ -1398,12 +1388,7 @@ def parse_method(tup_tree):
 
     qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
 
-    # TODO 2/18 AM #1038: Clarify how to deal with omitted TYPE of METHOD
-    # In DSP0201, TYPE is optional and omitting it means a void return
-    # type. That is not supported in DSP0004.
-    # This code here fails when creating the CIMMethod object with an omitted
-    # TYPE attribute.
-
+    # TODO #1038: Clarify how to deal with omitted TYPE of METHOD
     return CIMMethod(attrl['NAME'],
                      return_type=attrl.get('TYPE', None),
                      parameters=parameters,
@@ -1474,7 +1459,7 @@ def parse_parameter_array(tup_tree):
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
-        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        # TODO #1044: Clarify if hex support is needed
         array_size = int(array_size)
 
     qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
@@ -1504,7 +1489,7 @@ def parse_parameter_refarray(tup_tree):
 
     array_size = attrl.get('ARRAYSIZE', None)
     if array_size is not None:
-        # TODO 2/18 AM #1044: Clarify if hex support is needed.
+        # TODO #1044: Clarify if hex support is needed
         array_size = int(array_size)
 
     qualifiers = list_of_matching(tup_tree, ['QUALIFIER'])
@@ -1666,12 +1651,12 @@ def parse_paramvalue(tup_tree):
             %ParamType;  #IMPLIED
             %EmbeddedObject;>
     """
-    # TODO: 6/16 KS: Extended per DSP0201 v 1.4 to include CLASSNAME,
-    # INSTANCENAME, CLASS, INSTANCE, VALUE.NAMEDINSTANCE but not sure
-    # we have tests for all of these.
-    # Version 2.1.1 of the DTD lacks the %ParamType attribute but it
-    # is present in version 2.2.  Make it optional to be backwards
-    # compatible.
+
+    # Version 2.4 of DSP0201 added CLASSNAME, INSTANCENAME, CLASS, INSTANCE, and
+    # VALUE.NAMEDINSTANCE.
+
+    # Version 2.1.1 of DSP0201 lacks the %ParamType entity but it is present as
+    # optional (for backwards compatibility) in version 2.2.
 
     check_node(tup_tree, 'PARAMVALUE', ['NAME'],
                ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
