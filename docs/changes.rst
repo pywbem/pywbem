@@ -503,6 +503,11 @@ Bug fixes
   of the SCOPE element in CIM-XML received from a WBEM server. They now cause
   `ParseError` to be raised (Issue #1040).
 
+* Fixed the issue that invalid values for the boolean attributes of
+  QUALIFIER.DECLARATION elements in CIM-XML responses from WBEM servers were
+  tolerated and treated as `False`. They now cause `ParseError` to be raised
+  (Issue #1041).
+
 Cleanup
 ^^^^^^^
 
