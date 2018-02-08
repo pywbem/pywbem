@@ -1084,9 +1084,15 @@ def parse_scope(tup_tree):
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
 
-    # TODO 2/18 AM #1040: Reject invalid boolean values of scope attributes
-    return dict([(k, v.lower() == 'true')
-                 for k, v in attrs(tup_tree).items()])
+    scopes = {}  # Attributes do not preserve order, so we use standard dict()
+    for k, v in attrs(tup_tree).items():
+        v_ = unpack_boolean(v)
+        if v_ is None:
+            raise ParseError("Element %r has an invalid value %r for its "
+                             "boolean attribute %r" %
+                             (name(tup_tree), v, k))
+        scopes[k] = v_
+    return scopes
 
 
 def parse_qualifier_declaration(tup_tree):
