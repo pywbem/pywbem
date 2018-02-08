@@ -878,7 +878,6 @@ def parse_instancename(tup_tree):
                              "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))" %
                              (name(tup_tree), k0_name))
 
-        # TODO 1/18 AM: Clarify how to represent unnamed keys - not supp. now
         val = parse_any(kid0)
         return CIMInstanceName(classname, {None: val})
     elif k0_name == 'KEYBINDING':
@@ -1286,10 +1285,9 @@ def parse_property_array(tup_tree):
     """
 
     check_node(tup_tree, 'PROPERTY.ARRAY', ['NAME', 'TYPE'],
-               ['REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED',
-                'ARRAYSIZE', 'EmbeddedObject', 'EMBEDDEDOBJECT', 'xml:lang'],
+               ['CLASSORIGIN', 'PROPAGATED', 'ARRAYSIZE', 'EmbeddedObject',
+                'EMBEDDEDOBJECT', 'xml:lang'],
                ['QUALIFIER', 'VALUE.ARRAY'])
-    # TODO: Remove 'REFERENCECLASS' from attrs list, above.
 
     # The 'xml:lang' attribute is tolerated but ignored.
 
