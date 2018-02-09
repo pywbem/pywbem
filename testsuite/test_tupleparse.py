@@ -15,6 +15,39 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 import pytest_extensions
 
 
+def qualifier_default_attrs(**overriding_attrs):
+    """
+    Return a kwargs dict with the CIM-XML default values for the `propagated`
+    and flavor attributes of CIMQualifier, updated by the specified overriding
+    values for these attributes.
+    """
+    attrs = dict(
+        propagated=False,
+        tosubclass=True,
+        overridable=True,
+        translatable=False,
+        toinstance=False,
+    )
+    attrs.update(overriding_attrs)
+    return attrs
+
+
+def qualifier_declaration_default_attrs(**overriding_attrs):
+    """
+    Return a kwargs dict with the CIM-XML default values for the flavor
+    attributes of CIMQualifierDeclaration, updated by the specified overriding
+    values for these attributes.
+    """
+    attrs = dict(
+        tosubclass=True,
+        overridable=True,
+        translatable=False,
+        toinstance=False,
+    )
+    attrs.update(overriding_attrs)
+    return attrs
+
+
 # Note: These roundtrip testcases cover only typical situations. The full set
 # of possibilities including invalid input is tested in the XMl testcases (see
 # testcases_tupleparse_xml).
@@ -150,19 +183,29 @@ testcases_tupleparse_roundtrip = [
             obj=CIMClass(
                 'CIM_CollectionInSystem',
                 qualifiers=[
-                    CIMQualifier('ASSOCIATION', True, overridable=False),
-                    CIMQualifier('Aggregation', True, overridable=False),
-                    CIMQualifier('Version', '2.6.0', tosubclass=False,
-                                 translatable=False),
-                    CIMQualifier('Description',
-                                 'CIM_CollectionInSystem is an association '
-                                 'used to establish a parent-child '
-                                 'relationship between a collection and an '
-                                 '\'owning\' System such as an AdminDomain or '
-                                 'ComputerSystem. A single collection should '
-                                 'not have both a CollectionInOrganization '
-                                 'and a CollectionInSystem association.',
-                                 translatable=True),
+                    CIMQualifier(
+                        'ASSOCIATION', True,
+                        **qualifier_default_attrs(overridable=False)
+                    ),
+                    CIMQualifier(
+                        'Aggregation', True,
+                        **qualifier_default_attrs(overridable=False)
+                    ),
+                    CIMQualifier(
+                        'Version', '2.6.0',
+                        **qualifier_default_attrs(translatable=True)
+                    ),
+                    CIMQualifier(
+                        'Description',
+                        'CIM_CollectionInSystem is an association '
+                        'used to establish a parent-child '
+                        'relationship between a collection and an '
+                        '\'owning\' System such as an AdminDomain or '
+                        'ComputerSystem. A single collection should '
+                        'not have both a CollectionInOrganization '
+                        'and a CollectionInSystem association.',
+                        **qualifier_default_attrs(translatable=True)
+                    ),
                 ],
                 properties=[
                     CIMProperty(
@@ -170,9 +213,18 @@ testcases_tupleparse_roundtrip = [
                         reference_class='CIM_System',
                         propagated=False,
                         qualifiers=[
-                            CIMQualifier('Key', True, overridable=False),
-                            CIMQualifier('Aggregate', True, overridable=False),
-                            CIMQualifier('Max', Uint32(1)),
+                            CIMQualifier(
+                                'Key', True,
+                                **qualifier_default_attrs(overridable=False)
+                            ),
+                            CIMQualifier(
+                                'Aggregate', True,
+                                **qualifier_default_attrs(overridable=False)
+                            ),
+                            CIMQualifier(
+                                'Max', Uint32(1),
+                                **qualifier_default_attrs()
+                            ),
                         ]
                     ),
                     CIMProperty(
@@ -180,7 +232,10 @@ testcases_tupleparse_roundtrip = [
                         reference_class='CIM_Collection',
                         propagated=False,
                         qualifiers=[
-                            CIMQualifier('Key', True, overridable=False),
+                            CIMQualifier(
+                                'Key', True,
+                                **qualifier_default_attrs(overridable=False)
+                            ),
                         ]
                     ),
                 ],
@@ -225,7 +280,8 @@ testcases_tupleparse_roundtrip = [
                 'Age', None, type='uint16',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -255,7 +311,8 @@ testcases_tupleparse_roundtrip = [
                 'Foo', [Uint8(x) for x in [1, 2, 3]],
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -289,7 +346,8 @@ testcases_tupleparse_roundtrip = [
                 CIMInstanceName('CIM_Foo'),
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -348,7 +406,8 @@ testcases_tupleparse_roundtrip = [
             obj=CIMParameter(
                 'Param', 'string',
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -381,7 +440,8 @@ testcases_tupleparse_roundtrip = [
                 'RefParm', 'reference',
                 reference_class='CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -409,7 +469,8 @@ testcases_tupleparse_roundtrip = [
             obj=CIMParameter(
                 'Array', 'string', is_array=True, array_size=10,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -452,7 +513,8 @@ testcases_tupleparse_roundtrip = [
                 'RefArray', 'reference', is_array=True, array_size=10,
                 reference_class='CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -4708,7 +4770,8 @@ testcases_tupleparse_xml = [
                                 propagated=False),
                 ],
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
             ),
         ),
@@ -4802,8 +4865,10 @@ testcases_tupleparse_xml = [
             exp_result=CIMInstance(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
-                    CIMQualifier('Abstract', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Abstract', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 properties=[],
             ),
@@ -4821,7 +4886,8 @@ testcases_tupleparse_xml = [
             exp_result=CIMInstance(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 properties=[
                     CIMProperty('Pstring', type='string', value=None,
@@ -4842,7 +4908,8 @@ testcases_tupleparse_xml = [
             exp_result=CIMInstance(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 properties=[
                     CIMProperty('Puint8array', type='uint8', value=None,
@@ -4863,7 +4930,8 @@ testcases_tupleparse_xml = [
             exp_result=CIMInstance(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 properties=[
                     CIMProperty('Pref', type='reference', value=None,
@@ -4974,8 +5042,10 @@ testcases_tupleparse_xml = [
             exp_result=CIMClass(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
-                    CIMQualifier('Abstract', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Abstract', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 properties=[
                     CIMProperty('Pstring', type='string', value=None,
@@ -5002,8 +5072,10 @@ testcases_tupleparse_xml = [
             exp_result=CIMClass(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
-                    CIMQualifier('Abstract', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Abstract', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 methods=[
                     CIMMethod('Muint32', return_type='uint32',
@@ -5031,8 +5103,10 @@ testcases_tupleparse_xml = [
             exp_result=CIMClass(
                 'CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Association', value=None, type='boolean'),
-                    CIMQualifier('Abstract', value=None, type='boolean'),
+                    CIMQualifier('Association', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Abstract', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 properties=[
                     CIMProperty('Pstring', type='string', value=None,
@@ -5091,13 +5165,14 @@ testcases_tupleparse_xml = [
             xml_str=''
             '<PROPERTY NAME="Foo" TYPE="string">'
             '  <VALUE>abc</VALUE>'
-            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean"/>'
             '</PROPERTY>',
             exp_result=CIMProperty(
                 'Foo', type='string', value='abc',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', value=None, type='boolean'),
+                    CIMQualifier('Qual', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
             ),
         ),
@@ -5884,7 +5959,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PROPERTY NAME="Age" TYPE="uint16">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '</PROPERTY>',
@@ -5892,7 +5967,8 @@ testcases_tupleparse_xml = [
                 'Age', None, type='uint16',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -5903,14 +5979,15 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PROPERTY NAME="Foo" TYPE="string">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean"/>'
             '  <VALUE>abc</VALUE>'
             '</PROPERTY>',
             exp_result=CIMProperty(
                 'Foo', type='string', value='abc',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', value=None, type='boolean'),
+                    CIMQualifier('Qual', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
             ),
         ),
@@ -5955,12 +6032,13 @@ testcases_tupleparse_xml = [
             xml_str=''
             '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
             '  <VALUE.ARRAY/>'
-            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean"/>'
             '</PROPERTY.ARRAY>',
             exp_result=CIMProperty(
                 'Foo', value=[], type='string', propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', value=None, type='boolean'),
+                    CIMQualifier('Qual', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
             ),
         ),
@@ -6125,7 +6203,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '  <VALUE.ARRAY>'
@@ -6138,7 +6216,8 @@ testcases_tupleparse_xml = [
                 'Foo', value=[Uint8(x) for x in [1, 2, 3]], type='uint8',
                 is_array=True, propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -6393,14 +6472,15 @@ testcases_tupleparse_xml = [
             '  <VALUE.REFERENCE>'
             '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '  </VALUE.REFERENCE>'
-            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean"/>'
             '</PROPERTY.REFERENCE>',
             exp_result=CIMProperty(
                 'Foo',
                 value=CIMInstanceName('CIM_Foo'),
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', value=None, type='boolean'),
+                    CIMQualifier('Qual', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
             ),
         ),
@@ -6610,7 +6690,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PROPERTY.REFERENCE NAME="Foo">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '  <VALUE.REFERENCE>'
@@ -6622,7 +6702,8 @@ testcases_tupleparse_xml = [
                 CIMInstanceName('CIM_Foo'),
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -6633,7 +6714,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PROPERTY.REFERENCE NAME="Foo">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '</PROPERTY.REFERENCE>',
@@ -6642,7 +6723,8 @@ testcases_tupleparse_xml = [
                 value=None,
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -6867,18 +6949,20 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PARAMETER NAME="Parm" TYPE="string">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual2" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
-            '  <QUALIFIER NAME="In" TYPE="boolean">'
-            '    <VALUE>TRUE</VALUE>'
+            '  <QUALIFIER NAME="Qual1" TYPE="boolean">'
+            '    <VALUE>FALSE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER>',
             exp_result=CIMParameter(
                 'Parm', type='string',
                 qualifiers=[
-                    CIMQualifier('Key', True),
-                    CIMQualifier('In', True),
+                    CIMQualifier('Qual2', True,
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Qual1', False,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -6969,18 +7053,20 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PARAMETER.REFERENCE NAME="Parm" REFERENCECLASS="CIM_Foo">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual2" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
-            '  <QUALIFIER NAME="In" TYPE="boolean">'
-            '    <VALUE>TRUE</VALUE>'
+            '  <QUALIFIER NAME="Qual1" TYPE="boolean">'
+            '    <VALUE>FALSE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER.REFERENCE>',
             exp_result=CIMParameter(
                 'Parm', type='reference', reference_class='CIM_Foo',
                 qualifiers=[
-                    CIMQualifier('Key', True),
-                    CIMQualifier('In', True),
+                    CIMQualifier('Qual2', True,
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Qual1', False,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -7208,18 +7294,20 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PARAMETER.ARRAY NAME="Parm" TYPE="string">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual2" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
-            '  <QUALIFIER NAME="In" TYPE="boolean">'
-            '    <VALUE>TRUE</VALUE>'
+            '  <QUALIFIER NAME="Qual1" TYPE="boolean">'
+            '    <VALUE>FALSE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER.ARRAY>',
             exp_result=CIMParameter(
                 'Parm', type='string', is_array=True,
                 qualifiers=[
-                    CIMQualifier('Key', True),
-                    CIMQualifier('In', True),
+                    CIMQualifier('Qual2', True,
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Qual1', False,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -7324,18 +7412,20 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<PARAMETER.REFARRAY NAME="Parm">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual2" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
-            '  <QUALIFIER NAME="Id" TYPE="boolean">'
-            '    <VALUE>TRUE</VALUE>'
+            '  <QUALIFIER NAME="Qual1" TYPE="boolean">'
+            '    <VALUE>FALSE</VALUE>'
             '  </QUALIFIER>'
             '</PARAMETER.REFARRAY>',
             exp_result=CIMParameter(
                 'Parm', type='reference', is_array=True,
                 qualifiers=[
-                    CIMQualifier('Key', True),
-                    CIMQualifier('Id', True),
+                    CIMQualifier('Qual2', True,
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Qual1', False,
+                                 **qualifier_default_attrs()),
                 ],
             ),
         ),
@@ -7380,13 +7470,14 @@ testcases_tupleparse_xml = [
             xml_str=''
             '<METHOD NAME="Foo" TYPE="string">'
             '  <PARAMETER NAME="Parm1" TYPE="uint32"/>'
-            '  <QUALIFIER NAME="Key" TYPE="boolean"/>'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean"/>'
             '</METHOD>',
             exp_result=CIMMethod(
                 'Foo', return_type='string',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', value=None, type='boolean'),
+                    CIMQualifier('Qual', value=None, type='boolean',
+                                 **qualifier_default_attrs()),
                 ],
                 parameters=[
                     CIMParameter('Parm1', type='uint32'),
@@ -7459,19 +7550,21 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<METHOD NAME="Age" TYPE="uint16">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual2" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
-            '  <QUALIFIER NAME="Counter" TYPE="boolean">'
-            '    <VALUE>TRUE</VALUE>'
+            '  <QUALIFIER NAME="Qual1" TYPE="boolean">'
+            '    <VALUE>FALSE</VALUE>'
             '  </QUALIFIER>'
             '</METHOD>',
             exp_result=CIMMethod(
                 'Age', return_type='uint16',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
-                    CIMQualifier('Counter', True),
+                    CIMQualifier('Qual2', True,
+                                 **qualifier_default_attrs()),
+                    CIMQualifier('Qual1', False,
+                                 **qualifier_default_attrs()),
                 ]
             ),
         ),
@@ -7508,7 +7601,7 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<METHOD NAME="Age" TYPE="uint16">'
-            '  <QUALIFIER NAME="Key" TYPE="boolean">'
+            '  <QUALIFIER NAME="Qual" TYPE="boolean">'
             '    <VALUE>TRUE</VALUE>'
             '  </QUALIFIER>'
             '  <PARAMETER NAME="Parm" TYPE="uint32"/>'
@@ -7517,7 +7610,8 @@ testcases_tupleparse_xml = [
                 'Age', return_type='uint16',
                 propagated=False,
                 qualifiers=[
-                    CIMQualifier('Key', True),
+                    CIMQualifier('Qual', True,
+                                 **qualifier_default_attrs()),
                 ],
                 parameters=[
                     CIMParameter('Parm', type='uint32'),
@@ -7717,6 +7811,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -7728,6 +7823,7 @@ testcases_tupleparse_xml = [
             b'<QUALIFIER NAME="Qual\xC3\xA9" TYPE="string"/>',
             exp_result=CIMQualifier(
                 u'Qual\u00E9', value=None, type='string',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -7739,6 +7835,7 @@ testcases_tupleparse_xml = [
             b'<QUALIFIER NAME="Qual\xF0\x90\x85\x82" TYPE="string"/>',
             exp_result=CIMQualifier(
                 u'Qual\U00010142', value=None, type='string',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -7748,7 +7845,10 @@ testcases_tupleparse_xml = [
         dict(
             xml_str=''
             '<QUALIFIER NAME="Qual" TYPE="string" xml:lang="en_us"/>',
-            exp_result=CIMQualifier('Qual', value=None, type='string'),
+            exp_result=CIMQualifier(
+                'Qual', value=None, type='string',
+                **qualifier_default_attrs()
+            ),
         ),
         None, None, True
     ),
@@ -7759,7 +7859,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="true"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                overridable=True,
+                **(qualifier_default_attrs(overridable=True))
             ),
         ),
         None, None, True
@@ -7771,7 +7871,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="TrUe"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                overridable=True,
+                **(qualifier_default_attrs(overridable=True))
             ),
         ),
         None, None, True
@@ -7783,7 +7883,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="false"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                overridable=False,
+                **(qualifier_default_attrs(overridable=False))
             ),
         ),
         None, None, True
@@ -7795,7 +7895,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" OVERRIDABLE="FaLsE"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                overridable=False,
+                **(qualifier_default_attrs(overridable=False))
             ),
         ),
         None, None, True
@@ -7807,7 +7907,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="true"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                tosubclass=True,
+                **(qualifier_default_attrs(tosubclass=True))
             ),
         ),
         None, None, True
@@ -7819,7 +7919,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="TrUe"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                tosubclass=True,
+                **(qualifier_default_attrs(tosubclass=True))
             ),
         ),
         None, None, True
@@ -7831,7 +7931,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="false"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                tosubclass=False,
+                **(qualifier_default_attrs(tosubclass=False))
             ),
         ),
         None, None, True
@@ -7843,7 +7943,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOSUBCLASS="FaLsE"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                tosubclass=False,
+                **(qualifier_default_attrs(tosubclass=False))
             ),
         ),
         None, None, True
@@ -7855,7 +7955,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="true"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                toinstance=True,
+                **(qualifier_default_attrs(toinstance=True))
             ),
         ),
         None, None, True
@@ -7867,7 +7967,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="TrUe"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                toinstance=True,
+                **(qualifier_default_attrs(toinstance=True))
             ),
         ),
         None, None, True
@@ -7879,7 +7979,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="false"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                toinstance=False,
+                **(qualifier_default_attrs(toinstance=False))
             ),
         ),
         None, None, True
@@ -7891,7 +7991,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TOINSTANCE="FaLsE"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                toinstance=False,
+                **(qualifier_default_attrs(toinstance=False))
             ),
         ),
         None, None, True
@@ -7903,7 +8003,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="true"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                translatable=True,
+                **(qualifier_default_attrs(translatable=True))
             ),
         ),
         None, None, True
@@ -7915,7 +8015,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="TrUe"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                translatable=True,
+                **(qualifier_default_attrs(translatable=True))
             ),
         ),
         None, None, True
@@ -7927,7 +8027,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="false"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                translatable=False,
+                **(qualifier_default_attrs(translatable=False))
             ),
         ),
         None, None, True
@@ -7939,7 +8039,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" TRANSLATABLE="FaLsE"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                translatable=False,
+                **(qualifier_default_attrs(translatable=False))
             ),
         ),
         None, None, True
@@ -7951,7 +8051,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="true"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                propagated=True,
+                **(qualifier_default_attrs(propagated=True))
             ),
         ),
         None, None, True
@@ -7963,7 +8063,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="TrUe"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                propagated=True,
+                **(qualifier_default_attrs(propagated=True))
             ),
         ),
         None, None, True
@@ -7975,7 +8075,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="false"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                propagated=False,
+                **(qualifier_default_attrs(propagated=False))
             ),
         ),
         None, None, True
@@ -7987,7 +8087,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string" PROPAGATED="FaLsE"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
-                propagated=False,
+                **(qualifier_default_attrs(propagated=False))
             ),
         ),
         None, None, True
@@ -8008,6 +8108,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="boolean"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='boolean',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8021,6 +8122,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=True, type='boolean',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8034,6 +8136,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='boolean',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8045,6 +8148,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="string"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='string',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8058,6 +8162,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value='abc', type='string',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8071,6 +8176,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='string',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8082,6 +8188,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="char16"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='char16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8095,6 +8202,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value='a', type='char16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8108,6 +8216,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='char16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8119,6 +8228,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="uint8"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='uint8',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8132,6 +8242,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='uint8',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8145,6 +8256,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='uint8',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8156,6 +8268,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="uint16"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='uint16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8169,6 +8282,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='uint16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8182,6 +8296,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='uint16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8193,6 +8308,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="uint32"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='uint32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8206,6 +8322,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='uint32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8219,6 +8336,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='uint32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8230,6 +8348,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="uint64"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='uint64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8243,6 +8362,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='uint64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8256,6 +8376,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='uint64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8267,6 +8388,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="sint8"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='sint8',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8280,6 +8402,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='sint8',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8293,6 +8416,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='sint8',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8304,6 +8428,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="sint16"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='sint16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8317,6 +8442,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='sint16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8330,6 +8456,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='sint16',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8341,6 +8468,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="sint32"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='sint32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8354,6 +8482,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='sint32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8367,6 +8496,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='sint32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8378,6 +8508,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="sint64"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='sint64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8391,6 +8522,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42, type='sint64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8404,6 +8536,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='sint64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8415,6 +8548,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="real32"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='real32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8428,6 +8562,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42.0, type='real32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8441,6 +8576,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='real32',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8452,6 +8588,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="real64"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='real64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8465,6 +8602,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=42.0, type='real64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8478,6 +8616,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='real64',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8489,6 +8628,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER NAME="Qual" TYPE="datetime"/>',
             exp_result=CIMQualifier(
                 'Qual', value=None, type='datetime',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8502,6 +8642,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value='20140924193040.654321+120', type='datetime',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8515,6 +8656,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER>',
             exp_result=CIMQualifier(
                 'Qual', value=[], type='datetime',
+                **qualifier_default_attrs()
             ),
         ),
         None, None, True
@@ -8618,6 +8760,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8629,6 +8772,7 @@ testcases_tupleparse_xml = [
             b'<QUALIFIER.DECLARATION NAME="Qual\xC3\xA9" TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
                 u'Qual\u00E9', value=None, type='string',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8641,6 +8785,7 @@ testcases_tupleparse_xml = [
             b' TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
                 u'Qual\U00010142', value=None, type='string',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8654,6 +8799,7 @@ testcases_tupleparse_xml = [
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
                 is_array=True, array_size=10,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8665,7 +8811,8 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
             ' ISARRAY="True"/>',
             exp_result=CIMQualifierDeclaration(
-                'Qual', value=None, type='string', is_array=True
+                'Qual', value=None, type='string', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8677,7 +8824,8 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"'
             ' ISARRAY="False"/>',
             exp_result=CIMQualifierDeclaration(
-                'Qual', value=None, type='string', is_array=False
+                'Qual', value=None, type='string', is_array=False,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8688,7 +8836,8 @@ testcases_tupleparse_xml = [
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
-                'Qual', value=None, type='string', is_array=False
+                'Qual', value=None, type='string', is_array=False,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8701,7 +8850,7 @@ testcases_tupleparse_xml = [
             ' OVERRIDABLE="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                overridable=True,
+                **qualifier_declaration_default_attrs(overridable=True)
             ),
         ),
         None, None, True
@@ -8714,7 +8863,7 @@ testcases_tupleparse_xml = [
             ' OVERRIDABLE="TrUe"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                overridable=True,
+                **qualifier_declaration_default_attrs(overridable=True)
             ),
         ),
         None, None, True
@@ -8727,7 +8876,7 @@ testcases_tupleparse_xml = [
             ' OVERRIDABLE="false"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                overridable=False,
+                **qualifier_declaration_default_attrs(overridable=False)
             ),
         ),
         None, None, True
@@ -8740,7 +8889,7 @@ testcases_tupleparse_xml = [
             ' OVERRIDABLE="FaLsE"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                overridable=False,
+                **qualifier_declaration_default_attrs(overridable=False)
             ),
         ),
         None, None, True
@@ -8753,7 +8902,7 @@ testcases_tupleparse_xml = [
             ' TOSUBCLASS="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                tosubclass=True,
+                **qualifier_declaration_default_attrs(tosubclass=True)
             ),
         ),
         None, None, True
@@ -8766,7 +8915,7 @@ testcases_tupleparse_xml = [
             ' TOSUBCLASS="TrUe"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                tosubclass=True,
+                **qualifier_declaration_default_attrs(tosubclass=True)
             ),
         ),
         None, None, True
@@ -8779,7 +8928,7 @@ testcases_tupleparse_xml = [
             ' TOSUBCLASS="false"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                tosubclass=False,
+                **qualifier_declaration_default_attrs(tosubclass=False)
             ),
         ),
         None, None, True
@@ -8792,7 +8941,7 @@ testcases_tupleparse_xml = [
             ' TOSUBCLASS="FaLsE"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                tosubclass=False,
+                **qualifier_declaration_default_attrs(tosubclass=False)
             ),
         ),
         None, None, True
@@ -8805,7 +8954,7 @@ testcases_tupleparse_xml = [
             ' TOINSTANCE="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                toinstance=True,
+                **qualifier_declaration_default_attrs(toinstance=True)
             ),
         ),
         None, None, True
@@ -8818,7 +8967,7 @@ testcases_tupleparse_xml = [
             ' TOINSTANCE="TrUe"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                toinstance=True,
+                **qualifier_declaration_default_attrs(toinstance=True)
             ),
         ),
         None, None, True
@@ -8831,7 +8980,7 @@ testcases_tupleparse_xml = [
             ' TOINSTANCE="false"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                toinstance=False,
+                **qualifier_declaration_default_attrs(toinstance=False)
             ),
         ),
         None, None, True
@@ -8844,7 +8993,7 @@ testcases_tupleparse_xml = [
             ' TOINSTANCE="FaLsE"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                toinstance=False,
+                **qualifier_declaration_default_attrs(toinstance=False)
             ),
         ),
         None, None, True
@@ -8857,7 +9006,7 @@ testcases_tupleparse_xml = [
             ' TRANSLATABLE="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                translatable=True,
+                **qualifier_declaration_default_attrs(translatable=True)
             ),
         ),
         None, None, True
@@ -8870,7 +9019,7 @@ testcases_tupleparse_xml = [
             ' TRANSLATABLE="TrUe"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                translatable=True,
+                **qualifier_declaration_default_attrs(translatable=True)
             ),
         ),
         None, None, True
@@ -8883,7 +9032,7 @@ testcases_tupleparse_xml = [
             ' TRANSLATABLE="false"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                translatable=False,
+                **qualifier_declaration_default_attrs(translatable=False)
             ),
         ),
         None, None, True
@@ -8896,7 +9045,7 @@ testcases_tupleparse_xml = [
             ' TRANSLATABLE="FaLsE"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
-                translatable=False,
+                **qualifier_declaration_default_attrs(translatable=False)
             ),
         ),
         None, None, True
@@ -8917,6 +9066,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='boolean',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8930,6 +9080,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=True, type='boolean',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8942,6 +9093,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='boolean', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8955,6 +9107,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='boolean', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8966,6 +9119,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8979,6 +9133,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value='abc', type='string',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -8992,6 +9147,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='string', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9003,6 +9159,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='string', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9014,6 +9171,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='char16',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9027,6 +9185,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value='a', type='char16',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9038,6 +9197,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='char16', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9051,6 +9211,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='char16', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9062,6 +9223,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint8',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9075,6 +9237,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='uint8',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9086,6 +9249,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint8', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9099,6 +9263,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='uint8', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9110,6 +9275,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint16',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9123,6 +9289,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='uint16',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9134,6 +9301,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint16', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9147,6 +9315,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='uint16', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9158,6 +9327,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint32',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9171,6 +9341,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='uint32',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9182,6 +9353,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint32', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9195,6 +9367,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='uint32', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9206,6 +9379,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint64',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9219,6 +9393,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='uint64',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9230,6 +9405,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='uint64', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9243,6 +9419,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='uint64', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9254,6 +9431,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint8',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9267,6 +9445,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='sint8',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9278,6 +9457,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint8', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9291,6 +9471,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='sint8', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9302,6 +9483,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint16',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9315,6 +9497,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='sint16',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9326,6 +9509,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint16', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9339,6 +9523,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='sint16', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9350,6 +9535,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint32',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9363,6 +9549,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='sint32',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9374,6 +9561,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint32', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9387,6 +9575,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='sint32', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9398,6 +9587,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint64',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9411,6 +9601,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42, type='sint64',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9422,6 +9613,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='sint64', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9435,6 +9627,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='sint64', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9446,6 +9639,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='real32',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9459,6 +9653,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42.0, type='real32',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9470,6 +9665,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='real32', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9483,6 +9679,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='real32', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9494,6 +9691,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='real64',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9507,6 +9705,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=42.0, type='real64',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9518,6 +9717,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64" ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='real64', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9531,6 +9731,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='real64', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9542,6 +9743,7 @@ testcases_tupleparse_xml = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='datetime',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9555,6 +9757,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value='20140924193040.654321+120', type='datetime',
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9567,6 +9770,7 @@ testcases_tupleparse_xml = [
             ' ISARRAY="true"/>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=None, type='datetime', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True
@@ -9580,6 +9784,7 @@ testcases_tupleparse_xml = [
             '</QUALIFIER.DECLARATION>',
             exp_result=CIMQualifierDeclaration(
                 'Qual', value=[], type='datetime', is_array=True,
+                **qualifier_declaration_default_attrs()
             ),
         ),
         None, None, True

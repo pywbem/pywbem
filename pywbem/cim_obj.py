@@ -5044,7 +5044,7 @@ class CIMMethod(_CIMComparisonMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, name=None, return_type=None, parameters=None,
-                 class_origin=None, propagated=False, qualifiers=None,
+                 class_origin=None, propagated=None, qualifiers=None,
                  methodname=None):
         """
         The constructor stores the input parameters as-is and does not infer

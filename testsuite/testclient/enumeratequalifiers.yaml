@@ -22,10 +22,10 @@
       scopes:
         indication: true
         class: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: BitMap
       type: string
@@ -36,10 +36,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: IsPUnit
       type: boolean
@@ -50,10 +50,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: EmbeddedInstance
       type: string
@@ -64,10 +64,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: UMLPackagePath
       type: string
@@ -78,10 +78,10 @@
         indication: true
         class: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Association
       type: boolean
@@ -90,10 +90,10 @@
       array_size: null
       scopes:
         association: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Weak
       type: boolean
@@ -102,10 +102,10 @@
       array_size: null
       scopes:
         reference: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Write
       type: boolean
@@ -114,10 +114,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Experimental
       type: boolean
@@ -133,9 +133,9 @@
         method: true
         association: true
       tosubclass: false
-      toinstance: null
-      overridable: null
-      translatable: null
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Reference
       type: string
@@ -144,10 +144,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: UnsupportedValues
       type: string
@@ -156,10 +156,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: XMLNamespaceName
       type: string
@@ -170,10 +170,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: SyntaxType
       type: string
@@ -185,10 +185,10 @@
         parameter: true
         method: true
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Revision
       type: string
@@ -199,9 +199,9 @@
         indication: true
         class: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: Description
@@ -217,9 +217,9 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: DisplayName
@@ -235,9 +235,9 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: Delete
@@ -248,10 +248,10 @@
       scopes:
         association: true
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Min
       type: uint32
@@ -260,10 +260,10 @@
       array_size: null
       scopes:
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Aggregate
       type: boolean
@@ -272,10 +272,10 @@
       array_size: null
       scopes:
         reference: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Indication
       type: boolean
@@ -285,10 +285,10 @@
       scopes:
         indication: true
         class: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Structure
       type: boolean
@@ -298,10 +298,10 @@
       scopes:
         indication: true
         class: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Provider
       type: string
@@ -316,10 +316,10 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: PropertyUsage
       type: string
@@ -328,10 +328,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Override
       type: string
@@ -343,9 +343,9 @@
         method: true
         reference: true
       tosubclass: false
-      toinstance: null
-      overridable: null
-      translatable: null
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: BitValues
       type: string
@@ -356,9 +356,9 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: Abstract
@@ -371,9 +371,9 @@
         class: true
         association: true
       tosubclass: false
-      toinstance: null
-      overridable: null
-      translatable: null
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: ArrayType
       type: string
@@ -383,10 +383,10 @@
       scopes:
         property: true
         parameter: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Alias
       type: string
@@ -397,9 +397,9 @@
         property: true
         method: true
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: MaxValue
@@ -411,10 +411,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: ModelCorrespondence
       type: string
@@ -429,10 +429,10 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: In
       type: boolean
@@ -441,10 +441,10 @@
       array_size: null
       scopes:
         parameter: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: DN
       type: boolean
@@ -455,10 +455,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: NullValue
       type: string
@@ -467,10 +467,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Large
       type: boolean
@@ -480,10 +480,10 @@
       scopes:
         property: true
         class: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Version
       type: string
@@ -495,8 +495,8 @@
         class: true
         association: true
       tosubclass: false
-      toinstance: null
-      overridable: null
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: Deprecated
@@ -513,9 +513,9 @@
         method: true
         association: true
       tosubclass: false
-      toinstance: null
-      overridable: null
-      translatable: null
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Out
       type: boolean
@@ -524,10 +524,10 @@
       array_size: null
       scopes:
         parameter: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Values
       type: string
@@ -538,9 +538,9 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: Correlatable
@@ -550,10 +550,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Counter
       type: boolean
@@ -564,10 +564,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: ClassConstraint
       type: string
@@ -578,10 +578,10 @@
         indication: true
         class: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: MethodConstraint
       type: string
@@ -590,10 +590,10 @@
       array_size: null
       scopes:
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Syntax
       type: string
@@ -605,10 +605,10 @@
         parameter: true
         method: true
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Static
       type: boolean
@@ -618,10 +618,10 @@
       scopes:
         property: true
         method: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Composition
       type: boolean
@@ -630,10 +630,10 @@
       array_size: null
       scopes:
         association: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: MappingStrings
       type: string
@@ -648,10 +648,10 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Key
       type: boolean
@@ -661,10 +661,10 @@
       scopes:
         property: true
         reference: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: EmbeddedObject
       type: boolean
@@ -675,10 +675,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: TriggerType
       type: string
@@ -692,10 +692,10 @@
         property: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Aggregation
       type: boolean
@@ -704,10 +704,10 @@
       array_size: null
       scopes:
         association: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: ValueMap
       type: string
@@ -718,10 +718,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Required
       type: boolean
@@ -733,10 +733,10 @@
         parameter: true
         method: true
         reference: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Propagated
       type: string
@@ -745,10 +745,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Read
       type: boolean
@@ -757,10 +757,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: PUnit
       type: string
@@ -771,10 +771,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Invisible
       type: boolean
@@ -787,10 +787,10 @@
         method: true
         association: true
         class: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Ifdeleted
       type: boolean
@@ -800,10 +800,10 @@
       scopes:
         association: true
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: MinLen
       type: uint32
@@ -814,10 +814,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: UnknownValues
       type: string
@@ -826,10 +826,10 @@
       array_size: null
       scopes:
         property: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Units
       type: string
@@ -840,9 +840,9 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
       name: Octetstring
@@ -854,10 +854,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
-      translatable: null
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Expensive
       type: boolean
@@ -872,10 +872,10 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Schema
       type: string
@@ -885,8 +885,8 @@
       scopes:
         property: true
         method: true
-      tosubclass: null
-      toinstance: null
+      tosubclass: true
+      toinstance: false
       overridable: false
       translatable: true
     - pywbem_object: CIMQualifierDeclaration
@@ -899,10 +899,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: MaxLen
       type: uint32
@@ -913,10 +913,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: PropertyConstraint
       type: string
@@ -926,10 +926,10 @@
       scopes:
         property: true
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Max
       type: uint32
@@ -938,10 +938,10 @@
       array_size: null
       scopes:
         reference: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: Terminal
       type: boolean
@@ -952,10 +952,10 @@
         indication: true
         class: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: MinValue
       type: sint64
@@ -966,10 +966,10 @@
         property: true
         parameter: true
         method: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
-      translatable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
     - pywbem_object: CIMQualifierDeclaration
       name: DisplayDescription
       type: string
@@ -984,9 +984,9 @@
         parameter: true
         method: true
         association: true
-      tosubclass: null
-      toinstance: null
-      overridable: null
+      tosubclass: true
+      toinstance: false
+      overridable: true
       translatable: true
   http_request:
     verb: POST
@@ -1278,6 +1278,74 @@
       </MESSAGE>
       </CIM>'
 
+- name: EnumerateQualifiers2
+  description: EnumerateQualifiers, with flavor attributes in response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: EnumerateQualifiers
+      namespace: //root/mycim//
+  pywbem_response:
+    result:
+    - pywbem_object: CIMQualifierDeclaration
+      name: Exception
+      type: boolean
+      value: false
+      scopes:
+        indication: true
+        class: true
+      tosubclass: false
+      toinstance: true
+      overridable: false
+      translatable: true
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateQualifiers
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateQualifiers">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateQualifiers">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Exception" TYPE="boolean"
+       TOSUBCLASS="FALSE" TOINSTANCE="TRUE" OVERRIDABLE="FALSE"
+       TRANSLATABLE="TRUE">
+      <SCOPE INDICATION="true" CLASS="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
 - name: EnumerateQualifiersF1
   description: EnumerateQualifiers fails with bad namespace
   pywbem_request:
@@ -1349,6 +1417,10 @@
       scopes:
         indication: true
         class: true
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
@@ -1411,6 +1483,10 @@
       scopes:
         indication: true
         class: true
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
   http_request:
     verb: POST
     url: http://acme.com:80/cimom

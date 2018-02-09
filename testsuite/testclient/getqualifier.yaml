@@ -25,9 +25,9 @@
         class: true
         association: true
       tosubclass: false
-      toinstance: null
-      overridable: null
-      translatable: null
+      toinstance: false
+      overridable: true
+      translatable: false
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
@@ -147,6 +147,10 @@
       value: false
       scopes:
         indication: true
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
@@ -212,6 +216,10 @@
       value: false
       scopes:
         indication: true
+      tosubclass: true
+      toinstance: false
+      overridable: true
+      translatable: false
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
