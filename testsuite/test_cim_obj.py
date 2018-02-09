@@ -2365,7 +2365,7 @@ class Test_CIMInstanceName_from_instance(object):
         # * strict: Value of strict attribute on from_instance call
         # * condition: Condition for testcase to run.
         (
-            "Verify class with single key type string works",
+            "Verify class with single key works",
             dict(
                 classname='CIM_Foo',
                 properties=[
@@ -2390,7 +2390,7 @@ class Test_CIMInstanceName_from_instance(object):
             True, True,
         ),
         (
-            "Verify class with two keys type string works",
+            "Verify class with two keys  works",
             dict(
                 classname='CIM_Foo',
                 properties=[
@@ -2456,8 +2456,7 @@ class Test_CIMInstanceName_from_instance(object):
                 ]
             ),
             dict(
-                classname='CIM_Foo',
-                keybindings={'P1': None}
+                classname='CIM_Foo'
             ),
             # strict, condition
             False, True,
@@ -2481,8 +2480,7 @@ class Test_CIMInstanceName_from_instance(object):
                 ]
             ),
             dict(
-                classname='CIM_Foo',
-                keybindings=[('P1', None), ('P2', 'DEFAULT')]
+                classname='CIM_Foo'
             ),
             # strict,condition
             False, True,

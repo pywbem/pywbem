@@ -933,7 +933,7 @@ class FakedWBEMConnection(WBEMConnection):
     @staticmethod
     def _remove_qualifiers(obj):
         """
-        Remove all qualifiers from the input object.  The object may
+        Remove all qualifiers from the input objectwhere the object may
         be an CIMInstance or CIMClass. Removes qualifiers from the object and
         from properties, methods, and parameters
 
@@ -1203,7 +1203,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         Returns: Returns list of classes.
         """
-        # TODO:ks Future. this could become an iterator for efficiency.
+        # TODO:ks Future. this could become an generator expression for
+        # efficiency.
         class_repo = self._get_class_repo(namespace)
         associator_classes = []
         for cl in six.itervalues(class_repo):
@@ -1373,11 +1374,6 @@ class FakedWBEMConnection(WBEMConnection):
             namespace,
             params['DeepInheritance'])
 
-        try:
-            del params['classname']
-        except KeyError:
-            pass
-
         classes = [
             self._get_class(cn, namespace,
                             local_only=params['LocalOnly'],
@@ -1392,9 +1388,12 @@ class FakedWBEMConnection(WBEMConnection):
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
 
+        Enumerates the classnames of the classname in the 'classname' parameter
+        or from the top of the tree if 'classname is None.
+
         Returns:
 
-            returns classnames.
+            return tuple including list of classnames
 
         Raises:
 
