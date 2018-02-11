@@ -26,7 +26,7 @@ This capability is disabled by default and can be enabled in either
 of these ways:
 
 * When creating a :class:`~pywbem.WBEMConnection` object, via its
-  ``enable_stats`` argument.
+  ``stats_enabled`` argument.
 
 * After the :class:`~pywbem.WBEMConnection` object has been created, by
   modifying its :attr:`~pywbem.WBEMConnection.stats_enabled` instance

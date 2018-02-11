@@ -347,52 +347,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
       Exceptions indicating programming errors should not happen. If you think
       the reason such an exception is raised lies in pywbem,
       `report a bug <https://github.com/pywbem/pywbem/issues>`_.
-
-    Attributes:
-
-      ... : All parameters of the :class:`~pywbem.WBEMConnection` constructor
-        are set as public attribute with the same name.
-
-      ... : There are some additional properties documented for this class,
-        further down.
-
-      debug (:class:`py:bool`): A boolean indicating whether saving of
-        the last request and last reply to the WBEMConnection object is enabled.
-
-        The initial value of this attribute is `False`.
-        Debug saving can be enabled for future operations by setting this
-        attribute to `True`.
-
-      last_request (:term:`unicode string`):
-        CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as prettified XML. Prior to sending the
-        very first request on this connection object, it is `None`.
-
-      last_raw_request (:term:`unicode string`):
-        CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as it was sent. Prior to sending the
-        very first request on this connection object, it is `None`.
-
-      last_reply (:term:`unicode string`):
-        CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as prettified XML. Prior to receiving
-        the very first response on this connection object, it is `None`.
-
-      last_raw_reply (:term:`unicode string`):
-        CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as it was received. Prior to receiving
-        the very first response on this connection object, it is `None`.
-
-      last_request_len (:class:`py:int`):
-        The size of the HTTP body in the CIM-XML request of the last operation,
-        in Bytes. Prior to sending the very first request on this connection
-        object, or if the last operation raised an exception, it is 0.
-
-      last_reply_len (:class:`py:int`):
-        The size of the HTTP body in the CIM-XML response of the last
-        operation, in Bytes. Prior to receiving the very first response on this
-        connection object, or if the last operation raised an exception, it
-        is 0.
     """
 
     # Class level counter. Incremented at each WBEMConnection creation
@@ -402,7 +356,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
                  x509=None, verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=False,
-                 enable_stats=False):
+                 stats_enabled=False):
         # pylint: disable=line-too-long
         """
         Parameters:
@@ -450,7 +404,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               address) using zone identifier eth0
 
           creds (:func:`py:tuple` of userid, password):
-            Credentials for HTTP authenticatiion with the WBEM server, as a
+            Credentials for HTTP authentication with the WBEM server, as a
             tuple(userid, password), with:
 
             * userid (:term:`string`):
@@ -609,7 +563,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             exception.
 
           use_pull_operations (:class:`py:bool`):
-            **Experimental** New in pywbem 0.11 as experimental.
+            **Experimental** *New in pywbem 0.11 as experimental.*
 
             Controls the use of pull operations in any `Iter...()` methods.
 
@@ -629,37 +583,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `False` (default) means that the `Iter...()` methods will only use
             traditional operations.
 
-          enable_stats (:class:`py:bool`):
-            *New in pywbem 0.11 as experimental and finalized in 0.12.*
+          stats_enabled (:class:`py:bool`):
+            *New in pywbem 0.11 as experimental, renamed from `enable_stats`
+            and finalized in 0.12.*
 
             Initial enablement status for maintaining statistics about the
             WBEM operations executed via this connection. See the
             :ref:`Statistics` section for details.
-
-            Statistics may also be enabled or disabled with the WBEMConnection
-            property `stats_enabled`. This may be used to view the current
-            status or change the status (ex. `conn.stats_enabled(False)`)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
         # Connection attributes
-        self.url = url
-        self.creds = creds
-        self.x509 = x509
-        self.verify_callback = verify_callback
-        self.ca_certs = ca_certs
-        self.no_verification = no_verification
-        self.default_namespace = default_namespace  # setter
-        self.timeout = timeout
+        self._set_url(url)
+        self._set_creds(creds)
+        self._set_default_namespace(default_namespace)
+        self._set_x509(x509)
+        self._set_verify_callback(verify_callback)
+        self._set_ca_certs(ca_certs)
+        self._set_no_verification(no_verification)
+        self._set_timeout(timeout)
 
-        self.debug = False
-        self.last_raw_request = None
-        self.last_raw_reply = None
-        self.last_request = None
-        self.last_reply = None
+        # Saving last request and reply
+        self.debug = False  # setter
+        self._last_raw_request = None
+        self._last_raw_reply = None
+        self._last_request = None
+        self._last_reply = None
 
-        self.last_request_len = 0
-        self.last_reply_len = 0
+        # Time statistics
+        self._last_request_len = 0
+        self._last_reply_len = 0
 
         # control of operation recorders
         self._operation_recorders = []
@@ -682,9 +635,58 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._use_assoc_path_pull_operations = use_pull_operations
         self._use_query_pull_operations = use_pull_operations
 
-        self._statistics = Statistics(enable_stats)
+        self._statistics = Statistics(stats_enabled)
         self._last_operation_time = None
         self._last_server_response_time = None
+
+    @property
+    def url(self):
+        """
+        :term:`unicode string`: URL of the WBEM server.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._url
+
+    @url.setter
+    def url(self, url):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.url property is deprecated",
+            DeprecationWarning, 2)
+        self._set_url(url)
+
+    def _set_url(self, url):
+        """Internal setter function."""
+        self._url = _ensure_unicode(url)
+
+    @property
+    def creds(self):
+        """
+        :func:`py:tuple`: Credentials for HTTP authentication with the WBEM
+        server.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._creds
+
+    @creds.setter
+    def creds(self, creds):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.creds property is deprecated",
+            DeprecationWarning, 2)
+        self._set_creds(creds)
+
+    def _set_creds(self, creds):
+        """Internal setter function."""
+        self._creds = creds
 
     @property
     def default_namespace(self):
@@ -692,14 +694,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :term:`unicode string`: Name of the CIM namespace to be used by default
         (if no namespace is specified for an operation).
 
-        `None` means that the following namespace will be used as a default
-        namespace: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
 
-        Leading and trailing slash characters will be stripped. The lexical
-        case will be preserved.
-
-        This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        This attribute is settable, but setting it has been deprecated.
         """
         return self._default_namespace
 
@@ -707,28 +705,163 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def default_namespace(self, default_namespace):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
+        warnings.warn(
+            "Setting the WBEMConnection.default_namespace property is "
+            "deprecated", DeprecationWarning, 2)
+        self._set_default_namespace(default_namespace)
+
+    def _set_default_namespace(self, default_namespace):
+        """Internal setter function."""
         if default_namespace is not None:
             default_namespace = default_namespace.strip('/')
         self._default_namespace = _ensure_unicode(default_namespace)
 
     @property
+    def x509(self):
+        """
+        :class:`py:dict`: :term:`X.509` client certificate and key file to be
+        presented to the WBEM server during the TLS/SSL handshake.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._x509
+
+    @x509.setter
+    def x509(self, x509):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.x509 property is deprecated",
+            DeprecationWarning, 2)
+        self._set_x509(x509)
+
+    def _set_x509(self, x509):
+        """Internal setter function."""
+        self._x509 = x509
+
+    @property
+    def verify_callback(self):
+        """
+        :term:`callable`: A callback function that will be called to verify the
+        X.509 server certificate returned by the WBEM server during the
+        TLS/SSL handshake, in addition to the validation already performed
+        by the TLS/SSL support.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._verify_callback
+
+    @verify_callback.setter
+    def verify_callback(self, verify_callback):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.verify_callback property is deprecated",
+            DeprecationWarning, 2)
+        self._set_verify_callback(verify_callback)
+
+    def _set_verify_callback(self, verify_callback):
+        """Internal setter function."""
+        self._verify_callback = verify_callback
+
+    @property
+    def ca_certs(self):
+        """
+        :term:`string`: Location of CA certificates (trusted certificates) for
+        verifying the X.509 server certificate returned by the WBEM server.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._ca_certs
+
+    @ca_certs.setter
+    def ca_certs(self, ca_certs):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.ca_certs property is deprecated",
+            DeprecationWarning, 2)
+        self._set_ca_certs(ca_certs)
+
+    def _set_ca_certs(self, ca_certs):
+        """Internal setter function."""
+        self._ca_certs = ca_certs
+
+    @property
+    def no_verification(self):
+        """
+        :class:`py:bool`: Indicates that verifications are disabled for this
+        connection.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._no_verification
+
+    @no_verification.setter
+    def no_verification(self, no_verification):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.no_verification property is deprecated",
+            DeprecationWarning, 2)
+        self._set_no_verification(no_verification)
+
+    def _set_no_verification(self, no_verification):
+        """Internal setter function."""
+        self._no_verification = no_verification
+
+    @property
+    def timeout(self):
+        """
+        *New in pywbem 0.8.*
+
+        :term:`number`: Timeout in seconds, for requests sent to the server.
+
+        For details, see the description of the same-named constructor
+        parameter of :class:`~pywbem.WBEMConnection`.
+
+        This attribute is settable, but setting it has been deprecated.
+        """
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, timeout):
+        """Setter method; for a description see the getter method."""
+        warnings.warn(
+            "Setting the WBEMConnection.timeout property is deprecated",
+            DeprecationWarning, 2)
+        self._set_timeout(timeout)
+
+    def _set_timeout(self, timeout):
+        """Internal setter function."""
+        self._timeout = timeout
+
+    @property
     def operation_recorders(self):
         """
+        **Experimental** *New in pywbem 0.12 as experimental.*
+
         Tuple of :class:`BaseOperationRecorder` subclass objects:
           The operation recorders of this connection.
-
-        **Experimental** New in pywbem 0.12 as experimental.
         """
         return tuple(self._operation_recorders)
 
     @property
     def operation_recorder(self):
         """
+        **Experimental** *New in pywbem 0.9 as experimental.*
+
         :class:`BaseOperationRecorder`: The operation recorder that was last
         added to the connection, or `None` if the connection does not currently
         have any recorders.
-
-        **Experimental** New in pywbem 0.9 as experimental.
 
         **Deprecated:** Deprecated since pywbem 0.12.
         The method :meth:`~pywbem.WBEMConnection.add_operation_recorder` should
@@ -758,9 +891,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @operation_recorder.setter
     def operation_recorder(self, operation_recorder):
-        """
-        See operation_recorder for documentation
-        """
+        """Setter method; for a description see the getter method."""
         warnings.warn(
             "Setting the WBEMConnection.operation_recorder property has been "
             "deprecated. Use the add_operation_recorder() method instead.",
@@ -781,10 +912,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder_enabled(self):
         """
+        **Experimental** *New in pywbem 0.11 as experimental*
+
         :class:`py:bool`: Enablement status for all operation recorders of the
         connection.
-
-        **Experimental** New in pywbem 0.11 as experimental.
 
         This is a writeable property; setting this property will change the
         operation recorder enablement status accordingly for all operation
@@ -801,9 +932,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @operation_recorder_enabled.setter
     def operation_recorder_enabled(self, value):
-        """
-        See the property operation_recorder_enabled for documentation.
-        """
+        """Setter method; for a description see the getter method."""
         for recorder in self._operation_recorders:
             if value:
                 recorder.enable()
@@ -824,6 +953,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @stats_enabled.setter
     def stats_enabled(self, value):
+        """Setter method; for a description see the getter method."""
         if value:
             self.statistics.enable()
         else:
@@ -837,7 +967,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :class:`~pywbem.Statistics`: Statistics for this connection.
 
         Statistics are disabled by default and can be enabled via the
-        ``enable_stats`` argument when creating a connection object, or
+        ``stats_enabled`` argument when creating a connection object, or
         later via modifying the :attr:`~pywbem.WBEMConnection.stats_enabled`
         property on this connection object. See the :ref:`Statistics` section
         for more details.
@@ -876,10 +1006,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def use_pull_operations(self):
         """
+        **Experimental** *New in pywbem 0.11 as experimental.*
+
         :class:`py:bool`: Indicates whether the client should attempt the use
         of pull operations in any `Iter...()` methods.
-
-        **Experimental:** New in pywbem 0.11 as experimental.
 
         This property reflects the intent of the user as specified in the
         same-named constructor parameter. This property is not updated with
@@ -888,6 +1018,117 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         WBEM servers that support only some of the pull operations.
         """
         return self._use_pull_operations
+
+    @property
+    def debug(self):
+        """
+        :class:`py:bool`: A boolean indicating whether saving of the last
+        request and last reply to the WBEMConnection object is enabled (`True`)
+        or disabled (`False`).
+
+        When enabled, the last request and last reply will be available in the
+        following properties of this class:
+
+        * :attr:`~pywbem.WBEMConnection.last_request`
+        * :attr:`~pywbem.WBEMConnection.last_raw_request`
+        * :attr:`~pywbem.WBEMConnection.last_reply`
+        * :attr:`~pywbem.WBEMConnection.last_raw_reply`
+
+        When disabled, these properties will be `None`.
+
+        This attribute is writeable. The initial value of this attribute is
+        `False`.
+        """
+        return self._debug
+
+    @debug.setter
+    def debug(self, debug):
+        """Setter method; for a description see the getter method."""
+        self._debug = debug
+
+    @property
+    def last_request(self):
+        """
+        :term:`unicode string`:
+        CIM-XML data of the last request sent to the WBEM server
+        on this connection, formatted as prettified XML.
+
+        Prior to sending the very first request on this connection object,
+        and when debug saving of requests and responses is disabled (see
+        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        """
+        return self._last_request
+
+    @property
+    def last_raw_request(self):
+        """
+        :term:`unicode string`:
+        CIM-XML data of the last request sent to the WBEM server
+        on this connection, formatted as it was sent.
+
+        Prior to sending the very first request on this connection object,
+        and when debug saving of requests and responses is disabled (see
+        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        """
+        return self._last_raw_request
+
+    @property
+    def last_reply(self):
+        """
+        :term:`unicode string`:
+        CIM-XML data of the last response received from the WBEM server
+        on this connection, formatted as prettified XML.
+
+        Prior to receiving the very first response on this connection object,
+        and when debug saving of requests and responses is disabled (see
+        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        """
+        return self._last_reply
+
+    @property
+    def last_raw_reply(self):
+        """
+        :term:`unicode string`:
+        CIM-XML data of the last response received from the WBEM server
+        on this connection, formatted as it was received.
+
+        Prior to receiving the very first response on this connection object,
+        and when debug saving of requests and responses is disabled (see
+        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        """
+        return self._last_raw_reply
+
+    @property
+    def last_request_len(self):
+        """
+        :class:`py:int`:
+        The size of the HTTP body in the CIM-XML request of the last operation,
+        in Bytes.
+
+        Prior to sending the very first request on this connection object,
+        or if the last operation raised an exception, it is 0.
+
+        Note that this property is updated independently of whether saving of
+        last request and response is enabled or disabled (see
+        :attr:`~pywbem.WBEMConnection.debug`)
+        """
+        return self._last_request_len
+
+    @property
+    def last_reply_len(self):
+        """
+        :class:`py:int`:
+        The size of the HTTP body in the CIM-XML response of the last
+        operation, in Bytes.
+
+        Prior to receiving the very first response on this connection object,
+        or if the last operation raised an exception, it is 0.
+
+        Note that this property is updated independently of whether saving of
+        last request and response is enabled or disabled (see
+        :attr:`~pywbem.WBEMConnection.debug`)
+        """
+        return self._last_reply_len
 
     def __str__(self):
         """
@@ -929,7 +1170,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         return "%s(url=%r, creds=%s, conn_id=%s, " \
                "default_namespace=%r, x509=%s, verify_callback=%r, " \
                "ca_certs=%r, no_verification=%r, timeout=%r, " \
-               "use_pull_operations=%r, stats=%r, recorders=%s)" % \
+               "use_pull_operations=%r, stats_enabled=%r, recorders=%s)" % \
                (self.__class__.__name__, self.url, creds_repr, self.conn_id,
                 self.default_namespace, x509_repr, self.verify_callback,
                 self.ca_certs, self.no_verification, self.timeout,
@@ -1056,19 +1297,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             '2.0', '2.0')
 
         if self.debug:
-            self.last_raw_request = req_xml.toxml()
-            self.last_request = req_xml.toprettyxml(indent='  ')
+            self._last_raw_request = req_xml.toxml()
+            self._last_request = req_xml.toprettyxml(indent='  ')
             # Reset replies in case we fail before they are set
-            self.last_raw_reply = None
-            self.last_reply = None
+            self._last_raw_reply = None
+            self._last_reply = None
 
         # Send request and receive response
-        self.last_request_len = 0
-        self.last_reply_len = 0
+        self._last_request_len = 0
+        self._last_reply_len = 0
         self._last_server_response_time = None
 
         request_data = req_xml.toxml()
-        self.last_request_len = len(request_data)
+        self._last_request_len = len(request_data)
 
         reply_xml, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
@@ -1081,11 +1322,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             recorders=self._operation_recorders,
             conn_id=self.conn_id)
 
-        self.last_reply_len = len(reply_xml)
+        self._last_reply_len = len(reply_xml)
 
         # Set the raw response before parsing (which can fail)
         if self.debug:
-            self.last_raw_reply = reply_xml
+            self._last_raw_reply = reply_xml
 
         # Parse the XML into a tuple tree (may raise ParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
@@ -1093,7 +1334,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Set the pretty response after parsing (it could fail otherwise)
         if self.debug:
-            self.last_reply = _to_pretty_xml(reply_xml)
+            self._last_reply = _to_pretty_xml(reply_xml)
 
         # Check the tuple tree
 
@@ -1291,20 +1532,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             '2.0', '2.0')
 
         if self.debug:
-            self.last_raw_request = req_xml.toxml()
-            self.last_request = req_xml.toprettyxml(indent='  ')
+            self._last_raw_request = req_xml.toxml()
+            self._last_request = req_xml.toprettyxml(indent='  ')
             # Reset replies in case we fail before they are set
-            self.last_raw_reply = None
-            self.last_reply = None
+            self._last_raw_reply = None
+            self._last_reply = None
 
         # Send request and receive response
 
-        self.last_request_len = 0
-        self.last_reply_len = 0
+        self._last_request_len = 0
+        self._last_reply_len = 0
         self._last_server_response_time = None
 
         request_data = req_xml.toxml()
-        self.last_request_len = len(request_data)
+        self._last_request_len = len(request_data)
 
         reply_xml, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
@@ -1317,11 +1558,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             recorders=self._operation_recorders,
             conn_id=self.conn_id)
 
-        self.last_reply_len = len(reply_xml)
+        self._last_reply_len = len(reply_xml)
 
         # Set the raw response before parsing (which can fail)
         if self.debug:
-            self.last_raw_reply = reply_xml
+            self._last_raw_reply = reply_xml
 
         # Parse the XML into a tuple tree (may raise ParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
@@ -1329,7 +1570,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Set the pretty response after parsing (it could fail otherwise)
         if self.debug:
-            self.last_reply = _to_pretty_xml(reply_xml)
+            self._last_reply = _to_pretty_xml(reply_xml)
 
         # Check the tuple tree
 

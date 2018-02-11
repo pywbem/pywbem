@@ -672,12 +672,12 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check(
                 ("pywbem.ops", "DEBUG",
-                 "Connection:22-1234:34 WBEMConnection(url='http://blah', "
+                 "Connection:22-1234:34 WBEMConnection(url=u'http://blah', "
                  "creds=None, conn_id=22-1234:34, "
                  "default_namespace=u'root/cimv2', x509=None, "
                  "verify_callback=None, ca_certs=None, no_verification=False, "
-                 "timeout=None, use_pull_operations=False, stats=False, "
-                 "recorders=[])"),)
+                 "timeout=None, use_pull_operations=False, "
+                 "stats_enabled=False, recorders=[])"),)
         else:
             lc.check(
                 ("pywbem.ops", "DEBUG",
@@ -685,8 +685,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                  "creds=None, conn_id=22-1234:34, "
                  "default_namespace='root/cimv2', x509=None, "
                  "verify_callback=None, ca_certs=None, no_verification=False, "
-                 "timeout=None, use_pull_operations=False, stats=False, "
-                 "recorders=[])"),)
+                 "timeout=None, use_pull_operations=False, "
+                 "stats_enabled=False, recorders=[])"),)
 
     @log_capture()
     def test_create_connection2(self, lc):
@@ -700,7 +700,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               no_verification=True,
                               timeout=10,
                               use_pull_operations=True,
-                              enable_stats=True)
+                              stats_enabled=True)
         conn.conn_id = '%s-%s' % (23, "1234:34")
         self.test_recorder.stage_wbem_connection(conn)
 
@@ -709,12 +709,12 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         if six.PY2:
             lc.check((
                 "pywbem.ops", "DEBUG",
-                "Connection:23-1234:34 WBEMConnection(url='http://blah', "
+                "Connection:23-1234:34 WBEMConnection(url=u'http://blah', "
                 "creds=('username', ...), conn_id=23-1234:34, "
                 "default_namespace=u'root/blah', "
                 "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
                 "verify_callback=None, ca_certs=None, no_verification=True, "
-                "timeout=10, use_pull_operations=True, stats=True, "
+                "timeout=10, use_pull_operations=True, stats_enabled=True, "
                 "recorders=[])"),)
         else:
             lc.check((
@@ -724,7 +724,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                 "default_namespace='root/blah', "
                 "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
                 "verify_callback=None, ca_certs=None, no_verification=True, "
-                "timeout=10, use_pull_operations=True, stats=True, "
+                "timeout=10, use_pull_operations=True, stats_enabled=True, "
                 "recorders=[])"),)
 
     @log_capture()

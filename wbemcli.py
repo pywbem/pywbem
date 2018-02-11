@@ -125,7 +125,8 @@ def _remote_connection(server, opts, argparser_):
     CONN = WBEMConnection(url, creds, default_namespace=opts.namespace,
                           no_verification=opts.no_verify_cert,
                           x509=x509_dict, ca_certs=opts.ca_certs,
-                          timeout=opts.timeout, enable_stats=opts.enable_stats)
+                          timeout=opts.timeout,
+                          stats_enabled=opts.statistics)
 
     CONN.debug = True
 
@@ -2969,7 +2970,7 @@ Examples:
         '-V', '--version', action='version', version='%(prog)s ' + __version__,
         help='Display pywbem version and exit.')
     general_arggroup.add_argument(
-        '-e', '--enable_stats', dest='enable_stats',
+        '--statistics', dest='statistics',
         action='store_true', default=False,
         help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(

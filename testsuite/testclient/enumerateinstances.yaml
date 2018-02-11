@@ -1080,7 +1080,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: false
-        enable-stats: true
+        stats-enabled: true
         operation:
             pywbem_method: EnumerateInstances
             ClassName: PyWBEM_Person
@@ -1885,7 +1885,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: false
-        enable-stats: true
+        stats-enabled: true
         operation:
             pywbem_method: EnumerateInstances
             ClassName: PyWBEM_Person

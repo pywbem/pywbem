@@ -255,7 +255,7 @@ class FakedWBEMConnection(WBEMConnection):
 
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
-                 use_pull_operations=False, enable_stats=False,
+                 use_pull_operations=False, stats_enabled=False,
                  response_delay=None, repo_lite=False):
         """
         Parameters:
@@ -268,7 +268,7 @@ class FakedWBEMConnection(WBEMConnection):
             This parameter has the same characteristics as the same-named
             parameter in :class:`~pywbem.WBEMConnection`.
 
-          enable_stats (:class:`py:bool`):
+          stats_enabled (:class:`py:bool`):
             This parameter has the same characteristics as the same-named
             parameter in :class:`~pywbem.WBEMConnection`.
 
@@ -293,7 +293,7 @@ class FakedWBEMConnection(WBEMConnection):
             'http://FakedUrl',
             default_namespace=default_namespace,
             use_pull_operations=use_pull_operations,
-            enable_stats=enable_stats)
+            stats_enabled=stats_enabled)
 
         # The CIM classes in the mock repository.
         # This is a dictionary of dictionaries where the top level key is the

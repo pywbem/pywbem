@@ -499,7 +499,7 @@
     namespace: root/cimv2
     timeout: 10
     debug: false
-    enable-stats: true
+    stats-enabled: true
     operation:
       pywbem_method: Associators
       IncludeQualifiers: true
