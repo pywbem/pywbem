@@ -127,6 +127,14 @@ elif [[ "$distro_family" == "suse" ]]; then
     sudo zypper -y install python${py_mn}-devel  # for M2Crypto installation
   fi
 
+elif [[ "$distro_family" == "windows" ]]; then
+
+  echo "Info: For just installing and running pywbem on Windows, no additional"
+  echo "  OS-level packages are needed."
+  echo "Warning: For developing pywbem, some required OS-level packages need to be"
+  echo "  installed manually; see the 'Development' chapter of the documentation"
+  echo "  for instructions."
+
 else
 
   echo "Error: Installation of OS-level packages not supported on platform ${platform}."

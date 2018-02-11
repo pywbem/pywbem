@@ -88,6 +88,38 @@ approaches shown below:
 
       $ pip install git+https://github.com/pywbem/pywbem.git@master
 
+Special note for installing on Windows:
+
+* The commands shown above do not work in version 0.11 of pywbem because Pip
+  does not invoke pywbem's `setup.py` and instead goes by the package metadata.
+  Therefore, installation on Windows (both for native Windows and in UNIX-like
+  environments on Windows such as CygWin) needs to be done as follows:
+
+  - Clone the Git repository of pywbem and check out the stable branch for the
+    desired version (e.g. branch `stable_0.11` for the latest fix version
+    0.11.x):
+
+    .. code-block:: text
+
+        > git clone https://github.com/pywbem/pywbem.git
+        > cd pywbem
+        > git checkout stable_0.11
+
+  - Install the Python prerequsite packages for starting the installation of
+    pywbem, making sure they are at the minimum required version:
+
+    .. code-block:: text
+
+        > pip install "setuptools>=0.9.8"
+        > pip install "wheel>=0.24.0"
+        > pip install "pip>=8.1"
+
+  - Install the checked-out version of pywbem using its `setup.py`:
+
+    .. code-block:: text
+
+        > python setup.py install
+
 These examples install pywbem and its prerequisite Python packages into the
 currently active Python environment. By default, the system Python environment
 is active. This is probably the right choice if you just want to use the
@@ -201,48 +233,54 @@ done, and documents these packages.
 * For pywbem before 0.8: Install the required packages manually, based upon
   the table shown below.
 
-For manual installation of the prerequisite operating system packages, or for
-including pywbem in distributions, the following table lists the packages and
-their version requirements for the Linux distributions that are supported
-by the scripts:
+The following table lists the prerequisite operating system packages along with
+their version requirements for installing and running pywbem, for the
+supported operating systems and Linux distributions.
 
-+----------------------------+---------------------+--------------------------+
-| Distributions              | Package name        | Version requirements     |
-+============================+=====================+==========================+
-| RedHat, CentOS, Fedora     | openssl-devel       | >=1.0.1                  |
-|                            +---------------------+--------------------------+
-|                            | gcc-c++             | >=4.4                    |
-|                            +---------------------+--------------------------+
-|                            | python-devel        | for Python 2.6, 2.7      |
-|                            +---------------------+--------------------------+
-|                            | python3{N}u-devel   | for Python 3.{N} from IUS|
-|                            |                     | community (python3{N}u)  |
-|                            +---------------------+--------------------------+
-|                            | python3{N}-devel    | for Python 3.{N} not from|
-|                            |                     | IUS (python3{N})         |
-|                            +---------------------+--------------------------+
-|                            | swig                | >=2.0                    |
-+----------------------------+---------------------+--------------------------+
-| Ubuntu, Debian, LinuxMint  | libssl-dev          | >=1.0.1                  |
-|                            +---------------------+--------------------------+
-|                            | g++                 | >=4.4                    |
-|                            +---------------------+--------------------------+
-|                            | python-dev          | for Python 2.6, 2.7      |
-|                            +---------------------+--------------------------+
-|                            | python3-dev         | for Python 3.4 - 3.6     |
-|                            +---------------------+--------------------------+
-|                            | swig                | >=2.0                    |
-+----------------------------+---------------------+--------------------------+
-| SLES, OpenSUSE             | openssl-devel       | >=1.0.1                  |
-|                            +---------------------+--------------------------+
-|                            | gcc-c++             | >=4.4                    |
-|                            +---------------------+--------------------------+
-|                            | python-devel        | for Python 2.6, 2.7      |
-|                            +---------------------+--------------------------+
-|                            | python3-devel       | for Python 3.4 - 3.6     |
-|                            +---------------------+--------------------------+
-|                            | swig                | >=2.0                    |
-+----------------------------+---------------------+--------------------------+
+The prerequisite operating system packages for developing pywbem are not listed
+in this table; you can find them in section
+:ref:`Prerequisite operating system packages for development`.
+
++--------------------------+--------------------+----------------------+-------+
+| Op.system / Distribution | Package name       | Version requirements | Notes |
++==========================+====================+======================+=======+
+| Linux RedHat family      | openssl-devel      | >=1.0.1              | py2   |
+| (RHEL, CentOS, Fedora)   +--------------------+----------------------+-------+
+|                          | python-devel       | for your Python 2.x  | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | gcc-c++            | >=4.4                | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | swig               | >=2.0                | py2   |
++--------------------------+--------------------+----------------------+-------+
+| Linux Debian family      | libssl-dev         | >=1.0.1              | py2   |
+| (Ubuntu, Debian,         +--------------------+----------------------+-------+
+| LinuxMint)               | python-dev         | for your Python 2.x  | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | g++                | >=4.4                | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | swig               | >=2.0                | py2   |
++--------------------------+--------------------+----------------------+-------+
+| Linux SUSE family        | openssl-devel      | >=1.0.1              | py2   |
+| (SLES, openSUSE)         +--------------------+----------------------+-------+
+|                          | python-devel       | for your Python 2.x  | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | gcc-c++            | >=4.4                | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | swig               | >=2.0                | py2   |
++--------------------------+--------------------+----------------------+-------+
+| OS-X                     | openssl            | >=1.0.1              | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | gcc                | >=4.4                | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | swig               | >=2.0                | py2   |
++--------------------------+--------------------+----------------------+-------+
+| Windows                  | None               |                      |       |
++--------------------------+--------------------+----------------------+-------+
+
+Notes:
+
+* py2: Only needed with Python 2 (not needed with Python 3).
+
 
 On some distributions, the ``swig`` package is not available in the required
 version. In such cases, it can be built from its sources, as follows:

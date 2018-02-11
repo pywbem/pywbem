@@ -50,6 +50,64 @@ Python environment. The command ``make help`` (or just ``make``) displays a
 list of valid Make targets and a short description of what each target does.
 
 
+.. _`Manual setup on Windows`:
+
+Manual setup on Windows
+^^^^^^^^^^^^^^^^^^^^^^^
+
+For development of pywbem, it is recommended to use one of the Unix-like
+environments on Windows (such as CygWin, MinGW, Babun, or Gow). The pywbem
+tests that run on the Appveyor CI use CygWin.
+
+Note that Unix-like environments on Windows bring their own Python, so double
+check that the active Python environment is the one you want to install to.
+
+The development environment needs the ``xmllint`` utility and the ``lxml``
+Python package.
+
+The ``lxml`` Python package for Windows meanwhile comes as a binary wheel
+archive that includes all of its dependencies, so it has no additional
+dependencies you would need to take care about.
+
+The ``xmllint`` utility is part of CygWin and likely also part of the other
+Unix-like environments.
+
+
+.. _`Prerequisite operating system packages for development`:
+
+Prerequisite operating system packages for development
+------------------------------------------------------
+
+The following table lists the prerequisite operating system packages along with
+their version requirements for development of pywbem, for the supported
+operating systems and Linux distributions.
+
+The prerequisite operating system packages for installing and running pywbem
+are also needed for development, and can be found in section
+:ref:`Prerequisite operating system packages for install`.
+
+This section is just for information. These packages will be installed as part
+of the steps described in :ref:`Setting up the development environment`.
+
++--------------------------+--------------------+----------------------+-------+
+| Op.system / Distribution | Package name       | Version requirements | Notes |
++==========================+====================+======================+=======+
+| Linux RedHat family      |                    |                      |       |
+| (RHEL, CentOS, Fedora)   |                    |                      |       |
++--------------------------+--------------------+----------------------+-------+
+| Linux Debian family      |                    |                      |       |
+| (Ubuntu, Debian,         |                    |                      |       |
+| LinuxMint)               |                    |                      |       |
++--------------------------+--------------------+----------------------+-------+
+| Linux SUSE family        |                    |                      |       |
+| (SLES, openSUSE)         |                    |                      |       |
++--------------------------+--------------------+----------------------+-------+
+| OS-X                     |                    |                      |       |
++--------------------------+--------------------+----------------------+-------+
+| Windows                  | xmllint            |                      |       |
++--------------------------+--------------------+----------------------+-------+
+
+
 .. _`Building the documentation`:
 
 Building the documentation
