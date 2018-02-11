@@ -3798,7 +3798,7 @@ class TestInvokeMethod(object):
               'Params': [('InputParam1', 'FirstData'),
                          ('InputParam2', 'SecondData')], },
              {'return': 0, 'params': [CIMParameter('OutPutParam1',
-                                                   'SomeString')]},
+                                                   type='string')]},
              None, None],
 
             ['Simple Execution of Method2 method with single input param',
