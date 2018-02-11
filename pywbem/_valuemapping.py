@@ -172,11 +172,8 @@ class ValueMapping(object):
                               IncludeQualifiers=True)
         property_obj = class_obj.properties[propname]
 
-        new_vm = cls._create_for_element(property_obj)
-        new_vm._conn = conn
-        new_vm._namespace = namespace
-        new_vm._classname = classname
-        new_vm._propname = propname
+        new_vm = cls._create_for_element(property_obj, conn, namespace,
+                                         classname, propname=propname)
 
         return new_vm
 
@@ -233,11 +230,8 @@ class ValueMapping(object):
                               IncludeQualifiers=True)
         method_obj = class_obj.methods[methodname]
 
-        new_vm = cls._create_for_element(method_obj)
-        new_vm._conn = conn
-        new_vm._namespace = namespace
-        new_vm._classname = classname
-        new_vm._methodname = methodname
+        new_vm = cls._create_for_element(method_obj, conn, namespace,
+                                         classname, methodname=methodname)
 
         return new_vm
 
@@ -300,12 +294,9 @@ class ValueMapping(object):
         method_obj = class_obj.methods[methodname]
         parameter_obj = method_obj.parameters[parametername]
 
-        new_vm = cls._create_for_element(parameter_obj)
-        new_vm._conn = conn
-        new_vm._namespace = namespace
-        new_vm._classname = classname
-        new_vm._methodname = methodname
-        new_vm._parametername = parametername
+        new_vm = cls._create_for_element(parameter_obj, conn, namespace,
+                                         classname, methodname=methodname,
+                                         parametername=parametername)
 
         return new_vm
 
@@ -364,7 +355,8 @@ class ValueMapping(object):
             return (lo, hi, values_str)
 
     @classmethod
-    def _create_for_element(cls, element_obj):
+    def _create_for_element(cls, element_obj, conn, namespace, classname,
+                            propname=None, methodname=None, parametername=None):
         # pylint: disable=line-too-long
         """
         Return a new :class:`~pywbem.ValueMapping` instance for the specified
@@ -378,6 +370,27 @@ class ValueMapping(object):
 
           element_obj (:class:`~pywbem.CIMProperty`, :class:`~pywbem.CIMMethod`, or :class:`~pywbem.CIMParameter`):
             The CIM element on which the qualifiers are defined.
+
+          conn (:class:`~pywbem.WBEMConnection`):
+            The connection to the WBEM server containing the namespace.
+
+          namespace (:term:`string`):
+            Name of the CIM namespace containing the class.
+
+          classname (:term:`string`):
+            Name of the CIM class exposing the method. The method can be
+            defined in that class or inherited into that class.
+
+          propname (:term:`string`):
+            Name of the CIM property that defines the Values / ValueMap
+            qualifiers.
+
+          methodname (:term:`string`):
+            Name of the CIM method that has the parameter.
+
+          parametername (:term:`string`):
+            Name of the CIM parameter that defines the Values / ValueMap
+            qualifiers.
 
         Returns:
 
@@ -406,6 +419,12 @@ class ValueMapping(object):
 
         vm = ValueMapping()
         vm._element_obj = element_obj
+        vm._conn = conn
+        vm._namespace = namespace
+        vm._classname = classname
+        vm._propname = propname
+        vm._methodname = methodname
+        vm._parametername = parametername
 
         values_qual = element_obj.qualifiers.get('Values', None)
         if values_qual is None:
@@ -438,6 +457,7 @@ class ValueMapping(object):
                         # value range
                         vm._range_tuple_list.append((lo, hi, values_str))
 
+        # pylint: enable=protected-access
         return vm
 
     def __repr__(self):
