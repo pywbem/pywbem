@@ -41,6 +41,12 @@ in :term:`DSP0004` section A.3.  Generally these should not be used as property
 names.  The pywbem MOF compiler largely enforces this so that words like
 'indication' are not allowed as property/parameter/etc. names.
 
+2. The key properties of instances with aliases must be initialized in the
+instance specification, or their default values must be non-NULL. (Issue #1079).
+
+3. An alias must be defined before it is used. In DSP0004, no such requirement
+is documented. (Issue #1079).
+
 The pywbem MOF compiler also has an option to remove CIM elements from a
 repository by using the  compiler rollback. This is used in the MOFCompiler
 script. See :ref:`mof_compiler`.
