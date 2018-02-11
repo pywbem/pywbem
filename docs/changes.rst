@@ -334,6 +334,10 @@ Enhancements
   of CIM objects are now checked for validity, and `ValueError` is raised
   if not valid (Issue 1043).
 
+* Add new method to CIMInstanceName (from_instance) to create CIMInstanceName
+  element from class and instance.  This was done as part of building the
+  pywbem_mock environment.  See issue #1069.
+
 Bug fixes
 ^^^^^^^^^
 

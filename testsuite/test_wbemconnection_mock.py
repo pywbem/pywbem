@@ -28,6 +28,7 @@ from __future__ import absolute_import, print_function
 
 import os
 from datetime import datetime
+import logging
 import operator
 try:
     from collections import OrderedDict
@@ -37,16 +38,19 @@ import six
 import pytest
 from testfixtures import OutputCapture
 
+from testfixtures import LogCapture
+
+
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
-    CIMParameter, cimtype, \
+    CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
-    CIMError, DEFAULT_NAMESPACE, Uint32, CIM_ERR_FAILED
+    CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED
 
 from pywbem.cim_obj import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 
-from pywbem_mock import FakedWBEMConnection
+from pywbem_mock import FakedWBEMConnection, PYWBEM_MOCK_LOGGER
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
     install_dmtf_schema, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, SCRIPT_DIR
@@ -154,11 +158,14 @@ def tst_class():
         'CIM_Foo', qualifiers=dkey,
         properties={'InstanceID':
                     CIMProperty('InstanceID', None, qualifiers=qkey,
-                                type='string', class_origin='CIM_Foo')},
+                                type='string', class_origin='CIM_Foo',
+                                propagated=False)},
         methods={'Delete': CIMMethod('Delete', 'uint32', qualifiers=dkey,
-                                     class_origin='CIM_Foo'),
+                                     class_origin='CIM_Foo',
+                                     propagated=False),
                  'Fuzzy': CIMMethod('Fuzzy', 'string', qualifiers=dkey,
-                                    class_origin='CIM_Foo')})
+                                    class_origin='CIM_Foo',
+                                    propagated=False)})
     return c
 
 
@@ -177,18 +184,21 @@ def tst_classes(tst_class):
         'CIM_Foo_sub', superclass='CIM_Foo', qualifiers=dkey,
         properties={'cimfoo_sub':
                     CIMProperty('cimfoo_sub', None, type='string',
-                                class_origin='CIM_Foo_sub')})
+                                class_origin='CIM_Foo_sub',
+                                propagated=False)})
     c3 = CIMClass(
         'CIM_Foo_sub2', superclass='CIM_Foo', qualifiers=dkey,
         properties={'cimfoo_sub2':
                     CIMProperty('cimfoo_sub2', None, type='string',
-                                class_origin='CIM_Foo_sub2')})
+                                class_origin='CIM_Foo_sub2',
+                                propagated=False)})
 
     c4 = CIMClass(
         'CIM_Foo_sub_sub', superclass='CIM_Foo_sub', qualifiers=dkey,
         properties={'cimfoo_sub_sub':
                     CIMProperty('cimfoo_sub_sub', None, type='string',
-                                class_origin='CIM_Foo_sub_sub')})
+                                class_origin='CIM_Foo_sub_sub',
+                                propagated=False)})
     return [tst_class, c2, c3, c4]
 
 
@@ -565,8 +575,7 @@ def conn():
     """
     Create the FakedWBEMConnection and return it
     """
-    verbose = VERBOSE
-    return FakedWBEMConnection(verbose=verbose)
+    return FakedWBEMConnection()
 
 
 @pytest.fixture
@@ -574,8 +583,7 @@ def conn_lite():
     """
     Create the FakedWBEMConnection with the repo_lite flag set and return it.
     """
-    verbose = VERBOSE
-    return FakedWBEMConnection(verbose=verbose, repo_lite=True)
+    return FakedWBEMConnection(repo_lite=True)
 
 
 #########################################################################
@@ -626,7 +634,6 @@ class TestFakedWBEMConnection(object):
         conn = FakedWBEMConnection(response_delay=3)
         repr_ = '%r' % conn
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
-        # print(repr_)
 
     def test_attr(self):
         # pylint: disable=no-self-use
@@ -640,6 +647,51 @@ class TestFakedWBEMConnection(object):
         assert conn.stats_enabled is False
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
+
+
+result1 = (
+    u"mock_imethodcall method=GetClass, namespace=root/cimv2, "
+    u"response_params_rqd=None, params={'IncludeClassOrigin': None,"
+    u" 'ClassName': CIMClassName(classname=u'CIM_Foo', "
+    u"namespace=None, host=None), 'IncludeQualifiers': False,"
+    u" 'PropertyList': None, 'LocalOnly': None}",
+
+    u"mock result [('IRETURNVALUE', {}, [CIMClass(classname"
+    u"u'CIM_Foo', superclass=None, properties=NocaseDict(["
+    u"('InstanceID', CIMProperty(name=u'InstanceID', value=None,"
+    u" type=u'string', reference_class=None, embedded_object=None,"
+    u" is_array=False, array_size=None, class_origin=None, "
+    u"propagated=None, qualifiers=NocaseDict([])))]), "
+    u"methods=NocaseDict([('Fuzzy', CIMMethod(name=u'Fuzzy',"
+    u" return_type=u'string', class_origin=None, propagated=False,"
+    u" parameters=NocaseDict([]), qualifiers=NocaseDict([]))), "
+    u"('Delete', CIMMethod(name=u'Delete', return_type=u'uint32',"
+    u" class_origin=None, propagated=False, parameters="
+    u"NocaseDict([]), qualifiers=NocaseDict([])))]), "
+    u"qualifiers=NocaseDict([]), path=CIMClassName(classname",
+    u"=u'CIM_Foo', namespace=u'root/cimv2', host=u'FakedUrl'))])]")
+
+result2 = (
+    u"mock_imethodcall method=GetClass, namespace=root/cimv2, "
+    u"response_params_rqd=None, params={'IncludeClassOrigin': None,"
+    u" 'ClassName': CIMClassName(classname=u'CIM_Foo', "
+    u"namespace=None, host=None), 'IncludeQualifiers': False,"
+    u" 'PropertyList': None, 'LocalOnly': None}",
+
+    u"mock result [('IRETURNVALUE', {}, [CIMClass(classname"
+    u"u'CIM_Foo', superclass=None, properties=NocaseDict(["
+    u"('InstanceID', CIMProperty(name=u'InstanceID', value=None,"
+    u" type=u'string', reference_class=None, embedded_object=None,"
+    u" is_array=False, array_size=None, class_origin=None, "
+    u"propagated=None, qualifiers=NocaseDict([])))]), "
+    u"methods=NocaseDict([('Fuzzy', CIMMethod(name=u'Fuzzy',"
+    u" return_type=u'string', class_origin=None, propagated=False,"
+    u" parameters=NocaseDict([]), qualifiers=NocaseDict([]))), "
+    u"('Delete', CIMMethod(name=u'Delete', return_type=u'uint32',"
+    u" class_origin=None, propagated=False, parameters="
+    u"NocaseDict([]), qualifiers=NocaseDict([])))]), "
+    u"qualifiers=NocaseDict([]), path=CIMClassName(classname",
+    u"=u'CIM_Foo', namespace=u'root/cimv2', host=u'FakedUrl'))])]")
 
 
 class TestRepoMethods(object):
@@ -843,7 +895,7 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        lo = False   # TODO expand to use lo parameterized.  Note that
+        lo = False   # TODO expand test to use lo parameterized.  Note that
         # since lo is deprecated we might just drop in and always
         # go false.
 
@@ -970,8 +1022,8 @@ class TestRepoMethods(object):
         assert os.path.isfile(tst_file)
         os.remove(tst_file)
 
-    # TODO: Add test of format of the outut with a very simple schema to keep
-    # the comparison small.
+    # TODO: Add test of format of the repo outut with a very simple schema
+    #       to keep the comparison small.
 
     @pytest.mark.parametrize(
         "ns", [DEFAULT_NAMESPACE, 'root/blah'])
@@ -1129,10 +1181,6 @@ class TestRepoMethods(object):
         assert 'Association' in qual_repo
         conn.compile_mof_str(q2, ns)
 
-        # the get repo repeated because each compile unit redoes the
-        # individual repos. What we should do is to clear each namespace
-        # repo instead of clearing the whole class/qualifier, etc. repo
-        # TODO modify the merge function to clear each namespace in the repo.
         qual_repo = conn._get_qualifier_repo(tst_ns)
         assert 'Association' in qual_repo
         assert 'Description' in qual_repo
@@ -1275,7 +1323,8 @@ class TestRepoMethods(object):
 
         for inst_name in inst_names:
             conn.GetInstance(inst_name)
-            # TODO test returned instance
+
+        # TODO test returned instance for match with what was created
 
     # pylint: disable=no-self-use
     def test_compile_dmtf_schema(self, conn):
@@ -1292,6 +1341,56 @@ class TestRepoMethods(object):
         # pylint: disable=protected-access
         assert len(conn._get_class_repo(ns)) == TOTAL_CLASSES
         assert len(conn._get_qualifier_repo(ns)) == TOTAL_QUALIFIERS
+
+    @pytest.mark.parametrize(
+        "cls, level, exp_err, result", [
+            ['CIM_Foo', 'DEBUG', None, result1],
+            ['CIM_Foox', 'DEBUG', CIMError, result1],
+        ]
+    )
+    def test_logging(self, tst_class, cls, level, exp_err, result):
+        """
+        Test ability to output logs
+        """
+
+        with LogCapture() as l:  # noqa:E741
+            logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
+            logger.setLevel(logging.getLevelName(level))
+
+            conn = FakedWBEMConnection()
+
+            conn.add_cimobjects(tst_class)
+            if exp_err is None:
+                cls = conn.GetClass(cls, IncludeQualifiers=False)
+                l.check
+                (
+                    ('pywbem.mock', 'DEBUG', result[0]),
+                    ('pywbem.mock', 'DEBUG', result[1]),
+                )
+                l.uninstall()
+            else:
+                with pytest.raises(exp_err):
+                    cls = conn.GetClass(cls, IncludeQualifiers=False)
+                    l.check(
+                        ('pywbem.mock', 'DEBUG', result[0]),
+                        ('pywbem.mock', 'DEBUG', result[1]),
+                    )
+                    l.uninstall()
+
+    def test_compile_err(self, conn):
+        # pylint: disable=no-self-use
+        """
+        Test compile that has an error
+        """
+
+        q1 = """
+            Qualifier Association : boolean = false,
+                Scope(associations),
+                Flavor(DisableOverride, ToSubclass);
+        """
+
+        with pytest.raises(MOFParseError):
+            conn.compile_mof_str(q1)
 
 
 class TestClassOperations(object):
@@ -1339,17 +1438,19 @@ class TestClassOperations(object):
             assert exc.status_code_name == exp_er
 
     @pytest.mark.parametrize(
-        "ns", [None])  # None, 'root/blah'
+        "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "cn, iq,",
+        "cn, iq, ico",
         [
-            ['CIM_Foo', False],
-            ['CIM_Foo', True],
-            ['CIM_Foo_sub', False],
-            ['CIM_Foo_sub', True],
+            ['CIM_Foo', False, False],
+            ['CIM_Foo', True, False],
+            ['CIM_Foo', True, True],
+            ['CIM_Foo_sub', False, False],
+            ['CIM_Foo_sub', True, False],
+            ['CIM_Foo_sub', True, True],
         ]
     )
-    def test_getclass_iq(self, conn, tst_classes, ns, cn, iq):
+    def test_getclass_iqico(self, conn, tst_classes, ns, cn, iq, ico):
         # pylint: disable=no-self-use
         """
         Test mocking wbemconnection getClass
@@ -1358,6 +1459,7 @@ class TestClassOperations(object):
         for cl_ in tst_classes:
             if cl_.classname == cn:
                 tst_class = cl_
+        assert tst_class is not None
 
         conn.add_cimobjects(tst_classes, namespace=ns)
         if iq is None:
@@ -1368,32 +1470,27 @@ class TestClassOperations(object):
                                LocalOnly=True)
 
         cl.path = None
-        # c.path = None
-        if not iq:
-            assert(not cl.qualifiers)
-            for prop in cl.properties:
-                assert not cl.properties[prop].qualifiers
-            for meth in cl.methods:
-                assert not cl.methods[meth].qualifiers
-                for param in cl.methods[meth].parameters:
-                    assert cl.method.methods[meth].parameters[param].qualifiers
-        else:
-            assert(cl.qualifiers)
-        if iq:
-            assert(cl == tst_class)
-        else:
-            # remove all qualifiers and test for equality
-            cx = tst_class.copy()
-            cx.qualifiers = NocaseDict()
-            for prop in cx.properties:
-                cx.properties[prop].qualifiers = NocaseDict()
-            for method in cx.methods:
-                cx.methods[method].qualifiers = NocaseDict()
-                for param in cx.methods[method].parameters:
-                    cx.methods[method].parameters[param].qualifiers = \
-                        NocaseDict()
 
-            assert(cl == cx)
+        c_tst = tst_class.copy()
+
+        # remove all qualifiers and class_origins and test for equality
+        if not iq:
+            c_tst.qualifiers = NocaseDict()
+
+            for prop in c_tst.properties:
+                c_tst.properties[prop].qualifiers = NocaseDict()
+            for method in c_tst.methods:
+                c_tst.methods[method].qualifiers = NocaseDict()
+                for param in c_tst.methods[method].parameters:
+                    c_tst.methods[method].parameters[param].qualifiers = \
+                        NocaseDict()
+        if not ico:
+            for prop in c_tst.properties:
+                c_tst.properties[prop].class_origin = None
+            for method in c_tst.methods:
+                c_tst.methods[method].class_origin = None
+
+        assert(cl == c_tst)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1495,70 +1592,143 @@ class TestClassOperations(object):
             assert isinstance(cn_, six.string_types)
         assert len(rtn_clns) == len(cn_exp)
         assert set(rtn_clns) == set(cn_exp)
-        # TODO add detailed test for di
+        # TODO add detailed test for di attribute.  This involves creating local
+        # expected return and then comparing.
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    # params classname, DeepInheritance, PropertyList, expected properties,
-    # return length
-    # when pl None, pl_exp is properties in ALL returns, else exact match
     @pytest.mark.parametrize(
-        "cn_param, di, pl, pl_exp, len_exp", [
+        # iq: includequalifiers input parameter
+        "iq", [None, False, True])
+    @pytest.mark.parametrize(
+        # ico: includeclassorigin input parameter
+        "ico", [None, False, True])
+    @pytest.mark.parametrize(
+        # cn_param: classname input parameter
+        # di: deepinheritance input parameter
+        # pl_exp: Properties expected in response
+        # len_exp: number of classes expected in response
+        "cn_param, lo, di, pl_exp, len_exp", [
             [None, None, None, ['InstanceID'], 1],
-            [None, True, None, ['InstanceID'], 4],
-            ['CIM_Foo', None, None, ['InstanceID'], 2],
-            ['CIM_Foo', True, None, ['InstanceID'], 3],
+            [None, None, True, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
+                                'cimfoo_sub_sub'], 4],
+            ['CIM_Foo', None, None, ['InstanceID', 'cimfoo_sub',
+                                     'cimfoo_sub2'], 2],
+            ['CIM_Foo', None, True, ['InstanceID', 'cimfoo_sub',
+                                     'cimfoo_sub2', 'cimfoo_sub_sub'], 3],
             ['CIM_Foo_sub_sub', None, None, [], 0],
+            ['CIM_Foo_sub_sub', None, True, [], 0],
+
+            [None, True, None, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
+                                'cimfoo_sub_sub'], 1],
+            [None, True, True, ['InstanceID'], 4],
+            ['CIM_Foo', True, None, ['InstanceID'], 2],
+            ['CIM_Foo', True, True, ['InstanceID'], 3],
             ['CIM_Foo_sub_sub', True, None, [], 0],
-            [None, None, ['InstanceID'], ['InstanceID'], 1],
-            [None, True, ['InstanceID'], ['InstanceID'], 4],
-            ['CIM_Foo', None, ['InstanceID'], ['InstanceID'], 2],
-            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 3],
-            ['CIM_Foo_sub_sub', None, ['InstanceID'], ['InstanceID'], 0],
-            ['CIM_Foo_sub_sub', True, ['InstanceID'], ['InstanceID'], 0],
+            ['CIM_Foo_sub_sub', True, True, [], 0],
+
+            [None, False, None, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
+                                 'cimfoo_sub_sub'], 1],
+            [None, False, True, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
+                                 'cimfoo_sub_sub'], 4],
+            ['CIM_Foo', False, None, ['InstanceID', 'cimfoo_sub',
+                                      'cimfoo_sub2'], 2],
+            ['CIM_Foo', False, True, ['InstanceID', 'cimfoo_sub',
+                                      'cimfoo_sub2', 'cimfoo_sub_sub'], 3],
+            ['CIM_Foo_sub_sub', False, None, [], 0],
+            ['CIM_Foo_sub_sub', False, True, [], 0],
         ]
     )
-    def test_enumerateclasses(self, conn, cn_param, di, ns, pl,
+    def test_enumerateclasses(self, conn, iq, ico, ns, cn_param, lo, di,
                               pl_exp, len_exp, tst_classes):
         # pylint: disable=no-self-use
         """
-        TODO not really testing class property returns, localonly and
-        confirming the properties returned.
+        Test EnumerateClasses for proper processing of input parameters.
+        All tests in this test method pass and there should be no exceptions.
+        Tests for correct properties, methods, and qualifiers, returned for
+        lo and di and correct number of classes returned
         """
         conn.add_cimobjects(tst_classes, namespace=ns)
 
         if cn_param is None:
             rtn_classes = conn.EnumerateClasses(DeepInheritance=di,
                                                 namespace=ns,
-                                                PropertyList=pl)
+                                                LocalOnly=lo,
+                                                IncludeQualifiers=iq,
+                                                IncludeClassOrigin=ico)
         else:
             rtn_classes = conn.EnumerateClasses(classname=cn_param,
                                                 namespace=ns,
                                                 DeepInheritance=di,
-                                                PropertyList=pl)
-
-        for cl in rtn_classes:
-            assert(isinstance(cl, CIMClass))
-            # The number of properties will vary since each subclass will
-            # have additional. Simply confirm that what is in the list
-            # is in the list
-            if pl is None:
-                assert set(pl_exp).issubset(set(cl.properties.keys()))
-            elif isinstance(pl, list):
-                # TODO implement this one.
-                pass
-            elif isinstance(pl, six.string_types) and not pl:
-                assert cl.properties
-            elif isinstance(pl, six.string_types):
-                assert pl in cl.properties
-            else:
-                assert False
+                                                LocalOnly=lo,
+                                                IncludeQualifiers=iq,
+                                                IncludeClassOrigin=ico)
 
         assert len(rtn_classes) == len_exp
 
-    # TODO Add tests test_enumerateclasses lo
-    # TODO Add more precise test for class where we get back original from
-    # repository.
+        for rtn_class in rtn_classes:
+            assert(isinstance(rtn_class, CIMClass))
+
+            if lo:
+                # get the corresponding test input class
+                tst_class = None
+                for tst_cl in tst_classes:
+                    if tst_cl.classname == rtn_class.classname:
+                        tst_class = tst_cl
+                        break
+                assert tst_class
+
+                assert set(rtn_class.properties.keys()) == \
+                    set(tst_class.properties.keys())
+            else:
+                # not lo, returns all properties from superclasses.
+                # test for return as subset of pl_exp
+                rtn_set = set(rtn_class.properties.keys())
+                assert rtn_set.issubset(set(pl_exp))
+
+            # Confirm get_class returns the same set of properties
+            rtn_getclass = conn.GetClass(rtn_class.classname, namespace=ns,
+                                         DeepInheritance=di,
+                                         LocalOnly=lo,
+                                         IncludeQualifiers=iq,
+                                         IncludeClassOrigin=ico)
+
+            assert set(rtn_getclass.properties.keys()) == \
+                set(rtn_class.properties.keys())
+
+            assert set(rtn_getclass.methods.keys()) == \
+                set(rtn_class.methods.keys())
+
+            if ico:
+                for prop in six.itervalues(rtn_getclass.properties):
+                    assert prop.class_origin is not None
+
+                for method in six.itervalues(rtn_getclass.methods):
+                    assert method.class_origin is not None
+            else:
+                for prop in six.itervalues(rtn_getclass.properties):
+                    assert prop.class_origin is None
+
+                for method in six.itervalues(rtn_getclass.methods):
+                    assert method.class_origin is None
+
+            if iq:
+                if rtn_getclass.qualifiers:
+                    assert rtn_class.qualifiers
+                for prop in six.itervalues(rtn_getclass.properties):
+                    if rtn_getclass.properties[prop.name].qualifiers:
+                        assert prop.qualifiers is not None
+
+                for method in six.itervalues(rtn_getclass.methods):
+                    if rtn_getclass.methods[method.name].qualifiers:
+                        assert method.qualifiers is not None
+            else:
+                assert not rtn_class.qualifiers
+                for prop in six.itervalues(rtn_getclass.properties):
+                    assert not prop.qualifiers
+
+                for method in six.itervalues(rtn_getclass.methods):
+                    assert not method.qualifiers
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1568,17 +1738,15 @@ class TestClassOperations(object):
             #      CIMClass
             # exp:err: None if test is to succeed or CIMError status code as
             #          a string.
-
             # creates class correctly
             ['CIM_Foo', None],
 
             # fails because superclassnot in namespace
             ['CIM_Foo_sub', 'CIM_ERR_INVALID_SUPERCLASS'],
 
-            # This test not valid because method creates new namespace
-
             [CIMQualifierDeclaration('blah', 'string'),
              'CIM_ERR_INVALID_PARAMETER']
+            # no invalid namespace test because createclass creates namespace
         ]
     )
     def test_createclass(self, conn, tcl, tst_classes, ns, exp_err):
@@ -1681,7 +1849,8 @@ class TestInstanceOperations(object):
             inst = conn.GetInstance(req_inst_path)
             inst.path.namespace = ns
             assert inst.path == req_inst_path
-            # TODO test returned instance.
+            # TODO test returned instance. Right now only comparing
+            # the paths
 
         else:
             with pytest.raises(CIMError) as exec_info:
@@ -1747,7 +1916,7 @@ class TestInstanceOperations(object):
 
         inst.path.namespace = ns
         assert(inst.path == request_inst_path)
-        # TODO test complete instances
+        # TODO test complete instances returned. Now only testing paths
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah']
@@ -1893,7 +2062,7 @@ class TestInstanceOperations(object):
                 assert isinstance(inst_name, CIMInstanceName)
                 assert inst_name in request_inst_names
                 # TODO change to use algorithm to get list of possible
-                # classes.
+                # classes. Right now just fixed list
                 assert inst_name.classname in [enum_classname, 'CIM_Foo_sub',
                                                'CIM_Foo_sub2',
                                                'CIM_Foo_sub_sub']
@@ -1918,7 +2087,7 @@ class TestInstanceOperations(object):
         for inst in tst_instances:
             tst_inst_dict[str(model_path(inst.path))] = inst
 
-        # TODO compute number should be returned. This is number with
+        # TODO compute number expected be in returned. This is number with
         # CIM_Foo as classname
         assert len(rtn_insts) == 2
         for inst in rtn_insts:
@@ -1961,7 +2130,7 @@ class TestInstanceOperations(object):
         for inst in tst_instances:
             tst_inst_dict[str(model_path(inst.path))] = inst
 
-        # TODO compute number should be returned.
+        # TODO compute number should be returned. Right now fixed number
         assert len(rtn_insts) == 8
         rtn_cln = []
         for inst in rtn_insts:
@@ -2047,7 +2216,7 @@ class TestInstanceOperations(object):
             assert set([x.lower() for x in props_exp]) ==  \
                 set([x.lower() for x in inst.keys()])
 
-    # TODO repeat pl with conn
+    # TODO repeat pl test with conn rather than connlite
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -2108,7 +2277,8 @@ class TestInstanceOperations(object):
             inst_props = list(set([p for p in inst]))
             if di is not True:   # inst props should match cl_props
                 if len(inst_props) != len(cl_props):
-                    # TODO: Still have issue with one test.
+                    # TODO: Still have issue with one test. and am therefore
+                    # displaying the following as a reminder
                     print('TODO props %s and %s should match.\nprops=%s\n'
                           'clprops=%s' % (len(inst_props),
                                           len(cl_props), inst_props, cl_props))
@@ -2623,7 +2793,8 @@ class TestPullOperations(object):
             paths.extend(result_tuple.paths)
 
         assert len(paths) == len(exp_total_paths)
-        # TODO fix common test for path equalityassert paths == exp_total_paths
+        # TODO fix common test for path equality
+        # assert paths == exp_total_paths
 
     def test_openenumerateinstances(self, conn_lite, tst_instances):
         # pylint: disable=no-self-use
@@ -3403,9 +3574,14 @@ class TestAssociationOperations(object):
         "target_cln", ['TST_Person'])
     @pytest.mark.parametrize(
         "role, ac, rr, rc, exp_rslt", [
+            # role: role attribute
+            # ac: associated class attribute
+            # rr: resultrole attribute
+            # rc: resultclass attribute
             # exp_result: Either list of names of expected classes returned
-            # or string defining error response
-            # TODO I don't think this one is correct
+            #             or string defining error response
+            # TODO: ks Review all these tests and results. I am uncomfortable
+            #       with results.
             [None, None, None, None, ['TST_Person']],
             [None, 'TST_Lineage', None, None, ['TST_Person']],
             ['Parent', 'TST_Lineage', None, None, ['TST_Person']],
@@ -3614,9 +3790,14 @@ class TestAssociationOperations(object):
         "cln", ['TST_Person'])
     @pytest.mark.parametrize(
         "role, ac, rr, rc, exp_rslt", [
+            # role: associator role parameter
+            # ac: associator operation AssocClass parameter
+            # rr: associator operation ResultRole parameter
+            # rc: associator operation ResultClass parameter
             # exp_result: Either list of names of expected classes returned
             # or string defining error response
-            # TODO I don't think this one is correct
+            # TODO: Review this and its results. I am uncomfortable I have not
+            #       covered all the essentials
             [None, None, None, None, ['TST_Person']],
             [None, 'TST_Lineage', None, None, ['TST_Person']],
             ['Parent', 'TST_Lineage', None, None, ['TST_Person']],
@@ -3963,7 +4144,7 @@ class TestInvokeMethod(object):
 
         if 'params' in inputs:
             for param in inputs['params']:
-                self.xp_input_params[param] = \
+                self.exp_input_params[param] = \
                     CIMParameter(param, cimtype(param[param]),
                                  value=param[param])
 

@@ -50,12 +50,11 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
-    DEFAULT_NAMESPACE, \
-    MOFCompiler, MOFWBEMConnection
+    DEFAULT_NAMESPACE, MOFCompiler, MOFWBEMConnection
 from pywbem.cim_obj import NocaseDict
 
 
-__all__ = ['FakedWBEMConnection']
+__all__ = ['FakedWBEMConnection', 'PYWBEM_MOCK_LOGGER']
 
 # Fake Server default values for parameters that apply to repo and operations
 
@@ -72,10 +71,14 @@ DEFAULT_DEEP_INHERITANCE = True
 # allowed output formats for the repository display
 OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 
-# TODO: Future We have not considered that iq and ico are deprecated in DSP0200.
-# We should set up a default to ignore these parameters for the operations
-# in which they are deprecated and we should/could ignore them. We need to
-# document our behavior in relation to the spec.
+# The logger for pywbem_mock is defined with the following name
+PYWBEM_MOCK_LOGGER = 'pywbem.mock'
+
+
+# TODO: ks Future We have not considered that iq and ico are deprecated in
+# DSP0200 we should set up a default to ignore these parameters for the
+# operations in which they are deprecated and we should/could ignore them. We
+# need to document our behavior in relation to the spec.
 
 
 STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
@@ -234,10 +237,26 @@ class FakedWBEMConnection(WBEMConnection):
     connection to a WBEM server. It uses a faked and fixed URL for the WBEM
     server (``http://FakedUrl``) as a means of identifying the connection by
     users.
+
+    Logging of the calls and returns is implemented using the Python logging
+    facility.  To enable logging, the user must define the logger
+    PYWBEM_MOCK_LOGGER before FakedWBEMConnection is executed including
+    setting the destination, and log leve. Logging is only output if the
+    log level is DEBUG For example the following code enables the a
+    stream logger to the console:
+
+        logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
+        logger.setLevel(logging.getLevelName('DEBUG'))
+        handler = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, enable_stats=False,
-                 response_delay=None, repo_lite=False, verbose=False):
+                 response_delay=None, repo_lite=False):
         """
         Parameters:
 
@@ -269,9 +288,6 @@ class FakedWBEMConnection(WBEMConnection):
             requiring that the corresponding classes exist in the mock
             repository, and class operations without the corresponding
             qualifier types.
-
-          verbose (:class:`py:bool`):
-            Controls whether to print more messages to stdout.
         """
         super(FakedWBEMConnection, self).__init__(
             'http://FakedUrl',
@@ -299,7 +315,7 @@ class FakedWBEMConnection(WBEMConnection):
         # the CIM namespace name and the value is a list of CIM instances in
         # that namespace, represented as CIMInstance objects.
         # TODO: ks. FUTURE maybe we should really have a subdict per class but
-        #  it is probably not important for initial release.
+        #           it is not important for initial release.
         self.instances = NocaseDict()
 
         self.methods = NocaseDict()
@@ -312,18 +328,11 @@ class FakedWBEMConnection(WBEMConnection):
         # this list is still open.
         self.enumeration_contexts = {}
 
-        # TODO drop this and corresponding init param in favor of logging
-        # for all output.
-        self.verbose = verbose
-
         # Response delay in seconds. Any operation is delayed by this time.
         self._response_delay = response_delay
 
-        # TODO: Improve logging so we have user options..
-        self.logfile = 'wbemconnection.log'
-
-        if self.logfile:
-            logging.basicConfig(filename=self.logfile, level=logging.INFO)
+        # Set logger for this instance of FakedWBEMConnection
+        self.logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
 
         self._imethodcall = Mock(side_effect=self._mock_imethodcall)
         self._methodcall = Mock(side_effect=self._mock_methodcall)
@@ -401,27 +410,18 @@ class FakedWBEMConnection(WBEMConnection):
           MOFParseError: Syntax error in the MOF. A compile error terminates
             the compile and nothing is added to the mock repository.
         """
-
-        # TODO clean up the moflog and make it part of our logging
-        def moflog(msg):
-            """Display message to moflog2"""
-            print(msg, file=self.logfile)
-
         if not namespace:
             namespace = self.default_namespace
 
-        moflog_file = 'moflog_fake.log'
+        mofcomp = MOFCompiler(MOFWBEMConnection(),
+                              search_paths=search_paths,
+                              verbose=verbose)
+        mof_repo = mofcomp.handle
+        self._setup_mof_repo(mof_repo)
 
-        with open(moflog_file, 'w') as self.logfile:
-            mofconn = MOFWBEMConnection()
-            mofcomp = MOFCompiler(mofconn,
-                                  search_paths=search_paths,
-                                  verbose=verbose,
-                                  log_func=moflog)
-            mof_repo = mofcomp.handle
-            self._setup_mof_repo(mof_repo)
-            mofcomp.compile_file(mof_file, namespace)
-            self._merge_repos(mof_repo)
+        mofcomp.compile_file(mof_file, namespace)
+
+        self._merge_repos(mof_repo)
 
     def compile_mof_str(self, mof_str, namespace=None, search_paths=None,
                         verbose=None):
@@ -467,31 +467,22 @@ class FakedWBEMConnection(WBEMConnection):
 
           : Any exceptions that are raised by the repository connection class.
         """
-
-        def moflog(msg):
-            """Display message to moflog_fake_str"""
-            print(msg, file=self.logfile)
-
         if not namespace:
             namespace = DEFAULT_NAMESPACE
 
-        moflog_file = 'moflog_fake.log'
+        # TODO:ks Future we might be able to use MOFWBEMConnection to
+        # directly insert into our repository instead of copying them
+        # after the compile.
+        mofcomp = MOFCompiler(MOFWBEMConnection(),
+                              search_paths=search_paths,
+                              verbose=verbose)
 
-        with open(moflog_file, 'w') as self.logfile:
-            # TODO: Future we should be able to use MOFWBEMConnection to
-            # directly insert into our repository instead of copying them
-            # after the compile.
-            mofconn = MOFWBEMConnection()
-            mofcomp = MOFCompiler(mofconn,
-                                  search_paths=search_paths,
-                                  verbose=verbose,
-                                  log_func=moflog)
+        mof_repo = mofcomp.handle
+        self._setup_mof_repo(mof_repo)
 
-            mof_repo = mofcomp.handle
-            self._setup_mof_repo(mof_repo)
-            mofcomp.compile_string(mof_str, namespace)
+        mofcomp.compile_string(mof_str, namespace)
 
-            self._merge_repos(mof_repo)
+        self._merge_repos(mof_repo)
 
     def add_cimobjects(self, objects, namespace=None):
         # pylint: disable=line-too-long
@@ -714,8 +705,7 @@ class FakedWBEMConnection(WBEMConnection):
         type of object (instance, class, qualifier declaration).
 
         """
-        # TODO: FUTURE Consider sorting to perserve order of compile/add.
-
+        # TODO:ks FUTURE Consider sorting to perserve order of compile/add.
         if namespace in objects_repo:
             if obj_type == 'Methods':
                 _uprint(dest, '%sNamespace %s: contains %s %s:%s\n' %
@@ -735,7 +725,7 @@ class FakedWBEMConnection(WBEMConnection):
                 except KeyError:
                     return
 
-                # TODO: Future sort insts by path order.
+                # TODO:ks Future: Possibly sort insts by path order.
                 for inst in insts:
                     if output_format == 'xml':
                         _uprint(dest, '%s Path=%s %s\n%s' %
@@ -822,7 +812,7 @@ class FakedWBEMConnection(WBEMConnection):
                                            LocalOnly=False,
                                            IncludeQualifiers=True,
                                            IncludeClassOrigin=True)
-                        inst.path = self._create_instance_path(cc, inst, ns)
+                        inst.path = CIMInstanceName.from_instance(cc, inst, ns)
                     try:
                         self.instances[ns].append(inst)
                     except KeyError:
@@ -857,40 +847,59 @@ class FakedWBEMConnection(WBEMConnection):
         Each function is named with the lower case method namd prepended with
         '_fake_'.
         """
-        logging.debug('mock_imethodcall method=%s, namespace=%s, '
-                      'response_params_rqd=%s\nparams=%s',
-                      methodname, namespace, response_params_rqd, params)
+        self.logger.debug('Mock_method=%s, namespace=%s, '
+                          'response_params_rqd=%s, params=%s',
+                          methodname, namespace, response_params_rqd, params)
 
         method_name = '_fake_' + methodname.lower()
 
         method_name = getattr(self, method_name)
-        result = method_name(namespace, **params)
+        try:
+            result = method_name(namespace, **params)
+        except CIMError as ce:
+            self.logger.debug('CIMError exception:%s Err: %s:%s "%s"',
+                              methodname, ce.status_code,
+                              ce.status_code_name, ce.status_description)
+            raise
+        except Exception as ex:
+            self.logger.debug('%s Exception %r', methodname, ex)
+            raise
 
         # sleep for defined number of seconds
         if self._response_delay:
             time.sleep(self._response_delay)
 
-        logging.debug('mock result %s', result)
+        self.logger.debug('Mock result %s', result)
 
         return result
 
     def _mock_methodcall(self, methodname, localobject, Params=None, **params):
         # pylint: disable=invalid-name
         """
-        Mocks the WBEMConnection._methodcall() method.
+        Mocks the WBEMConnection._methodcall() method. This calls the
+        server execution function of extrinsic methods (InvokeMethod).
         """
-        logging.debug('mock_methodcall method=%s, namespace=%s, '
-                      'Params=%s\nparams=%s',
-                      methodname, localobject, Params, params)
+        self.logger.debug('Mock InvokeMethod method=%s object=%s '
+                          'Params=%s: params=%s',
+                          methodname, localobject, Params, params,)
 
-        result = self._fake_invokemethod(methodname, localobject, Params,
-                                         **params)
+        try:
+            result = self._fake_invokemethod(methodname, localobject, Params,
+                                             **params)
+        except CIMError as ce:
+            self.logger.debug('CIMError exception:InvokeMethod Err: %s:%s %s',
+                              ce.status_code, ce.status_code_name,
+                              ce.status_description)
+            raise
+        except Exception as ex:
+            self.logger.debug('InvokeMethod Exception %r', ex)
+            raise
 
         # Sleep for defined number of seconds
         if self._response_delay:
             time.sleep(self._response_delay)
 
-        logging.debug('mock result %s', result)
+        self.logger.debug('Mock InvokeMethod result %s', result)
 
         return result
 
@@ -924,7 +933,7 @@ class FakedWBEMConnection(WBEMConnection):
     @staticmethod
     def _remove_qualifiers(obj):
         """
-        Remove all qualifiers from the input object.  The object may
+        Remove all qualifiers from the input objectwhere the object may
         be an CIMInstance or CIMClass. Removes qualifiers from the object and
         from properties, methods, and parameters
 
@@ -1194,7 +1203,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         Returns: Returns list of classes.
         """
-        # TODO: Future. this could become an iterator for efficiency.
+        # TODO:ks Future. this could become an generator expression for
+        # efficiency.
         class_repo = self._get_class_repo(namespace)
         associator_classes = []
         for cl in six.itervalues(class_repo):
@@ -1226,7 +1236,7 @@ class FakedWBEMConnection(WBEMConnection):
         for index, inst in enumerate(inst_repo):
             if iname == inst.path:
                 if rtn_inst is not None:
-                    # TODO: Future Remove this test since we should be
+                    # TODO:ks Future Remove dup test since we should be
                     # insuring no dups on instance creation
                     raise CIMError(CIM_ERR_FAILED, 'Invalid Repository. '
                                    'Multiple instances with same path %s'
@@ -1256,8 +1266,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         rtn_tup = self._find_instance(iname, inst_repo)
         inst = rtn_tup[1]
-        # TODO review code to confirm we are consistent with path output
-        # in error messages. Should show the same rep for all messages, string.
+
         if not inst:
             raise CIMError(CIM_ERR_NOT_FOUND,
                            'Instance not found in repository namespace %s. '
@@ -1333,34 +1342,10 @@ class FakedWBEMConnection(WBEMConnection):
             are allowed in the list and ignored.
         """
         if property_list is not None:
-            # TODO. FUTURE Should be able to delete following.  We should be
-            #       receiving a good property list from WBEMConnection
-            if isinstance(property_list, six.string_types):
-                property_list = [property_list]
             property_list = [p.lower() for p in property_list]
             for pname in obj.properties.keys():
                 if pname.lower() not in property_list:
                     del obj.properties[pname]
-
-    @staticmethod
-    def _create_instance_path(class_, instance, namespace):
-        """
-        Given a class and corresponding instance, create the instance path
-        TODO. Future This code should exist in cim_obj or cim_operations and
-              not just here.
-        """
-        kb = NocaseDict()
-        assert class_.classname == instance.classname
-        for prop in class_.properties:
-            if 'key' in class_.properties[prop].qualifiers:
-                pname = class_.properties[prop].name  # get original case name
-                if prop in instance:
-                    kb[pname] = instance[prop]
-                else:
-                    default_value = class_.properties[prop]
-                    instance[pname] = default_value
-
-        return CIMInstanceName(class_.classname, kb, namespace=namespace)
 
     #####################################################################
     #
@@ -1389,11 +1374,6 @@ class FakedWBEMConnection(WBEMConnection):
             namespace,
             params['DeepInheritance'])
 
-        try:
-            del params['classname']
-        except KeyError:
-            pass
-
         classes = [
             self._get_class(cn, namespace,
                             local_only=params['LocalOnly'],
@@ -1408,9 +1388,12 @@ class FakedWBEMConnection(WBEMConnection):
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
 
+        Enumerates the classnames of the classname in the 'classname' parameter
+        or from the top of the tree if 'classname is None.
+
         Returns:
 
-            returns classnames.
+            return tuple including list of classnames
 
         Raises:
 
@@ -1473,7 +1456,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         if not isinstance(new_class, CIMClass):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           'NewClass not valid class type: %s' %
+                           'NewClass not valid CIMClass. Rcvd type: %s' %
                            type(new_class))
 
         if new_class.superclass:
@@ -1627,20 +1610,21 @@ class FakedWBEMConnection(WBEMConnection):
         """
         qual = params['QualifierDeclaration']
 
-        # TODO FUTURE implement set... method for instance, qualifier, class as
-        # general means to put new data into the repo.
+        # TODO:ks FUTURE implement set... method for instance, qualifier, class
+        # as general means to put new data into the repo.
         if namespace not in self.qualifiers:
             self.qualifiers[namespace] = NocaseDict({})
 
         if not isinstance(qual, CIMQualifierDeclaration):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'QualifierDeclaration parameter is not a '
-                           'valid CIMQualifierDeclaration type: %s' %
+                           'valid CIMQualifierDeclaration. Rcvd type: %s' %
                            type(qual))
 
         if qual.name in self.qualifiers[namespace]:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                           'Qualifier declaration %s not found in namspace %s.'
+                           'Qualifier declaration %s already exists in '
+                           'namespace %s.'
                            % (qual.name, namespace))
         try:
             self.qualifiers[namespace][qual.name] = qual
@@ -1703,7 +1687,8 @@ class FakedWBEMConnection(WBEMConnection):
         if not isinstance(new_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'NewInstance parameter is not a '
-                           'valid CIMInstance type: %s' % type(new_instance))
+                           'valid CIMInstance. Rcvd type: %s' %
+                           type(new_instance))
 
         # Requires corresponding class to build path to be returned
         try:
@@ -1724,8 +1709,6 @@ class FakedWBEMConnection(WBEMConnection):
         # Test all key properties in instance. This is our repository limit
         # since the repository cannot add values for key properties. We do
         # no allow creating key properties from class defaults.
-        # TODO Discussion. Should we allow key properties from class, in
-        # particular if they have a default value.
         key_props = [p.name for p in six.itervalues(target_class.properties)
                      if 'key' in p.qualifiers]
         for pn in key_props:
@@ -1759,11 +1742,12 @@ class FakedWBEMConnection(WBEMConnection):
                                    (ipname, iprop, cprop))
 
         # Build instance path. We build the complete instance path
-        new_instance.path = self._create_instance_path(target_class,
-                                                       new_instance,
-                                                       namespace)
+        new_instance.path = CIMInstanceName.from_instance(
+            target_class,
+            new_instance,
+            namespace=namespace)
         try:
-            # TODO: Future use internal function of repo to create namespace
+            # TODO:ks Future use internal function of repo to create namespace
             #       for this repo. ex. _set_instance
             for inst in self.instances[namespace]:
                 if inst.path == new_instance.path:
@@ -1776,8 +1760,6 @@ class FakedWBEMConnection(WBEMConnection):
             self.instances[namespace] = [new_instance]
 
         # Create instance returns model path, path relative to namespace
-        # TODO: Questions per DMTF spec. path returned if any keys are
-        # dynamically allocated. We are not doing that; We always return path.
         return self._make_tuple([new_instance.path.copy()])
 
     def _fake_modifyinstance(self, namespace, **params):
@@ -1809,7 +1791,7 @@ class FakedWBEMConnection(WBEMConnection):
         if not isinstance(modified_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'The ModifiedInstance parameter is not a '
-                           'valid CIMInstance type: %s' %
+                           'valid CIMInstance. Rcvd type: %s' %
                            type(modified_instance))
 
         # Classnames in instance and path must match
@@ -1994,8 +1976,8 @@ class FakedWBEMConnection(WBEMConnection):
                     raise CIMError(CIM_ERR_FAILED, 'Internal Error: Invalid '
                                    ' Repository. Multiple instances with same '
                                    ' path %s' % inst.path)
-                # TODO: Future remove this test for duplicate inst paths since
-                # we test for dups on insertion
+                # TODO:ks Future remove this test for duplicate inst paths since
+                #       we test for dups on insertion
                 else:
                     del insts_repo[index]
                     del_inst = iname
@@ -2259,8 +2241,8 @@ class FakedWBEMConnection(WBEMConnection):
         instname.namespace = namespace
         rtn_instpaths = []
         role = role.lower() if role else role
-        # TODO make list from _get_reference_classnames if classes exist.
-        # Otherwise set list to insts_repo to search every instance
+        # TODO:ks FUTURE: Make list from _get_reference_classnames if classes
+        #       exist. Otherwise set list to insts_repo to search every instance
         for inst in insts_repo:
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
@@ -2563,10 +2545,10 @@ class FakedWBEMConnection(WBEMConnection):
         else:
             eos = u'FALSE'
             context_id = self._create_contextid()
-            # TODO Future. Use the timeout along with response delay. Then
+            # TODO:ks Future. Use the timeout along with response delay. Then
             # user could timeout pulls. This means adding timer test to
-            # pulls and close. Response delay could then be used to test
-            # timeouts
+            # pulls and close. Timer should be used to close old contexts
+            # also.
             self.enumeration_contexts[context_id] = {'pull_type': pull_type,
                                                      'data': objects,
                                                      'namespace': namespace,
@@ -2809,7 +2791,7 @@ class FakedWBEMConnection(WBEMConnection):
         try:
             context_data = self.enumeration_contexts[context_id]
             # This is probably relatively useless because pywbem handles
-            # namespace internally but it could catch an if user plays
+            # namespace internally but it could catch an error if user plays
             # with the context.
             if context_data['namespace'] != namespace:
                 raise CIMError(CIM_ERR_INVALID_NAMESPACE,
@@ -2862,7 +2844,7 @@ class FakedWBEMConnection(WBEMConnection):
             methodsrepo = self._get_methods_repo(namespace)
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Method %s in namespace %s not '
-                                              'registered in repo' %
+                                              'registered in repository' %
                            (methodname, namespace))
 
         # find the methods entry corresponding to classname. It must be in
@@ -2886,19 +2868,19 @@ class FakedWBEMConnection(WBEMConnection):
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in '
                                               'namespace %s not '
-                                              'registered in repo' %
+                                              'registered in repository' %
                            (localobject.classname, methodname, namespace))
         try:
             bound_method = methods[methodname]
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Method %s in namespace %s not '
-                                              'registered in repo' %
+                                              'registered in repository' %
                            (methodname, namespace))
 
         if bound_method is None:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in'
                                               'namespace %s not '
-                                              'registered in repo' %
+                                              'registered in repoository' %
                            (localobject.classname, methodname, namespace))
 
         # Map the Params and **params into a single no-case dictionary
