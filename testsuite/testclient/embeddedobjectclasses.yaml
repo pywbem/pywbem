@@ -646,6 +646,11 @@
                             pywbem_object: CIMQualifier
                             name: Key
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
@@ -657,6 +662,11 @@
                             pywbem_object: CIMQualifier
                             name: EmbeddedObject
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address
@@ -1906,6 +1916,11 @@
                             pywbem_object: CIMQualifier
                             name: Key
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                 AddressClass:
                     pywbem_object: CIMProperty
                     name: AddressClass
@@ -1917,6 +1932,11 @@
                             pywbem_object: CIMQualifier
                             name: EmbeddedObject
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                     value:
                         pywbem_object: CIMClass
                         classname: PyWBEM_Address

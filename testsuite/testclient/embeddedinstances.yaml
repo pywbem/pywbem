@@ -599,6 +599,11 @@
                             pywbem_object: CIMQualifier
                             name: Key
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                 Address:
                     pywbem_object: CIMProperty
                     name: Address
@@ -609,6 +614,11 @@
                             pywbem_object: CIMQualifier
                             name: EmbeddedInstance
                             value: PyWBEM_Address
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                     value:
                         pywbem_object: CIMInstance
                         classname: PyWBEM_Address
@@ -1804,6 +1814,11 @@
                             pywbem_object: CIMQualifier
                             name: Key
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                 Address:
                     pywbem_object: CIMProperty
                     name: Address
@@ -1814,6 +1829,11 @@
                             pywbem_object: CIMQualifier
                             name: EmbeddedInstance
                             value: PyWBEM_Address
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                     value:
                         pywbem_object: CIMInstance
                         classname: PyWBEM_Address
@@ -3021,6 +3041,11 @@
                             pywbem_object: CIMQualifier
                             name: Key
                             value: true
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                 Address:
                     pywbem_object: CIMProperty
                     name: Address
@@ -3031,6 +3056,11 @@
                             pywbem_object: CIMQualifier
                             name: EmbeddedInstance
                             value: PyWBEM_Address
+                            propagated: false
+                            tosubclass: true
+                            toinstance: false
+                            overridable: true
+                            translatable: false
                     value:
                         pywbem_object: CIMInstance
                         classname: PyWBEM_Address

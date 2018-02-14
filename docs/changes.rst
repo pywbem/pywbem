@@ -516,6 +516,33 @@ Bug fixes
   tolerated and treated as `False`. They now cause `ParseError` to be raised
   (Issue #1041).
 
+* Fixed the incorrect default value for the `propagated` constructor parameter
+  of `CIMMethod`. Previously, the default value was `False` and it has been
+  corrected to be `None`, consistent with its meaning of "information not
+  available".
+  The only CIM operations that take a `CIMMethod` object as input are
+  `CreateClass()` and `ModifyClass()` (as part of the class that is created
+  or modified). Because WBEM servers must ignore the `propagated` information
+  on any elements in the provided class, this change is backwards compatible
+  for the CIM operations. (Issue #1039).
+
+* Added support for setting the `propagated` attribute on `CIMQualifier`
+  objects returned from CIM operations to a default of `False` when it is
+  not specified in the CIM-XML response, consistent with DSP0201, and
+  consistent with how it was already done for other CIM objects.
+  This change should normally be backwards compatible for pywbem users,
+  because they don't even know whether the information has been set by
+  the server or defaulted by the client as it is now done. (Issue #1039).
+
+* Added support for setting the flavor attributes on `CIMQualifier` and
+  `CIMQUalifierDeclaration` objects returned from CIM operations to their
+  default values defined in CIM-XML, when they are not specified in the
+  CIM-XML response, consistent with DSP0201, and consistent with how it
+  was already done for other CIM objects.
+  This change should normally be backwards compatible for pywbem users,
+  because they don't even know whether the information has been set by
+  the server or defaulted by the client as it is now done. (Issue #1039).
+
 Cleanup
 ^^^^^^^
 

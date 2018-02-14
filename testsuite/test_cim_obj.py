@@ -12145,7 +12145,7 @@ class Test_CIMMethod_init(object):
     default_exp_attrs = dict(
         parameters=NocaseDict(),
         class_origin=None,
-        propagated=False,
+        propagated=None,
         qualifiers=NocaseDict(),
     )
 

@@ -1126,15 +1126,6 @@ def parse_qualifier_declaration(tup_tree):
         # TODO #1044: Clarify if hex support is needed.
         array_size = int(array_size)
 
-    flavors = {}
-    for flavor in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE']:
-        try:
-            flavors[flavor.lower()] = unpack_boolean(attrl[flavor])
-        except KeyError:
-            # This causes the flavor not to be set, so it results in the
-            # default value defined in the CIMQualifierDeclaration() ctor (None)
-            pass
-
     scopes = None
     value = None
     for child in kids(tup_tree):
@@ -1152,8 +1143,17 @@ def parse_qualifier_declaration(tup_tree):
                                  (name(tup_tree), name(child)))
             value = unpack_value(tup_tree)
 
-    return CIMQualifierDeclaration(qname, _type, value, is_array,
-                                   array_size, scopes, **flavors)
+    overridable = unpack_boolean(attrl.get('OVERRIDABLE', 'true'))
+    tosubclass = unpack_boolean(attrl.get('TOSUBCLASS', 'true'))
+    toinstance = unpack_boolean(attrl.get('TOINSTANCE', 'false'))
+    translatable = unpack_boolean(attrl.get('TRANSLATABLE', 'false'))
+
+    qual_decl = CIMQualifierDeclaration(
+        qname, _type, value, is_array, array_size, scopes,
+        overridable=overridable, tosubclass=tosubclass,
+        toinstance=toinstance, translatable=translatable)
+
+    return qual_decl
 
 
 def parse_qualifier(tup_tree):
@@ -1178,28 +1178,21 @@ def parse_qualifier(tup_tree):
     # The 'xml:lang' attribute is tolerated but ignored.
 
     attrl = attrs(tup_tree)
-    val = unpack_value(tup_tree)
+    qname = attrl['NAME']
+    _type = attrl['TYPE']
 
-    qual = CIMQualifier(attrl['NAME'], val, type=attrl['TYPE'])
+    value = unpack_value(tup_tree)
 
-    for i in ['OVERRIDABLE', 'TOSUBCLASS', 'TOINSTANCE',
-              'TRANSLATABLE', 'PROPAGATED']:
-        rtn_val = attrl.get(i, None)
-        if rtn_val is not None:
-            rtn_val = rtn_val.lower()
+    propagated = unpack_boolean(attrl.get('PROPAGATED', 'false'))
+    overridable = unpack_boolean(attrl.get('OVERRIDABLE', 'true'))
+    tosubclass = unpack_boolean(attrl.get('TOSUBCLASS', 'true'))
+    toinstance = unpack_boolean(attrl.get('TOINSTANCE', 'false'))
+    translatable = unpack_boolean(attrl.get('TRANSLATABLE', 'false'))
 
-        # TODO #1039: Clarify whether to default omitted qualifier flavors
-        if rtn_val == 'true':
-            rtn_val = True
-        elif rtn_val == 'false':
-            rtn_val = False
-        elif rtn_val is None:
-            pass
-        else:
-            raise ParseError("Invalid value %r for %s on %s" %
-                             (rtn_val, i, name(tup_tree)))
-
-        setattr(qual, i.lower(), rtn_val)
+    qual = CIMQualifier(qname, value, _type,
+                        propagated=propagated, overridable=overridable,
+                        tosubclass=tosubclass, toinstance=toinstance,
+                        translatable=translatable)
 
     return qual
 
