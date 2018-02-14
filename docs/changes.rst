@@ -20,9 +20,11 @@ pywbem v0.11.1
 
 Released: 2018-mm-dd
 
-Enhancements
-^^^^^^^^^^^^
+Bug fixes
+^^^^^^^^^
 
+* Docs: Fixed the descriprion of the pywbem installation on Windows, and added
+  trouble shooting information.
 
 
 pywbem v0.11.0

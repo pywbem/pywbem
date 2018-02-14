@@ -143,6 +143,28 @@ installs the necessary Python SDK package for C/C++ (or displays its package
 name). On RHEL, the missing package is `python-dev`.
 For more details, see :ref:`Prerequisite operating system packages`.
 
+
+Pip install of M2CryptoWin32 fails with option not recognized
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In native Windows with a 32-bit version of Python, the following error has been
+observed when attempting to install the `M2CryptoWin32` package::
+
+    > pip install M2CryptoWin32
+    . . .
+    usage: -c [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
+    or: -c --help [cmd1 cmd2 ...]
+    or: -c --help-commands
+    or: -c cmd --help
+    error: option --single-version-externally-managed not recognized
+
+This has been reported to be fixed by installing the Python `wheel` package
+into the active Python environment, and repeating the installation::
+
+    > pip install wheel
+    > pip install M2CryptoWin32
+
+
 .. _'Glossary`:
 
 Glossary
