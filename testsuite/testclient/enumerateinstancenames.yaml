@@ -623,7 +623,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: false
-        enable-stats: true
+        stats-enabled: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person

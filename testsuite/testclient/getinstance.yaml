@@ -8,7 +8,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: false
-        enable-stats: false
+        stats-enabled: false
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -104,7 +104,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: false
-        enable-stats: true
+        stats-enabled: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -608,7 +608,7 @@
         namespace: //root/mycim//
         timeout: 10
         debug: false
-        enable-stats: false
+        stats-enabled: false
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -685,7 +685,7 @@
         namespace: null
         timeout: 10
         debug: false
-        enable-stats: false
+        stats-enabled: false
         operation:
             pywbem_method: GetInstance
             InstanceName:

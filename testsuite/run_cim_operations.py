@@ -116,8 +116,8 @@ class ClientTest(unittest.TestCase):
         self.yamlfile = CLI_ARGS['yamlfile']
         self.output_log = CLI_ARGS['log']
         self.yamlfp = None
-        self.enable_stats = True if CLI_ARGS['stats'] else False
-        if self.enable_stats:
+        self.stats_enabled = True if CLI_ARGS['stats'] else False
+        if self.stats_enabled:
             self.start_time = time.time()
         self.log_output_size = 1000
         self.log_definition = 'all=file:all'
@@ -139,7 +139,7 @@ class ClientTest(unittest.TestCase):
             no_verification=CLI_ARGS['nvc'],
             ca_certs=CLI_ARGS['cacerts'],
             use_pull_operations=use_pull_operations,
-            enable_stats=self.enable_stats)
+            stats_enabled=self.stats_enabled)
 
         # if log set, enable the logger.
         if self.output_log:
@@ -163,7 +163,7 @@ class ClientTest(unittest.TestCase):
     def tearDown(self):
         """Close the test_client YAML file and display stats."""
 
-        if self.enable_stats:
+        if self.stats_enabled:
             print('%s: Test time %.2f sec.' % (self.id(),
                                                (time.time() - self.start_time)))
             print('%s\n%s' % (self.id(), self.conn.statistics.formatted()))
@@ -203,7 +203,7 @@ class ClientTest(unittest.TestCase):
         # account for issue where last operation exception, in particular
         # those few exceptions that occur outside of the try block in the
         # Iter... operations.
-        if self.enable_stats:
+        if self.stats_enabled:
             # svr_time and operation_time may return None
             svr_time = ('%.4f' % self.conn.last_server_response_time) \
                 if self.conn.last_server_response_time else 'None'

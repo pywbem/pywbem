@@ -580,8 +580,8 @@ class ClientTest(unittest.TestCase):
             creds=tc_getattr(tc_name, pywbem_request, "creds"),
             default_namespace=tc_getattr(tc_name, pywbem_request, "namespace"),
             timeout=tc_getattr(tc_name, pywbem_request, "timeout"),
-            enable_stats=tc_getattr(tc_name, pywbem_request, "enable-stats",
-                                    False))
+            stats_enabled=tc_getattr(tc_name, pywbem_request, "stats-enabled",
+                                     False))
 
         conn.debug = tc_getattr(tc_name, pywbem_request, "debug", False)
 

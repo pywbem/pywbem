@@ -32,6 +32,57 @@ class TestCreateConnection(object):
         assert conn.use_pull_operations is False
         assert conn.stats_enabled is False
 
+    @pytest.mark.parametrize(
+        'attr_name, value', [
+            ('url', 'http:/myserver'),
+            ('creds', ('x', 'y')),
+            ('default_namespace', 'foo'),
+            ('x509', dict(cert_file='c', key_file='k')),
+            ('verify_callback', lambda a, b, c, d, e: True),
+            ('ca_certs', 'xxx'),
+            ('no_verification', True),
+            ('timeout', 30),
+        ])
+    def test_attrs_deprecated_setters(self, attr_name, value):
+        """
+        Test that the setting of certain attributes is deprecated.
+        """
+        conn = WBEMConnection('http://localhost')
+        with pytest.warns(DeprecationWarning) as rec_warnings:
+
+            # The code to be tested
+            setattr(conn, attr_name, value)
+
+        assert len(rec_warnings) == 1
+
+        attr_value = getattr(conn, attr_name)
+        assert attr_value == value
+
+    @pytest.mark.parametrize(
+        'attr_name, value', [
+            ('last_raw_request', '<CIM/>'),
+            ('last_raw_reply', '<CIM/>'),
+            ('last_raw_reply', '<CIM/>'),
+            ('last_request', '<CIM/>'),
+            ('last_request_len', 7),
+            ('last_reply_len', 7),
+        ])
+    def test_attrs_readonly(self, attr_name, value):
+        """
+        Test that certain attributes that were previously public are now
+        read-only and that the original value has not changed when trying to
+        modify them.
+        """
+        conn = WBEMConnection('http://localhost')
+        value1 = getattr(conn, attr_name)
+        with pytest.raises(AttributeError):
+
+            # The code to be tested
+            setattr(conn, attr_name, value)
+
+        value2 = getattr(conn, attr_name)
+        assert value2 == value1
+
     def test_no_recorder(self):  # pylint: disable=no-self-use
         """Test creation of wbem connection with specific parameters"""
         creds = ('myname', 'mypw')
@@ -40,7 +91,7 @@ class TestCreateConnection(object):
                               default_namespace='root/blah',
                               x509=x509,
                               use_pull_operations=True,
-                              enable_stats=True)
+                              stats_enabled=True)
         assert conn.url == 'http://localhost'
         assert conn.creds == creds
         assert conn.default_namespace == 'root/blah'

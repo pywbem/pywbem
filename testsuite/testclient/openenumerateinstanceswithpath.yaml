@@ -900,7 +900,7 @@
         namespace: root/cimv2
         timeout: 10
         debug: true
-        enable-stats: true
+        stats-enabled: true
         operation:
             pywbem_method: OpenEnumerateInstances
             ClassName: PyWBEM_Person

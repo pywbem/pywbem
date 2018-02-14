@@ -147,8 +147,24 @@ Incompatible changes
   `CIMClassName` objects (i.e. class paths). This has been changed for
   consistency with DSP0201 (Issue #1035).
 
+* Renamed the `enable_stats` init argument of class `WBEMConnection` to
+  `stats_enabled`, as part of its finalization. It was experimental, before.
+  (Issue #1068).
+
+* Renamed the `-e`, `--enable-stats` options of the `wbemcli` utility to
+  `--statistics` , as part of its finalization. It was experimental, before.
+  (Issue #1068).
+
+* Changed the `WBEMConnection` attributes for the last request and last
+  response to become read-only (`last_request`, `last_raw_request`,
+  `last_reply`, `last_raw_reply`). They have never been supposed to be
+  writeable by users. (Issue #1068).
+
 Deprecations
 ^^^^^^^^^^^^
+
+* Deprecated modifications of the connection-related attributes of
+  `WBEMConnection` objects (Issue #1068).
 
 Enhancements
 ^^^^^^^^^^^^
@@ -157,7 +173,9 @@ Enhancements
   affects classes `OperationStatistic`, `Statistics`, the init argument
   `enable_stats` of class `WBEMConnection`, and the properties
   `stats_enabled`, `statistics`, `last_operation_time`, and
-  `last_server_response_time` of class `WBEMConnection`.
+  `last_server_response_time` of class `WBEMConnection`. As part of that,
+  renamed the `enable_stats` init argument to `stats_enabled`, consistent with
+  the corresponding property.
 
 * For `CIMInstanceName`, the values of keybindings can now be specified as
   `CIMProperty` objects from which their value will be used (this is in
@@ -337,6 +355,9 @@ Enhancements
 * Add new method to CIMInstanceName (from_instance) to create CIMInstanceName
   element from class and instance.  This was done as part of building the
   pywbem_mock environment.  See issue #1069.
+
+* The `url` property of `WBEMConnection` now transforms its input value
+  to unicode. (Issue #1068).
 
 Bug fixes
 ^^^^^^^^^
