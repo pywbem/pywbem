@@ -76,16 +76,18 @@ PYWBEM_MOCK_LOGGER = 'pywbem.mock'
 
 
 # TODO: ks Future We have not considered that iq and ico are deprecated in
-# DSP0200 we should set up a default to ignore these parameters for the
-# operations in which they are deprecated and we should/could ignore them. We
-# need to document our behavior in relation to the spec.
+# DSP0200 for get_instance, etc. We could  set up a default to ignore these
+# parameters for the operations in which they are deprecated and we
+# should/could ignore them. We need to document our behavior in relation to the
+# spec.
 
-
+# pylint: disable=invalid-name
 STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
 if not STDOUT_ENCODING:
     STDOUT_ENCODING = locale.getpreferredencoding()
 if not STDOUT_ENCODING:
     STDOUT_ENCODING = 'utf-8'
+# pylint: enable=invalid-name
 
 
 def _uprint(dest, text):
@@ -470,7 +472,7 @@ class FakedWBEMConnection(WBEMConnection):
         if not namespace:
             namespace = DEFAULT_NAMESPACE
 
-        # TODO:ks Future we might be able to use MOFWBEMConnection to
+        # TODO:ks Future we might be able to use our own MOFWBEMRepository to
         # directly insert into our repository instead of copying them
         # after the compile.
         mofcomp = MOFCompiler(MOFWBEMConnection(),
@@ -713,9 +715,9 @@ class FakedWBEMConnection(WBEMConnection):
                          len(objects_repo[namespace]),
                          obj_type, cmt_end))
             else:
-                _uprint(dest, '%sNamespace %s: contains %s class%s\n' %
+                _uprint(dest, '%sNamespace %s: contains %s %s %s\n' %
                         (cmt_begin, namespace,
-                         len(objects_repo[namespace]), cmt_end))
+                         len(objects_repo[namespace]), obj_type, cmt_end))
             if summary:
                 return
             # instances are special because the inner struct is a list
@@ -1122,6 +1124,8 @@ class FakedWBEMConnection(WBEMConnection):
         include superclass properties if not localonly, and filters the
         class based on propertylist and includeClassOrigin.
 
+        It also sets the propagated attribute.
+
         Parameters:
 
           classname (:term:`string`):
@@ -1160,6 +1164,10 @@ class FakedWBEMConnection(WBEMConnection):
         # try to get the target class and create a copy for response
         try:
             cc = classes_repo[classname].copy()
+            for prop in cc.properties.values():
+                prop.propagated = False
+            for method in cc.properties.values():
+                method.propagated = False
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s not found in namespace '
                                               '%s.' % (classname, namespace))
@@ -1178,9 +1186,12 @@ class FakedWBEMConnection(WBEMConnection):
                 for prop in super_class.properties.values():
                     if prop.name not in cc.properties:
                         cc.properties[prop.name] = prop.copy()
+                        cc.properties[prop.name].propagated = True
                 for meth in super_class.methods.values():
                     if meth.name not in cc.methods:
                         cc.methods[meth.name] = meth.copy()
+                        cc.methods[meth.name].propagated = True
+
                 sc_name = super_class.superclass
 
         self._filter_properties(cc, property_list)
@@ -1201,16 +1212,15 @@ class FakedWBEMConnection(WBEMConnection):
         Does NOT copy so these are what is in repository. User functions
         MUST NOT modify these classes.
 
-        Returns: Returns list of classes.
+        Returns: Returns generator where each yield returns a singe
+                 association class
         """
-        # TODO:ks Future. this could become an generator expression for
-        # efficiency.
         class_repo = self._get_class_repo(namespace)
-        associator_classes = []
+        # associator_classes = []
         for cl in six.itervalues(class_repo):
             if 'Association' in cl.qualifiers:
-                associator_classes.append(cl)
-        return associator_classes
+                yield cl
+        return
 
     @staticmethod
     def _find_instance(iname, inst_repo):
@@ -1271,8 +1281,7 @@ class FakedWBEMConnection(WBEMConnection):
             raise CIMError(CIM_ERR_NOT_FOUND,
                            'Instance not found in repository namespace %s. '
                            'Path=%s' % (namespace, iname))
-        else:
-            rtn_inst = inst.copy()
+        rtn_inst = inst.copy()
 
         # If local_only remove properties where class_origin
         # differs from class of target instance
@@ -1430,6 +1439,20 @@ class FakedWBEMConnection(WBEMConnection):
 
         return self._make_tuple([cc])
 
+    @staticmethod
+    def _test_qualifier_decl(qualifier, qual_repo, namespace):
+        """
+        Test that qualifier is in repo and valid.
+        For for conn_lite, ignore this test
+        """
+        if qual_repo is None:
+            return
+        if qualifier.name not in qual_repo:
+            raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Qualifier '
+                           ' declaration %s required by CreateClass not found '
+                           ' in namespace %s'
+                           % (qualifier.name, namespace))
+
     def _fake_createclass(self, namespace, **params):
         """
         Implements a mock server responder for
@@ -1438,8 +1461,13 @@ class FakedWBEMConnection(WBEMConnection):
         Creates a new class in the repository.  Nothing is returned.
         Emulates WBEMConnection.CreateClass(...))
 
-        if the class repository for this namespace does not
+        If the class repository for this namespace does not
         exist, this method creates it.
+
+        Classes that are in the repository contain only the properties in
+        the new_class, not any properties from inheritated classes.  The
+        corresponding _get_class resolves any inherited properties to create
+        a complete class with both local and inherited properties.
 
         Raises:
             CIMError: CIM_ERR_INVALID_SUPERCLASS if superclass specified bu
@@ -1451,32 +1479,113 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_ALREADY_EXISTS if class already exists
         """
         new_class = params['NewClass']
-        if namespace not in self.classes:
-            self.classes[namespace] = NocaseDict({})
 
         if not isinstance(new_class, CIMClass):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'NewClass not valid CIMClass. Rcvd type: %s' %
                            type(new_class))
 
-        if new_class.superclass:
-            try:
-                _ = self._get_class(new_class.superclass,  # noqa: F841
-                                    namespace=namespace,
-                                    local_only=True,
-                                    include_qualifiers=False)
-            except CIMError as ce:
-                if ce.status_code == CIM_ERR_NOT_FOUND:
-                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS, 'Superclass %s '
-                                   ' not found in class %s, namespace %s' %
-                                   (new_class.superclass, new_class, namespace))
-                else:
-                    raise
+        if namespace not in self.classes:
+            self.classes[namespace] = NocaseDict({})
 
         if new_class.classname in self.classes[namespace]:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
                            'Class %s already exists in namespace %s.' %
                            (new_class.classname, namespace))
+
+        # If there is a superclass defined, test existence and test for
+        # overridden properties
+        new_class = new_class.copy()
+
+        if new_class.superclass:
+            try:
+                sc = self._get_class(new_class.superclass,  # noqa: F841
+                                     namespace=namespace,
+                                     local_only=False,
+                                     include_qualifiers=True,
+                                     include_classorigin=True)
+            except CIMError as ce:
+                if ce.status_code == CIM_ERR_NOT_FOUND:
+                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS, 'Superclass %s '
+                                   ' for class % snot found in namespace %s' %
+                                   (new_class.superclass, new_class.classname,
+                                    namespace))
+                else:
+                    raise
+
+            for pname, prop in six.iteritems(new_class.properties):
+                if pname in sc.properties:
+                    # TODO: should we use prop name from qualifier in override?
+                    if 'Override' not in new_class.properties[pname].qualifiers:
+                        raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                       'Property %s duplicates property in %s '
+                                       ' without override'
+                                       % (pname, sc.classname))
+                    else:
+                        sp = sc.properties[pname]
+                        if sp.type != prop.type \
+                            or sp.is_array != prop.is_array \
+                                or sp.embedded_object != prop.embedded_object:
+                            raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                           'Invalid new_class property %s. '
+                                           'Does not match overridden '
+                                           'property in class %s' %
+                                           (pname, sc.classname))
+
+            for mname, method in six.iteritems(new_class.methods):
+                if mname in sc.methods:
+                    if 'Override' not in new_class.method.qualifiers:
+                        raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                       'Method %s duplicates method in %s '
+                                       ' without override'
+                                       % (mname, sc.classname))
+                    else:
+                        super_meth = sc.method[mname]
+                        if super_meth.type != method.type \
+                            or super_meth.is_array != method.is_array \
+                                or super_meth.return_type != method.return_type:
+                            raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                           'Invalid new_class method %s. '
+                                           'Does not match overridden '
+                                           'method in class %s' %
+                                           (mname, sc.classname))
+                        # TODO: match qualifiers in override.
+
+            # TODO: test class qualifiers.
+
+        # Set class_origin and propagated in the new class and its elements.
+        if self._repo_lite:
+            qual_repo = None
+        else:
+            association_class = 'Association' in new_class.qualifiers
+
+            qual_repo = self._get_qualifier_repo(namespace)
+            for qual in six.itervalues(new_class.qualifiers):
+                qual.propagated = False
+                self._test_qualifier_decl(qual, qual_repo, namespace)
+
+            for prop in six.itervalues(new_class.properties):
+                if not association_class and prop.type == 'reference':
+                    raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                   'Reference property %s not allowed on '
+                                   'non-association class %s' %
+                                   (prop.name, new_class.classname))
+                prop.class_origin = new_class.classname
+                prop.propagated = False
+                for qual in six.itervalues(prop.qualifiers):
+                    self._test_qualifier_decl(qual, qual_repo, namespace)
+                    qual.propagated = False
+
+            for method in six.itervalues(new_class.methods):
+                method.class_origin = new_class.classname
+                method.propagated = False
+                for qual in six.itervalues(method.qualifiers):
+                    self._test_qualifier_decl(qual, qual_repo, namespace)
+                    qual.propagated = False
+                for param in six.itervalues(method.parameters):
+                    for qual in six.itervalues(param.qualifiers):
+                        self._test_qualifier_decl(qual, qual_repo, namespace)
+                        param.qualifiers.propagated = False
 
         self.classes[namespace][new_class.classname] = new_class
 
@@ -1748,7 +1857,7 @@ class FakedWBEMConnection(WBEMConnection):
             namespace=namespace)
         try:
             # TODO:ks Future use internal function of repo to create namespace
-            #       for this repo. ex. _set_instance
+            #         for this repo. ex. _set_instance
             for inst in self.instances[namespace]:
                 if inst.path == new_instance.path:
                     raise CIMError(CIM_ERR_ALREADY_EXISTS,

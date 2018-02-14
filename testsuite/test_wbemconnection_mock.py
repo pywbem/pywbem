@@ -186,6 +186,7 @@ def tst_classes(tst_class):
                     CIMProperty('cimfoo_sub', None, type='string',
                                 class_origin='CIM_Foo_sub',
                                 propagated=False)})
+
     c3 = CIMClass(
         'CIM_Foo_sub2', superclass='CIM_Foo', qualifiers=dkey,
         properties={'cimfoo_sub2':
@@ -331,6 +332,10 @@ def tst_qualifiers_mof():
         Qualifier Out : boolean = false,
             Scope(parameter),
             Flavor(DisableOverride, ToSubclass);
+
+        Qualifier Override : string = null,
+            Scope(property, reference, method),
+            Flavor(EnableOverride, Restricted);
         """
 
 
@@ -969,14 +974,23 @@ class TestRepoMethods(object):
 
     @staticmethod
     def method2_callback(conn, methodname, object_name, **params):
+        """Test callback function for ethod2. Not really used but
+           installed to define function
+        """
         pass
 
     @staticmethod
     def method1_callback(conn, methodname, object_name, **params):
+        """Test callback function for method1. Not really used but
+           installed to define function
+        """
         pass
 
     @staticmethod
     def fuzzy_callback(conn, methodname, object_name, **params):
+        """Test callback function for fuzzy method. Not really used but
+           installed to define function
+        """
         pass
 
     def test_display_repository(self, conn, tst_instances_mof):
@@ -1083,9 +1097,10 @@ class TestRepoMethods(object):
         assert conn.GetQualifier('Key', namespace=ns).name == 'Key'
 
         quals = conn.EnumerateQualifiers(namespace=ns)
-        assert len(quals) == 8
+        assert len(quals) == 9
 
     def test_unicode(self, conn):
+        # pylint: disable=no-self-use
         """
         Test compile and display repository with unicode in mof string
         """
@@ -1730,26 +1745,83 @@ class TestClassOperations(object):
                 for method in six.itervalues(rtn_getclass.methods):
                     assert not method.qualifiers
 
+    def process_pretcl(self, conn, pre_tst_classes, ns, tst_classes):
+        """Support method for createclass. Executes createclass on the
+           pre_tst_classes parameter. Compiles all classes found in the
+           parameter
+        """
+        if pre_tst_classes:
+            if isinstance(pre_tst_classes, list):
+                for cls in pre_tst_classes:
+                    self.process_pretcl(conn, cls, ns, tst_classes)
+            elif isinstance(pre_tst_classes, six.string_types):
+                for cls in tst_classes:
+                    if cls.classname == pre_tst_classes:
+                        conn.CreateClass(cls, namespace=ns)
+            elif isinstance(pre_tst_classes, CIMClass):
+                conn.CreateClass(pre_tst_classes, namespace=ns)
+
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "tcl, exp_err", [
-            # tcl: Either string defining test class in tst_classes or
-            #      CIMClass
-            # exp:err: None if test is to succeed or CIMError status code as
-            #          a string.
-            # creates class correctly
-            ['CIM_Foo', None],
+        "pre_tst_classes, tcl, exp_rtn_cl, exp_err", [
+            # pre_tst_classes: Create the defined class or classes before the
+            #                  test. This allows testing subclass creation
+            #                  May be class, name of class in tst_classes, or
+            #                  list of class/classnames.
+            # tcl: Either string defining test class name in tst_classes or
+            #      CIMClass to be passed to CreateClass
+            # exp_rtn_cl: None or expected CIMClass returned from get_instance
+            # exp:err: None or Expected CIMError type string
 
-            # fails because superclassnot in namespace
-            ['CIM_Foo_sub', 'CIM_ERR_INVALID_SUPERCLASS'],
+            # Create class correctly
+            [None, 'CIM_Foo', 'CIM_Foo', None],
 
-            [CIMQualifierDeclaration('blah', 'string'),
-             'CIM_ERR_INVALID_PARAMETER']
-            # no invalid namespace test because createclass creates namespace
+            # Create valid subclass
+            ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub', None],
+
+            # Create valid 2nd level subclass.
+            [['CIM_Foo', 'CIM_Foo_sub'], 'CIM_Foo_sub_sub',
+             'CIM_Foo_sub_sub', None],
+
+            # Create valid 2nd level subclass with property override.
+            [['CIM_Foo', 'CIM_Foo_sub'],
+             CIMClass('CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                      properties={'cimfoo_sub':
+                                  CIMProperty(
+                                    'cimfoo_sub', "blah",  # noqa: E121
+                                    qualifiers={'Override':
+                                                CIMQualifier('Override',
+                                                             'cimfoo_sub_sub')},
+                                    type='string',
+                                    class_origin='CIM_Foo_sub_sub',
+                                    propagated=False)}),
+             None, None],
+
+            # Create invalid subclass, dup property with no override
+            [['CIM_Foo', 'CIM_Foo_sub'],
+             CIMClass('CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                      properties={'cimfoo_sub':
+                                  CIMProperty(
+                                    'cimfoo_sub', "blah",  # noqa: E121
+                                    type='string',
+                                    class_origin='CIM_Foo_sub_sub',
+                                    propagated=False)}),
+             None, 'CIM_ERR_INVALID_PARAMETER'],
+
+            # Fail because superclass does not exist in namespace
+            [None, 'CIM_Foo_sub', None, 'CIM_ERR_INVALID_SUPERCLASS'],
+
+            # Fails because trying to create incorrect type
+            [None, CIMQualifierDeclaration('blah', 'string'), None,
+             'CIM_ERR_INVALID_PARAMETER'],
+
+            # No invalid namespace test defined because createclass creates
+            # namespace
         ]
     )
-    def test_createclass(self, conn, tcl, tst_classes, ns, exp_err):
+    def test_createclass(self, conn, pre_tst_classes, tcl, tst_qualifiers_mof,
+                         tst_classes, ns, exp_rtn_cl, exp_err):
         # pylint: disable=no-self-use
         """
             Test create class. Tests for namespace variable,
@@ -1757,9 +1829,15 @@ class TestClassOperations(object):
             No way to do bad namespace error because this  method creates
             namespace if it does not exist.
         """
+        # preinstall required qualifiers
+        conn.compile_mof_str(tst_qualifiers_mof, namespace=ns)
 
-        # Create the new_class to send from the existing tst_classes
+        # if pretcl, create/install the pre test class.  Installs the
+        # prerequisite classes into the repository.
+        self.process_pretcl(conn, pre_tst_classes, ns, tst_classes)
 
+        # Create the new_class to send to CreateClass from the
+        # existing tst_classes
         if isinstance(tcl, six.string_types):
             for cl in tst_classes:
                 if cl.classname == tcl:
@@ -1767,26 +1845,89 @@ class TestClassOperations(object):
         else:
             new_class = tcl
 
-        if not exp_err:
-            conn.CreateClass(new_class, namespace=ns)
-
-            rtn_cl = conn.GetClass(new_class.classname, namespace=ns,
-                                   IncludeQualifiers=True)
-
-            rtn_cl.path = None
-            assert rtn_cl == new_class
-
-            with pytest.raises(CIMError) as exec_info:
-                conn.CreateClass(new_class, namespace=ns)
-            exc = exec_info.value
-            assert(exc.status_code_name == 'CIM_ERR_ALREADY_EXISTS')
-
-        else:
+        if exp_err is not None:
             with pytest.raises(CIMError) as exec_info:
                 conn.CreateClass(new_class, namespace=ns)
 
             exc = exec_info.value
             assert(exc.status_code_name == exp_err)
+
+        else:
+            conn.CreateClass(new_class, namespace=ns)
+
+            # Get class with localonly set and confirm against the
+            # test class.
+            rtn_class = conn.GetClass(new_class.classname,
+                                      namespace=ns,
+                                      IncludeQualifiers=True,
+                                      IncludeClassOrigin=True,
+                                      LocalOnly=True)
+
+            rtn_class.path = None
+
+            for pname, pvalue in rtn_class.properties.items():
+                assert pvalue.propagated is False
+                assert pvalue.class_origin == new_class.classname
+            for mname, mvalue in rtn_class.methods.items():
+                assert mvalue.propagated is False
+                assert mvalue.class_origin == new_class.classname
+
+            if isinstance(exp_rtn_cl, CIMClass):
+                assert rtn_class == exp_rtn_cl
+
+            elif isinstance(exp_rtn_cl, six.string_types):
+                # This presumes that the tst_class has class_origin set
+                # and propagated set
+                for cl in tst_classes:
+                    if cl.classname == exp_rtn_cl:
+                        assert cl == rtn_class
+            else:
+                if isinstance(tcl, CIMClass):
+                    assert tcl == rtn_class
+                else:
+                    assert set(rtn_class.properties) == \
+                        set(new_class.properties)
+                    assert set(rtn_class.methods) == set(new_class.methods)
+                    assert set(rtn_class.qualifiers) == \
+                        set(new_class.qualifiers)
+
+            # Get the class with local only false. and test for valid
+            # ico, lo and non-lo properties/methods.
+
+            rtn_class2 = conn.GetClass(new_class.classname,
+                                       namespace=ns,
+                                       IncludeQualifiers=True,
+                                       IncludeClassOrigin=True,
+                                       LocalOnly=False)
+
+            if ns is None:
+                ns = conn.default_namespace
+            if new_class.superclass is None:
+                superclasses = []
+            else:
+                superclasses = conn._get_superclassnames(new_class.classname,
+                                                         ns)
+
+            # TODO add to test to confirm that any property in superclasses
+            # is in the returned instance. Local properties are covered by
+            # testing against the new_class above.
+            for pname, pvalue in rtn_class2.properties.items():
+                if pname in rtn_class.properties:
+                    assert pvalue.propagated is False
+                    assert pvalue.class_origin == new_class.classname
+                    assert pname in new_class.properties.keys()
+                else:
+                    assert pvalue.propagated is True
+                    assert pvalue.class_origin in superclasses
+
+            for mname, mvalue in rtn_class2.methods.items():
+                if mname in rtn_class.methods:
+                    assert mvalue.propagated is False
+                    assert mvalue.class_origin == new_class.classname
+                    assert mname in new_class.methods.keys()
+                else:
+                    assert mvalue.propagated is True
+                    assert mvalue.class_origin in superclasses
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
