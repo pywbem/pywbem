@@ -552,6 +552,14 @@ specified when following the links to the standards:
     client: If a client does not send multi-requests, the server does not send
     back multi-responses.
 
+  - CIM-XML supports CIM methods with a void return type. However, DSP0004 does
+    not support them, and neither does pywbem.
+
+  - CIM-XML supports CIM references to classes. However, DSP0004 does not
+    support them, and neither does pywbem (references are always to instances).
+
+  - The ``EnumerationCount`` operation is not supported by pywbem.
+
 * The CIM-XML representation of :ref:`CIM objects` as produced by their
   ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to :term:`DSP0201`.
 
@@ -567,8 +575,16 @@ specified when following the links to the standards:
 
   Limitations:
 
-  - Several `issues in the MOF compiler
-    <https://github.com/pywbem/pywbem/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+MOF>`_.
+  - The pywbem MOF compiler has the restriction that CIM instances specified in
+    MOF that have an alias must have key properties that are either initialized
+    in the instance, or have non-NULL default values (issue #1079).
+
+  - The pywbem MOF compiler has the restriction that an alias must be defined
+    before it is used. In :term:`DSP0004`, no such requirement is defined
+    (issue #1078).
+
+  - The pywbem MOF compiler does not roll back changes to qualifier
+    declarations when it aborts (issue #990).
 
 * The implemented CIM metamodel (e.g. in the :ref:`CIM objects`) conforms to
   :term:`DSP0004`.
