@@ -63,46 +63,53 @@ Installation
 Pywbem is a pure Python package and therefore does not have a dependency on
 operating system packages in addition to Python itself. However, some of the
 Python packages used by pywbem have dependencies on additional operating system
-packages for their installation. These additional operating system packages
-must be installed before the pywbem Python package can be installed.
+packages for their installation. Also, on some platforms, manual post-processing
+steps are needed, such as setting up environment variables.
 
-For some environments, post-processing steps are necessary such as setting up
-environment variables.
+This section describes the complete installation of pywbem with all steps
+including prerequisite operating system packages and manual post-processing
+steps, for users of pywbem. As a user of pywbem, you can import the pywbem
+Python package into your programs, and/or you can run the :ref:`WBEM utility
+commands` that come with pywbem.
 
-This section describes the complete installation of pywbem with all steps for
-each of the supported operating systems and Linux distributions
-(see `Supported environments`_ for a list of those), for installing and running
-pywbem.
+If you want to contribute to the pywbem project, you need to set up a
+development and test environment for pywbem. That has a larger set of OS-level
+prerequisites and its setup is described in chapter :ref:`Development`.
 
-The setup of a development and test environment for pywbem is not covered in
-this section, but in chapter :ref:`Development`.
+A note on the ``pywbem_os_setup.sh`` script that is used for installation on
+some platforms: That script installs the Python ``distro`` package into the
+active Python environment. If your active Python environment is a virtual
+Python environment, that package will obviously be installed into that virtual
+environment. If your active Python environment is the system Python
+environment, that package will be installed into the system Python, but as a
+local package for the current user. So it is not visible in the system Python
+of other users, but still visible in the system Python of the current user.
+This is done in order not to pollute the system Python installation with
+additional Python packages that are not known at the OS-level package manager
+(e.g. ``yum`` on RedHat) and thus may be considered a maintenance problem.
 
-Since pywbem 0.11, the installation of prerequisite operating system packages
-can be performed by invoking the ``pywbem_os_setup.sh`` script provided by the
-pywbem project. That script supports the following operating systems and
-Linux distributions:
 
-* Linux RedHat family (RHEL, CentOS, Fedora)
-* Linux Debian family (Ubuntu, Debian)
-* Linux SUSE family (SLES, openSUSE)
-* OS-X
+.. _`Supported environments`:
 
-That script does not support Windows, so a manual setup of the prerequisite
-packages is described for Windows.
+Supported environments
+^^^^^^^^^^^^^^^^^^^^^^
 
-For operating systems and Linux distributions not supported by the script, it
-displays the list of packages that would be needed for the Linux RedHat family,
-the expectation being that this can be translated into packages of your desired
-operating system or Linux distribution.
-If you like to see an additional operating system or Linux distribution
-supported by the script,
-`open an issue <https://github.com/pywbem/pywbem/issues>`_
-and provide the corresponding list of package names for that environment.
+Pywbem is supported in these environments:
 
-The ``pywbem_os_setup.sh`` script installs the Python ``distro`` package into
-the active Python environment. If your active Python environment is the
-system Python environment, that package will be installed as a local package
-for the current user.
+* Operating Systems: Linux, Windows (native, and with UNIX-like environments),
+  OS-X
+
+* Python: 2.6, 2.7, 3.4, 3.5, 3.6 and higher
+
+* WBEM servers: Any WBEM server that conforms to the DMTF specifications listed
+  in :ref:`Standards conformance`. WBEM servers supporting older versions of
+  these standards are also supported, but may have limitations.
+  See :ref:`WBEM servers` for more details.
+
+Limitations:
+
+* On Windows (native), pywbem is not supported on Python 2.6, because the
+  M2CryptoWin32/64 packages do not support Python 2.6.
 
 
 .. _`Installing to Linux`:
@@ -112,43 +119,58 @@ Installing to Linux
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
-  - :download:`pywbem_os_setup.sh <../pywbem_os_setup.sh>` on this documentation site
+  - :download:`pywbem_os_setup.sh <../pywbem_os_setup.sh>` on this site
 
   - `pywbem_os_setup.sh <https://raw.githubusercontent.com/pywbem/pywbem/master/pywbem_os_setup.sh>`_
-    on master branch of pywbem repo
+    on the `master` branch of the pywbem Git repository
 
-* Execute the script:
+  That script installs OS-level prerequisite packages needed by pywbem.
+
+* Execute the ``pywbem_os_setup.sh`` script:
 
   .. code-block:: bash
 
       $ ./pywbem_os_setup.sh
 
-  The script uses ``sudo`` under the covers, so your userid needs to have
-  sudo permission.
+  The script uses ``sudo`` under the covers to invoke the OS-level package
+  manager for your Linux distribution (e.g. ``yum`` on the RedHat family), so
+  the current userid needs to have sudo permission.
 
-  If Swig cannot be installed in the required version, you can build it
-  yourself as described in :ref:`Building Swig`.
+  On older Linux versions, the Swig utility may not be available in the
+  required version. In that case, the ``pywbem_os_setup.sh`` script will report
+  that as an issue and one option on how to proceed is to build Swig yourself
+  as described in :ref:`Building Swig`, and then to repeat execution of the
+  ``pywbem_os_setup.sh`` script.
 
-* In case the script reports that your Linux distribution is not supported for
-  automatic installation of the prerequisite operating system packages, you
-  can still try to find out what the corresponding packages are on your Linux
-  distribution and install them manually. If you do, please
-  `open an issue <https://github.com/pywbem/pywbem/issues>`_ so we can add
-  support for that Linux distribution.
+  In case the script reports that your Linux distribution is not supported by
+  the script, you can still try to find out what the corresponding OS-level
+  packages are on your Linux distribution and install them manually. The script
+  will list the names and versions of the OS-level packages for RedHat in that
+  case, and you would need to find out what the corresponding packages are
+  on your desired Linux distribution. If you were able to find these packages,
+  please `open an issue <https://github.com/pywbem/pywbem/issues>`_ so we can
+  add support for that Linux distribution to the script.
 
-* On Linux Debian family systems with multi-architecture support (e.g. Ubuntu
-  16.04), the structure of openssl header files needed by M2Crypto changed
-  incompatibly. M2Crypto tries to accomodate that incompatbility by detecting
-  multi-architecture support, but on Python 2.6 the interface for that was not
-  yet supported. As a result, the openssl header files are not found during
-  M2Crypto installation with Python 2.6.
+* Only on Python 2.6 on Linux Debian family systems with multi-architecture
+  support (e.g. Ubuntu 16.04 and higher):
 
-  The following quickfix makes the multi-architecture header files available
-  in a compatible way on such systems:
+  Perform the following workaround to make the multi-architecture header files
+  of OpenSSL available in a compatible way (the example is for x86_64 systems):
 
   .. code-block:: bash
 
       $ sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h
+
+  Background: One of the packages needed by pywbem on Python 2 is ``M2Crypto``.
+  During its own installation as a Python package, ``M2Crypto`` needs the
+  OpenSSL header files. On Linux Debian family systems with multi-architecture
+  support, the structure of OpenSSL header files changed incompatibly (compared
+  to earlier versions of these distributions). The installation of ``M2Crypto``
+  tries to accomodate that incompatibility by detecting multi-architecture
+  support, but on Python 2.6 the interface for that was not yet supported. As a
+  result, the OpenSSL header files are not found. The workaround established in
+  this step makes the OpenSSL header files available in a compatible way, so
+  that the ``M2Crypto`` installation finds them.
 
 * Install pywbem (and its prerequisite Python packages) into the active Python
   environment:
@@ -165,26 +187,30 @@ Installing to OS-X
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
-  - :download:`pywbem_os_setup.sh <../pywbem_os_setup.sh>` on this documentation site
+  - :download:`pywbem_os_setup.sh <../pywbem_os_setup.sh>` on this site
   - `pywbem_os_setup.sh <https://raw.githubusercontent.com/pywbem/pywbem/master/pywbem_os_setup.sh>`_
-    on master branch of pywbem repo
+    on the `master` branch of the pywbem Git repository
 
-* Execute the script:
+  That script installs OS-level prerequisite packages needed by pywbem.
+
+* Execute the ``pywbem_os_setup.sh`` script:
 
   .. code-block:: bash
 
       $ ./pywbem_os_setup.sh
 
-  The script uses ``sudo`` under the covers, so your userid needs to have
+  The script uses ``sudo`` under the covers to invoke ``brew`` (Homebrew
+  project) to install OS-level packages, so the current userid needs to have
   sudo permission.
 
-  The script uses the ``brew`` command (Homebrew project) to install packages.
+* Only on Python 2 on newer OS-X releases:
 
-* With Python 2, the script installs the ``openssl`` package needed by the
-  M2Crypto Python package. On newer OS-X releases, you may see a notice that
-  the ``openssl`` package is "not linked" because the TLS implementation
+  The ``pywbem_os_setup.sh`` script installs the ``openssl`` package needed by
+  the M2Crypto Python package. On newer OS-X releases, you may see a notice
+  that the ``openssl`` package is "not linked" because the TLS implementation
   provided with OS-X is available. In that case, you need to set up the
-  following environment variables for use by the pywbem package installation:
+  following environment variables for use by the pywbem package installation
+  described in the next step:
 
   .. code-block:: bash
 
@@ -201,25 +227,21 @@ Installing to OS-X
       $ pip install pywbem
 
 
-.. _`Installing to Windows`:
+.. _`Installing to native Windows`:
 
-Installing to Windows
-^^^^^^^^^^^^^^^^^^^^^
+Installing to native Windows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The pywbem tests that run on the Appveyor CI use CygWin, but for just running
-pywbem you should be able to use plain Windows or any Unix-like environment on
-Windows (such as CygWin, MinGW, Babun, or Gow).
+This section describes the installation of pywbem into a native Windows
+environment (i.e. without using a UNIX-like environment such as CygWin, etc.):
 
-Note that Unix-like environments on Windows bring their own Python, so double
-check that the active Python environment is the one you want to install to.
+* Determine the bit size of the active Python environment, for example as
+  follows:
 
-Some of the steps described below depend on the bit size of the active Python
-environment. You can detect that bit size as follows:
+  .. code-block:: bash
 
-.. code-block:: bash
-
-    > python -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
-    64
+      > python -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
+      64
 
 * Install the Windows build of M2Crypto into the active Python environment:
 
@@ -239,12 +261,36 @@ environment. You can detect that bit size as follows:
   Swig at their installation time. Therefore, there are no prerequisite
   OS-level packages to install.
 
-* Install pywbem (and its prerequisite Python packages) into the active
+* Install pywbem (and its other prerequisite Python packages) into the active
   Python environment:
 
   .. code-block:: bash
 
       > pip install pywbem
+
+
+.. _`Installing to a UNIX-like environment under Windows`:
+
+Installing to a UNIX-like environment under Windows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This section describes the installation of pywbem into a UNIX-like environment
+under Windows (such as CygWin, MinGW, Babun, or Gow).
+
+Note that Unix-like environments on Windows bring their own Python, so in such
+an environment, you install into that Python, and not into the Python of
+Windows.
+
+* Install pywbem (and its other prerequisite Python packages) into the active
+  Python environment:
+
+  .. code-block:: bash
+
+      > pip install pywbem
+
+  If the Swig compilation during installation of M2Crypto fails, there may be
+  components of the UNIX-like environment missing (e.g. OpenSSL development,
+  Python development, Swig, gcc).
 
 
 .. _`Installing into a different Python environment`:
@@ -348,7 +394,7 @@ can be installed.
 
   .. code-block:: bash
 
-      $ pip install git+https://github.com/pywbem/pywbem.git@master
+      $ pip install git+https://github.com/pywbem/pywbem.git@master#egg=pywbem
 
 .. _pywbem Git repository: https://github.com/pywbem/pywbem
 
@@ -379,7 +425,9 @@ Prerequisite operating system packages for install
 
 The following table lists the prerequisite operating system packages along with
 their version requirements for installing and running pywbem, for the
-supported operating systems and Linux distributions.
+supported operating systems and Linux distributions. This list is for
+reference only, because the installation steps in the previous sections already
+take care of getting these packages installed.
 
 The prerequisite operating system packages for developing pywbem are not listed
 in this table; you can find them in section
@@ -418,7 +466,15 @@ in this table; you can find them in section
 |                          +--------------------+----------------------+-------+
 |                          | swig               | >=2.0                | py2   |
 +--------------------------+--------------------+----------------------+-------+
-| Windows                  | None               |                      |       |
+| Windows (native)         | None               |                      |       |
++--------------------------+--------------------+----------------------+-------+
+| Windows (UNIX-like env)  | OpenSSL developm.  |                      | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | Python development |                      | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | gcc                |                      | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | swig               |                      | py2   |
 +--------------------------+--------------------+----------------------+-------+
 
 Notes:
@@ -476,23 +532,6 @@ The version of the pywbem package can be accessed by programs using the
 Note: For tooling reasons, the variable is shown as
 ``pywbem._version.__version__``, but it should be used as
 ``pywbem.__version__``.
-
-
-.. _`Compatibility`:
-.. _`Supported environments`:
-
-Supported environments
-----------------------
-
-Pywbem is supported in these environments:
-
-* Operating Systems: Linux, Windows, OS-X
-* Python: 2.6, 2.7, 3.4, 3.5, 3.6
-
-Limitations:
-
-* On Windows, pywbem is not supported on Python 2.6, because M2Crypto in the
-  M2CryptoWin32/64 packages does not support Python 2.6.
 
 
 .. _`Standards conformance`:
@@ -640,52 +679,61 @@ Configuration variables
 .. automodule:: pywbem.config
       :members:
 
+
 .. _`WBEM Servers`:
 
 WBEM servers
 ------------
 
-Pywbem supports communication with any WBEM server that conforms to the
-DMTF specifications. See section  :ref:`Standards conformance`.
-
-Server Specific Features
+Server-specific features
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are some specific non-specification features that are included in
-pywbem for support of WBEM server specific features including:
+Pywbem supports the following features of some specific WBEM servers that are
+additions to the DMTF standards:
 
-1. OpenWBEM server - includes support for an authentication extension
-(OWLocal password-less local authorization) that is part of the OpenWBEM server.
+1. `OpenPegasus <https://collaboration.opengroup.org/pegasus/>`_
 
-2. OpenPegasus - includes support for the special interop namespace that may
-be used in some OpenPegasus implements `root/PG_InterOp`. Most implementations
-have moved to supporting the standard namespace (`interop`, 'root/interop') but
-for backward compatibility, this old interop namespace name was included in
-the table of namespaces that are searched by the
-`WBEMServer.get_interop_namespace()` method).
+   - Pywbem supports the Interop namespace ``root/PG_InterOp`` that is specific
+     to OpenPegasus. OpenPegasus also supports the standard Interop namespaces
+     (``interop``, ``root/interop``) but for backwards compatibility with
+     earlier versions of OpenPegasus, pywbem supports this old Interop
+     namespace, for example in its Interop namespace determination whose result
+     is exposed in the :attr:`pywbem.WBEMServer.interop_ns` property.
 
-3. OpenPegasus - Supports a mixed-case attribute name `EmbeddedObject` in XML
-responses that was defined in error in some old versions of OpenPegasus
-in addtion to the correct upper case.
+   - Pywbem supports the upper-case variant ``EMBEDDEDOBJECT`` of the respective
+     CIM-XML attribute that is specific to OpenPegasus, in addition to the
+     mixed-case variant ``EmbeddedObject`` that is defined in the
+     :term:`DSP0201` standard and that is also supported by OpenPegasus. Older
+     versions of OpenPegasus supported only the upper-case variant.
 
-4. Supports a specific Unix Domain Socket call (the name of the domanin socket)
-for multiple different servers as subclasses of WBEMConnection including:
+   - Pywbem supports a connection to an OpenPegasus server using Unix Domain
+     Sockets through its :class:`~pywbem.PegasusUDSConnection` subclass of
+     :class:`~pywbem.WBEMConnection`.
 
-* OpenPegasus PegasusUDSConnection
-* OpenWBEM - OpenWBEMUDSConnection
-* SFCB(Small Footprint CIM Broker) - SFCBUDSConnection
+2. `SFCB (Small Footprint CIM Broker) <https://sourceforge.net/projects/sblim/files/sblim-sfcb/>`_
 
-WBEM Server Testing
+   - Pywbem supports a connection to an SFCB server using Unix Domain
+     Sockets through its :class:`~pywbem.SFCBUDSConnection` subclass of
+     :class:`~pywbem.WBEMConnection`.
+
+3. `OpenWBEM <https://sourceforge.net/projects/openwbem/>`_
+
+   - Pywbem supports the `OWlocal` authentication extension of OpenWBEM, which
+     is a password-less local authorization.
+
+   - Pywbem supports a connection to an OpenWBEM server using Unix Domain
+     Sockets through its :class:`~pywbem.OpenWBEMUDSConnection` subclass of
+     :class:`~pywbem.WBEMConnection`.
+
+
+WBEM server testing
 ^^^^^^^^^^^^^^^^^^^
 
 Today the pywbem project tests primarily against current versions of the
 OpenPegasus WBEM server because that server is available to the project.
 
-These tests are captured in the testsuite run_cimoperations.py. Note that
-generally the tests that are server specific only run against the defined
+These tests are captured in the test script ``run_cimoperations.py``. Note that
+generally those tests that are server-specific only run against the defined
 server so that there are a number of tests that run only against the
 OpenPegasus server. This includes some tests that use specific providers
 in the OpenPegasus server to set up tests such as indication tests.
-
-
-
