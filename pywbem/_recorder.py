@@ -147,10 +147,10 @@ class OpArgs(OpArgsTuple):
 
     Attributes:
 
-      method (:term:`unicode string`):
+      ~OpArgs.method (:term:`unicode string`):
         Name of the :class:`~pywbem.WBEMConnection` method.
 
-      args (:class:`py:dict`):
+      ~OpArgs.args (:class:`py:dict`):
         Dictionary of input arguments (both positional and keyword-based).
     """
     __slots__ = ()
@@ -172,14 +172,14 @@ class OpResult(OpResultTuple):
 
     Attributes:
 
-      ret (:class:`py:object`):
+      ~OpResult.ret (:class:`py:object`):
         Return value, if the method returned.
         `None`, if the method raised an exception.
 
         Note that `None` may be a legitimate return value, so the test for
         exceptions should be done based upon the :attr:`exc` variable.
 
-      exc (:exc:`~py:exceptions.Exception`):
+      ~OpResult.exc (:exc:`~py:exceptions.Exception`):
         Exception object, if the method raised an exception.
         `None`, if the method returned.
     """
@@ -196,33 +196,34 @@ HttpRequestTuple = namedtuple("HttpRequestTuple",
 
 class HttpRequest(HttpRequestTuple):
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
+    **Experimental** *New in pywbem 0.9 as experimental.*
 
     A named tuple representing the HTTP request sent by the WBEM client, with
     the following named fields and attributes:
 
     Attributes:
 
-      version (:term:`number`):
+      ~HttpRequest.version (:term:`number`):
         HTTP version from the request line (10 for HTTP/1.0, 11 for HTTP/1.1).
 
-      url (:term:`unicode string`):
+      ~HttpRequest.url (:term:`unicode string`):
         URL of the WBEM server (e.g. 'https://myserver.acme.com:15989').
 
-      target (:term:`unicode string`):
+      ~HttpRequest.target (:term:`unicode string`):
         Target URL segment as stated in request line (e.g. '/cimom').
 
-      method (:term:`unicode string`):
+      ~HttpRequest.method (:term:`unicode string`):
         HTTP method as stated in the request line (e.g. "POST").
 
-      headers (:class:`py:dict`):
+      ~HttpRequest.headers (:class:`py:dict`):
         A dictionary of all HTTP header fields:
 
         * key (:term:`unicode string`): Name of the header field
         * value (:term:`unicode string`): Value of the header field
 
-      payload (:term:`unicode string`):
+      ~HttpRequest.payload (:term:`unicode string`):
         HTTP payload, i.e. the CIM-XML string.
+
     """
     __slots__ = ()
 
@@ -247,22 +248,22 @@ class HttpResponse(HttpResponseTuple):
 
     Attributes:
 
-      version (:term:`number`):
+      ~HttpResponse.version (:term:`number`):
         HTTP version from the response line (10 for HTTP/1.0, 11 for HTTP/1.1).
 
-      status (:term:`number`):
+      ~HttpResponse.status (:term:`number`):
         HTTP status code from the response line (e.g. 200).
 
-      reason (:term:`unicode string`):
+      ~HttpResponse.reason (:term:`unicode string`):
         HTTP reason phrase from the response line (e.g. "OK").
 
-      headers (:class:`py:dict`):
+      ~HttpResponse.headers (:class:`py:dict`):
         A dictionary of all HTTP header fields:
 
         * key (:term:`unicode string`): Name of the header field
         * value (:term:`unicode string`): Value of the header field
 
-      payload (:term:`unicode string`):
+      ~HttpResponse.payload (:term:`unicode string`):
         HTTP payload, i.e. the CIM-XML string.
     """
     __slots__ = ()
