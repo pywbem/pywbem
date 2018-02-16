@@ -4168,9 +4168,9 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
                     print('======%s XML=====\n%s' % (inst.path, str_xml))
 
                 # confirm general characteristics of mof output
-                self.assertRegexpMatches(
+                self.assert_regexp_matches(
                     str_mof, r"instance of Test_CLITestEmbeddedClass {")
-                self.assertRegexpContains(
+                self.assert_regexp_contains(
                     str_mof.replace('\n', ' '),
                     r"embeddedInst = +\"instance of Test_CLITestEmbedded1 {")
 
@@ -4276,7 +4276,7 @@ class PyWBEMServerClass(PegasusServerTestBase):
 
         if self.is_pegasus_server():
             self.assertEqual(server.brand, 'OpenPegasus')
-            self.assertRegexpMatches(server.version, r"^2\.1[0-7]\.[0-7]$")
+            self.assert_regexp_matches(server.version, r"^2\.1[0-7]\.[0-7]$")
         else:
             # Do not know what server it is so just display
             print("Brand: %s" % server.brand)
@@ -5986,7 +5986,7 @@ class PyWBEMListenerClass(PyWBEMServerClass, RegexpMixin):
             # Confirm structure of the name element without any id components
             # NOTE: The uuid from uuid4 is actually 36 char but not we made it
             # 30-40 in case format changes in future.
-            self.assertRegexpMatches(
+            self.assert_regexp_matches(
                 filter_path.keybindings['Name'],
                 r'^pywbemfilter:owned:fred2:MyfilterId:[0-9a-f-]{30,40}\Z')
             subscriptions = sub_mgr.add_subscriptions(server_id,
@@ -6079,7 +6079,7 @@ class PyWBEMListenerClass(PyWBEMServerClass, RegexpMixin):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexpMatches(
+                self.assert_regexp_matches(
                     name,
                     r'^pywbemfilter:owned:pegTestListener:fred:' +
                     r'[0-9a-f-]{30,40}\Z')
@@ -6091,7 +6091,7 @@ class PyWBEMListenerClass(PyWBEMServerClass, RegexpMixin):
                 query_language="DMTF:CQL", filter_id='test_id_attributes1')
             filter_path2 = filter2.path
 
-            self.assertRegexpMatches(
+            self.assert_regexp_matches(
                 filter_path2.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes1:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -6102,7 +6102,7 @@ class PyWBEMListenerClass(PyWBEMServerClass, RegexpMixin):
                 query_language="DMTF:CQL", filter_id='test_id_attributes2')
             filter_path3 = filter3.path
 
-            self.assertRegexpMatches(
+            self.assert_regexp_matches(
                 filter_path3.keybindings['Name'],
                 r'^pywbemfilter:owned:pegTestListener:test_id_attributes2:' +
                 r'[0-9a-f-]{30,40}\Z')
@@ -6185,7 +6185,7 @@ class PyWBEMListenerClass(PyWBEMServerClass, RegexpMixin):
             self.assertEqual(len(owned_filter_paths), 1)
             for path in owned_filter_paths:
                 name = path.keybindings['Name']
-                self.assertRegexpMatches(
+                self.assert_regexp_matches(
                     name,
                     r'^pywbemfilter:owned:pegTestMgr:fred:[0-9a-f-]{30,40}\Z')
             self.assertTrue(filter_path in owned_filter_paths)

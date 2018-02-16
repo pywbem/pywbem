@@ -920,8 +920,8 @@ class CIMInstanceNameCopy(unittest.TestCase, CIMObjectMixin):
         c.host = None
         c.namespace = None
 
-        self.assertCIMInstanceName(i, 'CIM_Foo', {'InstanceID': '1234'},
-                                   'woot.com', 'root/cimv2')
+        self.assert_CIMInstanceName_attrs(i, 'CIM_Foo', {'InstanceID': '1234'},
+                                          'woot.com', 'root/cimv2')
 
 
 class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
@@ -939,8 +939,8 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
                               namespace='root/cimv2',
                               host='woot.com')
 
-        self.assertCIMInstanceName(obj, 'CIM_Foo', kb,
-                                   'woot.com', 'root/cimv2')
+        self.assert_CIMInstanceName_attrs(obj, 'CIM_Foo', kb,
+                                          'woot.com', 'root/cimv2')
 
         # Check that attributes can be modified
 
@@ -986,8 +986,8 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
         obj.host = 'woom.com'
         obj.namespace = 'root/interop'
 
-        self.assertCIMInstanceName(obj, 'CIM_Bar', exp_kb2,
-                                   'woom.com', 'root/interop')
+        self.assert_CIMInstanceName_attrs(obj, 'CIM_Bar', exp_kb2,
+                                          'woom.com', 'root/interop')
 
         # Setting classname to None
 
@@ -6701,8 +6701,8 @@ class CIMPropertyCopy(unittest.TestCase, CIMObjectMixin):
         c.value = '1234'
         c.qualifiers = {'Key': CIMQualifier('Key', True)}
 
-        self.assertCIMProperty(p, 'Spotty', 'Foot', type_='string',
-                               qualifiers={})
+        self.assert_CIMProperty_attrs(p, 'Spotty', 'Foot', type_='string',
+                                      qualifiers={})
 
 
 class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
@@ -6712,13 +6712,14 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
         # Attributes for single-valued property
 
         obj = CIMProperty('Spotty', 'Foot')
-        self.assertCIMProperty(obj, 'Spotty', 'Foot', type_='string')
+        self.assert_CIMProperty_attrs(obj, 'Spotty', 'Foot', type_='string')
 
         # Attributes for array property
 
         v = [Uint8(x) for x in [1, 2, 3]]
         obj = CIMProperty('Foo', v)
-        self.assertCIMProperty(obj, 'Foo', v, type_='uint8', is_array=True)
+        self.assert_CIMProperty_attrs(obj, 'Foo', v, type_='uint8',
+                                      is_array=True)
 
         # Attributes for property reference
 
@@ -6726,7 +6727,7 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
         # reference_class argument was required to be provided for references.
         v = CIMInstanceName('CIM_Bar')
         obj = CIMProperty('Foo', v)
-        self.assertCIMProperty(obj, 'Foo', v, type_='reference')
+        self.assert_CIMProperty_attrs(obj, 'Foo', v, type_='reference')
 
         if CHECK_0_12_0:
             # Check that name cannot be set to None
