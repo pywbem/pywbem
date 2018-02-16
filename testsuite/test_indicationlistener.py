@@ -182,67 +182,63 @@ class TestIndications(unittest.TestCase):
         global RCV_FAIL  # pylint: disable=global-statement
         RCV_FAIL = False
         host = 'localhost'
+        try:
+            self.createlistener(host, http_port)
 
-        self.createlistener(host, http_port)
+            start_time = time()
 
-        start_time = time()
+            full_url = 'http://%s:%s' % (host, http_port)
 
-        full_url = 'http://%s:%s' % (host, http_port)
+            cim_protocol_version = '1.4'
 
-        if VERBOSE:
-            print('full_url=%s' % full_url)
+            headers = {'content-type': 'application/xml; charset=utf-8',
+                       'CIMExport': 'MethodRequest',
+                       'CIMExportMethod': 'ExportIndication',
+                       'Accept-Encoding': 'Identity',
+                       'CIMProtocolVersion': cim_protocol_version}
+            # We include accept-encoding because of requests issue.
+            # He supplies it if we don't.  TODO try None
 
-        cim_protocol_version = '1.4'
+            delta_time = time() - start_time
+            rand_base = randint(1, 10000)
+            timer = ElapsedTimer()
+            for i in range(send_count):
 
-        headers = {'content-type': 'application/xml; charset=utf-8',
-                   'CIMExport': 'MethodRequest',
-                   'CIMExportMethod': 'ExportIndication',
-                   'Accept-Encoding': 'Identity',
-                   'CIMProtocolVersion': cim_protocol_version}
-        # includes accept-encoding because of requests issue.
-        # He supplies it if don't TODO try None
+                msg_id = '%s' % (i + rand_base)
+                payload = create_indication_data(msg_id, i, delta_time,
+                                                 cim_protocol_version)
 
-        delta_time = time() - start_time
-        rand_base = randint(1, 10000)
-        timer = ElapsedTimer()
-        for i in range(send_count):
-
-            msg_id = '%s' % (i + rand_base)
-            payload = create_indication_data(msg_id, i, delta_time,
-                                             cim_protocol_version)
-
-            if VERBOSE:
-                print('headers=%s\n\npayload=%s' % (headers, payload))
-
-            success = send_indication(full_url, headers, payload, VERBOSE)
-
-            if success:
                 if VERBOSE:
-                    print('sent # %s' % i)
-            else:
-                self.fail('Error return from send. Terminating.')
+                    print('headers=%s\n\npayload=%s' % (headers, payload))
 
-        endtime = timer.elapsed_sec()
-        print('Sent %s in %s sec or %.2f ind/sec' % (send_count, endtime,
-                                                     (send_count / endtime)))
+                success = send_indication(full_url, headers, payload, VERBOSE)
 
-        self.assertEqual(send_count, RCV_COUNT,
-                         'Mismatch between sent and rcvd')
-        self.assertFalse(RCV_FAIL, 'Sequence numbers do not match')
-        RCV_FAIL = False
-        LISTENER.stop()
+                if success:
+                    if VERBOSE:
+                        print('sent # %s' % i)
+                else:
+                    self.fail('Error return from send. Terminating.')
 
-    # TODO issue 452. Reuse of the indication listener fails at least in py3,
-    # therefore we use different port for each test.
+            endtime = timer.elapsed_sec()
+            print('Sent %s indications in %s sec or %.2f ind/sec' %
+                  (send_count, endtime, (send_count / endtime)))
+
+            self.assertEqual(send_count, RCV_COUNT,
+                             'Mismatch between sent and rcvd')
+            self.assertFalse(RCV_FAIL, 'Sequence numbers do not match')
+            RCV_FAIL = False
+        finally:
+            LISTENER.stop()
+
     def test_send_10(self):
         """Test with sending 10 indications"""
-        self.send_indications(10, 5000, None)
+        self.send_indications(10, 50000, None)
 
     def test_send_100(self):
         """Test sending 100 indications"""
-        self.send_indications(100, 5001, None)
+        self.send_indications(100, 50000, None)
 
-    # Disabled the following test, because in some environments it takes 30min.
+    # Disabled the following tests, because in some environments it takes 30min.
     # def test_send_1000(self):
     #     """Test sending 1000 indications"""
     #     self.send_indications(1000, 5002, None)
