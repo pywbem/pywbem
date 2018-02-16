@@ -245,7 +245,7 @@ class FakedWBEMConnection(WBEMConnection):
     PYWBEM_MOCK_LOGGER before FakedWBEMConnection is executed including
     setting the destination, and log leve. Logging is only output if the
     log level is DEBUG For example the following code enables the a
-    stream logger to the console:
+    stream logger to the console::
 
         logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
         logger.setLevel(logging.getLevelName('DEBUG'))
@@ -254,7 +254,6 @@ class FakedWBEMConnection(WBEMConnection):
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
