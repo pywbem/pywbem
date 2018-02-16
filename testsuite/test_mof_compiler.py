@@ -723,7 +723,7 @@ class TestTypes(MOFTest, CIMObjectMixin):
             classname='EX_AllTypes',
             properties=exp_ac_properties
         )
-        self.assertEqualCIMClass(ac_class, exp_ac_class)
+        self.assert_CIMClass_obj(ac_class, exp_ac_class)
 
 
 def _build_scope(set_true=None):

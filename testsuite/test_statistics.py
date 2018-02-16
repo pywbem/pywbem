@@ -347,9 +347,9 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
         # test repr output
         stat_repr = repr(statistics)
 
-        self.assertRegexpMatches(stat_repr, r'Statistics\(')
+        self.assert_regexp_matches(stat_repr, r'Statistics\(')
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             stat_repr,
             r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
             r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
@@ -359,7 +359,7 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
             r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
             r" max_reply_len=[0-9]{5}")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             stat_repr,
             r"OperationStatistic\(name='EnumerateInstances', count=3, "
             r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
@@ -373,19 +373,19 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
 
         report = statistics.formatted()
 
-        self.assertRegexpMatches(
+        self.assert_regexp_matches(
             report, r'Statistics \(times in seconds, lengths in Bytes\)')
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report, r"Count Excep *Time *RequestLen *ReplyLen *Operation")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report,
             r" +3 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
             r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
             r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstances")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report,
             r" +1 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
             r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
@@ -417,11 +417,11 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
         stat_repr = repr(statistics)
 
         # test repr output
-        self.assertRegexpMatches(
+        self.assert_regexp_matches(
             stat_repr,
             'Statistics\(')  # pylint: disable=anomalous-backslash-in-string
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             stat_repr,
             r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
             r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
@@ -432,7 +432,7 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
             r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
             r" max_reply_len=[0-9]{5}")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             stat_repr,
             r"OperationStatistic\(name='EnumerateInstances', count=3, "
             r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
@@ -443,14 +443,14 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
             r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
             r"max_reply_len=[0-9]{5}")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             stat_repr,
             r"OperationStatistic\(name='EnumerateInstances', count=3, "
             r"exception_count=0, avg_time=.+min_time=.+max_time=.+"
             r"avg_server_time=.+min_server_time.+max_server_time=.+"
             r"max_reply_len=[0-9]{5}")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             stat_repr,
             r"OperationStatistic\(name='EnumerateInstanceNames', count=1, "
             r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
@@ -462,21 +462,21 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
 
         report = statistics.formatted()
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report,
             r'Count Excep +Time +ServerTime +RequestLen +ReplyLen +Operation')
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report,
             r'Cnt +Avg +Min +Max +Avg +Min +Max +Avg +Min +Max')
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report,
             r"3     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
             r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
             r"EnumerateInstances")
 
-        self.assertRegexpContains(
+        self.assert_regexp_contains(
             report,
             r"1     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
             r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
