@@ -233,7 +233,8 @@ Installing to native Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This section describes the installation of pywbem into a native Windows
-environment (i.e. without using a UNIX-like environment such as CygWin, etc.):
+environment (i.e. without using a UNIX-like environment; for that, see
+:ref:`Installing to a UNIX-like environment under Windows`):
 
 * Determine the bit size of the active Python environment, for example as
   follows:
@@ -289,8 +290,11 @@ Windows.
       > pip install pywbem
 
   If the Swig compilation during installation of M2Crypto fails, there may be
-  components of the UNIX-like environment missing (e.g. OpenSSL development,
-  Python development, Swig, gcc).
+  components of the UNIX-like environment missing. When using CygWin, these
+  may be installed using the CygWin setup program, and the packages are listed
+  in :ref:`Prerequisite operating system packages for install`. For other
+  UNIX-like environments, there should be similar packages (please tell us by
+  `opening an issue <https://github.com/pywbem/pywbem/issues>`_).
 
 
 .. _`Installing into a different Python environment`:
@@ -468,11 +472,11 @@ in this table; you can find them in section
 +--------------------------+--------------------+----------------------+-------+
 | Windows (native)         | None               |                      |       |
 +--------------------------+--------------------+----------------------+-------+
-| Windows (UNIX-like env)  | OpenSSL developm.  |                      | py2   |
+| Windows (CygWin)         | openssl-devel      |                      | py2   |
 |                          +--------------------+----------------------+-------+
-|                          | Python development |                      | py2   |
+|                          | python2-devel      |                      | py2   |
 |                          +--------------------+----------------------+-------+
-|                          | gcc                |                      | py2   |
+|                          | gcc-g++            |                      | py2   |
 |                          +--------------------+----------------------+-------+
 |                          | swig               |                      | py2   |
 +--------------------------+--------------------+----------------------+-------+
@@ -701,10 +705,10 @@ additions to the DMTF standards:
      is exposed in the :attr:`pywbem.WBEMServer.interop_ns` property.
 
    - Pywbem supports the upper-case variant ``EMBEDDEDOBJECT`` of the respective
-     CIM-XML attribute that is specific to OpenPegasus, in addition to the
-     mixed-case variant ``EmbeddedObject`` that is defined in the
+     CIM-XML attribute that is specific to some releases of OpenPegasus, in
+     addition to the mixed-case variant ``EmbeddedObject`` that is defined in the
      :term:`DSP0201` standard and that is also supported by OpenPegasus. Older
-     versions of OpenPegasus supported only the upper-case variant.
+     releases of OpenPegasus supported only the upper-case variant.
 
    - Pywbem supports a connection to an OpenPegasus server using Unix Domain
      Sockets through its :class:`~pywbem.PegasusUDSConnection` subclass of
