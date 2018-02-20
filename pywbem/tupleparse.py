@@ -84,7 +84,7 @@ import six
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration, _stacklevel_above_module
+    CIMQualifierDeclaration, _stacklevel_above_module, NocaseDict
 from .cim_types import CIMDateTime, type_from_name
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError
@@ -1084,7 +1084,10 @@ def parse_scope(tup_tree):
                ['CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY', 'METHOD',
                 'PARAMETER', 'INDICATION'], [])
 
-    scopes = {}  # Attributes do not preserve order, so we use standard dict()
+    # Even though XML attributes do not preserve order, we store the
+    # scopes in an ordered dict to avoid a warning further down the
+    # road.
+    scopes = NocaseDict()
     for k, v in attrs(tup_tree).items():
         v_ = unpack_boolean(v)
         if v_ is None:
