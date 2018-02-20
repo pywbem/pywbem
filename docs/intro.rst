@@ -609,7 +609,7 @@ specified when following the links to the standards:
 Deprecation and compatibility policy
 ------------------------------------
 
-Since its version 0.7.0, pywbem attempts to be as backwards compatible as
+Since version 0.7.0, pywbem attempts to be as backwards compatible as
 possible.
 
 Compatibility of pywbem is always seen from the perspective of the user of the
@@ -638,8 +638,8 @@ The deprecated functionality is still supported at least throughout new minor
 or update releases within the same major release. Eventually, a new major
 release may break compatibility by removing deprecated functionality.
 
-Incompatible changes at the pywbem APIs or utility commands are described in
-the :ref:`Change log`.
+Any changes at the pywbem APIs or utility commands that do introduce
+incompatibilities as defined above, are described in the :ref:`Change log`.
 
 Deprecation of functionality at the pywbem APIs or utility commands is
 communicated to the users in multiple ways:
