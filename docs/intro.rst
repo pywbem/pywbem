@@ -608,29 +608,52 @@ specified when following the links to the standards:
   :ref:`WBEM indication API` conform to :term:`DSP1054`.
 
 
-.. _`Deprecation policy`:
+.. _`Deprecation and compatibility policy`:
 
-Deprecation policy
-------------------
+Deprecation and compatibility policy
+------------------------------------
 
-Since its v0.7.0, Pywbem attempts to be as backwards compatible as possible.
+Since version 0.7.0, pywbem attempts to be as backwards compatible as
+possible.
 
-However, in an attempt to clean up some of its history, and in order to prepare
-for future additions, the Python namespaces visible to users of pywbem need to
-be cleaned up.
+Compatibility of pywbem is always seen from the perspective of the user of the
+pywbem APIs or pywbem utility commands. Thus, a backwards compatible new
+version of pywbem means that a user can safely upgrade to that new version
+without encountering compatibility issues for their code using the pywbem APIs
+or for their scripts using the pywbem utility commands.
 
-Also, occasionally functionality needs to be retired, because it is flawed and
-a better but incompatible replacement has emerged.
+Having said that, there is always the possibility that even a bug fix changes
+some behavior a user was dependent upon. Over time, the pywbem project has put
+automated regression testing in place that tests the behavior at the APIs,
+but such compatibility issues cannot be entirely excluded.
 
-In pywbem, such changes are done by deprecating existing functionality, without
-removing it. The deprecated functionality is still supported throughout new
-minor releases. Eventually, a new major release will break compatibility and
-will remove the deprecated functionality.
+Pywbem uses the rules of `Semantic Versioning 2.0.0`_ for compatibility
+between versions, and for deprecations. The public interface that is subject to
+the semantic versioning rules and specificically to its compatibility rules are
+the various pywbem APIs described in this documentation, and the command line
+interface of the pywbem utility commands.
 
-In order to prepare users of pywbem for that, deprecation of functionality is
-stated in the API documentation, and is made visible at runtime by issuing
-Python warnings of type ``DeprecationWarning`` (see the Python
-:mod:`py:warnings` module).
+.. _Semantic Versioning 2.0.0: http://semver.org/spec/v2.0.0.html
+
+Occasionally functionality needs to be retired, because it is flawed and a
+better but incompatible replacement has emerged. In pywbem, such changes are
+done by deprecating existing functionality, without removing it immediately.
+The deprecated functionality is still supported at least throughout new minor
+or update releases within the same major release. Eventually, a new major
+release may break compatibility by removing deprecated functionality.
+
+Any changes at the pywbem APIs or utility commands that do introduce
+incompatibilities as defined above, are described in the :ref:`Change log`.
+
+Deprecation of functionality at the pywbem APIs or utility commands is
+communicated to the users in multiple ways:
+
+* It is described in the documentation of the API or utility command
+
+* It is mentioned in the change log.
+
+* It is raised at runtime by issuing Python warnings of type
+  ``DeprecationWarning`` (see the Python :mod:`py:warnings` module).
 
 Since Python 2.7, ``DeprecationWarning`` messages are suppressed by default.
 They can be shown for example in any of these ways:
@@ -645,16 +668,13 @@ deprecated functionality.
 Here is a summary of the deprecation and compatibility policy used by pywbem,
 by release type:
 
-* New update release (M.N.U -> M.N.U+1): No new deprecations; fully backwards
-  compatible.
-* New minor release (M.N.U -> M.N+1.0): New deprecations may be added; as
-  backwards compatible as possible.
+* New update release (M.N.U -> M.N.U+1): No new deprecations; no new
+  functionality; backwards compatible.
+* New minor release (M.N.U -> M.N+1.0): New deprecations may be added;
+  functionality may be extended; backwards compatible.
 * New major release (M.N.U -> M+1.0.0): Deprecated functionality may get
-  removed; backwards compatibility may be broken.
-
-Compatibility is always seen from the perspective of the user of pywbem, so a
-backwards compatible new pywbem release means that the user can safely upgrade
-to that new release without encountering compatibility issues.
+  removed; functionality may be extended or changed; backwards compatibility
+  may be broken.
 
 
 .. _'Python namespaces`:
