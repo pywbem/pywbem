@@ -44,26 +44,34 @@ The following example creates and runs a listener::
 
         certkeyfile = 'listener.pem'
 
-        url1 = 'http://server1'
-        conn1 = WBEMConnection(url1)
-        server1 = WBEMServer(conn1)
-        server1.determine_interop_ns()
-
-        url2 = 'http://server2'
-        conn2 = WBEMConnection(url2)
-        server2 = WBEMServer(conn2)
-        server2.validate_interop_ns('root/PG_InterOp')
-
-        my_listener = WBEMListener(host=getfqdn()
+        listener = WBEMListener(host=getfqdn()
                                 http_port=5988,
                                 https_port=5989,
                                 certfile=certkeyfile,
                                 keyfile=certkeyfile)
-        my_listener.add_callback(process_indication)
+        listener.add_callback(process_indication)
+
+        try:
+            listener.start()
+
+            # process_indication() will be called for each received indication
+
+            ... # wait for some condition to end listening
+
+        finally:
+            listener.stop()
+
+Alternative code using the class as a context manager::
+
+    with WBEMListener(...) as listener:
+        listener.add_callback(process_indication)
         listener.start()
 
-            # listener runs until executable terminated
-            # or listener.stop()
+        # process_indication() will be called for each received indication
+
+        ... # wait for some condition to end listening
+
+    # listener.stop() has been called automatically
 
 See the example in section :ref:`WBEMSubscriptionManager` for an example of
 using a listener in combination with a subscription manager.
@@ -73,6 +81,8 @@ clone the GitHub pywbem/pywbem project). It is an interactive Python shell that
 creates a listener and displays any indications it receives, in MOF format.
 """
 
+import sys
+import errno
 import re
 import logging
 try:  # Python 2.7+
@@ -549,6 +559,10 @@ class WBEMListener(object):
     The listener supports starting and stopping threads that listen for
     CIM-XML ExportIndication messages using HTTP and/or HTTPS, and that pass
     any received indications on to registered callback functions.
+
+    The listener must be stopped in order to free the TCP/IP port it listens
+    on. Using this class as a context manager ensures that the listener is
+    stopped when leaving the context manager scope.
     """
 
     def __init__(self, host, http_port=None, https_port=None,
@@ -649,6 +663,27 @@ class WBEMListener(object):
                 self.https_port, self.certfile, self.keyfile, self.logger,
                 self._callbacks)
 
+    def __enter__(self):
+        """
+        *New in pywbem 0.12.*
+
+        Enter method when the class is used as a context manager.
+
+        Returns the listener object.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        *New in pywbem 0.12.*
+
+        Exit method when the class is used as a context manager.
+
+        Stops the listener by calling :meth:`~pywbem.WBEMListener.stop`.
+        """
+        self.stop()
+        return False  # re-raise any exceptions
+
     @property
     def host(self):
         """The IP address or host name this listener can be reached at,
@@ -672,6 +707,28 @@ class WBEMListener(object):
         `None` means there is no port set up for HTTPS.
         """
         return self._https_port
+
+    @property
+    def http_started(self):
+        """
+        *New in pywbem 0.12.*
+
+        A boolean indicating whether the listener is started for the HTTP port.
+
+        If no port is set up for HTTP, `False` is returned.
+        """
+        return self._http_server is not None
+
+    @property
+    def https_started(self):
+        """
+        *New in pywbem 0.12.*
+
+        A boolean indicating whether the listener is started for the HTTPS port.
+
+        If no port is set up for HTTPS, `False` is returned.
+        """
+        return self._https_server is not None
 
     @property
     def certfile(self):
@@ -741,15 +798,37 @@ class WBEMListener(object):
         described in :term:`DSP0200` and they will invoke the registered
         callback functions for any received CIM indications.
 
-        These server threads can be stopped using the
-        :meth:`~pywbem.WBEMListener.stop` method.
-        They will be automatically stopped when the main thread terminates.
+        The listener must be stopped again in order to free the TCP/IP port it
+        listens on. The listener can be stopped explicitly using the
+        :meth:`~pywbem.WBEMListener.stop` method. The listener will be
+        automatically stopped when the main thread terminates (i.e. when the
+        Python process terminates), or when :class:`~pywbem.WBEMListener`
+        is used as a context manager when leaving its scope.
+
+        Raises:
+
+          :exc:`~py:exceptions.OSError`:
+            with :attr:`~OSError.errno` =
+            :data:`py:errno.EADDRINUSE` when the WBEM listener port is already
+            in use.
         """
 
         if self._http_port:
             if not self._http_server:
-                server = ThreadedHTTPServer((self._host, self._http_port),
-                                            ListenerRequestHandler)
+                try:
+                    server = ThreadedHTTPServer((self._host, self._http_port),
+                                                ListenerRequestHandler)
+                except Exception as exc:
+                    # Linux+py2: socket.error; Linux+py3: OSError;
+                    # Windows does not raise any exception.
+                    if getattr(exc, 'errno', None) == errno.EADDRINUSE:
+                        # Reraise with improved error message
+                        msg = "WBEM listener port %s already in use" % \
+                              self._http_port
+                        exc_type = OSError
+                        six.reraise(exc_type, exc_type(errno.EADDRINUSE, msg),
+                                    sys.exc_info()[2])
+                    raise
 
                 # pylint: disable=attribute-defined-outside-init
                 server.listener = self
@@ -765,8 +844,20 @@ class WBEMListener(object):
 
         if self._https_port:
             if not self._https_server:
-                server = ThreadedHTTPServer((self._host, self._https_port),
-                                            ListenerRequestHandler)
+                try:
+                    server = ThreadedHTTPServer((self._host, self._https_port),
+                                                ListenerRequestHandler)
+                except Exception as exc:
+                    # Linux+py2: socket.error; Linux+py3: OSError;
+                    # Windows does not raise any exception.
+                    if getattr(exc, 'errno', None) == errno.EADDRINUSE:
+                        # Reraise with improved error message
+                        msg = "WBEM listener port %s already in use" % \
+                              self._http_port
+                        exc_type = OSError
+                        six.reraise(exc_type, exc_type(errno.EADDRINUSE, msg),
+                                    sys.exc_info()[2])
+                    raise
 
                 # pylint: disable=attribute-defined-outside-init
                 server.listener = self
