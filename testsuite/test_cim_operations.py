@@ -111,7 +111,8 @@ class TestCreateConnection(object):
         of wbem connection when setting the attribute"""
         conn = WBEMConnection('http://localhost', None,
                               default_namespace=None)
-        conn.default_namespace = '//root/blah//'
+        with pytest.warns(DeprecationWarning):
+            conn.default_namespace = '//root/blah//'
         assert conn.default_namespace == 'root/blah'
 
     def test_add_operation_recorder(self):  # pylint: disable=no-self-use
