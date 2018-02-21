@@ -359,6 +359,14 @@ Enhancements
 * The `url` property of `WBEMConnection` now transforms its input value
   to unicode. (Issue #1068).
 
+* In the `WBEMListener` class, added support for using it as a context
+  manager in order to ensure that the listener is stopped automatically
+  upon leaving the context manager scope.
+
+* In the `WBEMListener` class, added properties `http_started` and
+  `https_started` indicating whether the listener is started for the
+  respective port.
+
 Bug fixes
 ^^^^^^^^^
 

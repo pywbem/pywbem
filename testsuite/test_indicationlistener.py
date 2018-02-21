@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import unittest
 import sys as _sys
+import errno
 import logging as _logging
 from time import time
 import datetime
@@ -167,14 +168,16 @@ class TestIndications(unittest.TestCase):
         LISTENER.start()
 
     # pylint: disable=unused-argument
-    def send_indications(self, send_count, http_port, https_port):
+    def send_indications(self, send_count, http_port):
         """
         Send the number of indications defined by the send_count attribute
+        using the specified listener HTTP port.
+
         Creates the listener, starts the listener, creates the
         indication XML and adds sequence number and time to the
         indication instance and sends that instance using requests.
         The indication instance is modified for each indication count so
-        that each carries its own sequence number
+        that each carries its own sequence number.
         """
 
         # pylint: disable=global-variable-not-assigned
@@ -220,8 +223,9 @@ class TestIndications(unittest.TestCase):
                     self.fail('Error return from send. Terminating.')
 
             endtime = timer.elapsed_sec()
-            print('Sent %s indications in %s sec or %.2f ind/sec' %
-                  (send_count, endtime, (send_count / endtime)))
+            if VERBOSE:
+                print('Sent %s indications in %s sec or %.2f ind/sec' %
+                      (send_count, endtime, (send_count / endtime)))
 
             self.assertEqual(send_count, RCV_COUNT,
                              'Mismatch between sent and rcvd')
@@ -232,20 +236,123 @@ class TestIndications(unittest.TestCase):
 
     def test_send_10(self):
         """Test with sending 10 indications"""
-        self.send_indications(10, 50000, None)
+        self.send_indications(10, 50000)
 
     def test_send_100(self):
         """Test sending 100 indications"""
-        self.send_indications(100, 50000, None)
+        self.send_indications(100, 50000)
 
     # Disabled the following tests, because in some environments it takes 30min.
     # def test_send_1000(self):
     #     """Test sending 1000 indications"""
-    #     self.send_indications(1000, 5002, None)
+    #     self.send_indications(1000, 50000)
 
-    # This test takes about 60 seconds and so is disabled for now
-    # def test_send_10000(self):
-    #     self.send_indications(10000)
+    def test_attrs(self):
+        """
+        Test WBEMListener attributes.
+        """
+
+        host = 'localhost'
+        http_port = '50000'  # as a string
+        exp_http_port = 50000  # as an integer
+
+        listener = WBEMListener(host, http_port)
+        assert listener.host == host
+        assert listener.http_port == exp_http_port
+        assert listener.https_port is None
+        assert listener.certfile is None
+        assert listener.keyfile is None
+        assert isinstance(listener.logger, _logging.Logger)
+        assert listener.http_started is False
+        assert listener.https_started is False
+
+    def test_start_stop(self):
+        """
+        Test starting and stopping of the the listener.
+        """
+
+        host = 'localhost'
+        http_port = '50000'
+
+        listener = WBEMListener(host, http_port)
+        assert listener.http_started is False
+        assert listener.https_started is False
+
+        listener.start()
+        assert listener.http_started is True
+        assert listener.https_started is False
+
+        listener.stop()
+        assert listener.http_started is False
+        assert listener.https_started is False
+
+    def test_port_in_use(self):
+        """
+        Test starting the listener when port is in use by another listener.
+        """
+
+        host = 'localhost'
+
+        # Don't use this port in other tests, to be on the safe side
+        # as far as port reuse is concerned.
+        http_port = '59999'
+
+        exp_exc_type = OSError
+
+        listener1 = WBEMListener(host, http_port)
+        listener1.start()
+        assert listener1.http_started is True
+
+        listener2 = WBEMListener(host, http_port)
+
+        try:
+
+            # The code to be tested
+            listener2.start()
+
+        except Exception as exc:
+            # e.g. on Linux
+            assert isinstance(exc, exp_exc_type)
+            assert exc.errno == errno.EADDRINUSE
+            assert listener2.http_started is False
+        else:
+            # e.g. on Windows
+            assert listener2.http_started is True
+
+        # Verify that in any case, listener1 is still started
+        assert listener1.http_started is True
+
+        listener1.stop()  # cleanup
+        listener2.stop()  # cleanup (for cases where it started)
+
+    def test_context_mgr(self):
+        """
+        Test starting the listener and automatic closing in a context manager.
+        """
+
+        host = 'localhost'
+
+        # Don't use this port in other tests, to be on the safe side
+        # as far as port reuse is concerned.
+        http_port = '59998'
+
+        # The code to be tested (is the context manager)
+        with WBEMListener(host, http_port) as listener1:
+
+            # Verify that CM enter returns the listener
+            assert isinstance(listener1, WBEMListener)
+
+            listener1.start()
+            assert listener1.http_started is True
+
+        # Verify that CM exit stops the listener
+        assert listener1.http_started is False
+
+        # Verify that the TCP/IP port can be used again
+        listener2 = WBEMListener(host, http_port)
+        listener2.start()
+        assert listener2.http_started is True
+        listener2.stop()
 
 
 if __name__ == '__main__':
