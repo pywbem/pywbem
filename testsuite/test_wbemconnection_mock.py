@@ -1392,7 +1392,7 @@ class TestRepoMethods(object):
                     )
                     l.uninstall()
 
-    def test_compile_err(self, conn):
+    def test_compile_err(self, conn, capsys):
         # pylint: disable=no-self-use
         """
         Test compile that has an error
@@ -1406,6 +1406,9 @@ class TestRepoMethods(object):
 
         with pytest.raises(MOFParseError):
             conn.compile_mof_str(q1)
+
+        captured_out = capsys.readouterr()[0]
+        assert "Scope(associations)" in captured_out
 
 
 class TestClassOperations(object):
