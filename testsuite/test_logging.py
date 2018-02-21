@@ -331,7 +331,9 @@ class TestLoggerOutput(BaseLoggingTests):
     def test_log_output(self, l):  # pylint: disable=blacklisted-name
         test_input = 'all=file:all'
 
-        print('log filename %s' % TEST_OUTPUT_LOG)
+        if VERBOSE:
+            print('log filename %s' % TEST_OUTPUT_LOG)
+
         PywbemLoggers.create_loggers(test_input, TEST_OUTPUT_LOG)
 
         my_logger = get_logger(LOG_OPS_CALLS_NAME)
