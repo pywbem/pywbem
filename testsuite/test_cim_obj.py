@@ -4227,6 +4227,20 @@ class CIMInstanceSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
+# Special CIMInstance objects for testcases_CIMInstance_hash list:
+with pytest.warns(DeprecationWarning):
+    _INST_HASH_A_1 = CIMInstance(
+        'CIM_Foo',
+        properties={'Cheepy': 'Birds'},
+        property_list=['Cheepy'],
+    )
+    _INST_HASH_A_2 = CIMInstance(
+        'CIM_Foo',
+        properties={'Cheepy': 'Birds'},
+        property_list=[],
+    )
+
+
 testcases_CIMInstance_hash = [
 
     # Each testcase tuple has these items:
@@ -4546,16 +4560,8 @@ testcases_CIMInstance_hash = [
     (
         "Different property lists (does not matter for hash and equality)",
         dict(
-            obj1=CIMInstance(
-                'CIM_Foo',
-                properties={'Cheepy': 'Birds'},
-                property_list=['Cheepy'],
-            ),
-            obj2=CIMInstance(
-                'CIM_Foo',
-                properties={'Cheepy': 'Birds'},
-                property_list=[],
-            ),
+            obj1=_INST_HASH_A_1,
+            obj2=_INST_HASH_A_2,
             exp_hash_equal=True,
         ),
         None, None, True
