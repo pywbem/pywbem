@@ -7735,7 +7735,7 @@ testcases_tupleparse_xml = [
             '<SCOPE CLASS=""/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        ParseError, UserWarning, True
     ),
     (
         "SCOPE with all supported scope attributes with different values",
