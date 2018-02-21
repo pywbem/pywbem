@@ -33,7 +33,6 @@ from __future__ import absolute_import, print_function
 import copy
 import uuid
 import time
-import logging
 import sys
 import locale
 import traceback
@@ -54,7 +53,7 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
 from pywbem.cim_obj import NocaseDict
 
 
-__all__ = ['FakedWBEMConnection', 'PYWBEM_MOCK_LOGGER']
+__all__ = ['FakedWBEMConnection']
 
 # Fake Server default values for parameters that apply to repo and operations
 
@@ -70,9 +69,6 @@ DEFAULT_DEEP_INHERITANCE = True
 
 # allowed output formats for the repository display
 OUTPUT_FORMATS = ['mof', 'xml', 'repr']
-
-# The logger for pywbem_mock is defined with the following name
-PYWBEM_MOCK_LOGGER = 'pywbem.mock'
 
 
 # TODO: ks Future We have not considered that iq and ico are deprecated in
@@ -241,19 +237,18 @@ class FakedWBEMConnection(WBEMConnection):
     users.
 
     Logging of the calls and returns is implemented using the Python logging
-    facility.  To enable logging, the user must define the logger
-    PYWBEM_MOCK_LOGGER before FakedWBEMConnection is executed including
-    setting the destination, and log leve. Logging is only output if the
-    log level is DEBUG For example the following code enables the a
-    stream logger to the console::
+    facility defined in :class:`PywbemLoggers`. To enable logging, activate
+    the PywbemLogger for the logger name ``pywbem.ops``::
 
-        logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
-        logger.setLevel(logging.getLevelName('DEBUG'))
-        handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        from pywbem import PywbemLoggers, LOG_OPS_CALLS_NAME
+
+        PywbemLoggers.create_logger(LOG_OPS_CALLS_NAME, log_dest='file',
+                                    log_filename='mock_test.log'
+                                    detail_level='min'
+
+    All cim_operation requests will be logged to the file mock_test.log with
+    the first 1000 bytes of the request and response included.
+
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
@@ -331,9 +326,6 @@ class FakedWBEMConnection(WBEMConnection):
 
         # Response delay in seconds. Any operation is delayed by this time.
         self._response_delay = response_delay
-
-        # Set logger for this instance of FakedWBEMConnection
-        self.logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
 
         self._imethodcall = Mock(side_effect=self._mock_imethodcall)
         self._methodcall = Mock(side_effect=self._mock_methodcall)
@@ -848,29 +840,15 @@ class FakedWBEMConnection(WBEMConnection):
         Each function is named with the lower case method namd prepended with
         '_fake_'.
         """
-        self.logger.debug('Mock_method=%s, namespace=%s, '
-                          'response_params_rqd=%s, params=%s',
-                          methodname, namespace, response_params_rqd, params)
-
         method_name = '_fake_' + methodname.lower()
 
         method_name = getattr(self, method_name)
-        try:
-            result = method_name(namespace, **params)
-        except CIMError as ce:
-            self.logger.debug('CIMError exception:%s Err: %s:%s "%s"',
-                              methodname, ce.status_code,
-                              ce.status_code_name, ce.status_description)
-            raise
-        except Exception as ex:
-            self.logger.debug('%s Exception %r', methodname, ex)
-            raise
+
+        result = method_name(namespace, **params)
 
         # sleep for defined number of seconds
         if self._response_delay:
             time.sleep(self._response_delay)
-
-        self.logger.debug('Mock result %s', result)
 
         return result
 
@@ -880,27 +858,12 @@ class FakedWBEMConnection(WBEMConnection):
         Mocks the WBEMConnection._methodcall() method. This calls the
         server execution function of extrinsic methods (InvokeMethod).
         """
-        self.logger.debug('Mock InvokeMethod method=%s object=%s '
-                          'Params=%s: params=%s',
-                          methodname, localobject, Params, params,)
-
-        try:
-            result = self._fake_invokemethod(methodname, localobject, Params,
-                                             **params)
-        except CIMError as ce:
-            self.logger.debug('CIMError exception:InvokeMethod Err: %s:%s %s',
-                              ce.status_code, ce.status_code_name,
-                              ce.status_description)
-            raise
-        except Exception as ex:
-            self.logger.debug('InvokeMethod Exception %r', ex)
-            raise
+        result = self._fake_invokemethod(methodname, localobject, Params,
+                                         **params)
 
         # Sleep for defined number of seconds
         if self._response_delay:
             time.sleep(self._response_delay)
-
-        self.logger.debug('Mock InvokeMethod result %s', result)
 
         return result
 
