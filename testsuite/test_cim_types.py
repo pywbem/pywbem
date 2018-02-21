@@ -407,7 +407,7 @@ def test_datetime_init(datetime_init_tuple):
 # TODO: Add testcases for fromtimestamp()
 
 
-testcases_cimtype = [
+TESTCASES_CIMTYPE = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -624,7 +624,7 @@ testcases_cimtype = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_cimtype)
+    TESTCASES_CIMTYPE)
 @pytest_extensions.test_function
 def test_cimtype(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -642,7 +642,7 @@ def test_cimtype(
     assert type_name == exp_type_name
 
 
-testcases_type_from_name = [
+TESTCASES_TYPE_FROM_NAME = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -798,7 +798,7 @@ testcases_type_from_name = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_type_from_name)
+    TESTCASES_TYPE_FROM_NAME)
 @pytest_extensions.test_function
 def test_type_from_name(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):

@@ -29,24 +29,25 @@ import socket
 import unittest
 import re
 import traceback
-from collections import namedtuple
 from io import open as _open
-import six
+from collections import namedtuple
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 import yaml
 import yamlordereddictloader
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty
 from lxml import etree, doctestcompare
+import six
 import pywbem
 from pywbem.cim_obj import _ensure_unicode, NocaseDict
 if six.PY2:
     from M2Crypto.Err import SSLError
 else:
     from ssl import SSLError
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+
 
 # Directory with the JSON test case files, relative to this script:
 TESTCASE_DIR = os.path.join(os.path.dirname(__file__), "testclient")

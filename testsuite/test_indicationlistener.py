@@ -310,10 +310,10 @@ class TestIndications(unittest.TestCase):
             # The code to be tested
             listener2.start()
 
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             # e.g. on Linux
             assert isinstance(exc, exp_exc_type)
-            assert exc.errno == errno.EADDRINUSE
+            assert getattr(exc, 'errno', None) == errno.EADDRINUSE
             assert listener2.http_started is False
         else:
             # e.g. on Windows

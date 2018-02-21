@@ -50,8 +50,8 @@ def qualifier_declaration_default_attrs(**overriding_attrs):
 
 # Note: These roundtrip testcases cover only typical situations. The full set
 # of possibilities including invalid input is tested in the XMl testcases (see
-# testcases_tupleparse_xml).
-testcases_tupleparse_roundtrip = [
+# TESTCASES_TUPLEPARSE_XML).
+TESTCASES_TUPLEPARSE_ROUNDTRIP = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -525,7 +525,7 @@ testcases_tupleparse_roundtrip = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_tupleparse_roundtrip)
+    TESTCASES_TUPLEPARSE_ROUNDTRIP)
 @pytest_extensions.test_function
 def test_tupleparse_roundtrip(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -553,7 +553,7 @@ def test_tupleparse_roundtrip(
 
 # Note: These XML testcases cover the full set of possibilities for each
 # CIM-XML element, including invalid input.
-testcases_tupleparse_xml = [
+TESTCASES_TUPLEPARSE_XML = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -9812,7 +9812,7 @@ testcases_tupleparse_xml = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_tupleparse_xml)
+    TESTCASES_TUPLEPARSE_XML)
 @pytest_extensions.test_function
 def test_tupleparse_xml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):

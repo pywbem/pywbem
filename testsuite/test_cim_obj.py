@@ -1258,7 +1258,7 @@ class CIMInstanceNameSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMInstanceName_hash = [
+TESTCASES_CIMINSTANCENAME_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -1517,7 +1517,7 @@ testcases_CIMInstanceName_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMInstanceName_hash)
+    TESTCASES_CIMINSTANCENAME_HASH)
 @pytest_extensions.test_function
 def test_CIMInstanceName_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -2582,7 +2582,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         # * desc: Short testcase description.
         # * attrs: Dict of input attributes for the CIMInstanceName object
         #     to be tested.
-        # * format: Format for to_wbem_uri(): one of 'standard', 'cimobject',
+        # * format_: Format for to_wbem_uri(): one of 'standard', 'cimobject',
         #     'historical'.
         # * exp_result: Expected WBEM URI string, if expected to succeed.
         #     Exception type, if expected to fail.
@@ -3025,10 +3025,10 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         "func_name",
         func_name)
     @pytest.mark.parametrize(
-        "desc, attrs, format, exp_result, exp_warn_type, condition",
+        "desc, attrs, format_, exp_result, exp_warn_type, condition",
         testcases)
     def test_CIMInstanceName_to_wbem_uri_str(
-            self, desc, attrs, format, exp_result, exp_warn_type, condition,
+            self, desc, attrs, format_, exp_result, exp_warn_type, condition,
             func_name):
         """All test cases for CIMInstanceName.to_wbem_uri() and .__str__()."""
 
@@ -3048,11 +3048,11 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
 
         func = getattr(obj, func_name)
         if func_name == 'to_wbem_uri':
-            func_kwargs = dict(format=format)
+            func_kwargs = dict(format=format_)
         if func_name == '__str__':
-            if format != 'historical':
+            if format_ != 'historical':
                 pytest.skip("Not testing CIMInstanceName.__str__() with "
-                            "format: %r" % format)
+                            "format: %r" % format_)
             func_kwargs = dict()
 
         if condition == 'pdb':
@@ -4227,7 +4227,7 @@ class CIMInstanceSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-# Special CIMInstance objects for testcases_CIMInstance_hash list:
+# Special CIMInstance objects for TESTCASES_CIMINSTANCE_HASH:
 with pytest.warns(DeprecationWarning):
     _INST_HASH_A_1 = CIMInstance(
         'CIM_Foo',
@@ -4241,7 +4241,7 @@ with pytest.warns(DeprecationWarning):
     )
 
 
-testcases_CIMInstance_hash = [
+TESTCASES_CIMINSTANCE_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -4571,7 +4571,7 @@ testcases_CIMInstance_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMInstance_hash)
+    TESTCASES_CIMINSTANCE_HASH)
 @pytest_extensions.test_function
 def test_CIMInstance_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -6902,7 +6902,7 @@ class CIMPropertySort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMProperty_hash = [
+TESTCASES_CIMPROPERTY_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -7286,7 +7286,7 @@ testcases_CIMProperty_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMProperty_hash)
+    TESTCASES_CIMPROPERTY_HASH)
 @pytest_extensions.test_function
 def test_CIMProperty_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -8642,7 +8642,7 @@ class CIMQualifierSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMQualifier_hash = [
+TESTCASES_CIMQUALIFIER_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -8856,7 +8856,7 @@ testcases_CIMQualifier_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMQualifier_hash)
+    TESTCASES_CIMQUALIFIER_HASH)
 @pytest_extensions.test_function
 def test_CIMQualifier_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -9655,7 +9655,7 @@ class CIMClassNameEquality(unittest.TestCase):
                          CIMClassName('CIM_Foo', namespace=None))
 
 
-testcases_CIMClassName_hash = [
+TESTCASES_CIMCLASSNAME_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -9803,7 +9803,7 @@ testcases_CIMClassName_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMClassName_hash)
+    TESTCASES_CIMCLASSNAME_HASH)
 @pytest_extensions.test_function
 def test_CIMClassName_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -10232,7 +10232,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
         # * desc: Short testcase description.
         # * attrs: Dict of input attributes for the CIMClassName object
         #     to be tested.
-        # * format: Format for to_wbem_uri(): one of 'standard', 'cimobject',
+        # * format_: Format for to_wbem_uri(): one of 'standard', 'cimobject',
         #     'historical'.
         # * exp_result: Expected WBEM URI string, if expected to succeed.
         #     Exception type, if expected to fail.
@@ -10415,10 +10415,10 @@ class Test_CIMClassName_to_wbem_uri_str(object):
         "func_name",
         func_name)
     @pytest.mark.parametrize(
-        "desc, attrs, format, exp_result, exp_warn_type, condition",
+        "desc, attrs, format_, exp_result, exp_warn_type, condition",
         testcases)
     def test_CIMClassName_to_wbem_uri_str(
-            self, desc, format, attrs, exp_result, exp_warn_type, condition,
+            self, desc, format_, attrs, exp_result, exp_warn_type, condition,
             func_name):
         """All test cases for CIMClassName.to_wbem_uri() and .__str__()."""
 
@@ -10438,11 +10438,11 @@ class Test_CIMClassName_to_wbem_uri_str(object):
 
         func = getattr(obj, func_name)
         if func_name == 'to_wbem_uri':
-            func_kwargs = dict(format=format)
+            func_kwargs = dict(format=format_)
         if func_name == '__str__':
-            if format != 'historical':
+            if format_ != 'historical':
                 pytest.skip("Not testing CIMClassName.__str__() with "
-                            "format: %r" % format)
+                            "format: %r" % format_)
             func_kwargs = dict()
 
         if condition == 'pdb':
@@ -11272,7 +11272,7 @@ class CIMClassSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMClass_hash = [
+TESTCASES_CIMCLASS_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -11713,7 +11713,7 @@ testcases_CIMClass_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMClass_hash)
+    TESTCASES_CIMCLASS_HASH)
 @pytest_extensions.test_function
 def test_CIMClass_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -12672,7 +12672,7 @@ class CIMMethodSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMMethod_hash = [
+TESTCASES_CIMMETHOD_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -12980,7 +12980,7 @@ testcases_CIMMethod_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMMethod_hash)
+    TESTCASES_CIMMETHOD_HASH)
 @pytest_extensions.test_function
 def test_CIMMethod_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -14251,7 +14251,7 @@ class CIMParameterSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMParameter_hash = [
+TESTCASES_CIMPARAMETER_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -14514,7 +14514,7 @@ testcases_CIMParameter_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMParameter_hash)
+    TESTCASES_CIMPARAMETER_HASH)
 @pytest_extensions.test_function
 def test_CIMParameter_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -15766,7 +15766,7 @@ class CIMQualifierDeclarationSort(unittest.TestCase):
         raise AssertionError("test not implemented")
 
 
-testcases_CIMQualifierDeclaration_hash = [
+TESTCASES_CIMQUALIFIERDECLARATION_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -16094,7 +16094,7 @@ testcases_CIMQualifierDeclaration_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_CIMQualifierDeclaration_hash)
+    TESTCASES_CIMQUALIFIERDECLARATION_HASH)
 @pytest_extensions.test_function
 def test_CIMQualifierDeclaration_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):

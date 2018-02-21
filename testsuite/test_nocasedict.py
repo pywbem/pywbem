@@ -316,7 +316,7 @@ class TestPopItem(BaseTest):
         pass
 
 
-testcases_NocaseDict_equal_hash = [
+TESTCASES_NOCASEDICT_EQUAL_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -538,7 +538,7 @@ testcases_NocaseDict_equal_hash = [
     ),
 ]
 
-testcases_NocaseDict_equal = [
+TESTCASES_NOCASEDICT_EQUAL = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -561,7 +561,7 @@ testcases_NocaseDict_equal = [
     ),
 ]
 
-testcases_NocaseDict_hash = [
+TESTCASES_NOCASEDICT_HASH = [
 
     # Each testcase tuple has these items:
     # * desc: Short testcase description.
@@ -587,7 +587,7 @@ testcases_NocaseDict_hash = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_NocaseDict_equal_hash + testcases_NocaseDict_equal)
+    TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_EQUAL)
 @pytest_extensions.test_function
 def test_NocaseDict_equal(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
@@ -617,7 +617,7 @@ def test_NocaseDict_equal(
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    testcases_NocaseDict_equal_hash + testcases_NocaseDict_hash)
+    TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_HASH)
 @pytest_extensions.test_function
 def test_NocaseDict_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
