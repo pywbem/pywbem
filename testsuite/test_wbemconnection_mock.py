@@ -28,7 +28,6 @@ from __future__ import absolute_import, print_function
 
 import os
 from datetime import datetime
-import logging
 import operator
 try:
     from collections import OrderedDict
@@ -37,9 +36,6 @@ except ImportError:
 import six
 import pytest
 from testfixtures import OutputCapture
-
-from testfixtures import LogCapture
-
 
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, cimtype, Uint32, MOFParseError, \
@@ -50,7 +46,7 @@ from pywbem.cim_obj import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 
-from pywbem_mock import FakedWBEMConnection, PYWBEM_MOCK_LOGGER
+from pywbem_mock import FakedWBEMConnection
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
     install_dmtf_schema, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, SCRIPT_DIR
@@ -954,7 +950,8 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        inst_repo = conn._get_instance_repo(ns)
+        inst_repo = \
+            conn._get_instance_repo(ns)  # pylint: disable=protected-access
 
         iname = CIMInstanceName(cln,
                                 keybindings={'InstanceID': key},
@@ -1192,11 +1189,14 @@ class TestRepoMethods(object):
         instance of CIM_Foo { InstanceID = "CIM_Foo4"; };
         """
         conn.compile_mof_str(q1, ns)
-        qual_repo = conn._get_qualifier_repo(tst_ns)
+        qual_repo = \
+            conn._get_qualifier_repo(tst_ns)  # pylint: disable=protected-access
+
         assert 'Association' in qual_repo
         conn.compile_mof_str(q2, ns)
 
-        qual_repo = conn._get_qualifier_repo(tst_ns)
+        qual_repo = \
+            conn._get_qualifier_repo(tst_ns)  # pylint: disable=protected-access
         assert 'Association' in qual_repo
         assert 'Description' in qual_repo
         assert 'Key' in qual_repo
@@ -1357,47 +1357,11 @@ class TestRepoMethods(object):
         assert len(conn._get_class_repo(ns)) == TOTAL_CLASSES
         assert len(conn._get_qualifier_repo(ns)) == TOTAL_QUALIFIERS
 
-    @pytest.mark.parametrize(
-        "cls, level, exp_err, result", [
-            ['CIM_Foo', 'DEBUG', None, result1],
-            ['CIM_Foox', 'DEBUG', CIMError, result1],
-        ]
-    )
-    def test_logging(self, tst_class, cls, level, exp_err, result):
-        """
-        Test ability to output logs
-        """
-
-        with LogCapture() as l:  # noqa:E741
-            logger = logging.getLogger(PYWBEM_MOCK_LOGGER)
-            logger.setLevel(logging.getLevelName(level))
-
-            conn = FakedWBEMConnection()
-
-            conn.add_cimobjects(tst_class)
-            if exp_err is None:
-                cls = conn.GetClass(cls, IncludeQualifiers=False)
-                l.check
-                (
-                    ('pywbem.mock', 'DEBUG', result[0]),
-                    ('pywbem.mock', 'DEBUG', result[1]),
-                )
-                l.uninstall()
-            else:
-                with pytest.raises(exp_err):
-                    cls = conn.GetClass(cls, IncludeQualifiers=False)
-                    l.check(
-                        ('pywbem.mock', 'DEBUG', result[0]),
-                        ('pywbem.mock', 'DEBUG', result[1]),
-                    )
-                    l.uninstall()
-
     def test_compile_err(self, conn, capsys):
         # pylint: disable=no-self-use
         """
         Test compile that has an error
         """
-
         q1 = """
             Qualifier Association : boolean = false,
                 Scope(associations),
