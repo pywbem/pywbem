@@ -399,7 +399,7 @@ Enhancements
 * Docs: Improved and fixed the description of the pywbem statistics
   support. (Issue #1115).
 
-* `CIMInstance.tocimxml()/tocimxmlstr()` were extended to allow controlling
+<* `CIMInstance.tocimxml()/tocimxmlstr()` were extended to allow controlling
   whether the path is ignored even if present. This capability is used for
   ignoring the path in embedded instance parameter values (as part of
   fixing issue #1136).
@@ -413,6 +413,24 @@ Enhancements
 * Added unit test for WBEMServer class using pywbem_mock.  See the file
   testsuite/test_wbemserverclass.py.  This test is incomplete today but tests
   most of the main paths.
+
+* Revamped the logger configuration mechanism completely. This includes:
+  (1) Create 3 methods in WBEMConnection that allow pywbem logs to be
+  configured and activated.  These methods contain parameters for:
+  a. configuring the Python loggers for either/or/both the api and http
+  loggers. b. Setting the level of detail in the log output. c. Activating
+  each logger within WBEMConnection.
+  (2) Allow for the standard Python loggers to be used to configure logger
+  names that will be used by the pywbem loggers. This allows the pywbem
+  loggers to be compatible with user code that creates their specific logger
+  configurations.
+  (3) Completely eliminate the PyWBEMLogger class that was the original
+  logging setup tool in pywbem 0.11.0) since its use was incompatible with
+  using standard Python logging configuration methods to define loggers.
+  (see issue #859)
+  (4) Create a function in the _logging module that allows pywbem logging
+  to be defined by a single string input
+
 
 Bug fixes
 ^^^^^^^^^

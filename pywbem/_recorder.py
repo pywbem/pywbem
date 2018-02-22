@@ -37,8 +37,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
-from ._logging import PywbemLoggers, LOG_OPS_CALLS_NAME, LOG_HTTP_NAME, \
-    DEFAULT_MAX_LOG_ENTRY_SIZE
+from ._logging import LOG_OPS_CALLS_NAME, LOG_HTTP_NAME, get_logger
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -523,35 +522,44 @@ class LogOperationRecorder(BaseOperationRecorder):
 
     All logging calls are at the debug level.
     """
-    def __init__(self, max_log_entry_size=None):
+    def __init__(self, conn_id=None, entry_size_limit=None):
         """
         Parameters:
 
-          max_log_entry_size (:term:`integer`):
+          conn_id ():)
+            If None, string that represents an id for a particular connection
+            that is used to build the name of each logger. if conn_id is not
+            None the logging requests are identified with the logger name
+            (ex pywbem.ops) and the suffix so (ile pywbem.ops.1-2343) so that
+            any different logger names may be established for specific
+            WBEMConnections.
+
+          entry_size_limit (:term:`integer` or None):
             The maximum size for each log entry, in Bytes. This is primarily to
             limit response sizes since they could be enormous.
 
-            If `None`, the maximum size defaults to
-            :attr:`~pywbem._logging.DEFAULT_MAX_LOG_ENTRY_SIZE`.
+            If `None`, the log entry output size is not limited.
         """
         super(LogOperationRecorder, self).__init__()
 
-        # compute max entry size for each logger
-        max_sz = max_log_entry_size if max_log_entry_size \
-            else DEFAULT_MAX_LOG_ENTRY_SIZE
+        # build name for logger
+        if conn_id:
+            logger_name = '%s.%s' % (LOG_OPS_CALLS_NAME, conn_id)
+            self.opslogger = get_logger(logger_name)
+        else:
+            self.opslogger = get_logger(LOG_OPS_CALLS_NAME)
 
-        self.opslogger = logging.getLogger(LOG_OPS_CALLS_NAME)
-        ops_logger_info = PywbemLoggers.get_logger_info(LOG_OPS_CALLS_NAME)
-        opsdetaillevel = ops_logger_info[0] if ops_logger_info else None
+        self.ops_max_log_size = entry_size_limit
 
-        self.ops_max_log_size = max_sz if opsdetaillevel == 'min'  \
-            else None
+        if conn_id:
+            logger_name = '%s.%s' % (LOG_HTTP_NAME, conn_id)
+            self.httplogger = get_logger(logger_name)
+        else:
+            self.httplogger = get_logger(LOG_HTTP_NAME)
 
-        self.httplogger = logging.getLogger(LOG_HTTP_NAME)
-        http_logger_info = PywbemLoggers.get_logger_info(LOG_HTTP_NAME)
-        httpdetaillevel = http_logger_info[0] if http_logger_info else None
-        self.http_max_log_size = max_sz if httpdetaillevel == 'min' \
-            else None
+        self._conn_id = conn_id
+
+        self.http_max_log_size = entry_size_limit
 
     def stage_wbem_connection(self, wbem_connection):
         """
@@ -576,11 +584,13 @@ class LogOperationRecorder(BaseOperationRecorder):
         if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
             # Order kwargs.  Note that this is done automatically starting
             # with python 3.6
-            kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
-                               for key in sorted(six.iterkeys(kwargs))])
+            # kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
+            #                   for key in sorted(six.iterkeys(kwargs))])
 
             self.opslogger.debug('Request:%s %s(%s)', self._conn_id, method,
-                                 kwstr)
+                                 (', '.join([('{0}={1!r}'.format(key,
+                                                                 kwargs[key]))
+                                  for key in sorted(six.iterkeys(kwargs))])))
 
     def stage_pywbem_result(self, ret, exc):
         """

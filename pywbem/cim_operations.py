@@ -153,6 +153,8 @@ from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
 from .exceptions import ParseError, CIMError
 from ._statistics import Statistics
+from ._recorder import LogOperationRecorder
+from ._logging import DEFAULT_MAX_LOG_ENTRY_SIZE, LOG_DETAIL_LEVELS
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -297,7 +299,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     using *operation recorders*, at the level of method calls and returns, and
     at the level of CIM-XML requests and responses.
     The :class:`~pywbem.LogOperationRecorder` class records the operations in
-    the Python logging facility.
+    the Python logging facility. This recorder is activated by the
+    enable_logging parameter in the WBEMConnection constructor
     The :class:`~pywbem.TestClientRecorder` class records the operations in a
     file in the YAML format suitable for the test_client.py unit test program.
     Before version 0.11.0, pywbem supported only a single operation recorder
@@ -353,7 +356,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
                  x509=None, verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=False,
-                 stats_enabled=False):
+                 stats_enabled=False, enable_logging=None):
         # pylint: disable=line-too-long
         """
         Parameters:
@@ -586,7 +589,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Initial enablement status for maintaining statistics about the
             WBEM operations executed via this connection. See the
+
             :ref:`WBEM operation statistics` section for details.
+
+          enable_logging (:term:`string` or None):
+            *New in pywbem 0.12 as experimental
+            Enable logging of operation requests and/or xml requests and
+            responses and set the detail level for the logging.
+
+            * If None logging is not enabled.
+
+            * If 'min' the logging is set to capture to a maximum log size
+              defined by the `DEFAULT_MAX_LOG_ENTRY_SIZE` variable.
+
+            * If 'all' the full data content is captured.
+
+            Which of the log points is captured is determined by the
+            characteristics set for logger names as defined in the documentation
+            section on logging.
+
+            If this parameter is set, the LogOperationRecorder is activated.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -616,7 +638,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Create the connection ID for this WBEMConnection
         self.__class__._conn_counter += 1
-        self.conn_id = ('%s-%s' % (
+        self._conn_id = ('%s-%s' % (
             self.__class__._conn_counter,  # pylint: disable=protected-access
             os.getpid()))
 
@@ -635,6 +657,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._statistics = Statistics(stats_enabled)
         self._last_operation_time = None
         self._last_server_response_time = None
+
+        # logging
+        self.enable_logging = enable_logging
+
+        if self.enable_logging:
+            if enable_logging == 'all':
+                log_limit = None
+            elif enable_logging == 'min':
+                log_limit = DEFAULT_MAX_LOG_ENTRY_SIZE
+            elif isinstance(enable_logging, six.integer_types) and \
+                    enable_logging > 0:
+                log_limit = enable_logging
+            else:
+                raise ValueError('Invalid value for enable_logging parameter. '
+                                 'The value must be in one of the strings %s '
+                                 'or a positive integer' % LOG_DETAIL_LEVELS)
+            # automatically add the log recorder to active recorders.
+            self.add_operation_recorder(LogOperationRecorder(
+                conn_id=self.conn_id,
+                entry_size_limit=log_limit))
 
     @property
     def url(self):
@@ -1131,6 +1173,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         return self._last_reply_len
 
+    @property
+    def conn_id(self):
+        """
+        :term:`unicode string`:
+        String that is attached to each log entry output to uniquely identify
+        the WBEMConnection responsible for that log.  This is also part of
+        the log name for the operation and xml logs so that logging could
+        be enabled differently for different wbem connections. It is created
+        when the WBEMConnection object is created and remains constant
+        thorughout the life of that connection. I is unique for each
+        connection.
+        """
+        return self._conn_id
+
     def __str__(self):
         """
         Return a short representation of the :class:`~pywbem.WBEMConnection`
@@ -1172,10 +1228,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                "default_namespace=%r, x509=%s, verify_callback=%r, " \
                "ca_certs=%r, no_verification=%r, timeout=%r, " \
                "use_pull_operations=%r, stats_enabled=%r, recorders=%s)" % \
-               (self.__class__.__name__, self.url, creds_repr, self.conn_id,
-                self.default_namespace, x509_repr, self.verify_callback,
-                self.ca_certs, self.no_verification, self.timeout,
-                self.use_pull_operations, self.stats_enabled,
+               (self.__class__.__name__, self.url, creds_repr,
+                self.conn_id, self.default_namespace, x509_repr,
+                self.verify_callback, self.ca_certs, self.no_verification,
+                self.timeout, self.use_pull_operations, self.stats_enabled,
                 recorder_list)
 
     def add_operation_recorder(self, operation_recorder):

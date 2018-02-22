@@ -20,65 +20,115 @@
 The pywbem package implements selected logging based on the Python
 :mod:`py:logging` facility.
 
-Pywbem logging is used as a tool to record information passing between
-the pywbem client and WBEM servers but not as a general recorder for errors,
-state, etc. within pywbem. Pywbem errors are generally passed to the pywbem API
-user as python exceptions rather than being recorded in a log by a pywbem
-logger.
+Pywbem logging is used to record information passing between the pywbem client
+and WBEM servers but not as a general recorder for errors, state, etc. within
+pywbem. Pywbem errors are generally passed to the pywbem API user as
+Python exceptions rather than being recorded in a log by a pywbem logger.
 
 Pywbem logging supports multiple :class:`~py:logging.Logger` objects
-(named loggers). Two named loggers are defined in this code and used
-by pywbem:
+(named loggers). Two named loggers are used by pywbem:
 
-* ``pywbem.ops`` logs user-issued calls to pywbem WBEMConnection methods that
-  drive WBEM operations (see :ref:`WBEM operations`). Log
-  entries are created at INFO log level. This logs the parameters of each
-  request and the CIMObjects/exceptions in each method repoonse.
+* ``pywbem.ops`` logs user-issued calls to :class:`~pywbem:WBEMConnection`
+  methods that drive WBEM operations (see :ref:`WBEM operations`) and the
+  responses before they are passed back to the user. Log entries are created at
+  DEBUG log level. This logs the parameters of each request and the results
+  including CIMObjects/exceptions in each method repoonse.
 
 * ``pywbem.http`` logs HTTP requests and responses between the pywbem client
-  and WBEM servers, at the info level. This logs the http request data and
-  response data. This named logger is also defined to create log entries when
-  logging is at the INFO log level.
+  and WBEM server. This logs the http request data and response data including
+  http headers and XML payload.
 
-To output log records for one of the defined named loggers, either
-:meth:`~pywbem._logging.PywbemLoggers.create_loggers` or the
-:meth:`~pywbem._logging.PywbemLoggers.create_logger` should be used to define
-the characteristics of the named logger.
 
-* :meth:`~pywbem._logging.PywbemLoggers.create_loggers` creates one or more
-  loggers from
-  a string input that defines the component name and characteristics of each
-  logger.  This allows other tools like CLIs that use pywbem to create the
-  pywbem known logs with minimal work from command line or config file input.
+Both of the above loggers create log entries when logging is at the DEBUG log
+level.
 
-* :meth:`~pywbem._logging.PywbemLoggers.create_logger` creates one or more
-  loggers from
-  parameter inputs that define the component name and characteristics of each
-  logger.
+The user can use Python logger methods to define the handles for either or both
+of these loggers. In addition, helper functions are defined in pywbem
+to define the characteristics ofthese loggers.
 
-These functions save the logger definitions in the
-:class:`~pywbem._logging.PywbemLoggers` class that
-is used by the logging functions in the recorder so trying to create the named
-loggers independently of this code may cause issues.
+Once the loggers are defined, logging is activated in
+:class:`~pywbem.WBEMConnection` with the `enable_logging` parameter which
+both activates logging and allows defining the detail level of the log
+output.
 
-The pywbem loggers are based on two parameters (log destination, log detail)
+The following example sets up the operations logger using Python logger
+methods to log to stdout::
+
+    logger = logging.getLogger('pywbem.ops')
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    conn.WBEMConnection(... enable_log='all')
+
+
+The helper functions in _logging are intended to provide tools for
+users of pywbem that want one or two line setup for logs as follows:
+
+* :meth:`~pywbem._logging.define_loggers_from_string` defines one or more
+  loggers from  a string input that defines the component name and
+  characteristics of each logger.  This allows other tools like CLIs that use
+  pywbem to create the pywbem known logs with minimal work from command line or
+  config file input.
+
+* :meth:`~pywbem._logging.define_logger` defines  one
+  logger from parameter inputs that define the component name and
+  characteristics of the logger.
+
+Thus to setup loggers that log all of the operations requests and responses
+both for http and the APIs either of the following could be use::
+
+    # Log ops to stderr and http to file but only log the first n characters
+    # where n is defined by the pywbem variable `DEFAULT_MAX_LOG_ENTRY_SIZE`
+    define_logger('ops', 'stderr')
+    define_logger('http', 'file', log_filename='mylog.log')
+    conn = WBEMConnection(..., enable_log=min)
+
+    # Log everything to stderr and output all of the information
+    define_loggers_from_string('all=stderr')
+    conn = WBEMConnection(..., enable_log='all')
+
+    # Log only http requests and responses to a file
+    define_logger('http', 'file', log_filename='mylog.log')
+    conn = WBEMConnection(..., enable_log=min)
+
+The pywbem loggers are based one parameters (log destination)
 that determine if the logs for the logger name are created,
-how much information is inserted, and the log destination.  This
-extends the python logging facility to include the log_detail parameter which
-defines whether all the information defined or only a limited size is output.
-This is used with pywbem because the logs on operation and http responses can be
-very large.
+and the log destination.
 
-The code that executes the loggers call the function get_logger(..) to get a
-logger from a defined logger name.  If that logger has not yet been defined
-in PywbemLoggers, an entry will be added with the default parameters.
+Logging may be define differently for different WBEMConnections by adding
+the WBEMConnection id as a part of the logger component.  Thus::
+
+    define_logger('ops', 'stderr')
+    define_logger('http', 'file', log_filename='mylog.log')
+    conn1 = WBEMConnection(..., enable_log="min")
+
+
+    logger = logging.getLogger('pywbem.ops.%s' % conn2.conn_id)
+
+    handler = logging.FileHandler('logfilename.log')
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    conn2 = WBEMConnection(..., enable_log='all")
+
+
+Since logging can generate extensive output, :class:`~pywbem:WBEMConnection`
+allows the user to both activate the defined logging and set log output
+detail level options for the output logs.
+
+If logging is activated without any loggers being defined the
+logging NULLHandler is set for both the operations and http loggers.
 """
 from __future__ import absolute_import
 
 import logging
-import six
 
-__all__ = ['PywbemLoggers',
+__all__ = ['define_logger', 'define_loggers_from_string',
            'LOG_OPS_CALLS_NAME', 'LOG_HTTP_NAME', 'LOG_COMPONENTS',
            'LOG_DESTINATIONS', 'LOG_DETAIL_LEVELS', 'DEFAULT_LOG_DETAIL_LEVEL',
            'DEFAULT_MAX_LOG_ENTRY_SIZE', 'DEFAULT_LOG_DESTINATION']
@@ -91,25 +141,26 @@ LOG_OPS_CALLS_NAME = 'pywbem.ops'
 #: WBEM servers.
 LOG_HTTP_NAME = 'pywbem.http'
 
-#: List of the logger names that :class:`~pywbem._logging.PywbemLoggers`
-#: recognizes.
+#: List of the logger names that the logging configureation helper functions
+#: recognize. This allows setting up either logger individually or both to the
+#: same destination.
 LOG_COMPONENTS = ['ops', 'http', 'all']
 
-#: List of log destinations that :class:`~pywbem._logging.PywbemLoggers`
-#: recognizes.
+#: List of log destinations that the logging configuration helper functions
+#: recognize.
 LOG_DESTINATIONS = ['file', 'stderr', 'none']
 
-#: List of the log detail strings that :class:`~pywbem._logging.PywbemLoggers`
-#: recognizes.
+#: List of the log detail strings that the logging configuration helper
+#: functions recognize.
 LOG_DETAIL_LEVELS = ['all', 'min']
 
 #: Default log detail level string if none is supplied with a call to the
 #: :class:`pywbem._logging.PywbemLoggers` methods that configure pywbem named
 #: loggers
-DEFAULT_LOG_DETAIL_LEVEL = 'min'
+DEFAULT_LOG_DETAIL_LEVEL = 'all'
 
 #: Default maximum log entry size if none is supplied when creating
-#: :class:`~pywbem.LogOperationRecorder` objects.
+#: enabling logging as part of a WBEMConnection.
 DEFAULT_MAX_LOG_ENTRY_SIZE = 1000
 
 #: Default log destination if none is defined when named loggers are
@@ -117,268 +168,168 @@ DEFAULT_MAX_LOG_ENTRY_SIZE = 1000
 DEFAULT_LOG_DESTINATION = 'none'
 
 
-class MetaPywbemLoggers(type):
+def define_loggers_from_string(log_spec_str, log_filename=None):
+    # pylint: disable=line-too-long
     """
-    **Experimental:** *New in pywbem 0.11 as experimental.*
+    Create the pywbem loggers defined by the input string in the following
+    syntax and place the logger definitions in the class level dictionary
+    in this class.
 
-    This metaclass allows the definition of __str__ and __repr__ at the
-    class level in the subclass.
+    Parameters:
+
+      input_str (:term:`string`): Specifies the logger definitions
+        as follows:
+
+        ``log_specs`` := ``log_spec`` [, ``log_spec`` ]
+
+        ``log_spec`` := ``log_comp`` ['=' [ ``dest`` ]]]
+
+        where:
+
+        * ``log_comp``: Must be one of strings in the
+          :data:`~pywbem._logging.LOG_COMPONENTS` list.
+
+      log_filename (:term:`string`)
+        Optional string that defines the filename for output of logs
+        if the dest type is `file`
+
+    Raises:
+
+      ValueError: Generated if the syntax of the input string is invalid
+        or any of the components is not one of allowed strings.
+
+    Examples::
+
+        ops=stderr    # set cim operations logger
+
+        http=file     # set http logger to send to file
+
+        all=file      # Set all loggers to output to a file
+    """  # noqa: E501
+
+    log_specs = log_spec_str.split(',')
+    for log_spec in log_specs:
+        try:
+            spec_split = log_spec.split("=", 1)
+        except ValueError:
+            raise ValueError('Log spec %s invalid. Contains too many '
+                             ' components' % log_spec)
+        if len(spec_split) == 1:
+            log_component = spec_split[0]
+            log_dest = ''
+        elif len(spec_split) == 2:
+            log_component = spec_split[0]
+            log_dest = spec_split[1]
+        else:
+            raise ValueError("Log component name required in %s" % log_spec)
+
+        # cvt empty strings to None
+        log_dest = 'none' if log_dest == '' else log_dest
+        define_logger(log_component, log_dest=log_dest,
+                      log_filename=log_filename)
+
+
+def define_logger(log_component, log_dest=DEFAULT_LOG_DESTINATION,
+                  log_filename=DEFAULT_LOG_DESTINATION):
     """
-    loggers = {}
+    This is a helper function to define a single pywbem logger with the
+    logger name defined by log_component
+    Create create the logger with the name defined by log_component and with
+    the parameters defined by log_dest and log-filename.
 
-    def __str__(cls):
-        return 'PywbemLoggers(loggers={s.loggers!r})'.format(s=cls)
+    This function can be used to set up all of the named loggers used by
+    pywbem.
 
-    def __repr__(cls):
-        return 'PywbemLoggers({s.loggers!r})'.format(s=cls)
+    This function sets up the logger name, and a formatter and also defines
+    the log destination.
 
+    Parameters:
 
-# pylint: disable=no-init
-class PywbemLoggers(six.with_metaclass(MetaPywbemLoggers)):
+      log_component (:term:`string`):
+        The name of the logger. It must be one of the
+        names defined in :data:`~pywbem._logging.LOG_COMPONENTS`.
+        Used to create the logger name by prepending with the logger name
+        prefix ``pywbem.``.  The log_component may include a suffix component
+        to uniquely identify a logger. This is identified with  a period
+        between the log_component name and the suffix. Normally this is
+        used to define a logger specifically for a selected connection and
+        the suffix is the conn_id of the WBEMConnection.
+
+      log_dest (:term:`string`):
+        String defining the destination for this log. It must be one of the
+        destinations defined in :data:`~pywbem._logging.LOG_DESTINATIONS`
+        or `None`. If the value is the string ``none``, the null logger is
+        created.
+
+      log_filename (:term:`string`):
+        Filename to use as logging file if the log destination is `file`.
+        Ignored if log destination is not `file`. If value is `None` and
+        this is a ``file`` log, ValueError is raised.
+
+    Raises:
+
+      ValueError: Input contains an invalid log destination, log level,
+        or log detail level. No named logger is configured.
     """
-    **Experimental:** *New in pywbem 0.11 as experimental.*
-
-    Container for pywbem logger information when loggers are created. This
-    class is a singleton, there is only one set of data for a pywbem
-    instantiation.  Its goal is to defined named loggers from data input and
-    too record information about these named loggers in a dictionary for
-    use by the log functions
-
-    This is defined with only class level object and methods as an
-    easy way to create a singleton. However, at least in python 2.6, you
-    cannot make some magic methods work (ex.__getItem__)
-
-    There are two constructors for loggers:
-
-    * :meth:`~pywbem._logging.PywbemLoggers.create_loggers` - Creates one or
-      more logger entries in this class and also in the python logging class
-      from an input string with the format defined in the create_loggers
-      method below.
-
-    * :meth:`~pywbem._logging.PywbemLoggers.create_logger` - Creates a single
-      logger from the separate pywbem logging parameters supplied with the
-      method.
-    """
-
-    @classmethod
-    def create_loggers(cls, input_str, log_filename=None):
-        # pylint: disable=line-too-long
-        """
-        Create the pywbem loggers defined by the input string in the following
-        syntax and place the logger definitions in the class level dictionary
-        in this class.
-
-        Parameters:
-
-          input_str (:term:`string`): Specifies the logger definitions
-            as follows:
-
-            ``log_specs`` := ``log_spec`` [, ``log_spec`` ]
-
-            ``log_spec`` := ``log_comp`` ['=' [ ``dest`` ][":"[ ``detail_level`` ]]]]
-
-            where:
-
-            * ``log_comp``: Must be one of strings in the
-              :data:`~pywbem._logging.LOG_COMPONENTS` list.
-
-            * ``detail_level``: Must be one of strings in the
-              :data:`~pywbem._logging.LOG_DETAIL_LEVELS` list.
-
-            * ``dest``: Must be one of strings in the
-              :data:`~pywbem._logging.LOG_DESTINATIONS` list.
-
-          log_filename (:term:`string`)
-            Optional string that defines the filename for output of logs
-            if the dest type is `file`
-
-        Raises:
-
-          ValueError: Generated if the syntax of the input string is invalid
-            or any of the components is not one of allowed strings.
-
-        Examples::
-
-            ops=stderr:min    # set cim operations logger
-
-            http=file:        # set http logger to send to file
-
-            all=file:all      # Set all loggers to default log destination
-        """  # noqa: E501
-        # pylint: enable=line-too-long
-
-        results = cls._parse_log_specs(input_str)
-        for name, value in six.iteritems(results):
-            cls.create_logger(name, log_dest=value[0],
-                              log_detail_level=value[1],
+    if log_component == 'all':
+        for comp in LOG_COMPONENTS:
+            if comp != 'all':
+                define_logger(comp, log_dest=log_dest,
                               log_filename=log_filename)
 
-    @classmethod
-    def create_logger(cls, log_component, log_dest=DEFAULT_LOG_DESTINATION,
-                      log_filename=DEFAULT_LOG_DESTINATION,
-                      log_detail_level=DEFAULT_LOG_DETAIL_LEVEL):
-        """
-        Create the logger defined by the input parameters and place the result
-        in a class level dictionary in this class.
+    # Otherwise process results of any recursive calls above
+    else:
+        if log_dest not in LOG_DESTINATIONS:
+            raise ValueError('Invalid log destination "%s". valid log '
+                             'destinations are: %s' %
+                             (log_dest, LOG_DESTINATIONS))
 
-        This function can be used to set up all of the named loggers used by
-        pywbem.
-
-        Parameters:
-
-          log_component (:term:`string`):
-            The name of the logger. It must be one of the
-            names defined in :data:`~pywbem._logging.LOG_COMPONENTS`.
-            Used to create the logger name by prepending with the logger name
-            prefix ``pywbem.``.
-
-          log_dest (:term:`string`):
-            String defining the destination for this log. It must be one of the
-            destinations defined in :data:`~pywbem._logging.LOG_DESTINATIONS`
-            or `None`. If the value is the string ``none``, the null logger is
-            created.
-
-          log_filename (:term:`string`):
-            Filename to use as logging file if the log destination is `file`.
-            Ignored if log destination is not `file`. If value is `None` and
-            this is a ``file`` log, ValueError is raised.
-
-          log_detail_level (:term:`string`):
-            String defining the level of detail for log output. This is
-            optional. The default is defined in
-            :data:`~pywbem._logging.DEFAULT_LOG_DETAIL_LEVEL`.
-
-        Raises:
-
-          ValueError: Input contains an invalid log destination, log level,
-            or log detail level. No named logger is configured.
-        """
-        if log_component == 'all':
-            for comp in LOG_COMPONENTS:
-                if comp != 'all':
-                    cls.create_logger(comp, log_dest=log_dest,
-                                      log_filename=log_filename,
-                                      log_detail_level=log_detail_level)
-
-        # Otherwise process results of any recursive calls above
+        if '.' in log_component:
+            log_name, log_suffix = log_component.split('.', 1)
         else:
-            if log_dest not in LOG_DESTINATIONS:
-                raise ValueError('Invalid log destination %s. valid log '
-                                 'destinations are: %s' %
-                                 (log_dest, LOG_DESTINATIONS))
-            if log_component not in LOG_COMPONENTS:
-                raise ValueError('Invalid log component %s. Valid log '
-                                 'components are: %s' %
-                                 (log_component, LOG_COMPONENTS))
-            if not log_detail_level:
-                log_detail_level = DEFAULT_LOG_DETAIL_LEVEL
-            if log_detail_level not in LOG_DETAIL_LEVELS:
-                raise ValueError('Invalid log detail %s. Valid Log detail '
-                                 'levels are %s' %
-                                 (log_detail_level, LOG_DETAIL_LEVELS))
+            log_suffix = ''
+            log_name = log_component
 
-            if log_dest == 'stderr':
-                handler = logging.StreamHandler()
-                format_string = '%(asctime)s-%(name)s-%(message)s'
-            elif log_dest == 'file':
-                if not log_filename:
-                    raise ValueError('Filename required if log destination '
-                                     'is "file"')
-                handler = logging.FileHandler(log_filename)
-                format_string = '%(asctime)s-%(name)s-%(message)s'
-            else:
-                assert(log_dest == 'none')
-                handler = logging.NullHandler()
-                format_string = None
+        if log_name not in LOG_COMPONENTS:
+            raise ValueError('Invalid log component "%s". Valid log '
+                             'components are: %s' %
+                             (log_component, LOG_COMPONENTS))
 
-            # set the logger name based on the log_component.
-            if log_component == 'http':
-                logger_name = LOG_HTTP_NAME
-            elif log_component == 'ops':
-                logger_name = LOG_OPS_CALLS_NAME
-            else:
-                raise ValueError('Invalid log_component %s' % log_component)
+        if log_dest == 'stderr':
+            handler = logging.StreamHandler()
+            format_string = '%(asctime)s-%(name)s-%(message)s'
+        elif log_dest == 'file':
+            if not log_filename:
+                raise ValueError('Filename required if log destination '
+                                 'is "file"')
+            handler = logging.FileHandler(log_filename)
+            format_string = '%(asctime)s-%(name)s-%(message)s'
+        else:
+            assert(log_dest == 'none')
+            handler = logging.NullHandler()
+            format_string = None
 
-            # create named logger. We allow only a single handler for
-            # any logger so must remove any existing handler before adding
-            #
-            if handler:
-                handler.setFormatter(logging.Formatter(format_string))
-                logger = logging.getLogger(logger_name)
-                for hdlr in logger.handlers:
-                    logger.removeHandler(hdlr)
-                logger.addHandler(handler)
-                logger.setLevel(logging.DEBUG)
+        # set the logger name based on the log_component.
+        if log_name == 'http':
+            logger_name = LOG_HTTP_NAME
+        elif log_name == 'ops':
+            logger_name = LOG_OPS_CALLS_NAME
+        else:
+            raise ValueError('Invalid log_component %s' % log_name)
 
-            # save the detail level in the dict that is part of this class.
-            # All members of this tuple are just for information.
-            cls.loggers[logger_name] = (log_detail_level,
-                                        log_dest,
-                                        log_filename)
+        if log_suffix:
+            logger_name = '%s.%s' % (logger_name, log_suffix)
 
-    @classmethod
-    def get_logger_info(cls, logger_name):
-        """
-        Get information about a logger by name.
-
-        Parameters:
-
-          logger_name (:term:`string`):
-            The pywbem logger name (ex. ``pywbem.ops``)
-
-        Returns:
-
-          Tuple with the following information in the tuple:
-          (log_detail_level, log_level, log_dest, log_filename)
-          or 'None' if the logger has not been defined to PywbemLoggers
-        """
-        return cls.loggers.get(logger_name, None)
-
-    @classmethod
-    def _parse_log_specs(cls, log_spec_str):
-        """
-        Parse a complete cmd line log specification that is in the
-        format defined in :meth:`~pywbem.PywbemLogger.create_logger`
-
-        Parameters:
-
-          log_spec_str (:term:`string`): The log spec string.
-
-        Returns:
-
-          Dictionary containing the parsed information where each entry is
-          log_comp (detail_level, dest)
-
-        Raises:
-
-          ValueError: The parsing of the input string failed.
-        """
-        log_specs_dict = dict()
-        log_specs = log_spec_str.split(',')
-        for log_spec in log_specs:
-            try:
-                log_component, log_data = log_spec.split("=", 1)
-            except ValueError:
-                log_component = log_spec
-                log_data = ''
-
-            log_values = log_data.split(":")
-
-            if not log_component:
-                raise ValueError("Log component name required in %s" % log_spec)
-
-            # cvt empty strings to None
-            log_values = [None if x == '' else x for x in log_values]
-            # expand to full size if not all values supplied
-            while len(log_values) < 2:
-                log_values.append(None)
-
-            if len(log_values) > 2:
-                raise ValueError("Invalid log detail. %s too many "
-                                 "components."
-                                 % log_spec)
-            log_specs_dict[log_component] = tuple(log_values)
-        return log_specs_dict
+        # create named logger. We allow only a single handler for
+        # any logger so must remove any existing handler before adding
+        #
+        if handler:
+            handler.setFormatter(logging.Formatter(format_string))
+            logger = logging.getLogger(logger_name)
+            for hdlr in logger.handlers:
+                logger.removeHandler(hdlr)
+            logger.addHandler(handler)
+            logger.setLevel(logging.DEBUG)
 
 
 def get_logger(logger_name):
@@ -387,9 +338,10 @@ def get_logger(logger_name):
 
     Return a :class:`~py:logging.Logger` object with the specified name.
 
-    A logger is defined in :class:`~pywbem.PywbemLogger` if it does not
-    already exist. This creates a logger with a log_component and the default
-    properties defined for :meth:`~pywbem.PywbemLogger.create_logger`.
+    A :class:`~py:logging.NullHandler` handler is added to the logger if it
+    does not have any handlers yet and if it is not the Python root logger.
+    This prevents the propagation of log requests up the Python logger
+    hierarchy, and therefore causes this package to be silent by default.
 
     This prevents the propagation of log requests up the Python logger
     hierarchy, and therefore causes this package to be silent by default.
@@ -409,9 +361,7 @@ def get_logger(logger_name):
 
       ValueError: The name is not one of the valid pywbem loggers.
     """
-    if PywbemLoggers.get_logger_info(logger_name) is None:
-        # pylint: disable=unused-variable
-        log_prefix, log_comp = logger_name.split('.')
-        # create PywbemLogger with default values
-        PywbemLoggers.create_logger(log_comp)
-    return logging.getLogger(logger_name)
+    logger = logging.getLogger(logger_name)
+    if logger_name != '' and not logger.handlers:
+        logger.addHandler(logging.NullHandler())
+    return logger

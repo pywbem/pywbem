@@ -112,9 +112,9 @@ from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
 
-from pywbem._logging import PywbemLoggers, LOG_DESTINATIONS, \
+from pywbem._logging import LOG_DESTINATIONS, \
     LOG_DETAIL_LEVELS, LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL, \
-    DEFAULT_LOG_DESTINATION
+    DEFAULT_LOG_DESTINATION, define_loggers_from_string
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
@@ -3212,7 +3212,7 @@ Examples:
     CONN = _remote_connection(args.server, args, argparser)
 
     if args.log:
-        PywbemLoggers.create_loggers(args.log, DEFAULT_LOG_FILENAME)
+        define_loggers_from_string(args.log, DEFAULT_LOG_FILENAME)
         CONN.add_operation_recorder(LogOperationRecorder())
 
         # enable logging at the debug level
