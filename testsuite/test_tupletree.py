@@ -350,16 +350,16 @@ class Test_check_invalid_utf8_sequences(object):
         if exp_exc_type is None:
 
             unicode_string = tupletree.check_invalid_utf8_sequences(
-                utf8_string, "Test XML")
+                utf8_string, desc)
 
-            assert isinstance(unicode_string, six.text_type)
+            assert isinstance(unicode_string, six.text_type), desc
             utf8_string_u = utf8_string.decode('utf-8')
-            assert unicode_string == utf8_string_u
+            assert unicode_string == utf8_string_u, desc
 
         else:
             with pytest.raises(exp_exc_type):
 
-                tupletree.check_invalid_utf8_sequences(utf8_string, "Test XML")
+                tupletree.check_invalid_utf8_sequences(utf8_string, desc)
 
 
 class Test_check_invalid_xml_chars(object):
@@ -457,12 +457,12 @@ class Test_check_invalid_xml_chars(object):
 
         if exp_exc_type is None:
 
-            tupletree.check_invalid_xml_chars(xml_string, "Test XML")
+            tupletree.check_invalid_xml_chars(xml_string, desc)
 
         else:
             with pytest.raises(exp_exc_type):
 
-                tupletree.check_invalid_xml_chars(xml_string, "Test XML")
+                tupletree.check_invalid_xml_chars(xml_string, desc)
 
 
 if __name__ == '__main__':
