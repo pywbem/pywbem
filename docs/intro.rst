@@ -44,18 +44,13 @@ Pywbem supports the following functionality:
 
   * :ref:`mof_compiler`
 
-    A MOF compiler that takes MOF files as input and creates, updates or
-    removes CIM instances, classes or qualifier types in a CIM repository.
-
-    See :term:`DSP0004` for a description of MOF (Managed Object Format).
-
-    By default, the CIM repository used by the MOF compiler is in a WBEM
-    server. The :ref:`MOF compiler API` provides for plugging in your own CIM
-    repository the compiler can work against.
+    A MOF compiler that takes MOF files as input and updates the CIM repository
+    of a WBEM server with the result. See :term:`DSP0004` for a definition of
+    MOF.
 
   * :ref:`wbemcli`
 
-    A WBEM command line interface that provides an interactive Python
+    A WBEM client in the form of a shell that provides an interactive Python
     environment for issuing WBEM operations to a WBEM server.
 
 

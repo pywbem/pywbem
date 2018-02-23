@@ -14,12 +14,12 @@ The following commands are provided:
 
 * :ref:`mof_compiler`
 
-  A MOF compiler that takes MOF files as input and creates, updates or
-  removes CIM instances, classes or qualifier types in a CIM repository.
+  A MOF compiler that takes MOF files as input and updates the CIM repository
+  of a WBEM server with the result.
 
 * :ref:`wbemcli`
 
-  A WBEM command line interface that provides an interactive Python
+  A WBEM client in the form of a shell that provides an interactive Python
   environment for issuing WBEM operations to a WBEM server.
 
 .. _`mof_compiler`:
@@ -27,46 +27,44 @@ The following commands are provided:
 mof_compiler
 ------------
 
-The ``mof_compiler`` command is a command line interface to the pywbem MOF
-compiler. It compiles MOF files, and updates the repository of a WBEM server
-with the result.
+The ``mof_compiler`` command compiles MOF files and updates the CIM repository
+of a WBEM server with the result.
 
-The MOF compiler can also be invoked from programs via the
-:ref:`MOF compiler API`.
+If the compiler fails, any changes made to the CIM repository in the WBEM server
+as part of the current compilation are rolled back. A limitation is that
+changes to qualifier declarations are not yet rolled back (see issue #990).
 
-The MOF compiler has a pluggable interface for the CIM repository. The default
-implementation of that interface uses a WBEM server as its repository.
-The plug interface is also described in the :ref:`MOF compiler API`.
-
-Usage
-^^^^^
+The compiler provides a dry-run mode that simulates the compilation but does not
+change the CIM repository in the WBEM server.
 
 Here is the help text of the command:
 
 .. include:: mof_compiler.help.txt
    :literal:
+   :code: text
 
 .. _`wbemcli`:
 
 wbemcli
 -------
 
-The ``wbemcli`` command is a WBEM client command line interface (CLI). It is
-implemented as an interactive shell.
+The ``wbemcli`` command is a WBEM client in the form of a shell that provides
+an interactive Python environment for issuing WBEM operations to a WBEM
+server.
 
-The WBEM client CLI does not have an external API on its own; it is for the
-most part a consumer of the :ref:`WBEM client library API`.
-
-Usage
-^^^^^
+See :ref:`Python functions in wbemcli` for details on the Python functions
+available in that environment.
 
 Here is the help text of the command:
 
 .. include:: wbemcli.help.txt
    :literal:
+   :code: text
 
-Global functions
-^^^^^^^^^^^^^^^^
+.. _`Python functions in wbemcli`:
+
+Python functions in wbemcli
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: wbemcli
    :members:

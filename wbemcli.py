@@ -21,12 +21,64 @@
 #
 
 """
-The interactive shell of wbemcli provides global functions for the CIM
-operations, and some functions for help display and debugging.
+The interactive shell of wbemcli provides Python functions for the WBEM
+operations, and some functions for help display and debugging:
 
-For tooling reasons, these functions are shown as members of the 'wbemcli'
-namespace. However, they are directly available in the namespace of the
-wbemcli interactive shell.
+=====================  ========================================================
+Function               WBEM operation
+=====================  ========================================================
+:func:`~wbemcli.ei`    EnumerateInstances
+:func:`~wbemcli.ein`   EnumerateInstanceNames
+:func:`~wbemcli.gi`    GetInstance
+:func:`~wbemcli.mi`    ModifyInstance
+:func:`~wbemcli.ci`    CreateInstance
+:func:`~wbemcli.di`    DeleteInstance
+:func:`~wbemcli.a`     Associators
+:func:`~wbemcli.an`    AssociatorNames
+:func:`~wbemcli.r`     References
+:func:`~wbemcli.rn`    ReferenceNames
+:func:`~wbemcli.im`    InvokeMethod
+---------------------  --------------------------------------------------------
+:func:`~wbemcli.iei`   IterEnumerateInstances (pywbem only)
+:func:`~wbemcli.ieip`  IterEnumerateInstancePaths (pywbem only)
+:func:`~wbemcli.iai`   IterAssociatorInstances (pywbem only)
+:func:`~wbemcli.iaip`  IterAssociatorInstancePaths (pywbem only)
+:func:`~wbemcli.iri`   IterReferenceInstances (pywbem only)
+:func:`~wbemcli.irip`  IterReferenceInstancePaths (pywbem only)
+:func:`~wbemcli.iqi`   IterQueryInstances (pywbem only)
+---------------------  --------------------------------------------------------
+:func:`~wbemcli.oei`   OpenEnumerateInstances
+:func:`~wbemcli.oeip`  OpenEnumerateInstancePaths
+:func:`~wbemcli.oai`   OpenAssociatorInstances
+:func:`~wbemcli.oaip`  OpenAssociatorInstancePaths
+:func:`~wbemcli.ori`   OpenReferenceInstances
+:func:`~wbemcli.orip`  OpenReferenceInstancePaths
+:func:`~wbemcli.oqi`   OpenQueryInstances
+:func:`~wbemcli.piwp`  PullInstancesWithPath
+:func:`~wbemcli.pip`   PullInstancePaths
+:func:`~wbemcli.pi`    PullInstances
+:func:`~wbemcli.ce`    CloseEnumeration
+---------------------  --------------------------------------------------------
+:func:`~wbemcli.ec`    EnumerateClasses
+:func:`~wbemcli.ecn`   EnumerateClassNames
+:func:`~wbemcli.gc`    GetClass
+:func:`~wbemcli.mc`    ModifyClass
+:func:`~wbemcli.cc`    CreateClass
+:func:`~wbemcli.dc`    DeleteClass
+---------------------  --------------------------------------------------------
+:func:`~wbemcli.eq`    EnumerateQualifiers
+:func:`~wbemcli.gq`    GetQualifier
+:func:`~wbemcli.sq`    SetQualifier
+:func:`~wbemcli.dq`    DeleteQualifier
+---------------------  --------------------------------------------------------
+:func:`~wbemcli.h`     Print help text for interactive environment
+:func:`~wbemcli.pdb`   Run a statement under the PDB debugger
+``pp()``               Alias for :func:`~py:pprint.pprint`
+=====================  ========================================================
+
+The interactive Python environment of the ``wbemcli`` command has ``wbemcli``
+as its current Python namespace, so the functions shown below can directly be
+invoked (e.g. ``ei(...)``).
 """
 
 from __future__ import absolute_import
