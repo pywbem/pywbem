@@ -2492,7 +2492,7 @@ def ce(ec):    # pylint: disable=redefined-outer-name
     CONN.CloseEnumeration(ec)
 
 
-def im(mn, op, *params, **kwparams):
+def im(mn, op, params, **kwparams):
     """
     This function is a wrapper for
     :meth:`~pywbem.WBEMConnection.InvokeMethod`.
@@ -2515,7 +2515,7 @@ def im(mn, op, *params, **kwparams):
       op (:class:`~pywbem.CIMClassName`):
           Target class path.
 
-      *params (arguments):
+      params (:term:`py:iterable`):
           Input parameters for the method.
 
           Each item in the iterable is a single parameter value and can be any
@@ -2552,7 +2552,7 @@ def im(mn, op, *params, **kwparams):
             Parameter value
     """
 
-    return CONN.InvokeMethod(mn, op, *params, **kwparams)
+    return CONN.InvokeMethod(mn, op, params, **kwparams)
 
 
 def ecn(ns=None, cn=None, di=None):

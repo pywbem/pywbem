@@ -591,6 +591,9 @@ Bug fixes
   because they don't even know whether the information has been set by
   the server or defaulted by the client as it is now done. (Issue #1039).
 
+* In the wbemcli shell, fixed the "*params" parameter of the `im()` function,
+  to become "param" (an iterable). (Issue #1110).
+
 Cleanup
 ^^^^^^^
 
