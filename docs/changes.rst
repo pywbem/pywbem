@@ -160,6 +160,19 @@ Incompatible changes
   `last_reply`, `last_raw_reply`). They have never been supposed to be
   writeable by users. (Issue #1068).
 
+* In the wbemcli shell, renamed the following function parameters. This
+  is only relevant if you wrote scripts against the shell and named these
+  parameters: (Issue #1110).
+
+  - The "op" parameter of iter functions that have it was renamed to "ip",
+    because it is always an instance path.
+
+  - The "qi" parameter of the query functions was renamed to "qs",
+    for consistency with the filtering functions.
+
+  - The "fq" parameter of the filtering functions was renamed to "fs",
+    for consistency with the query functions.
+
 Deprecations
 ^^^^^^^^^^^^
 
@@ -366,6 +379,12 @@ Enhancements
 * In the `WBEMListener` class, added properties `http_started` and
   `https_started` indicating whether the listener is started for the
   respective port.
+
+* Docs: In the wbemcli shell, improved and fixed the description of
+  operation functions. (Issue #1110).
+
+* Docs: Improved and fixed the description of `WBEMConnection`
+  operation methods. (Issue #1110).
 
 Bug fixes
 ^^^^^^^^^
