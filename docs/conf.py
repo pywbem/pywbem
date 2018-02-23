@@ -95,7 +95,8 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["testsuite", ".tox", ".git", "attic", "dist", "irecv",
+exclude_patterns = ["README.rst", "listener_design.rst",
+                    "testsuite", ".tox", ".git", "attic", "dist", "irecv",
                     "tools", "packaging", "build_doc", "pywbem.egg-info",
                     ".eggs"]
 
