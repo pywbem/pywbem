@@ -1246,8 +1246,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This is a low-level method that is used by the operation-specific
         methods of this class
         (e.g. :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`).
-        This method is not part of the external WBEM client library API; it is
-        being included in the documentation only for tooling reasons.
 
         Deprecated: Calling this function directly has been deprecated and
         will issue a :term:`DeprecationWarning`.
@@ -1395,8 +1393,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         This is a low-level method that is used by the
         :meth:`~pywbem.WBEMConnection.InvokeMethod` method of this class.
-        This method is not part of the external WBEM client library API; it is
-        being included in the documentation only for tooling reasons.
 
         Deprecated: Calling this function directly has been deprecated and
         will issue a :term:`DeprecationWarning`.
