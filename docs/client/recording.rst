@@ -17,7 +17,7 @@ Typical usage scenarios for various operation recorders are the tracing of WBEM
 operations, tracing of interactions with a WBEM server, or the generation of
 test cases.
 
-Please not that the method of activating operation recorders changed starting
+Please note that the method of activating operation recorders changed starting
 with pywbem 0.11.0 and the addition of a second recorder.  See
 :meth:`~pywbem.WBEMConnection.add_operation_recorder` for more information.
 

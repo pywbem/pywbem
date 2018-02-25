@@ -21,40 +21,43 @@
 
 """
 The language in which CIM classes, CIM Instances, etc. are specified, is
-called `MOF` (for Managed Object Format). It is defined in the DMTF document
-:term:`DSP0004`.
+called `MOF` (for Managed Object Format). It is defined in :term:`DSP0004`.
 
 MOF compilers take MOF files as input, compile them and use the result
-(CIMClasses, CIMInstances, etc.) to update a target CIM repository. The
-repository may initially be empty, or may contain the result of earlier MOF
-compilations that are used to resolve dependencies the new MOF compilation
-may have.
+(CIM classes, instances, and/or qualifier declarations) to update a target
+CIM repository. The repository may initially be empty, or may contain CIM
+classes, instances, and/or qualifier declarations that are used to resolve
+dependencies the new MOF compilation may have.
 
-The pywbem package includes a MOF compiler.
+The pywbem package includes a MOF compiler that is provided in two forms:
 
-The MOF compiler in this package will compile MOF files whose syntax complies
-with :term:`DSP0004` with some limitations:
+* as an API (described in this chapter)
+* as a command (described in section :ref:`mof_compiler`)
+
+The pywbem MOF compiler will compile MOF files whose syntax complies with
+:term:`DSP0004`, with some limitations:
 
 1. Although there is no formal keyword list of illegal words
-for property/parameter.etc. names , there is a list of mof syntax tokens
-in :term:`DSP0004` section A.3.  Generally these should not be used as property
-names.  The pywbem MOF compiler largely enforces this so that words like
-'indication' are not allowed as property/parameter/etc. names.
+   for property/parameter.etc. names , there is a list of mof syntax tokens
+   in :term:`DSP0004` section A.3.  Generally these should not be used as
+   property names.  The pywbem MOF compiler largely enforces this so that words
+   like 'indication' are not allowed as property/parameter/etc. names.
 
 2. The key properties of instances with aliases must be initialized in the
-instance specification, or their default values must be non-NULL. (Issue #1079).
+   instance specification, or their default values must be non-NULL.
+   (Issue #1079).
 
 3. An alias must be defined before it is used. In DSP0004, no such requirement
-is documented. (Issue #1079).
+   is documented. (Issue #1079).
 
-The pywbem MOF compiler also has an option to remove CIM elements from a
-repository by using the  compiler rollback. This is used in the MOFCompiler
-script. See :ref:`mof_compiler`.
+The MOF compiler API provides for invoking the MOF compiler, it supports
+plugging in a user-provided CIM repository (see
+:class:`~pywbem.BaseRepositoryConnection`), and it supports a rollback
+capability that undoes compilation effects (see
+:meth:`~pywbem.MOFCompiler.rollback`).
 
-The MOF compiler API provides for invoking the MOF compiler and for plugging in
-your own CIM repository into the MOF compiler.
-
-This chapter has the following sections:
+The MOF compiler API consists of the following parts, which are described in the
+remaining sections of this chapter:
 
 * :ref:`MOFCompiler Class` - Describes the :class:`~pywbem.MOFCompiler`
   class, which allows invoking the MOF compiler programmatically.
@@ -2229,7 +2232,8 @@ def _print_logger(msg):
 
 class MOFCompiler(object):
     """
-    A MOF compiler.
+    A MOF compiler. See :ref:`MOF Compiler API` for an explanation of MOF
+    compilers.
 
     A MOF compiler is associated with a CIM repository. The repository is
     used for looking up dependent CIM elements (e.g. the superclass specified

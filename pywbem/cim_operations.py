@@ -121,8 +121,8 @@ WBEMConnection method                                       Purpose
 ==========================================================  ==============================================================
 
 NOTE: The method EnumerationCount is to be deprecated from the DMTF specs
-and has not been implemented by any servers so was not implemented
-in pywbem
+and has not been implemented by any WBEM servers so was not implemented
+in pywbem.
 """  # noqa: E501
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
@@ -586,7 +586,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             Initial enablement status for maintaining statistics about the
             WBEM operations executed via this connection. See the
-            :ref:`Statistics` section for details.
+            :ref:`WBEM operation statistics` section for details.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -966,8 +966,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Statistics are disabled by default and can be enabled via the
         ``stats_enabled`` argument when creating a connection object, or
         later via modifying the :attr:`~pywbem.WBEMConnection.stats_enabled`
-        property on this connection object. See the :ref:`Statistics` section
-        for more details.
+        property on this connection object. See the
+        :ref:`WBEM operation statistics` section for more details.
         """
         return self._statistics
 
