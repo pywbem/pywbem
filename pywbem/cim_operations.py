@@ -32,27 +32,24 @@ Each method of this class corresponds directly to a WBEM operation.
 ==========================================================  ==============================================================
 WBEMConnection method                                       Purpose
 ==========================================================  ==============================================================
-:meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`       Enumerate the instance paths of instances of a class
-                                                            (including instances of its subclasses).
 :meth:`~pywbem.WBEMConnection.EnumerateInstances`           Enumerate the instances of a class (including instances of its
                                                             subclasses)
+:meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`       Enumerate the instance paths of instances of a class
+                                                            (including instances of its subclasses).
 :meth:`~pywbem.WBEMConnection.GetInstance`                  Retrieve an instance
 :meth:`~pywbem.WBEMConnection.ModifyInstance`               Modify the property values of an instance
 :meth:`~pywbem.WBEMConnection.CreateInstance`               Create an instance
 :meth:`~pywbem.WBEMConnection.DeleteInstance`               Delete an instance
-----------------------------------------------------------  --------------------------------------------------------------
-:meth:`~pywbem.WBEMConnection.AssociatorNames`              Retrieve the instance paths of the instances (or classes)
-                                                            associated to a source instance (or source class)
 :meth:`~pywbem.WBEMConnection.Associators`                  Retrieve the instances (or classes) associated to a source
                                                             instance (or source class)
+:meth:`~pywbem.WBEMConnection.AssociatorNames`              Retrieve the instance paths of the instances (or classes)
+                                                            associated to a source instance (or source class)
+:meth:`~pywbem.WBEMConnection.References`                   Retrieve the association instances (or association classes)
+                                                            that reference a source instance (or source class)
 :meth:`~pywbem.WBEMConnection.ReferenceNames`               Retrieve the instance paths of the association instances (or
                                                             association classes) that reference a source instance (or
                                                             source class)
-:meth:`~pywbem.WBEMConnection.References`                   Retrieve the association instances (or association classes)
-                                                            that reference a source instance (or source class)
-----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.InvokeMethod`                 Invoke a method on a target instance or on a target class
-----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.ExecQuery`                    Execute a query in a namespace
 ----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.IterEnumerateInstances`       Iterator API that uses either OpenEnumerateInstances and
@@ -63,20 +60,20 @@ WBEMConnection method                                       Purpose
                                                             PullInstancesWithPath or EnumerateInstances depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
-:meth:`~pywbem.WBEMConnection.IterReferenceInstances`       Iterator API that uses either OpenReferenceInstances and
-                                                            PullInstancesWithPath or References depending on
-                                                            the attributes and existence of pull operations in the
-                                                            server.
-:meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`   Iterator API that uses either OpenReferenceInstances and
-                                                            PullInstancesWithPath or References depending on
-                                                            the attributes and existence of pull operations in the
-                                                            server.
 :meth:`~pywbem.WBEMConnection.IterAssociatorInstances`      Iterator API that uses either OpenAssociatorInstances and
                                                             PullInstancesWithPath or Associators depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
 :meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`  Iterator API that uses either OpenAssociatorInstances and
                                                             PullInstancesWithPath or Associators depending on
+                                                            the attributes and existence of pull operations in the
+                                                            server.
+:meth:`~pywbem.WBEMConnection.IterReferenceInstances`       Iterator API that uses either OpenReferenceInstances and
+                                                            PullInstancesWithPath or References depending on
+                                                            the attributes and existence of pull operations in the
+                                                            server.
+:meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`   Iterator API that uses either OpenReferenceInstances and
+                                                            PullInstancesWithPath or References depending on
                                                             the attributes and existence of pull operations in the
                                                             server.
 :meth:`~pywbem.WBEMConnection.IterQueryInstances`           Iterator API that uses either OpenQueryInstances and
@@ -86,32 +83,32 @@ WBEMConnection method                                       Purpose
 ----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.OpenEnumerateInstances`       Open enumeration session to retrieve instances of
                                                             of a class (including instances of its subclass)
+:meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths`   Open enumeration session to retrieve instances of a class
+                                                            (including instances of its subclass)
 :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances`      Open enumeration session to retrieve the instances
+                                                            associated to a source instance
+:meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`  Open enumeration session to retrieve the instances
                                                             associated to a source instance
 :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`       Open enumeration session to retrieve the instances
                                                             that reference a source instance
+:meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`   Open enumeration session to retrieve the instances that
+                                                            reference a source instance
+:meth:`~pywbem.WBEMConnection.OpenQueryInstances`           Open query request to retrieve instances defined by
+                                                            the query parameter in a namespace
 :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`        Continue enumeration session opened with
                                                             OpenEnumerateInstances, OpenAssociatorInstances, or
                                                             OpenReferenceinstances
-:meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths`   Open enumeration session to retrieve instances of a class
-                                                            (including instances of its subclass)
-:meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`  Open enumeration session to retrieve the instances
-                                                            associated to a source instance
-:meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`   Open enumeration session to retrieve the instances that
-                                                            reference a source instance
 :meth:`~pywbem.WBEMConnection.PullInstancePaths`            Continue enumeration session opened with
                                                             OpenEnumerateInstancePaths, OpenAssociatorInstancePaths,
                                                             or OpenReferenceInstancePaths
-:meth:`~pywbem.WBEMConnection.OpenQueryInstances`           Open query request to retrieve instances defined by
-                                                            the query parameter in a namespace
 :meth:`~pywbem.WBEMConnection.PullInstances`                Continue enumeration of enumeration session opened
                                                             with OpenExecQuery
 :meth:`~pywbem.WBEMConnection.CloseEnumeration`             Close an enumeration session in process.
 ----------------------------------------------------------  --------------------------------------------------------------
-:meth:`~pywbem.WBEMConnection.EnumerateClassNames`          Enumerate the names of subclasses of a class, or of the
-                                                            top-level classes in a namespace
 :meth:`~pywbem.WBEMConnection.EnumerateClasses`             Enumerate the subclasses of a class, or the top-level classes
                                                             in a namespace
+:meth:`~pywbem.WBEMConnection.EnumerateClassNames`          Enumerate the names of subclasses of a class, or of the
+                                                            top-level classes in a namespace
 :meth:`~pywbem.WBEMConnection.GetClass`                     Retrieve a class
 :meth:`~pywbem.WBEMConnection.ModifyClass`                  Modify a class
 :meth:`~pywbem.WBEMConnection.CreateClass`                  Create a class
@@ -3916,6 +3913,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           ReturnQueryResultClass (:class:`py:bool`):
             Controls whether a class definition is returned.
+
+            `None` will cause the server to use its default of `False`.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
