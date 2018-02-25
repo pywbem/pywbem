@@ -4,6 +4,10 @@
 Introduction
 ============
 
+.. contents:: Chapter Contents
+   :depth: 2
+
+
 .. _`Functionality`:
 
 Functionality

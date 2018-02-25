@@ -12,6 +12,9 @@ It also defines the differences between some of the methods defined in
 Pywbem cim_operations, in particular, the pull operations and the iter
 operations.
 
+.. contents:: Chapter Contents
+   :depth: 2
+
 
 .. _`The CIM/WBEM architecture`:
 
