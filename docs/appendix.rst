@@ -63,8 +63,8 @@ This documentation uses a few special terms to refer to Python types:
 
    DeprecationWarning
       a standard Python warning that indicates a deprecated functionality.
-      See section :ref:`Deprecation policy` and the standard Python module
-      :mod:`py:warnings` for details.
+      See section :ref:`Deprecation and compatibility policy` and the standard
+      Python module :mod:`py:warnings` for details.
 
    Element
       class ``xml.dom.minidom.Element``. Its methods are described in section

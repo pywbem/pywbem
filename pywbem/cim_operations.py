@@ -7648,7 +7648,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * returnvalue (:term:`CIM data type`):
               Return value of the CIM method.
-            * outparams (`NocaseDict`_):
+            * outparams (:ref:`NocaseDict`):
               Dictionary with all provided output parameters of the CIM method,
               with:
 
