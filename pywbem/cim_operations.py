@@ -1881,7 +1881,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           IncludeQualifiers (:class:`py:bool`):
             Indicates that qualifiers are to be included in the returned
-            instance, as follows:
+            instances, as follows:
 
             * If `False`, qualifiers are not included.
             * If `True`, qualifiers are included if the WBEM server implements
@@ -1891,7 +1891,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -1902,6 +1902,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -2093,7 +2097,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -2177,7 +2182,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -2188,6 +2193,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -2437,7 +2446,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -2709,7 +2719,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -2929,7 +2940,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                OperationTimeout=None, ContinueOnError=None,
                                MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                                **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
@@ -2970,7 +2981,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -3028,7 +3040,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -3041,9 +3053,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned instances (or classes) (case independent).
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
+
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
+            that defines a single property) to be included in the returned
+            instances (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -3141,7 +3159,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     break
                 else:
                     print('instance %s' % inst.tomof())
-        """
+        """  # noqa: E501
 
         # Must be positive integer gt zero
 
@@ -3271,7 +3289,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -3510,7 +3529,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                 OperationTimeout=None, ContinueOnError=None,
                                 MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                                 **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
@@ -3551,7 +3570,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -3583,7 +3603,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             of the connection is used.
             Its `host` attribute will be ignored.
 
-           AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
+          AssocClass (:term:`string` or :class:`~pywbem.CIMClassName`):
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
@@ -3623,7 +3643,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -3636,9 +3656,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be included
-            in the returned instances (or classes) (case independent).
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
+
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
+            that defines a single property) to be included in the returned
+            instances (case independent).
+
             An empty iterable indicates to include no properties.
 
             If `None`, all properties are included.
@@ -3742,7 +3768,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     break
                 else:
                     print('instance %s' % inst.tomof())
-        """
+        """  # noqa: E501
 
         # Must be positive integer gt zero
 
@@ -3848,9 +3874,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         that frees the user of having to know whether the WBEM server supports
         pull operations.
 
-        Other than the other Iter...() methods, this method is not a generator
-        function, but returns an object that provides access to a generator
-        property. The reason for this design is the additionally returned query
+        Other than the other Iter...() methods, this method does not return
+        a generator object directly, but as a property of the returned object.
+        The reason for this design is the additionally returned query
         result class. The generator property in the returned object is a
         generator object that returns the instances in the query result one by
         one (using :keyword:`yield`) when the caller iterates through the
@@ -3876,7 +3902,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method provides all of the controls of the corresponding pull
         operations except for the ability to set different response sizes on
         each request; the response size (defined by the `MaxObjectCount`
-        parameter) is the same for all requests in the sequence.
+        parameter) is the same for all pull operations in the enumeration
+        session.
 
         In addition, some functionality is only available if the corresponding
         pull operations are used by this method:
@@ -3912,7 +3939,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             used.
 
           ReturnQueryResultClass (:class:`py:bool`):
-            Controls whether a class definition is returned.
+            Controls whether a class definition describing the returned
+            instances will be returned.
+
+            `None` will cause the server to use its default of `False`.
 
             `None` will cause the server to use its default of `False`.
 
@@ -4134,10 +4164,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         enumeration session and optionally instance paths.
         Otherwise, this method raises an exception.
 
-        Use :meth:`~pywbem.WBEMConnection.PullInstancePaths` request to
-        retrieve the next set of instance paths
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request to close the enumeration session early.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstancePaths` method to
+        retrieve the next set of instance paths or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -4228,12 +4258,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance paths,
-              with their attributes set as follows:
+              Representations of the retrieved instance paths, with their
+              attributes set as follows:
 
               * `classname`: Name of the creation class of the instance.
               * `keybindings`: Keybindings of the instance.
@@ -4242,17 +4272,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -4343,11 +4376,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
                                MaxObjectCount=None, **extra):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         *New in pywbem 0.9.*
 
-        (including instances of its subclasses).
+        Open an enumeration session to enumerate the instances of a class
+        (including instances of its subclasses) in a namespace.
 
         This method performs the OpenEnumerateInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -4357,10 +4391,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         status and optionally instances.
         Otherwise, this method raises an exception.
 
-        Use :meth:`~pywbem.WBEMConnection.PullInstances` request to
-        retrieve the next set of instance paths
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request to close the enumeration session early.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstancesWithPath` method to
+        retrieve the next set of instances or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -4422,7 +4456,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -4434,9 +4468,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          PropertyList (:term:`py:iterable` of :term:`string`):
-            An iterable specifying the names of the properties to be
-            included in the returned instances (case independent).
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
+
+          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+            An iterable specifying the names of the properties (or a string
+            that defines a single property) to be included in the returned
+            instances (case independent).
 
             An empty iterable indicates to include no properties.
 
@@ -4507,11 +4546,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
+              Representations of the retrieved instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
               object is a :class:`~pywbem.CIMInstanceName` object with its
@@ -4524,17 +4563,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -4657,10 +4699,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         status and optionally instance paths.
         Otherwise, this method raises an exception.
 
-        Use :meth:`~pywbem.WBEMConnection.PullInstances` request to
-        retrieve the next set of instance paths
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request to close the enumeration session early.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstancePaths` method to
+        retrieve the next set of instance paths or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -4754,12 +4796,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance paths,
-              with their attributes set as follows:
+              Representations of the retrieved instance paths, with their
+              attributes set as follows:
 
               * `classname`: Name of the creation class of the instance.
               * `keybindings`: Keybindings of the instance.
@@ -4768,17 +4810,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -4878,10 +4923,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         status and optionally instances.
         Otherwise, this method raises an exception.
 
-        Use :meth:`~pywbem.WBEMConnection.PullInstances` request to
-        retrieve the next set of instance paths
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request to close the enumeration session early.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstancesWithPath` method to
+        retrieve the next set of instances or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -4917,7 +4962,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -4929,6 +4974,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -5004,11 +5053,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
+              Representations of the retrieved instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
               object is a :class:`~pywbem.CIMInstanceName` object with its
@@ -5021,17 +5070,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -5135,10 +5187,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         status and optionally instance paths.
         Otherwise, this method raises an exception.
 
-        Use :meth:`~pywbem.WBEMConnection.PullInstancePaths` request to
-        retrieve the next set of instance paths
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request to close the enumeration session early.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstancePaths` method to
+        retrieve the next set of instance paths or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -5246,12 +5298,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
-              Representations of the initial set of enumerated instance paths,
-              with their attributes set as follows:
+              Representations of the retrieved instance paths, with their
+              attributes set as follows:
 
               * `classname`: Name of the creation class of the instance.
               * `keybindings`: Keybindings of the instance.
@@ -5260,17 +5312,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -5374,11 +5429,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         status and optionally instances.
         Otherwise, this method raises an exception.
 
-        The subsequent operation after this open is successful
-        and result.eos = False must be either the
-        :meth:`~pywbem.WBEMConnection.PullInstances` request
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstancesWithPath` method to
+        retrieve the next set of instances or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -5418,7 +5472,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           IncludeQualifiers (:class:`py:bool`):
             Indicates that qualifiers are to be included in the returned
-            instances (or classes), as follows:
+            instances, as follows:
 
             * If `False`, qualifiers are not included.
             * If `True`, qualifiers are included if the WBEM server implements
@@ -5428,18 +5482,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
-            property or method in the returned instances (or classes), as
-            follows:
+            property or method in the returned instances, as follows:
 
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -5515,11 +5572,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
+              Representations of the retrieved instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
               object is a :class:`~pywbem.CIMInstanceName` object with its
@@ -5532,17 +5589,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -5634,7 +5694,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         *New in pywbem 0.9.*
 
-        Open an enumeration session to execute a query in a namespace.
+        Open an enumeration session to execute a query in a namespace and to
+        retrieve the instances representing the query result.
 
         This method performs the OpenQueryInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -5644,11 +5705,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         status and optionally CIM instances representing the query result.
         Otherwise, this method raises an exception.
 
-        The subsequent operation after this open is successful
-        and result.eos is False, must be either the
-        :meth:`~pywbem.WBEMConnection.PullInstances` request
-        or the :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-        request.
+        Use the :meth:`~pywbem.WBEMConnection.PullInstances` method to
+        retrieve the next set of instances or the
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration` method to close the
+        enumeration session before it is exhausted.
 
         Parameters:
 
@@ -5672,7 +5732,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             used.
 
           ReturnQueryResultClass (:class:`py:bool`):
-            Controls whether a class definition is returned.
+            Controls whether a class definition describing the returned
+            instances will be returned.
+
+            `None` will cause the server to use its default of `False`.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
             Minimum time in seconds the WBEM Server shall maintain an open
@@ -5730,28 +5793,31 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
-              Representations of the initial set of enumerated instances.
+              Representations of the retrieved instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
               object is `None`, because query results are not addressable
               CIM instances.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -5849,9 +5915,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         *New in pywbem 0.9.*
 
-        Retrieve the next set of instances with path from an open enumeraton
-        session defined by the `enumeration_context` parameter.  The retrieved
-        instances include their instance paths.
+        Retrieve the next set of instances from an open enumeration session.
+        The retrieved instances include their instance paths.
+
+        This operation can only be used on enumeration sessions that have been
+        opened by one of the following methods:
+
+        * :meth:`~pywbem.WBEMConnection.OpenEnumerateInstances`
+        * :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances`
+        * :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
 
         This method performs the PullInstancesWithPath operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -5863,13 +5935,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:term:`string`)
-            Identifies the enumeration session, including its current
-            enumeration state. This must be the value of the `context` item in
-            the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration. This should
-            be passed from an Open... or Pull... operation response without
-            modification.
+          context (:func:`py:tuple` of server_context, namespace)
+            A context object identifying the open enumeration session, including
+            its current enumeration state, and the namespace. This object must
+            have been returned by the previous open or pull operation for this
+            enumeration session.
 
             The tuple items are:
 
@@ -5877,8 +5947,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace being used for this enumeration
-              sequence.
+              Name of the CIM namespace being used for this enumeration session.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
             Maximum number of instances the WBEM server shall return
@@ -5889,7 +5958,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               specified number of instances.
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to reset the interoperation timer
-            * None is not allowed for this operation.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -5901,11 +5970,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
-              Representations of the next set of enumerated instances.
+              Representations of the retrieved instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
               object is a :class:`~pywbem.CIMInstanceName` object with its
@@ -5918,17 +5987,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -5997,8 +6069,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         *New in pywbem 0.9.*
 
-        Retrieve the next set of instance paths from an open enumeraton
-        session defined by the `enumeration_context` parameter.
+        Retrieve the next set of instance paths from an open enumeration
+        session.
+
+        This operation can only be used on enumeration sessions that have been
+        opened by one of the following methods:
+
+        * :meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths`
+        * :meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`
+        * :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`
 
         This method performs the PullInstancePaths operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6011,12 +6090,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           context (:func:`py:tuple` of server_context, namespace)
-            Identifies the enumeration session, including its current
-            enumeration state. This must be the value of the `context` item in
-            the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration. This should
-            be passed from an Open... or Pull... operation responsewithout
-            modification.
+            A context object identifying the open enumeration session, including
+            its current enumeration state, and the namespace. This object must
+            have been returned by the previous open or pull operation for this
+            enumeration session.
 
             The tuple items are:
 
@@ -6024,8 +6101,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace being used for this enumeration
-              sequence.
+              Name of the CIM namespace being used for this enumeration session.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
             Maximum number of instances the WBEM server shall return
@@ -6036,7 +6112,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               specified number of instances.
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to reset the interoperation timer.
-            * None is not allowed for this operation.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -6048,12 +6124,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **paths** (:class:`py:list` of :class:`~pywbem.CIMInstanceName`):
-              Representations of the next set of enumerated instance paths,
-              with their attributes set as follows:
+              Representations of the retrieved instance paths, with their
+              attributes set as follows:
 
               * `classname`: Name of the creation class of the instance.
               * `keybindings`: Keybindings of the instance.
@@ -6062,17 +6138,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -6140,8 +6219,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         *New in pywbem 0.9.*
 
-        Retrieve the next set of instances from an open enumeraton
-        session defined by the `enumeration_context` parameter.
+        Retrieve the next set of instances from an open enumeration session.
+        The retrieved instances do not include an instance path.
+
+        This operation can only be used on enumeration sessions that have been
+        opened by one of the following methods:
+
+        * :meth:`~pywbem.WBEMConnection.OpenQueryInstances`
 
         This method performs the PullInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6154,12 +6238,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           context (:func:`py:tuple` of server_context, namespace)
-            Identifies the enumeration session, including its current
-            enumeration state. This must be the value of the `context` item in
-            the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration sequence. This should
-            be passed from an Open... or Pull... operation response without
-            modification.
+            A context object identifying the open enumeration session, including
+            its current enumeration state, and the namespace. This object must
+            have been returned by the previous open or pull operation for this
+            enumeration session.
 
             The tuple items are:
 
@@ -6167,8 +6249,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace being used for this enumeration
-              sequence.
+              Name of the CIM namespace being used for this enumeration session.
 
           MaxObjectCount (:class:`~pywbem.Uint32`)
             Maximum number of instances the WBEM server shall return
@@ -6179,7 +6260,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               specified number of instances.
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to reset the interoperation timer.
-            * None is not allowed for this operation.
+            * `None` is not allowed.
 
         Keyword Arguments:
 
@@ -6191,28 +6272,31 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :class:`py:namedtuple` object containing the following named
-            items:
+            A :func:`~py:collections.namedtuple` object containing the following
+            named items:
 
             * **instances** (:class:`py:list` of :class:`~pywbem.CIMInstance`):
-              Representations of the next set of enumerated instances.
+              Representations of the retrieved instances.
 
               The `path` attribute of each :class:`~pywbem.CIMInstance`
               object is `None`, because this operation does not return instance
               paths.
 
             * **eos** (:class:`py:bool`):
-              Indicates whether the enumeration session is exhausted
-              after returning the initial set of enumerated instances.
+              Indicates whether the enumeration session is exhausted after
+              this operation:
 
               - If `True`, the enumeration session is exhausted, and the
                 server has closed the enumeration session.
-              - If `False`, the enumeration session is not exhausted.
+              - If `False`, the enumeration session is not exhausted and the
+                `context` item is the context object for the next operation on
+                the enumeration session.
 
             * **context** (:func:`py:tuple` of server_context, namespace):
-              Identifies the opened enumeration session. The client must
-              provide this value for subsequent operations on this
-              enumeration session.
+              A context object identifying the open enumeration session,
+              including its current enumeration state, and the namespace. This
+              object must be supplied with the next pull or close operation for
+              this enumeration session.
 
               The tuple items are:
 
@@ -6279,15 +6363,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         *New in pywbem 0.9.*
 
-        The CloseEnumeration closes an open enumeration session, performing
-        an early termination of an incomplete enumeration session.
+        Close an open enumeration session, causing an early termination of an
+        incomplete enumeration session.
 
         This method performs the CloseEnumeration operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
         methods performing such operations.
 
-        This method should not used if the enumeration session has
-        terminated and will result in an exception response.
+        The enumeration session must still be open when this operation is
+        performed.
 
         If the operation succeeds, this method returns. Otherwise, it
         raises an exception.
@@ -6295,12 +6379,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           context (:func:`py:tuple` of server_context, namespace)
-            Identifies the enumeration session, including its current
-            enumeration state. This must be the value of the `context` item in
-            the :class:`py:namedtuple` object returned from the previous
-            open or pull operation for this enumeration sequence. This should
-            be passed from an Open... or Pull... operation response without
-            modification.
+            A context object identifying the open enumeration session, including
+            its current enumeration state, and the namespace. This object must
+            have been returned by the previous open or pull operation for this
+            enumeration session.
 
             The tuple items are:
 
@@ -6308,8 +6390,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Enumeration context string returned by the server. This
               string is opaque for the client.
             * namespace (:term:`string`):
-              Name of the CIM namespace being used for this enumeration
-              sequence.
+              Name of the CIM namespace being used for this enumeration session.
 
         Keyword Arguments:
 
@@ -6408,7 +6489,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -6419,6 +6500,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200`. WBEM servers
+            may either implement this parameter as specified, or may treat any
+            specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -6599,7 +6684,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `True`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be modified.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             This parameter defines which properties are designated to be
@@ -6735,6 +6820,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             *New in pywbem 0.9.*
 
             Name of the CIM namespace to be used (case independent).
+
+            If `None`, defaults to the namespace in the `path` attribute of the
+            `NewInstance` parameter, or to the default namespace of the
+            connection.
 
             Leading and trailing slash characters will be stripped. The lexical
             case will be preserved.
@@ -6883,10 +6972,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         Role=None, ResultRole=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Retrieve the instance paths of the instances associated to a source
-        instance.
+        Instance-level use: Retrieve the instance paths of the instances
+        associated to a source instance.
 
-        Retrieve the class paths of the classes associated to a source class.
+        Class-level use: Retrieve the class paths of the classes associated
+        to a source class.
 
         This method performs the AssociatorNames operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6898,16 +6988,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           ObjectName:
-            The object path of the source object, as follows:
+            The object path of the source object, selecting instance-level or
+            class-level use of this operation, as follows:
 
-            * For instance-level usage: The instance path of the source
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
+            * For selecting instance-level use: The instance path of the
+              source instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class-level usage: The class path of the source class, as a
-              :term:`string` or :class:`~pywbem.CIMClassName` object:
+            * For selecting class-level use: The class path of the source
+              class, as a :term:`string` or :class:`~pywbem.CIMClassName`
+              object:
 
               If specified as a string, the string is interpreted as a class
               name in the default namespace of the connection
@@ -6957,7 +7049,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             : The returned list of objects depend on the usage:
 
-            * For instance-level usage: A list of
+            * For instance-level use: A list of
               :class:`~pywbem.CIMInstanceName` objects that are the instance
               paths of the associated instances, with their attributes set as
               follows:
@@ -6969,7 +7061,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level usage: A list of :class:`~pywbem.CIMClassName`
+            * For class-level use: A list of :class:`~pywbem.CIMClassName`
               objects that are the class paths of the associated classes, with
               their attributes set as follows:
 
@@ -7035,9 +7127,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     IncludeClassOrigin=None, PropertyList=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Retrieve the instances associated to a source instance.
+        Instance-level use: Retrieve the instances associated to a source
+        instance.
 
-        Retrieve the classes associated to a source class.
+        Class-level use: Retrieve the classes associated to a source class.
 
         This method performs the Associators operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -7049,16 +7142,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           ObjectName:
-            The object path of the source object, as follows:
+            The object path of the source object, selecting instance-level or
+            class-level use of this operation, as follows:
 
-            * For instance-level usage: The instance path of the source
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
+            * For selecting instance-level use: The instance path of the
+              source instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class-level usage: The class path of the source class, as a
-              :term:`string` or :class:`~pywbem.CIMClassName` object:
+            * For selecting class-level use: The class path of the source
+              class, as a :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
               name in the default namespace of the connection
@@ -7108,7 +7202,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -7120,6 +7214,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200` for
+            instance-level use. WBEM servers may either implement this
+            parameter as specified, or may treat any specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -7142,7 +7240,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             : The returned list of objects depend on the usage:
 
-            * For instance-level usage: A list of
+            * For instance-level use: A list of
               :class:`~pywbem.CIMInstance` objects that are representations
               of the associated instances.
 
@@ -7157,7 +7255,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level usage: A list of :func:`py:tuple` of
+            * For class-level use: A list of :func:`py:tuple` of
               (classpath, class) objects that are representations of the
               associated classes.
 
@@ -7241,11 +7339,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Retrieve the instance paths of the association instances that reference
-        a source instance.
+        Instance-level use: Retrieve the instance paths of the association
+        instances that reference a source instance.
 
-        Retrieve the class paths of the association classes that reference a
-        source class.
+        Class-level use: Retrieve the class paths of the association classes
+        that reference a source class.
 
         This method performs the ReferenceNames operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -7257,16 +7355,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           ObjectName:
-            The object path of the source object, as follows:
+            The object path of the source object, selecting instance-level or
+            class-level use of this operation, as follows:
 
-            * For instance-level usage: The instance path of the source
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
+            * For selecting instance-level use: The instance path of the
+              source instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class-level usage: The class path of the source class, as a
-              :term:`string` or :class:`~pywbem.CIMClassName` object:
+            * For selecting class-level use: The class path of the source
+              class, as a :term:`string` or :class:`~pywbem.CIMClassName`
+              object:
 
               If specified as a string, the string is interpreted as a class
               name in the default namespace of the connection
@@ -7302,7 +7402,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             : The returned list of objects depend on the usage:
 
-            * For instance-level usage: A list of
+            * For instance-level use: A list of
               :class:`~pywbem.CIMInstanceName` objects that are the instance
               paths of the referencing association instances, with their
               attributes set as follows:
@@ -7314,7 +7414,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level usage: A list of :class:`~pywbem.CIMClassName`
+            * For class-level use: A list of :class:`~pywbem.CIMClassName`
               objects that are the class paths of the referencing association
               classes, with their attributes set as follows:
 
@@ -7377,9 +7477,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                    PropertyList=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Retrieve the association instances that reference a source instance.
+        Instance-level use: Retrieve the association instances that reference
+        a source instance.
 
-        Retrieve the association classes that reference a source class.
+        Class-level use: Retrieve the association classes that reference a
+        source class.
 
         This method performs the References operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -7391,16 +7493,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           ObjectName:
-            The object path of the source object, as follows:
+            The object path of the source object, selecting instance-level or
+            class-level use of this operation, as follows:
 
-            * For instance-level usage: The instance path of the source
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
+            * For selecting instance-level use: The instance path of the
+              source instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class-level usage: The class path of the source class, as a
-              :term:`string` or :class:`~pywbem.CIMClassName` object:
+            * For selecting class-level use: The class path of the source
+              class, as a :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
               name in the default namespace of the connection
@@ -7436,7 +7539,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               defines that the server-implemented default is `False`.
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on it being implemented by WBEM servers.
+            cannot rely on qualifiers to be returned in this operation.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -7448,6 +7551,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
+
+            This parameter has been deprecated in :term:`DSP0200` for
+            instance-level use. WBEM servers may either implement this
+            parameter as specified, or may treat any specified value as `False`.
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -7470,7 +7577,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             : The returned list of objects depend on the usage:
 
-            * For instance-level usage: A list of
+            * For instance-level use: A list of
               :class:`~pywbem.CIMInstance` objects that are representations
               of the referencing association instances.
 
@@ -7485,7 +7592,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level usage: A list of :func:`py:tuple` of
+            * For class-level use: A list of :func:`py:tuple` of
               (classpath, class) objects that are representations of the
               referencing association classes.
 
@@ -7598,13 +7705,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           ObjectName:
             The object path of the target object, as follows:
 
-            * For instance-level usage: The instance path of the target
+            * For instance-level use: The instance path of the target
               instance, as a :class:`~pywbem.CIMInstanceName` object.
               If this object does not specify a namespace, the default namespace
               of the connection is used.
               Its `host` attribute will be ignored.
 
-            * For class-level usage: The class path of the target class, as a
+            * For class-level use: The class path of the target class, as a
               :term:`string` or :class:`~pywbem.CIMClassName` object:
 
               If specified as a string, the string is interpreted as a class
@@ -7982,7 +8089,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `True`, qualifiers are included.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `False`.
+              defines that the server-implemented default is `True`.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -8117,7 +8224,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If `True`, qualifiers are included.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `False`.
+              defines that the server-implemented default is `True`.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -8208,7 +8315,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def ModifyClass(self, ModifiedClass, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Modify a class in a namespace.
+        Modify a class.
 
         This method performs the ModifyClass operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -8452,7 +8559,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def EnumerateQualifiers(self, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Enumerate qualifier declarations in a namespace.
+        Enumerate qualifier types (= declarations) in a namespace.
 
         This method performs the EnumerateQualifiers operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -8531,7 +8638,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def GetQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Retrieve a qualifier declaration in a namespace.
+        Retrieve a qualifier type (= declaration).
 
         This method performs the GetQualifier operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -8614,7 +8721,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def SetQualifier(self, QualifierDeclaration, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Create or modify a qualifier declaration in a namespace.
+        Create or modify a qualifier type (= declaration) in a namespace.
 
         This method performs the SetQualifier operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -8688,7 +8795,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def DeleteQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Delete a qualifier declaration in a namespace.
+        Delete a qualifier type (= declaration).
 
         This method performs the DeleteQualifier operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
