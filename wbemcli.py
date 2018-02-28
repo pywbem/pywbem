@@ -94,7 +94,6 @@ import errno as _errno
 import code as _code
 import argparse as _argparse
 from textwrap import fill
-import logging
 
 # Additional symbols for use in the interactive session
 # pylint: disable=unused-import
@@ -107,7 +106,7 @@ try:
 except ImportError as arg:
     _HAVE_READLINE = False
 
-from pywbem import WBEMConnection, LogOperationRecorder
+from pywbem import WBEMConnection
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
@@ -124,9 +123,7 @@ CONN = None
 # global ARGS contains the argparse arguments dictionary
 ARGS = None
 
-WBEMCLI_LOG_FILE_NAME = 'wbemcli.log'
-
-DEFAULT_LOG_FILENAME = 'pywbem.log'
+WBEMCLI_LOG_FILENAME = 'wbemcli.log'
 
 
 def _remote_connection(server, opts, argparser_):
@@ -3180,7 +3177,7 @@ Examples:
         '-l', '--log', dest='log', metavar='log_spec[,logspec]',
         action='store', default=None,
         help='R|Log_spec defines characteristics of the various named\n'
-             'loggers. It is the form:\n COMP=[DEST[:DETAIL[:LEVEL]]] where:\n'
+             'loggers. It is the form:\n COMP=[DEST[:DETAIL]] where:\n'
              '   COMP: Logger component name:[{c}].\n'
              '         (Default={cd})\n'
              '   DEST: Destination for component:[{d}].\n'
@@ -3212,11 +3209,7 @@ Examples:
     CONN = _remote_connection(args.server, args, argparser)
 
     if args.log:
-        define_loggers_from_string(args.log, DEFAULT_LOG_FILENAME)
-        CONN.add_operation_recorder(LogOperationRecorder())
-
-        # enable logging at the debug level
-        logging.basicConfig(level=logging.DEBUG)
+        define_loggers_from_string(args.log, WBEMCLI_LOG_FILENAME, CONN)
 
     # Determine file path of history file
     home_dir = '.'

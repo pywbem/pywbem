@@ -415,6 +415,7 @@ Enhancements
   most of the main paths.
 
 * Revamped the logger configuration mechanism completely. This includes:
+<<<<<<< HEAD
   (1) Create 3 methods in WBEMConnection that allow pywbem logs to be
   configured and activated.  These methods contain parameters for:
   a. configuring the Python loggers for either/or/both the api and http
@@ -430,6 +431,27 @@ Enhancements
   (see issue #859)
   (4) Create a function in the _logging module that allows pywbem logging
   to be defined by a single string input
+=======
+  (1) Modify logging config to add new optional parameter to WBEMConnection
+  constructor (enable_logging) which determines if logging will be executed
+  for request APIs/responses and XML requests/responses. If not None
+  this automatically initiates logging.
+  (2) Remove the extra configuration parameter for detail level from the
+  log setup so that the standard Python logging setup can be used to
+  setup the loggers for pywbem WBEMConnection APIs and responses, and
+  the XML requests and responses.
+  (3) Create 2 helper functions in _logging so that a user can create the
+  logger definitions for these loggers with simple one line calls if they
+  do not want to use the Python logging handler configuration methods directly
+  to define the loggers.
+  (4) Completely eliminate the PyWBEMLogger class that was the original
+  logging setup tool in pywbem 0.11.0) since its use was incompatible with
+  using standard Python logging configuration methods to define loggers.
+  (see issue #859)
+  (5) addition of a new property to WBEMConnection (conn_id) which is a
+  unique identifier for each WBEMConnection object and is part of each log
+  record. This allows linking logs for each WBEMConnection in the log.
+>>>>>>> af06c1c... Bring up-to-date with Andy's comments
 
 
 Bug fixes

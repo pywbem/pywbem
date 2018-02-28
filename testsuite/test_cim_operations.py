@@ -135,7 +135,10 @@ class TestCreateConnection(object):
         os.remove(tcr_fn)
 
     def test_add_same_twice(self):  # pylint: disable=no-self-use
-        """ Test addition of same recorder twice"""
+        """
+        Test addition of same recorder twice. This not allowed so
+        generates exception
+        """
         conn = WBEMConnection('http://localhost')
         conn.add_operation_recorder(LogOperationRecorder())
         # pylint: disable=protected-access

@@ -59,7 +59,7 @@ NAMESPACE_OUTPUT = ['log=off',
                     ' no creds',
                     'verifycert=on',
                     'default-namespace=rex/fred']
-LOG_STDERR_OUTPUT = ['pywbem.ops-Connection:']
+LOG_STDERR_OUTPUT = ['pywbem.api.']
 
 DEF_NAMESPACE_OUTPUT = ['default-namespace=root/cimv2']
 
@@ -78,15 +78,15 @@ TESTS_MAP = [  # pylint: disable=invalid-name
     tst_def('help', '--help', HELP_OUTPUT, 0, None, None),
     tst_def('namespace', '-n rex/fred', NAMESPACE_OUTPUT, 0, None, None),
     tst_def('timeout', '-t 10', TIMEOUT_OUTPUT, 0, None, None),
-    tst_def('log_dest_file1', '-l ops=file', LOG_DEST_FILE_OUTPUT, 0, None,
+    tst_def('log_dest_file1', '-l api=file', LOG_DEST_FILE_OUTPUT, 0, None,
             None),
-    tst_def('log_dest_file1a', '-l ops=file', LOG_DEST_FILE_OUTPUT, 0,
+    tst_def('log_dest_file1a', '-l api=file', LOG_DEST_FILE_OUTPUT, 0,
             None, None),
     tst_def('log_dest_file2', '-l http=file', LOG_DEST_FILE_OUTPUT, 0, None,
             None),
     tst_def('log_dest_file3', '-l all=file', LOG_DEST_FILE_OUTPUT, 0, None,
             None),
-    tst_def('log_dest_file4', '-l ops=stderr', LOG_DEST_FILE_OUTPUT,
+    tst_def('log_dest_file4', '-l api=stderr', LOG_DEST_FILE_OUTPUT,
             0, LOG_STDERR_OUTPUT, None),
     tst_def('def_namespace', '', DEF_NAMESPACE_OUTPUT, 0, None, None),
     tst_def('error_param', '-n', None, 2,
@@ -148,9 +148,6 @@ class ContainerMeta(type):
                 proc = Popen(bash_cmd, shell=True, stdout=PIPE, stderr=PIPE)
                 std_out, std_err = proc.communicate()
                 exitcode = proc.returncode
-
-                # print('bash_cmd: %s\nexitcode: %s std_out:\n%s\nstd_err:'
-                #      '\n%s' % (bash_cmd, exitcode, std_out, std_err))
 
                 if six.PY3:
                     std_out = std_out.decode()

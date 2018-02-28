@@ -16,8 +16,11 @@
 
 """
 **Experimental:** *New in pywbem 0.9 as experimental.*
+**Experimental:** *pywbem 0.11 experimental, LogOperationRecorder.*
 
 Operation recorder interface and implementations.
+
+The LogOperationRecorder was heavily modified for pywbem 0.12.0
 """
 
 from __future__ import print_function, absolute_import
@@ -37,7 +40,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
-from ._logging import LOG_OPS_CALLS_NAME, LOG_HTTP_NAME, get_logger
+from ._logging import LOG_API_CALLS_NAME, LOG_HTTP_NAME, get_logger
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -512,7 +515,7 @@ class LogOperationRecorder(BaseOperationRecorder):
     A recorder that logs the WBEM operations to a set of named logs.
     This recorder supports two named logs:
 
-    * :attr:`~pywbem._logging.LOG_OPS_CALLS_NAME` - Logger at the level of
+    * :attr:`~pywbem._logging.LOG_API_CALLS_NAME` - Logger at the level of
       WBEM operation calls and returns
 
     * :attr:`~pywbem._logging.LOG_HTTP_NAME` - Logger at the level of HTTP
@@ -522,100 +525,170 @@ class LogOperationRecorder(BaseOperationRecorder):
 
     All logging calls are at the debug level.
     """
-    def __init__(self, conn_id=None, entry_size_limit=None):
+    def __init__(self, conn_id=None, detail_levels=None):
         """
         Parameters:
 
           conn_id ():)
             If None, string that represents an id for a particular connection
             that is used to build the name of each logger. if conn_id is not
-            None the logging requests are identified with the logger name
-            (ex pywbem.ops) and the suffix so (ile pywbem.ops.1-2343) so that
-            any different logger names may be established for specific
-            WBEMConnections.
+            `None` the logging calls are identified with the logger name
+            and the conn_id suffix (ex.pywbem.ops.1-2343) so that
+            each WBEMConnection could be logged with a separate logger.
 
-          entry_size_limit (:term:`integer` or None):
+          detal_level (:term:`integer` or :class:`py:dict`, None):
             The maximum size for each log entry, in Bytes. This is primarily to
             limit response sizes since they could be enormous.
+            TODO
+
+            If dict it is the detail level definition for each type
 
             If `None`, the log entry output size is not limited.
         """
         super(LogOperationRecorder, self).__init__()
 
+        self._conn_id = conn_id
+
+        self.api_detail_level = None
+        self.http_detail_level = None
+        self.api_maxlen = None
+        self.http_maxlen = None
+
         # build name for logger
         if conn_id:
-            logger_name = '%s.%s' % (LOG_OPS_CALLS_NAME, conn_id)
-            self.opslogger = get_logger(logger_name)
+            self.apilogger = get_logger('%s.%s' % (LOG_API_CALLS_NAME, conn_id))
         else:
-            self.opslogger = get_logger(LOG_OPS_CALLS_NAME)
+            self.apilogger = get_logger(LOG_API_CALLS_NAME)
 
-        self.ops_max_log_size = entry_size_limit
+        self.detail_levels = self.set_detail_level(detail_levels)
 
         if conn_id:
-            logger_name = '%s.%s' % (LOG_HTTP_NAME, conn_id)
-            self.httplogger = get_logger(logger_name)
+            self.httplogger = get_logger('%s.%s' % (LOG_HTTP_NAME, conn_id))
         else:
             self.httplogger = get_logger(LOG_HTTP_NAME)
 
-        self._conn_id = conn_id
+    def set_detail_level(self, detail_levels):
+        """
+        Sets the detail levels from the input dictionary.
+        """
+        if detail_levels is None:
+            return None
+        self.api_detail_level = detail_levels.get('api', None)
+        self.http_detail_level = detail_levels.get('http', None)
+        if isinstance(self.api_detail_level, int):
+            self.api_maxlen = self.api_detail_level
+        if isinstance(self.http_detail_level, int):
+            self.http_maxlen = self.http_detail_level
 
-        self.http_max_log_size = entry_size_limit
+        return detail_levels
 
     def stage_wbem_connection(self, wbem_connection):
         """
-        Log connection information. This includes the connection id
-        that should remain throught the life of the connection.
+        Log connection information. This includes the connection id (conn_id)
+        that is output with the log entry. This entry is logged if either
+        http or api loggers are enable.
         """
         self._conn_id = wbem_connection.conn_id
 
         if self.enabled:
-            self.opslogger.debug('Connection:%s %r', self._conn_id,
-                                 wbem_connection)
+            if self.api_detail_level or self.http_detail_level:
+                if self.api_detail_level == 'summary':
+                    fmt_str = 'Connection:%s %s'
+                else:
+                    fmt_str = 'Connection:%s %r'
+                self.apilogger.debug(fmt_str, self._conn_id, wbem_connection)
 
     def stage_pywbem_args(self, method, **kwargs):
         """
         Log request method and all args.
         Normally called before the cmd is executed to record request
         parameters.
-        This method does not limit size of log record.
+        This method does not support the summary detail_level because
+        that seems to add little info to the log that is not also in the
+        response.
         """
         # pylint: disable=attribute-defined-outside-init
         self._pywbem_method = method
-        if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
+        if self.enabled and self.apilogger.isEnabledFor(logging.DEBUG):
+
+            # TODO: future bypassed code to only ouput name and method if the
+            # detail is summary.  We are not doing this because this is
+            # effectively the same information in the response so the only
+            # additional infomation is the time stamp.
+
+            # if self.api_detail_level == summary:
+            #    self.apilogger.debug('Request:%s %s', self._conn_id, method)
+            #    return
+
             # Order kwargs.  Note that this is done automatically starting
             # with python 3.6
-            # kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
-            #                   for key in sorted(six.iterkeys(kwargs))])
+            kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
+                               for key in sorted(six.iterkeys(kwargs))])
 
-            self.opslogger.debug('Request:%s %s(%s)', self._conn_id, method,
-                                 (', '.join([('{0}={1!r}'.format(key,
-                                                                 kwargs[key]))
-                                  for key in sorted(six.iterkeys(kwargs))])))
+            if self.api_maxlen and (len(kwstr) > self.api_maxlen):
+                kwstr = kwstr[:self.api_maxlen] + '...'
+            # pylint: disable=bad-continuation
+            self.apilogger.debug('Request:%s %s(%s)', self._conn_id, method,
+                                 kwstr)
 
     def stage_pywbem_result(self, ret, exc):
         """
-        Log result return or exception parameter. This function allows
-        setting maximum size on the result parameter logged because response
-        information can be very large
-        .
+        Log result return or exception parameter. This method provides varied
+        type of formatting based on the detail_level parameter and the
+        data in ret.
         """
         def format_result(ret, max_len):
             """ format ret as repr while clipping it to max_len if
                 max_len is not None.
             """
-            result = '{0!r}'.format(ret)
-            if max_len and (len(result) > max_len):
-                result = (result[:max_len] + '...')
-            return result
+            # format the 'summary' and 'paths' detail_levels
+            if self.api_detail_level == 'summary':
+                if isinstance(ret, list):
+                    if ret:
+                        ret_type = type(ret[0]).__name__ if len(ret) else ""
+                        return 'list of %s; count=%s' % (ret_type, len(ret))
+                    else:
+                        return 'Empty'
+                else:
+                    result = ret
+                result_fmt = '{0!r}'.format(result)
 
-        if self.enabled and self.opslogger.isEnabledFor(logging.DEBUG):
+            if self.api_detail_level == 'paths':
+                if isinstance(ret, list):
+                    if ret:
+                        if hasattr(ret[0], 'path'):
+                            result_fmt = ', '.join([str(p.path) for p in ret])
+                        else:
+                            result_fmt = '%s' % ret
+                    else:
+                        result_fmt = ''
+                else:
+                    if hasattr(ret, 'path'):
+                        result_fmt = '%s' % ret.path
+                    else:
+                        result_fmt = '%s' % ret
+
+            else:
+                result_fmt = '{0!r}'.format(ret)
+
+            if max_len and (len(result_fmt) > max_len):
+                result_fmt = result_fmt[:max_len] + '...'
+            return result_fmt
+
+        if self.enabled and self.apilogger.isEnabledFor(logging.DEBUG):
+
             if exc:  # format exception
+                # exceptions are always either all or reduced length
                 result = format_result(
-                    '%s(%s)' % (exc.__class__.__name__, exc),
-                    self.ops_max_log_size)
+                    '%s(%s)' % (exc.__class__.__name__, exc), self.api_maxlen)
+
+                return_type = 'Exception'
+
             else:    # format result
                 # test if type is tuple (subclass of tuple but not type tuple)
                 # pylint: disable=unidiomatic-typecheck
+                qrc = ""
+                # format open/pull response
                 if isinstance(ret, tuple) and \
                         type(ret) is not tuple:  # pylint: disable=C0123
                     try:    # test if field instances or paths
@@ -624,24 +697,35 @@ class LogOperationRecorder(BaseOperationRecorder):
                     except AttributeError:
                         rtn_data = ret.paths
                         data_str = 'paths'
-                    rtn_data = format_result(rtn_data, self.ops_max_log_size)
 
+                    try:    # test for query_result_class
+                        qrc = ', query_result_class=%s' % \
+                            ret.query_result_class
+                    except AttributeError:
+                        pass
+
+                    result = '{0}(context={1}, eos={2}{3}, {4}={5})' \
+                        .format(type(ret).__name__, ret.context, ret.eos, qrc,
+                                data_str, format_result(rtn_data,
+                                                        self.api_maxlen))
+
+                # format enumerate response except not open/pull
+                elif isinstance(ret, list):
                     try:    # test for query_result_class
                         qrc = ', query_result_class=%s' % ret.query_result_class
                     except AttributeError:
-                        qrc = ""
+                        pass
+                    ret_fmtd = format_result(ret, self.api_maxlen)
+                    result = '%s%s' % (qrc, ret_fmtd)
 
-                    result = "{0.__name__}(context={1}, eos={2}{3}, {4}={5})" \
-                        .format(type(ret), ret.context, ret.eos, qrc,
-                                data_str, rtn_data)
+                # format single return object
                 else:
-                    result = format_result(ret, self.ops_max_log_size)
+                    result = format_result(ret, self.api_maxlen)
 
-            return_type = 'Exception' if exc else 'Return'
+                return_type = 'Return'
 
-            self.opslogger.debug('%s:%s %s(%s)', return_type, self._conn_id,
-                                 self._pywbem_method,
-                                 result)
+            self.apilogger.debug('%s:%s %s(%s)', return_type, self._conn_id,
+                                 self._pywbem_method, result)
 
     def stage_http_request(self, conn_id, version, url, target, method, headers,
                            payload):
@@ -656,9 +740,13 @@ class LogOperationRecorder(BaseOperationRecorder):
             header_str = ' '.join('{0}:{1!r}'.format(k, v)
                                   for k, v in headers.items())
 
+            if self.http_detail_level == 'summary':
+                show_payload = ""
+            else:
+                show_payload = payload
             self.httplogger.debug('Request:%s %s %s %s %s %s\n    %s',
                                   conn_id, method, target, version, url,
-                                  header_str, payload)
+                                  header_str, show_payload)
 
     def stage_http_response1(self, conn_id, version, status, reason, headers):
         """Set response http info including headers, status, etc. """
@@ -686,17 +774,21 @@ class LogOperationRecorder(BaseOperationRecorder):
 
             # format the payload possibly with max size limit
             payload = '%r' % payload.decode('utf-8')
-            if self.http_max_log_size and \
-                    (len(payload) > self.http_max_log_size):
-                payload = (payload[:self.http_max_log_size] + '...')
+
+            if self.http_detail_level == 'summary':
+                display_payload = ""
+            else:
+                if self.http_maxlen and (len(payload) > self.http_maxlen):
+                    display_payload = (payload[:self.http_maxlen] + '...')
+                else:
+                    display_payload = payload
 
             self.httplogger.debug('Response:%s %s:%s %s %s\n    %s',
                                   self._http_response_conn_id,
                                   self._http_response_status,
                                   self._http_response_reason,
                                   self._http_response_version,
-                                  header_str,
-                                  payload)
+                                  header_str, display_payload)
 
     def record_staged(self):
         """Not used for logging"""
