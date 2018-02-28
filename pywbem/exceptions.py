@@ -51,7 +51,7 @@ class HTTPError(Error):
     This exception indicates that the WBEM server returned an HTTP response
     with a bad HTTP status code. Derived from :exc:`~pywbem.Error`.
 
-    The `args` instance variable is a `tuple(status, reason, cimerror,
+    The `args` instance variable is a `tuple (status, reason, cimerror,
     cimdetails)`.
 
     The `message` instance variable is not set.
@@ -62,10 +62,10 @@ class HTTPError(Error):
         """
         Parameters:
 
-          status (:term:`number`): HTTP status code (e.g. 500).
+          status (:term:`integer`): HTTP status code (e.g. 500).
 
           reason (:term:`string`): HTTP reason phrase (e.g.
-            'Internal Server Error').
+            "Internal Server Error").
 
           cimerror (:term:`string`): Value of the `CIMError` header field,
             if present. `None`, otherwise.
@@ -85,7 +85,8 @@ class HTTPError(Error):
 
     @property
     def status(self):
-        """HTTP status code (e.g. 500), as a :term:`number`.
+        """
+        :term:`integer`: HTTP status code (e.g. 500).
 
         See :term:`RFC2616` for a list of HTTP status codes and reason phrases.
         """
@@ -93,8 +94,8 @@ class HTTPError(Error):
 
     @property
     def reason(self):
-        """HTTP reason phrase (e.g. 'Internal Server Error'), as a
-        :term:`string`.
+        """
+        :term:`string`: HTTP reason phrase (e.g. "Internal Server Error").
 
         See :term:`RFC2616` for a list of HTTP status codes and reason phrases.
         """
@@ -102,8 +103,9 @@ class HTTPError(Error):
 
     @property
     def cimerror(self):
-        """Value of `CIMError` header field in response, if present, as a
-        :term:`string`. `None`, otherwise.
+        """
+        :term:`string`: Value of `CIMError` header field in response, if
+        present. `None`, otherwise.
 
         See :term:`DSP0200` for a list of values.
         """
@@ -111,8 +113,9 @@ class HTTPError(Error):
 
     @property
     def cimdetails(self):
-        """CIMOM-specific details on the situation reported in the `CIMError`
-        header field, as a dictionary:
+        """
+        dict: CIMOM-specific details on the situation reported in the `CIMError`
+        header field, with:
 
         * Key: header field name (e.g. `PGErrorDetail`).
         * Value: header field value.
@@ -153,32 +156,31 @@ class CIMError(Error):
     This exception indicates that the WBEM server returned an error response
     with a CIM status code. Derived from :exc:`~pywbem.Error`.
 
-    In Python 2, any :class:`py:Exception` object can be accessed by index
-    and slice and will delegate such access to its :attr:`Exception.args`
-    instance variable. In Python 3, that ability has been removed.
+    Accessing the CIM status code of a :class:`CIMError` object:
 
-    In its version 0.9, pywbem has added the
-    :attr:`~pywbem.CIMError.status_code` and
-    :attr:`~pywbem.CIMError.status_description` properties.
+      In Python 2, any :exc:`~py:exceptions.Exception` object can be accessed
+      by index and slice and will delegate such access to its
+      :attr:`~py:exceptions.BaseException.args` instance variable. In Python 3,
+      that ability has been removed.
 
-    With all these variations, the following approach for accessesing the CIM
-    status code a :class:`CIMError` object works for all pywbem versions since
-    0.7.0 and for Python 2 and 3::
+      In pywbem 0.9, the :attr:`~pywbem.CIMError.status_code` and
+      :attr:`~pywbem.CIMError.status_description` properties were added.
 
-        except CIMError as exc:
-            status_code = exc.args[0]
+      Therefore, the following approach is not recommended, because it does not
+      work on Python 3::
 
-    The following approach is recommended when using pywbem 0.9 or newer, and
-    it works for Python 2 and 3::
+          except CIMError as exc:
+              status_code = exc[0]
 
-        except CIMError as exc:
-            status_code = exc.status_code
+      The following approach works for pywbem 0.7 or newer::
 
-    The following approach is limited to Python 2 and will not work on
-    Python 3, and is therefore not recommended::
+          except CIMError as exc:
+              status_code = exc.args[0]
 
-        except CIMError as exc:
-            status_code = exc[0]
+      The following approach is recommended when using pywbem 0.9 or newer::
+
+          except CIMError as exc:
+              status_code = exc.status_code
     """
 
     # pylint: disable=super-init-not-called
@@ -186,14 +188,14 @@ class CIMError(Error):
         """
         Parameters:
 
-          status_code (number): Numeric CIM status code.
+          status_code (:term:`integer`): Numeric CIM status code.
 
           status_description (:term:`string`): CIM status description text
             returned by the server, representing a human readable message
             describing the error. `None`, if the server did not return
             a description text.
 
-        :ivar args: A tuple(status_code, status_description) set from the
+        :ivar args: A tuple (status_code, status_description) set from the
               corresponding init arguments.
         """
         self.args = (status_code, status_description)
@@ -203,7 +205,7 @@ class CIMError(Error):
         """
         *New in pywbem 0.9.*
 
-        Numeric CIM status code.
+        :term:`integer`: Numeric CIM status code (e.g. 5).
 
         See :ref:`CIM status codes` for constants defining the numeric CIM
         status code values."""
@@ -214,10 +216,11 @@ class CIMError(Error):
         """
         *New in pywbem 0.9.*
 
-        Symbolic name of the CIM status code.
+        :term:`string`: Symbolic name of the CIM status code (e.g.
+        "CIM_ERR_INVALID_CLASS").
 
         If the CIM status code is invalid, the string
-        ``"Invalid status code <code>"`` is returned."""
+        "Invalid status code <status_code>" is returned."""
         return _statuscode2name(self.status_code)
 
     @property
@@ -225,15 +228,13 @@ class CIMError(Error):
         """
         *New in pywbem 0.9.*
 
-        CIM status description text returned by the server, representing a
-        human readable message describing the error.
+        :term:`string`: CIM status description text returned by the server,
+        representing a human readable message describing the error (e.g.
+        "The specified class does not exist.").
 
         If the server did not return a description, a short default text for
         the CIM status code is returned. If the CIM status code is invalid,
-        the string ``"Invalid status code <code>"`` is returned.
-
-        Note that ``args[1]`` is always the ``status_description`` init
-        argument, without defaulting it to a standard text in case of `None`.
+        the string "Invalid status code <status_code>" is returned.
         """
         return self.args[1] or _statuscode2string(self.status_code)
 
