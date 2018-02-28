@@ -1,8 +1,8 @@
 
-.. _`Logging`:
+.. _`WBEM operation logging`:
 
-Logging
--------
+WBEM operation logging
+----------------------
 
 .. automodule:: pywbem._logging
    :members:

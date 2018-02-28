@@ -1,8 +1,8 @@
 
-.. _`Statistics`:
+.. _`WBEM operation statistics`:
 
-Statistics
-----------
+WBEM operation statistics
+-------------------------
 
 .. automodule:: pywbem._statistics
 

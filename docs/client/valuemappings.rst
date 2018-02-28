@@ -1,8 +1,8 @@
 
-.. _`Value mappings`:
+.. _`Mapping between ValueMap and Values qualifiers`:
 
-Value mappings
---------------
+Mapping between ValueMap and Values qualifiers
+----------------------------------------------
 
 .. automodule:: pywbem._valuemapping
 
