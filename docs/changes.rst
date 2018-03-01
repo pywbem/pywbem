@@ -399,7 +399,7 @@ Enhancements
 * Docs: Improved and fixed the description of the pywbem statistics
   support. (Issue #1115).
 
-<* `CIMInstance.tocimxml()/tocimxmlstr()` were extended to allow controlling
+* `CIMInstance.tocimxml()/tocimxmlstr()` were extended to allow controlling
   whether the path is ignored even if present. This capability is used for
   ignoring the path in embedded instance parameter values (as part of
   fixing issue #1136).
@@ -435,6 +435,9 @@ Enhancements
   record. This allows linking logs for each WBEMConnection in the log.
 
 * Improved the complete pywbem documentation (Issue #1115).
+
+* Improved the handling of certain connection errors by retrying and by
+  issuing user warnings instead of printing if debug. (Issue #1118).
 
 Bug fixes
 ^^^^^^^^^

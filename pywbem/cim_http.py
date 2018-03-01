@@ -380,7 +380,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         A value of `None` is treated like an empty iterable.
 
       debug (:class:`py:bool`):
-        Boolean indicating whether to create debug information.
+        Boolean indicating whether to create debug information (ignored).
 
       x509:
         Used for HTTPS with certificates.
@@ -791,14 +791,16 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     client.send(data)
                 except SocketErrors as exc:
                     if exc.args[0] == errno.ECONNRESET:
-                        if debug:
-                            print("Debug: Ignoring socket error ECONNRESET "
-                                  "(connection reset) returned by server.")
+                        warnings.warn("Ignoring socket error ECONNRESET "
+                                      "(connection reset), continuing with "
+                                      "reading the response.",
+                                      UserWarning, stacklevel=2)
                         # continue with reading response
                     elif exc.args[0] == errno.EPIPE:
-                        if debug:
-                            print("Debug: Ignoring socket error EPIPE "
-                                  "(broken pipe) returned by server.")
+                        warnings.warn("Ignoring socket error EPIPE "
+                                      "(broken pipe), continuing with "
+                                      "reading the response.",
+                                      UserWarning, stacklevel=2)
                         # continue with reading response
                     else:
                         raise
@@ -868,11 +870,13 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                     continue  # with next retry
                                 # pylint: disable=broad-except
                                 except Exception as exc:
-                                    if debug:
-                                        print("Debug: Ignoring exception %s "
-                                              "in OpenWBEM auth challenge "
-                                              "processing." % exc)
                                     local_auth_header = None
+                                    warnings.warn(
+                                        "Exception in OpenWBEM auth challenge "
+                                        "processing: %s (retrying - this was "
+                                        "attempt %s of %s)" %
+                                        (exc, num_tries + 1, try_limit),
+                                        UserWarning, stacklevel=2)
                                     continue  # with next retry
                         elif 'Local' in auth_chal:
                             try:
@@ -919,11 +923,28 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 # independent of strict when a keep-alive connection times out
                 # (e.g. because the server went down).
                 # See http://bugs.python.org/issue8450.
+                # In Python 3.5, this case is raised as a new
+                # httplib.RemoteDisconnected exception, which is also still
+                # a BadStatusLine exception with an empty line.
                 if exc.line is None or exc.line.strip().strip("'") in \
                         ('', 'None'):
-                    raise ConnectionError("The server closed the connection "
-                                          "without returning any data, or the "
-                                          "client timed out")
+                    # TODO 4/2018 AM Enable retry logic. For unknown reasons,
+                    #   retrying causes testclient test case SocketError104 to
+                    #   fail. Also, retrying needs to be tested with a real
+                    #   WBEM server.
+                    if False:
+                        warnings.warn("The server closed the connection "
+                                      "without returning any response "
+                                      "(retrying - this was attempt %s of %s "
+                                      "at %s)" %
+                                      (num_tries + 1, try_limit,
+                                       datetime.now()),
+                                      UserWarning, stacklevel=2)
+                        continue  # with next retry
+                    else:
+                        raise ConnectionError("The server closed the "
+                                              "connection without returning "
+                                              "any response")
                 else:
                     raise ConnectionError("The server returned a bad HTTP "
                                           "status line: %r" % exc.line)
