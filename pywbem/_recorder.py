@@ -196,7 +196,7 @@ HttpRequestTuple = namedtuple("HttpRequestTuple",
 
 class HttpRequest(HttpRequestTuple):
     """
-    **Experimental** *New in pywbem 0.9 as experimental.*
+    **Experimental:** *New in pywbem 0.9 as experimental.*
 
     A named tuple representing the HTTP request sent by the WBEM client, with
     the following named fields and attributes:

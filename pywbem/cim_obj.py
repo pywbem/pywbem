@@ -250,8 +250,8 @@ Except for the case-insensitivity of its keys, it behaves like the built-in
 :class:`~py:collections.OrderedDict`. Therefore, ``NocaseDict`` is not
 described in detail in this documentation.
 
-Deprecated: In v0.9.0, support for comparing two ``NocaseDict`` instances with
-the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
+Deprecated: In pywbem 0.9, support for comparing two ``NocaseDict`` instances
+with the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
 """  # noqa: E501
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
@@ -841,7 +841,7 @@ def cmpitem(item1, item2):
     ordering).
 
     Note: Support for comparing the order of the items has been removed
-    in pywbem v0.9.0.
+    in pywbem 0.9.
 
     One or both of the items may be `None`.
 
@@ -1020,18 +1020,18 @@ def _mof_escaped(strvalue):
     is the entire repertoire for the CIM string datatype. That is, the entire
     Unicode character repertoire except for U+0000.
 
-    The only character for which DSP0004 requires the use of a MOF escape
+    The only character for which `DSP0004` requires the use of a MOF escape
     sequence in a MOF string constant, is the double quote (because a MOF
     string constant is enclosed in double quotes).
 
-    DSP0004 defines MOF escape sequences for several more characters, but it
+    `DSP0004` defines MOF escape sequences for several more characters, but it
     does not require their use in MOF. For example, it is valid for a MOF
     string constant to contain the (unescaped) characters U+000D (newline) or
     U+0009 (horizontal tab), and others.
 
     Processing the MOF escape sequences as unescaped characters may not be
     supported by MOF-related tools, and therefore this function plays it safe
-    and uses the MOF escape sequences defined in DSP0004 as much as possible.
+    and uses the MOF escape sequences defined in `DSP0004` as much as possible.
     The following table shows the MOF escape sequences defined in `DSP0004`
     and whether they are used (i.e. generated) by this function:
 
@@ -1673,7 +1673,7 @@ class CIMInstanceName(_CIMComparisonMixin):
               before the zone ID string, as an additional choice to ``%25``.
 
             `None` means that the WBEM server is unspecified, and the
-            same-named attribute in the ``CIMInstanceName`` object will also be
+            same-named attribute in the :class:`~pywbem.CIMInstanceName` object will also be
             `None`.
 
             The lexical case of the string is preserved. Object comparison and
@@ -1683,7 +1683,7 @@ class CIMInstanceName(_CIMComparisonMixin):
             Name of the CIM namespace containing the referenced instance.
 
             `None` means that the namespace is unspecified, and the
-            same-named attribute in the ``CIMInstanceName`` object will also be
+            same-named attribute in the :class:`~pywbem.CIMInstanceName` object will also be
             `None`.
 
             Leading and trailing slash characters will be stripped.
@@ -1769,8 +1769,8 @@ class CIMInstanceName(_CIMComparisonMixin):
             del instpath.keybindings['k1']  # Delete "k1" from the inst. path
 
         In addition, the keybindings can be accessed and manipulated one by
-        one by using the entire ``CIMInstanceName`` object like a dictionary.
-        Again, the provided input value must be specified as a
+        one by using the entire :class:`~pywbem.CIMInstanceName` object like a
+        dictionary. Again, the provided input value must be specified as a
         :term:`CIM data type` or as :term:`number`::
 
             instpath = CIMInstanceName(...)
@@ -2286,35 +2286,37 @@ class CIMInstanceName(_CIMComparisonMixin):
         The WBEM URI string must be a CIM instance path in untyped WBEM URI
         format, as defined in :term:`DSP0207`, with these extensions:
 
-        * DSP0207 restricts the namespace types (URI schemes) to be one of
-          ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
-          tolerates any namespace type, but issues a :exc:`py:UserWarning` if
-          it is not one of the namespace types defined in DSP0207.
+        * :term:`DSP0207` restricts the namespace types (URI schemes) to be one
+          of ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
+          tolerates any namespace type, but issues a
+          :exc:`~py:exceptions.UserWarning` if it is not one of the namespace
+          types defined in :term:`DSP0207`.
 
-        * DSP0207 requires a slash before the namespace name. For local WBEM
-          URIs (no namespace type, no authority), that slash is the first
+        * :term:`DSP0207` requires a slash before the namespace name. For local
+          WBEM URIs (no namespace type, no authority), that slash is the first
           character of the WBEM URI. For historical reasons, pywbem tolerates a
           missing leading slash for local WBEM URIs. Note that pywbem requires
-          the slash (consistent with DSP0207) when the WBEM URI is not local.
+          the slash (consistent with :term:`DSP0207`) when the WBEM URI is not
+          local.
 
-        * DSP0207 requires datetime values in keybindings to be surrounded by
-          double quotes. For historical reasons, pywbem tolerates datetime
-          values that are not surrounded by double quotes, but issues a
-          :exc:`py:UserWarning`.
+        * :term:`DSP0207` requires datetime values in keybindings to be
+          surrounded by double quotes. For historical reasons, pywbem tolerates
+          datetime values that are not surrounded by double quotes, but issues
+          a :exc:`~py:exceptions.UserWarning`.
 
-        * DSP0207 does not allow the special float values INF, -INF, and NaN
-          in WBEM URIs (according to realValue in DSP0004). However, the
-          CIM-XML protocol supports representation of these special values,
-          so to be on the safe side, pywbem supports these special values as
-          keybindings in WBEM URIs.
+        * :term:`DSP0207` does not allow the special float values INF, -INF,
+          and NaN in WBEM URIs (according to realValue in :term:`DSP0004`).
+          However, the CIM-XML protocol supports representation of these
+          special values, so to be on the safe side, pywbem supports these
+          special values as keybindings in WBEM URIs.
 
         Keybindings that are references are supported, recursively.
 
-        CIM instance paths in the typed WBEM URI format defined in DSP0207
-        are not supported.
+        CIM instance paths in the typed WBEM URI format defined in
+        :term:`DSP0207` are not supported.
 
-        The untyped WBEM URI format defined in DSP0207 has the following
-        limitations when interpreting a WBEM URI string:
+        The untyped WBEM URI format defined in :term:`DSP0207` has the
+        following limitations when interpreting a WBEM URI string:
 
         * It cannot distinguish string-typed keys with a value that is a
           datetime value from datetime-typed keys with such a value. Pywbem
@@ -2423,9 +2425,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         be determined by comparing the returned WBEM URI strings. Instead,
         compare :class:`~pywbem.CIMInstanceName` objects using the ``==``
         operator, which performs the comparison at the logical level required
-        by DSP0004. If you have WBEM URI strings without the corresponding
-        :class:`~pywbem.CIMInstanceName` object, such an object can be created
-        by using the static method
+        by :term:`DSP0004`. If you have WBEM URI strings without the
+        corresponding :class:`~pywbem.CIMInstanceName` object, such an object
+        can be created by using the static method
         :meth:`~pywbem.CIMInstanceName.from_wbem_uri`.
 
         Parameters:
@@ -2562,39 +2564,48 @@ class CIMInstanceName(_CIMComparisonMixin):
         Parameters:
 
             `class_` (:class:`~pywbem.CIMClass`):
-                CIMClass from which the list of key properties will be
-                retrieved. The class MUST contain all of the key properties
-                that are required to create the CIMInstanceName. Thus, for
-                example, if the class were retrieved from a server, generally,
-                the request `LocalOnly` parameter should be False to assure all
-                superclass properties are retrieved.  It need not be the
-                same class as the instance. Thus, it could be a
-                superclass if the key properties were the same for both the
-                instance and class
+                The CIM class with the key properties.
+
+                In strict mode, that class must contain all key properties that
+                are required to create the :class:`~pywbem.CIMInstanceName`
+                object. Thus, for example, if the class were retrieved from a
+                server, generally, the `LocalOnly` parameter in the request
+                should be `False` to assure that all superclass properties are
+                retrieved.
+
+                In non-strict mode, that class may have missing key properties.
+                Any missing key properties will result in missing key bindings
+                in the created :class:`~pywbem.CIMInstanceName` object.
+
+                The specified class does not need to be the creation class of
+                the instance. Thus, it could be a superclass as long as it has
+                the required key properties.
 
             instance (:class:`~pywbem.CIMInstance`):
-                CIMInstance containing the key property values.
+                The CIM instance with the key property values.
 
             namespace (:term:`string`):
-                Namespace to include in created CIMInstanceName or None.
+                Namespace to include in the created
+                :class:`~pywbem.CIMInstanceName` or `None`.
 
             host (:term:`string`):
-                Host name to include in created CIMInstanceName or None.
+                Host name to include in created
+                :class:`~pywbem.CIMInstanceName` or `None`.
 
             strict (:class:`py:bool`):
-                If True, all key properties in the class must have values in
-                the  instance. Default False.
+                Strict mode (see description of `class_` parameter).
 
         Returns:
+
             :class:`~pywbem.CIMInstanceName`:
                 :class:`~pywbem.CIMInstanceName` built from the key properties
                 in the `class_` parameter using the key property values in the
                 `instance` parameter.
 
         Raises:
-          ValueError: The strict attribute is True and key property does not
-          exist in the instance.
 
+          ValueError: The `strict` attribute is `True` and a key property does
+            not exist in the instance.
         """
         keybindings = NocaseDict()
 
@@ -2654,27 +2665,27 @@ class CIMInstance(_CIMComparisonMixin):
           path (:class:`~pywbem.CIMInstanceName`):
             Instance path for the instance.
 
-            The provided object will be stored in the ``CIMInstance`` object
-            (no copy is made).
+            The provided object will be stored in the
+            :class:`~pywbem.CIMInstance` object (no copy is made).
 
             `None` means that the instance path is unspecified, and the
-            same-named attribute in the ``CIMInstance`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMInstance` object
+            will also be `None`.
 
           property_list (:term:`py:iterable` of :term:`string`):
             List of property names for use as a filter by some operations on
             the instance. The property names may have any lexical case.
 
             A copy of the provided iterable will be stored in the
-            ``CIMInstance`` object, and the property names will be converted to
-            lower case.
+            :class:`~pywbem.CIMInstance` object, and the property names will be
+            converted to lower case.
 
             `None` means that the properties are not filtered, and the
-            same-named attribute in the ``CIMInstance`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMInstance` object
+            will also be `None`.
 
-            **Deprecated:** This parameter has been deprecated in pywbem
-            0.12.0. Set only the desired properties on the object, instead of
+            **Deprecated:** This parameter has been deprecated in pywbem 0.12.
+            Set only the desired properties on the object, instead of
             working with this property filter.
 
         Raises:
@@ -2879,7 +2890,7 @@ class CIMInstance(_CIMComparisonMixin):
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
 
-        **Deprecated:** This attribute has been deprecated in pywbem v0.12.0.
+        **Deprecated:** This attribute has been deprecated in pywbem 0.12.
         Set only the desired properties on the object, instead of working with
         this property filter.
         """
@@ -2979,11 +2990,11 @@ class CIMInstance(_CIMComparisonMixin):
 
     def __setitem__(self, key, value):
 
-        # The property_list attribute has been deprecated in pywbem 0.12.0.
+        # The property_list attribute has been deprecated in pywbem 0.12.
         # It is used to ignore the setting of properties under certain
         # conditions. Note that the purpose of these conditions is unclear,
         # given the code below (whose logic is unchanged since at least as far
-        # back as pywbem 0.7.0): For instances that do not have a path set,
+        # back as pywbem 0.7): For instances that do not have a path set,
         # the property_list is effectively disabled. Nevertheless, the logic
         # has been kept in place because the property_list feature may be
         # removed anyway in a future release of pywbem.
@@ -3152,11 +3163,11 @@ class CIMInstance(_CIMComparisonMixin):
         # attribute. However, even though the items in the dictionary are
         # required to be CIMProperty objects, the user technically can set
         # them to anything.
-        # Before pywbem v0.12.0, the dictionary items were converted to
+        # Before pywbem 0.12, the dictionary items were converted to
         # CIMProperty objects. This was only done for properties of
         # CIMinstance, but not for any other CIM object attribute.
-        # In v0.12.0, this conversion was removed because it worked only for
-        # bool and string types anyway. Because that conversion had been
+        # In pywbem 0.12, this conversion was removed because it worked only
+        # for bool and string types anyway. Because that conversion had been
         # implemented, we still check that the items are CIMProperty objects.
         for key, value in self.properties.items():
             if not isinstance(value, CIMProperty):
@@ -3227,7 +3238,7 @@ class CIMInstance(_CIMComparisonMixin):
         Parameters:
 
           indent (:term:`integer`): This parameter has been deprecated in
-            pywbem 0.12.0. A value other than 0 causes a deprecation warning to
+            pywbem 0.12. A value other than 0 causes a deprecation warning to
             be issued. Othwerise, the parameter is ignored and the returned MOF
             instance specification is not indented.
 
@@ -3303,8 +3314,8 @@ class CIMClassName(_CIMComparisonMixin):
               before the zone ID string, as an additional choice to ``%25``.
 
             `None` means that the WBEM server is unspecified, and the
-            same-named attribute in the ``CIMClassName`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMClassName` object
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -3313,8 +3324,8 @@ class CIMClassName(_CIMComparisonMixin):
             Name of the CIM namespace containing the referenced class.
 
             `None` means that the namespace is unspecified, and the
-            same-named attribute in the ``CIMClassName`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMClassName` object
+            will also be `None`.
 
             Leading and trailing slash characters will be stripped.
             The lexical case of the string is preserved. Object comparison and
@@ -3562,18 +3573,20 @@ class CIMClassName(_CIMComparisonMixin):
         The WBEM URI string must be a CIM class path in untyped WBEM URI
         format, as defined in :term:`DSP0207`, with these extensions:
 
-        * DSP0207 restricts the namespace types (URI schemes) to be one of
-          ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
-          tolerates any namespace type, but issues a :exc:`py:UserWarning` if
-          it is not one of the namespace types defined in DSP0207.
+        * :term:`DSP0207` restricts the namespace types (URI schemes) to be one
+          of ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
+          tolerates any namespace type, but issues a
+          :exc:`~py:exceptions.UserWarning` if it is not one of the namespace
+          types defined in :term:`DSP0207`.
 
-        * DSP0207 requires a slash before the namespace name. For local WBEM
-          URIs (no namespace type, no authority), that slash is the first
+        * :term:`DSP0207` requires a slash before the namespace name. For local
+          WBEM URIs (no namespace type, no authority), that slash is the first
           character of the WBEM URI. For historical reasons, pywbem tolerates a
           missing leading slash for local WBEM URIs. Note that pywbem requires
-          the slash (consistent with DSP0207) when the WBEM URI is not local.
+          the slash (consistent with :term:`DSP0207`) when the WBEM URI is not
+          local.
 
-        CIM class paths in the typed WBEM URI format defined in DSP0207
+        CIM class paths in the typed WBEM URI format defined in :term:`DSP0207`
         are not supported.
 
         Examples::
@@ -3742,8 +3755,8 @@ class CIMClass(_CIMComparisonMixin):
             Name of the superclass for the class.
 
             `None` means that the class is a top-level class, and the
-            same-named attribute in the ``CIMClass`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMClass` object will
+            also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -3756,16 +3769,16 @@ class CIMClass(_CIMComparisonMixin):
 
             Class path for the class.
 
-            The provided object will be stored in the ``CIMClass`` object
-            (no copy is made).
+            The provided object will be stored in the :class:`~pywbem.CIMClass`
+            object (no copy is made).
 
             `None` means that the instance path is unspecified, and the
-            same-named attribute in the ``CIMClass`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMClass` object will
+            also be `None`.
 
-            This parameter has been added in pywbem v0.11.0 as a convenience
-            for the user in order so that ``CIMClass`` objects can be
-            self-contained w.r.t. their class path.
+            This parameter has been added in pywbem 0.11 as a convenience
+            for the user in order so that :class:`~pywbem.CIMClass` objects can
+            be self-contained w.r.t. their class path.
 
         Raises:
 
@@ -4014,7 +4027,7 @@ class CIMClass(_CIMComparisonMixin):
 
         `None` means that the class path is unspecified.
 
-        This attribute has been added in pywbem v0.11.0 as a convenience
+        This attribute has been added in pywbem 0.11 as a convenience
         for the user in order so that :class:`~pywbem.CIMClass` objects can
         be self-contained w.r.t. their class path.
 
@@ -4292,7 +4305,8 @@ class CIMProperty(_CIMComparisonMixin):
             declarations).
 
             `None` means that the property is Null, and the same-named
-            attribute in the ``CIMProperty`` object will also be `None`.
+            attribute in the :class:`~pywbem.CIMProperty` object will also be
+            `None`.
 
             The specified value will be converted to a :term:`CIM data type`
             using the rules documented in the description of
@@ -4314,8 +4328,8 @@ class CIMProperty(_CIMComparisonMixin):
             the class hierarchy of the class owning the property).
 
             `None` means that class origin information is not available, and
-            the same-named attribute in the ``CIMProperty`` object will also be
-            `None`.
+            the same-named attribute in the :class:`~pywbem.CIMProperty` object
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -4324,8 +4338,8 @@ class CIMProperty(_CIMComparisonMixin):
             The size of the array property, for fixed-size arrays.
 
             `None` means that the array property has variable size, and
-            the same-named attribute in the ``CIMProperty`` object will also be
-            `None`.
+            the same-named attribute in the :class:`~pywbem.CIMProperty` object
+            will also be `None`.
 
           propagated (:class:`py:bool`):
             If not `None`, indicates whether the property declaration has been
@@ -4334,8 +4348,8 @@ class CIMProperty(_CIMComparisonMixin):
             latter is not really used).
 
             `None` means that propagation information is not available, and
-            the same-named attribute in the ``CIMProperty`` object will also be
-            `None`.
+            the same-named attribute in the :class:`~pywbem.CIMProperty` object
+            will also be `None`.
 
           is_array (:class:`py:bool`):
             A boolean indicating whether the property is an array (`True`) or a
@@ -4343,7 +4357,7 @@ class CIMProperty(_CIMComparisonMixin):
 
             `None` means that it is unspecified whether the property is an
             array, and the same-named attribute in the
-            ``CIMProperty`` object will be inferred from the
+            :class:`~pywbem.CIMProperty` object will be inferred from the
             `value` parameter. If the `value` parameter is `None`, a scalar is
             assumed.
 
@@ -4354,15 +4368,15 @@ class CIMProperty(_CIMComparisonMixin):
             instances).
 
             `None` means that the referenced class is unspecified, and the
-            same-named attribute in the ``CIMProperty`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMProperty` object
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-            Note: Prior to pywbem v0.11.0, the corresponding attribute was
+            Note: Prior to pywbem 0.11, the corresponding attribute was
             inferred from the creation class name of a referenced instance.
-            This was incorrect and has been fixed in v0.11.0.
+            This was incorrect and has been fixed in pywbem 0.11.
 
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the property declaration. Has no meaning for
@@ -4376,8 +4390,8 @@ class CIMProperty(_CIMComparisonMixin):
             attribute.
 
             `None` means that the value is unspecified, causing the same-named
-            attribute in the ``CIMProperty`` object to be inferred. An
-            exception is raised if it cannot be inferred.
+            attribute in the :class:`~pywbem.CIMProperty` object to be
+            inferred. An exception is raised if it cannot be inferred.
 
         Examples:
 
@@ -4548,9 +4562,9 @@ class CIMProperty(_CIMComparisonMixin):
 
         For non-reference properties, will be `None`.
 
-        Note that in CIM instances returned from a WBEM server, DSP0201
+        Note that in CIM instances returned from a WBEM server, :term:`DSP0201`
         recommends this attribute not to be set. For CIM classes returned from
-        a WBEM server, DSP0201 requires this attribute to be set.
+        a WBEM server, :term:`DSP0201` requires this attribute to be set.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -5063,8 +5077,8 @@ class CIMMethod(_CIMComparisonMixin):
             hash value calculation are performed case-insensitively.
 
             Deprecated: This argument has been named `methodname` before
-            v0.9.0. Using `methodname` as a named argument still works,
-            but has been deprecated in v0.9.0.
+            pywbem 0.9. Using `methodname` as a named argument still works,
+            but has been deprecated in pywbem 0.9.
 
           return_type (:term:`string`):
             Name of the CIM data type of the method return type
@@ -5101,8 +5115,8 @@ class CIMMethod(_CIMComparisonMixin):
             the class hierarchy of the class owning the method).
 
             `None` means that class origin information is not available, and
-            the same-named attribute in the ``CIMMethod`` object will also be
-            `None`.
+            the same-named attribute in the :class:`~pywbem.CIMMethod` object
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -5112,8 +5126,8 @@ class CIMMethod(_CIMComparisonMixin):
             from a superclass to this class.
 
             `None` means that propagation information is not available, and the
-            same-named attribute in the ``CIMMethod`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMMethod` object will
+            also be `None`.
 
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the method.
@@ -5582,8 +5596,8 @@ class CIMParameter(_CIMComparisonMixin):
             parameter, as declared in the class defining the method.
 
             `None` means that the referenced class is unspecified, and the
-            same-named attribute in the ``CIMParameter`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMParameter` object
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -5594,7 +5608,7 @@ class CIMParameter(_CIMComparisonMixin):
 
             `None` means that it is unspecified whether the parameter is an
             array, and the same-named attribute in the
-            ``CIMParameter`` object will be inferred from the
+            :class:`~pywbem.CIMParameter` object will be inferred from the
             `value` parameter. If the `value` parameter is `None`, a scalar is
             assumed.
 
@@ -5602,8 +5616,8 @@ class CIMParameter(_CIMComparisonMixin):
             The size of the array parameter, for fixed-size arrays.
 
             `None` means that the array parameter has variable size, and the
-            same-named attribute in the ``CIMParameter`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMParameter` object
+            will also be `None`.
 
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the parameter.
@@ -5625,9 +5639,9 @@ class CIMParameter(_CIMComparisonMixin):
             attribute.
 
             `None` means that the value is unspecified, causing the same-named
-            attribute in the ``CIMParameter`` object to be inferred from
-            the parameter value (i.e. the `value` parameter). An exception is
-            raised if it cannot be inferred.
+            attribute in the :class:`~pywbem.CIMParameter` object to be
+            inferred from the parameter value (i.e. the `value` parameter). An
+            exception is raised if it cannot be inferred.
         """
 
         # We use the respective setter methods:
@@ -6238,7 +6252,8 @@ class CIMQualifier(_CIMComparisonMixin):
             Value of the qualifier.
 
             `None` means that the qualifier is Null, and the same-named
-            attribute in the ``CIMQualifier`` object will also be `None`.
+            attribute in the :class:`~pywbem.CIMQualifier` object will also be
+            `None`.
 
             The specified value will be converted to a :term:`CIM data type`
             using the rules documented in the description of
@@ -6259,32 +6274,32 @@ class CIMQualifier(_CIMComparisonMixin):
             propagated from a superclass to this class.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifier`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            will also be `None`.
 
           overridable (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value is overridable
             in subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifier`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            will also be `None`.
 
           tosubclass (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value propagates
             to subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifier`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            will also be `None`.
 
           toinstance (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value propagates
             to instances.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifier`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            will also be `None`.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances.
@@ -6293,8 +6308,8 @@ class CIMQualifier(_CIMComparisonMixin):
             If not `None`, specifies whether the qualifier is translatable.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifier`` object will also be
-            `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            will also be `None`.
 
         Examples:
 
@@ -6749,12 +6764,12 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
         - Does not have ToInstance flavor;  ``toinstance = False.``
           Not defined in :term:`DSP0004` and deprecated in the DMTF protocol
-          specification :TERM:`DSP0200`
+          specification :term:`DSP0200`
 
     Because `None` is allowed as a value for the flavors attributes in
-    constructing a CIMQualifierDeclaration, the user must insure that any
-    flavor which has the value `None` is set to its default value if required
-    for subsequent processing.
+    constructing a :class:`CIMQualifierDeclaration`, the user must insure that
+    any flavor which has the value `None` is set to its default value if
+    required for subsequent processing.
 
     The pywbem MOF compiler supplies all of the flavor values so that
     those which were not specified in the MOF are set to the DMTF defined
@@ -6801,7 +6816,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             Default value of the qualifier.
 
             `None` means a default value of Null, and the same-named attribute
-            in the ``CIMQualifierDeclaration`` object will also be `None`.
+            in the :class:`~pywbem.CIMQualifierDeclaration` object will also be
+            `None`.
 
             The specified value will be converted to a :term:`CIM data type`
             using the rules documented in the description of
@@ -6813,22 +6829,22 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
             `None` means that it is unspecified whether the qualifier is an
             array, and the same-named attribute in the
-            ``CIMQualifierDeclaration`` object will be inferred from the
-            `value` parameter. If the `value` parameter is `None`, a scalar is
-            assumed.
+            :class:`~pywbem.CIMQualifierDeclaration` object will be inferred
+            from the `value` parameter. If the `value` parameter is `None`, a
+            scalar is assumed.
 
           array_size (:term:`integer`):
             The size of the array qualifier, for fixed-size arrays.
 
             `None` means that the array qualifier has variable size, and the
-            same-named attribute in the ``CIMQualifierDeclaration`` object will
-            also be `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
+            object will also be `None`.
 
           scopes (:class:`py:dict` or `NocaseDict`_):
             Scopes of the qualifier.
 
             A shallow copy of the provided dictionary will be stored in the
-            ``CIMQualifierDeclaration`` object.
+            :class:`~pywbem.CIMQualifierDeclaration` object.
 
             Each dictionary item specifies one scope value, with:
 
@@ -6853,24 +6869,24 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             qualifier value is overridable in subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifierDeclaration`` object will
-            also be `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
+            object will also be `None`.
 
           tosubclass (:class:`py:bool`):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifierDeclaration`` object will
-            also be `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
+            object will also be `None`.
 
           toinstance (:class:`py:bool`):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to instances.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifierDeclaration`` object will
-            also be `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
+            object will also be `None`.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances and this flavor is not defined in
@@ -6881,8 +6897,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             qualifier is translatable.
 
             `None` means that this information is not available, and the
-            same-named attribute in the ``CIMQualifierDeclaration`` object will
-            also be `None`.
+            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
+            object will also be `None`.
         """
 
         # We use the respective setter methods:
@@ -7052,9 +7068,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def tosubclass(self):
         """
-        :class:`py:bool`: If `True` specifies the ToSubclass flavor(the
+        :class:`py:bool`: If `True` specifies the ToSubclass flavor (the
         qualifier value propagates to subclasses); if `False` specifies the
-        Restricted flavor(the qualifier value does not propagate to
+        Restricted flavor (the qualifier value does not propagate to
         subclasses).
 
         `None` means that this information is not available.
@@ -7296,8 +7312,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         the information is available (i.e. the value of the corresponding
         attribute is not `None`).
 
-        Because DSP0004 does not support instance qualifiers, and thus does not
-        define a flavor keyword for the
+        Because :term:`DSP0004` does not support instance qualifiers, and thus
+        does not define a flavor keyword for the
         :attr:`~pywbem.CIMQualifierDeclaration.toinstance` attribute, that
         flavor is not included in the returned MOF string.
 
@@ -7383,7 +7399,7 @@ def tocimxml(value):
 
     Parameters:
 
-      value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime`, or tuple/list thereof):
+      value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime.datetime`, or tuple/list thereof):
         The input value. May be `None`.
 
     Returns:
@@ -7450,7 +7466,7 @@ def tocimxmlstr(value, indent=None):
     return _ensure_unicode(xml_str)
 
 
-# Note: The new cimvalue() function introduced in pywbem v0.12.0 is now used
+# Note: The new cimvalue() function introduced in pywbem 0.12 is now used
 # internally in the CIM object classes, instead of tocimobj(). However,
 # tocimobj() is still used internally in the tupleparser, plus it is part of
 # the public API.
@@ -7459,8 +7475,7 @@ def tocimxmlstr(value, indent=None):
 # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
     """
-    Return a CIM object representing the specified value and
-    type.
+    Return a CIM object representing the specified value and type.
 
     Parameters:
 
@@ -7505,8 +7520,8 @@ def tocimobj(type_, value):
 
     Raises:
 
-        ValueError: Input cannot be converted to defined CIMValue type or
-          invalid CIMDatatype name.
+        ValueError: Input cannot be converted to defined CIM value type, or
+          invalid CIM data type name.
     """
 
     if value is None or type_ is None:
