@@ -377,7 +377,7 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
             report, r'Statistics \(times in seconds, lengths in Bytes\)')
 
         self.assert_regexp_contains(
-            report, r"Count Excep *Time *RequestLen *ReplyLen *Operation")
+            report, r"Count Excep *ClientTime *RequestLen *ReplyLen *Operation")
 
         self.assert_regexp_contains(
             report,
@@ -464,7 +464,8 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
 
         self.assert_regexp_contains(
             report,
-            r'Count Excep +Time +ServerTime +RequestLen +ReplyLen +Operation')
+            r'Count Excep +ClientTime +ServerTime +RequestLen +ReplyLen +'
+            r'Operation')
 
         self.assert_regexp_contains(
             report,

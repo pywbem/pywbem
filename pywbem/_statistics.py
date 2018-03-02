@@ -15,6 +15,7 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+# pylint: disable=line-too-long
 """
 *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
@@ -45,7 +46,95 @@ name (see the table of WBEMConnection methods in the :ref:`WBEM operations`
 section for the operation names).
 The :class:`~pywbem.OperationStatistic` objects are under control of the
 :class:`~pywbem.Statistics` class.
-"""
+
+The statistics support maintains two kinds of times for each kind of WBEM
+operation:
+
+* Client times: The elapsed times for the WBEMConnection operation methods from
+  call to return. This is measured in pywbem pretty close to the API the pywbem
+  user is calling.
+
+* Server times: The elapsed times for processing the WBEM operations in the
+  WBEM server from receiving the CIM-XML request message to sending back the
+  CIM-XML response message. The server times are not measured by pywbem, but
+  are taken from the `WBEMServerResponseTime` HTTP header field of a CIM-XML
+  response, if present. See :term:`DSP0200` for a description of this header
+  field.
+
+  The `WBEMServerResponseTime` HTTP header field is optionally implemented
+  by WBEM servers. The following WBEM servers are known to implement this
+  header field:
+
+  * OpenPegasus
+
+The difference between client time and server time is the time spent in the
+pywbem client, plus the time spent on the network between client and server.
+
+The statistics support also maintains the size of the HTTP body in the CIM-XML
+request and response messages, in Bytes.
+
+These times and sizes are maintained as average, minimum and maximum values for
+each kind of operation in a connection.
+
+Finally, the statistics support maintains the total count of operations and the
+count of operations that failed, for each kind of operation.
+
+All data in the statistics applies to WBEM operations performed during periods
+of time where the statistics are enabled on a connection. Operations performed
+during periods of time where the statistics are disabled on a connection, are
+simply ignored in the statistics.
+
+For the Iter methods of WBEMConnection (e.g.
+:meth:`~pywbem.WbemConnection.IterEnumerateInstances`), the WBEM operations
+performed on behalf of them are subject of the statistics, but the Iter methods
+themselves do not show up in the statistics.
+
+The following example shows how statistics are enabled, and how statistics
+values are accessed individually using the
+:meth:`~pywbem.Statistics.get_op_statistic` method::
+
+    conn = pywbem.WBEMConnection(..., stats_enabled=True)
+
+    # Perform some operations on this connection
+    insts_1 = conn.EnumerateInstances('CIM_Foo1', 'root/cimv2')
+    insts_2 = conn.EnumerateInstances('CIM_Foo2', 'root/cimv2')
+    insts_3 = conn.EnumerateInstances('CIM_Foo3', 'root/cimv2')
+    inst_paths_1 = conn.EnumerateInstanceNames('CIM_Foo1', 'root/cimv2')
+
+    # Access statistics values for EnumerateInstances
+    ei_stats = conn.statistics.get_op_statistic('EnumerateInstances')
+    ei_count = ei_stats.count
+    ei_avg_client_time = ei_stats.avg_time
+    ei_avg_server_time = ei_stats.avg_server_time
+
+In the previous example, the values in ``ei_stats`` are "live", i.e. they
+continue to be updated as operations are performed. If a snapshot is needed at
+a certain point in time that remains unaffected by further operations, this can
+be achieved using the :meth:`~pywbem.Statistics.snapshot` method::
+
+    # Take snapshot and access statistics values for EnumerateInstances
+    stats_snapshot = dict(conn.statistics.snapshot())
+    ei_stats = stats_snapshot['EnumerateInstances']
+    ei_count = ei_stats.count
+    ei_avg_client_time = ei_stats.avg_time
+    ei_avg_server_time = ei_stats.avg_server_time
+
+It is also possible to simply print the current statistics of a connection as a
+formatted table, using the :meth:`~pywbem.Statistics.formatted` method::
+
+    # Print statistics values for all operations
+    print(conn.statistics.formatted())
+
+The output could look like this, if the WBEM server returns WBEM server
+response times::
+
+    Statistics (times in seconds, lengths in Bytes):
+    Count Excep         ClientTime              ServerTime             RequestLen                ReplyLen       Operation
+            Cnt     Avg     Min     Max     Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
+        3     0   0.234   0.100   0.401   0.204   0.080   0.361   1233   1000   1500    26667    20000    35000 EnumerateInstances
+        1     0   0.100   0.100   0.100   0.080   0.080   0.080   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
+"""  # noqa: E501
+# pylint: enable=line-too-long
 
 from __future__ import absolute_import
 
@@ -63,16 +152,10 @@ class OperationStatistic(object):
     A statistics data keeper for the executions of all operations with the
     same operation name.
 
-    This class maintains max, min, avg and count for elapsed time, request
-    size, and response size over the executed operations of a single
-    operation name.
-
-    Use the :meth:`pywbem.Statistics.start_timer` method to create objects
-    of this class::
-
-        stats = container.start_timer('EnumerateInstances')
-        ...
-        stats.stop_timer(request_len, reply_len, server_time, exc)
+    Objects of this class are created by the :class:`~pywbem.Statistics` class
+    and can be accessed by pywbem users through its
+    :meth:`~pywbem.Statistics.get_op_statistic` and
+    :meth:`~pywbem.Statistics.snapshot` methods.
     """
 
     def __init__(self, container, name):
@@ -124,9 +207,6 @@ class OperationStatistic(object):
         """
         :term:`string`: Name of the operation for which this statistics
         object maintains data.
-
-        This name is used by the :class:`~pywbem.Statistics` object
-        holding this time statistics as a key.
         """
         return self._name
 
@@ -141,25 +221,26 @@ class OperationStatistic(object):
     @property
     def count(self):
         """
-        :term:`integer`: The number of measured operations (that is,
-        invocations of the :meth:`~pywbem.OperationStatistic.stop_timer`
-        method).
+        :term:`integer`: The number of measured operations.
         """
         return self._count
 
     @property
     def exception_count(self):
         """
-        :term:`integer`: The number of exceptions that occurred when invoking
-        the measured operations.
+        :term:`integer`: The number of measured operations that resulted in an
+        exception returned to the pywbem user (for example because a failure
+        was indicated in the operation response of the WBEM server, or because
+        pywbem itself detected a failure before sending the request or after
+        receiving the response).
         """
         return self._exception_count
 
     @property
     def avg_time(self):
         """
-        :class:`py:float`: The average elapsed time for invoking the measured
-        operations, in seconds.
+        :class:`py:float`: The average elapsed client time for execution of the
+        measured operations, in seconds.
         """
         try:
             return self._time_sum / self._count
@@ -169,24 +250,27 @@ class OperationStatistic(object):
     @property
     def min_time(self):
         """
-        :class:`py:float`: The minimum elapsed time for invoking the measured
-        operations, in seconds.
+        :class:`py:float`: The minimum elapsed client time for execution of the
+        measured operations, in seconds.
         """
         return self._time_min
 
     @property
     def max_time(self):
         """
-        :class:`py:float`: The maximum elapsed time for invoking the measured
-        operations, in seconds.
+        :class:`py:float`: The maximum elapsed client time for execution of the
+        measured operations, in seconds.
         """
         return self._time_max
 
     @property
     def avg_server_time(self):
         """
-        :class:`py:float`: The average elapsed time for invoking the measured
-        operations, in seconds.
+        :class:`py:float`: The average elapsed server time for execution of the
+        measured operations, in seconds.
+
+        This time is 0 if the WBEM server did not return the WBEM server
+        response time.
         """
         try:
             return self._server_time_sum / self._count
@@ -196,16 +280,22 @@ class OperationStatistic(object):
     @property
     def min_server_time(self):
         """
-        :class:`py:float`: The minimum elapsed time for invoking the measured
-        operations, in seconds.
+        :class:`py:float`: The minimum elapsed server time for execution of the
+        measured operations, in seconds.
+
+        This time is 0 if the WBEM server did not return the WBEM server
+        response time.
         """
         return self._server_time_min
 
     @property
     def max_server_time(self):
         """
-        :class:`py:float`: The maximum elapsed time for invoking the measured
-        operations, in seconds.
+        :class:`py:float`: The maximum elapsed server time for execution of the
+        measured operations, in seconds.
+
+        This time is 0 if the WBEM server did not return the WBEM server
+        response time.
         """
         return self._server_time_max
 
@@ -213,7 +303,7 @@ class OperationStatistic(object):
     def avg_request_len(self):
         """
         :class:`py:float`: The average size of the HTTP body in the CIM-XML
-        requests of the invoked operations, in Bytes.
+        requests of the measured operations, in Bytes.
         """
         try:
             return self._request_len_sum / self._count
@@ -224,7 +314,7 @@ class OperationStatistic(object):
     def min_request_len(self):
         """
         :class:`py:float`: The minimum size of the HTTP body in the CIM-XML
-        requests of the invoked operations, in Bytes.
+        requests of the measured operations, in Bytes.
         """
         return self._request_len_min
 
@@ -232,7 +322,7 @@ class OperationStatistic(object):
     def max_request_len(self):
         """
         :class:`py:float`: The maximum size of the HTTP body in the CIM-XML
-        requests of the invoked operations, in Bytes.
+        requests of the measured operations, in Bytes.
         """
         return self._request_len_max
 
@@ -240,7 +330,7 @@ class OperationStatistic(object):
     def avg_reply_len(self):
         """
         :class:`py:float`: The average size of the HTTP body in the CIM-XML
-        responses of the invoked operations, in Bytes.
+        responses of the measured operations, in Bytes.
         """
         try:
             return self._reply_len_sum / self._count
@@ -251,7 +341,7 @@ class OperationStatistic(object):
     def min_reply_len(self):
         """
         :class:`py:float`: The minimum size of the HTTP body in the CIM-XML
-        responses of the invoked operations, in Bytes.
+        responses of the measured operations, in Bytes.
         """
         return self._reply_len_min
 
@@ -259,7 +349,7 @@ class OperationStatistic(object):
     def max_reply_len(self):
         """
         :class:`py:float`: The maximum size of the HTTP body in the CIM-XML
-        responses of the invoked operations, in Bytes.
+        responses of the measured operations, in Bytes.
         """
         return self._reply_len_max
 
@@ -289,11 +379,9 @@ class OperationStatistic(object):
 
     def start_timer(self):
         """
-        This method needs to be called at the begin of an operation that
-        is intended to be measured. It starts the measurement for that
-        operation (by capturing the current point in time), if the
-        statistics container holding this object is enabled. Otherwise,
-        this method does nothing.
+        This is a low-level method that is called by pywbem at the begin of an
+        operation. It starts the measurement for that operation, if statistics
+        is enabled for the connection.
 
         A subsequent invocation of :meth:`~pywbem.OperationStatistic.stop_timer`
         will complete the measurement for that operation and will update the
@@ -307,11 +395,10 @@ class OperationStatistic(object):
     def stop_timer(self, request_len, reply_len, server_time=None,
                    exception=False):
         """
-        This method needs to be called at the end of an operation that is
-        intended to be measured. It completes the measurement for that
-        operation by capturing the needed data, and updates the statistics
-        data, if the statistics container holding this object is enabled.
-        Otherwise, this method does nothing.
+        This is a low-level method is called by pywbem at the end of an
+        operation. It completes the measurement for that operation by capturing
+        the needed data, and updates the statistics data, if statistics is
+        enabled for the connection.
 
         Parameters:
 
@@ -329,7 +416,7 @@ class OperationStatistic(object):
             Time in seconds that the server optionally returns to the
             client in the HTTP response defining the time from when the
             server received the request to when it started sending the
-            response. If None, there is no time from the server.
+            response. If `None`, there is no time from the server.
 
         Returns:
 
@@ -401,31 +488,25 @@ class OperationStatistic(object):
                'max_reply_len={s.max_reply_len!r})'. \
                format(s=self)
 
-    #: Formatted header string (two lines), for use with the formatted rows
-    #: returned by the :meth:`~pywbem.OperationStatistic.formatted` method.
-    #:
-    #: For an example, see :meth:`pywbem.Statistics.formatted`.
     formatted_header_w_svr = \
-        'Count Excep            Time               ServerTime       ' \
-        '       RequestLen               ReplyLen         Operation\n' \
+        'Count Excep         ClientTime              ServerTime        ' \
+        '     RequestLen                ReplyLen       Operation\n' \
         '        Cnt     Avg     Min     Max     Avg     Min     Max   ' \
         ' Avg    Min    Max      Avg      Min      Max\n'
 
     formatted_header = \
-        'Count Excep            Time          ' \
-        '       RequestLen            ReplyLen        Operation\n' \
+        'Count Excep         ClientTime        ' \
+        '     RequestLen              ReplyLen       Operation\n' \
         '        Cnt     Avg     Min     Max   ' \
         ' Avg    Min    Max    Avg      Min      Max\n'
 
     def formatted(self, include_server_time):
         """
-        Return a formatted one-line string with the statistics values for this
-        operation.
+        Return a formatted one-line string with the statistics values for the
+        operation for which this statistics object maintains data.
 
-        The returned string can be used with the formatted header string
-        defined in :attr:`~pywbem.OperationStatistic.formatted_header`.
-
-        For an example, see :meth:`pywbem.Statistics.formatted`.
+        This is a low-level method that is called by
+        :meth:`pywbem.Statistics.formatted`.
         """
         if include_server_time:  # pylint: disable=no-else-return
             return ('{0:5d} {1:5d} '
@@ -460,23 +541,24 @@ class Statistics(object):
     """
     *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
-    A container class for multiple operation statistic objects (of class
-    :class:`~pywbem.OperationStatistic`).
+    The statistics of a connection, that captures and provides statistics data
+    about the WBEM operations performed on the connection.
 
-    Each operation statistic object is identified by a name, that is defined
-    in the :meth:`~pywbem.Statistics.start_timer` method.
+    This class contains an operation statistic object (of class
+    :class:`~pywbem.OperationStatistic`) for each kind of WBEM operation.
 
-    The statistics container can be in a state of enabled or disabled.
+    A :class:`~pywbem.Statistics` object can be in a state of enabled or
+    disabled.
     If enabled, it accumulates the elapsed times between subsequent calls to
     the :meth:`~pywbem.OperationStatistic.start_timer` and
     :meth:`~pywbem.OperationStatistic.stop_timer` methods of class
     :class:`~pywbem.OperationStatistic`.
     If disabled, calls to these methods do not accumulate any time.
-    Initially, the statistics container is disabled. Its enablement state can
-    be controlled via the :meth:`~pywbem.Statistics.enable` and
-    :meth:`~pywbem.Statistics.disable` methods. Its current enablement
-    state can be accessed via the :attr:`~pywbem.Statistics.enabled`
-    property.
+    Initially, the statistics container is disabled.
+
+    The enablement state of the :class:`~pywbem.Statistics` object is
+    controlled by the statistics enablement state of the connection it belongs
+    to (see :meth:`pywbem.WBEMConnection.stats_enabled`)
     """
 
     def __init__(self, enable=False):
@@ -512,8 +594,13 @@ class Statistics(object):
 
     def start_timer(self, name):
         """
-        Start the timer for a given operation name and return the corresponding
+        This method is called by pywbem to start the timer for a particular
+        operation execution. It returns the corresponding
         :class:`~pywbem.OperationStatistic` object, creating one if needed.
+
+        The timer is subsequently stopped by pywbem by calling the
+        :meth:`~pywbem.OperationStatistic.stop_timer` method on the returned
+        :class:`~pywbem.OperationStatistic` object.
 
         Parameters:
 
@@ -586,16 +673,22 @@ class Statistics(object):
         Return a human readable string with the statistics for this container.
         The operations are sorted by decreasing average time.
 
-        Server time statistic is included only if the wbem server has returned
-        statistics information.
+        The three columns for `ServerTime` are included only if the WBEM server
+        has returned WBEM server response times.
 
-        Example w/o server times::
+        Example if statistics are enabled::
 
             Statistics (times in seconds, lengths in Bytes):
-            Count  Exc            Time                ReqLen                ReplyLen          Operation
-                   Cnt    Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
-                3    0   0.234   0.100   0.401   1233   1000   1500    26667    20000    35000 EnumerateInstances
-                1    0   0.100   0.100   0.100   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
+            Count Excep         ClientTime              ServerTime             RequestLen                ReplyLen       Operation
+                    Cnt     Avg     Min     Max     Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
+                3     0   0.234   0.100   0.401   0.204   0.080   0.361   1233   1000   1500    26667    20000    35000 EnumerateInstances
+                1     0   0.100   0.100   0.100   0.080   0.080   0.080   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
+                . . .
+
+        Example if statistics are disabled::
+
+            Statistics (times in seconds, lengths in Bytes):
+            Disabled
         """  # noqa: E501
         # pylint: enable=line-too-long
         ret = "Statistics (times in seconds, lengths in Bytes):\n"
