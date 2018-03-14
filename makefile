@@ -207,9 +207,9 @@ help:
 	@echo "  clean      - Remove any temporary files"
 	@echo "  clobber    - Remove everything created to ensure clean start"
 
-.PHONY: _pip
-_pip:
-	@echo "makefile: Installing/upgrading pip, setuptools, wheel and pbr with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
+.PHONY: _install_basic
+_install_basic:
+	@echo "makefile: Installing/upgrading basic Python packages (pip, etc., with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 ifeq ($(python_mn_version),26)
 	$(PIP_CMD) install importlib
 endif
@@ -223,7 +223,7 @@ else
 	$(PIP_CMD) install $(pip_level_opts) wheel
 endif
 	$(PIP_CMD) install $(pip_level_opts) pbr
-	@echo "makefile: Done installing/upgrading pip, setuptools, wheel and pbr"
+	@echo "makefile: Done installing/upgrading basic Python packages"
 
 .PHONY: install_os
 install_os: _fresh_install_os install_os.done
@@ -238,15 +238,18 @@ install_os.done: pywbem_os_setup.sh
 	touch install_os.done
 	@echo "makefile: Done installing OS-level installation and runtime requirements"
 
-.PHONY: install
-install: makefile install_os.done _pip requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg $(package_py_files)
-	@echo "makefile: Installing Python installation and runtime requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
-	rm -Rf build $(package_name).egg-info .eggs
-	@echo "makefile: Begin of diagnostics for determining pointer bit size of Python executable:"
+.PHONY: _show_bitsize
+_show_bitsize:
+	@echo "makefile: Determining bit size of Python executable"
 	$(PYTHON_CMD) -c "import ctypes; print(ctypes.sizeof(ctypes.c_void_p)*8)"
 	$(PYTHON_CMD) -c "import sys; print(64 if sys.maxsize > 2**32 else 32)"
 	$(PYTHON_CMD) -c "import platform; print(int(platform.architecture()[0].rstrip('bit')))"
-	@echo "makefile: End of diagnostics"
+	@echo "makefile: Done determining bit size of Python executable"
+
+.PHONY: _install_pywbem
+_install_pywbem: requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg
+	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
+	rm -Rf build $(package_name).egg-info .eggs
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
 ifeq ($(PYTHON_ARCH),32)
 	$(PIP_CMD) install $(pip_level_opts) -r win32-requirements.txt
@@ -255,9 +258,12 @@ ifeq ($(PYTHON_ARCH),64)
 	$(PIP_CMD) install $(pip_level_opts) -r win64-requirements.txt
 endif
 	$(PIP_CMD) install $(pip_level_opts) -e .
+	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
+
+.PHONY: install
+install: makefile install_os.done _install_basic _show_bitsize _install_pywbem $(moftab_files)
 	$(PYTHON_CMD) -c "import $(package_name); print('ok, version=%r'%$(package_name).__version__)"
 	$(PYTHON_CMD) -c "import $(mock_package_name); print('ok')"
-	@echo "makefile: Done installing Python installation and runtime requirements"
 	@echo "makefile: Target $@ done."
 
 .PHONY: develop_os
@@ -274,7 +280,7 @@ develop_os.done: pywbem_os_setup.sh
 	@echo "makefile: Done installing OS-level development requirements"
 
 .PHONY: develop
-develop: develop_os.done _pip dev-requirements.txt
+develop: develop_os.done _install_basic dev-requirements.txt
 	@echo "makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	$(PIP_CMD) install $(pip_level_opts) -r dev-requirements.txt
 	@echo "makefile: Done installing Python development requirements"
