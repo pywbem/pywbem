@@ -386,6 +386,9 @@ Enhancements
 * Docs: Improved and fixed the description of `WBEMConnection`
   operation methods. (Issue #1110).
 
+* Docs: Improved and fixed the description of the pywbem statistics
+  support. (Issue #1115).
+
 Bug fixes
 ^^^^^^^^^
 

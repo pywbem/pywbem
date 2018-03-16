@@ -945,6 +945,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         This is a writeable property; setting this property will change the
         statistics enablement status accordingly.
+
+        The statistics enablement status can also be set when creating a
+        connection, through the ``stats_enabled`` init argument of
+        :class:`~pywbem.WBEMConnection`.
         """
         return self.statistics.enabled
 
