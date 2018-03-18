@@ -192,6 +192,18 @@ class UnitLoggingTests(unittest.TestCase):
                         self.assertTrue(details['api']) == detail_level[0]
 
         # try to remove any created log file.
+
+        # remove handlers from our loggers.
+        for h in api_logger.handlers:
+            api_logger.removeHandler(h)
+            h.flush()
+            h.close()
+        for h in http_logger.handlers:
+            http_logger.removeHandler(h)
+            h.flush()
+            h.close()
+
+        # Close log file
         if log_file:
             if os.path.exists(log_file):
                 os.remove(log_file)
