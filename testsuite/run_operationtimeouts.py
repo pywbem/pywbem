@@ -131,12 +131,12 @@ class ServerTimeoutTest(ClientTest):
             print('execute url_type=%s timeout=%s delay=%s' % (url_type,
                                                                timeout, delay))
 
+        err_flag = ""
+        opttimer = ElapsedTimer()
         try:
             # Confirm server working with a simple request.
             conn.GetClass('CIM_ManagedElement')
             request_result = 0     # good response
-            err_flag = ""
-            opttimer = ElapsedTimer()
             conn.InvokeMethod(TESTMETHOD, TESTCLASS,
                               [('delayInSeconds', Uint32(delay))])
 
@@ -153,12 +153,16 @@ class ServerTimeoutTest(ClientTest):
         # This exception terminates the test
         except ConnectionError as ce:
             request_result = 2    # Connection error received
+            err_flag = "ConnectionError"
+            execution_time = opttimer.elapsed_sec()
 
             self.fail('%s exception %s' % ('Failed ConnectionError)', ce))
 
         # this exception tests against expected result. It terminates the
         # test only if the timeout is not expected
         except TimeoutError as ce:
+            execution_time = opttimer.elapsed_sec()
+            err_flag = "TimeoutError"
             execution_time = opttimer.elapsed_sec()
             request_result = 1    # timeout error received
             # error if the operation delay is lt timeout value and we get
@@ -174,6 +178,7 @@ class ServerTimeoutTest(ClientTest):
         # This exception terminates the test if stop_on_err set.
         except Exception as ec:      # pylint: disable=broad-except
             err_flag = "Test Failed.General Exception"
+            execution_time = opttimer.elapsed_sec()
             request_result = 2
             if self.stop_on_err:
                 self.fail('%s exception %s' % ('Failed(Exception)', ec))
