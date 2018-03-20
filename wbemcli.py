@@ -112,7 +112,7 @@ from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
 
 from pywbem._logging import LOG_DESTINATIONS, \
-    LOG_DETAIL_LEVELS, LOG_COMPONENTS, DEFAULT_LOG_DETAIL_LEVEL, \
+    LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES, DEFAULT_LOG_DETAIL_LEVEL, \
     DEFAULT_LOG_DESTINATION, define_loggers_from_string
 from pywbem import __version__
 
@@ -3185,7 +3185,7 @@ Examples:
              '   DETAIL: Detail Level to log: [{dl}].\n'
              '           (Default={dll})\n'
              # pylint: disable=bad-continuation
-             .format(c='|'.join(LOG_COMPONENTS),
+             .format(c='|'.join(LOGGER_SIMPLE_NAMES),
                      cd='all',
                      d='|'.join(LOG_DESTINATIONS),
                      dd=DEFAULT_LOG_DESTINATION,

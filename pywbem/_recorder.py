@@ -40,7 +40,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, NocaseDict
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
-from ._logging import LOG_API_CALLS_NAME, LOG_HTTP_NAME, get_logger
+from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME, get_logger
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -515,10 +515,10 @@ class LogOperationRecorder(BaseOperationRecorder):
     A recorder that logs the WBEM operations to a set of named logs.
     This recorder supports two named logs:
 
-    * :attr:`~pywbem._logging.LOG_API_CALLS_NAME` - Logger at the level of
+    * :attr:`~pywbem._logging.LOGGER_API_CALLS_NAME` - Logger at the level of
       WBEM operation calls and returns
 
-    * :attr:`~pywbem._logging.LOG_HTTP_NAME` - Logger at the level of HTTP
+    * :attr:`~pywbem._logging.LOGGER_HTTP_NAME` - Logger at the level of HTTP
       requests and responses
 
     This also implements a method to log information on each connection.
@@ -536,7 +536,7 @@ class LogOperationRecorder(BaseOperationRecorder):
             and the conn_id suffix (ex.pywbem.ops.1-2343) so that
             each WBEMConnection could be logged with a separate logger.
 
-          detal_level (:term:`integer` or :class:`py:dict`, None):
+          detail_level (:term:`integer` or :class:`py:dict`, or None):
             The maximum size for each log entry, in Bytes. This is primarily to
             limit response sizes since they could be enormous.
             TODO
@@ -556,16 +556,17 @@ class LogOperationRecorder(BaseOperationRecorder):
 
         # build name for logger
         if conn_id:
-            self.apilogger = get_logger('%s.%s' % (LOG_API_CALLS_NAME, conn_id))
+            self.apilogger = get_logger('%s.%s' % (LOGGER_API_CALLS_NAME,
+                                                   conn_id))
         else:
-            self.apilogger = get_logger(LOG_API_CALLS_NAME)
+            self.apilogger = get_logger(LOGGER_API_CALLS_NAME)
 
         self.detail_levels = self.set_detail_level(detail_levels)
 
         if conn_id:
-            self.httplogger = get_logger('%s.%s' % (LOG_HTTP_NAME, conn_id))
+            self.httplogger = get_logger('%s.%s' % (LOGGER_HTTP_NAME, conn_id))
         else:
-            self.httplogger = get_logger(LOG_HTTP_NAME)
+            self.httplogger = get_logger(LOGGER_HTTP_NAME)
 
     def set_detail_level(self, detail_levels):
         """

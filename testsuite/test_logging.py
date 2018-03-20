@@ -43,7 +43,7 @@ from testfixtures import LogCapture, log_capture, compare
 
 from pywbem import WBEMConnection
 from pywbem._logging import get_logger, define_loggers_from_string, \
-    LOG_API_CALLS_NAME, LOG_HTTP_NAME
+    LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 
 VERBOSE = False
 
@@ -59,29 +59,37 @@ class UnitLoggingTests(unittest.TestCase):
 
     def logger_validate(self, log_name, log_dest, detail_level,
                         log_filename=None):
-        """Test for correct definition of one logger
         """
-        if log_name == 'api':
-            logger = get_logger(LOG_API_CALLS_NAME)
-        elif log_name == 'http':
-            logger = get_logger(LOG_HTTP_NAME)
-        else:
-            self.fail('Input error. log_name %s ' % log_name)
+        Test for correct definition of one logger
+        """
+        if log_name == 'all':
+            self.logger_validate('api', log_dest, detail_level,
+                                 log_filename=log_filename)
+            self.logger_validate('http', log_dest, detail_level,
+                                 log_filename=log_filename)
 
-        # TODO compare detail_level
-
-        compare(logger.level, 10)
-        if logger.handlers[0]:
-            self.assertEqual(len(logger.handlers), 1)
-            if log_dest == 'file':
-                self.assertTrue(isinstance(logger.handlers[0],
-                                           logging.FileHandler))
-                self.assertTrue(log_filename is not None)
-            elif log_dest == 'stderr':
-                self.assertTrue(isinstance(logger.handlers[0],
-                                           logging.StreamHandler))
         else:
-            self.fail('No logger defined')
+            if log_name == 'api':
+                logger = get_logger(LOGGER_API_CALLS_NAME)
+            elif log_name == 'http':
+                logger = get_logger(LOGGER_HTTP_NAME)
+            else:
+                self.fail('Input error. log_name %s ' % log_name)
+
+            # TODO compare detail_level
+
+            compare(logger.level, 10)
+            if logger.handlers[0]:
+                self.assertEqual(len(logger.handlers), 1)
+                if log_dest == 'file':
+                    self.assertTrue(isinstance(logger.handlers[0],
+                                               logging.FileHandler))
+                    self.assertTrue(log_filename is not None)
+                elif log_dest == 'stderr':
+                    self.assertTrue(isinstance(logger.handlers[0],
+                                               logging.StreamHandler))
+            else:
+                self.fail('No logger defined')
 
     def define_logger_test(self, log_name, log_dest=None, detail_level=None,
                            log_filename=None, error=None):
@@ -90,51 +98,19 @@ class UnitLoggingTests(unittest.TestCase):
         """
         if error:
             try:
-                if log_name == 'api':
-                    WBEMConnection.configure_api_logger(
-                        log_dest=log_dest, detail_level=detail_level,
-                        log_filename=log_filename)
-                    self.fail('Exception expected')
-                elif log_name == 'http':
-
-                    WBEMConnection.configure_http_logger(
-                        log_dest=log_dest, detail_level=detail_level,
-                        log_filename=log_filename)
-                    self.fail('Exception expected')
-                elif log_name == 'app':
-                    WBEMConnection.configure_all_loggers(
-                        log_dest=log_dest, detail_level=detail_level,
-                        log_filename=log_filename)
-                    self.fail('Exception expected')
-                else:
-                    self.fail('Invalid log_name %s' % log_name)
+                WBEMConnection.configure_logger(log_name, log_dest=log_dest,
+                                                detail_level=detail_level,
+                                                log_filename=log_filename)
+                self.fail('Exception expected')
             except ValueError:
                 pass
         else:
-            if log_name == 'api':
-                WBEMConnection.configure_api_logger(
-                    log_dest=log_dest, detail_level=detail_level,
-                    log_filename=log_filename)
-                self.logger_validate(log_name, log_dest, detail_level,
-                                     log_filename=log_filename)
-            elif log_name == 'http':
-                WBEMConnection.configure_http_logger(
-                    log_dest=log_dest, detail_level=detail_level,
-                    log_filename=log_filename)
-                self.logger_validate(log_name, log_dest, detail_level,
-                                     log_filename=log_filename)
+            WBEMConnection.configure_logger(log_name, log_dest=log_dest,
+                                            detail_level=detail_level,
+                                            log_filename=log_filename)
 
-            elif log_name == 'all':
-                WBEMConnection.configure_all_loggers(
-                    log_dest=log_dest, detail_level=detail_level,
-                    log_filename=log_filename)
-                self.logger_validate('api', log_dest, detail_level,
-                                     log_filename=log_filename)
-                self.logger_validate('http', log_dest, detail_level,
-                                     log_filename=log_filename)
-
-            else:
-                self.fail('Invalid log_name %s' % log_name)
+            self.logger_validate(log_name, log_dest, detail_level,
+                                 log_filename=log_filename)
 
     def loggers_from_string_test(self, param, expected_result, log_file=None,
                                  connection_defined=False):
@@ -143,9 +119,9 @@ class UnitLoggingTests(unittest.TestCase):
 
         # logging handlers are static.  We must clear them between tests
         # Remove any handlers from loggers for this test
-        api_logger = get_logger(LOG_API_CALLS_NAME)
+        api_logger = get_logger(LOGGER_API_CALLS_NAME)
         api_logger.handlers = []
-        http_logger = get_logger(LOG_HTTP_NAME)
+        http_logger = get_logger(LOGGER_HTTP_NAME)
         http_logger.handlers = []
 
         if connection_defined:
@@ -160,8 +136,8 @@ class UnitLoggingTests(unittest.TestCase):
         else:
             define_loggers_from_string(param, log_filename=log_file)
 
-            api_logger = get_logger(LOG_API_CALLS_NAME)
-            http_logger = get_logger(LOG_HTTP_NAME)
+            api_logger = get_logger(LOGGER_API_CALLS_NAME)
+            http_logger = get_logger(LOGGER_HTTP_NAME)
             if 'level' in expected_result:
                 level = expected_result['level']
                 if level[0]:
@@ -336,11 +312,11 @@ class TestLoggerOutput(BaseLoggingTests):
 
         define_loggers_from_string(test_input, TEST_OUTPUT_LOG)
 
-        my_logger = get_logger(LOG_API_CALLS_NAME)
+        my_logger = get_logger(LOGGER_API_CALLS_NAME)
 
         self.assertNotEqual(my_logger, None,
                             'Valid named logger %s expected.'
-                            % LOG_API_CALLS_NAME)
+                            % LOGGER_API_CALLS_NAME)
 
         max_size = 1000
         result = 'This is fake return data'

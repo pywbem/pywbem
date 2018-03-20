@@ -506,13 +506,13 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
         else:
             http_detail_level = detail_level
 
-        WBEMConnection.configure_api_logger(log_dest='file',
-                                            detail_level=detail_level,
-                                            log_filename=TEST_OUTPUT_LOG)
+        WBEMConnection.configure_logger('api', log_dest='file',
+                                        detail_level=detail_level,
+                                        log_filename=TEST_OUTPUT_LOG)
 
-        WBEMConnection.configure_http_logger(log_dest='file',
-                                             detail_level=http_detail_level,
-                                             log_filename=TEST_OUTPUT_LOG)
+        WBEMConnection.configure_logger('http', log_dest='file',
+                                        detail_level=http_detail_level,
+                                        log_filename=TEST_OUTPUT_LOG)
 
         # define an attribute that is a single LogOperationRecorder to be used
         # in some of the tests
@@ -699,8 +699,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         """Create connection with default parameters"""
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
-        conn.configure_api_logger(log_dest='stderr', detail_level='all',
-                                  connection=conn)
+        conn.configure_logger('api', log_dest='stderr', detail_level='all',
+                              connection=conn)
 
         # pywbem 2 and 3 differ in only the use of unicode for certain
         # string properties. (ex. classname)
@@ -734,8 +734,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
-        conn.configure_api_logger(log_dest='stderr', detail_level='all',
-                                  connection=conn)
+        conn.configure_logger('api', log_dest='stderr', detail_level='all',
+                              connection=conn)
 
         # fake conn id by directly setting internal attribute
         # pywbem 2 and 3 differ in only the use of unicode for certain
@@ -772,8 +772,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
-        conn.configure_api_logger(log_dest='stderr', detail_level='summary',
-                                  connection=conn)
+        conn.configure_logger('api', log_dest='stderr', detail_level='summary',
+                              connection=conn)
 
         # fake conn id by directly setting internal attribute
         # pywbem 2 and 3 differ in only the use of unicode for certain

@@ -40,12 +40,9 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
     CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder, \
-    LogOperationRecorder
+    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
 
 from pywbem.mof_compiler import MOFCompiler
-
-from pywbem._logging import PywbemLoggers
 
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME
@@ -126,8 +123,6 @@ class ClientTest(unittest.TestCase):
         self.stats_enabled = True if CLI_ARGS['stats'] else False
         if self.stats_enabled:
             self.start_time = time.time()
-        self.log_output_size = 1000
-        self.log_definition = 'all=file:all'
 
         # Set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
@@ -150,12 +145,9 @@ class ClientTest(unittest.TestCase):
 
         # if log set, enable the logger.
         if self.output_log:
-            PywbemLoggers.create_loggers(
-                self.log_definition,
-                log_filename=RUN_CIM_OPERATIONS_OUTPUT_LOG)
-
-            self.conn.add_operation_recorder(
-                LogOperationRecorder(max_log_entry_size=self.log_output_size))
+            WBEMConnection.configure_logger(
+                'all', log_dest='file', log_filename='run_cimoperations.log',
+                connection=self.conn)
 
         # enable saving of xml for display
         self.conn.debug = CLI_ARGS['debug']
