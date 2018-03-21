@@ -23,6 +23,8 @@
         - - indicationDropCount
           - pywbem_object: Uint32
             x: 42
+        - - optionalP1
+          - null
   pywbem_response:
     result:
     - 0
@@ -53,6 +55,7 @@
       <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">
       <VALUE>42</VALUE>
       </PARAMVALUE>
+      <PARAMVALUE NAME="optionalP1"/>
       </METHODCALL>
       </SIMPLEREQ>
       </MESSAGE>
@@ -102,6 +105,10 @@
         name: indicationDropCount
         type: uint32
         value: 42
+      - pywbem_object: CIMParameter
+        name: optionalP1
+        type: uint32
+        value: null
   pywbem_response:
     result:
     - 0
@@ -132,6 +139,7 @@
       <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">
       <VALUE>42</VALUE>
       </PARAMVALUE>
+      <PARAMVALUE NAME="optionalP1" PARAMTYPE="uint32"/>
       </METHODCALL>
       </SIMPLEREQ>
       </MESSAGE>

@@ -1464,6 +1464,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 return 'string'
             elif isinstance(obj, list):
                 return infer_type(obj[0]) if obj else None
+            elif obj is None:
+                return None
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
         def paramvalue(obj):
@@ -1486,6 +1488,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):
                     return cim_xml.VALUE_REFARRAY([paramvalue(x) for x in obj])
                 return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
+            if obj is None:
+                return None
             raise TypeError('Unsupported parameter type "%s"' % type(obj))
 
         def infer_embedded_object(obj):

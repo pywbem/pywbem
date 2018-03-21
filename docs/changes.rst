@@ -597,6 +597,11 @@ Bug fixes
 * In the wbemcli shell, fixed the "*params" parameter of the `im()` function,
   to become "param" (an iterable). (Issue #1110).
 
+* For the InvokeMethod operation, fixed that passing Python `None` as an input
+  parameter valus resulted in TypeError. Extended the testclient testcases
+  for InvokeMethod accordingly. Documented that `None`is a valid CIM typed
+  value (Issue #1123).
+
 Cleanup
 ^^^^^^^
 
