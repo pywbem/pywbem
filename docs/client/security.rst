@@ -118,7 +118,7 @@ WBEM server are set by the user when creating the
 * The `ca_certs` parameter may specify the location of X.509 CA certificates
   that are used to validate the X.509 server certificate returned by the WBEM
   server. If not specified, pywbem assumes default locations for these
-  certificates.
+  certificates (see :attr:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS`).
 
 It is important to understand which side actually makes decisions about
 security-related parameters: The client only decides whether HTTP or HTTPS is

@@ -124,7 +124,7 @@ DEFAULT_PORT_HTTP = 5988        # default port for http
 DEFAULT_PORT_HTTPS = 5989       # default port for https
 
 
-#: Default directory paths to be used when the ``ca_certs`` parameter of
+#: Default directory paths to be used when the `ca_certs` parameter of
 #: :class:`~pywbem.WBEMConnection` is `None`. The first existing directory is
 #: used as a default for that parameter.
 #: Note that these default directory paths only work on some Linux
@@ -157,8 +157,8 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
 
     If the timeout expires, the socket of the HTTP connection is shut down.
     Once the http operations return as a result of that or for other reasons,
-    the exit handler of this class raises a `cim_http.Error` exception in the
-    thread that executed the ``with`` statement.
+    the exit handler of this class raises a :exc:`~pywbem.TimeoutError`
+    exception in the thread that executed the ``with`` statement.
     """
 
     def __init__(self, timeout, http_conn):
@@ -167,7 +167,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
         :Parameters:
 
           timeout (:term:`number`):
-            Timeout in seconds, ``None`` means no timeout.
+            Timeout in seconds, `None` means no timeout.
 
           http_conn (`httplib.HTTPBaseConnection` or subclass):
             The connection that is to be stopped when the timeout expires.
@@ -231,19 +231,19 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
 
 
 def parse_url(url, allow_defaults=True):
-    """Return a tuple of ``(host, port, ssl)`` from the URL specified in the
-    ``url`` parameter.
+    """Return a tuple (`host`, `port`, `ssl`) from the URL specified in the
+    `url` parameter.
 
-    The returned ``ssl`` item is a boolean indicating the use of SSL, and is
+    The returned `ssl` item is a boolean indicating the use of SSL, and is
     recognized from the URL scheme (http vs. https). If none of these schemes
     is specified in the URL, the returned value defaults to False
     (non-SSL/http).
 
-    The returned ``port`` item is the port number, as an integer. If there is
+    The returned `port` item is the port number, as an integer. If there is
     no port number specified in the URL, the returned value defaults to 5988
     for non-SSL/http, and to 5989 for SSL/https.
 
-    The returned ``host`` item is the host portion of the URL, as a string.
+    The returned `host` item is the host portion of the URL, as a string.
     The host portion may be specified in the URL as a short or long host name,
     dotted IPv4 address, or bracketed IPv6 address with or without zone index
     (aka scope ID). An IPv6 address is converted from the RFC6874 URI syntax
@@ -258,13 +258,13 @@ def parse_url(url, allow_defaults=True):
 
       url:
 
-      allow_defaults - If True (default) allow defaults for scheme and
-        port. If false, raise exception for invalid or missing scheme or
+      allow_defaults - If `True` (default) allow defaults for scheme and
+        port. If `False`, raise exception for invalid or missing scheme or
         port.
 
     Returns:
 
-      tuple of host, port, ssl
+      tuple of (`host`, `port`, `ssl`)
 
     Raises:
 
@@ -359,16 +359,16 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
       url (:term:`string`):
         URL of the WBEM server (e.g. ``"https://10.11.12.13:6988"``).
-        For details, see the ``url`` parameter of
-        :meth:`WBEMConnection.__init__`.
+        For details, see the `url` parameter of
+        :meth:`~pywbem.WBEMConnection.__init__`.
 
       data (:term:`string`):
         The CIM-XML formatted data to be sent as a request to the WBEM server.
 
       creds:
         Credentials for authenticating with the WBEM server.
-        For details, see the ``creds`` parameter of
-        :meth:`WBEMConnection.__init__`.
+        For details, see the `creds` parameter of
+        :meth:`~pywbem.WBEMConnection.__init__`.
 
       cimxml_headers (:term:`py:iterable` of tuple(string,string)):
         Where each tuple contains: header name, header value.
@@ -384,8 +384,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
       x509:
         Used for HTTPS with certificates.
-        For details, see the ``x509`` parameter of
-        :meth:`WBEMConnection.__init__`.
+        For details, see the `x509` parameter of
+        :meth:`~pywbem.WBEMConnection.__init__`.
 
       verify_callback:
         Used for HTTPS with certificates but only for python 2. Ignored with
@@ -393,25 +393,25 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         any callback mechanism so setting this variable gains the
         user nothing.
 
-        For details, see the ``verify_callback`` parameter of
-        :meth:`WBEMConnection.__init__`.
+        For details, see the `verify_callback` parameter of
+        :meth:`~pywbem.WBEMConnection.__init__`.
 
       ca_certs:
         Used for HTTPS with certificates.
-        For details, see the ``ca_certs`` parameter of
-        :meth:`WBEMConnection.__init__`.
+        For details, see the `ca_certs` parameter of
+        :meth:`~pywbem.WBEMConnection.__init__`.
 
       no_verification:
         Used for HTTPS with certificates.
-        For details, see the ``no_verification`` parameter of
-        :meth:`WBEMConnection.__init__`.
+        For details, see the `no_verification` parameter of
+        :meth:`~pywbem.WBEMConnection.__init__`.
 
       timeout (:term:`number`):
         Timeout in seconds, for requests sent to the server. If the server did
         not respond within the timeout duration, the socket for the connection
-        will be closed, causing a :exc:`TimeoutError` to be raised.
-        A value of ``None`` means there is no timeout.
-        A value of ``0`` means the timeout is very short, and does not really
+        will be closed, causing a :exc:`~pywbem.TimeoutError` to be raised.
+        A value of `None` means there is no timeout.
+        A value of `0` means the timeout is very short, and does not really
         make any sense.
         Note that not all situations can be handled within this timeout, so
         for some issues, this method may take longer to raise an exception.
@@ -433,7 +433,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
             The server response time in seconds as floating point number if
             this data was received from the server. If no data returned
-            from server `None is returned.
+            from server `None` is returned.
 
     Raises:
 
@@ -450,7 +450,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         # pylint: disable=old-style-class,too-few-public-methods
         def send(self, strng):
             """
-            A copy of httplib.HTTPConnection.send(), with these fixes:
+            A copy of `httplib.HTTPConnection.send()`, with these fixes:
 
             * We fix the problem that the connection gets closed upon error
               32 (EPIPE), by not doing that (If the connection gets closed,
