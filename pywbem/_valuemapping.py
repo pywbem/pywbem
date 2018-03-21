@@ -15,12 +15,13 @@
 #
 
 """
-The :class:`~pywbem.ValueMapping` supports translating the values of an
+The :class:`~pywbem.ValueMapping` class supports translating the values of an
 integer-typed CIM element (e.g. property, method, or parameter) that is
 qualified with the `ValueMap` and `Values` qualifiers, to the corresponding
 value of the `Values` qualifier.
 
-It supports value ranges (e.g. ``"4..6"``) and the unclaimed marker (``".."``).
+This class supports value ranges (e.g. ``"4..6"``) and the unclaimed marker
+(``".."``).
 """
 
 import re
@@ -144,7 +145,7 @@ class ValueMapping(object):
             defined in that class or inherited into that class.
 
           propname (:term:`string`):
-            Name of the CIM property that defines the Values / ValueMap
+            Name of the CIM property that defines the `Values` / `ValueMap`
             qualifiers.
 
         Returns:
@@ -202,7 +203,7 @@ class ValueMapping(object):
             defined in that class or inherited into that class.
 
           methodname (:term:`string`):
-            Name of the CIM method that defines the Values / ValueMap
+            Name of the CIM method that defines the `Values` / `ValueMap`
             qualifiers.
 
         Returns:
@@ -264,7 +265,7 @@ class ValueMapping(object):
             Name of the CIM method that has the parameter.
 
           parametername (:term:`string`):
-            Name of the CIM parameter that defines the Values / ValueMap
+            Name of the CIM parameter that defines the `Values` / `ValueMap`
             qualifiers.
 
         Returns:
@@ -307,21 +308,21 @@ class ValueMapping(object):
 
         * lo - low value of the range
         * hi - high value of the range (can be equal to lo)
-        * values - Value of Values qualifier for this position
+        * values - value of `Values` qualifier for this position
 
         Parameters:
 
           i (integer): position into valuemap_list and values_list
 
-          valuemap_list (list of strings): ValueMap qualifier value
+          valuemap_list (list of strings): `ValueMap` qualifier value
 
-          values_list (list of strings): Values qualifier value
+          values_list (list of strings): `Values` qualifier value
 
           cimtype (type): CIM type of the CIM element
 
         Raises:
 
-            ValueError: Invalid ValueMap entry.
+            ValueError: Invalid `ValueMap` entry.
         """
         values_str = values_list[i]
         valuemap_str = valuemap_list[i]
@@ -362,9 +363,9 @@ class ValueMapping(object):
         Return a new :class:`~pywbem.ValueMapping` instance for the specified
         CIM element.
 
-        If a Values qualifier is defined but no ValueMap qualifier, a default
-        of 0-based consecutive numbers is applied (that is the default defined
-        in :term:`DSP0004`).
+        If a `Values` qualifier is defined but no `ValueMap` qualifier, a
+        default of 0-based consecutive numbers is applied (that is the default
+        defined in :term:`DSP0004`).
 
         Parameters:
 
@@ -382,14 +383,14 @@ class ValueMapping(object):
             defined in that class or inherited into that class.
 
           propname (:term:`string`):
-            Name of the CIM property that defines the Values / ValueMap
+            Name of the CIM property that defines the `Values` / `ValueMap`
             qualifiers.
 
           methodname (:term:`string`):
             Name of the CIM method that has the parameter.
 
           parametername (:term:`string`):
-            Name of the CIM parameter that defines the Values / ValueMap
+            Name of the CIM parameter that defines the `Values` / `ValueMap`
             qualifiers.
 
         Returns:
@@ -399,8 +400,8 @@ class ValueMapping(object):
 
         Raises:
 
-            ValueError: No Values qualifier defined.
-            ValueError: Invalid ValueMap entry.
+            ValueError: No `Values` qualifier defined.
+            ValueError: Invalid `ValueMap` entry.
             TypeError: The CIM element is not integer-typed.
         """  # noqa: E501
 
@@ -545,11 +546,11 @@ class ValueMapping(object):
         Returns:
 
           :term:`string`:
-            The Values string for the element value.
+            The `Values` string for the element value.
 
         Raises:
 
-          ValueError: Element value outside of the set defined by ValueMap.
+          ValueError: Element value outside of the set defined by `ValueMap`.
           TypeError: Element value is not an integer type.
         """
 
