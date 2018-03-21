@@ -190,8 +190,9 @@ dist_dependent_files := \
 
 .PHONY: help
 help:
-	@echo "makefile for $(package_name) version $(package_version)"
-	@echo "Uses the active Python environment (currently active: Python $(python_version))"
+	@echo 'Makefile for $(package_name) project'
+	@echo 'Package version will be: $(package_version)'
+	@echo 'Uses the currently active Python environment: Python $(python_version)'
 	@echo "Valid targets are (they do just what is stated, i.e. no automatic prereq targets):"
 	@echo "  install    - Install pywbem and its Python installation and runtime prereqs (includes install_os once after clobber)"
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
@@ -207,6 +208,15 @@ help:
 	@echo "  clean      - Remove any temporary files"
 	@echo "  clobber    - Remove everything created to ensure clean start"
 
+.PHONY: _check_version
+_check_version:
+ifeq (,$(package_version))
+	@echo 'Error: Package version could not be determined (requires pbr; run "make develop")'
+	@false
+else
+	@true
+endif
+
 .PHONY: _install_basic
 _install_basic:
 	@echo "makefile: Installing/upgrading basic Python packages (pip, etc., with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
@@ -214,13 +224,13 @@ ifeq ($(python_mn_version),26)
 	$(PIP_CMD) install importlib
 endif
 	$(PYTHON_CMD) remove_duplicate_setuptools.py
-	$(PIP_CMD) install $(pip_level_opts) setuptools
-	$(PIP_CMD) install $(pip_level_opts) pip
 # Keep the condition for the 'wheel' package consistent with the requirements & constraints files.
+# The approach with "python -m pip" is needed for Windows because pip.exe may be locked,
+# but it is not supported on Python 2.6 (which is not supported with pywbem on Windows).
 ifeq ($(python_mn_version),26)
-	$(PIP_CMD) install $(pip_level_opts) 'wheel<0.30.0'
+	$(PIP_CMD) install $(pip_level_opts) pip setuptools 'wheel<0.30.0'
 else
-	$(PIP_CMD) install $(pip_level_opts) wheel
+	$(PYTHON_CMD) -m pip install $(pip_level_opts) pip setuptools wheel
 endif
 	$(PIP_CMD) install $(pip_level_opts) pbr
 	@echo "makefile: Done installing/upgrading basic Python packages"
@@ -287,7 +297,7 @@ develop: develop_os.done _install_basic dev-requirements.txt
 	@echo "makefile: Target $@ done."
 
 .PHONY: build
-build: $(bdist_file) $(sdist_file)
+build: _check_version $(bdist_file) $(sdist_file)
 	@echo "makefile: Target $@ done."
 
 .PHONY: builddoc
@@ -331,7 +341,7 @@ clean:
 	@echo "makefile: Target $@ done."
 
 .PHONY: upload
-upload: $(dist_files)
+upload: _check_version $(dist_files)
 	@echo "makefile: Uploading to PyPI: pywbem $(package_version)"
 	twine upload $(dist_files)
 	@echo "makefile: Done uploading to PyPI"
