@@ -44,3 +44,17 @@ twine>=1.8.1; python_version >= '2.7'
 
 # Jupyter Notebook (no imports, invoked via jupyter script, some deps do not support py26):
 jupyter>=1.0.0; python_version >= '2.7'
+
+# The tornado package is used by ipykernel which is used by jupyter.
+# Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
+# does not have certain symbols required by Tornado. This issue exists for
+# example with Python 2.7.6 on Ubuntu 14.04, but not with Python 2.7.5 on
+# RHEL 7.4. This can be checked with:
+#   python -c "import ssl; ssl.SSLContext; ssl.create_default_context; ssl.match_hostname"
+# Other projects have the same issue:
+#   https://github.com/floydhub/dl-docker/issues/84
+# The following is a circumvention of this issue that nails the tornado
+# version to below 5.0 on Python 2.
+# TODO: Follow up on resolution of this issue.
+tornado<5.0; python_version <= '2.7'
+
