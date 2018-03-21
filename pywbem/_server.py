@@ -71,7 +71,7 @@ Example output:
     WBEM server URL:
       http://0.0.0.0
     Brand:
-      pegasus
+      OpenPegasus
     Version:
       2.12.0
     Interop namespace:
@@ -174,23 +174,21 @@ class WBEMServer(object):
     @property
     def url(self):
         """
-        The URL of the WBEM server, as a :term:`string`.
+        :term:`string`: URL of the WBEM server.
         """
         return self._conn.url
 
     @property
     def conn(self):
         """
-        The connection to the WBEM server, as a
-        :class:`~pywbem.WBEMConnection` object.
+        :class:`~pywbem.WBEMConnection`: Connection to the WBEM server.
         """
         return self._conn
 
     @property
     def interop_ns(self):
         """
-        The name of the Interop namespace of the WBEM server, as a
-        :term:`string`.
+        :term:`string`: Name of the Interop namespace of the WBEM server.
 
         Raises:
 
@@ -205,8 +203,8 @@ class WBEMServer(object):
     @property
     def namespace_classname(self):
         """
-        The name of the CIM class that was found to represent the CIM
-        namespaces of the WBEM server, as a :term:`string`.
+        :term:`string`: Name of the CIM class that was found to represent the
+        CIM namespaces of the WBEM server.
 
         Raises:
 
@@ -223,8 +221,8 @@ class WBEMServer(object):
     @property
     def namespaces(self):
         """
-        A list with the names of all namespaces of the WBEM server, each
-        list item being a :term:`string`.
+        :class:`py:list` of :term:`string`: Names of all namespaces of the
+        WBEM server.
 
         Raises:
 
@@ -241,15 +239,15 @@ class WBEMServer(object):
     @property
     def brand(self):
         """
-        Brand of the WBEM server, as a :term:`string`.
+        :term:`string`: Brand of the WBEM server.
 
-        The brand string will be one of the following:
+        The brand will be one of the following:
 
         * ``"OpenPegasus"``, for OpenPegasus
         * ``"SFCB"``, for SFCB
-        * First word of the value of the ElementName property of the
-          CIM_ObjectManager instance, for any other WBEM servers.
-        * ``"unknown"``, if the ElementName property is Null.
+        * First word of the value of the `ElementName` property of the
+          `CIM_ObjectManager` instance, for any other WBEM servers.
+        * ``"unknown"``, if the `ElementName` property is NULL.
 
         Raises:
 
@@ -257,7 +255,7 @@ class WBEMServer(object):
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-              CIM_ObjectManager instances.
+              `CIM_ObjectManager` instances.
         """
         if self._brand is None:
             self._determine_brand()
@@ -266,7 +264,7 @@ class WBEMServer(object):
     @property
     def version(self):
         """
-        Version of the WBEM server, as a :term:`string`. `None`, if the version
+        :term:`string`: Version of the WBEM server. `None`, if the version
         cannot be determined.
 
         Raises:
@@ -275,7 +273,7 @@ class WBEMServer(object):
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-              CIM_ObjectManager instances.
+              `CIM_ObjectManager` instances.
         """
         if self._version is None:
             self._determine_brand()
@@ -284,9 +282,9 @@ class WBEMServer(object):
     @property
     def profiles(self):
         """
-        List of management profiles advertised by the WBEM server, each list
-        item being a :class:`~pywbem.CIMInstance` object representing a
-        CIM_RegisteredProfile instance.
+        :class:`py:list` of :class:`~pywbem.CIMInstance`: The
+        `CIM_RegisteredProfile` instances representing all management profiles
+        advertised by the WBEM server.
 
         Raises:
 
@@ -301,26 +299,35 @@ class WBEMServer(object):
     def get_selected_profiles(self, registered_org=None, registered_name=None,
                               registered_version=None):
         """
-        List of management profiles advertised by the WBEM server and
-        filtered by the input parameters for registered_org, registered_name,
-        and registered_version parameters. Each list
-        item is a :class:`~pywbem.CIMInstance` object representing a
-        CIM_RegisteredProfile instance.
+        Return the `CIM_RegisteredProfile` instances representing a filtered
+        subset of the management profiles advertised by the WBEM server, that
+        can be filtered by registered organization, registered name, and/or
+        registered version.
 
         Parameters:
 
-            profile_org (:term:`string`) or None: the `RegisteredOrganization`
-              to match the `RegisteredOrganization` of the profile. This
-              match is case sensitive.
-              If None, this parameter is ignored in the filter
+            profile_org (:term:`string`): A filter for the registered
+              organization of the profile, matching (case sensitively) the
+              `RegisteredOrganization` property of the `CIM_RegisteredProfile`
+              instance, via its `Values` qualifier.
+              If `None`, this parameter is ignored for filtering.
 
-            profile_name (:term:`string`) or None: the `RegisteredName`.
-              This match is case sensitive
-              If None, this parameter is ignored in the filter
+            profile_name (:term:`string`): A filter for the registered name of
+              the profile, matching (case sensitively) the `RegisteredName`
+              property of the `CIM_RegisteredProfile` instance.
+              If `None`, this parameter is ignored for filtering.
 
-            profile_version (:term:`string`) or None: the `RegisteredVersion`.
-              This match is case sensitive.
-              If None, this parameter is ignored in the filter
+            profile_version (:term:`string`): A filter for the registered
+              version of the profile, matching (case sensitively) the
+              `RegisteredVersion` property of the `CIM_RegisteredProfile`
+              instance.
+              If `None`, this parameter is ignored for filtering.
+
+        Returns:
+
+          :class:`py:list` of :class:`~pywbem.CIMInstance`: The
+          `CIM_RegisteredProfile` instances representing the filtered
+          subset of the management profiles advertised by the WBEM server.
 
         Raises:
 
@@ -351,10 +358,10 @@ class WBEMServer(object):
 
     def get_central_instances(self, profile_path, central_class=None,
                               scoping_class=None, scoping_path=None):
+        # pylint: disable=line-too-long
         """
-        Determine the central instances for a management profile, and return
-        their instance paths as a list of :class:`~pywbem.CIMInstanceName`
-        objects.
+        Return the instance paths of the central instances of a management
+        profile.
 
         This method supports the following profile advertisement methodologies
         (see :term:`DSP1033`), and attempts them in this order:
@@ -389,15 +396,14 @@ class WBEMServer(object):
         Example for a 2-hop traversal:
 
         * central class: ``"CIM_Sensor"``
-        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan", \
-                           "CIM_SystemDevice"]``
+        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan", "CIM_SystemDevice"]``
         * scoping class: ``"CIM_ComputerSystem"``
 
         Parameters:
 
           profile_path (:class:`~pywbem.CIMInstanceName`):
-            Instance path of CIM_RegisteredProfile instance representing the
-            management profile.
+            Instance path of the `CIM_RegisteredProfile` instance representing
+            the management profile.
 
           central_class (:term:`string`):
             Class name of central class defined by the management profile.
@@ -422,15 +428,17 @@ class WBEMServer(object):
 
         Returns:
 
-          List of :class:`~pywbem.CIMInstanceName` objects representing the
-          instance paths of the central instances of the management profile.
+          :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
+          paths of the central instances of the management profile.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ValueError: Various errors in scoping path traversal.
-            TypeError: profile_path must be a CIMInstanceName.
-        """
+            TypeError: `profile_path` must be a
+              :class:`~pywbem.CIMInstanceName`.
+        """  # noqa: E501
+        # pylint: enable=line-too-long
         if not isinstance(profile_path, CIMInstanceName):
             raise TypeError("profile_path must be a CIMInstanceName, but is "
                             "a %s" % type(profile_path))
@@ -653,7 +661,7 @@ class WBEMServer(object):
         """
         Determine the brand of the WBEM server (e.g. OpenPegasus, SFCB, ...)
         and its version, by communicating with it and retrieving the
-        CIM_ObjectManager instance.
+        `CIM_ObjectManager` instance.
 
         On success, this method sets the :attr:`brand` and :attr:`version`
         properties of this object and returns.
@@ -665,7 +673,7 @@ class WBEMServer(object):
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-              CIM_ObjectManager instances.
+              `CIM_ObjectManager` instances.
         """
         cimom_insts = self._conn.EnumerateInstances(
             "CIM_ObjectManager", namespace=self.interop_ns)
@@ -702,11 +710,11 @@ class WBEMServer(object):
         """
         Determine the WBEM management profiles advertised by the WBEM server,
         by communicating with it and enumerating the instances of
-        CIM_RegisteredProfile.
+        `CIM_RegisteredProfile`.
 
         If the profiles could be determined, this method sets the
         :attr:`profiles` property of this object to the list of
-        CIM_RegisteredProfile instances (as :class:`~pywbem.CIMInstance`
+        `CIM_RegisteredProfile` instances (as :class:`~pywbem.CIMInstance`
         objects), and returns.
         Otherwise, it raises an exception.
 
