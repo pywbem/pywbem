@@ -54,6 +54,9 @@ real64                                    :class:`~pywbem.Real64`
 [] (array)                                :class:`py:list`
 ========================================  =====================================
 
+The CIM NULL value is represented with Python `None` which can be used for any
+CIM typed value to represent NULL.
+
 Note that constructors of pywbem classes that take CIM typed values as input
 may support Python types in addition to those shown above. For example, the
 :class:`~pywbem.CIMProperty` class represents property values of CIM datetime
