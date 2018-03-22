@@ -185,7 +185,6 @@ import pywbem
 __all__ = ['define_loggers_from_string',
            'LOGGER_API_CALLS_NAME', 'LOGGER_HTTP_NAME', 'LOGGER_SIMPLE_NAMES',
            'LOG_DESTINATIONS', 'DEFAULT_LOG_DETAIL_LEVEL',
-           'DEFAULT_API_LOG_DEFAULT_LEVEL', 'DEFAULT_HTTP_LOG_DETAIL_LEVEL',
            'DEFAULT_LOG_DESTINATION', 'LOG_DETAIL_LEVELS']
 
 #: Name of logger for logging user-issued calls to
@@ -228,8 +227,6 @@ LOG_DETAIL_LEVELS = ['all', 'paths', 'summary']
 #: Default log detail level string if none is supplied with a call to the
 #: :class:`pywbem._logging.PywbemLoggers` methods that configure pywbem named
 #: loggers
-DEFAULT_HTTP_LOG_DETAIL_LEVEL = 'all'
-DEFAULT_API_LOG_DEFAULT_LEVEL = 'summary'
 DEFAULT_LOG_DETAIL_LEVEL = 'all'
 
 #: Default log destination if none is defined when named loggers are

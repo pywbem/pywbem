@@ -15,6 +15,7 @@ import os
 import os.path
 import logging
 from io import open as _open
+
 import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import six
 from testfixtures import LogCapture, log_capture
@@ -115,12 +116,6 @@ class BaseRecorderTests(unittest.TestCase):
         paths.append(self.create_ciminstancename())
         paths.append(self.create_ciminstancename())
         return paths
-
-    def request_html(self):
-        pass
-
-    def response_html(self):
-        pass
 
 
 class ClientRecorderTests(BaseRecorderTests):
@@ -501,23 +496,19 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
     """
     def recorder_setup(self, detail_level=None):
         """Setup the recorder for a defined max output size"""
-        if detail_level in ['paths', 'summary']:
-            http_detail_level = 'all'
-        else:
-            http_detail_level = detail_level
 
         WBEMConnection.configure_logger('api', log_dest='file',
                                         detail_level=detail_level,
                                         log_filename=TEST_OUTPUT_LOG)
 
         WBEMConnection.configure_logger('http', log_dest='file',
-                                        detail_level=http_detail_level,
+                                        detail_level=detail_level,
                                         log_filename=TEST_OUTPUT_LOG)
 
         # define an attribute that is a single LogOperationRecorder to be used
         # in some of the tests
 
-        details = {'api': detail_level, 'http': http_detail_level}
+        details = {'api': detail_level, 'http': detail_level}
         # pylint: disable=attribute-defined-outside-init
         self.test_recorder = LogOperationRecorder(conn_id='test_id',
                                                   detail_levels=details)
@@ -1085,6 +1076,227 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             '//woot.com/root/cimv2:CIM_Foo.Chicken="Ham"))')
 
         lc.check(("pywbem.api.test_id", "DEBUG", result))
+
+    def build_http_request(self):
+        """
+        Build an http request for the following tests
+        """
+        headers = OrderedDict([
+            ('CIMOperation', 'MethodCall'),
+            ('CIMMethod', 'GetInstance'),
+            ('CIMObject', 'root/cimv2')])
+        url = 'http://blah'
+        method = 'POST'
+        target = '/cimom'
+
+        payload = (
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            '<SIMPLEREQ>\n'
+            '<IMETHODCALL NAME="GetInstance">\n'
+            '<LOCALNAMESPACEPATH>\n'
+            '<NAMESPACE NAME="root"/>\n'
+            '<NAMESPACE NAME="cimv2"/>\n'
+            '</LOCALNAMESPACEPATH>\n'
+            '<IPARAMVALUE NAME="InstanceName">\n'
+            '<INSTANCENAME CLASSNAME="PyWBEM_Person">\n'
+            '<KEYBINDING NAME="Name">\n'
+            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>\n'
+            '</KEYBINDING>\n'
+            '</INSTANCENAME>\n'
+            '</IPARAMVALUE>\n'
+            '<IPARAMVALUE NAME="LocalOnly">\n'
+            '<VALUE>FALSE</VALUE>\n'
+            '</IPARAMVALUE>\n'
+            '</IMETHODCALL>\n'
+            '</SIMPLEREQ>\n'
+            '</MESSAGE>\n'
+            '</CIM>)')
+
+        return url, target, method, headers, payload
+
+    @log_capture()
+    def test_stage_http_request_all(self, lc):
+        """Test stage of http_request log with detail_level='all'"""
+        self.recorder_setup(detail_level='all')
+        url, target, method, headers, payload = self.build_http_request()
+        self.test_recorder.stage_http_request('test_id', 11, url, target,
+                                              method, headers, payload)
+
+        result = (
+            "Request:test_id POST /cimom 11 http://blah CIMOperation:"
+            "'MethodCall' "
+            "CIMMethod:'GetInstance' CIMObject:'root/cimv2'\n"
+            '    <?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            '<SIMPLEREQ>\n'
+            '<IMETHODCALL NAME="GetInstance">\n'
+            '<LOCALNAMESPACEPATH>\n'
+            '<NAMESPACE NAME="root"/>\n'
+            '<NAMESPACE NAME="cimv2"/>\n'
+            '</LOCALNAMESPACEPATH>\n'
+            '<IPARAMVALUE NAME="InstanceName">\n'
+            '<INSTANCENAME CLASSNAME="PyWBEM_Person">\n'
+            '<KEYBINDING NAME="Name">\n'
+            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>\n'
+            '</KEYBINDING>\n'
+            '</INSTANCENAME>\n'
+            '</IPARAMVALUE>\n'
+            '<IPARAMVALUE NAME="LocalOnly">\n'
+            '<VALUE>FALSE</VALUE>\n'
+            '</IPARAMVALUE>\n'
+            '</IMETHODCALL>\n'
+            '</SIMPLEREQ>\n'
+            '</MESSAGE>\n'
+            '</CIM>)')
+
+        lc.check(("pywbem.http.test_id", "DEBUG", result))
+
+    @log_capture()
+    def test_stage_http_request_summary(self, lc):
+        """
+        Test http request log record with summary as detail level
+        """
+        self.recorder_setup(detail_level='summary')
+        url, target, method, headers, payload = self.build_http_request()
+        self.test_recorder.stage_http_request('test_id', 11, url, target,
+                                              method, headers, payload)
+
+        result = (
+            "Request:test_id POST /cimom 11 http://blah CIMOperation:"
+            "'MethodCall' "
+            "CIMMethod:'GetInstance' CIMObject:'root/cimv2'\n"
+            '    ')
+
+        lc.check(("pywbem.http.test_id", "DEBUG", result))
+
+    @log_capture()
+    def test_stage_http_request_int(self, lc):
+        """
+        Test http log record with integer as detail_level
+        """
+        self.recorder_setup(detail_level=10)
+
+        url, target, method, headers, payload = self.build_http_request()
+
+        self.test_recorder.stage_http_request('test_id', 11, url, target,
+                                              method, headers, payload)
+
+        result = (
+            "Request:test_id POST /cimom 11 http://blah CIMOperation:"
+            "'MethodCall' "
+            "CIMMethod:'GetInstance' CIMObject:'root/cimv2'\n"
+            '    <?xml vers...')
+
+        lc.check(("pywbem.http.test_id", "DEBUG", result))
+
+    def build_http_response(self):
+        """
+        Build an http response. Builds the complete stage_http_response1
+        and executes and returns the body component so each test can build
+        stage_http_response2 since that is where the logging occurs
+        """
+        body = ('<?xml version="1.0" encoding="utf-8" ?>\n'
+                '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+                '<SIMPLERSP>\n'
+                '<IMETHODRESPONSE NAME="GetInstance">\n'
+                '<IRETURNVALUE>\n'
+                '<INSTANCE CLASSNAME="PyWBEM_Person">\n'
+                '<PROPERTY NAME="Name" TYPE="string">\n'
+                '<VALUE>Fritz</VALUE>\n'
+                '</PROPERTY>\n'
+                '<PROPERTY NAME="Address" TYPE="string">\n'
+                '<VALUE>Fritz Town</VALUE>\n'
+                '</PROPERTY>\n'
+                '</INSTANCE>\n'
+                '</IRETURNVALUE>\n'
+                '</IMETHODRESPONSE>\n'
+                '</SIMPLERSP>\n'
+                '</MESSAGE>\n'
+                '</CIM>)\n')
+        # body = body.decode('utf-8')
+        headers = OrderedDict([
+            ('Content-type', 'application/xml; charset="utf-8"'),
+            ('Content-length', str(len(body)))])
+        status = 200
+        reason = ""
+        version = 11
+        self.test_recorder.stage_http_response1('test_id', version,
+                                                status, reason, headers)
+
+        return body
+
+    @log_capture()
+    def test_stage_http_response_all(self, lc):
+        """
+        Test http response log record with 'all' detail_level
+        """
+        self.recorder_setup(detail_level='all')
+
+        body = self.build_http_response()
+
+        self.test_recorder.stage_http_response2(body)
+
+        result = ("Response:test_id 200: 11 Content-type:'application/xml; "
+                  'charset="utf-8"\' Content-length:\'450\'\n'
+                  '    <?xml version="1.0" encoding="utf-8" ?>\n'
+                  '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+                  '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+                  '<SIMPLERSP>\n'
+                  '<IMETHODRESPONSE NAME="GetInstance">\n'
+                  '<IRETURNVALUE>\n'
+                  '<INSTANCE CLASSNAME="PyWBEM_Person">\n'
+                  '<PROPERTY NAME="Name" TYPE="string">\n'
+                  '<VALUE>Fritz</VALUE>\n'
+                  '</PROPERTY>\n'
+                  '<PROPERTY NAME="Address" TYPE="string">\n'
+                  '<VALUE>Fritz Town</VALUE>\n'
+                  '</PROPERTY>\n'
+                  '</INSTANCE>\n'
+                  '</IRETURNVALUE>\n'
+                  '</IMETHODRESPONSE>\n'
+                  '</SIMPLERSP>\n'
+                  '</MESSAGE>\n'
+                  '</CIM>)\n')
+
+        lc.check(("pywbem.http.test_id", "DEBUG", result))
+
+    @log_capture()
+    def test_stage_http_response_summary(self, lc):
+        """
+        Test http response log record with 'all' detail_level
+        """
+        self.recorder_setup(detail_level='summary')
+
+        body = self.build_http_response()
+
+        self.test_recorder.stage_http_response2(body)
+
+        result = ("Response:test_id 200: 11 Content-type:'application/xml; "
+                  'charset="utf-8"\' Content-length:\'450\'\n'
+                  '    ')
+
+        lc.check(("pywbem.http.test_id", "DEBUG", result))
+
+    @log_capture()
+    def test_stage_http_response_int(self, lc):
+        """
+        Test http response log record with 'all' detail_level
+        """
+        self.recorder_setup(detail_level=30)
+
+        body = self.build_http_response()
+
+        self.test_recorder.stage_http_response2(body)
+
+        result = ("Response:test_id 200: 11 Content-type:'application/xml; "
+                  'charset="utf-8"\' Content-length:\'450\'\n'
+                  '    <?xml version="1.0" encoding="...')
+
+        lc.check(("pywbem.http.test_id", "DEBUG", result))
 
 
 class LogOperationRecorderTests(BaseLogOperationRecorderTests):

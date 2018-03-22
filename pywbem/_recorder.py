@@ -740,14 +740,14 @@ class LogOperationRecorder(BaseOperationRecorder):
 
             header_str = ' '.join('{0}:{1!r}'.format(k, v)
                                   for k, v in headers.items())
-
             if self.http_detail_level == 'summary':
-                show_payload = ""
-            else:
-                show_payload = payload
+                payload = ""
+            elif self.http_maxlen and (len(payload) > self.http_maxlen):
+                payload = payload[:self.http_maxlen] + '...'
+
             self.httplogger.debug('Request:%s %s %s %s %s %s\n    %s',
                                   conn_id, method, target, version, url,
-                                  header_str, show_payload)
+                                  header_str, payload)
 
     def stage_http_response1(self, conn_id, version, status, reason, headers):
         """Set response http info including headers, status, etc. """
@@ -773,23 +773,17 @@ class LogOperationRecorder(BaseOperationRecorder):
             else:
                 header_str = ''
 
-            # format the payload possibly with max size limit
-            payload = '%r' % payload.decode('utf-8')
-
             if self.http_detail_level == 'summary':
-                display_payload = ""
-            else:
-                if self.http_maxlen and (len(payload) > self.http_maxlen):
-                    display_payload = (payload[:self.http_maxlen] + '...')
-                else:
-                    display_payload = payload
+                payload = ""
+            elif self.http_maxlen and (len(payload) > self.http_maxlen):
+                payload = (payload[:self.http_maxlen] + '...')
 
             self.httplogger.debug('Response:%s %s:%s %s %s\n    %s',
                                   self._http_response_conn_id,
                                   self._http_response_status,
                                   self._http_response_reason,
                                   self._http_response_version,
-                                  header_str, display_payload)
+                                  header_str, payload)
 
     def record_staged(self):
         """Not used for logging"""

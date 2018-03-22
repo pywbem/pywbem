@@ -155,8 +155,7 @@ from .cim_http import parse_url
 from .exceptions import ParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
-from ._logging import DEFAULT_LOG_DESTINATION, DEFAULT_HTTP_LOG_DETAIL_LEVEL, \
-    DEFAULT_API_LOG_DEFAULT_LEVEL, DEFAULT_LOG_DETAIL_LEVEL, \
+from ._logging import DEFAULT_LOG_DESTINATION, DEFAULT_LOG_DETAIL_LEVEL, \
     LOG_DESTINATIONS, LOGGER_API_CALLS_NAME, \
     LOGGER_HTTP_NAME, LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES
 
@@ -1301,11 +1300,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if name == 'api':
                 logger_name = LOGGER_API_CALLS_NAME
                 if detail_level is None:
-                    detail_level = DEFAULT_API_LOG_DEFAULT_LEVEL
+                    detail_level = DEFAULT_LOG_DETAIL_LEVEL
             elif name == 'http':
                 logger_name = LOGGER_HTTP_NAME
                 if detail_level is None:
-                    detail_level = DEFAULT_HTTP_LOG_DETAIL_LEVEL
+                    detail_level = DEFAULT_LOG_DETAIL_LEVEL
             else:
                 assert False
 
@@ -1370,7 +1369,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 raise ValueError('Filename required if log destination '
                                  'is "file"')
             # pylint: disable=redefined-variable-type
-            handler = logging.FileHandler(log_filename)
+            handler = logging.FileHandler(log_filename, encoding="UTF-8")
             handler.setFormatter(logging.Formatter(msg_format))
         else:
             assert(log_dest == 'none')
