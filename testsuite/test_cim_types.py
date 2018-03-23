@@ -814,3 +814,6 @@ def test_type_from_name(
     exp_type_obj = kwargs['exp_type_obj']
 
     assert type_obj is exp_type_obj
+
+
+# TODO: Add tests for atomic_to_cim_xml()

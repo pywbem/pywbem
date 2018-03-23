@@ -178,7 +178,7 @@
           myreal64:
             pywbem_object: CIMProperty
             name: MyReal64
-            value: 12345.0
+            value: 64.25
             type: real64
             reference_class: null
             embedded_object: null
@@ -402,7 +402,7 @@
       </PROPERTY>
       <PROPERTY.ARRAY NAME="Uint32Array" TYPE="uint32"/>
       <PROPERTY NAME="MyReal64" TYPE="real64">
-      <VALUE>1.2345000000000000E+04</VALUE>
+      <VALUE>64.25</VALUE>
       </PROPERTY>
       <PROPERTY NAME="MyUint8" TYPE="uint8">
       <VALUE>99</VALUE>

@@ -322,7 +322,7 @@ class QUALIFIER_DECLARATION(CIMElement):
              %QualifierFlavor;>
     """
 
-    def __init__(self, name, type_, value, is_array=None,
+    def __init__(self, name, type_, value=None, is_array=None,
                  array_size=None, qualifier_scopes=None,
                  overridable=None, tosubclass=None,
                  toinstance=None, translatable=None):
@@ -346,12 +346,8 @@ class QUALIFIER_DECLARATION(CIMElement):
         if qualifier_scopes:
             scope = SCOPE(qualifier_scopes)
             self.appendOptionalChild(scope)
-        if value is not None:
-            if is_array:
-                xval = VALUE_ARRAY(value)
-            else:
-                xval = VALUE(value)
-            self.appendOptionalChild(xval)
+
+        self.appendOptionalChild(value)
 
 
 class SCOPE(CIMElement):
@@ -379,6 +375,7 @@ class SCOPE(CIMElement):
         if not scopes:
             scopes = {}
         elif 'any' in scopes and scopes['any']:
+            # scopes is a NocaseDict
             scopes = {'CLASS': True,
                       'ASSOCIATION': True,
                       'REFERENCE': True,
@@ -386,8 +383,9 @@ class SCOPE(CIMElement):
                       'METHOD': True,
                       'PARAMETER': True,
                       'INDICATION': True}
-        for k, v in scopes.items():
-            self.setOptionalAttribute(k, str(v).lower())
+        for k in sorted(scopes.keys(), key=lambda k: k.upper()):
+            v = scopes[k]
+            self.setOptionalAttribute(k.upper(), str(v).lower())
 
 # Object value elements
 
@@ -574,6 +572,25 @@ class VALUE_NULL(CIMElement):
     def __init__(self):
         # We use call by class name because it is an old-style class.
         CIMElement.__init__(self, 'VALUE.NULL')
+
+
+class VALUE_INSTANCEWITHPATH(CIMElement):
+    # pylint: disable=invalid-name
+    """
+    The VALUE.INSTANCEWITHPATH element is used to define a value
+    a value that comprises a single CIM instance definition with additional
+    information that defines the absolute path to that object.
+
+      ::
+
+        <!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH, INSTANCE)>
+    """
+
+    def __init__(self, data1, data2):
+        # We use call by class name because it is an old-style class.
+        CIMElement.__init__(self, 'VALUE.INSTANCEWITHPATH')
+        self.appendChild(data1)
+        self.appendChild(data2)
 
 # Object naming and location elements
 

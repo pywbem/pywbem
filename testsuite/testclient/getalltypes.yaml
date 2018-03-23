@@ -98,7 +98,7 @@
                     pywbem_object: CIMProperty
                     name: PReal64
                     type: real64
-                    value: 64.1
+                    value: 64.125
                     propagated: false
                 PDatetime1:
                     pywbem_object: CIMProperty
@@ -232,7 +232,7 @@
                           <VALUE>-32.1</VALUE>
                         </PROPERTY>
                         <PROPERTY NAME="PReal64" TYPE="real64">
-                          <VALUE>64.1</VALUE>
+                          <VALUE>64.125</VALUE>
                         </PROPERTY>
                         <PROPERTY NAME="PDatetime1" TYPE="datetime">
                           <VALUE>20160318201500.123456-060</VALUE>

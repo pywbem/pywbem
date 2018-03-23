@@ -2042,15 +2042,33 @@ class CIMInstanceName(_CIMComparisonMixin):
         return self.keybindings.iteritems()
 
     # pylint: disable=too-many-branches
-    def tocimxml(self):
+    def tocimxml(self, ignore_host=False, ignore_namespace=False):
         """
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstanceName` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        Parameters:
 
-        The order of keybindings is preserved.
+          ignore_host (:class:`py:bool`): Ignore the host of the
+            instance path, even if a host is specified.
+
+          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+            the instance path, even if a namespace and/or host is specified.
+
+        If the instance path has no namespace specified or if
+        `ignore_namespace` is `True`, the returned CIM-XML representation is an
+        `INSTANCENAME` element consistent with :term:`DSP0201`.
+
+        Otherwise, if the instance path has no host specified or if
+        `ignore_host` is `True`, the returned CIM-XML representation is a
+        `LOCALINSTANCEPATH` element consistent with :term:`DSP0201`.
+
+        Otherwise, the returned CIM-XML representation is a
+        `INSTANCEPATH` element consistent with :term:`DSP0201`.
+
+        The order of keybindings in the returned CIM-XML representation is
+        preserved from the :class:`~pywbem.CIMInstanceName` object.
         """
 
         kbs = []
@@ -2094,38 +2112,30 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
 
-        if self.namespace is not None:
+        if self.namespace is None or ignore_namespace:
+            return instancename_xml
 
-            localnsp = cim_xml.LOCALNAMESPACEPATH(
-                [cim_xml.NAMESPACE(ns)
-                 for ns in self.namespace.split('/')])
+        localnsp_xml = cim_xml.LOCALNAMESPACEPATH(
+            [cim_xml.NAMESPACE(ns)
+             for ns in self.namespace.split('/')])
 
-            if self.host is not None:
+        if self.host is None or ignore_host:
+            return cim_xml.LOCALINSTANCEPATH(localnsp_xml, instancename_xml)
 
-                # Instancename + namespace + host = INSTANCEPATH
+        return cim_xml.INSTANCEPATH(
+            cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp_xml),
+            instancename_xml)
 
-                return cim_xml.INSTANCEPATH(
-                    cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp),
-                    instancename_xml)
-
-            # Instancename + namespace = LOCALINSTANCEPATH
-
-            return cim_xml.LOCALINSTANCEPATH(localnsp, instancename_xml)
-
-        # Just Instancename = INSTANCENAME
-
-        return instancename_xml
-
-    def tocimxmlstr(self, indent=None):
+    def tocimxmlstr(self, indent=None, ignore_host=False,
+                    ignore_namespace=False):
         """
         *New in pywbem 0.9.*
 
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstanceName` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-
-        The order of keybindings is preserved.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMInstanceName.tocimxml`.
 
         Parameters:
 
@@ -2138,12 +2148,19 @@ class CIMInstanceName(_CIMComparisonMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
+          ignore_host (:class:`py:bool`): Ignore the host of the
+            instance path, even if a host is specified.
+
+          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+            the instance path, even if a namespace and/or host is specified.
+
         Returns:
 
             The CIM-XML representation of the value, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml(ignore_host, ignore_namespace)
+        return tocimxmlstr(xml_elem, indent)
 
     @staticmethod
     def _kbstr_to_cimval(key, val):
@@ -3146,15 +3163,36 @@ class CIMInstance(_CIMComparisonMixin):
         for key, val in self.properties.iteritems():
             yield (key, val.value)
 
-    def tocimxml(self):
+    def tocimxml(self, ignore_path=False):
         """
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstance` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        Parameters:
 
-        The order of properties and qualifiers is preserved.
+          ignore_path (:class:`py:bool`): Ignore the path of the instance, even
+            if a path is specified.
+
+        If the instance has no instance path specified or if `ignore_path` is
+        `True`, the returned CIM-XML representation is an `INSTANCE` element
+        consistent with :term:`DSP0201`. This is the required element for
+        representing embedded instances.
+
+        Otherwise, if the instance path of the instance has no namespace
+        specified, the returned CIM-XML representation is an
+        `VALUE.NAMEDINSTANCE` element consistent with :term:`DSP0201`.
+
+        Otherwise, if the instance path of the instance has no host specified,
+        the returned CIM-XML representation is a
+        `VALUE.OBJECTWITHLOCALPATH` element consistent with :term:`DSP0201`.
+
+        Otherwise, the returned CIM-XML representation is a
+        `VALUE.INSTANCEWITHPATH` element consistent with :term:`DSP0201`.
+
+        The order of properties and qualifiers in the returned CIM-XML
+        representation is preserved from the :class:`~pywbem.CIMInstance`
+        object.
         """
 
         # The items in the self.properties dictionary are required to be
@@ -3180,23 +3218,32 @@ class CIMInstance(_CIMComparisonMixin):
             properties=[p.tocimxml() for p in self.properties.values()],
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
 
-        if self.path is None:
+        if self.path is None or ignore_path:
             return instance_xml
 
-        return cim_xml.VALUE_NAMEDINSTANCE(
+        if self.path.namespace is None:
+            return cim_xml.VALUE_NAMEDINSTANCE(
+                self.path.tocimxml(),
+                instance_xml)
+
+        if self.path.host is None:
+            return cim_xml.VALUE_OBJECTWITHLOCALPATH(
+                self.path.tocimxml(),
+                instance_xml)
+
+        return cim_xml.VALUE_INSTANCEWITHPATH(
             self.path.tocimxml(),
             instance_xml)
 
-    def tocimxmlstr(self, indent=None):
+    def tocimxmlstr(self, indent=None, ignore_path=False):
         """
         *New in pywbem 0.9.*
 
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMInstance` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-
-        The order of properties and qualifiers is preserved.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMInstance.tocimxml`.
 
         Parameters:
 
@@ -3209,12 +3256,16 @@ class CIMInstance(_CIMComparisonMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
+          ignore_path (:class:`py:bool`): Ignore the path of the instance, even
+            if a path is specified.
+
         Returns:
 
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml(ignore_path)
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
@@ -3502,47 +3553,58 @@ class CIMClassName(_CIMComparisonMixin):
                (self.__class__.__name__, self.classname, self.namespace,
                 self.host)
 
-    def tocimxml(self):
+    def tocimxml(self, ignore_host=False, ignore_namespace=False):
         """
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMClassName` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        Parameters:
+
+          ignore_host (:class:`py:bool`): Ignore the host of the
+            class path, even if a host is specified.
+
+          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+            the class path, even if a namespace and/or host is specified.
+
+        If the class path has no namespace specified or if
+        `ignore_namespace` is `True`, the returned CIM-XML representation is a
+        `CLASSNAME` element consistent with :term:`DSP0201`.
+
+        Otherwise, if the class path has no host specified or if
+        `ignore_host` is `True`, the returned CIM-XML representation is a
+        `LOCALCLASSPATH` element consistent with :term:`DSP0201`.
+
+        Otherwise, the returned CIM-XML representation is a
+        `CLASSPATH` element consistent with :term:`DSP0201`.
         """
 
-        classname = cim_xml.CLASSNAME(self.classname)
+        classname_xml = cim_xml.CLASSNAME(self.classname)
 
-        if self.namespace is not None:
+        if self.namespace is None or ignore_namespace:
+            return classname_xml
 
-            localnsp = cim_xml.LOCALNAMESPACEPATH(
-                [cim_xml.NAMESPACE(ns)
-                 for ns in self.namespace.split('/')])
+        localnsp_xml = cim_xml.LOCALNAMESPACEPATH(
+            [cim_xml.NAMESPACE(ns)
+             for ns in self.namespace.split('/')])
 
-            if self.host is not None:
+        if self.host is None or ignore_host:
+            return cim_xml.LOCALCLASSPATH(localnsp_xml, classname_xml)
 
-                # Classname + namespace + host = CLASSPATH
+        return cim_xml.CLASSPATH(
+            cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp_xml),
+            classname_xml)
 
-                return cim_xml.CLASSPATH(
-                    cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp),
-                    classname)
-
-            # Classname + namespace = LOCALCLASSPATH
-
-            return cim_xml.LOCALCLASSPATH(localnsp, classname)
-
-        # Just classname = CLASSNAME
-
-        return cim_xml.CLASSNAME(self.classname)
-
-    def tocimxmlstr(self, indent=None):
+    def tocimxmlstr(self, indent=None, ignore_host=False,
+                    ignore_namespace=False):
         """
         *New in pywbem 0.9.*
 
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMClassName` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMClassName.tocimxml`.
 
         Parameters:
 
@@ -3555,12 +3617,19 @@ class CIMClassName(_CIMComparisonMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
+          ignore_host (:class:`py:bool`): Ignore the host of the
+            class path, even if a host is specified.
+
+          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+            the class path, even if a namespace and/or host is specified.
+
         Returns:
 
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml(ignore_host, ignore_namespace)
+        return tocimxmlstr(xml_elem, indent)
 
     @staticmethod
     def from_wbem_uri(wbem_uri):
@@ -4141,13 +4210,15 @@ class CIMClass(_CIMComparisonMixin):
         :class:`~pywbem.CIMClass` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        The returned CIM-XML representation is a `CLASS` element
+        consistent with :term:`DSP0201`. This is the required element for
+        representing embedded classes.
 
-        The order of properties, methods, parameters, and qualifiers is
-        preserved.
+        If the class has a class path specified, it will be ignored.
 
-        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
-        included in the returned CIM-XML representation.
+        The order of properties, methods, parameters, and qualifiers in the
+        returned CIM-XML representation is preserved from the
+        :class:`~pywbem.CIMClass` object.
         """
         return cim_xml.CLASS(
             self.classname,
@@ -4163,13 +4234,8 @@ class CIMClass(_CIMComparisonMixin):
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-
-        The order of properties, methods, parameters, and qualifiers is
-        preserved.
-
-        The :attr:`~pywbem.CIMClass.path` attribute of this object will not be
-        included in the returned CIM-XML representation.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMClass.tocimxml`.
 
         Parameters:
 
@@ -4187,7 +4253,8 @@ class CIMClass(_CIMComparisonMixin):
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml()
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(self, maxline=MAX_MOF_LINE):
         """
@@ -4799,63 +4866,78 @@ class CIMProperty(_CIMComparisonMixin):
         :class:`~pywbem.CIMProperty` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        The returned CIM-XML representation is a `PROPERTY`,
+        `PROPERTY.REFERENCE`, or `PROPERTY.ARRAY` element dependent on the
+        property type, and consistent with :term:`DSP0201`. Note that
+        array properties cannot be of reference type.
 
-        The order of qualifiers is preserved.
+        The order of qualifiers in the returned CIM-XML representation is
+        preserved from the :class:`~pywbem.CIMProperty` object.
         """
 
-        if self.is_array:
+        qualifiers = [q.tocimxml() for q in self.qualifiers.values()]
 
-            value = self.value
-            if value is not None:
-                if value:
-                    if self.embedded_object is not None:
-                        value = [v.tocimxml().toxml() for v in value]
-                value = cim_xml.VALUE_ARRAY(
-                    [cim_xml.VALUE(
-                        atomic_to_cim_xml(v)) for v in value])
+        if self.is_array:
+            assert self.type != 'reference'
+
+            if self.value is None:
+                value_xml = None
+            else:
+                array_xml = []
+                for v in self.value:
+                    if v is None:
+                        array_xml.append(cim_xml.VALUE_NULL())
+                    elif self.embedded_object is not None:
+                        assert isinstance(v, (CIMInstance, CIMClass))
+                        array_xml.append(cim_xml.VALUE(v.tocimxml().toxml()))
+                    else:
+                        array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
+                value_xml = cim_xml.VALUE_ARRAY(array_xml)
 
             return cim_xml.PROPERTY_ARRAY(
                 self.name,
                 self.type,
-                value,
+                value_xml,
                 self.array_size,
                 self.class_origin,
                 self.propagated,
-                qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
-                embedded_object=self.embedded_object)
+                embedded_object=self.embedded_object,
+                qualifiers=qualifiers)
 
-        elif self.type == 'reference':
+        elif self.type == 'reference':  # scalar
 
-            value_reference = None
-            if self.value is not None:
-                value_reference = cim_xml.VALUE_REFERENCE(self.value.tocimxml())
+            if self.value is None:
+                value_xml = None
+            else:
+                value_xml = cim_xml.VALUE_REFERENCE(self.value.tocimxml())
 
             return cim_xml.PROPERTY_REFERENCE(
                 self.name,
-                value_reference,
+                value_xml,
                 reference_class=self.reference_class,
                 class_origin=self.class_origin,
                 propagated=self.propagated,
-                qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
+                qualifiers=qualifiers)
 
-        else:
-            value = self.value
-            if value is not None:
+        else:  # scalar non-reference
+
+            if self.value is None:
+                value_xml = None
+            else:
                 if self.embedded_object is not None:
-                    value = value.tocimxml().toxml()
+                    assert isinstance(self.value, (CIMInstance, CIMClass))
+                    value_xml = cim_xml.VALUE(self.value.tocimxml().toxml())
                 else:
-                    value = atomic_to_cim_xml(value)
-                value = cim_xml.VALUE(value)
+                    value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
             return cim_xml.PROPERTY(
                 self.name,
                 self.type,
-                value,
+                value_xml,
                 class_origin=self.class_origin,
                 propagated=self.propagated,
-                qualifiers=[q.tocimxml() for q in self.qualifiers.values()],
-                embedded_object=self.embedded_object)
+                embedded_object=self.embedded_object,
+                qualifiers=qualifiers)
 
     def tocimxmlstr(self, indent=None):
         """
@@ -4864,9 +4946,8 @@ class CIMProperty(_CIMComparisonMixin):
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMProperty` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-
-        The order of qualifiers is preserved.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMProperty.tocimxml`.
 
         Parameters:
 
@@ -4884,7 +4965,8 @@ class CIMProperty(_CIMComparisonMixin):
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml()
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(
             self, is_instance=True, indent=0, maxline=MAX_MOF_LINE, line_pos=0):
@@ -5449,9 +5531,11 @@ class CIMMethod(_CIMComparisonMixin):
         :class:`~pywbem.CIMMethod` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        The returned CIM-XML representation is a `METHOD` element consistent
+        with :term:`DSP0201`.
 
-        The order of parameters and qualifiers is preserved.
+        The order of parameters and qualifiers in the returned CIM-XML
+        representation is preserved from the :class:`~pywbem.CIMMethod` object.
         """
         return cim_xml.METHOD(
             self.name,
@@ -5468,9 +5552,8 @@ class CIMMethod(_CIMComparisonMixin):
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMMethod` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-
-        The order of parameters and qualifiers is preserved.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMMethod.tocimxml`.
 
         Parameters:
 
@@ -5488,7 +5571,8 @@ class CIMMethod(_CIMComparisonMixin):
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml()
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
@@ -5998,7 +6082,18 @@ class CIMParameter(_CIMComparisonMixin):
         object, either as a parameter declaration for use in a method
         declaration, or as a parameter value for use in a method invocation.
 
-        The CIM-XML representation is consistent with :term:`DSP0201`.
+        If a parameter value is to be returned, the returned CIM-XML
+        representation is a `PARAMVALUE` element with child elements dependent
+        on the parameter type, and consistent with :term:`DSP0201`.
+
+        If a parameter declaration is to be returned, the returned CIM-XML
+        representation is a `PARAMETER`, `PARAMETER.REFERENCE`,
+        `PARAMETER.ARRAY`, or `PARAMETER.REFARRAY` element dependent on the
+        parameter type, and consistent with :term:`DSP0201`.
+
+        The order of qualifiers in the returned CIM-XML representation of a
+        parameter declaration is preserved from the
+        :class:`~pywbem.CIMParameter` object.
 
         Parameters:
 
@@ -6013,96 +6108,86 @@ class CIMParameter(_CIMComparisonMixin):
 
         if as_value:
 
-            value = self.value
-
-            if value is None:
-                pass
+            if self.value is None:
+                value_xml = None
 
             elif self.is_array:
-
                 if self.type == 'reference':
-                    val_array = []
-                    for v in value:
-                        if v is None:
-                            val_array.append(cim_xml.VALUE_NULL())
-                        else:
-                            val_array.append(
-                                cim_xml.VALUE_REFERENCE(v.tocimxml()))
-                    value = cim_xml.VALUE_REFARRAY(val_array)
 
-                else:
-                    val_array = []
-                    for v in value:
+                    array_xml = []
+                    for v in self.value:
                         if v is None:
-                            val_array.append(cim_xml.VALUE_NULL())
+                            array_xml.append(cim_xml.VALUE_NULL())
+                        else:
+                            array_xml.append(
+                                cim_xml.VALUE_REFERENCE(v.tocimxml()))
+                    value_xml = cim_xml.VALUE_REFARRAY(array_xml)
+
+                else:  # array non-reference
+
+                    array_xml = []
+                    for v in self.value:
+                        if v is None:
+                            array_xml.append(cim_xml.VALUE_NULL())
                         elif self.embedded_object is not None:
-                            val_array.append(
+                            array_xml.append(
                                 cim_xml.VALUE(v.tocimxml().toxml()))
                         else:
-                            val_array.append(
+                            array_xml.append(
                                 cim_xml.VALUE(atomic_to_cim_xml(v)))
-                    value = cim_xml.VALUE_ARRAY(val_array)
+                    value_xml = cim_xml.VALUE_ARRAY(array_xml)
 
-            else:
-                # scalar
+            else:  # scalar
+
                 if self.type == 'reference':
-                    value = cim_xml.VALUE_REFERENCE(value.tocimxml())
+                    value_xml = cim_xml.VALUE_REFERENCE(self.value.tocimxml())
                 elif self.embedded_object is not None:
-                    value = cim_xml.VALUE(value.tocimxml().toxml())
+                    value_xml = cim_xml.VALUE(self.value.tocimxml().toxml())
                 else:
-                    value = cim_xml.VALUE(atomic_to_cim_xml(value))
+                    value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
             return cim_xml.PARAMVALUE(
                 self.name,
-                value,
+                value_xml,
                 paramtype=self.type,
                 embedded_object=self.embedded_object)
 
-        else:
+        else:  # as declaration
 
-            if self.type == 'reference':
+            qualifiers = [q.tocimxml() for q in self.qualifiers.values()]
 
-                if self.is_array:
+            if self.is_array:
 
+                if self.array_size is None:
                     array_size = None
+                else:
+                    array_size = str(self.array_size)
 
-                    if self.array_size is not None:
-                        array_size = str(self.array_size)
-
+                if self.type == 'reference':
                     return cim_xml.PARAMETER_REFARRAY(
                         self.name,
                         self.reference_class,
                         array_size,
-                        qualifiers=[q.tocimxml()
-                                    for q in self.qualifiers.values()])
-
+                        qualifiers=qualifiers)
                 else:
+                    return cim_xml.PARAMETER_ARRAY(
+                        self.name,
+                        self.type,
+                        array_size,
+                        qualifiers=qualifiers)
 
+            else:  # scalar
+
+                if self.type == 'reference':
                     return cim_xml.PARAMETER_REFERENCE(
                         self.name,
                         self.reference_class,
-                        qualifiers=[q.tocimxml()
-                                    for q in self.qualifiers.values()])
-
-            elif self.is_array:
-
-                array_size = None
-
-                if self.array_size is not None:
-                    array_size = str(self.array_size)
-
-                return cim_xml.PARAMETER_ARRAY(
-                    self.name,
-                    self.type,
-                    array_size,
-                    qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
-
-            else:
-
-                return cim_xml.PARAMETER(
-                    self.name,
-                    self.type,
-                    qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
+                        qualifiers=qualifiers)
+                else:
+                    return cim_xml.PARAMETER(
+                        self.name,
+                        self.type,
+                        qualifiers=qualifiers)
 
     def tocimxmlstr(self, indent=None, as_value=False):
         """
@@ -6112,9 +6197,8 @@ class CIMParameter(_CIMComparisonMixin):
         object, either as a parameter declaration for use in a method
         declaration, or as a parameter value for use in a method invocation.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
-
-        The order of qualifiers is preserved.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMParameter.tocimxml`.
 
         Parameters:
 
@@ -6631,21 +6715,28 @@ class CIMQualifier(_CIMComparisonMixin):
         :class:`~pywbem.CIMQualifier` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        The returned CIM-XML representation is a `QUALIFIER` element consistent
+        with :term:`DSP0201`.
         """
 
-        value = None
+        if self.value is None:
+            value_xml = None
 
-        if isinstance(self.value, list):
-            value = cim_xml.VALUE_ARRAY(
-                [cim_xml.VALUE(atomic_to_cim_xml(v)) for v in self.value])
-        elif self.value is not None:
-            # used as VALUE.ARRAY and the as VALUE
-            value = cim_xml.VALUE(atomic_to_cim_xml(self.value))
+        elif isinstance(self.value, (tuple, list)):
+            array_xml = []
+            for v in self.value:
+                if v is None:
+                    array_xml.append(cim_xml.VALUE_NULL())
+                else:
+                    array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
+            value_xml = cim_xml.VALUE_ARRAY(array_xml)
+
+        else:
+            value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
         return cim_xml.QUALIFIER(self.name,
                                  self.type,
-                                 value,
+                                 value_xml,
                                  propagated=self.propagated,
                                  overridable=self.overridable,
                                  tosubclass=self.tosubclass,
@@ -6659,7 +6750,8 @@ class CIMQualifier(_CIMComparisonMixin):
         Return the CIM-XML representation of the
         :class:`~pywbem.CIMQualifier` object, as a :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMQualifier.tocimxml`.
 
         Parameters:
 
@@ -6677,7 +6769,8 @@ class CIMQualifier(_CIMComparisonMixin):
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml()
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(self, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0):
         """
@@ -7259,11 +7352,28 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         :class:`~pywbem.CIMQualifierDeclaration` object,
         as an instance of an appropriate subclass of :term:`Element`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        The returned CIM-XML representation is a `QUALIFIER.DECLARATION`
+        element consistent with :term:`DSP0201`.
         """
+
+        if self.value is None:
+            value_xml = None
+
+        elif isinstance(self.value, (tuple, list)):
+            array_xml = []
+            for v in self.value:
+                if v is None:
+                    array_xml.append(cim_xml.VALUE_NULL())
+                else:
+                    array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
+            value_xml = cim_xml.VALUE_ARRAY(array_xml)
+
+        else:
+            value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
+
         return cim_xml.QUALIFIER_DECLARATION(self.name,
                                              self.type,
-                                             self.value,
+                                             value_xml,
                                              is_array=self.is_array,
                                              array_size=self.array_size,
                                              qualifier_scopes=self.scopes,
@@ -7280,7 +7390,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         :class:`~pywbem.CIMQualifierDeclaration` object, as a
         :term:`unicode string`.
 
-        The returned CIM-XML representation is consistent with :term:`DSP0201`.
+        For the returned CIM-XML representation, see
+        :meth:`~pywbem.CIMQualifierDeclaration.tocimxml`.
 
         Parameters:
 
@@ -7298,7 +7409,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             The CIM-XML representation of the object, as a
             :term:`unicode string`.
         """
-        return tocimxmlstr(self, indent)
+        xml_elem = self.tocimxml()
+        return tocimxmlstr(xml_elem, indent)
 
     def tomof(self, maxline=MAX_MOF_LINE):
         """
@@ -7400,7 +7512,9 @@ def tocimxml(value):
     Parameters:
 
       value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime.datetime`, or tuple/list thereof):
-        The input value. May be `None`.
+        The input value.
+
+        Specifying `None` has been deprecated in pywbem 0.12.
 
     Returns:
 
@@ -7409,10 +7523,22 @@ def tocimxml(value):
     """  # noqa: E501
 
     if isinstance(value, (tuple, list)):
-        return cim_xml.VALUE_ARRAY([tocimxml(v) for v in value])
+        array_xml = []
+        for v in value:
+            if v is None:
+                array_xml.append(cim_xml.VALUE_NULL())
+            else:
+                array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
+        value_xml = cim_xml.VALUE_ARRAY(array_xml)
+        return value_xml
 
     if hasattr(value, 'tocimxml'):
         return value.tocimxml()
+
+    if value is None:
+        warnings.warn("A value of None for pywbem.tocimxml() has been "
+                      "deprecated.",
+                      DeprecationWarning, stacklevel=2)
 
     return cim_xml.VALUE(atomic_to_cim_xml(value))
 

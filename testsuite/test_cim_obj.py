@@ -1617,54 +1617,549 @@ class Test_CIMInstanceName_repr(object):
         assert exp_host in r
 
 
-class CIMInstanceNameToXML(ValidationTestCase):
+# Some CIMInstanceName objects for CIMInstanceName.tocimxml() tests
+
+CIMINSTANCENAME_INV_KEYBINDINGS_1 = CIMInstanceName(
+    'CIM_Foo', keybindings=dict(Name='Foo'))
+CIMINSTANCENAME_INV_KEYBINDINGS_1.keybindings['Foo'] = datetime(2017, 1, 1)
+
+CIMINSTANCENAME_INV_KEYBINDINGS_2 = CIMInstanceName(
+    'CIM_Foo', keybindings=dict(Name='Foo'))
+CIMINSTANCENAME_INV_KEYBINDINGS_2.keybindings['Foo'] = CIMParameter(
+    'Foo', type='string')
+
+CIMINSTANCENAME_INV_KEYBINDINGS_3 = CIMInstanceName(
+    'CIM_Foo', keybindings=dict(Name='Foo'))
+CIMINSTANCENAME_INV_KEYBINDINGS_3.keybindings['Foo'] = CIMProperty(
+    'Foo', type='string', value='bla')
+
+TESTCASES_CIMINSTANCENAME_TOCIMXML = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMInstanceName object to be tested.
+    #   * kwargs: Dict of input args for tocimxml().
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Classname-only tests
+    (
+        "Classname only, with implied default args",
+        dict(
+            obj=CIMInstanceName('CIM_Foo'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname only, with specified default args",
+        dict(
+            obj=CIMInstanceName('CIM_Foo'),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname only, with non-default args: ignore_host=True",
+        dict(
+            obj=CIMInstanceName('CIM_Foo'),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname only, with non-default args: ignore_namespace=True",
+        dict(
+            obj=CIMInstanceName('CIM_Foo'),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Classname with one keybinding tests
+    (
+        "Classname with one keybinding, with implied default args",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding, with specified default args",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding, with non-default: ignore_host=True",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding, with non-def.: ignore_namespace=True",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Classname with mult. keybindings tests
+    (
+        "Classname with mult. keybindings, with implied default args",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                NocaseDict([
+                    ('Name', 'Foo'),
+                    ('Number', Uint8(42)),
+                    ('Boolean', False),
+                    ('Ref', CIMInstanceName('CIM_Bar')),
+                ]),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Name">',
+                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Number">',
+                '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Boolean">',
+                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Ref">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Bar"/>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with mult. keybindings, with specified default args",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                NocaseDict([
+                    ('Name', 'Foo'),
+                    ('Number', Uint8(42)),
+                    ('Boolean', False),
+                    ('Ref', CIMInstanceName('CIM_Bar')),
+                ]),
+            ),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Name">',
+                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Number">',
+                '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Boolean">',
+                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Ref">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Bar"/>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with mult. keybindings, with non-default: ignore_host=True",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                NocaseDict([
+                    ('Name', 'Foo'),
+                    ('Number', Uint8(42)),
+                    ('Boolean', False),
+                    ('Ref', CIMInstanceName('CIM_Bar')),
+                ]),
+            ),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Name">',
+                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Number">',
+                '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Boolean">',
+                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Ref">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Bar"/>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with mult. keybindings, with non-def: ignore_namespace=True",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                NocaseDict([
+                    ('Name', 'Foo'),
+                    ('Number', Uint8(42)),
+                    ('Boolean', False),
+                    ('Ref', CIMInstanceName('CIM_Bar')),
+                ]),
+            ),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Name">',
+                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Number">',
+                '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Boolean">',
+                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Ref">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Bar"/>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Classname with namespace tests
+    (
+        "Classname with namespace, with implied default args",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</LOCALINSTANCEPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace, with specified default args",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</LOCALINSTANCEPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace, with non-default: ignore_host=True",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</LOCALINSTANCEPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace, with non-def: ignore_namespace=True",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Classname with namespace+host tests
+    (
+        "Classname with namespace+host, with implied default args",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCEPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot.com</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</INSTANCEPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace+host, with specified default args",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<INSTANCEPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot.com</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</INSTANCEPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace+host, with non-default: ignore_host=True",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</LOCALINSTANCEPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace+host, with non-def: ignore_namespace=True",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with invalid keybinding values
+    (
+        "Keybinding value with invalid datetime type",
+        dict(
+            obj=CIMINSTANCENAME_INV_KEYBINDINGS_1,
+            kwargs=dict(),
+            exp_xml_str=None
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Keybinding value with invalid CIMParameter type",
+        dict(
+            obj=CIMINSTANCENAME_INV_KEYBINDINGS_2,
+            kwargs=dict(),
+            exp_xml_str=None
+        ),
+        TypeError, None, CHECK_0_12_0
+    ),
+    (
+        "Keybinding value with invalid CIMProperty type",
+        dict(
+            obj=CIMINSTANCENAME_INV_KEYBINDINGS_3,
+            kwargs=dict(),
+            exp_xml_str=None
+        ),
+        TypeError, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMInstanceName_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
     """
-    Test that valid CIM-XML is generated for `CIMInstanceName` objects.
+    All test cases for CIMInstanceName.tocimxml().
     """
 
-    def test_all(self):
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
 
-        # XML root elements for CIM-XML representations of CIMInstanceName
-        root_elem_CIMInstanceName_plain = 'INSTANCENAME'
-        root_elem_CIMInstanceName_namespace = 'LOCALINSTANCEPATH'
-        root_elem_CIMInstanceName_host = 'INSTANCEPATH'
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
 
-        self.validate(CIMInstanceName('CIM_Foo'),
-                      root_elem_CIMInstanceName_plain)
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
-        self.validate(CIMInstanceName('CIM_Foo',
-                                      {'Cheepy': 'Birds'}),
-                      root_elem_CIMInstanceName_plain)
+    assert obj_xml_str == exp_xml_str
 
-        self.validate(CIMInstanceName('CIM_Foo',
-                                      {'Name': 'Foo',
-                                       'Number': Uint8(42),
-                                       'Boolean1': False,
-                                       'Boolean2': True,
-                                       'Ref': CIMInstanceName('CIM_Bar')}),
-                      root_elem_CIMInstanceName_plain)
 
-        self.validate(CIMInstanceName('CIM_Foo',
-                                      namespace='root/cimv2'),
-                      root_elem_CIMInstanceName_namespace)
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMInstanceName_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMInstanceName.tocimxmlstr().
+    """
 
-        self.validate(CIMInstanceName('CIM_Foo',
-                                      host='woot.com',
-                                      namespace='root/cimv2'),
-                      root_elem_CIMInstanceName_host)
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
 
-        # Check that invalid key type is detected
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
 
-        obj = CIMInstanceName('CIM_Foo', keybindings=dict(Name='Foo'))
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
-        obj.keybindings['Foo'] = datetime(2017, 1, 1)  # invalid
-        with pytest.raises(TypeError):
-            obj.tocimxml()
-
-        if CHECK_0_12_0:
-            obj.keybindings['Foo'] = CIMParameter('Parm', 'string')  # invalid
-            with pytest.raises(TypeError):
-                obj.tocimxml()
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMInstanceName_from_wbem_uri(object):
@@ -4414,7 +4909,7 @@ TESTCASES_CIMINSTANCE_HASH = [
         None, None, True
     ),
     (
-        "Property with different types: bool True / string 'TRUE'",
+        "Scalar property with different types: bool True / string 'TRUE'",
         dict(
             obj1=CIMInstance('CIM_Foo', properties={'Foo': True}),
             obj2=CIMInstance('CIM_Foo', properties={'Foo': 'TRUE'}),
@@ -4423,7 +4918,7 @@ TESTCASES_CIMINSTANCE_HASH = [
         None, None, True
     ),
     (
-        "Property with different types: bool False / string 'FALSE'",
+        "Scalar property with different types: bool False / string 'FALSE'",
         dict(
             obj1=CIMInstance('CIM_Foo', properties={'Foo': False}),
             obj2=CIMInstance('CIM_Foo', properties={'Foo': 'FALSE'}),
@@ -4709,137 +5204,417 @@ class Test_CIMInstance_repr(object):  # pylint: disable=too-few-public-methods
         assert exp_qualifiers in r
 
 
-class CIMInstanceToXML(ValidationTestCase):
+# Some CIMInstance objects for CIMInstance.tocimxml() tests
+
+CIMINSTANCE_INV_PROPERTY_1 = CIMInstance('CIM_Foo')
+CIMINSTANCE_INV_PROPERTY_1.properties['Foo'] = 'bla'  # no CIMProperty
+
+CIMINSTANCE_INV_PROPERTY_2 = CIMInstance('CIM_Foo')
+CIMINSTANCE_INV_PROPERTY_2.properties['Foo'] = Uint16(42)  # no CIMProperty
+
+# Some CIMInstanceName objects for CIMInstance.tocimxml() tests
+
+CIMINSTANCENAME_CLASSNAME1 = CIMInstanceName('CIM_Foo')
+CIMINSTANCENAME_NAMESPACE1 = CIMInstanceName('CIM_Foo', namespace='interop')
+CIMINSTANCENAME_HOST1 = CIMInstanceName('CIM_Foo', namespace='interop',
+                                        host='woot.com')
+
+TESTCASES_CIMINSTANCE_TOCIMXML = [
+
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMInstance object to be tested.
+    #   * kwargs: Dict of input args for tocimxml().
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Tests with path and args variations
+    (
+        "No path, implied default args",
+        dict(
+            obj=CIMInstance('CIM_Foo'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "No path, specified default args",
+        dict(
+            obj=CIMInstance('CIM_Foo'),
+            kwargs=dict(
+                ignore_path=False,
+            ),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "No path, non-default args ignore_path=True",
+        dict(
+            obj=CIMInstance('CIM_Foo'),
+            kwargs=dict(
+                ignore_path=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with classname-only, implied default args",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_CLASSNAME1,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<VALUE.NAMEDINSTANCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+                '</VALUE.NAMEDINSTANCE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with classname-only, specified default args",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_CLASSNAME1,
+            ),
+            kwargs=dict(
+                ignore_path=False,
+            ),
+            exp_xml_str=(
+                '<VALUE.NAMEDINSTANCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+                '</VALUE.NAMEDINSTANCE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with classname-only, non-default args ignore_path=True",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_CLASSNAME1,
+            ),
+            kwargs=dict(
+                ignore_path=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace, implied default args",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_NAMESPACE1,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<VALUE.OBJECTWITHLOCALPATH>',
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="interop"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</LOCALINSTANCEPATH>',
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+                '</VALUE.OBJECTWITHLOCALPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace, specified default args",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_NAMESPACE1,
+            ),
+            kwargs=dict(
+                ignore_path=False,
+            ),
+            exp_xml_str=(
+                '<VALUE.OBJECTWITHLOCALPATH>',
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="interop"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</LOCALINSTANCEPATH>',
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+                '</VALUE.OBJECTWITHLOCALPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace, non-default args ignore_path=True",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_NAMESPACE1,
+            ),
+            kwargs=dict(
+                ignore_path=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace+host, implied default args",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_HOST1,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<VALUE.INSTANCEWITHPATH>',
+                '<INSTANCEPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot.com</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="interop"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</INSTANCEPATH>',
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+                '</VALUE.INSTANCEWITHPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace+host, specified default args",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_HOST1,
+            ),
+            kwargs=dict(
+                ignore_path=False,
+            ),
+            exp_xml_str=(
+                '<VALUE.INSTANCEWITHPATH>',
+                '<INSTANCEPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot.com</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="interop"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</INSTANCEPATH>',
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+                '</VALUE.INSTANCEWITHPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace+host, non-default args ignore_path=True",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                path=CIMINSTANCENAME_HOST1,
+            ),
+            kwargs=dict(
+                ignore_path=True,
+            ),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with property variations
+    (
+        "Two properties",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('P1', 'bla'),
+                    CIMProperty('P2', 42, type='uint16'),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo">',
+                '<PROPERTY NAME="P1" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</PROPERTY>',
+                '<PROPERTY NAME="P2" TYPE="uint16">',
+                '<VALUE>42</VALUE>',
+                '</PROPERTY>',
+                '</INSTANCE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with qualifier variations
+    (
+        "Two qualifiers",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '</INSTANCE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with qualifier, property variations
+    (
+        "Two qualifiers and two properties",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+                properties=[
+                    CIMProperty('P2', 42, type='uint16'),
+                    CIMProperty('P1', 'bla'),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCE CLASSNAME="CIM_Foo">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '<PROPERTY NAME="P2" TYPE="uint16">',
+                '<VALUE>42</VALUE>',
+                '</PROPERTY>',
+                '<PROPERTY NAME="P1" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</PROPERTY>',
+                '</INSTANCE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with invalid property objects
+    (
+        "With invalid property object (type string)",
+        dict(
+            obj=CIMINSTANCE_INV_PROPERTY_1,
+            kwargs=dict(),
+            exp_xml_str=None if CHECK_0_12_0 else ( \
+                '<INSTANCE CLASSNAME="CIM_Foo">',
+                '<PROPERTY NAME="Foo" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</PROPERTY>',
+                '</INSTANCE>',
+            )
+        ),
+        TypeError if CHECK_0_12_0 else None, None, True
+    ),
+    (
+        "With invalid property object (type Uint16)",
+        dict(
+            obj=CIMINSTANCE_INV_PROPERTY_2,
+            kwargs=dict(),
+            exp_xml_str=None if CHECK_0_12_0 else ( \
+                '<INSTANCE CLASSNAME="CIM_Foo">',
+                '<PROPERTY NAME="Foo" TYPE="uint16">',
+                '<VALUE>42</VALUE>',
+                '</PROPERTY>',
+                '</INSTANCE>',
+            )
+        ),
+        TypeError if CHECK_0_12_0 else None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCE_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMInstance_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
     """
-    Test that valid CIM-XML is generated for `CIMInstance` objects.
+    All test cases for CIMInstance.tocimxml().
     """
 
-    def test_all(self):
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
 
-        # XML root elements for CIM-XML representations of CIMInstance
-        root_elem_CIMInstance_noname = 'INSTANCE'
-        root_elem_CIMInstance_withname = 'VALUE.NAMEDINSTANCE'
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
 
-        # Simple instances, no properties
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
-        self.validate(CIMInstance('CIM_Foo'),
-                      root_elem_CIMInstance_noname)
+    assert obj_xml_str == exp_xml_str
 
-        # Path
 
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'InstanceID': '1234'},
-                                  path=CIMInstanceName(
-                                      'CIM_Foo',
-                                      {'InstanceID': '1234'})),
-                      root_elem_CIMInstance_withname)
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCE_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMInstance_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMInstance.tocimxmlstr().
+    """
 
-        # Multiple properties and qualifiers
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
 
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Spotty': 'Foot',
-                                   'Age': Uint32(42)},
-                                  qualifiers={'Key':
-                                              CIMQualifier('Key', True)}),
-                      root_elem_CIMInstance_noname)
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
 
-        # Test every numeric property type
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
-        for t in [Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, Sint32, Sint64,
-                  Real32, Real64]:
-            self.validate(CIMInstance('CIM_Foo',
-                                      {'Number': t(42)}),
-                          root_elem_CIMInstance_noname)
-
-        # Other property types
-
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Value': False}),
-                      root_elem_CIMInstance_noname)
-
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Now': CIMDateTime.now()}),
-                      root_elem_CIMInstance_noname)
-
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Now': timedelta(60)}),
-                      root_elem_CIMInstance_noname)
-
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Ref': CIMInstanceName('CIM_Eep',
-                                                          {'Foo': 'Bar'})}),
-                      root_elem_CIMInstance_noname)
-
-        # Array types.  Can't have an array of references
-
-        for t in [Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, Sint32, Sint64,
-                  Real32, Real64]:
-
-            self.validate(CIMInstance('CIM_Foo',
-                                      {'Number': [t(42), t(43)]}),
-                          root_elem_CIMInstance_noname)
-
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Now': [CIMDateTime.now(),
-                                           CIMDateTime.now()]}),
-                      root_elem_CIMInstance_noname)
-
-        self.validate(CIMInstance('CIM_Foo',
-                                  {'Then': [timedelta(60),
-                                            timedelta(61)]}),
-                      root_elem_CIMInstance_noname)
-
-        # Null properties.  Can't have a NULL property reference.
-
-        obj = CIMInstance('CIM_Foo')
-
-        obj.properties['Cheepy'] = CIMProperty('Cheepy', None, type='string')
-        obj.properties['Date'] = CIMProperty('Date', None, type='datetime')
-        obj.properties['Bool'] = CIMProperty('Bool', None, type='boolean')
-
-        for t in ['uint8', 'uint16', 'uint32', 'uint64', 'sint8', 'sint16',
-                  'sint32', 'sint64', 'real32', 'real64']:
-            obj.properties[t] = CIMProperty(t, None, type=t)
-
-        self.validate(obj, root_elem_CIMInstance_noname)
-
-        # Null property arrays.  Can't have arrays of NULL property
-        # references.
-
-        obj = CIMInstance('CIM_Foo')
-
-        obj.properties['Cheepy'] = CIMProperty(
-            'Cheepy', None, type='string', is_array=True)
-
-        obj.properties['Date'] = CIMProperty(
-            'Date', None, type='datetime', is_array=True)
-
-        obj.properties['Bool'] = CIMProperty(
-            'Bool', None, type='boolean', is_array=True)
-
-        for t in ['uint8', 'uint16', 'uint32', 'uint64', 'sint8', 'sint16',
-                  'sint32', 'sint64', 'real32', 'real64']:
-            obj.properties[t] = CIMProperty(t, None, type=t, is_array=True)
-
-        self.validate(obj, root_elem_CIMInstance_noname)
-
-        # Verify that invalid property objects are detected
-
-        obj = CIMInstance('CIM_Foo')
-
-        obj.properties['Invalid'] = 'abc'  # invalid
-        if CHECK_0_12_0:
-            with pytest.raises(TypeError):
-                obj.tocimxml()
-        else:
-            obj.tocimxml()
-
-        obj.properties['Invalid'] = Uint8(42)  # invalid
-        if CHECK_0_12_0:
-            with pytest.raises(TypeError):
-                obj.tocimxml()
-        else:
-            obj.tocimxml()
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMInstance_tomof(object):
@@ -7504,61 +8279,2559 @@ class Test_CIMProperty_repr(object):  # pylint: disable=too-few-public-methods
         assert exp_qualifiers in r
 
 
-class CIMPropertyToXML(ValidationTestCase):
-    """Test valid XML is generated for various CIMProperty objects."""
+TESTCASES_CIMPROPERTY_TOCIMXML = [
 
-    def test_all(self):
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMProperty object to be tested.
+    #   * kwargs: Dict of input args for tocimxml() (empty).
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        # XML root elements for CIM-XML representations of CIMProperty
-        root_elem_CIMProperty_single = 'PROPERTY'
-        root_elem_CIMProperty_array = 'PROPERTY.ARRAY'
-        root_elem_CIMProperty_ref = 'PROPERTY.REFERENCE'
+    # Tests with name variations
+    (
+        "Name with ASCII characters, as byte string",
+        dict(
+            obj=CIMProperty(b'Foo', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with ASCII characters, as unicode string",
+        dict(
+            obj=CIMProperty(u'Foo', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as byte string",
+        dict(
+            obj=CIMProperty(b'Foo\xC3\xA9', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMProperty(u'Foo\u00E9', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as byte string",
+        dict(
+            obj=CIMProperty(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMProperty(u'Foo\U00010142', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Single-valued ordinary properties
+    # Tests with qualifier variations
+    (
+        "Two qualifiers and string value",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value='foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="string">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '<VALUE>foo</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Spotty', None, type='string'),
-                      root_elem_CIMProperty_single)
+    # Scalar properties with boolean type
+    (
+        "Scalar property with boolean type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with boolean type, value True",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with boolean type, value False",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="boolean">',
+                '<VALUE>FALSE</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty(u'Name', u'Brad'),
-                      root_elem_CIMProperty_single)
+    # Scalar properties with string type
+    (
+        "Scalar property with string type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with string type, value has one entry with ASCII "
+        "characters",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value='foo',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with string type, value has one entry with non-ASCII "
+        "UCS-2 characters",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=u'foo\u00E9',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo" TYPE="string">',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with string type, value has one entry with non-UCS-2 "
+        "characters",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=u'foo\U00010142',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo" TYPE="string">',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Age', Uint16(32)),
-                      root_elem_CIMProperty_single)
+    # Scalar properties with embedded objects/instances
+    (
+        "Scalar property with embedded instance type containing an instance",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string',
+                value=CIMInstance('CIM_Emb'), embedded_object='instance',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY EmbeddedObject="instance"',
+                ' NAME="Foo" TYPE="string">',
+                '<VALUE>',
+                '&lt;INSTANCE CLASSNAME=&quot;CIM_Emb&quot;/&gt;',
+                '</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with embedded object type containing an instance",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string',
+                value=CIMInstance('CIM_Emb'), embedded_object='object',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY EmbeddedObject="object"',
+                ' NAME="Foo" TYPE="string">',
+                '<VALUE>',
+                '&lt;INSTANCE CLASSNAME=&quot;CIM_Emb&quot;/&gt;',
+                '</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with embedded object type containing a class",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string',
+                value=CIMClass('CIM_Emb'), embedded_object='object',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY EmbeddedObject="object"',
+                ' NAME="Foo" TYPE="string">',
+                '<VALUE>',
+                '&lt;CLASS NAME=&quot;CIM_Emb&quot;/&gt;',
+                '</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Age', Uint16(32),
-                                  qualifiers={'Key':
-                                              CIMQualifier('Key', True)}),
-                      root_elem_CIMProperty_single)
+    # Scalar properties with char16 type
+    (
+        "Scalar property with char16 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with char16 type, value has one entry with an ASCII "
+        "character",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value='f',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="char16">',
+                '<VALUE>f</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with char16 type, value has one entry with a "
+        "non-ASCII UCS-2 character",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=u'\u00E9',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo" TYPE="char16">',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with char16 type, value has one entry with a "
+        "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=u'\U00010142',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY NAME="Foo" TYPE="char16">',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Array properties
+    # Scalar properties with uint8 type
+    (
+        "Scalar property with uint8 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with uint8 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint8', value=42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint8">',
+                '<VALUE>42</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo', None, 'string', is_array=True),
-                      root_elem_CIMProperty_array)
+    # Scalar properties with uint16 type
+    (
+        "Scalar property with uint16 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with uint16 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint16', value=1234,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint16">',
+                '<VALUE>1234</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo', [], 'string'),
-                      root_elem_CIMProperty_array)
+    # Scalar properties with uint32 type
+    (
+        "Scalar property with uint32 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with uint32 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=12345678,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint32">',
+                '<VALUE>12345678</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]]),
-                      root_elem_CIMProperty_array)
+    # Scalar properties with uint64 type
+    (
+        "Scalar property with uint64 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with uint64 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint64', value=123456789012,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="uint64">',
+                '<VALUE>123456789012</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo', [Uint8(x) for x in [1, 2, 3]],
-                                  qualifiers={'Key': CIMQualifier('Key',
-                                                                  True)}),
-                      root_elem_CIMProperty_array)
+    # Scalar properties with sint8 type
+    (
+        "Scalar property with sint8 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with sint8 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint8', value=-42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint8">',
+                '<VALUE>-42</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Reference properties
+    # Scalar properties with sint16 type
+    (
+        "Scalar property with sint16 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with sint16 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint16', value=-1234,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint16">',
+                '<VALUE>-1234</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo', None, type='reference'),
-                      root_elem_CIMProperty_ref)
+    # Scalar properties with sint32 type
+    (
+        "Scalar property with sint32 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with sint32 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint32', value=-12345678,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint32">',
+                '<VALUE>-12345678</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo', CIMInstanceName('CIM_Foo')),
-                      root_elem_CIMProperty_ref)
+    # Scalar properties with sint64 type
+    (
+        "Scalar property with sint64 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with sint64 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint64', value=-123456789012,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="sint64">',
+                '<VALUE>-123456789012</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMProperty('Foo',
-                                  CIMInstanceName('CIM_Foo'),
-                                  qualifiers={'Key': CIMQualifier('Key',
-                                                                  True)}),
-                      root_elem_CIMProperty_ref)
+    # Scalar properties with real32 type
+    (
+        "Scalar property with real32 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value between 0 and 1",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=0.42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>0.42</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value with max number of "
+        "significant digits (11)",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=1.2345678901,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>1.2345678901</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value larger 1 without exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=42.0,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>42.0</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value with small negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=-42.0E-3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>-0.042</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value with small positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=-42.0E+3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>-42000.0</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value with large negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=-42.0E-30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, value with large positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=-42.0E+30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, special value INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=float('inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, special value -INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=float('-inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real32 type, special value NaN",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=float('nan'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real32">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar properties with real64 type
+    (
+        "Scalar property with real64 type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real64 type, value between 0 and 1",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=0.42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>0.42</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Scalar property with real64 type, value with max number of "
+        "significant digits (17)",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=1.2345678901234567,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real64 type, value larger 1 without exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=42.0,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>42.0</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real64 type, value with small negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=-42.0E-3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>-0.042</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Scalar property with real64 type, value with small positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=-42.0E+3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>-42000.0</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real64 type, value with large negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=-42.0E-30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Scalar property with real64 type, value with large positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=-42.0E+30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Scalar property with real64 type, special value INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=float('inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real64 type, special value -INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=float('-inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with real64 type, special value NaN",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=float('nan'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="real64">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar properties with datetime type
+    (
+        "Scalar property with datetime type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with datetime type, point in time value",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime',
+                value=datetime(2014, 9, 22, 10, 49, 20, 524789),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="datetime">',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with datetime type, interval value",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime',
+                value=timedelta(10, 49, 20),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" TYPE="datetime">',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</PROPERTY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar properties with reference type
+    (
+        "Scalar property with reference type, value NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='reference', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.REFERENCE NAME="Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar property with reference type, classname-only ref value",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='reference',
+                value=CIMInstanceName('CIM_Foo'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.REFERENCE NAME="Foo">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</VALUE.REFERENCE>',
+                '</PROPERTY.REFERENCE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with boolean type
+    (
+        "Array property with boolean type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with boolean type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with boolean type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with boolean type, value has one entry True",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=[True],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>TRUE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with boolean type, value has one entry False",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='boolean', value=[False],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>FALSE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with string type
+    (
+        "Array property with string type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with string type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with string type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with string type, value has one entry with ASCII "
+        "characters",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=['foo'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with string type, value has one entry with non-ASCII "
+        "UCS-2 chars",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=[u'foo\u00E9'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with string type, value has one entry with non-UCS-2 "
+        "characters",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', value=[u'foo\U00010142'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with embedded objects/instances
+    (
+        "Array property with embedded instance type, value has one entry that "
+        "is an instance",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', is_array=True,
+                value=[CIMInstance('CIM_Emb')], embedded_object='instance',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY EmbeddedObject="instance"',
+                ' NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>',
+                '&lt;INSTANCE CLASSNAME=&quot;CIM_Emb&quot;/&gt;',
+                '</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with embedded object type, value has one entry that "
+        "is an instance",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', is_array=True,
+                value=[CIMInstance('CIM_Emb')], embedded_object='object',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY EmbeddedObject="object"',
+                ' NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>',
+                '&lt;INSTANCE CLASSNAME=&quot;CIM_Emb&quot;/&gt;',
+                '</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with embedded object type, value has one entry that "
+        "is a class",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='string', is_array=True,
+                value=[CIMClass('CIM_Emb')], embedded_object='object',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY EmbeddedObject="object"',
+                ' NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>',
+                '&lt;CLASS NAME=&quot;CIM_Emb&quot;/&gt;',
+                '</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with char16 type
+    (
+        "Array property with char16 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with char16 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with char16 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with char16 type, value has one entry with an ASCII "
+        "character",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=['f'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>f</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with char16 type, value has one entry with a "
+        "non-ASCII UCS-2 character",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=[u'\u00E9'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with char16 type, value has one entry with a "
+        "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='char16', value=[u'\U00010142'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with uint8 type
+    (
+        "Array property with uint8 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint8', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint8 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint8', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint8 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint8', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint8 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint8', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with uint16 type
+    (
+        "Array property with uint16 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint16 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint16 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint16 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint16', value=[1234],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with uint32 type
+    (
+        "Array property with uint32 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint32 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint32 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint32 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=[12345678],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with uint64 type
+    (
+        "Array property with uint64 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint64 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint64 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with uint64 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint64', value=[123456789012],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with sint8 type
+    (
+        "Array property with sint8 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint8', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint8 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint8', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint8 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint8', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint8 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint8', value=[-42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with sint16 type
+    (
+        "Array property with sint16 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint16 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint16 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint16 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint16', value=[-1234],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with sint32 type
+    (
+        "Array property with sint32 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint32 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint32 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint32 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint32', value=[-12345678],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with sint64 type
+    (
+        "Array property with sint64 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint64 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint64 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with sint64 type, value has one entry in range",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='sint64', value=[-123456789012],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with real32 type
+    (
+        "Array property with real32 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry between 0 and 1",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[0.42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry with max number "
+        "of significant digits (11)",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[1.2345678901],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry larger 1 "
+        "without exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[42.0],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry with small "
+        "negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[-42.0E-3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry with small "
+        "positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[-42.0E+3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry with large "
+        "negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[-42.0E-30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry with large "
+        "positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[-42.0E+30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry that is special "
+        "value INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[float('inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry that is special "
+        "value -INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[float('-inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real32 type, value has one entry that is special "
+        "value NaN",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real32', value=[float('nan')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with real64 type
+    (
+        "Array property with real64 type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry between 0 and 1",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[0.42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Array property with real64 type, value has one entry with max number "
+        "of significant digits (17)",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[1.2345678901234567],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry larger 1 "
+        "without exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[42.0],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry with small "
+        "negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[-42.0E-3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Array property with real64 type, value has one entry with small "
+        "positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[-42.0E+3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry with large "
+        "negative exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[-42.0E-30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Array property with real64 type, value has one entry with large "
+        "positive exponent",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[-42.0E+30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Array property with real64 type, value has one entry that is special "
+        "value INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[float('inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry that is special "
+        "value -INF",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[float('-inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with real64 type, value has one entry that is special "
+        "value NaN",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='real64', value=[float('nan')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with datetime type
+    (
+        "Array property with datetime type, value is NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with datetime type, value is empty array",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY/>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with datetime type, value has one entry NULL",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with datetime type, value has one entry point in time",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime',
+                value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array property with datetime type, value has one entry interval",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='datetime',
+                value=[timedelta(10, 49, 20)],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with reference type are not allowed
+
+    # Tests with class_origin, propagated variations
+    (
+        "Class origin set",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=None, class_origin='CIM_Origin',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY CLASSORIGIN="CIM_Origin" NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated set to True",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=None, propagated=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" PROPAGATED="true" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated set to False",
+        dict(
+            obj=CIMProperty(
+                'Foo', type='uint32', value=None, propagated=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PROPERTY NAME="Foo" PROPAGATED="false" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPROPERTY_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMProperty_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMProperty.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPROPERTY_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMProperty_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMProperty.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMProperty_tomof(object):
@@ -8982,23 +12255,2401 @@ class Test_CIMQualifier_repr(object):  # pylint: disable=too-few-public-methods
         assert exp_propagated in r
 
 
-class CIMQualifierToXML(ValidationTestCase):
+TESTCASES_CIMQUALIFIER_TOCIMXML = [
 
-    def test_all(self):
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMQualifier object to be tested.
+    #   * kwargs: Dict of input args for tocimxml() (empty).
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        # XML root elements for CIM-XML representations of CIMQualifier
-        root_elem_CIMQualifier = 'QUALIFIER'
+    # Tests with name variations
+    (
+        "Name with ASCII characters, as byte string",
+        dict(
+            obj=CIMQualifier(b'Foo', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with ASCII characters, as unicode string",
+        dict(
+            obj=CIMQualifier(u'Foo', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as byte string",
+        dict(
+            obj=CIMQualifier(b'Foo\xC3\xA9', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMQualifier(u'Foo\u00E9', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as byte string",
+        dict(
+            obj=CIMQualifier(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMQualifier(u'Foo\U00010142', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMQualifier('Spotty', 'Foot'),
-                      root_elem_CIMQualifier)
+    # Variations of propagated argument
+    (
+        "Qualifier with propagated True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                propagated=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" PROPAGATED="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with propagated False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                propagated=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" PROPAGATED="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMQualifier('Revision', Real32(2.7)),
-                      root_elem_CIMQualifier)
+    # Variations of overridable argument
+    (
+        "Qualifier with overridable True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                overridable=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" OVERRIDABLE="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with overridable False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                overridable=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" OVERRIDABLE="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMQualifier('RevisionList',
-                                   [Uint16(x) for x in [1, 2, 3]],
-                                   propagated=False),
-                      root_elem_CIMQualifier)
+    # Variations of tosubclass argument
+    (
+        "Qualifier with tosubclass True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                tosubclass=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TOSUBCLASS="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with tosubclass False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                tosubclass=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TOSUBCLASS="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of toinstance argument
+    (
+        "Qualifier with toinstance True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                toinstance=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TOINSTANCE="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with toinstance False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                toinstance=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TOINSTANCE="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of translatable argument
+    (
+        "Qualifier with translatable True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                translatable=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TRANSLATABLE="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Qualifier with translatable False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+                translatable=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TRANSLATABLE="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with boolean type
+    (
+        "Scalar qualifier with boolean type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with boolean type, value True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with boolean type, value False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean">',
+                '<VALUE>FALSE</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with string type
+    (
+        "Scalar qualifier with string type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with string type, value has one entry with ASCII "
+        "characters",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value='foo',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with string type, value has one entry with "
+        "non-ASCII UCS-2 characters",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=u'foo\u00E9',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="string">',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with string type, value has one entry with "
+        "non-UCS-2 characters",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=u'foo\U00010142',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="string">',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with char16 type
+    (
+        "Scalar qualifier with char16 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with char16 type, value has one entry with an ASCII "
+        "character",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value='f',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE>f</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with char16 type, value has one entry with a "
+        "non-ASCII UCS-2 character",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=u'\u00E9',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="char16">',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with char16 type, value has one entry with "
+        "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=u'\U00010142',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="char16">',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with uint8 type
+    (
+        "Scalar qualifier with uint8 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with uint8 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint8', value=42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint8">',
+                '<VALUE>42</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with uint16 type
+    (
+        "Scalar qualifier with uint16 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with uint16 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint16', value=1234,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint16">',
+                '<VALUE>1234</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with uint32 type
+    (
+        "Scalar qualifier with uint32 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with uint32 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint32', value=12345678,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint32">',
+                '<VALUE>12345678</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with uint64 type
+    (
+        "Scalar qualifier with uint64 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with uint64 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint64', value=123456789012,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint64">',
+                '<VALUE>123456789012</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with sint8 type
+    (
+        "Scalar qualifier with sint8 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with sint8 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint8', value=-42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint8">',
+                '<VALUE>-42</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with sint16 type
+    (
+        "Scalar qualifier with sint16 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with sint16 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint16', value=-1234,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint16">',
+                '<VALUE>-1234</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with sint32 type
+    (
+        "Scalar qualifier with sint32 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with sint32 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint32', value=-12345678,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint32">',
+                '<VALUE>-12345678</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with sint64 type
+    (
+        "Scalar qualifier with sint64 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with sint64 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint64', value=-123456789012,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint64">',
+                '<VALUE>-123456789012</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with real32 type
+    (
+        "Scalar qualifier with real32 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value between 0 and 1",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=0.42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>0.42</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value with max number of "
+        "significant digits (11)",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=1.2345678901,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>1.2345678901</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value larger 1 without exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=42.0,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>42.0</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value with small negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=-42.0E-3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>-0.042</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value with small positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=-42.0E+3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>-42000.0</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value with large negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=-42.0E-30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, value with large positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=-42.0E+30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, special value INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=float('inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, special value -INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=float('-inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real32 type, special value NaN",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=float('nan'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with real64 type
+    (
+        "Scalar qualifier with real64 type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real64 type, value between 0 and 1",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=0.42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>0.42</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Scalar qualifier with real64 type, value with max number of "
+        "significant digits (17)",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=1.2345678901234567,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real64 type, value larger 1 without exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=42.0,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>42.0</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real64 type, value with small negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=-42.0E-3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>-0.042</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Scalar qualifier with real64 type, value with small positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=-42.0E+3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>-42000.0</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real64 type, value with large negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=-42.0E-30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Scalar qualifier with real64 type, value with large positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=-42.0E+30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Scalar qualifier with real64 type, special value INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=float('inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real64 type, special value -INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=float('-inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with real64 type, special value NaN",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=float('nan'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifiers with datetime type
+    (
+        "Scalar qualifier with datetime type, value NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with datetime type, point in time value",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime',
+                value=datetime(2014, 9, 22, 10, 49, 20, 524789),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime">',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier with datetime type, interval value",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime',
+                value=timedelta(10, 49, 20),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime">',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Qualifiers with reference type are not allowed as per DSP0004
+
+    # Array qualifiers with boolean type
+    (
+        "Array qualifier with boolean type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with boolean type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with boolean type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with boolean type, value has one entry True",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=[True],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>TRUE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with boolean type, value has one entry False",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='boolean', value=[False],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>FALSE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with string type
+    (
+        "Array qualifier with string type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with string type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with string type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with string type, value has one entry with ASCII "
+        "characters",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=['foo'],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with string type, value has one entry with non-ASCII "
+        "UCS-2 characters",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=[u'foo\u00E9'],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with string type, value has one entry with non-UCS-2 "
+        "characters",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='string', value=[u'foo\U00010142'],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with char16 type
+    (
+        "Array qualifier with char16 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with char16 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with char16 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with char16 type, value has one entry with an ASCII "
+        "character",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=['f'],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>f</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with char16 type, value has one entry with a "
+        "non-ASCII UCS-2 character",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=[u'\u00E9'],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with char16 type, value has one entry with a "
+        "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='char16', value=[u'\U00010142'],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER NAME="Foo" TYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with uint8 type
+    (
+        "Array qualifier with uint8 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint8 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint8', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint8">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint8 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint8', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint8 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint8', value=[42],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with uint16 type
+    (
+        "Array qualifier with uint16 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint16 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint16', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint16">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint16 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint16', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint16 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint16', value=[1234],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with uint32 type
+    (
+        "Array qualifier with uint32 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint32 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint32', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint32">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint32 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint32', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint32 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint32', value=[12345678],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with uint64 type
+    (
+        "Array qualifier with uint64 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint64 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint64', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint64">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint64 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint64', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with uint64 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='uint64', value=[123456789012],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with sint8 type
+    (
+        "Array qualifier with sint8 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint8 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint8', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint8">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint8 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint8', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint8 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint8', value=[-42],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with sint16 type
+    (
+        "Array qualifier with sint16 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint16 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint16', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint16">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint16 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint16', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint16 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint16', value=[-1234],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with sint32 type
+    (
+        "Array qualifier with sint32 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint32 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint32', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint32">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint32 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint32', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint32 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint32', value=[-12345678],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with sint64 type
+    (
+        "Array qualifier with sint64 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint64 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint64', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint64">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint64 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint64', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with sint64 type, value has one entry in range",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='sint64', value=[-123456789012],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with real32 type
+    (
+        "Array qualifier with real32 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry between 0 and 1",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[0.42],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry with max "
+        "number of significant digits (11)",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[1.2345678901],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry larger 1 "
+        "without exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[42.0],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry with small "
+        "negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[-42.0E-3],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry with small "
+        "positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[-42.0E+3],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry with large "
+        "negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[-42.0E-30],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry with large "
+        "positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[-42.0E+30],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry that is "
+        "special value INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[float('inf')],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry that is "
+        "special value -INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[float('-inf')],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real32 type, value has one entry that is "
+        "special value NaN",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real32', value=[float('nan')],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with real64 type
+    (
+        "Array qualifier with real64 type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry between 0 and 1",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[0.42],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry with max "
+        "number of significant digits (17)",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[1.2345678901234567],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry larger 1 "
+        "without exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[42.0],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry with small "
+        "negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[-42.0E-3],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry with small "
+        "positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[-42.0E+3],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry with large "
+        "negative exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[-42.0E-30],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry with large "
+        "positive exponent",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[-42.0E+30],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry that is "
+        "special value INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[float('inf')],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry that is "
+        "special value -INF",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[float('-inf')],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with real64 type, value has one entry that is "
+        "special value NaN",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='real64', value=[float('nan')],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifiers with datetime type
+    (
+        "Array qualifier with datetime type, value is NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with datetime type, value is empty array",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime', value=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with datetime type, value has one entry NULL",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime', value=[None],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with datetime type, value has one entry point in time",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime',
+                value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier with datetime type, value has one entry interval",
+        dict(
+            obj=CIMQualifier(
+                'Foo', type='datetime',
+                value=[timedelta(10, 49, 20)],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER NAME="Foo" TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIER_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMQualifier_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMQualifier.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIER_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMQualifier_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMQualifier.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
@@ -9890,21 +15541,290 @@ class Test_CIMClassName_repr(object):  # pylint: disable=too-few-public-methods
         assert exp_host in r
 
 
-class CIMClassNameToXML(ValidationTestCase):
+TESTCASES_CIMCLASSNAME_TOCIMXML = [
 
-    def test_all(self):
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMClassName object to be tested.
+    #   * kwargs: Dict of input args for tocimxml().
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        self.validate(CIMClassName('CIM_Foo'),
-                      'CLASSNAME')
+    # Classname-only tests
+    (
+        "Classname only, with implied default args",
+        dict(
+            obj=CIMClassName('CIM_Foo'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASSNAME NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname only, with specified default args",
+        dict(
+            obj=CIMClassName('CIM_Foo'),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<CLASSNAME NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname only, with non-default args: ignore_host=True",
+        dict(
+            obj=CIMClassName('CIM_Foo'),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<CLASSNAME NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname only, with non-default args: ignore_namespace=True",
+        dict(
+            obj=CIMClassName('CIM_Foo'),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<CLASSNAME NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMClassName('CIM_Foo',
-                                   namespace='root/blah'),
-                      'LOCALCLASSPATH')
+    # Classname with namespace tests
+    (
+        "Classname with namespace, with implied default args",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<LOCALCLASSPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<CLASSNAME NAME="CIM_Foo"/>',
+                '</LOCALCLASSPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace, with specified default args",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<LOCALCLASSPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<CLASSNAME NAME="CIM_Foo"/>',
+                '</LOCALCLASSPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace, with non-default: ignore_host=True",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<LOCALCLASSPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<CLASSNAME NAME="CIM_Foo"/>',
+                '</LOCALCLASSPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace, with non-def: ignore_namespace=True",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+            ),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<CLASSNAME NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMClassName('CIM_Foo',
-                                   namespace='root/blah',
-                                   host='fred'),
-                      'CLASSPATH')
+    # Classname with namespace+host tests
+    (
+        "Classname with namespace+host, with implied default args",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASSPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot.com</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<CLASSNAME NAME="CIM_Foo"/>',
+                '</CLASSPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace+host, with specified default args",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(
+                ignore_host=False,
+                ignore_namespace=False,
+            ),
+            exp_xml_str=(
+                '<CLASSPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot.com</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<CLASSNAME NAME="CIM_Foo"/>',
+                '</CLASSPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace+host, with non-default: ignore_host=True",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(
+                ignore_host=True,
+            ),
+            exp_xml_str=(
+                '<LOCALCLASSPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<CLASSNAME NAME="CIM_Foo"/>',
+                '</LOCALCLASSPATH>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with namespace+host, with non-def: ignore_namespace=True",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com',
+            ),
+            kwargs=dict(
+                ignore_namespace=True,
+            ),
+            exp_xml_str=(
+                '<CLASSNAME NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASSNAME_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMClassName_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMClassName.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASSNAME_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMClassName_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMClassName.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMClassName_from_wbem_uri(object):
@@ -11851,33 +17771,239 @@ class Test_CIMClass_repr(object):  # pylint: disable=too-few-public-methods
         assert exp_path in r
 
 
-class CIMClassToXML(ValidationTestCase):
+# Some CIMClassName objects for CIMClass.tocimxml() tests
 
-    def test_all(self):
+CIMCLASSNAME_CLASSNAME1 = CIMClassName('CIM_Foo')
+CIMCLASSNAME_NAMESPACE1 = CIMClassName('CIM_Foo', namespace='interop')
+CIMCLASSNAME_HOST1 = CIMClassName('CIM_Foo', namespace='interop',
+                                  host='woot.com')
 
-        # XML root elements for CIM-XML representations of CIMClass
-        root_elem_CIMClass = 'CLASS'
+TESTCASES_CIMCLASS_TOCIMXML = [
 
-        self.validate(CIMClass('CIM_Foo'),
-                      root_elem_CIMClass)
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMClass object to be tested.
+    #   * kwargs: Dict of input args for tocimxml() (empty).
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        self.validate(CIMClass('CIM_Foo', superclass='CIM_Bar'),
-                      root_elem_CIMClass)
+    # Tests with path and args variations
+    (
+        "No path",
+        dict(
+            obj=CIMClass('CIM_Foo'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with classname-only",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                path=CIMCLASSNAME_CLASSNAME1,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                path=CIMCLASSNAME_NAMESPACE1,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Path with namespace+host",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                path=CIMCLASSNAME_HOST1,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMClass('CIM_Foo',
-                               properties={'InstanceID':
-                                           CIMProperty('InstanceID', None,
-                                                       type='string')}),
-                      root_elem_CIMClass)
+    # Tests with property variations
+    (
+        "Two properties",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('P1', 'bla'),
+                    CIMProperty('P2', 42, type='uint16'),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo">',
+                '<PROPERTY NAME="P1" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</PROPERTY>',
+                '<PROPERTY NAME="P2" TYPE="uint16">',
+                '<VALUE>42</VALUE>',
+                '</PROPERTY>',
+                '</CLASS>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMClass('CIM_Foo',
-                               methods={'Delete': CIMMethod('Delete',
-                                                            'uint32')}),
-                      root_elem_CIMClass)
+    # Tests with method variations
+    (
+        "Two methods",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                methods=[
+                    CIMMethod('M2', return_type='string'),
+                    CIMMethod('M1', return_type='uint32'),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo">',
+                '<METHOD NAME="M2" TYPE="string"/>',
+                '<METHOD NAME="M1" TYPE="uint32"/>',
+                '</CLASS>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMClass('CIM_Foo',
-                               qualifiers={'Key': CIMQualifier('Key', True)}),
-                      root_elem_CIMClass)
+    # Tests with qualifier variations
+    (
+        "Two qualifiers",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '</CLASS>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with qualifier, property, method variations
+    (
+        "Two qualifiers, two properties, two methods",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+                properties=[
+                    CIMProperty('P2', 42, type='uint16'),
+                    CIMProperty('P1', 'bla'),
+                ],
+                methods=[
+                    CIMMethod('M2', return_type='string'),
+                    CIMMethod('M1', return_type='uint32'),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<CLASS NAME="CIM_Foo">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '<PROPERTY NAME="P2" TYPE="uint16">',
+                '<VALUE>42</VALUE>',
+                '</PROPERTY>',
+                '<PROPERTY NAME="P1" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</PROPERTY>',
+                '<METHOD NAME="M2" TYPE="string"/>',
+                '<METHOD NAME="M1" TYPE="uint32"/>',
+                '</CLASS>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASS_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMClass_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMClass.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASS_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMClass_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMClass.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMClass_tomof(object):  # pylint: disable=too-few-public-methods
@@ -11902,7 +18028,7 @@ class Test_CIMClass_tomof(object):  # pylint: disable=too-few-public-methods
                 superclass=u'C2',
                 properties=[
                     CIMProperty(
-                        'p2', value="abc", type='string',
+                        'p2', type='string', value="abc",
                         qualifiers=[
                             CIMQualifier('q2', value="qv2", type='string'),
                         ],
@@ -13121,22 +19247,286 @@ class CIMMethodNoReturn(unittest.TestCase):
             pass
 
 
-class CIMMethodToXML(ValidationTestCase):
+TESTCASES_CIMMETHOD_TOCIMXML = [
 
-    def test_all(self):
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMMethod object to be tested.
+    #   * kwargs: Dict of input args for tocimxml() (empty).
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        # XML root elements for CIM-XML representations of CIMMethod
-        root_elem_CIMMethod = 'METHOD'
+    # Tests with name variations
+    (
+        "Name with ASCII characters, as byte string",
+        dict(
+            obj=CIMMethod(b'Foo', return_type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with ASCII characters, as unicode string",
+        dict(
+            obj=CIMMethod(u'Foo', return_type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as byte string",
+        dict(
+            obj=CIMMethod(b'Foo\xC3\xA9', return_type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<METHOD NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMMethod(u'Foo\u00E9', return_type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<METHOD NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as byte string",
+        dict(
+            obj=CIMMethod(b'Foo\xF0\x90\x85\x82', return_type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<METHOD NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMMethod(u'Foo\U00010142', return_type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<METHOD NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMMethod('FooMethod', 'uint32'),
-                      root_elem_CIMMethod)
+    # Tests with qualifier variations
+    (
+        "Two qualifiers",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='string',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="string">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '</METHOD>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(
-            CIMMethod('FooMethod', 'uint32',
-                      parameters={'Param1': CIMParameter('Param1', 'uint32'),
-                                  'Param2': CIMParameter('Param2', 'string')},
-                      qualifiers={'Key': CIMQualifier('Key', True)}),
-            root_elem_CIMMethod)
+    # Tests with return type variations (subset, scalar-only)
+    # Methods cannot have reference return type (checked by CIMMethod)
+    (
+        "Return type boolean",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='boolean',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Return type string",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='string',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Return type real32",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='real32',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Return type sint64",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='sint64',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Return type datetime",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='datetime',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with parameter variations (subset)
+    (
+        "Two parameters",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='uint32',
+                parameters=[
+                    CIMParameter('P2', type='boolean'),
+                    CIMParameter('P1', type='string', is_array=True),
+                ],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" TYPE="uint32">',
+                '<PARAMETER NAME="P2" TYPE="boolean"/>',
+                '<PARAMETER.ARRAY NAME="P1" TYPE="string"/>',
+                '</METHOD>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Tests with class_origin, propagated variations
+    (
+        "Class origin set",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='uint32', class_origin='CIM_Origin',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD CLASSORIGIN="CIM_Origin" NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated set to True",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='uint32', propagated=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" PROPAGATED="true" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Propagated set to False",
+        dict(
+            obj=CIMMethod(
+                'Foo', return_type='uint32', propagated=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<METHOD NAME="Foo" PROPAGATED="false" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMMETHOD_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMMethod_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMMethod.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMMETHOD_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMMethod_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMMethod.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMMethod_tomof(object):  # pylint: disable=too-few-public-methods
@@ -14650,72 +21040,3054 @@ class Test_CIMParameter_repr(object):  # pylint: disable=too-few-public-methods
         assert exp_qualifiers in r
 
 
-class CIMParameterToXML(ValidationTestCase):
+TESTCASES_CIMPARAMETER_TOCIMXML = [
 
-    def test_all(self):
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMParameter object to be tested.
+    #   * kwargs: Dict of input args for tocimxml().
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        # XML root elements for CIM-XML representations of CIMParameter
-        root_elem_CIMParameter_single = 'PARAMETER'
-        root_elem_CIMParameter_array = 'PARAMETER.ARRAY'
-        root_elem_CIMParameter_ref = 'PARAMETER.REFERENCE'
-        root_elem_CIMParameter_refarray = 'PARAMETER.REFARRAY'
+    # Parameters with variations of as_value argument
+    (
+        "Argument as_value defaults to False",
+        dict(
+            obj=CIMParameter(b'Foo', type='string', value=None),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Argument as_value specified as False",
+        dict(
+            obj=CIMParameter(b'Foo', type='string', value=None),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Argument as_value specified as True",
+        dict(
+            obj=CIMParameter(b'Foo', type='string', value=None),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Single-valued parameters
+    # Parameters with name variations
+    (
+        "Parameter as declaration, name with ASCII characters, as byte string",
+        dict(
+            obj=CIMParameter(b'Foo', type='string'),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as declaration, name with ASCII characters, as unicode "
+        "string",
+        dict(
+            obj=CIMParameter(u'Foo', type='string'),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as declaration, name with non-ASCII UCS-2 characters, as "
+        "byte string",
+        dict(
+            obj=CIMParameter(b'Foo\xC3\xA9', value=None, type='string'),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                u'<PARAMETER NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as declaration, name with non-ASCII UCS-2 characters, as "
+        "unicode string",
+        dict(
+            obj=CIMParameter(u'Foo\u00E9', value=None, type='string'),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                u'<PARAMETER NAME="Foo\u00E9" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as declaration, name with non-UCS-2 characters, as byte "
+        "string",
+        dict(
+            obj=CIMParameter(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                u'<PARAMETER NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as declaration, name with non-UCS-2 characters, as unicode "
+        "string",
+        dict(
+            obj=CIMParameter(u'Foo\U00010142', value=None, type='string'),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                u'<PARAMETER NAME="Foo\U00010142" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, name with ASCII characters, as byte string",
+        dict(
+            obj=CIMParameter(b'Foo', type='string'),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, name with ASCII characters, as unicode string",
+        dict(
+            obj=CIMParameter(u'Foo', type='string'),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, name with non-ASCII UCS-2 characters, as byte "
+        "string",
+        dict(
+            obj=CIMParameter(b'Foo\xC3\xA9', value=None, type='string'),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo\u00E9" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, name with non-ASCII UCS-2 characters, as unicode "
+        "string",
+        dict(
+            obj=CIMParameter(u'Foo\u00E9', value=None, type='string'),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo\u00E9" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, name with non-UCS-2 characters, as byte string",
+        dict(
+            obj=CIMParameter(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo\U00010142" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, name with non-UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMParameter(u'Foo\U00010142', value=None, type='string'),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo\U00010142" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('Param1', 'uint32'),
-                      root_elem_CIMParameter_single)
+    # Parameters with qualifier variations
+    (
+        "Parameter as declaration, no qualifiers",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=None,
+                qualifiers=[],
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as declaration, two qualifiers and string value",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value='foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string">',
+                '<QUALIFIER NAME="Q2" TYPE="string">',
+                '<VALUE>bla</VALUE>',
+                '</QUALIFIER>',
+                '<QUALIFIER NAME="Q1" TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER>',
+                '</PARAMETER>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, no qualifiers",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=None,
+                qualifiers=[],
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Parameter as value, two qualifiers and string value",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value='foo',
+                qualifiers=[
+                    CIMQualifier('Q2', 'bla'),
+                    CIMQualifier('Q1', True),
+                ],
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('Param1', 'string',
-                                   qualifiers={'Key': CIMQualifier('Key',
-                                                                   True)}),
-                      root_elem_CIMParameter_single)
+    # Scalar parameters with boolean type
+    (
+        "Scalar parameter as declaration with boolean type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with boolean type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with boolean type, value True",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with boolean type, value False",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=False,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean">',
+                '<VALUE>FALSE</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Array parameters
+    # Scalar parameters with string type
+    (
+        "Scalar parameter as declaration with string type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value='bla',
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with string type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with string type, value has one entry with "
+        "ASCII characters",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value='foo',
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with string type, value has one entry with "
+        "non-ASCII UCS-2 characters",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=u'foo\u00E9',
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with string type, value has one entry with "
+        "non-UCS-2 characters",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=u'foo\U00010142',
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('ArrayParam', 'uint32', is_array=True),
-                      root_elem_CIMParameter_array)
+    # Scalar parameters with char16 type
+    (
+        "Scalar parameter as declaration with char16 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value='b',
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with char16 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with char16 type, value has one entry with "
+        "a ASCII character",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value='f',
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE>f</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with char16 type, value has one entry with "
+        "a non-ASCII UCS-2 character",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=u'\u00E9',
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with char16 type, value has one entry with "
+        "a non-UCS-2 character "
+        "(invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=u'\U00010142',
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('ArrayParam', 'uint32', is_array=True,
-                                   array_size=10),
-                      root_elem_CIMParameter_array)
+    # Scalar parameters with uint8 type
+    (
+        "Scalar parameter as declaration with uint8 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint8 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint8 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=42,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint8">',
+                '<VALUE>42</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('ArrayParam', 'uint32', is_array=True,
-                                   array_size=10,
-                                   qualifiers={'Key': CIMQualifier('Key',
-                                                                   True)}),
-                      root_elem_CIMParameter_array)
+    # Scalar parameters with uint16 type
+    (
+        "Scalar parameter as declaration with uint16 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint16 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint16 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=1234,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint16">',
+                '<VALUE>1234</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Reference parameters
+    # Scalar parameters with uint32 type
+    (
+        "Scalar parameter as declaration with uint32 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint32 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint32 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=12345678,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint32">',
+                '<VALUE>12345678</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('RefParam', 'reference',
-                                   reference_class='CIM_Foo',
-                                   qualifiers={'Key':
-                                               CIMQualifier('Key', True)}),
-                      root_elem_CIMParameter_ref)
+    # Scalar parameters with uint64 type
+    (
+        "Scalar parameter as declaration with uint64 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint64 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with uint64 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=123456789012,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint64">',
+                '<VALUE>123456789012</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        # Reference array parameters
+    # Scalar parameters with sint8 type
+    (
+        "Scalar parameter as declaration with sint8 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint8 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint8 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=-42,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint8">',
+                '<VALUE>-42</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('RefArrayParam', 'reference',
-                                   is_array=True),
-                      root_elem_CIMParameter_refarray)
+    # Scalar parameters with sint16 type
+    (
+        "Scalar parameter as declaration with sint16 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint16 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint16 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=-1234,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint16">',
+                '<VALUE>-1234</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('RefArrayParam', 'reference',
-                                   reference_class='CIM_Foo',
-                                   is_array=True),
-                      root_elem_CIMParameter_refarray)
+    # Scalar parameters with sint32 type
+    (
+        "Scalar parameter as declaration with sint32 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint32 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint32 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=-12345678,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint32">',
+                '<VALUE>-12345678</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('RefArrayParam', 'reference',
-                                   reference_class='CIM_Foo',
-                                   is_array=True,
-                                   array_size=10),
-                      root_elem_CIMParameter_refarray)
+    # Scalar parameters with sint64 type
+    (
+        "Scalar parameter as declaration with sint64 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint64 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with sint64 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=-123456789012,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint64">',
+                '<VALUE>-123456789012</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
 
-        self.validate(CIMParameter('RefArrayParam', 'reference',
-                                   reference_class='CIM_Foo',
-                                   is_array=True,
-                                   qualifiers={'Key':
-                                               CIMQualifier('Key', True)}),
-                      root_elem_CIMParameter_refarray)
+    # Scalar parameters with real32 type
+    (
+        "Scalar parameter as declaration with real32 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value between 0 and 1",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=0.42,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>0.42</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value with max number of "
+        "significant digits (11)",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=1.2345678901,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>1.2345678901</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value larger 1 without "
+        "exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=42.0,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>42.0</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value with small "
+        "negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=-42.0E-3,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>-0.042</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value with small "
+        "positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=-42.0E+3,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>-42000.0</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value with large "
+        "negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=-42.0E-30,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, value with large "
+        "positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=-42.0E+30,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, special value INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=float('inf'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, special value -INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=float('-inf'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real32 type, special value NaN",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=float('nan'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar parameters with real64 type
+    (
+        "Scalar parameter as declaration with real64 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=42,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, value between 0 and 1",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=0.42,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>0.42</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Scalar parameter as value with real64 type, value with max number of "
+        "significant digits (17)",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=1.2345678901234567,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, value larger 1 without "
+        "exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=42.0,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>42.0</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, value with small "
+        "negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=-42.0E-3,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>-0.042</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Scalar parameter as value with real64 type, value with small "
+        "positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=-42.0E+3,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>-42000.0</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, value with large "
+        "negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=-42.0E-30,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Scalar parameter as value with real64 type, value with large "
+        "positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=-42.0E+30,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Scalar parameter as value with real64 type, special value INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=float('inf'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, special value -INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=float('-inf'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with real64 type, special value NaN",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=float('nan'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar parameters with datetime type
+    (
+        "Scalar parameter as declaration with datetime type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime',
+                value=datetime(2014, 9, 22, 10, 49, 20, 524789),
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with datetime type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with datetime type, point in time value",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime',
+                value=datetime(2014, 9, 22, 10, 49, 20, 524789),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime">',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with datetime type, interval value",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime',
+                value=timedelta(10, 49, 20),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime">',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar parameters with reference type
+    (
+        "Scalar parameter as declaration with reference type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference',
+                value=CIMInstanceName('CIM_Foo'),
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.REFERENCE NAME="Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with reference type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference', value=None,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="reference"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with reference type, classname-only ref "
+        "value",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference',
+                value=CIMInstanceName('CIM_Foo'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="reference">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</VALUE.REFERENCE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with boolean type
+    (
+        "Array parameter as declaration with boolean type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=[True],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with boolean type, value is NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with boolean type, value is empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with boolean type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with boolean type, value has one entry True",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=[True],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>TRUE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with boolean type, value has one entry False",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='boolean', value=[False],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>FALSE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with string type
+    (
+        "Array parameter as declaration with string type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=['bla'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with string type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with string type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with string type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with string type, value has one entry with "
+        "ASCII characters",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=['foo'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with string type, value has one entry with "
+        "non-ASCII UCS-2 characters",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=[u'foo\u00E9'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with string type, value has one entry with "
+        "non-UCS-2 characters",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', value=[u'foo\U00010142'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with char16 type
+    (
+        "Array parameter as declaration with char16 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=['b'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with char16 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with char16 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with char16 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with char16 type, value has one entry with "
+        "an ASCII character",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=['f'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>f</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with char16 type, value has one entry with "
+        "a non-ASCII UCS-2 character",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=[u'\u00E9'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with char16 type, value has one entry with "
+        "a non-UCS-2 character "
+        "(invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='char16', value=[u'\U00010142'],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with uint8 type
+    (
+        "Array parameter as declaration with uint8 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint8 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint8 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint8">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint8 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint8 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint8', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with uint16 type
+    (
+        "Array parameter as declaration with uint16 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint16 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint16 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint16">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint16 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint16 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint16', value=[1234],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with uint32 type
+    (
+        "Array parameter as declaration with uint32 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint32 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint32 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint32">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint32 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint32 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint32', value=[12345678],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array properties with uint64 type
+    (
+        "Array parameter as declaration with uint64 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint64 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint64 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint64">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint64 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with uint64 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='uint64', value=[123456789012],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with sint8 type
+    (
+        "Array parameter as declaration with sint8 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint8 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint8 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint8">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint8 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint8 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint8', value=[-42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with sint16 type
+    (
+        "Array parameter as declaration with sint16 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint16 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint16 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint16">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint16 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint16 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint16', value=[-1234],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with sint32 type
+    (
+        "Array parameter as declaration with sint32 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint32 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint32 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint32">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint32 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint32 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint32', value=[-12345678],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with sint64 type
+    (
+        "Array parameter as declaration with sint64 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint64 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint64 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint64">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint64 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with sint64 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='sint64', value=[-123456789012],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with real32 type
+    (
+        "Array parameter as declaration with real32 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value between 0 and 1",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[0.42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value with max number of "
+        "significant digits (11)",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[1.2345678901],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value larger 1 without "
+        "exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[42.0],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "small negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[-42.0E-3],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "small positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[-42.0E+3],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "large negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[-42.0E-30],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "large positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[-42.0E+30],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "special value INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[float('inf')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "special value -INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[float('-inf')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real32 type, value has one entry with "
+        "special value NaN",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real32', value=[float('nan')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with real64 type
+    (
+        "Array parameter as declaration with real64 type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value between 0 and 1",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[0.42],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry with "
+        "max number of significant digits (17)",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[1.2345678901234567],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry "
+        "larger 1 without exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[42.0],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry with "
+        "small negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[-42.0E-3],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry with "
+        "small positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[-42.0E+3],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry with "
+        "large negative exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[-42.0E-30],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Array parameter as value with real64 type, value has one entry with "
+        "large positive exponent",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[-42.0E+30],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Array parameter as value with real64 type, special value INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[float('inf')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, special value -INF",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[float('-inf')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with real64 type, special value NaN",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='real64', value=[float('nan')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with datetime type
+    (
+        "Array parameter as declaration with datetime type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime',
+                value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.ARRAY NAME="Foo" TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with datetime type, value NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with datetime type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with datetime type, value has one entry NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with datetime type, value has one entry "
+        "point in time",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime',
+                value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with datetime type, value has one entry "
+        "interval",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='datetime',
+                value=[timedelta(10, 49, 20)],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with reference type
+    (
+        "Array parameter as declaration with reference type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference',
+                value=[CIMInstanceName('CIM_Foo')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=False),
+            exp_xml_str=(
+                '<PARAMETER.REFARRAY NAME="Foo"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with reference type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="reference"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with reference type, value empty array",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="reference">',
+                '<VALUE.REFARRAY/>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with reference type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="reference">',
+                '<VALUE.REFARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.REFARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with reference type, value has one entry "
+        "class-name only ref",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='reference',
+                value=[CIMInstanceName('CIM_Foo')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="reference">',
+                '<VALUE.REFARRAY>',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+                '</VALUE.REFERENCE>',
+                '</VALUE.REFARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPARAMETER_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMParameter_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMParameter.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPARAMETER_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMParameter_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMParameter.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMParameter_tomof(object):  # pylint: disable=too-few-public-methods
@@ -16246,12 +25618,2721 @@ class Test_CIMQualifierDeclaration_repr(object):
         assert exp_toinstance in r
 
 
-class CIMQualifierDeclarationToXML(unittest.TestCase):
+TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
 
-    @unimplemented
-    def test_all(self):
-        # TODO Implement tocimxml() test for CIMQualifierDeclaration
-        raise AssertionError("test not implemented")
+    # Each testcase tuple has these items:
+    # * desc: Short testcase description.
+    # * kwargs: Input arguments for test function, as a dict:
+    #   * obj: CIMQualifierDeclaration object to be tested.
+    #   * kwargs: Dict of input args for tocimxml() (empty).
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Tests with name variations
+    (
+        "Name with ASCII characters, as byte string",
+        dict(
+            obj=CIMQualifierDeclaration(b'Foo', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with ASCII characters, as unicode string",
+        dict(
+            obj=CIMQualifierDeclaration(u'Foo', value=None, type='string'),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as byte string",
+        dict(
+            obj=CIMQualifierDeclaration(
+                b'Foo\xC3\xA9', value=None, type='string'
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
+                ' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-ASCII UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMQualifierDeclaration(
+                u'Foo\u00E9', value=None, type='string'
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
+                u' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as byte string",
+        dict(
+            obj=CIMQualifierDeclaration(
+                b'Foo\xF0\x90\x85\x82', value=None, type='string'
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
+                u' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Name with non-UCS-2 characters, as unicode string",
+        dict(
+            obj=CIMQualifierDeclaration(
+                u'Foo\U00010142', value=None, type='string'
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
+                u' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of scopes argument
+    (
+        "QualifierDeclaration with scopes empty",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                scopes=[],
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with scopes Association",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                scopes=dict(ASSOCIATION=True),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<SCOPE ASSOCIATION="true"/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with scopes Association, Property",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                scopes=dict(ASSOCIATION=True, PROPERTY=True),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<SCOPE ASSOCIATION="true" PROPERTY="true"/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with scopes Any",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                scopes=dict(ANY=True),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<SCOPE ASSOCIATION="true" CLASS="true" INDICATION="true"',
+                ' METHOD="true" PARAMETER="true" PROPERTY="true" ',
+                'REFERENCE="true"/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of overridable argument
+    (
+        "QualifierDeclaration with overridable True",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                overridable=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' OVERRIDABLE="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with overridable False",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                overridable=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' OVERRIDABLE="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of tosubclass argument
+    (
+        "QualifierDeclaration with tosubclass True",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                tosubclass=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TOSUBCLASS="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with tosubclass False",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                tosubclass=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TOSUBCLASS="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of toinstance argument
+    (
+        "QualifierDeclaration with toinstance True",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                toinstance=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TOINSTANCE="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with toinstance False",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                toinstance=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TOINSTANCE="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Variations of translatable argument
+    (
+        "QualifierDeclaration with translatable True",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                translatable=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TRANSLATABLE="true" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "QualifierDeclaration with translatable False",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                translatable=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TRANSLATABLE="false" TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with boolean type
+    (
+        "Scalar qualifier declaration with boolean type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with boolean type, value True",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<VALUE>TRUE</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with boolean type, value False",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=False,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<VALUE>FALSE</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with string type
+    (
+        "Scalar qualifier declaration with string type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with string type, value has one entry "
+        "with ASCII characters",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value='foo',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with string type, value has one entry "
+        "with non-ASCII UCS-2 characters",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=u'foo\u00E9',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                u' TYPE="string">',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with string type, value has one entry "
+        "with non-UCS-2 characters",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=u'foo\U00010142',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                u' TYPE="string">',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with char16 type
+    (
+        "Scalar qualifier declaration with char16 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with char16 type, value has one entry "
+        "with an ASCII character",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value='f',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE>f</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with char16 type, value has one entry "
+        "with a non-ASCII UCS-2 character",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=u'\u00E9',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                u' TYPE="char16">',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with char16 type, value has one entry "
+        "with non-UCS-2 character "
+        "(invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=u'\U00010142',
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                u' TYPE="char16">',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with uint8 type
+    (
+        "Scalar qualifier declaration with uint8 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with uint8 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint8', value=42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint8">',
+                '<VALUE>42</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with uint16 type
+    (
+        "Scalar qualifier declaration with uint16 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with uint16 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint16', value=1234,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint16">',
+                '<VALUE>1234</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with uint32 type
+    (
+        "Scalar qualifier declaration with uint32 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with uint32 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint32', value=12345678,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint32">',
+                '<VALUE>12345678</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with uint64 type
+    (
+        "Scalar qualifier declaration with uint64 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with uint64 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint64', value=123456789012,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="uint64">',
+                '<VALUE>123456789012</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with sint8 type
+    (
+        "Scalar qualifier declaration with sint8 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint8', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with sint8 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint8', value=-42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint8">',
+                '<VALUE>-42</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with sint16 type
+    (
+        "Scalar qualifier declaration with sint16 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint16', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with sint16 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint16', value=-1234,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint16">',
+                '<VALUE>-1234</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with sint32 type
+    (
+        "Scalar qualifier declaration with sint32 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with sint32 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint32', value=-12345678,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint32">',
+                '<VALUE>-12345678</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with sint64 type
+    (
+        "Scalar qualifier declaration with sint64 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with sint64 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint64', value=-123456789012,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="sint64">',
+                '<VALUE>-123456789012</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with real32 type
+    (
+        "Scalar qualifier declaration with real32 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value between 0 and 1",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=0.42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>0.42</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value with max number "
+        "of significant digits (11)",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=1.2345678901,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>1.2345678901</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value larger 1 "
+        "without exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=42.0,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>42.0</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value with small "
+        "negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=-42.0E-3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>-0.042</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value with small "
+        "positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=-42.0E+3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>-42000.0</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value with large "
+        "negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=-42.0E-30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, value with large "
+        "positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=-42.0E+30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, special value INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=float('inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, special value -INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=float('-inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real32 type, special value NaN",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=float('nan'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with real64 type
+    (
+        "Scalar qualifier declaration with real64 type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value between 0 and 1",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=0.42,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>0.42</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value with max number "
+        "of significant digits (17)",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=1.2345678901234567,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value larger 1 "
+        "without exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=42.0,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>42.0</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value with small "
+        "negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=-42.0E-3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>-0.042</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value with small "
+        "positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=-42.0E+3,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>-42000.0</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value with large "
+        "negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=-42.0E-30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, value with large "
+        "positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=-42.0E+30,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, special value INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=float('inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, special value -INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=float('-inf'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with real64 type, special value NaN",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=float('nan'),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Scalar qualifier declarations with datetime type
+    (
+        "Scalar qualifier declaration with datetime type, value NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime', value=None,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with datetime type, point in time value",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime',
+                value=datetime(2014, 9, 22, 10, 49, 20, 524789),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="datetime">',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar qualifier declaration with datetime type, interval value",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime',
+                value=timedelta(10, 49, 20),
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="datetime">',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # QualifierDeclarations with reference type are not allowed as per DSP0004
+
+    # Array qualifier declarations with boolean type
+    (
+        "Array qualifier declaration with boolean type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="boolean"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with boolean type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with boolean type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with boolean type, value has one entry "
+        "True",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=[True],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>TRUE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with boolean type, value has one entry "
+        "False",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='boolean', value=[False],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="boolean">',
+                '<VALUE.ARRAY>',
+                '<VALUE>FALSE</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with string type
+    (
+        "Array qualifier declaration with string type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="string"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with string type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="string">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with string type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with string type, value has one entry "
+        "with ASCII characters",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=['foo'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with string type, value has one entry "
+        "with non-ASCII UCS-2 characters",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=[u'foo\u00E9'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with string type, value has one entry "
+        "with non-UCS-2 characters",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='string', value=[u'foo\U00010142'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="string">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>foo\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with char16 type
+    (
+        "Array qualifier declaration with char16 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="char16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with char16 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with char16 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with char16 type, value has one entry "
+        "with an ASCII character",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=['f'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>f</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with char16 type, value has one entry "
+        "with a non-ASCII UCS-2 character",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=[u'\u00E9'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                u' TYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\u00E9</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with char16 type, value has one entry "
+        "with a non-UCS-2 character "
+        "(invalid as per DSP0004, but tolerated by pywbem)",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='char16', value=[u'\U00010142'],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                u' TYPE="char16">',
+                u'<VALUE.ARRAY>',
+                u'<VALUE>\U00010142</VALUE>',
+                u'</VALUE.ARRAY>',
+                u'</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with uint8 type
+    (
+        "Array qualifier declaration with uint8 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint8', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint8 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint8', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint8">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint8 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint8', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint8 type, value has one entry in "
+        "range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint8', value=[42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with uint16 type
+    (
+        "Array qualifier declaration with uint16 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint16 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint16">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint16 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint16 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint16', value=[1234],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with uint32 type
+    (
+        "Array qualifier declaration with uint32 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint32 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint32">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint32 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint32 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint32', value=[12345678],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with uint64 type
+    (
+        "Array qualifier declaration with uint64 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint64 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint64">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint64 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with uint64 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='uint64', value=[123456789012],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="uint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with sint8 type
+    (
+        "Array qualifier declaration with sint8 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint8', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint8"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint8 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint8', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint8">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint8 type, value has one entry NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint8', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint8 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint8', value=[-42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint8">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with sint16 type
+    (
+        "Array qualifier declaration with sint16 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint16', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint16"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint16 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint16', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint16">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint16 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint16', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint16 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint16', value=[-1234],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-1234</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with sint32 type
+    (
+        "Array qualifier declaration with sint32 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint32 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint32">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint32 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint32 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint32', value=[-12345678],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-12345678</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with sint64 type
+    (
+        "Array qualifier declaration with sint64 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint64 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint64">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint64 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with sint64 type, value has one entry "
+        "in range",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='sint64', value=[-123456789012],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="sint64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-123456789012</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with real32 type
+    (
+        "Array qualifier declaration with real32 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "between 0 and 1",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[0.42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "with max number of significant digits (11)",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[1.2345678901],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "larger 1 without exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[42.0],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "with small negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[-42.0E-3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "with small positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[-42.0E+3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "with large negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[-42.0E-30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "with large positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[-42.0E+30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "that is special value INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[float('inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "that is special value -INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[float('-inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real32 type, value has one entry "
+        "that is special value NaN",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real32', value=[float('nan')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real32">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with real64 type
+    (
+        "Array qualifier declaration with real64 type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "between 0 and 1",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[0.42],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>0.42</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: 0.41999999999999998
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "with max number of significant digits (17)",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[1.2345678901234567],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>1.2345678901234567</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "larger 1 without exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[42.0],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>42.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "with small negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[-42.0E-3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-0.042</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: -0.042000000000000003
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "with small positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[-42.0E+3],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-42000.0</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "with large negative exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[-42.0E-30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E-29</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999998E-29
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "with large positive exponent",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[-42.0E+30],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-4.2E+31</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, False  # py27: -4.1999999999999996E+31
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "that is special value INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[float('inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "that is special value -INF",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[float('-inf')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>-INF</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with real64 type, value has one entry "
+        "that is special value NaN",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='real64', value=[float('nan')],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="real64">',
+                '<VALUE.ARRAY>',
+                '<VALUE>NaN</VALUE>',  # must be upper case
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array qualifier declarations with datetime type
+    (
+        "Array qualifier declaration with datetime type, value is NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime', value=None,
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="datetime"/>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with datetime type, value is empty array",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime', value=[],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="datetime">',
+                '<VALUE.ARRAY/>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with datetime type, value has one entry "
+        "NULL",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime', value=[None],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with datetime type, value has one entry "
+        "point in time",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime',
+                value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>20140922104920.524789+000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array qualifier declaration with datetime type, value has one entry "
+        "interval",
+        dict(
+            obj=CIMQualifierDeclaration(
+                'Foo', type='datetime',
+                value=[timedelta(10, 49, 20)],
+                is_array=True,
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="datetime">',
+                '<VALUE.ARRAY>',
+                '<VALUE>00000010000049.000020:000</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMQualifierDeclaration_tocimxml(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMQualifierDeclaration.tocimxml().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml = obj.tocimxml(**func_kwargs)
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
+@pytest_extensions.test_function
+def test_CIMQualifierDeclaration_tocimxmlstr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    All test cases for CIMQualifierDeclaration.tocimxmlstr().
+    """
+
+    obj = kwargs['obj']
+    func_kwargs = kwargs['kwargs']
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+
+    assert obj_xml_str == exp_xml_str
 
 
 class Test_CIMQualifierDeclaration_tomof(object):
