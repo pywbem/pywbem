@@ -1475,14 +1475,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if isinstance(obj, (datetime, timedelta)):
                 obj = CIMDateTime(obj)
             if isinstance(obj, (CIMType, bool, six.string_types)):
+                # This includes CIMDateTime (subclass of CIMType)
                 return cim_xml.VALUE(atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
-                # Note: Because CIMDateTime is an obj but tested above
-                # pylint: disable=no-member
                 return cim_xml.VALUE_REFERENCE(obj.tocimxml())
-            if isinstance(obj, (CIMClass, CIMInstance)):
-                # Note: Because CIMDateTime is an obj but tested above
-                # pylint: disable=no-member
+            if isinstance(obj, CIMInstance):
+                return cim_xml.VALUE(obj.tocimxml(ignore_path=True).toxml())
+            if isinstance(obj, CIMClass):
+                # CIMClass.tocimxml() always ignores path
                 return cim_xml.VALUE(obj.tocimxml().toxml())
             if isinstance(obj, list):
                 if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):

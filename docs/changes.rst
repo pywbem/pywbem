@@ -179,6 +179,10 @@ Deprecations
 * Deprecated modifications of the connection-related attributes of
   `WBEMConnection` objects (Issue #1068).
 
+* Deprecated the value `None` for the `value` argument of
+  `pywbem.tocimxml()`, because it generates an empty `VALUE` element
+  (which represents an empty string) (Issue #1136).
+
 Enhancements
 ^^^^^^^^^^^^
 
@@ -388,6 +392,17 @@ Enhancements
 
 * Docs: Improved and fixed the description of the pywbem statistics
   support. (Issue #1115).
+
+* `CIMInstance.tocimxml()/tocimxmlstr()` were extended to allow controlling
+  whether the path is ignored even if present. This capability is used for
+  ignoring the path in embedded instance parameter values (as part of
+  fixing issue #1136).
+
+* `CIMInstanceName/CIMClassName.tocimxml()/tocimxmlstr()` were extended to
+  allow controlling whether the host and namespace are ignored even if
+  present. This capability is not currently used but was introduced for
+  consistency with ignoring the path on
+  `CIMInstance.tocimxml()/tocimxmlstr()` (as part of fixing issue #1136).
 
 Bug fixes
 ^^^^^^^^^
@@ -602,6 +617,37 @@ Bug fixes
   for InvokeMethod accordingly. Documented that `None` is a valid CIM typed
   value (Issue #1123).
 
+* Fixed the error that embedded instances in parameter values were incorrectly
+  represented with the CIM-XML element corresponding to their path (e.g.
+  `VALUE.NAMEDINSTANCE`). The path is now correctly ignored on embedded instance
+  parameter values, and they are always represented as `INSTANCE` elements
+  (Issue #1136).
+
+* Fixed the error that `CIMInstance.tocimxml()/tocimxmlstr()` represented its
+  instance path always with a `VALUE.NAMEDINSTANCE` element and generated
+  incorrect child elements depending which components of the instance path
+  were present. Now, the element for the path depends correctly on the
+  components that are present in the instance path (Issue #1136).
+
+* Fixed the missing support for generating a `VALUE.INSTANCEWITHPATH` element
+  in CIM-XML. This is needed when a CIMInstance with path has namespace and
+  host. This error was previously now showing up because the
+  `VALUE.NAMEDINSTANCE` element was always created (Issue #1136).
+
+* Fixed the error that the `tocimxml()` and `tocimxmlstr()` methods of
+  `CIMProperty`, `CIMQualifier` and `CIMQualifierDeclaration` represented
+  NULL entries in array values using an empty `VALUE` element. They now
+  correctly generate the `VALUE.NULL` element for NULL entries (Issue #1136).
+
+* Fixed the error that the special float values `INF`, `-INF` and `NaN`
+  were represented in lower case in CIM-XML. DSP0201 requires the
+  exact case INF, -INF and NaN (Issue #1136).
+
+* Fixed the error that float values in CIM-XML were truncated to six
+  significant digits. They now have at least the minimum number of
+  significant digits required by DSP0201: 11 for real32, and 17 for real64.
+  (Issue #1136).
+
 Cleanup
 ^^^^^^^
 
@@ -654,14 +700,20 @@ Build, test, quality
 
 * Enabled testing on OS-X in the Travis CI.
 
+* Cleaned up the implementation of `CIMProperty/CIMParamneter.tocimxml()`,
+  so that it is now easier understandable (as part of fixing issue #1136).
+
 Documentation
 ^^^^^^^^^^^^^
 
-* Docs: Many clarifications for CIM objects, e.g. about case preservation of
+* Many clarifications for CIM objects, e.g. about case preservation of
   CIM element names, or making copies of input parameters vs. storing the
   provided object.
 
-+ Improved the description of the `WBEMConnection.ModifyInstance()` method.
+* Improved the description of the `WBEMConnection.ModifyInstance()` method.
+
+* Improved the description of the tocimxml() and tocimxmlstr() methods
+  on CIM objects.
 
 
 pywbem v0.11.0

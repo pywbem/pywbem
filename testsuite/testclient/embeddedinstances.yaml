@@ -825,7 +825,7 @@
             </CIM>
 -
     name: EmbeddedInstanceXML8
-    description: InvokeMethod with XML-escaped value for an embedded instance input parameter as tuple(name,value)
+    description: InvokeMethod with XML-escaped value for an embedded instance input parameter as tuple(name,value), where the embedded instance has a path
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -859,6 +859,13 @@
                               name: Town
                               type: string
                               value: Fritz Town
+                      path:
+                          pywbem_object: CIMInstanceName
+                          classname: PyWBEM_Address
+                          namespace: root/cimv2
+                          keybindings:
+                              Street: Fritz Ave
+                              Town: Fritz Town
     pywbem_response:
         result:
             -
@@ -919,7 +926,7 @@
             </CIM>
 -
     name: EmbeddedInstanceXML8P
-    description: InvokeMethod with XML-escaped value for an embedded instance input parameter as CIMParameter
+    description: InvokeMethod with XML-escaped value for an embedded instance input parameter as CIMParameter, where the embedded instance has a path.
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -956,6 +963,13 @@
                               name: Town
                               type: string
                               value: Fritz Town
+                      path:
+                          pywbem_object: CIMInstanceName
+                          classname: PyWBEM_Address
+                          namespace: root/cimv2
+                          keybindings:
+                              Street: Fritz Ave
+                              Town: Fritz Town
     pywbem_response:
         result:
             -

@@ -959,14 +959,38 @@ def atomic_to_cim_xml(obj):
         return _ensure_unicode(obj)
     elif isinstance(obj, bool):
         return u'TRUE' if obj else u'FALSE'
-    elif isinstance(obj, (CIMInt, number_types, CIMDateTime)):
+    elif isinstance(obj, (CIMInt, six.integer_types, CIMDateTime)):
         return six.text_type(obj)
     elif isinstance(obj, datetime):
         return six.text_type(CIMDateTime(obj))
     elif isinstance(obj, Real32):
-        return u'%.8E' % obj
-    elif isinstance(obj, Real64):
-        return u'%.16E' % obj
+        # DSP0201 requirements for representing real32:
+        # The significand must be represented with at least 11 digits.
+        # The special values must have the case: INF, -INF, NaN.
+        s = u'%.11G' % obj
+        if s == 'NAN':
+            s = u'NaN'
+        elif s in ('INF', '-INF'):
+            pass
+        elif '.' not in s:
+            parts = s.split('E')
+            parts[0] = parts[0] + '.0'
+            s = 'E'.join(parts)
+        return s
+    elif isinstance(obj, (Real64, float)):
+        # DSP0201 requirements for representing real64:
+        # The significand must be represented with at least 17 digits.
+        # The special values must have the case: INF, -INF, NaN.
+        s = u'%.17G' % obj
+        if s == 'NAN':
+            s = u'NaN'
+        elif s in ('INF', '-INF'):
+            pass
+        elif '.' not in s:
+            parts = s.split('E')
+            parts[0] = parts[0] + '.0'
+            s = 'E'.join(parts)
+        return s
     else:
         raise TypeError("Value %r has invalid type %s for conversion to a "
                         "CIM-XML string" % (obj, type(obj)))

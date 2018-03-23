@@ -490,6 +490,20 @@ class ValueNull(UnimplementedTest):
     # TODO: Implement ValueNull test
 
 
+class ValueInstanceWithPath(CIMXMLTest):
+    """
+    <!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH,INSTANCE)>
+    """
+
+    def setUp(self):
+        super(ValueInstanceWithPath, self).setUp()
+
+        self.xml.append(cim_xml.VALUE_INSTANCEWITHPATH(
+            cim_xml.INSTANCEPATH(
+                NAMESPACEPATH(), INSTANCENAME()),
+            cim_xml.INSTANCE('CIM_Pet', [])))
+
+
 #################################################################
 #     3.2.4. Naming and Location Elements
 #################################################################

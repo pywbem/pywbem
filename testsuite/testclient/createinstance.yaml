@@ -283,7 +283,7 @@
                     type: real32
                   - pywbem_object: CIMProperty
                     name: scalReal64
-                    value: 42.64
+                    value: 32.25
                     type: real64
                   - pywbem_object: CIMProperty
                     name: scalString
@@ -376,8 +376,8 @@
                   - pywbem_object: CIMProperty
                     name: arrayReal64
                     value:
-                    - 42.0
-                    - 4442.9
+                    - 32.25
+                    - 64.5
                     type: real64
                     is_array: true
                   - pywbem_object: CIMProperty
@@ -461,7 +461,7 @@
                           <VALUE>42.0</VALUE>
                         </PROPERTY>
                         <PROPERTY NAME="scalReal64" TYPE="real64">
-                          <VALUE>42.64</VALUE>
+                          <VALUE>32.25</VALUE>
                         </PROPERTY>
                         <PROPERTY NAME="scalString" TYPE="string">
                           <VALUE>ham</VALUE>
@@ -534,14 +534,14 @@
                         </PROPERTY.ARRAY>
                         <PROPERTY.ARRAY NAME="arrayReal32" TYPE="real32">
                           <VALUE.ARRAY>
-                            <VALUE>4.20000000E+01</VALUE>
-                            <VALUE>4.44290000E+03</VALUE>
+                            <VALUE>42.0</VALUE>
+                            <VALUE>4442.9</VALUE>
                           </VALUE.ARRAY>
                         </PROPERTY.ARRAY>
                         <PROPERTY.ARRAY NAME="arrayReal64" TYPE="real64">
                           <VALUE.ARRAY>
-                            <VALUE>4.2000000000000000E+01</VALUE>
-                            <VALUE>4.4428999999999996E+03</VALUE>
+                            <VALUE>32.25</VALUE>
+                            <VALUE>64.5</VALUE>
                           </VALUE.ARRAY>
                         </PROPERTY.ARRAY>
                         <PROPERTY.ARRAY NAME="arrayString" TYPE="string">
