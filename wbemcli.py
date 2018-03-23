@@ -113,7 +113,7 @@ from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
 
 from pywbem._logging import LOG_DESTINATIONS, \
     LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES, DEFAULT_LOG_DETAIL_LEVEL, \
-    DEFAULT_LOG_DESTINATION, define_loggers_from_string
+    DEFAULT_LOG_DESTINATION, configure_loggers_from_string
 from pywbem import __version__
 
 # Connection global variable. Set by remote_connection and use
@@ -3178,11 +3178,13 @@ Examples:
         action='store', default=None,
         help='R|Log_spec defines characteristics of the various named\n'
              'loggers. It is the form:\n COMP=[DEST[:DETAIL]] where:\n'
-             '   COMP: Logger component name:[{c}].\n'
-             '         (Default={cd})\n'
-             '   DEST: Destination for component:[{d}].\n'
-             '         (Default={dd})\n'
-             '   DETAIL: Detail Level to log: [{dl}].\n'
+             '   COMP:   Logger component name:[{c}].\n'
+             '           (Default={cd})\n'
+             '   DEST:   Destination for component:[{d}].\n'
+             '           (Default={dd})\n'
+             '   DETAIL: Detail Level to log: [{dl}] or\n'
+             '           an integer that defines the maximum length of\n'
+             '           of each log record.\n'
              '           (Default={dll})\n'
              # pylint: disable=bad-continuation
              .format(c='|'.join(LOGGER_SIMPLE_NAMES),
@@ -3209,7 +3211,7 @@ Examples:
     CONN = _remote_connection(args.server, args, argparser)
 
     if args.log:
-        define_loggers_from_string(args.log, WBEMCLI_LOG_FILENAME, CONN)
+        configure_loggers_from_string(args.log, WBEMCLI_LOG_FILENAME, CONN)
 
     # Determine file path of history file
     home_dir = '.'

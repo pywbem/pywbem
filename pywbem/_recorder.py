@@ -1,3 +1,4 @@
+
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -37,10 +38,10 @@ from yaml.representer import RepresenterError
 
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration, NocaseDict
+    CIMQualifierDeclaration, NocaseDict, _ensure_unicode
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
-from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME, get_logger
+from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -512,38 +513,38 @@ class LogOperationRecorder(BaseOperationRecorder):
     """
     **Experimental:** *New in pywbem 0.9 as experimental.*
 
-    A recorder that logs the WBEM operations to a set of named logs.
-    This recorder supports two named logs:
+    A recorder that logs the WBEM operations to a loggers based on the
+    Python logging package.
 
-    * :attr:`~pywbem._logging.LOGGER_API_CALLS_NAME` - Logger at the level of
-      WBEM operation calls and returns
+    This recorder supports two logger names:
 
-    * :attr:`~pywbem._logging.LOGGER_HTTP_NAME` - Logger at the level of HTTP
-      requests and responses
+    * :attr:`~pywbem._logging.LOGGER_API_CALLS_NAME` - Logs user-issued calls
+      to :class:`~pywbem.WBEMConnection` methods that drive WBEM operations
+      (see :ref:WBEM operations) and the responses before they are passed back
+      to the user
 
-    This also implements a method to log information on each connection.
+    * :attr:`~pywbem._logging.LOGGER_HTTP_NAME` - Logs HTTP requests and
+      responses.
 
-    All logging calls are at the debug level.
+    This also implements a method to log information on each
+    :class:`~pywbem.WBEMConnection` object created.
+
+        All logging calls are at the debug level.
     """
-    def __init__(self, conn_id=None, detail_levels=None):
+    def __init__(self, conn_id, detail_levels=None):
         """
         Parameters:
 
-          conn_id ():)
-            If None, string that represents an id for a particular connection
-            that is used to build the name of each logger. if conn_id is not
-            `None` the logging calls are identified with the logger name
-            and the conn_id suffix (ex.pywbem.ops.1-2343) so that
-            each WBEMConnection could be logged with a separate logger.
+          conn_id (:term:`connection id`):
+            String that represents an id for a particular connection
+            that is used to build the name of each logger. The logger names
+            are uniqueqly idenfified by the conn_id suffix to the logger name
+            (ex.pywbem.ops.1-2343) so that each WBEMConnection could be
+            logged with a separate logger.
 
-          detail_level (:term:`integer` or :class:`py:dict`, or None):
-            The maximum size for each log entry, in Bytes. This is primarily to
-            limit response sizes since they could be enormous.
-            TODO
-
-            If dict it is the detail level definition for each type
-
-            If `None`, the log entry output size is not limited.
+          detail_levels ( :class:`py:dict`):
+            Dictionary identifying the detail_level for one or both of
+            the logger names.
         """
         super(LogOperationRecorder, self).__init__()
 
@@ -556,26 +557,26 @@ class LogOperationRecorder(BaseOperationRecorder):
 
         # build name for logger
         if conn_id:
-            self.apilogger = get_logger('%s.%s' % (LOGGER_API_CALLS_NAME,
-                                                   conn_id))
+            self.apilogger = self._get_logger('%s.%s' % (LOGGER_API_CALLS_NAME,
+                                                         conn_id))
+            self.httplogger = self._get_logger('%s.%s' %
+                                               (LOGGER_HTTP_NAME, conn_id))
         else:
-            self.apilogger = get_logger(LOGGER_API_CALLS_NAME)
+            self.apilogger = self._get_logger(LOGGER_API_CALLS_NAME)
+            self.httplogger = self._get_logger(LOGGER_HTTP_NAME)
 
         self.detail_levels = self.set_detail_level(detail_levels)
 
-        if conn_id:
-            self.httplogger = get_logger('%s.%s' % (LOGGER_HTTP_NAME, conn_id))
-        else:
-            self.httplogger = get_logger(LOGGER_HTTP_NAME)
-
     def set_detail_level(self, detail_levels):
         """
-        Sets the detail levels from the input dictionary.
+        Sets the detail levels from the input dictionary in detail_levels.
         """
         if detail_levels is None:
             return None
-        self.api_detail_level = detail_levels.get('api', None)
-        self.http_detail_level = detail_levels.get('http', None)
+        if 'api' in detail_levels:
+            self.api_detail_level = detail_levels['api']
+        if 'http' in detail_levels:
+            self.http_detail_level = detail_levels['http']
         if isinstance(self.api_detail_level, int):
             self.api_maxlen = self.api_detail_level
         if isinstance(self.http_detail_level, int):
@@ -646,10 +647,9 @@ class LogOperationRecorder(BaseOperationRecorder):
             if self.api_detail_level == 'summary':
                 if isinstance(ret, list):
                     if ret:
-                        ret_type = type(ret[0]).__name__ if len(ret) else ""
+                        ret_type = type(ret[0]).__name__ if ret else ""
                         return 'list of %s; count=%s' % (ret_type, len(ret))
-                    else:
-                        return 'Empty'
+                    return 'Empty'
                 else:
                     result = ret
                 result_fmt = '{0!r}'.format(result)
@@ -677,7 +677,6 @@ class LogOperationRecorder(BaseOperationRecorder):
             return result_fmt
 
         if self.enabled and self.apilogger.isEnabledFor(logging.DEBUG):
-
             if exc:  # format exception
                 # exceptions are always either all or reduced length
                 result = format_result(
@@ -741,13 +740,17 @@ class LogOperationRecorder(BaseOperationRecorder):
             header_str = ' '.join('{0}:{1!r}'.format(k, v)
                                   for k, v in headers.items())
             if self.http_detail_level == 'summary':
-                payload = ""
-            elif self.http_maxlen and (len(payload) > self.http_maxlen):
-                payload = payload[:self.http_maxlen] + '...'
+                upayload = ""
+            elif isinstance(payload, six.binary_type):
+                upayload = payload.decode('utf-8')
+            else:
+                upayload = payload
+            if self.http_maxlen and (len(payload) > self.http_maxlen):
+                upayload = upayload[:self.http_maxlen] + '...'
 
             self.httplogger.debug('Request:%s %s %s %s %s %s\n    %s',
                                   conn_id, method, target, version, url,
-                                  header_str, payload)
+                                  header_str, upayload)
 
     def stage_http_response1(self, conn_id, version, status, reason, headers):
         """Set response http info including headers, status, etc. """
@@ -774,24 +777,65 @@ class LogOperationRecorder(BaseOperationRecorder):
                 header_str = ''
 
             if self.http_detail_level == 'summary':
-                payload = ""
+                upayload = ""
             elif self.http_maxlen and (len(payload) > self.http_maxlen):
-                payload = (payload[:self.http_maxlen] + '...')
+                upayload = (_ensure_unicode(payload[:self.http_maxlen]) +
+                            '...')
+            else:
+                upayload = _ensure_unicode(payload)
 
             self.httplogger.debug('Response:%s %s:%s %s %s\n    %s',
                                   self._http_response_conn_id,
                                   self._http_response_status,
                                   self._http_response_reason,
                                   self._http_response_version,
-                                  header_str, payload)
+                                  header_str, upayload)
 
     def record_staged(self):
-        """Not used for logging"""
+        """
+        Not used for logging. The logs are output in the various
+        stage... methods methods
+        """
         pass
 
     def record(self, pywbem_args, pywbem_result, http_request, http_response):
         """Not used for logging"""
         pass
+
+    @staticmethod
+    def _get_logger(logger_name):
+        """
+        **Experimental:** *New in pywbem 0.11 as experimental.*
+
+        Return a :class:`~py:logging.Logger` object with the specified name.
+
+        A :class:`~py:logging.NullHandler` handler is added to the logger if it
+        does not have any handlers yet and if it is not the Python root logger.
+        This prevents the propagation of log requests up the Python logger
+        hierarchy, and therefore causes this package to be silent by default.
+
+        This prevents the propagation of log requests up the Python logger
+        hierarchy, and therefore causes this package to be silent by default.
+
+        Parameters
+
+          logger_name (:term:`string`):
+            Name of the logger which must be one of the named defined in
+            pywbem for loggers used by pywbem.  These names are structured
+            as prefix . <log_name>
+
+        Returns:
+
+          :class:`~py:logging.Logger`: Logger defined by logger name.
+
+        Raises:
+
+          ValueError: The name is not one of the valid pywbem loggers.
+        """
+        logger = logging.getLogger(logger_name)
+        if logger_name != '' and not logger.handlers:
+            logger.addHandler(logging.NullHandler())
+        return logger
 
 
 class TestClientRecorder(BaseOperationRecorder):

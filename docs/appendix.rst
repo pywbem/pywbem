@@ -29,6 +29,14 @@ This documentation uses a few special terms to refer to Python types:
       :class:`py3:bytes` in Python 3). Unless otherwise
       indicated, byte strings in pywbem are always UTF-8 encoded.
 
+   connection id
+      a string (:term:`string`) that uniquely identifies each
+      :class:`pywbem.WBEMConnection` object created. The connection id is
+      immutable and is accessible from
+      :attr:`pywbem.WBEMConnection.conn_id`. It is included in of each log
+      record created for pywbem log output and may be used to correlate pywbem
+      log records for a single connection.
+
    number
       one of the number types :class:`py:int`, :class:`py2:long` (Python 2
       only), or :class:`py:float`.

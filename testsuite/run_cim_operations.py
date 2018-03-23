@@ -146,7 +146,7 @@ class ClientTest(unittest.TestCase):
         # if log set, enable the logger.
         if self.output_log:
             WBEMConnection.configure_logger(
-                'all', log_dest='file', log_filename='run_cimoperations.log',
+                'http', log_dest='file', log_filename='run_cimoperations.log',
                 connection=self.conn)
 
         # enable saving of xml for display
