@@ -571,16 +571,16 @@ class WBEMListener(object):
         Parameters:
 
           host (:term:`string`):
-            IP address or host name this listener can be reached at.
+            IP address or host name at which this listener can be reached.
 
           http_port (:term:`string` or :term:`integer`):
-            HTTP port this listener can be reached at. Note that at least one
-            port (HTTP or HTTPS) must be set
+            HTTP port at which this listener can be reached. Note that at
+            least one port (HTTP or HTTPS) must be set.
 
             `None` means not to set up a port for HTTP.
 
           https_port (:term:`string` or :term:`integer`):
-            HTTPS port this listener can be reached at.
+            HTTPS port at which this listener can be reached.
 
             `None` means not to set up a port for HTTPS.
 
@@ -686,14 +686,16 @@ class WBEMListener(object):
 
     @property
     def host(self):
-        """The IP address or host name this listener can be reached at,
-        as a :term:`string`."""
+        """
+        :term:`string`: IP address or host name at which this listener can be
+        reached.
+        """
         return self._host
 
     @property
     def http_port(self):
         """
-        The HTTP port this listener can be reached at, as an :term:`integer`.
+        :term:`integer`: HTTP port at which this listener can be reached.
 
         `None` means there is no port set up for HTTP.
         """
@@ -702,7 +704,7 @@ class WBEMListener(object):
     @property
     def https_port(self):
         """
-        The HTTPS port this listener can be reached at, as an :term:`integer`.
+        :term:`integer`: HTTPS port at which this listener can be reached.
 
         `None` means there is no port set up for HTTPS.
         """
@@ -711,30 +713,33 @@ class WBEMListener(object):
     @property
     def http_started(self):
         """
-        *New in pywbem 0.12.*
-
-        A boolean indicating whether the listener is started for the HTTP port.
+        :class:`py:bool`: Boolean indicating whether the listener is started
+        for the HTTP port.
 
         If no port is set up for HTTP, `False` is returned.
+
+        *New in pywbem 0.12.*
         """
         return self._http_server is not None
 
     @property
     def https_started(self):
         """
-        *New in pywbem 0.12.*
-
-        A boolean indicating whether the listener is started for the HTTPS port.
+        :class:`py:bool`: Boolean indicating whether the listener is started
+        for the HTTPS port.
 
         If no port is set up for HTTPS, `False` is returned.
+
+        *New in pywbem 0.12.*
         """
         return self._https_server is not None
 
     @property
     def certfile(self):
         """
-        The file path of the certificate file used as server certificate
-        during SSL/TLS handshake when creating the secure HTTPS connection.
+        :term:`string`: File path of the certificate file used as server
+        certificate during SSL/TLS handshake when creating the secure HTTPS
+        connection.
 
         `None` means there is no certificate file being used (that is, no port
         is set up for HTTPS).
@@ -744,8 +749,8 @@ class WBEMListener(object):
     @property
     def keyfile(self):
         """
-        The file path of the private key file used by the server during
-        SSL/TLS handshake when creating the secure HTTPS connection.
+        :term:`string`: File path of the private key file used by the server
+        during SSL/TLS handshake when creating the secure HTTPS connection.
 
         `None` means there is no certificate file being used (that is, no port
         is set up for HTTPS).
@@ -755,7 +760,7 @@ class WBEMListener(object):
     @property
     def logger(self):
         """
-        The logger object for this listener.
+        :class:`py:logging.Logger`: Logger object for this listener.
 
         Each listener object has its own separate logger object that is
         created via :func:`py:logging.getLogger`.
