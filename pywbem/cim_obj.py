@@ -2571,7 +2571,8 @@ class CIMInstanceName(_CIMComparisonMixin):
                 object. Thus, for example, if the class were retrieved from a
                 server, generally, the `LocalOnly` parameter in the request
                 should be `False` to assure that all superclass properties are
-                retrieved.
+                retrieved and the IncludeQualifiers should be set to `True`
+                to assure that qualifiers are retrieved.
 
                 In non-strict mode, that class may have missing key properties.
                 Any missing key properties will result in missing key bindings
