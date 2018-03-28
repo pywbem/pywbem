@@ -29,8 +29,10 @@ import os
 import pytest
 
 from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMInstanceName
+from pywbem.cim_obj import NocaseDict
 
 from pywbem_mock import FakedWBEMConnection
+
 from dmtf_mof_schema_def import install_dmtf_schema, SCHEMA_MOF_DIR
 
 TEST_SCHEMA = os.path.join(SCHEMA_MOF_DIR, 'test_schema1.mof')
@@ -60,6 +62,8 @@ class BaseMethodsForTests(object):
             #pragma include ("Interop/CIM_RegisteredProfile.mof")
             #pragma include ("Interop/CIM_Namespace.mof")
             #pragma include ("Interop/CIM_ObjectManager.mof")
+            #pragma include ("Interop/CIM_ElementConformsToProfile.mof")
+            #pragma include ("Interop/CIM_ReferencedProfile.mof")
             """
         # See issue 1138.
         # conn.compile_mof_str(class_list, namespace=namespace,
@@ -74,16 +78,21 @@ class BaseMethodsForTests(object):
             os.remove(TEST_SCHEMA)
         return
 
-    def inst_from_class(self, klass, namespace=None, PropertyValues=None,
-                        IncludeNullProperties=True,
-                        IncludePath=True, strict=False,):
+    def inst_from_class(self, klass, namespace=None,
+                        property_values=None,
+                        include_null_properties=True,
+                        include_path=True, strict=False,
+                        include_class_origin=False):
         """
         Build a new CIMInstance from the input CIMClass using the
-        PropertyValues dictionary to complete properties and the other
+        property_values dictionary to complete properties and the other
         parameters to filter properties, validate the properties, and
         optionally set the path component of the CIMInstance.  If any of the
         properties in the class have default values, those values are passed
-        to the instance unless overridden by the PropertyValues dictionary.
+        to the instance unless overridden by the property_values dictionary.
+        No CIMProperty qualifiers are included in the created instance and the
+        `class_origin` attribute is transfered from the class only if the
+        `include_class_origin` parameter is True
 
         Parameters:
           klass (:class:`pywbem:CIMClass`)
@@ -91,20 +100,21 @@ class BaseMethodsForTests(object):
             class must include qualifiers and should include properties
             from any superclasses to be sure it includes all properties
             that are to be built into the instance. Properties may be
-            excluded from the instance by not including them in the class.
+            excluded from the instance by not including them in the `klass`
+            parameter.
 
           namespace (:term:`string`):
             Namespace in the WBEMConnection used to retrieve the class or
             `None` if the default_namespace is to be used.
 
-          PropertyValues (dictionary):
-            Dictionary containing nane/value pairs where the names are the
+          property_values (dictionary):
+            Dictionary containing name/value pairs where the names are the
             names of properties in the class and the properties are the
             property values to be set into the instance. If a property is in
-            the PropertyValues dictionary but not in the class an ValueError
+            the property_values dictionary but not in the class an ValueError
             exception is raised.
 
-          IncludeNullProperties (:class:`py:bool`:):
+          include_null_properties (:class:`py:bool`):
             Determines if properties with Null values are included in the
             instance.
 
@@ -112,72 +122,82 @@ class BaseMethodsForTests(object):
 
             If `False` they are not included in the instance returned
 
-          strict (:class:`py:bool`:):
-            If `True` the property type in PropertyValue must exactly match
-            the property type in the class. Also, if IncludePath is `True` the
-            created instance is tested to assure that all key properties from
-            the class are in the instance so a complete path can be buil
+         inclued_class_origin  (:class:`py:bool`):
+            Determines if ClassOrigin information is included in the returned
+            instance.
 
-            If not `True` the value is inserted into the property whatever the
-            type
+            If None or False, class origin information is not included.
 
-          IncludePath (:class:`py:bool`:):
+            If True, class origin information is included.
+
+          include_path (:class:`py:bool`:):
             If `True` the CIMInstanceName path is build and inserted into
             the new instance.  If `strict` all key properties must be in the
             instance.
 
+          strict (:class:`py:bool`:):
+            If `True` and `include_path` is set, all key properties must be in
+            the instance so that
+
+            If not `True` The path component is created even if not all
+            key properties are in the created instance.
+
         Returns:
             Returns an instance with the defined properties and optionally
-            the path set.
+            the path set.  No qualifiers are included in the returned instance
+            and the existence of ClassOrigin depends on the
+            `include_class_origin` parameter. The value of each property is
+            either the value from the `property_values` dictionary, the
+            default_value from the class or Null(unless
+            `include_null_properties` is False). All other attributes of each
+            property are the same as the corresponding class property.
 
         Raises:
            ValueError if there are conflicts between the class and
-           PropertyValues dictionary or strict is set and the class is not
+           property_values dictionary or strict is set and the class is not
            complete.
         """
         class_name = klass.classname
         inst = CIMInstance(class_name)
-        for p in PropertyValues:
+        for p in property_values:
             if p not in klass.properties:
-                raise ValueError('Property Name %s in PropertyValues but '
+                raise ValueError('Property Name %s in property_values but '
                                  'not in class %s' % (p, class_name))
         for cp in klass.properties:
             ip = klass.properties[cp].copy()
-            if ip.name in PropertyValues:
-                ip.value = PropertyValues[ip.name]
-            if strict:
-                if ip.type != klass.properties[cp].type:
-                    raise ValueError('Property "%s" Class type "%s" does not '
-                                     'prop_value type "%s"' %
-                                     (ip.name, klass.properties[cp].type,
-                                      ip.type))
-            if IncludeNullProperties:
+            ip.qualifiers = NocaseDict()
+            if not include_class_origin:
+                ip.class_origin = None
+            if ip.name in property_values:
+                ip.value = property_values[ip.name]
+            if include_null_properties:
                 inst[ip.name] = ip
             else:
                 if ip.value:
                     inst[ip.name] = ip
 
-        if IncludePath:
+        if include_path:
             inst.path = CIMInstanceName.from_instance(klass, inst, namespace,
                                                       strict=strict)
         return inst
 
     def inst_from_classname(self, conn, class_name, namespace=None,
-                            PropertyList=None,
-                            PropertyValues=None, IncludeNullProperties=True,
-                            strict=False, IncludePath=True):
+                            property_list=None,
+                            property_values=None,
+                            include_null_properties=True,
+                            strict=False, include_path=True):
         """
         Build instance from class using class_name property to get class
         from a repository.
         """
         cls = conn.GetClass(class_name, namespace=namespace, LocalOnly=False,
-                            IncludeQualifiers=True, IncludeClassOrigin=True,
-                            PropertyList=PropertyList)
+                            IncludeQualifiers=True, include_class_origin=True,
+                            property_list=property_list)
 
-        return self.inst_from_class(cls, namespace=namespace,
-                                    PropertyValues=PropertyValues,
-                                    IncludeNullProperties=IncludeNullProperties,
-                                    strict=strict, IncludePath=IncludePath)
+        return self.inst_from_class(
+            cls, namespace=namespace, property_values=property_values,
+            include_null_properties=include_null_properties,
+            strict=strict, include_path=include_path)
 
 
 class TestServerClass(BaseMethodsForTests):
@@ -199,14 +219,15 @@ class TestServerClass(BaseMethodsForTests):
 
         ominst = self.inst_from_classname(conn, "CIM_ObjectManager",
                                           namespace=namespace,
-                                          PropertyValues=omdict, strict=True,
-                                          IncludeNullProperties=False,
-                                          IncludePath=True)
+                                          property_values=omdict, strict=True,
+                                          include_null_properties=False,
+                                          include_path=True)
 
         conn.add_cimobjects(ominst, namespace=namespace)
 
         assert(len(conn.EnumerateInstances("CIM_ObjectManager",
                                            namespace=namespace)) == 1)
+        return ominst
 
     def build_cimnamespace_insts(self, conn, namespace, system_name,
                                  object_manager_name, test_namespaces):
@@ -224,10 +245,10 @@ class TestServerClass(BaseMethodsForTests):
 
             ominst = self.inst_from_classname(conn, "CIM_Namespace",
                                               namespace=namespace,
-                                              PropertyValues=nsdict,
+                                              property_values=nsdict,
                                               strict=True,
-                                              IncludeNullProperties=False,
-                                              IncludePath=True)
+                                              include_null_properties=False,
+                                              include_path=True)
             conn.add_cimobjects(ominst, namespace=namespace)
 
         namespaces = conn.EnumerateInstances("CIM_Namespace",
@@ -237,16 +258,21 @@ class TestServerClass(BaseMethodsForTests):
         # Build test CIM_RegisteredProfile instances
     def build_reg_profile_insts(self, conn, namespace, profiles):
         """
-        Build and install in repo the registered profiles define by
-        the profiles dictionary
+        Build and install in repository the registered profiles define by
+        the profiles dictionary. The profiles to be build are defined by
+        the profiles parameter, A dictionary of tuples where each tuple
+        contains RegisteredOrganization, RegisteredName, RegisteredVersion
         """
+        # Map ValueMap to Value
         org_vm = ValueMapping.for_property(conn, namespace,
                                            'CIM_RegisteredProfile',
                                            'RegisteredOrganization')
-        # Map ValueMap to Value
-        org_vm_dict = {}
+
+        # This is a workaround hack to get ValueMap from Value
+        org_vm_dict = {}   # reverse mapping dictionary (valueMap from Value)
         for value in range(0, 22):
             org_vm_dict[org_vm.tovalues(value)] = value
+
         for p in profiles:
             instance_id = '%s+%s+%s' % (p[0], p[1], p[2])
             reg_prof_dict = {'RegisteredOrganization': org_vm_dict[p[0]],
@@ -255,44 +281,82 @@ class TestServerClass(BaseMethodsForTests):
                              'InstanceID': instance_id}
             rpinst = self.inst_from_classname(conn, "CIM_RegisteredProfile",
                                               namespace=namespace,
-                                              PropertyValues=reg_prof_dict,
+                                              property_values=reg_prof_dict,
                                               strict=True,
-                                              IncludeNullProperties=False,
-                                              IncludePath=True)
+                                              include_null_properties=False,
+                                              include_path=True)
 
             conn.add_cimobjects(rpinst, namespace=namespace)
 
         assert(conn.EnumerateInstances("CIM_RegisteredProfile",
                                        namespace=namespace))
 
+    def build_elementconformstoprofile_inst(self, conn, namespace,
+                                            profile_inst, element_inst):
+        """
+        Build an instance of CIM_ElementConformsToProfile and insert into
+        repository
+        """
+        class_name = 'CIM_ElementConformsToProfile'
+        element_conforms_dict = {'ConformantStandard': profile_inst,
+                                 'ManagedElement': element_inst}
+
+        inst = self.inst_from_classname(conn, class_name,
+                                        namespace=namespace,
+                                        property_values=element_conforms_dict,
+                                        strict=True,
+                                        include_null_properties=False,
+                                        include_path=True)
+        conn.add_cimobjects(inst, namespace=namespace)
+
+        assert conn.EnumerateInstances(class_name, namespace=namespace)
+        assert conn.GetInstance(inst.path)
+
     @pytest.mark.parametrize(
         "tst_namespace",
-        ['interop', 'root/interop', 'root/PG_Interop'])
+        ['interop'])  # TODO , 'root/interop', 'root/PG_Interop'
     def test_server_basic(self, tst_namespace):
         """
         Test the basic functions that access server information
         """
         conn = FakedWBEMConnection()
         self.build_schema_list(conn, tst_namespace)
-        system_name = '"Mock Test_server_Class"'
-        object_manager_name = "MyFakeObjectManager"
+        system_name = 'Mock_Test_server_class'
+        object_manager_name = 'MyFakeObjectManager'
+        server = WBEMServer(conn)
 
-        self.build_obj_mgr_inst(conn, tst_namespace, system_name,
-                                object_manager_name)
+        # Build CIM_ObjectManager instance
+        om_inst = self.build_obj_mgr_inst(conn, tst_namespace, system_name,
+                                          object_manager_name)
 
+        # build CIM_Namespace instances
         test_namespaces = [tst_namespace, 'root/cimv2']
 
         self.build_cimnamespace_insts(conn, tst_namespace, system_name,
                                       object_manager_name, test_namespaces)
 
+        # Build RegisteredProfile instances
         profiles = [('DMTF', 'Indications', '1.1.0'),
                     ('DMTF', 'Profile Registration', '1.0.0'),
-                    ('SNIA', 'Server', '1.2.0')]
+                    ('SNIA', 'Server', '1.2.0'),
+                    ('SNIA', 'Server', '1.1.0'),
+                    ('SNIA', 'SMI-S', '1.2.0')]
 
         self.build_reg_profile_insts(conn, tst_namespace, profiles)
 
-        server = WBEMServer(conn)
+        # Build instances for get_central instance
+        # Using central methodology, i.e. ElementConformsToProfile
 
+        # Element conforms for SNIA server to object manager
+        prof_inst = server.get_selected_profiles(registered_org='SNIA',
+                                                 registered_name='Server',
+                                                 registered_version='1.1.0')
+
+        self.build_elementconformstoprofile_inst(conn, tst_namespace,
+                                                 prof_inst[0].path,
+                                                 om_inst.path)
+
+        # Test basic brand, version, namespace methods
         assert server.namespace_classname == 'CIM_Namespace'
 
         assert server.url == 'http://FakedUrl'
@@ -302,6 +366,7 @@ class TestServerClass(BaseMethodsForTests):
         assert server.interop_ns == tst_namespace
         assert set(server.namespaces) == set([tst_namespace, 'root/cimv2'])
 
+        # Test basic profiles methods
         org_vm = ValueMapping.for_property(server, server.interop_ns,
                                            'CIM_RegisteredProfile',
                                            'RegisteredOrganization')
@@ -330,6 +395,24 @@ class TestServerClass(BaseMethodsForTests):
         assert len(sel_prof) == 2
         for inst in sel_prof:
             assert org_vm.tovalues(inst['RegisteredOrganization']) == 'DMTF'
+
+        # Simple get_cental_instance.
+        # profile_path, central_class=None,
+        #                       scoping_class=None, scoping_path=None
+        profile_insts = server.get_selected_profiles(registered_org='SNIA',
+                                                     registered_name='Server',
+                                                     registered_version='1.1.0')
+        profile_path = profile_insts[0].path
+        insts = server.get_central_instances(profile_path, 'CIM_ObjectManager')
+        print('central inst %s' % insts[0])
+        assert len(insts) == 1
+        kb = NocaseDict([('SystemCreationClassName', 'CIM_ComputerSystem'),
+                        ('SystemName', system_name),
+                        ('CreationClassName', 'CIM_ObjectManager')])
+        assert insts[0] == CIMInstanceName('CIM_ObjectManager', keybindings=kb,
+                                           namespace=tst_namespace,
+                                           host=conn.host)
+
 
 # TODO Break up test to do individual tests for so we can test for errors
 #      with each method.  Right now we build it all in a single test
