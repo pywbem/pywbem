@@ -2570,9 +2570,9 @@ class CIMInstanceName(_CIMComparisonMixin):
                 are required to create the :class:`~pywbem.CIMInstanceName`
                 object. Thus, for example, if the class were retrieved from a
                 server, generally, the `LocalOnly` parameter in the request
-                should be `False` to assure that all superclass properties are
-                retrieved and the IncludeQualifiers should be set to `True`
-                to assure that qualifiers are retrieved.
+                should be `False` to assure that superclass properties are
+                retrieved and `IncludeQualifiers` parameter should be set to
+                `True` to assure that qualifiers are retrieved.
 
                 In non-strict mode, that class may have missing key properties.
                 Any missing key properties will result in missing key bindings
