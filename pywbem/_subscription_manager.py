@@ -23,11 +23,13 @@ indication filters and listener destinations) for multiple WBEM servers and
 multiple WBEM listeners and for getting information about existing indication
 subscriptions.
 
-The WBEM listener is identified through its URL, so it may be a
-:class:`~pywbem.WBEMListener` object or any external WBEM listener.
+The WBEM listener is identified through its URL, so it may be the pywbem
+listener (that is, a :class:`~pywbem.WBEMListener` object) or any other WBEM
+listener.
 
-This subscription manager supports three types of ownership for subscription,
-filter and listener destination CIM instances in WBEM servers:
+This subscription manager supports three types of ownership of the CIM
+instances in WBEM servers that represent subscriptions, filters and listener
+destinations:
 
 * **Owned**
 
@@ -39,8 +41,8 @@ filter and listener destination CIM instances in WBEM servers:
   Owned CIM instances are deleted automatically when their WBEM server is
   deregistered from the subscription manager via
   :meth:`~pywbem.WBEMSubscriptionManager.remove_server` or
-  :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`. They can still
-  explicitly be deleted by the user via the removal methods of the
+  :meth:`~pywbem.WBEMSubscriptionManager.remove_all_servers`. In addition, they
+  can be deleted by the user via the removal methods of the
   :class:`~pywbem.WBEMSubscriptionManager` class.
 
 * **Permanent**
@@ -283,9 +285,9 @@ class WBEMSubscriptionManager(object):
         indication subscriptions to the server.
 
         This method discovers listener destination, indication filter, and
-        subscription instances in the WBEM server that are owned by this
-        subscription manager, and registers them in the subscription manager
-        as if they had been created through it.
+        subscription instances in the WBEM server owned by this subscription
+        manager, and registers them in the subscription manager as if they had
+        been created through it.
 
         In this discovery process, listener destination and indication filter
         instances are matched based upon the value of their `Name` property.
@@ -370,8 +372,7 @@ class WBEMSubscriptionManager(object):
         Remove a registered WBEM server from the subscription manager. This
         also unregisters listeners from that server and removes all owned
         indication subscriptions, owned indication filters and owned listener
-        destinations that were created by this subscription manager for that
-        server.
+        destinations.
 
         Parameters:
 
@@ -424,9 +425,7 @@ class WBEMSubscriptionManager(object):
         Remove all registered WBEM servers from the subscription manager. This
         also unregisters listeners from these servers and removes all owned
         indication subscriptions, owned indication filters, and owned listener
-        destinations that were created by this subscription manager.
-
-        This is, in effect, a complete shutdown of the subscription manager.
+        destinations.
 
         Raises:
 
@@ -451,14 +450,14 @@ class WBEMSubscriptionManager(object):
           {guid}``
 
         where ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
-        the ``owned`` argument; ``{subscription_manager_id}`` is the
+        the `owned` argument; ``{subscription_manager_id}`` is the
         subscription manager ID; and ``{guid}`` is a globally unique
         identifier.
 
         Owned listener destinations are added or updated conditionally: If the
         listener destination instance to be added is already registered with
         this subscription manager and has the same property values, it is not
-        created or modified. It it has the same path but different property
+        created or modified. If it has the same path but different property
         values, it is modified to get the desired property values. If an
         instance with this path does not exist yet (the normal case), it is
         created.
@@ -537,11 +536,14 @@ class WBEMSubscriptionManager(object):
 
     def get_owned_destinations(self, server_id):
         """
-        Return the owned listener destinations in a WBEM server that have been
-        created by this subscription manager.
+        Return the listener destinations in a WBEM server owned by this
+        subscription manager.
 
         This function accesses only the local list of owned destinations; it
-        does not contact the WBEM server.
+        does not contact the WBEM server. The local list of owned destinations
+        is discovered from the WBEM server when the server is registered with
+        the subscription manager, and is maintained from then on as changes
+        happen through this subscription manager.
 
         Parameters:
 
@@ -663,9 +665,9 @@ class WBEMSubscriptionManager(object):
         The `Name` property of the created filter instance can be set in one
         of two ways:
 
-        * directly by specifying the ``name`` parameter.
+        * directly by specifying the `name` parameter.
 
-          In this case, the ``Name`` property is set directly to the ``name``
+          In this case, the `Name` property is set directly to the `name`
           parameter.
 
           This should be used in cases where the user needs to have control
@@ -673,9 +675,9 @@ class WBEMSubscriptionManager(object):
           requires a particular name), but it cannot be used for owned
           filters.
 
-        * indirectly by specifying the ``filter_id`` parameter.
+        * indirectly by specifying the `filter_id` parameter.
 
-          In this case, the value of the ``Name`` property will be:
+          In this case, the value of the `Name` property will be:
 
           ``"pywbemfilter:" {ownership} ":" {subscription_manager_id} ":"
           {filter_id} ":" {guid}``
@@ -692,7 +694,7 @@ class WBEMSubscriptionManager(object):
         Owned indication filters are added or updated conditionally: If the
         indication filter instance to be added is already registered with
         this subscription manager and has the same property values, it is not
-        created or modified. It it has the same path but different property
+        created or modified. If it has the same path but different property
         values, it is modified to get the desired property values. If an
         instance with this path does not exist yet (the normal case), it is
         created.
@@ -726,7 +728,7 @@ class WBEMSubscriptionManager(object):
           filter_id (:term:`string`)
             A filter ID string that is used as a component in the value of the
             `Name` property of filter instances to help the user identify
-            these instances in a WBEM server, or `None` if the ``name``
+            these instances in a WBEM server, or `None` if the `name`
             parameter is specified.
 
             The string must consist of printable characters, and must not
@@ -741,7 +743,7 @@ class WBEMSubscriptionManager(object):
             *New in pywbem 0.10.*
 
             The filter name to be used directly for the `Name` property of the
-            filter instance, or `None` if the ``filter_id`` parameter is
+            filter instance, or `None` if the `filter_id` parameter is
             specified.
 
         Returns:
@@ -779,11 +781,14 @@ class WBEMSubscriptionManager(object):
 
     def get_owned_filters(self, server_id):
         """
-        Return the owned indication filters in a WBEM server that have been
-        created by this subscription manager.
+        Return the indication filters in a WBEM server owned by this
+        subscription manager.
 
         This function accesses only the local list of owned filters; it does
-        not contact the WBEM server.
+        not contact the WBEM server. The local list of owned filters is
+        discovered from the WBEM server when the server is registered with the
+        the subscription manager, and is maintained from then on as changes
+        happen through this subscription manager.
 
         Parameters:
 
@@ -903,7 +908,7 @@ class WBEMSubscriptionManager(object):
         Owned subscriptions are added or updated conditionally: If the
         subscription instance to be added is already registered with
         this subscription manager and has the same property values, it is not
-        created or modified. It it has the same path but different property
+        created or modified. If it has the same path but different property
         values, it is modified to get the desired property values. If an
         instance with this path does not exist yet (the normal case), it is
         created.
@@ -990,11 +995,14 @@ class WBEMSubscriptionManager(object):
 
     def get_owned_subscriptions(self, server_id):
         """
-        Return the owned indication subscriptions for a WBEM server that have
-        been created by this subscription manager.
+        Return the indication subscriptions in a WBEM server owned by this
+        subscription manager.
 
         This function accesses only the local list of owned subscriptions; it
-        does not contact the WBEM server.
+        does not contact the WBEM server. The local list of owned subscriptions
+        is discovered from the WBEM server when the server is registered with
+        the subscription manager, and is maintained from then on as changes
+        happen through this subscription manager.
 
         Parameters:
 
