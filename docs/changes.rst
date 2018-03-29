@@ -648,6 +648,12 @@ Bug fixes
   significant digits required by DSP0201: 11 for real32, and 17 for real64.
   (Issue #1136).
 
+* In the `WBEMServer.get_central_instances()` method, fixed the error that a
+  CIM status code of CIM_ERR_METHOD_NOT_FOUND returned when attempting to
+  invoke the GetCentralInstances CIM method lead to failing the
+  `get_central_instances()` method. Now, execution continues with attempting
+  the next approach for determining the central instances (Issue #1145).
+
 Cleanup
 ^^^^^^^
 

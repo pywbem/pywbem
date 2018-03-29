@@ -97,7 +97,8 @@ Example output:
 import re
 
 from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
-    CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
+    CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
 from .exceptions import CIMError
 from .cim_obj import CIMInstanceName, NocaseDict
 from .cim_operations import WBEMConnection
@@ -449,7 +450,8 @@ class WBEMServer(object):
                 MethodName="GetCentralInstances",
                 ObjectName=profile_path)
         except CIMError as exc:
-            if exc.status_code in (CIM_ERR_METHOD_NOT_AVAILABLE,
+            if exc.status_code in (CIM_ERR_METHOD_NOT_FOUND,
+                                   CIM_ERR_METHOD_NOT_AVAILABLE,
                                    CIM_ERR_NOT_SUPPORTED):
                 # Method is not implemented.
                 # CIM_ERR_NOT_SUPPORTED is not an official status code for this
