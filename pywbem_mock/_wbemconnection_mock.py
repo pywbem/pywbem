@@ -45,8 +45,9 @@ import six
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMQualifierDeclaration, \
     CIMParameter, cimtype, CIMError, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_INVALID_SUPERCLASS, \
-    CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_NOT_FOUND, CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_FAILED, \
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
+    CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
     DEFAULT_NAMESPACE, MOFCompiler, MOFWBEMConnection
@@ -2922,52 +2923,62 @@ class FakedWBEMConnection(WBEMConnection):
             if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
                 if namespace in self.classes or \
                         namespace in self.instances:
-                    raise CIMError(CIM_ERR_NOT_SUPPORTED,
+                    raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
                                    'Method %s in namespace %s not registered '
                                    'in repository' %
                                    (methodname, namespace))
                 else:
                     raise
-        except KeyError:
-            raise CIMError(CIM_ERR_NOT_SUPPORTED,
-                           'Method %s in namespace %s not registered in '
-                           'repository' %
-                           (methodname, namespace))
 
-        # find the methods entry corresponding to classname. It must be in
+        # Find the methods entry corresponding to classname. It must be in
         # the class defined by classname or one of its superclasses that
         # includes this method. Since the classes in the repo are not
         # resolved
 
+        # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
+        # Uses local_only = False to get characteristics from super classes
+        # and include_class_origin to get origin of method in hiearchy
         cc = self._get_class(localobject.classname, namespace,
-                             local_only=True, include_qualifiers=True,
+                             local_only=False, include_qualifiers=True,
                              include_classorigin=True)
 
         try:
             target_class = cc.methods[methodname].class_origin
         except KeyError:
-            raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Method %s not found '
+            raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
                            'in %s class hiearchy' % (methodname,
                                                      localobject.classname))
 
+        # test for target class in methods repo
         try:
             methods = methodsrepo[target_class]
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in '
                                               'namespace %s not '
-                                              'registered in repository' %
+                                              'registered in methods '
+                                              'repository' %
                            (localobject.classname, methodname, namespace))
+
+        # test for method in local class.
+        try:
+            cc.methods[methodname]
+        except KeyError:
+            raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
+                           'in method repository for class %s' %
+                           (methodname, localobject.classname))
+
         try:
             bound_method = methods[methodname]
         except KeyError:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Method %s in namespace %s not '
-                                              'registered in repository' %
+            raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
+                           'Method %s in namespace %s not registered in '
+                           ' methods repository. Internal error' %
                            (methodname, namespace))
 
         if bound_method is None:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in'
-                                              'namespace %s not '
-                                              'registered in repoository' %
+            raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
+                           'Class %s for method %s in registered in methods '
+                           'repoository' %
                            (localobject.classname, methodname, namespace))
 
         # Map the Params and **params into a single no-case dictionary
