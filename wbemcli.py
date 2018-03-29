@@ -186,6 +186,696 @@ def _remote_connection(server, opts, argparser_):
 # Create convenient global functions to reduce typing
 #
 
+def ei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None):
+    # pylint: disable=redefined-outer-name, too-many-arguments
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.EnumerateInstances`.
+
+    Enumerate the instances of a class (including instances of its subclasses)
+    in a namespace.
+
+    Parameters:
+
+      cn (:term:`string` or :class:`~pywbem.CIMClassName`):
+          Name of the class to be enumerated (case independent).
+
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      ns (:term:`string`):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
+
+      lo (:class:`py:bool`):
+          LocalOnly flag: Exclude inherited properties.
+
+          `None` will cause the server default of `True` to be used.
+
+          Deprecated in :term:`DSP0200`: WBEM server implementations for `True`
+          may vary; this parameter should be set to `False` by the caller.
+
+      di (:class:`py:bool`):
+          DeepInheritance flag: Include properties added by subclasses.
+
+          If `None`, this parameter will not be sent to the server, and the
+          server default of `True` will be used.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be returned in this operation.
+
+      ico (:class:`py:bool`):
+          IncludeClassOrigin flag: Include class origin information for the
+          properties in the retrieved instances.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
+          parameter as specified, or may treat any specified value as `False`.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). An empty iterable indicates to include no properties.
+          If `None`, all properties will be included.
+
+    Returns:
+
+      list of :class:`~pywbem.CIMInstance`:
+          The instances, with their `path` attribute being a
+          :class:`~pywbem.CIMInstanceName` object with its attributes set as
+          follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: `None`, indicating the WBEM server is unspecified.
+    """
+
+    return CONN.EnumerateInstances(cn, ns,
+                                   LocalOnly=lo,
+                                   DeepInheritance=di,
+                                   IncludeQualifiers=iq,
+                                   IncludeClassOrigin=ico,
+                                   PropertyList=pl)
+
+
+def ein(cn, ns=None):
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`.
+
+    Enumerate the instance paths of instances of a class (including instances
+    of its subclasses) in a namespace.
+
+    Parameters:
+
+      cn (:term:`string` or :class:`~pywbem.CIMClassName`):
+          Name of the class to be enumerated (case independent).
+
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      ns (:term:`string`):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
+
+    Returns:
+
+      list of :class:`~pywbem.CIMInstanceName`:
+          The instance paths, with their attributes set as follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: `None`, indicating the WBEM server is unspecified.
+    """
+
+    return CONN.EnumerateInstanceNames(cn, ns)
+
+
+def gi(ip, lo=None, iq=None, ico=None, pl=None):
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.GetInstance`.
+
+    Retrieve an instance.
+
+    Parameters:
+
+      ip (:class:`~pywbem.CIMInstanceName`):
+          Instance path.
+
+          If this object does not specify a namespace, the default namespace of
+          the connection is used.
+
+          Its `host` attribute will be ignored.
+
+      lo (:class:`py:bool`):
+          LocalOnly flag: Exclude inherited properties.
+
+          `None` will cause the server default of `True` to be used.
+
+          Deprecated in :term:`DSP0200`: WBEM server implementations for `True`
+          may vary; this parameter should be set to `False` by the caller.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be returned in this operation.
+
+      ico (:class:`py:bool`):
+          IncludeClassOrigin flag: Include class origin information for the
+          properties in the retrieved instance.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
+          parameter as specified, or may treat any specified value as `False`.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). An empty iterable indicates to include no properties.
+          If `None`, all properties will be included.
+
+    Returns:
+
+      :class:`~pywbem.CIMInstance`:
+          The instance, with its `path` attribute being a
+          :class:`~pywbem.CIMInstanceName` object with its attributes set as
+          follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: `None`, indicating the WBEM server is unspecified.
+    """
+
+    return CONN.GetInstance(ip,
+                            LocalOnly=lo,
+                            IncludeQualifiers=iq,
+                            IncludeClassOrigin=ico,
+                            PropertyList=pl)
+
+
+def mi(mi, iq=None, pl=None):
+    # pylint: disable=redefined-outer-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.ModifyInstance`.
+
+    Modify the property values of an instance.
+
+    Parameters:
+
+      mi (:class:`~pywbem.CIMInstance`):
+          Modified instance, also indicating its instance path.
+
+          The properties defined in this object specify the new property
+          values for the instance to be modified. Missing properties
+          (relative to the class declaration) and properties provided with
+          a value of `None` will be set to NULL.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Modify instance qualifiers as specified in
+          the instance.
+
+          `None` will cause the server default of `True` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be modified by this operation.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be modified. An empty iterable
+          indicates to modify no properties. If `None`, all properties exposed
+          by the instance will be modified.
+    """
+
+    CONN.ModifyInstance(mi,
+                        IncludeQualifiers=iq,
+                        PropertyList=pl)
+
+
+def ci(ni, ns=None):
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.CreateInstance`.
+
+    Create an instance in a namespace.
+
+    Parameters:
+
+      ni (:class:`~pywbem.CIMInstance`):
+          New instance.
+
+          Its `classname` attribute specifies the creation class.
+          Its `properties` attribute specifies initial property values.
+          Its `path` attribute is ignored, except for providing a default
+          namespace.
+
+          Instance-level qualifiers have been deprecated in CIM, so any
+          qualifier values specified using the `qualifiers` attribute
+          of this object will be ignored.
+
+      ns (:term:`string`):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace in the `path` attribute of the
+          `ni` parameter, or to the default namespace of the connection.
+
+    Returns:
+
+      CIMInstanceName:
+          The instance path of the new instance, with its attributes set as
+          follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: `None`, indicating the WBEM server is unspecified.
+    """
+
+    return CONN.CreateInstance(ni, ns)
+
+
+def di(ip):
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.DeleteInstance`.
+
+    Delete an instance.
+
+    Parameters:
+
+      ip (:class:`~pywbem.CIMInstanceName`):
+          Instance path of the instance to be deleted.
+
+          If this object does not specify a namespace, the default namespace
+          of the connection is used.
+          Its `host` attribute will be ignored.
+    """
+
+    CONN.DeleteInstance(ip)
+
+
+def a(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.Associators`.
+
+    Instance-level use: Retrieve the instances associated to a source instance.
+
+    Class-level use: Retrieve the classes associated to a source class.
+
+    Parameters:
+
+      op (:class:`~pywbem.CIMInstanceName`):
+          Source instance path; select instance-level use.
+
+      op (:class:`~pywbem.CIMClassName`):
+          Source class path; select class-level use.
+
+      ac (:term:`string`):
+          AssocClass filter: Include only traversals across this association
+          class.
+
+          `None` means this filter is not applied.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals to this associated
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      rr (:term:`string`):
+          ResultRole filter: Include only traversals to this role (= reference
+          name) in associated (=result) objects.
+
+          `None` means this filter is not applied.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be returned in this operation.
+
+      ico (:class:`py:bool`):
+          IncludeClassOrigin flag: Include class origin information for the
+          properties in the retrieved instances or for the properties and
+          methods in the retrieved classes.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200` for instance-level use: WBEM servers
+          may either implement this parameter as specified, or may treat any
+          specified value as `False`.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). An empty iterable indicates to include no properties.
+          If `None`, all properties will be included.
+
+    Returns:
+
+      list of result objects:
+
+        * For instance-level use, a list of :class:`~pywbem.CIMInstance` objects
+          representing the retrieved instances, with their `path` attribute
+          being a :class:`~pywbem.CIMInstanceName` object with its attributes
+          set as follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: Host and optionally port of the WBEM server containing
+            the CIM namespace, or `None` if the server did not return host
+            information.
+
+        * For class-level use, a list of tuple (classpath, class) representing
+          the retrieved classes, with the following (unnamed) tuple items:
+
+          * classpath (:class:`~pywbem.CIMClassName`): Class path with its
+            attributes set as follows:
+
+            * `classname`: Name of the class.
+            * `namespace`: Name of the CIM namespace containing the class.
+            * `host`: Host and optionally port of the WBEM server
+              containing the CIM namespace, or `None` if the server did not
+              return host information.
+
+          * class (:class:`~pywbem.CIMClass`): The representation of the class.
+    """
+
+    return CONN.Associators(op,
+                            AssocClass=ac,
+                            ResultClass=rc,
+                            Role=r,
+                            ResultRole=rr,
+                            IncludeQualifiers=iq,
+                            IncludeClassOrigin=ico,
+                            PropertyList=pl)
+
+
+def an(op, ac=None, rc=None, r=None, rr=None):
+    # pylint: disable=redefined-outer-name, invalid-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.AssociatorNames`.
+
+    Instance-level use: Retrieve the instance paths of the instances associated
+    to a source instance.
+
+    Class-level use: Retrieve the class paths of the classes associated
+    to a source class.
+
+    Parameters:
+
+      op (:class:`~pywbem.CIMInstanceName`):
+          Source instance path; select instance-level use.
+
+      op (:class:`~pywbem.CIMClassName`):
+          Source class path; select class-level use.
+
+      ac (:term:`string`):
+          AssocClass filter: Include only traversals across this association
+          class.
+
+          `None` means this filter is not applied.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals to this associated
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      rr (:term:`string`):
+          ResultRole filter: Include only traversals to this role (= reference
+          name) in associated (=result) objects.
+
+          `None` means this filter is not applied.
+
+    Returns:
+
+      list of result objects:
+
+        * For instance-level use, a list of :class:`~pywbem.CIMInstanceName`
+          objects representing the retrieved instance paths, with their
+          attributes set as follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: Host and optionally port of the WBEM server containing
+            the CIM namespace, or `None` if the server did not return host
+            information.
+
+        * For class-level use, a list of :class:`~pywbem.CIMClassName` objects
+          representing the retrieved class paths, with their attributes set as
+          follows:
+
+          * `classname`: Name of the class.
+          * `namespace`: Name of the CIM namespace containing the class.
+          * `host`: Host and optionally port of the WBEM server containing
+            the CIM namespace, or `None` if the server did not return host
+            information.
+    """
+
+    return CONN.AssociatorNames(op,
+                                AssocClass=ac,
+                                ResultClass=rc,
+                                Role=r,
+                                ResultRole=rr)
+
+
+def r(op, rc=None, r=None, iq=None, ico=None, pl=None):
+    # pylint: disable=redefined-outer-name, invalid-name, invalid-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.References`.
+
+    Instance-level use: Retrieve the association instances referencing a source
+    instance.
+
+    Class-level use: Retrieve the association classes referencing a source
+    class.
+
+    Parameters:
+
+      op (:class:`~pywbem.CIMInstanceName`):
+          Source instance path; select instance-level use.
+
+      op (:class:`~pywbem.CIMClassName`):
+          Source class path; select class-level use.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be returned in this operation.
+
+      ico (:class:`py:bool`):
+          IncludeClassOrigin flag: Include class origin information for the
+          properties in the retrieved instances or for the properties and
+          methods in the retrieved classes.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200` for instance-level use: WBEM servers
+          may either implement this parameter as specified, or may treat any
+          specified value as `False`.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). An empty iterable indicates to include no properties.
+          If `None`, all properties will be included.
+
+    Returns:
+
+      list of result objects:
+
+        * For instance-level use, a list of :class:`~pywbem.CIMInstance` objects
+          representing the retrieved instances, with their `path` attribute
+          being a :class:`~pywbem.CIMInstanceName` object with its attributes
+          set as follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: Host and optionally port of the WBEM server containing
+            the CIM namespace, or `None` if the server did not return host
+            information.
+
+        * For class-level use, a list of tuple (classpath, class) representing
+          the retrieved classes, with the following (unnamed) tuple items:
+
+          * classpath (:class:`~pywbem.CIMClassName`): Class path with its
+            attributes set as follows:
+
+            * `classname`: Name of the class.
+            * `namespace`: Name of the CIM namespace containing the class.
+            * `host`: Host and optionally port of the WBEM server
+              containing the CIM namespace, or `None` if the server did not
+              return host information.
+
+          * class (:class:`~pywbem.CIMClass`): The representation of the class.
+    """
+
+    return CONN.References(op,
+                           ResultClass=rc,
+                           Role=r,
+                           IncludeQualifiers=iq,
+                           IncludeClassOrigin=ico,
+                           PropertyList=pl)
+
+
+def rn(op, rc=None, r=None):
+    # pylint: disable=redefined-outer-name, invalid-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.ReferenceNames`.
+
+    Instance-level use: Retrieve the instance paths of the association
+    instances referencing a source instance.
+
+    Class-level use: Retrieve the class paths of the association classes
+    referencing a source class.
+
+    Parameters:
+
+      op (:class:`~pywbem.CIMInstanceName`):
+          Source instance path; select instance-level use.
+
+      op (:class:`~pywbem.CIMClassName`):
+          Source class path; select class-level use.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+    Returns:
+
+      list of result objects:
+
+        * For instance-level use, a list of :class:`~pywbem.CIMInstanceName`
+          objects representing the retrieved instance paths, with their
+          attributes set as follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: Host and optionally port of the WBEM server containing
+            the CIM namespace, or `None` if the server did not return host
+            information.
+
+        * For class-level use, a list of :class:`~pywbem.CIMClassName` objects
+          representing the retrieved class paths, with their attributes set as
+          follows:
+
+          * `classname`: Name of the class.
+          * `namespace`: Name of the CIM namespace containing the class.
+          * `host`: Host and optionally port of the WBEM server containing
+            the CIM namespace, or `None` if the server did not return host
+            information.
+    """
+
+    return CONN.ReferenceNames(op,
+                               ResultClass=rc,
+                               Role=r)
+
+
+def im(mn, op, params, **kwparams):
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.InvokeMethod`.
+
+    Invoke a method on a target instance or on a target class.
+
+    The methods that can be invoked are static and non-static methods defined
+    in a class (also known as *extrinsic* methods). Static methods can be
+    invoked on instances and on classes. Non-static methods can be invoked only
+    on instances.
+
+    Parameters:
+
+      mn (:term:`string`):
+          Method name.
+
+      op (:class:`~pywbem.CIMInstanceName`):
+          Target instance path.
+
+      op (:class:`~pywbem.CIMClassName`):
+          Target class path.
+
+      params (:term:`py:iterable`):
+          Input parameters for the method.
+
+          Each item in the iterable is a single parameter value and can be any
+          of:
+
+            * :class:`~pywbem.CIMParameter` representing a parameter value. The
+              `name`, `value`, `type` and `embedded_object` attributes of this
+              object are used.
+
+            * tuple of name, value, with:
+
+                - name (:term:`string`): Parameter name (case independent)
+                - value (:term:`CIM data type`): Parameter value
+
+      **kwparams (named/keyword arguments):
+          Input parameters for the method.
+
+            * key (:term:`string`): Parameter name (case independent)
+            * value (:term:`CIM data type`): Parameter value
+
+    Returns:
+
+      tuple(rv, out), with these tuple items:
+
+        * rv (:term:`CIM data type`):
+          Return value of the CIM method.
+        * out (:ref:`NocaseDict`):
+          Dictionary with all provided output parameters of the CIM method,
+          with:
+
+          * key (:term:`unicode string`):
+            Parameter name
+          * value (:term:`CIM data type`):
+            Parameter value
+    """
+
+    return CONN.InvokeMethod(mn, op, params, **kwparams)
+
+
 def iei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
         fs=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
     # pylint: disable=too-many-arguments, redefined-outer-name
@@ -390,209 +1080,6 @@ def ieip(cn, ns=None, fl=None, fs=None, ot=None, coe=None,
     """
 
     return CONN.IterEnumerateInstancePaths(cn, ns,
-                                           FilterQueryLanguage=fl,
-                                           FilterQuery=fs,
-                                           OperationTimeout=ot,
-                                           ContinueOnError=coe,
-                                           MaxObjectCount=moc)
-
-
-def iri(ip, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fs=None,
-        ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
-    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
-    """
-    *New in pywbem 0.10 as experimental and finalized in 0.12.*
-
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.IterReferenceInstances`.
-
-    Retrieve the association instances that reference a source instance,
-    using the corresponding pull operations if supported by the WBEM server
-    or otherwise the corresponding traditional operation, and using the
-    Python :term:`py:generator` idiom to return the result.
-
-    This method is an alternative to using the pull operations directly,
-    that frees the user of having to know whether the WBEM server supports
-    pull operations.
-
-    Parameters:
-
-      ip (:class:`~pywbem.CIMInstanceName`):
-          Source instance path.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals across this association
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Include qualifiers.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be included.
-
-      ico (:class:`py:bool`):
-          IncludeClassOrigin flag: Include class origin information for the
-          properties in the retrieved instances.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
-          parameter as specified, or may treat any specified value as `False`.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be included (if not otherwise
-          excluded). An empty iterable indicates to include no properties.
-          If `None`, all properties will be included.
-
-      fl (:term:`string`):
-          Filter query language to be used for the filter defined in the `fs`
-          parameter. The DMTF-defined Filter Query Language
-          (see :term:`DSP0212`) is specified as "DMTF:FQL".
-
-          `None` means that no such filtering is peformed.
-
-      fs (:term:`string`):
-          Filter to apply to objects to be returned. Based on filter query
-          language defined by `fl` parameter.
-
-          `None` means that no such filtering is peformed.
-
-      ot (:class:`~pywbem.Uint32`):
-          Operation timeout in seconds. This is the minimum time the WBEM server
-          must keep the enumeration session open between requests on that
-          session.
-
-          A value of 0 indicates that the server should never time out.
-
-          The server may reject the proposed value.
-
-          `None` will cause the server to use its default timeout.
-
-      coe (:class:`py:bool`):
-          Continue on error flag.
-
-          `None` will cause the server to use its default of `False`.
-
-      moc (:class:`~pywbem.Uint32`):
-          Maximum number of instances the WBEM server may return for each of
-          the open and pull requests issued during the iterations over the
-          returned generator object.
-
-          Zero and `None` are not allowed.
-
-    Returns:
-
-      :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
-      A generator object that iterates the resulting CIM instances.
-      These instances include an instance path that has its host and
-      namespace components set.
-    """
-
-    return CONN.IterReferenceInstances(ip,
-                                       ResultClass=rc,
-                                       Role=r,
-                                       IncludeQualifiers=iq,
-                                       IncludeClassOrigin=ico,
-                                       PropertyList=pl,
-                                       FilterQueryLanguage=fl,
-                                       FilterQuery=fs,
-                                       OperationTimeout=ot,
-                                       ContinueOnError=coe,
-                                       MaxObjectCount=moc)
-
-
-def irip(ip, rc=None, r=None, fl=None, fs=None, ot=None, coe=None,
-         moc=DEFAULT_ITER_MAXOBJECTCOUNT):
-    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
-    """
-    *New in pywbem 0.10 as experimental and finalized in 0.12.*
-
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`.
-
-    Retrieve the instance paths of the association instances that reference
-    a source instance,
-    using the corresponding pull operations if supported by the WBEM server
-    or otherwise the corresponding traditional operation, and using the
-    Python :term:`py:generator` idiom to return the result.
-
-    This method is an alternative to using the pull operations directly,
-    that frees the user of having to know whether the WBEM server supports
-    pull operations.
-
-    Parameters:
-
-      ip (:class:`~pywbem.CIMInstanceName`):
-          Source instance path.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals across this association
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      fl (:term:`string`):
-          Filter query language to be used for the filter defined in the `fs`
-          parameter. The DMTF-defined Filter Query Language
-          (see :term:`DSP0212`) is specified as "DMTF:FQL".
-
-          `None` means that no such filtering is peformed.
-
-      fs (:term:`string`):
-          Filter to apply to objects to be returned. Based on filter query
-          language defined by `fl` parameter.
-
-          `None` means that no such filtering is peformed.
-
-      ot (:class:`~pywbem.Uint32`):
-          Operation timeout in seconds. This is the minimum time the WBEM server
-          must keep the enumeration session open between requests on that
-          session.
-
-          A value of 0 indicates that the server should never time out.
-
-          The server may reject the proposed value.
-
-          `None` will cause the server to use its default timeout.
-
-      coe (:class:`py:bool`):
-          Continue on error flag.
-
-          `None` will cause the server to use its default of `False`.
-
-      moc (:class:`~pywbem.Uint32`):
-          Maximum number of instances the WBEM server may return for each of
-          the open and pull requests issued during the iterations over the
-          returned generator object.
-
-          Zero and `None` are not allowed.
-
-    Returns:
-
-      :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
-      A generator object that iterates the resulting CIM instance paths.
-      These instance paths have their host and namespace components set.
-    """
-
-    return CONN.IterReferenceInstancePaths(ip,
-                                           ResultClass=rc,
-                                           Role=r,
                                            FilterQueryLanguage=fl,
                                            FilterQuery=fs,
                                            OperationTimeout=ot,
@@ -831,6 +1318,209 @@ def iaip(ip, ac=None, rc=None, r=None, rr=None, fl=None, fs=None, ot=None,
                                             MaxObjectCount=moc)
 
 
+def iri(ip, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fs=None,
+        ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
+    """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.IterReferenceInstances`.
+
+    Retrieve the association instances that reference a source instance,
+    using the corresponding pull operations if supported by the WBEM server
+    or otherwise the corresponding traditional operation, and using the
+    Python :term:`py:generator` idiom to return the result.
+
+    This method is an alternative to using the pull operations directly,
+    that frees the user of having to know whether the WBEM server supports
+    pull operations.
+
+    Parameters:
+
+      ip (:class:`~pywbem.CIMInstanceName`):
+          Source instance path.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be included.
+
+      ico (:class:`py:bool`):
+          IncludeClassOrigin flag: Include class origin information for the
+          properties in the retrieved instances.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
+          parameter as specified, or may treat any specified value as `False`.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). An empty iterable indicates to include no properties.
+          If `None`, all properties will be included.
+
+      fl (:term:`string`):
+          Filter query language to be used for the filter defined in the `fs`
+          parameter. The DMTF-defined Filter Query Language
+          (see :term:`DSP0212`) is specified as "DMTF:FQL".
+
+          `None` means that no such filtering is peformed.
+
+      fs (:term:`string`):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (:class:`~pywbem.Uint32`):
+          Operation timeout in seconds. This is the minimum time the WBEM server
+          must keep the enumeration session open between requests on that
+          session.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (:class:`py:bool`):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (:class:`~pywbem.Uint32`):
+          Maximum number of instances the WBEM server may return for each of
+          the open and pull requests issued during the iterations over the
+          returned generator object.
+
+          Zero and `None` are not allowed.
+
+    Returns:
+
+      :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
+      A generator object that iterates the resulting CIM instances.
+      These instances include an instance path that has its host and
+      namespace components set.
+    """
+
+    return CONN.IterReferenceInstances(ip,
+                                       ResultClass=rc,
+                                       Role=r,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fs,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+def irip(ip, rc=None, r=None, fl=None, fs=None, ot=None, coe=None,
+         moc=DEFAULT_ITER_MAXOBJECTCOUNT):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
+    """
+    *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`.
+
+    Retrieve the instance paths of the association instances that reference
+    a source instance,
+    using the corresponding pull operations if supported by the WBEM server
+    or otherwise the corresponding traditional operation, and using the
+    Python :term:`py:generator` idiom to return the result.
+
+    This method is an alternative to using the pull operations directly,
+    that frees the user of having to know whether the WBEM server supports
+    pull operations.
+
+    Parameters:
+
+      ip (:class:`~pywbem.CIMInstanceName`):
+          Source instance path.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      fl (:term:`string`):
+          Filter query language to be used for the filter defined in the `fs`
+          parameter. The DMTF-defined Filter Query Language
+          (see :term:`DSP0212`) is specified as "DMTF:FQL".
+
+          `None` means that no such filtering is peformed.
+
+      fs (:term:`string`):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (:class:`~pywbem.Uint32`):
+          Operation timeout in seconds. This is the minimum time the WBEM server
+          must keep the enumeration session open between requests on that
+          session.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (:class:`py:bool`):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (:class:`~pywbem.Uint32`):
+          Maximum number of instances the WBEM server may return for each of
+          the open and pull requests issued during the iterations over the
+          returned generator object.
+
+          Zero and `None` are not allowed.
+
+    Returns:
+
+      :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
+      A generator object that iterates the resulting CIM instance paths.
+      These instance paths have their host and namespace components set.
+    """
+
+    return CONN.IterReferenceInstancePaths(ip,
+                                           ResultClass=rc,
+                                           Role=r,
+                                           FilterQueryLanguage=fl,
+                                           FilterQuery=fs,
+                                           OperationTimeout=ot,
+                                           ContinueOnError=coe,
+                                           MaxObjectCount=moc)
+
+
 def iqi(ql, qs, ns=None, rc=None, ot=None, coe=None,
         moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
     # pylint: disable=line-too-long
@@ -921,633 +1611,6 @@ def iqi(ql, qs, ns=None, rc=None, ot=None, coe=None,
                                    OperationTimeout=ot,
                                    ContinueOnError=coe,
                                    MaxObjectCount=moc)
-
-
-def ein(cn, ns=None):
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`.
-
-    Enumerate the instance paths of instances of a class (including instances
-    of its subclasses) in a namespace.
-
-    Parameters:
-
-      cn (:term:`string` or :class:`~pywbem.CIMClassName`):
-          Name of the class to be enumerated (case independent).
-
-          If specified as a `CIMClassName` object, its `host` attribute will be
-          ignored.
-
-      ns (:term:`string`):
-          Name of the CIM namespace to be used (case independent).
-
-          If `None`, defaults to the namespace of the `cn` parameter if
-          specified as a `CIMClassName`, or to the default namespace of the
-          connection.
-
-    Returns:
-
-      list of :class:`~pywbem.CIMInstanceName`:
-          The instance paths, with their attributes set as follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: `None`, indicating the WBEM server is unspecified.
-    """
-
-    return CONN.EnumerateInstanceNames(cn, ns)
-
-
-def ei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None):
-    # pylint: disable=redefined-outer-name, too-many-arguments
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.EnumerateInstances`.
-
-    Enumerate the instances of a class (including instances of its subclasses)
-    in a namespace.
-
-    Parameters:
-
-      cn (:term:`string` or :class:`~pywbem.CIMClassName`):
-          Name of the class to be enumerated (case independent).
-
-          If specified as a `CIMClassName` object, its `host` attribute will be
-          ignored.
-
-      ns (:term:`string`):
-          Name of the CIM namespace to be used (case independent).
-
-          If `None`, defaults to the namespace of the `cn` parameter if
-          specified as a `CIMClassName`, or to the default namespace of the
-          connection.
-
-      lo (:class:`py:bool`):
-          LocalOnly flag: Exclude inherited properties.
-
-          `None` will cause the server default of `True` to be used.
-
-          Deprecated in :term:`DSP0200`: WBEM server implementations for `True`
-          may vary; this parameter should be set to `False` by the caller.
-
-      di (:class:`py:bool`):
-          DeepInheritance flag: Include properties added by subclasses.
-
-          If `None`, this parameter will not be sent to the server, and the
-          server default of `True` will be used.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Include qualifiers.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be returned in this operation.
-
-      ico (:class:`py:bool`):
-          IncludeClassOrigin flag: Include class origin information for the
-          properties in the retrieved instances.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
-          parameter as specified, or may treat any specified value as `False`.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be included (if not otherwise
-          excluded). An empty iterable indicates to include no properties.
-          If `None`, all properties will be included.
-
-    Returns:
-
-      list of :class:`~pywbem.CIMInstance`:
-          The instances, with their `path` attribute being a
-          :class:`~pywbem.CIMInstanceName` object with its attributes set as
-          follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: `None`, indicating the WBEM server is unspecified.
-    """
-
-    return CONN.EnumerateInstances(cn, ns,
-                                   LocalOnly=lo,
-                                   DeepInheritance=di,
-                                   IncludeQualifiers=iq,
-                                   IncludeClassOrigin=ico,
-                                   PropertyList=pl)
-
-
-def gi(ip, lo=None, iq=None, ico=None, pl=None):
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.GetInstance`.
-
-    Retrieve an instance.
-
-    Parameters:
-
-      ip (:class:`~pywbem.CIMInstanceName`):
-          Instance path.
-
-          If this object does not specify a namespace, the default namespace of
-          the connection is used.
-
-          Its `host` attribute will be ignored.
-
-      lo (:class:`py:bool`):
-          LocalOnly flag: Exclude inherited properties.
-
-          `None` will cause the server default of `True` to be used.
-
-          Deprecated in :term:`DSP0200`: WBEM server implementations for `True`
-          may vary; this parameter should be set to `False` by the caller.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Include qualifiers.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be returned in this operation.
-
-      ico (:class:`py:bool`):
-          IncludeClassOrigin flag: Include class origin information for the
-          properties in the retrieved instance.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
-          parameter as specified, or may treat any specified value as `False`.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be included (if not otherwise
-          excluded). An empty iterable indicates to include no properties.
-          If `None`, all properties will be included.
-
-    Returns:
-
-      :class:`~pywbem.CIMInstance`:
-          The instance, with its `path` attribute being a
-          :class:`~pywbem.CIMInstanceName` object with its attributes set as
-          follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: `None`, indicating the WBEM server is unspecified.
-    """
-
-    return CONN.GetInstance(ip,
-                            LocalOnly=lo,
-                            IncludeQualifiers=iq,
-                            IncludeClassOrigin=ico,
-                            PropertyList=pl)
-
-
-def mi(mi, iq=None, pl=None):
-    # pylint: disable=redefined-outer-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.ModifyInstance`.
-
-    Modify the property values of an instance.
-
-    Parameters:
-
-      mi (:class:`~pywbem.CIMInstance`):
-          Modified instance, also indicating its instance path.
-
-          The properties defined in this object specify the new property
-          values for the instance to be modified. Missing properties
-          (relative to the class declaration) and properties provided with
-          a value of `None` will be set to NULL.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Modify instance qualifiers as specified in
-          the instance.
-
-          `None` will cause the server default of `True` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be modified by this operation.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be modified. An empty iterable
-          indicates to modify no properties. If `None`, all properties exposed
-          by the instance will be modified.
-    """
-
-    CONN.ModifyInstance(mi,
-                        IncludeQualifiers=iq,
-                        PropertyList=pl)
-
-
-def ci(ni, ns=None):
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.CreateInstance`.
-
-    Create an instance in a namespace.
-
-    Parameters:
-
-      ni (:class:`~pywbem.CIMInstance`):
-          New instance.
-
-          Its `classname` attribute specifies the creation class.
-          Its `properties` attribute specifies initial property values.
-          Its `path` attribute is ignored, except for providing a default
-          namespace.
-
-          Instance-level qualifiers have been deprecated in CIM, so any
-          qualifier values specified using the `qualifiers` attribute
-          of this object will be ignored.
-
-      ns (:term:`string`):
-          Name of the CIM namespace to be used (case independent).
-
-          If `None`, defaults to the namespace in the `path` attribute of the
-          `ni` parameter, or to the default namespace of the connection.
-
-    Returns:
-
-      CIMInstanceName:
-          The instance path of the new instance, with its attributes set as
-          follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: `None`, indicating the WBEM server is unspecified.
-    """
-
-    return CONN.CreateInstance(ni, ns)
-
-
-def di(ip):
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.DeleteInstance`.
-
-    Delete an instance.
-
-    Parameters:
-
-      ip (:class:`~pywbem.CIMInstanceName`):
-          Instance path of the instance to be deleted.
-
-          If this object does not specify a namespace, the default namespace
-          of the connection is used.
-          Its `host` attribute will be ignored.
-    """
-
-    CONN.DeleteInstance(ip)
-
-
-def an(op, ac=None, rc=None, r=None, rr=None):
-    # pylint: disable=redefined-outer-name, invalid-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.AssociatorNames`.
-
-    Instance-level use: Retrieve the instance paths of the instances associated
-    to a source instance.
-
-    Class-level use: Retrieve the class paths of the classes associated
-    to a source class.
-
-    Parameters:
-
-      op (:class:`~pywbem.CIMInstanceName`):
-          Source instance path; select instance-level use.
-
-      op (:class:`~pywbem.CIMClassName`):
-          Source class path; select class-level use.
-
-      ac (:term:`string`):
-          AssocClass filter: Include only traversals across this association
-          class.
-
-          `None` means this filter is not applied.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals to this associated
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      rr (:term:`string`):
-          ResultRole filter: Include only traversals to this role (= reference
-          name) in associated (=result) objects.
-
-          `None` means this filter is not applied.
-
-    Returns:
-
-      list of result objects:
-
-        * For instance-level use, a list of :class:`~pywbem.CIMInstanceName`
-          objects representing the retrieved instance paths, with their
-          attributes set as follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: Host and optionally port of the WBEM server containing
-            the CIM namespace, or `None` if the server did not return host
-            information.
-
-        * For class-level use, a list of :class:`~pywbem.CIMClassName` objects
-          representing the retrieved class paths, with their attributes set as
-          follows:
-
-          * `classname`: Name of the class.
-          * `namespace`: Name of the CIM namespace containing the class.
-          * `host`: Host and optionally port of the WBEM server containing
-            the CIM namespace, or `None` if the server did not return host
-            information.
-    """
-
-    return CONN.AssociatorNames(op,
-                                AssocClass=ac,
-                                ResultClass=rc,
-                                Role=r,
-                                ResultRole=rr)
-
-
-def a(op, ac=None, rc=None, r=None, rr=None, iq=None, ico=None, pl=None):
-    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.Associators`.
-
-    Instance-level use: Retrieve the instances associated to a source instance.
-
-    Class-level use: Retrieve the classes associated to a source class.
-
-    Parameters:
-
-      op (:class:`~pywbem.CIMInstanceName`):
-          Source instance path; select instance-level use.
-
-      op (:class:`~pywbem.CIMClassName`):
-          Source class path; select class-level use.
-
-      ac (:term:`string`):
-          AssocClass filter: Include only traversals across this association
-          class.
-
-          `None` means this filter is not applied.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals to this associated
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      rr (:term:`string`):
-          ResultRole filter: Include only traversals to this role (= reference
-          name) in associated (=result) objects.
-
-          `None` means this filter is not applied.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Include qualifiers.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be returned in this operation.
-
-      ico (:class:`py:bool`):
-          IncludeClassOrigin flag: Include class origin information for the
-          properties in the retrieved instances or for the properties and
-          methods in the retrieved classes.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200` for instance-level use: WBEM servers
-          may either implement this parameter as specified, or may treat any
-          specified value as `False`.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be included (if not otherwise
-          excluded). An empty iterable indicates to include no properties.
-          If `None`, all properties will be included.
-
-    Returns:
-
-      list of result objects:
-
-        * For instance-level use, a list of :class:`~pywbem.CIMInstance` objects
-          representing the retrieved instances, with their `path` attribute
-          being a :class:`~pywbem.CIMInstanceName` object with its attributes
-          set as follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: Host and optionally port of the WBEM server containing
-            the CIM namespace, or `None` if the server did not return host
-            information.
-
-        * For class-level use, a list of tuple (classpath, class) representing
-          the retrieved classes, with the following (unnamed) tuple items:
-
-          * classpath (:class:`~pywbem.CIMClassName`): Class path with its
-            attributes set as follows:
-
-            * `classname`: Name of the class.
-            * `namespace`: Name of the CIM namespace containing the class.
-            * `host`: Host and optionally port of the WBEM server
-              containing the CIM namespace, or `None` if the server did not
-              return host information.
-
-          * class (:class:`~pywbem.CIMClass`): The representation of the class.
-    """
-
-    return CONN.Associators(op,
-                            AssocClass=ac,
-                            ResultClass=rc,
-                            Role=r,
-                            ResultRole=rr,
-                            IncludeQualifiers=iq,
-                            IncludeClassOrigin=ico,
-                            PropertyList=pl)
-
-
-def rn(op, rc=None, r=None):
-    # pylint: disable=redefined-outer-name, invalid-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.ReferenceNames`.
-
-    Instance-level use: Retrieve the instance paths of the association
-    instances referencing a source instance.
-
-    Class-level use: Retrieve the class paths of the association classes
-    referencing a source class.
-
-    Parameters:
-
-      op (:class:`~pywbem.CIMInstanceName`):
-          Source instance path; select instance-level use.
-
-      op (:class:`~pywbem.CIMClassName`):
-          Source class path; select class-level use.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals across this association
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-    Returns:
-
-      list of result objects:
-
-        * For instance-level use, a list of :class:`~pywbem.CIMInstanceName`
-          objects representing the retrieved instance paths, with their
-          attributes set as follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: Host and optionally port of the WBEM server containing
-            the CIM namespace, or `None` if the server did not return host
-            information.
-
-        * For class-level use, a list of :class:`~pywbem.CIMClassName` objects
-          representing the retrieved class paths, with their attributes set as
-          follows:
-
-          * `classname`: Name of the class.
-          * `namespace`: Name of the CIM namespace containing the class.
-          * `host`: Host and optionally port of the WBEM server containing
-            the CIM namespace, or `None` if the server did not return host
-            information.
-    """
-
-    return CONN.ReferenceNames(op,
-                               ResultClass=rc,
-                               Role=r)
-
-
-def r(op, rc=None, r=None, iq=None, ico=None, pl=None):
-    # pylint: disable=redefined-outer-name, invalid-name, invalid-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.References`.
-
-    Instance-level use: Retrieve the association instances referencing a source
-    instance.
-
-    Class-level use: Retrieve the association classes referencing a source
-    class.
-
-    Parameters:
-
-      op (:class:`~pywbem.CIMInstanceName`):
-          Source instance path; select instance-level use.
-
-      op (:class:`~pywbem.CIMClassName`):
-          Source class path; select class-level use.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals across this association
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Include qualifiers.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be returned in this operation.
-
-      ico (:class:`py:bool`):
-          IncludeClassOrigin flag: Include class origin information for the
-          properties in the retrieved instances or for the properties and
-          methods in the retrieved classes.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200` for instance-level use: WBEM servers
-          may either implement this parameter as specified, or may treat any
-          specified value as `False`.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be included (if not otherwise
-          excluded). An empty iterable indicates to include no properties.
-          If `None`, all properties will be included.
-
-    Returns:
-
-      list of result objects:
-
-        * For instance-level use, a list of :class:`~pywbem.CIMInstance` objects
-          representing the retrieved instances, with their `path` attribute
-          being a :class:`~pywbem.CIMInstanceName` object with its attributes
-          set as follows:
-
-          * `classname`: Name of the creation class of the instance.
-          * `keybindings`: Keybindings of the instance.
-          * `namespace`: Name of the CIM namespace containing the instance.
-          * `host`: Host and optionally port of the WBEM server containing
-            the CIM namespace, or `None` if the server did not return host
-            information.
-
-        * For class-level use, a list of tuple (classpath, class) representing
-          the retrieved classes, with the following (unnamed) tuple items:
-
-          * classpath (:class:`~pywbem.CIMClassName`): Class path with its
-            attributes set as follows:
-
-            * `classname`: Name of the class.
-            * `namespace`: Name of the CIM namespace containing the class.
-            * `host`: Host and optionally port of the WBEM server
-              containing the CIM namespace, or `None` if the server did not
-              return host information.
-
-          * class (:class:`~pywbem.CIMClass`): The representation of the class.
-    """
-
-    return CONN.References(op,
-                           ResultClass=rc,
-                           Role=r,
-                           IncludeQualifiers=iq,
-                           IncludeClassOrigin=ico,
-                           PropertyList=pl)
 
 
 def oei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
@@ -1764,220 +1827,6 @@ def oeip(cn, ns=None, fl=None, fs=None, ot=None, coe=None, moc=None):
     """
 
     return CONN.OpenEnumerateInstancePaths(cn, ns,
-                                           FilterQueryLanguage=fl,
-                                           FilterQuery=fs,
-                                           OperationTimeout=ot,
-                                           ContinueOnError=coe,
-                                           MaxObjectCount=moc)
-
-
-def ori(ip, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fs=None,
-        ot=None, coe=None, moc=None):
-    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`.
-
-    Open an enumeration session to retrieve the association instances that
-    reference a source instance.
-
-    Use the :func:`~wbemcli.piwp` function to retrieve the next set of
-    instances or the :func:`~wbcmeli.ce` function to close the enumeration
-    session before it is complete.
-
-    Parameters:
-
-      ip (:class:`~pywbem.CIMInstanceName`):
-          Source instance path.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals across this association
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      iq (:class:`py:bool`):
-          IncludeQualifiers flag: Include qualifiers.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
-          be returned in this operation.
-
-      ico (:class:`py:bool`):
-          IncludeClassOrigin flag: Include class origin information for the
-          properties in the retrieved instances.
-
-          `None` will cause the server default of `False` to be used.
-
-          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
-          parameter as specified, or may treat any specified value as `False`.
-
-      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
-          PropertyList: Names of properties to be included (if not otherwise
-          excluded). An empty iterable indicates to include no properties.
-          If `None`, all properties will be included.
-
-      fl (:term:`string`):
-          Filter query language to be used for the filter defined in the `fs`
-          parameter. The DMTF-defined Filter Query Language
-          (see :term:`DSP0212`) is specified as "DMTF:FQL".
-
-          `None` means that no such filtering is peformed.
-
-      fs (:term:`string`):
-          Filter to apply to objects to be returned. Based on filter query
-          language defined by `fl` parameter.
-
-          `None` means that no such filtering is peformed.
-
-      ot (:class:`~pywbem.Uint32`):
-          Operation timeout in seconds. This is the minimum time the WBEM server
-          must keep the enumeration session open between requests on that
-          session.
-
-          A value of 0 indicates that the server should never time out.
-
-          The server may reject the proposed value.
-
-          `None` will cause the server to use its default timeout.
-
-      coe (:class:`py:bool`):
-          Continue on error flag.
-
-          `None` will cause the server to use its default of `False`.
-
-      moc (:class:`~pywbem.Uint32`):
-          Maximum number of objects to return for this operation.
-
-          `None` will cause the server to use its default of 0.
-
-    Returns:
-
-      A :func:`~py:collections.namedtuple` object containing the following
-      named items:
-
-        * **instances** (list of :class:`~pywbem.CIMInstance`):
-          The retrieved instances.
-
-        * **eos** (:class:`py:bool`):
-          `True` if the enumeration session is exhausted after this operation.
-          Otherwise `eos` is `False` and the `context` item is the context
-          object for the next operation on the enumeration session.
-
-        * **context** (:func:`py:tuple` of server_context, namespace):
-          A context object identifying the open enumeration session, including
-          its current enumeration state, and the namespace. This object must be
-          supplied with the next pull or close operation for this enumeration
-          session.
-    """
-
-    return CONN.OpenReferenceInstances(ip,
-                                       ResultClass=rc,
-                                       Role=r,
-                                       IncludeQualifiers=iq,
-                                       IncludeClassOrigin=ico,
-                                       PropertyList=pl,
-                                       FilterQueryLanguage=fl,
-                                       FilterQuery=fs,
-                                       OperationTimeout=ot,
-                                       ContinueOnError=coe,
-                                       MaxObjectCount=moc)
-
-
-def orip(ip, rc=None, r=None, fl=None, fs=None, ot=None, coe=None, moc=None):
-    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`.
-
-    Open an enumeration session to retrieve the instance paths of the
-    association instances that reference a source instance.
-
-    Use the :func:`~wbemcli.pip` function to retrieve the next set of
-    instance paths or the :func:`~wbcmeli.ce` function to close the enumeration
-    session before it is complete.
-
-    Parameters:
-
-      ip (:class:`~pywbem.CIMInstanceName`):
-          Source instance path.
-
-      rc (:term:`string`):
-          ResultClass filter: Include only traversals across this association
-          (result) class.
-
-          `None` means this filter is not applied.
-
-      r (:term:`string`):
-          Role filter: Include only traversals from this role (= reference
-          name) in source object.
-
-          `None` means this filter is not applied.
-
-      fl (:term:`string`):
-          Filter query language to be used for the filter defined in the `fs`
-          parameter. The DMTF-defined Filter Query Language
-          (see :term:`DSP0212`) is specified as "DMTF:FQL".
-
-          `None` means that no such filtering is peformed.
-
-      fs (:term:`string`):
-          Filter to apply to objects to be returned. Based on filter query
-          language defined by `fl` parameter.
-
-          `None` means that no such filtering is peformed.
-
-      ot (:class:`~pywbem.Uint32`):
-          Operation timeout in seconds. This is the minimum time the WBEM server
-          must keep the enumeration session open between requests on that
-          session.
-
-          A value of 0 indicates that the server should never time out.
-
-          The server may reject the proposed value.
-
-          `None` will cause the server to use its default timeout.
-
-      coe (:class:`py:bool`):
-          Continue on error flag.
-
-          `None` will cause the server to use its default of `False`.
-
-      moc (:class:`~pywbem.Uint32`):
-          Maximum number of objects to return for this operation.
-
-          `None` will cause the server to use its default of 0.
-
-    Returns:
-
-      A :func:`~py:collections.namedtuple` object containing the following
-      named items:
-
-        * **paths** (list of :class:`~pywbem.CIMInstanceName`):
-          The retrieved instance paths.
-
-        * **eos** (:class:`py:bool`):
-          `True` if the enumeration session is exhausted after this operation.
-          Otherwise `eos` is `False` and the `context` item is the context
-          object for the next operation on the enumeration session.
-
-        * **context** (:func:`py:tuple` of server_context, namespace):
-          A context object identifying the open enumeration session, including
-          its current enumeration state, and the namespace. This object must be
-          supplied with the next pull or close operation for this enumeration
-          session.
-    """
-
-    return CONN.OpenReferenceInstancePaths(ip,
-                                           ResultClass=rc,
-                                           Role=r,
                                            FilterQueryLanguage=fl,
                                            FilterQuery=fs,
                                            OperationTimeout=ot,
@@ -2226,6 +2075,220 @@ def oaip(ip, ac=None, rc=None, r=None, rr=None, fl=None, fs=None, ot=None,
                                             OperationTimeout=ot,
                                             ContinueOnError=coe,
                                             MaxObjectCount=moc)
+
+
+def ori(ip, rc=None, r=None, iq=None, ico=None, pl=None, fl=None, fs=None,
+        ot=None, coe=None, moc=None):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`.
+
+    Open an enumeration session to retrieve the association instances that
+    reference a source instance.
+
+    Use the :func:`~wbemcli.piwp` function to retrieve the next set of
+    instances or the :func:`~wbcmeli.ce` function to close the enumeration
+    session before it is complete.
+
+    Parameters:
+
+      ip (:class:`~pywbem.CIMInstanceName`):
+          Source instance path.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      iq (:class:`py:bool`):
+          IncludeQualifiers flag: Include qualifiers.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: Clients cannot rely on qualifiers to
+          be returned in this operation.
+
+      ico (:class:`py:bool`):
+          IncludeClassOrigin flag: Include class origin information for the
+          properties in the retrieved instances.
+
+          `None` will cause the server default of `False` to be used.
+
+          Deprecated in :term:`DSP0200`: WBEM servers may either implement this
+          parameter as specified, or may treat any specified value as `False`.
+
+      pl (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList: Names of properties to be included (if not otherwise
+          excluded). An empty iterable indicates to include no properties.
+          If `None`, all properties will be included.
+
+      fl (:term:`string`):
+          Filter query language to be used for the filter defined in the `fs`
+          parameter. The DMTF-defined Filter Query Language
+          (see :term:`DSP0212`) is specified as "DMTF:FQL".
+
+          `None` means that no such filtering is peformed.
+
+      fs (:term:`string`):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (:class:`~pywbem.Uint32`):
+          Operation timeout in seconds. This is the minimum time the WBEM server
+          must keep the enumeration session open between requests on that
+          session.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (:class:`py:bool`):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (:class:`~pywbem.Uint32`):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
+
+    Returns:
+
+      A :func:`~py:collections.namedtuple` object containing the following
+      named items:
+
+        * **instances** (list of :class:`~pywbem.CIMInstance`):
+          The retrieved instances.
+
+        * **eos** (:class:`py:bool`):
+          `True` if the enumeration session is exhausted after this operation.
+          Otherwise `eos` is `False` and the `context` item is the context
+          object for the next operation on the enumeration session.
+
+        * **context** (:func:`py:tuple` of server_context, namespace):
+          A context object identifying the open enumeration session, including
+          its current enumeration state, and the namespace. This object must be
+          supplied with the next pull or close operation for this enumeration
+          session.
+    """
+
+    return CONN.OpenReferenceInstances(ip,
+                                       ResultClass=rc,
+                                       Role=r,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl,
+                                       FilterQueryLanguage=fl,
+                                       FilterQuery=fs,
+                                       OperationTimeout=ot,
+                                       ContinueOnError=coe,
+                                       MaxObjectCount=moc)
+
+
+def orip(ip, rc=None, r=None, fl=None, fs=None, ot=None, coe=None, moc=None):
+    # pylint: disable=too-many-arguments, redefined-outer-name, invalid-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`.
+
+    Open an enumeration session to retrieve the instance paths of the
+    association instances that reference a source instance.
+
+    Use the :func:`~wbemcli.pip` function to retrieve the next set of
+    instance paths or the :func:`~wbcmeli.ce` function to close the enumeration
+    session before it is complete.
+
+    Parameters:
+
+      ip (:class:`~pywbem.CIMInstanceName`):
+          Source instance path.
+
+      rc (:term:`string`):
+          ResultClass filter: Include only traversals across this association
+          (result) class.
+
+          `None` means this filter is not applied.
+
+      r (:term:`string`):
+          Role filter: Include only traversals from this role (= reference
+          name) in source object.
+
+          `None` means this filter is not applied.
+
+      fl (:term:`string`):
+          Filter query language to be used for the filter defined in the `fs`
+          parameter. The DMTF-defined Filter Query Language
+          (see :term:`DSP0212`) is specified as "DMTF:FQL".
+
+          `None` means that no such filtering is peformed.
+
+      fs (:term:`string`):
+          Filter to apply to objects to be returned. Based on filter query
+          language defined by `fl` parameter.
+
+          `None` means that no such filtering is peformed.
+
+      ot (:class:`~pywbem.Uint32`):
+          Operation timeout in seconds. This is the minimum time the WBEM server
+          must keep the enumeration session open between requests on that
+          session.
+
+          A value of 0 indicates that the server should never time out.
+
+          The server may reject the proposed value.
+
+          `None` will cause the server to use its default timeout.
+
+      coe (:class:`py:bool`):
+          Continue on error flag.
+
+          `None` will cause the server to use its default of `False`.
+
+      moc (:class:`~pywbem.Uint32`):
+          Maximum number of objects to return for this operation.
+
+          `None` will cause the server to use its default of 0.
+
+    Returns:
+
+      A :func:`~py:collections.namedtuple` object containing the following
+      named items:
+
+        * **paths** (list of :class:`~pywbem.CIMInstanceName`):
+          The retrieved instance paths.
+
+        * **eos** (:class:`py:bool`):
+          `True` if the enumeration session is exhausted after this operation.
+          Otherwise `eos` is `False` and the `context` item is the context
+          object for the next operation on the enumeration session.
+
+        * **context** (:func:`py:tuple` of server_context, namespace):
+          A context object identifying the open enumeration session, including
+          its current enumeration state, and the namespace. This object must be
+          supplied with the next pull or close operation for this enumeration
+          session.
+    """
+
+    return CONN.OpenReferenceInstancePaths(ip,
+                                           ResultClass=rc,
+                                           Role=r,
+                                           FilterQueryLanguage=fl,
+                                           FilterQuery=fs,
+                                           OperationTimeout=ot,
+                                           ContinueOnError=coe,
+                                           MaxObjectCount=moc)
 
 
 def oqi(ql, qs, ns=None, rc=None, ot=None, coe=None, moc=None):
@@ -2489,112 +2552,6 @@ def ce(ec):    # pylint: disable=redefined-outer-name
     CONN.CloseEnumeration(ec)
 
 
-def im(mn, op, params, **kwparams):
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.InvokeMethod`.
-
-    Invoke a method on a target instance or on a target class.
-
-    The methods that can be invoked are static and non-static methods defined
-    in a class (also known as *extrinsic* methods). Static methods can be
-    invoked on instances and on classes. Non-static methods can be invoked only
-    on instances.
-
-    Parameters:
-
-      mn (:term:`string`):
-          Method name.
-
-      op (:class:`~pywbem.CIMInstanceName`):
-          Target instance path.
-
-      op (:class:`~pywbem.CIMClassName`):
-          Target class path.
-
-      params (:term:`py:iterable`):
-          Input parameters for the method.
-
-          Each item in the iterable is a single parameter value and can be any
-          of:
-
-            * :class:`~pywbem.CIMParameter` representing a parameter value. The
-              `name`, `value`, `type` and `embedded_object` attributes of this
-              object are used.
-
-            * tuple of name, value, with:
-
-                - name (:term:`string`): Parameter name (case independent)
-                - value (:term:`CIM data type`): Parameter value
-
-      **kwparams (named/keyword arguments):
-          Input parameters for the method.
-
-            * key (:term:`string`): Parameter name (case independent)
-            * value (:term:`CIM data type`): Parameter value
-
-    Returns:
-
-      tuple(rv, out), with these tuple items:
-
-        * rv (:term:`CIM data type`):
-          Return value of the CIM method.
-        * out (:ref:`NocaseDict`):
-          Dictionary with all provided output parameters of the CIM method,
-          with:
-
-          * key (:term:`unicode string`):
-            Parameter name
-          * value (:term:`CIM data type`):
-            Parameter value
-    """
-
-    return CONN.InvokeMethod(mn, op, params, **kwparams)
-
-
-def ecn(ns=None, cn=None, di=None):
-    # pylint: disable=redefined-outer-name
-    """
-    This function is a wrapper for
-    :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
-
-    Enumerate the names of subclasses of a class, or of the top-level classes
-    in a namespace.
-
-    Parameters:
-
-      ns (:term:`string`):
-          Name of the CIM namespace to be used (case independent).
-
-          If `None`, defaults to the namespace of the `cn` parameter if
-          specified as a `CIMClassName`, or to the default namespace of the
-          connection.
-
-      cn (:term:`string` or :class:`~pywbem.CIMClassName`):
-          Name of the class whose subclasses are to be enumerated (case
-          independent).
-
-          `None` will enumerate the top-level classes.
-
-          If specified as a `CIMClassName` object, its `host` attribute will be
-          ignored.
-
-      di (:class:`py:bool`):
-          DeepInheritance flag: Include also indirect subclasses.
-
-          `None` will cause the server default of `False` to be used.
-
-    Returns:
-
-      list of :term:`unicode string`:
-          The enumerated class names.
-    """
-
-    return CONN.EnumerateClassNames(ns,
-                                    ClassName=cn,
-                                    DeepInheritance=di)
-
-
 def ec(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
     # pylint: disable=redefined-outer-name
     """
@@ -2655,6 +2612,49 @@ def ec(ns=None, cn=None, di=None, lo=None, iq=None, ico=None):
                                  LocalOnly=lo,
                                  IncludeQualifiers=iq,
                                  IncludeClassOrigin=ico)
+
+
+def ecn(ns=None, cn=None, di=None):
+    # pylint: disable=redefined-outer-name
+    """
+    This function is a wrapper for
+    :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
+
+    Enumerate the names of subclasses of a class, or of the top-level classes
+    in a namespace.
+
+    Parameters:
+
+      ns (:term:`string`):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the namespace of the `cn` parameter if
+          specified as a `CIMClassName`, or to the default namespace of the
+          connection.
+
+      cn (:term:`string` or :class:`~pywbem.CIMClassName`):
+          Name of the class whose subclasses are to be enumerated (case
+          independent).
+
+          `None` will enumerate the top-level classes.
+
+          If specified as a `CIMClassName` object, its `host` attribute will be
+          ignored.
+
+      di (:class:`py:bool`):
+          DeepInheritance flag: Include also indirect subclasses.
+
+          `None` will cause the server default of `False` to be used.
+
+    Returns:
+
+      list of :term:`unicode string`:
+          The enumerated class names.
+    """
+
+    return CONN.EnumerateClassNames(ns,
+                                    ClassName=cn,
+                                    DeepInheritance=di)
 
 
 def gc(cn, ns=None, lo=None, iq=None, ico=None, pl=None):
