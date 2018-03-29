@@ -45,10 +45,11 @@ The pywbem MOF compiler will compile MOF files whose syntax complies with
 
 2. The key properties of instances with aliases must be initialized in the
    instance specification, or their default values must be non-NULL.
-   (Issue #1079).
+   (See `pywbem issue #1079 <https://github.com/pywbem/pywbem/issues/1079>`_).
 
-3. An alias must be defined before it is used. In DSP0004, no such requirement
-   is documented. (Issue #1079).
+3. An alias must be defined before it is used. In :term:`DSP0004`, no such
+   requirement is documented.
+   (See `pywbem issue #1079 <https://github.com/pywbem/pywbem/issues/1079>`_).
 
 The MOF compiler API provides for invoking the MOF compiler, it supports
 plugging in a user-provided CIM repository (see
@@ -70,8 +71,7 @@ remaining sections of this chapter:
   by the MOF compiler to provide rollback support.
 
 * :ref:`Exceptions <MOF compiler exceptions>` - Describes the exceptions
-  that can be raised by the MOF compiler, in addition to the exceptions
-  that can be raised by the :ref:`WBEM client library API`.
+  that can be raised by the MOF compiler API.
 """
 
 from __future__ import print_function, absolute_import
@@ -368,38 +368,42 @@ class MOFParseError(Error):
 
     @property
     def lineno(self):
-        """Line number in the MOF file where the error occurred."""
+        """
+        :term:`integer`: Line number in the MOF file or MOF string where the
+        error occurred (1-based).
+        """
         return self.args[0]
 
     @property
     def column(self):
-        """Position within the line where the error occurred."""
+        """
+        :term:`integer`: Position within the line in the MOF file or MOF string
+        where the error occurred (1-based).
+        """
         return self.args[1]
 
     @property
     def file(self):
         """
-        File name of the MOF file where the error occurred, as a
-        :term:`string`.
+        :term:`string`: File name of the MOF file where the error occurred.
+
+        `None` if the error occurred in a MOF string that was compiled.
         """
         return self.args[2]
 
     @property
     def context(self):
         """
-        Context string that can be inserted when printing the error message.
-        The context string consists of a first line with a segment of the MOF
-        surrounding the error position, and a second line that uses the '^'
-        character to indicate the token in error.
+        :term:`string`: MOF context, consisting of a first line that is the
+        MOF line in error, and a second line that uses the '^' character to
+        indicate the position of the token in error in the MOF line.
         """
         return self.args[3]
 
     @property
     def msg(self):
         """
-        Message that may be part of the error, as a :term:`string`. Generally,
-        this is produced when the actual error position is not known but may be
-        added by some production errors.
+        :term:`string`: Brief description of the problem.
         """
         return self._msg
 
@@ -414,14 +418,19 @@ class MOFParseError(Error):
 
     def get_err_msg(self):
         """
-        Return the MOF compiler error message as a :term:`string`, in the
-        format (assuming all components are provided):
+        Return a multi-line error message for being printed, in the following
+        format. The text in angle brackets refers to the same-named properties
+        of the exception instance:
 
         ::
 
             Syntax error:<file>:<lineno>: <msg>
-            <context - MOF segment>
-            <context - location indicator>
+            <context - MOF line>
+            <context - position indicator line>
+
+        Returns:
+
+          :term:`string`: Multi-line error message.
         """
         ret_str = 'Syntax error:'
         disp_file = 'NoFile' if self.file is None else self.file
@@ -1789,25 +1798,33 @@ def _get_error_context(input_, token):
 @six.add_metaclass(ABCMeta)
 class BaseRepositoryConnection(object):
     """
-    An abstract base class for implementing repository connections for the MOF
-    compiler. This class defines the interface that is used by the MOF compiler
-    (class :class:`~pywbem.MOFCompiler`) when it interacts with
-    the repository.
+    An abstract base class for implementing CIM repository connections (or an
+    entire CIM repository) for use by the MOF compiler. This class defines the
+    interface that is used by the :class:`~pywbem.MOFCompiler` class when it
+    interacts with its associated CIM repository.
 
-    Class :class:`~pywbem.MOFCompiler` invokes only the operations
-    that are defined as methods on this class. Specifically, it does not
-    invoke:
+    Class :class:`~pywbem.MOFCompiler` invokes only the WBEM operations that
+    are defined as methods on this class:
 
-    * EnumerateInstances
-    * GetInstance
-    * EnumerateClasses
-    * EnumerateClassNames
-    * association or query operations
-    * method invocations
+    * :meth:`EnumerateInstanceNames` - Enumerate the paths of CIM instances in
+      the repository.
+    * :meth:`CreateInstance` - Create a CIM instance in the repository.
+    * :meth:`ModifyInstance` - Modify a CIM instance in the repository.
+    * :meth:`DeleteInstance` - Delete a CIM instance in the repository.
+    * :meth:`GetClass` - Retrieve a CIM class from the repository.
+    * :meth:`ModifyClass` - Modify a CIM class in the repository.
+    * :meth:`CreateClass` - Create a CIM class in the repository.
+    * :meth:`DeleteClass` - Delete a CIM class in the repository.
+    * :meth:`EnumerateQualifiers` - Enumerate CIM qualifier types in the
+      repository.
+    * :meth:`GetQualifier` - Retrieve a CIM qualifier type from the repository.
+    * :meth:`SetQualifier` - Create or modify a CIM qualifier type in the
+      repository.
+    * :meth:`DeleteQualifier` - Delete a qualifier type from the repository.
 
     Raises:
 
-      Implementation classes should raise only exceptions derived from
+      : Implementation classes should raise only exceptions derived from
         :exc:`~pywbem.Error`. Other exceptions are considered programming
         errors.
     """
@@ -1831,12 +1848,18 @@ class BaseRepositoryConnection(object):
     # implementations of the getter/setter methods.
     default_namespace = property(
         _getns, _setns, None,
-        """The default repository namespace, as a string (readable and
-        writeable).""")
+        """
+        :term:`string`: The default repository namespace.
+
+        This property is settable.
+        """
+    )
 
     @abstractmethod
     def EnumerateInstanceNames(self, *args, **kwargs):
-        """Enumerate instance paths of CIM instances in the repository.
+        """
+        Enumerate the instance paths of CIM instances in a namespace of the
+        CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.EnumerateInstanceNames`.
@@ -1845,7 +1868,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def CreateInstance(self, *args, **kwargs):
-        """Create a CIM instance in the repository.
+        """
+        Create a CIM instance in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateInstance`.
@@ -1854,7 +1878,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def ModifyInstance(self, *args, **kwargs):
-        """Modify a CIM instance in the repository.
+        """
+        Modify a CIM instance in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.ModifyInstance`.
@@ -1863,7 +1888,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def DeleteInstance(self, *args, **kwargs):
-        """Delete a CIM instance in the repository.
+        """
+        Delete a CIM instance in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.DeleteInstance`.
@@ -1872,7 +1898,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def GetClass(self, *args, **kwargs):
-        """Retrieve a CIM class from the repository.
+        """
+        Retrieve a CIM class in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetClass`.
@@ -1881,7 +1908,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def ModifyClass(self, *args, **kwargs):
-        """Modify a CIM class in the repository.
+        """
+        Modify a CIM class in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.ModifyClass`.
@@ -1890,7 +1918,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def CreateClass(self, *args, **kwargs):
-        """Create a CIM class in the repository.
+        """
+        Create a CIM class in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateClass`.
@@ -1899,7 +1928,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def DeleteClass(self, *args, **kwargs):
-        """Delete a CIM class in the repository.
+        """
+        Delete a CIM class in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.DeleteClass`.
@@ -1908,7 +1938,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def EnumerateQualifiers(self, *args, **kwargs):
-        """Enumerate the qualifier types in the repository.
+        """
+        Enumerate the CIM qualifier types in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
@@ -1917,7 +1948,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def GetQualifier(self, *args, **kwargs):
-        """Retrieve a qualifier type from the repository.
+        """
+        Retrieve a CIM qualifier type in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetQualifier`.
@@ -1926,7 +1958,9 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def SetQualifier(self, *args, **kwargs):
-        """Create or modify a qualifier type in the repository.
+        """
+        Create or modify a CIM qualifier type in a namespace of the CIM
+        repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.SetQualifier`.
@@ -1935,7 +1969,8 @@ class BaseRepositoryConnection(object):
 
     @abstractmethod
     def DeleteQualifier(self, *args, **kwargs):
-        """Delete a qualifier type from the repository.
+        """
+        Delete a CIM qualifier type in a namespace of the CIM repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.DeleteQualifier`.
@@ -1948,20 +1983,16 @@ BaseRepositoryConnection.register(WBEMConnection)  # pylint: disable=no-member
 
 class MOFWBEMConnection(BaseRepositoryConnection):
     """
-    A repository connection that stores CIM elements locally in the
-    instance of this class. It also supports removal of CIM elements
-    via its :meth:`rollback` method, by rolling back the changes
-    applied locally to the instance.
-
-    It is instantiated on top of an underlying repository connection that
-    is connected with the CIM repository that is actually being updated.
+    A CIM repository connection to an in-memory repository on top of an
+    underlying repository, that is used by the MOF compiler to provide rollback
+    support.
 
     This class implements the
     :class:`~pywbem.BaseRepositoryConnection` interface.
 
     Raises:
 
-      The methods of this class may raise any exceptions described for
+      : The methods of this class may raise any exceptions described for
         class :class:`~pywbem.WBEMConnection`.
     """
 
@@ -1989,14 +2020,22 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.__default_namespace = 'root/cimv2'
 
     def _getns(self):
-        """Return either connection default or universal default namespace"""
+        """
+        :term:`string`: Return the default repository namespace to be used.
+
+        This method exists for compatibility. Use the :attr:`default_namespace`
+        property instead.
+        """
         if self.conn is not None:
             return self.conn.default_namespace
         return self.__default_namespace
 
     def _setns(self, value):
-        """ Set the namespace in value into either the connection default or
-            package wide default namespace
+        """
+        Set the default repository namespace to be used.
+
+        This method exists for compatibility. Use the :attr:`default_namespace`
+        property instead.
         """
         if self.conn is not None:
             self.conn.default_namespace = value
@@ -2008,8 +2047,20 @@ class MOFWBEMConnection(BaseRepositoryConnection):
 
     default_namespace = property(
         _getns, _setns, None,
-        """The default repository namespace, as a string (readable and
-        writeable).""")
+        """
+        :term:`string`: The default repository namespace to be used.
+
+        The default repository namespace is the default namespace of the
+        underlying repository connection if there is such an underlying
+        connection, or the default namespace of this object.
+
+        Initially, the default namespace of this object is 'root/cimv2'.
+
+        This property is settable. Setting it will cause the default namespace
+        of the underlying repository connection to be updated if there is such
+        an underlying connection, or the default namespace of this object.
+        """
+    )
 
     def EnumerateInstanceNames(self, *args, **kwargs):
         """This method is used by the MOF compiler only when it creates a
@@ -2233,17 +2284,17 @@ def _print_logger(msg):
 class MOFCompiler(object):
     """
     A MOF compiler. See :ref:`MOF Compiler API` for an explanation of MOF
-    compilers.
+    compilers in general.
 
-    A MOF compiler is associated with a CIM repository. The repository is
+    A MOF compiler may be associated with one CIM repository. The repository is
     used for looking up dependent CIM elements (e.g. the superclass specified
     in a class whose MOF definition is being compiled), and it is also updated
     with the result of the compilation. A repository contains CIM namespaces,
     and the namespaces contain CIM classes, instances and qualifier types.
 
-    The association with a CIM repository is established when creating an
-    instance of this class. The interactions with the CIM repository are
-    defined in the abstract base class
+    The association of a MOF compiler with a CIM repository is established when
+    creating an object of this class. The interactions with the CIM repository
+    are defined in the abstract base class
     :class:`~pywbem.BaseRepositoryConnection`.
     """
 
@@ -2270,7 +2321,7 @@ class MOFCompiler(object):
           log_func (:term:`callable`):
             A logger function that is invoked for each compiler message.
             The logger function must take one parameter of string type.
-            The default logger prints to stdout.
+            The default logger function prints to stdout.
         """
 
         self.parser = _yacc(verbose)
@@ -2407,8 +2458,8 @@ class MOFCompiler(object):
 
         Returns:
 
-          A string with the path name of the MOF file, if it was found.
-          `None`, otherwise.
+          :term:`string`: Path name of the MOF file defining the CIM class, if
+          it was found. `None`, if it was not found.
         """
 
         classname = classname.lower()
