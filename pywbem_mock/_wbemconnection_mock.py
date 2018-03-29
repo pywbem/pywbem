@@ -1449,6 +1449,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         if namespace not in self.classes:
             self.classes[namespace] = NocaseDict({})
+            if namespace not in self.methods:
+                self.methods[namespace] = NocaseDict()
 
         if new_class.classname in self.classes[namespace]:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
@@ -1829,6 +1831,8 @@ class FakedWBEMConnection(WBEMConnection):
             self.instances[namespace].append(new_instance)
         except KeyError:
             self.instances[namespace] = [new_instance]
+            if namespace not in self.methods:
+                self.methods[namespace] = NocaseDict()
 
         # Create instance returns model path, path relative to namespace
         return self._make_tuple([new_instance.path.copy()])
@@ -2913,9 +2917,21 @@ class FakedWBEMConnection(WBEMConnection):
         namespace = localobject.namespace
         try:
             methodsrepo = self._get_methods_repo(namespace)
+        except CIMError as ce:
+            # If invoke indicates method repo not built, create it.
+            if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
+                if namespace in self.classes or \
+                        namespace in self.instances:
+                    raise CIMError(CIM_ERR_NOT_SUPPORTED,
+                                   'Method %s in namespace %s not registered '
+                                   'in repository' %
+                                   (methodname, namespace))
+                else:
+                    raise
         except KeyError:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Method %s in namespace %s not '
-                                              'registered in repository' %
+            raise CIMError(CIM_ERR_NOT_SUPPORTED,
+                           'Method %s in namespace %s not registered in '
+                           'repository' %
                            (methodname, namespace))
 
         # find the methods entry corresponding to classname. It must be in
