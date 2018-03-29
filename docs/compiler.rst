@@ -30,6 +30,9 @@ Repository connections
 Exceptions
 ----------
 
+The MOF compiler API may raise the exceptions that can be raised by the
+:ref:`WBEM client library API`, and in addition the
+:exc:`~pywbem.MOFParseError` exception.
+
 .. autoclass:: pywbem.MOFParseError
    :members:
-
