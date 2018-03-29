@@ -4038,7 +4038,7 @@ class TestInvokeMethod(object):
         # pylint: disable=attribute-defined-outside-init, unused-argument
         # pylint: disable=invalid-name
         """
-        InvokeMethod callback.  This is a smiple callback that just tests
+        InvokeMethod callback.  This is a simple callback that just tests
         methodname and then returns returnvalue and params from the
         TestInvokeMethod object attributes.
         """
@@ -4060,10 +4060,10 @@ class TestInvokeMethod(object):
         #         optionally params.
         # exp_output: dictionary of expected returnvalue ('return') and output
         #            params('params') as list of tuples.
-        # exp_exception: None or expected exception.
-        # exc_exc_data: None or expected CIMError status msg if exp_exception
-        #               is not None.
-        "desc, inputs, exp_output, exp_exception, exp_exc_data", [
+        # exp_except_type: None or expected exception type.
+        # cim_err_code_name: None or expected CIMError status code if
+        #               exp_exception is CIMError as string.
+        "desc, inputs, exp_output, exp_exception_type, cim_err_code_name", [
             ['Execution of Method1 method with single input param',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method1',
@@ -4143,7 +4143,7 @@ class TestInvokeMethod(object):
              {'return': 0, 'params': []},
              None, None],
 
-            ['Execute method name with CIMInsanceName that does not exist',
+            ['Execute method name with ObjectName that does not exist',
              {'object_name': CIMInstanceName('CIM_Foo_sub_sub',
                                              keybindings={'InstanceID':
                                                           'blah'}),
@@ -4152,12 +4152,12 @@ class TestInvokeMethod(object):
              {'return': 0, 'params': []},
              CIMError, 'CIM_ERR_NOT_FOUND'],
 
-            ['Execute with mathodname that is not in repository',
+            ['Execute with methodname that is not in repository',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Methodx',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_NOT_FOUND'],
+             CIMError, 'CIM_ERR_METHOD_NOT_FOUND'],
 
             ['Execute method name with invalid classname',
              {'object_name': CIMClassName('CIM_Foo_sub_subx'),
@@ -4225,7 +4225,8 @@ class TestInvokeMethod(object):
         ]
     )
     def test_invokemethod(self, conn, ns, desc, inputs, exp_output,
-                          exp_exception, exp_exc_data, tst_instances_mof):
+                          exp_exception_type, cim_err_code_name,
+                          tst_instances_mof):
         """
         Test extrinsic method invocation through the
         WBEMConnection.InovkeMethod method
@@ -4287,7 +4288,7 @@ class TestInvokeMethod(object):
             if ns:
                 return
 
-        if not exp_exception:
+        if not exp_exception_type:
             # Two calls to account for **params
             if self.input_params:
                 result = conn.InvokeMethod(inputs['methodname'],
@@ -4312,14 +4313,17 @@ class TestInvokeMethod(object):
             assert self.executed_method == inputs['methodname']
 
         else:
-            if exp_exc_data == 'CIM_ERR_INVALID_NAMESPACE':
+            if cim_err_code_name and cim_err_code_name == \
+                    'CIM_ERR_INVALID_NAMESPACE':
                 object_name.namespace = 'Reallybadnamespace'
 
-            with pytest.raises(exp_exception) as exec_info:
+            with pytest.raises(exp_exception_type) as exec_info:
                 conn.InvokeMethod(inputs['methodname'],
                                   object_name,
                                   inputs['Params'], )
 
             exc = exec_info.value
-            if isinstance(exp_exception, CIMError):
-                assert exc.status_code_name == exp_exc_data
+            if cim_err_code_name:
+                print('exc.status_code_name %s cim_err_code %s' %
+                      (exc.status_code_name, cim_err_code_name))
+                assert exc.status_code_name == cim_err_code_name
