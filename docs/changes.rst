@@ -434,6 +434,7 @@ Enhancements
   unique identifier for each WBEMConnection object and is part of each log
   record. This allows linking logs for each WBEMConnection in the log.
 
+* Improved the complete pywbem documentation (Issue #1115).
 
 Bug fixes
 ^^^^^^^^^

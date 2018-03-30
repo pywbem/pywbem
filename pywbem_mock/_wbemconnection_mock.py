@@ -19,13 +19,10 @@
 #
 
 """
-Mock WBEMConnection to allow pywbem users to test the pywbem client without
-requiring a running WBEM server. This package mocks the WBEMConnection
-methods that communicate with WBEMServers and mantain a fake server
-repository that is the source and destination for information to
-be used by the methods mocked.
+Mock support for the WBEMConnection class to allow pywbem users to test the
+pywbem client without requiring a running WBEM server.
 
-For the module-level documentation, see mocksupport.rst.
+For documentation, see mocksupport.rst.
 """
 
 from __future__ import absolute_import, print_function
@@ -54,7 +51,7 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
 from pywbem.cim_obj import NocaseDict
 
 
-__all__ = ['FakedWBEMConnection']
+__all__ = ['FakedWBEMConnection', 'method_callback_interface']
 
 # Fake Server default values for parameters that apply to repo and operations
 
@@ -109,94 +106,80 @@ def _uprint(dest, text):
 
 
 def method_callback_interface(conn, objectname, methodname, **params):
-    # pylint: disable=unused-argument, invalid-name
+    # pylint: disable=unused-argument, invalid-name, line-too-long
     """
     **Experimental:** *New in pywbem 0.12 as experimental.*
 
-    Interface of a mock method callback function that is provided by the user
-    of the pywbem_mock environment to define mock server-side methods.
-
-    The user-defined function or method that will be called by
-    FakeWBEMConnection when the InvokeMethod for the defined
-    class and methodname is received.  This method will be called
-    with the parameters defined on the InvokeMethod call
+    Interface for user-provided callback functions for CIM method invocation
+    on a faked connection.
 
     Parameters:
 
-      conn (:class:`~pywbem.WBEMConnection`):
-        Connection to the FakeWBEMConnection and its
-        repository. This can be used to execute requests
-        on the mock repository to manipulate objects in the
-        repository (ex. cc = conn.GetClass(objectname)
+      conn (:class:`~pywbem_mock.FakedWBEMConnection`):
+        Faked connection. This can be used to access the mock repository of the
+        faked connection, via its operation methods (e.g. `GetClass`).
 
-      objectname:
-        The object path of the target object, as follows:
+      objectname (:class:`~pywbem.CIMInstanceName` or :class:`~pywbem.CIMClassName`):
+        The object path of the target object of the invoked method, as follows:
 
-        * Instance-level call: The instance path of the
-          target instance, as a :class:`~pywbem.CIMInstanceName`
-          object including the execution namespace (either the
-          namespace defined by the client
-          InvokeMethod or the WBEMConnection default namespace if the
-          client InvokeMethod did not provide a namespace).
+        * Instance-level call: The instance path of the target instance, as a
+          :class:`~pywbem.CIMInstanceName` object which has its `namespace`
+          property set to the target namespace of the invocation. Its `host`
+          property will not be set.
 
-        * Class-level call: The class path of the target
-          class, as a :class:`~pywbem.CIMClassName` object
-          including the execution namespace (either the
-          namespace defined by the client InvokeMethod or the
-          WBEMConnection default namespace if the
-          client InvokeMethod did not provide a namespace).
+        * Class-level call: The class path of the target class, as a
+          :class:`~pywbem.CIMClassName` object which has its `namespace`
+          property set to the target namespace of the invocation. Its `host`
+          property will not be set.
 
-          The :class:`~pywbem.CIMClassName` object,  `host`
-          attribute will be ignored.
+      methodname (:term:`string`):
+        The CIM method name that is being invoked. This is the method name for
+        which the callback function was registered. This parameter allows a
+        single callback function to be registered for multiple methods.
 
-      methodname(:term:`string`):
-        The methodname from the InvokeMethod call. This allows
-        a single callback function to be used as the responder
-        for multiple methods.
+      params (:ref:`NocaseDict`):
+        The input parameters for the method that were passed to the
+        `InvokeMethod` operation.
 
-      params (:class:`Nocasedict`):
-        Input parameters aggregated from the InvokeMethod Params and params
-        input as a NocaseDict.
+        Each dictionary item represents a single input parameter for the CIM
+        method and is a :class:`~pywbem.CIMParameter` object, regardless of
+        how the input parameter was passed to the
+        :meth:`~pywbem.WBEMConnection.InvokeMethod` method.
 
-        Each dictionary item represents a single input parameter
-        for the CIM method and is a :class:`~pywbem.CIMParameter` with.
+        The :class:`~pywbem.CIMParameter` object will have at least the
+        following properties set:
 
-        * name (:term:`string`):
-          Parameter name (case independent)
-        * type (:term:`string`:
-          String representation of parameter type.
-        * value (:term:`CIM data type`):
-          Parameter value
+        * name (:term:`string`): Parameter name (case independent).
+        * type (:term:`string`): CIM data type of the parameter.
+        * value (:term:`CIM data type`): Parameter value.
 
     Returns:
 
-      * The user written callback method must return a tuple
-        consisting of
-          * ReturnValue (:term:`CIM data type`):
-              Return value from the executed method.
+      tuple: The callback function must return a tuple consisting of:
 
-          * outparams (:term:`py:iterable` of CIMParameters):
+      * return_value (:term:`CIM data type`): Return value for the CIM
+        method.
 
-            Each iterated item represents a single output parameter
-            for the CIM method and must be a
-            :class:`~pywbem.CIMParameter` with the
-            following data:
+      * out_params (:term:`py:iterable` of :class:`~pywbem.CIMParameter`):
 
-              * key (:term:`unicode string`):
-                Parameter name
-              * type (:term:`string`:
-                String representation of parameter type.
-              * value (:term:`CIM data type`):
-                Parameter value
+        Each item represents a single output parameter of the CIM method.
+        The :class:`~pywbem.CIMParameter` objects must have at least
+        the following properties set:
+
+        * name (:term:`string`): Parameter name (case independent).
+        * type (:term:`string`): CIM data type of the parameter.
+        * value (:term:`CIM data type`): Parameter value.
 
     Raises:
 
-      Since the user defined callback method mocks a
-      WBEMServer method, it should return :class:`~pywbem.CIM_Error`
-      exceptions. Any other exceptions generated by the callback will be mapped
-      to :class:`~pywbem.CIM_Error` with status CIM_ERR_FAILED and
-      information on the exception including a traceback.
-    """
+      : Since the callback function mocks a CIM method invocation, it should
+        raise :exc:`~pywbem.CIMError` exceptions to indicate failures. Any
+        other exceptions raised by the callback function will be mapped to
+        :exc:`~pywbem.CIMError` exceptions with status CIM_ERR_FAILED and
+        a message that contains information about the exception including a
+        traceback.
+    """  # noqa: E501
+    # pylint: enable=line-too-long
     raise NotImplementedError
 
 
@@ -225,31 +208,21 @@ class FakedWBEMConnection(WBEMConnection):
     generate responses in the same way the WBEM server would.
 
     For a description of the operation methods on this class, see
-    :class:`pywbem.WBEMConnection`.
+    :ref:`Faked WBEM operations`.
 
-    Each object of this class has its own mock repository. A mock repository
-    contains multiple CIM namespaces, and each namespace may contain CIM
-    qualifier types (declarations), CIM classes and CIM instances.
+    Each :class:`~pywbem.FakedWBEMConnection` object has its own mock
+    repository which contains multiple CIM namespaces, and each namespace may
+    contain CIM qualifier types (declarations), CIM classes and CIM instances.
 
-    This class provides only a subset of the parameters defined for
-    :class:`~pywbem.WBEMConnection` because it never really maintains a
-    connection to a WBEM server. It uses a faked and fixed URL for the WBEM
-    server (``http://FakedUrl``) as a means of identifying the connection by
-    users.
+    This class provides only a subset of the init parameters of
+    :class:`~pywbem.WBEMConnection` because it does not have a connection to a
+    WBEM server. It uses a faked and fixed URL for the WBEM server
+    (``http://FakedUrl``) as a means of identifying the connection by users.
 
-    Logging of the calls and returns is implemented using the Python logging
-    facility defined in :class:`PywbemLoggers`. To enable logging, activate
-    the PywbemLogger for the logger name ``pywbem.ops``::
-
-        from pywbem import PywbemLoggers, LOG_OPS_CALLS_NAME
-
-        PywbemLoggers.create_logger(LOG_OPS_CALLS_NAME, log_dest='file',
-                                    log_filename='mock_test.log'
-                                    detail_level='min'
-
-    All cim_operation requests will be logged to the file mock_test.log with
-    the first 1000 bytes of the request and response included.
-
+    Logging of the faked operations is supported via the pywbem logging
+    facility and can be controlled in the same way as for
+    :class:`~pywbem.WBEMConnection`. For details, see
+    :ref:`WBEM operation logging`.
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
@@ -258,16 +231,20 @@ class FakedWBEMConnection(WBEMConnection):
         Parameters:
 
           default_namespace (:term:`string`):
-            This parameter has the same characteristics as the same-named
-            parameter in :class:`~pywbem.WBEMConnection`.
+            Default namespace.
+            This parameter has the same characteristics as the same-named init
+            parameter of :class:`~pywbem.WBEMConnection`.
 
           use_pull_operations (:class:`py:bool`):
-            This parameter has the same characteristics as the same-named
-            parameter in :class:`~pywbem.WBEMConnection`.
+            Flag to control whether pull or traditional operaitons are
+            used in the iter operations.
+            This parameter has the same characteristics as the same-named init
+            parameter of :class:`~pywbem.WBEMConnection`.
 
           stats_enabled (:class:`py:bool`):
-            This parameter has the same characteristics as the same-named
-            parameter in :class:`~pywbem.WBEMConnection`.
+            Flag to enable operation statistics.
+            This parameter has the same characteristics as the same-named init
+            parameter of :class:`~pywbem.WBEMConnection`.
 
           response_delay (:term:`number`):
             Artifically created delay for each operation, in seconds. This must
@@ -280,12 +257,13 @@ class FakedWBEMConnection(WBEMConnection):
             can be used to set this delay subsequent to object creation.
 
           repo_lite (:class:`py:bool`):
-            Flag that sets a mode that removes some mock repository validity
-            tests, allowing instance operations to be performed without
-            requiring that the corresponding classes exist in the mock
-            repository, and class operations without the corresponding
-            qualifier types.
+            Flag to set the
+            :ref:`operation mode <mock repository operation modes>` of the mock
+            repository.
+            If `True`, lite mode is set.
+            If `False`, full mode is set.
         """
+
         super(FakedWBEMConnection, self).__init__(
             'http://FakedUrl',
             default_namespace=default_namespace,
@@ -370,6 +348,8 @@ class FakedWBEMConnection(WBEMConnection):
         files) and add the resulting CIM objects to the specified namespace
         of the mock repository.
 
+        If the CIM namespace does not exist, it is created.
+
         This method supports all MOF pragmas, and specifically the include
         pragma.
 
@@ -389,7 +369,7 @@ class FakedWBEMConnection(WBEMConnection):
           namespace (:term:`string`):
             The name of the target CIM namespace in the mock repository. This
             namespace is also used for lookup of any existing or dependent
-            CIM objects. If `None`, the default namespace of this object is
+            CIM objects. If `None`, the default namespace of the connection is
             used.
 
           search_paths (:term:`py:iterable` of :term:`string`):
@@ -401,9 +381,13 @@ class FakedWBEMConnection(WBEMConnection):
 
         Raises:
 
-          MOFParseError: Syntax error in the MOF. A compile error terminates
-            the compile and nothing is added to the mock repository.
+          :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
+            The mock repository remains unchanged.
+
+          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
+            mock repository. The mock repository remains unchanged.
         """
+
         if not namespace:
             namespace = self.default_namespace
 
@@ -424,6 +408,11 @@ class FakedWBEMConnection(WBEMConnection):
         resulting CIM objects to the specified namespace of the mock
         repository.
 
+        If the CIM namespace does not exist, it is created.
+
+        This method supports all MOF pragmas, and specifically the include
+        pragma.
+
         If a CIM class or CIM qualifier type to be added already exists in the
         target namespace with the same name (comparing case insensitively),
         this method fails, and the mock repository remains unchanged.
@@ -432,11 +421,7 @@ class FakedWBEMConnection(WBEMConnection):
         with the same keybinding values, this method fails, and the mock
         repository remains unchanged.
 
-        This method supports all MOF pragmas, and specifically the include
-        pragma.
-
-        If the compile fails, any objects compiled with this call are
-        discarded.
+        Parameters:
 
           mof (:term:`string`):
             A string with the MOF definitions to be compiled.
@@ -444,7 +429,7 @@ class FakedWBEMConnection(WBEMConnection):
           namespace (:term:`string`):
             The name of the target CIM namespace in the mock repository. This
             namespace is also used for lookup of any existing or dependent
-            CIM objects. If `None`, the default namespace of this object is
+            CIM objects. If `None`, the default namespace of the connection is
             used.
 
           search_paths (:term:`py:iterable` of :term:`string`):
@@ -456,11 +441,13 @@ class FakedWBEMConnection(WBEMConnection):
 
         Raises:
 
-          MOFParseError: Syntax error in the MOF. A compile error terminates
-            the compile and nothing is added to the mock repository.
+          :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
+            The mock repository remains unchanged.
 
-          : Any exceptions that are raised by the repository connection class.
+          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
+            mock repository. The mock repository remains unchanged.
         """
+
         if not namespace:
             namespace = DEFAULT_NAMESPACE
 
@@ -492,8 +479,13 @@ class FakedWBEMConnection(WBEMConnection):
         The method imposes very few limits on the objects added. It does
         require that the superclass exist for any class added.
 
-        This allows a user to create CIM objects directly in the repository
-        without using the MOF compiler.
+        If a CIM class or CIM qualifier type to be added already exists in the
+        target namespace with the same name (comparing case insensitively),
+        this method fails, and the mock repository remains unchanged.
+
+        If a CIM instance to be added already exists in the target namespace
+        with the same keybinding values, this method fails, and the mock
+        repository remains unchanged.
 
         Parameters:
 
@@ -504,14 +496,14 @@ class FakedWBEMConnection(WBEMConnection):
           namespace (:term:`string`):
             The name of the target CIM namespace in the mock repository. This
             namespace is also used for lookup of any existing or dependent
-            CIM objects. If `None`, the default namespace of this object is
+            CIM objects. If `None`, the default namespace of the connection is
             used.
 
         Raises:
 
-          ValueError: if invalid class or instance
-          TypeError: if objects other than CIMClass, CIMInstance, or
-              CIMQualifierDeclaration are included in objects
+          ValueError: Invalid input CIM object in `objects` parameter.
+
+          TypeError: Invalid type in `objects` parameter.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -574,30 +566,42 @@ class FakedWBEMConnection(WBEMConnection):
     def add_method_callback(self, classname, methodname, method_callback,
                             namespace=None,):
         """
-        Add a callback for a method that will be called by the client when
-        InvokeMethod is executed.  This method does no real validation of
-        the classname, methodname or method_callback in put parameters.
+        Register a callback function for a CIM method that will be called when
+        the CIM method is invoked via `InvokeMethod`.
 
-          Parameters:
-            classname (:term:`string`):
-                The classname for the class that defines the method named
-                methodname. This is the classname (or superclass) of the
-                CIMClassname or CIMInstanceName defined in the client
-                InvokeMethod objectname parameter. The  mock InvokeMethod uses
-                this class to locate methodname in the method repository.
+        Parameters:
 
-            methodname (:term: `string`):
-                Name of the method to be executed.
+          classname (:term:`string`):
+            The CIM class name for which the callback function is registered.
 
-            method_callback (:func:`~pywbem.method_callback_interface`):
-                Callable that is being called for each InvokeMethod executed
-                against the pywbem_mock environment.
+            The faked `InvokeMethod` implementation uses this information to
+            look up the callback function from its parameters.
 
-            namespace (:term:`string`):
-                Namespace from which the method will be executed in the
-                server or None if the client default namespace is to be
-                used.
+            For method invocations on a target instance, this must be the class
+            name of the creation class of the target instance.
+
+            For method invocations on a target class, this must be the class
+            name of the target class.
+
+          methodname (:term:`string`):
+            The CIM method name for which the callback function is registered.
+
+            The faked `InvokeMethod` implementation uses this information to
+            look up the callback function from its parameters.
+
+          method_callback (:func:`~pywbem_mock.method_callback_interface`):
+            The callback function.
+
+          namespace (:term:`string`):
+            The CIM namespace for which the callback function is registered.
+
+            If `None`, the callback function is registered for the default
+            namespace of the connection.
+
+            The faked `InvokeMethod` implementation uses this information to
+            look up the callback function from its parameters.
         """
+
         if namespace is None:
             namespace = self.default_namespace
 
@@ -614,8 +618,8 @@ class FakedWBEMConnection(WBEMConnection):
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
         """
-        Display contents of the mock repository in one of the defined formats
-        to a destination defined by output_format.
+        Display the namespaces and objects in the mock repository in one of
+        multiple formats to a destination.
 
         Parameters:
 
@@ -2912,7 +2916,7 @@ class FakedWBEMConnection(WBEMConnection):
                                        namespace=self.default_namespace)
 
         else:
-            raise TypeError('FakeWBEMConnection InvokeMethod invalid type for '
+            raise TypeError('FakedWBEMConnection InvokeMethod invalid type for '
                             'objectname: %s' % type(objectname))
 
         namespace = localobject.namespace
