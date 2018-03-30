@@ -2306,7 +2306,7 @@ def oqi(ql, qs, ns=None, rc=None, ot=None, coe=None, moc=None):
           supplied with the next pull or close operation for this enumeration
           session.
 
-        * query_result_class (:class:`~pywbem.CIMClass`):
+        * **query_result_class** (:class:`~pywbem.CIMClass`):
           Result class definition describing the properties of the returned
           instances if requested, or otherwise `None`.
     """
@@ -2882,17 +2882,17 @@ def h():  # pylint: disable=invalid-name
     print("""
 Global functions for WBEM operations:
 
-  ein              EnumerateInstanceNames
   ei               EnumerateInstances
+  ein              EnumerateInstanceNames
   gi               GetInstance
   mi               ModifyInstance
   ci               CreateInstance
   di               DeleteInstance
-
-  an               AssociatorNames
   a                Associators
-  rn               ReferenceNames
+  an               AssociatorNames
   r                References
+  rn               ReferenceNames
+  im               InvokeMethod
 
   iei              IterEnumerateInstances
   ieip             IterEnumerateInstancePaths
@@ -2914,10 +2914,8 @@ Global functions for WBEM operations:
   pi               PullInstances
   ce               CloseEnumeration
 
-  im               InvokeMethod
-
-  ecn              EnumerateClassNames
   ec               EnumerateClasses
+  ecn              EnumerateClassNames
   gc               GetClass
   mc               ModifyClass
   cc               CreateClass
