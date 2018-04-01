@@ -317,7 +317,13 @@ class TestServerClass(BaseMethodsForTests):
         ['interop'])  # TODO , 'root/interop', 'root/PG_Interop'
     def test_server_basic(self, tst_namespace):
         """
-        Test the basic functions that access server information
+        Test the basic functions that access server information. This test
+        creates the mock repository and adds classes and instances for
+        the WBEMServer tests that involve namespaces, brand, profiles and
+        a subset of the central_instance tests.  It includes no tests for
+        errors. The primary goal of this test was to develop the mechanisms
+        for easily getting classes and instances into the repo and to provide
+        a basic test of functionality.
         """
         conn = FakedWBEMConnection()
         self.build_schema_list(conn, tst_namespace)
@@ -414,7 +420,10 @@ class TestServerClass(BaseMethodsForTests):
                                            host=conn.host)
 
 
-# TODO Break up test to do individual tests for so we can test for errors
-#      with each method.  Right now we build it all in a single test
-
-# TODO add test for find
+# TODO Break up tests to do individual tests for each group of methds so we can
+#      test for errors, variations on what is in the repowith each method.
+#      Right now we build it all in a single test.  Thus, for example we
+#      need to create a test group for find_central_instances since the
+#      definition of the repo is different for each method of getting the
+#      central instances Iex. If the server method exists, no other methods
+#      are tried.

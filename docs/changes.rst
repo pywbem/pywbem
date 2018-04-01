@@ -404,6 +404,10 @@ Enhancements
   consistency with ignoring the path on
   `CIMInstance.tocimxml()/tocimxmlstr()` (as part of fixing issue #1136).
 
+* Added unit test for WBEMServer class using pywbem_mock.  See the file
+  testsuite/test_wbemserverclass.py.  This test is incomplete today but tests
+  most of the main paths.
+
 Bug fixes
 ^^^^^^^^^
 
