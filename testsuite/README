@@ -19,12 +19,8 @@ There are two types of test:
    run_cim_operations.py script. Invoke it with --help for usage.
 
    The test.mof file must be loaded into the repository of the
-   WBEM server that is used for that test.  Under OpenPegasus, this done
-   by setting the repositoryIsDefaultProvider configuration variable to
-   true, and my loading the file, as follows:
+   WBEM server that is used for that test.  This can be done using
+   the MOF compiler of pywbem:
 
-       $ cimconfig -s repositoryIsDefaultInstanceProvider=true -p
-       $ cimmof < test.mof
-
-   OpenPegasus must be restarted in order for the change to take effect.
+       $ mof_compiler -s <target_url> test.mof
 
