@@ -642,6 +642,10 @@ Bug fixes
   `CIMProperty`, `CIMQualifier` and `CIMQualifierDeclaration` represented
   NULL entries in array values using an empty `VALUE` element. They now
   correctly generate the `VALUE.NULL` element for NULL entries (Issue #1136).
+  In order to provide for backwards compatibility to WBEM servers that
+  do not support VALUE.NULL, a config option SEND_VALUE_NULL was added
+  that by default sends VALUE.NULL, but allows for disabling that
+  (Issue #1144).
 
 * Fixed the error that the special float values `INF`, `-INF` and `NaN`
   were represented in lower case in CIM-XML. DSP0201 requires the

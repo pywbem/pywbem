@@ -276,7 +276,7 @@ from xml.dom.minidom import Element
 import six
 
 from . import cim_xml
-from .config import DEBUG_WARNING_ORIGIN
+from .config import DEBUG_WARNING_ORIGIN, SEND_VALUE_NULL
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
     Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
@@ -4887,7 +4887,10 @@ class CIMProperty(_CIMComparisonMixin):
                 array_xml = []
                 for v in self.value:
                     if v is None:
-                        array_xml.append(cim_xml.VALUE_NULL())
+                        if SEND_VALUE_NULL:
+                            array_xml.append(cim_xml.VALUE_NULL())
+                        else:
+                            array_xml.append(cim_xml.VALUE(None))
                     elif self.embedded_object is not None:
                         assert isinstance(v, (CIMInstance, CIMClass))
                         array_xml.append(cim_xml.VALUE(v.tocimxml().toxml()))
@@ -6118,7 +6121,10 @@ class CIMParameter(_CIMComparisonMixin):
                     array_xml = []
                     for v in self.value:
                         if v is None:
-                            array_xml.append(cim_xml.VALUE_NULL())
+                            if SEND_VALUE_NULL:
+                                array_xml.append(cim_xml.VALUE_NULL())
+                            else:
+                                array_xml.append(cim_xml.VALUE(None))
                         else:
                             array_xml.append(
                                 cim_xml.VALUE_REFERENCE(v.tocimxml()))
@@ -6129,7 +6135,10 @@ class CIMParameter(_CIMComparisonMixin):
                     array_xml = []
                     for v in self.value:
                         if v is None:
-                            array_xml.append(cim_xml.VALUE_NULL())
+                            if SEND_VALUE_NULL:
+                                array_xml.append(cim_xml.VALUE_NULL())
+                            else:
+                                array_xml.append(cim_xml.VALUE(None))
                         elif self.embedded_object is not None:
                             array_xml.append(
                                 cim_xml.VALUE(v.tocimxml().toxml()))
@@ -6727,7 +6736,10 @@ class CIMQualifier(_CIMComparisonMixin):
             array_xml = []
             for v in self.value:
                 if v is None:
-                    array_xml.append(cim_xml.VALUE_NULL())
+                    if SEND_VALUE_NULL:
+                        array_xml.append(cim_xml.VALUE_NULL())
+                    else:
+                        array_xml.append(cim_xml.VALUE(None))
                 else:
                     array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
             value_xml = cim_xml.VALUE_ARRAY(array_xml)
@@ -7364,7 +7376,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             array_xml = []
             for v in self.value:
                 if v is None:
-                    array_xml.append(cim_xml.VALUE_NULL())
+                    if SEND_VALUE_NULL:
+                        array_xml.append(cim_xml.VALUE_NULL())
+                    else:
+                        array_xml.append(cim_xml.VALUE(None))
                 else:
                     array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
             value_xml = cim_xml.VALUE_ARRAY(array_xml)
@@ -7527,7 +7542,10 @@ def tocimxml(value):
         array_xml = []
         for v in value:
             if v is None:
-                array_xml.append(cim_xml.VALUE_NULL())
+                if SEND_VALUE_NULL:
+                    array_xml.append(cim_xml.VALUE_NULL())
+                else:
+                    array_xml.append(cim_xml.VALUE(None))
             else:
                 array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
         value_xml = cim_xml.VALUE_ARRAY(array_xml)

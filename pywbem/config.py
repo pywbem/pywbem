@@ -38,7 +38,8 @@ they should be used from the ``pywbem`` namespace.
 
 # This module is meant to be safe for 'import *'.
 
-__all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT']
+__all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT',
+           'SEND_VALUE_NULL']
 
 #: Enforce the allowable value range for CIM integer types (e.g.
 #: :class:`~pywbem.Uint8`). For details, see the :class:`~pywbem.CIMInt` base
@@ -67,3 +68,28 @@ DEFAULT_ITER_MAXOBJECTCOUNT = 1000
 #: Add a stack traceback to the message text of most warnings issued by pywbem.
 #: This allows identifying which code originated the warning.
 DEBUG_WARNING_ORIGIN = False
+
+#: Backwards compatibility option controlling the use of `VALUE.NULL` for
+#: representing NULL entries in array values in CIM-XML requests sent to WBEM
+#: servers.
+#:
+#: :term:`DSP0201` requires the use of `VALUE.NULL` for representing NULL
+#: entries in array values since its version 2.2 (released 01/2007). Pywbem
+#: added support for using `VALUE.NULL` in CIM-XML requests in its version
+#: 0.12. In case a WBEM server has not implemented support for `VALUE.NULL`,
+#: this config option can be used to disable the use of `VALUE.NULL` as a
+#: means for backwards compatibility with such WBEM servers.
+#:
+#: Note that the config option only influences the behavior of pywbem for
+#: using `VALUE.NULL` in CIM-XML requests sent to a WBEM server. Regardless of
+#: the config option, pywbem will always support `VALUE.NULL` in CIM-XML
+#: responses the pywbem client receives from a WBEM server, and in CIM-XML
+#: requests the pywbem listener receives from a WBEM server.
+#:
+#: * True (default): Pywbem uses `VALUE.NULL` in CIM-XML requests for
+#:   representing NULL entries in array values.
+#: * False: Pywbem uses `VALUE` with an empty value in CIM-XML requests for
+#:   representing NULL entries in array values.
+#:
+#: *New in pywbem 0.12.*
+SEND_VALUE_NULL = True
