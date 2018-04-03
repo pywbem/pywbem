@@ -2313,16 +2313,29 @@ class MOFCompiler(object):
             not depend on existing CIM elements in the repository.
 
           search_paths (:term:`py:iterable` of :term:`string`):
-            An iterable of path names of directories where compiler will search
-            for mof files to complete a compile operation.  The compiler
-            searches these paths (including subdirectories) for
-            mof in a number of cases including: 1) find a superclass that
-            is not in repository while compiling a class 2) Find a
-            qualifier that is not in the repository (it looks for filenames
-            'qualifiers' and 'qualifiers_optional' in the search path, 3) find
-            a dependent class reference property and the
-            EmbeddedInstanceQualifier). Currently item 3 above is only partly
-            implemented. (See issue # 1138)
+            An iterable of directory path names where the MOF compiler will
+            search for MOF dependent files if the MOF element they define is
+            not in the target namespace of the CIM repository. The compiler
+            searches the specified directories and their subdirectories.
+
+            MOF dependent files are:
+
+            * The MOF file defining the superclass of a class that is compiled.
+              The MOF file searched for is '<classname>.mof'.
+
+            * The MOF file defining the qualifier type of a qualifier that
+              is specified on a MOF element that is compiled.
+              The MOF files searched for are 'qualifiers.mof' and
+              'qualifiers_optional.mof'.
+
+            * The MOF file of a class specified in a reference property or
+              in the `EmbeddedInstance` qualifier that is compiled.
+              The MOF file searched for is '<classname>.mof'.
+              This is only partly implemented, see issue #1138.
+
+            Note that MOF include files are not searched for; they are specified
+            in the ``pragma include`` directive as a file path relative to the
+            including file.
 
           verbose (:class:`py:bool`):
             Indicates whether to issue more detailed compiler messages.

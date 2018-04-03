@@ -563,6 +563,10 @@ specified when following the links to the standards:
 
   - The ``EnumerationCount`` operation is not supported by pywbem.
 
+  - The mock support of pywbem (see :ref:`Mock support`) does not support the
+    ``ModifyClass`` operation. Note that in its implementation of the CIM-XML
+    protocol, pywbem does support the ``ModifyClass`` operation.
+
 * The CIM-XML representation of :ref:`CIM objects` as produced by their
   ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to :term:`DSP0201`.
 
