@@ -658,6 +658,9 @@ Bug fixes
   `get_central_instances()` method. Now, execution continues with attempting
   the next approach for determining the central instances (Issue #1145).
 
+* In the mof_compiler.bat script file, fixed the issue that it did not return
+  an exit code if the MOF compiler failed (Issue #1156).
+
 Cleanup
 ^^^^^^^
 
