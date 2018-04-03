@@ -145,13 +145,13 @@ Example:
     action_arggroup.add_argument(
         '-r', '--remove', dest='remove',
         action='store_true', default=False,
-        help='Remove elements (found in the MOF files) from the WBEM '
-             'server\'s namespace, instead of creating or updating them')
+        help='Removal mode: Remove elements (found in the MOF files) from the '
+             'WBEM server\'s namespace, instead of creating or updating them')
     action_arggroup.add_argument(
         '-d', '--dry-run', dest='dry_run',
         action='store_true', default=False,
-        help='Don\'t actually modify the WBEM server\'s namespace, just '
-             'check MOF syntax. '
+        help='Dry-run mode: Don\'t actually modify the WBEM server\'s '
+             'namespace, just check MOF syntax. '
              'Connection to WBEM server is still required to check '
              'qualifiers.')
 
@@ -235,24 +235,31 @@ Example:
             x509_dict.update({'key_file': args.key_file})
 
     if args.user:
-        conn = WBEMConnection(args.url, (args.user, passwd),
-                              no_verification=args.no_verify_cert,
-                              x509=x509_dict, ca_certs=args.ca_certs)
+        creds = (args.user, passwd)
     else:
-        conn = WBEMConnection(args.url,
-                              no_verification=args.no_verify_cert,
-                              x509=x509_dict, ca_certs=args.ca_certs)
+        creds = None
+
+    conn = WBEMConnection(args.url, creds, default_namespace=args.namespace,
+                          no_verification=args.no_verify_cert,
+                          x509=x509_dict, ca_certs=args.ca_certs)
 
     if args.remove or args.dry_run:
-        # Only record the changes to the repository, but do not perform them.
-        conn = MOFWBEMConnection(conn=conn)
+
+        conn_mof = MOFWBEMConnection(conn=conn)
+
+        # Make it simple for this script to use these attributes:
+        conn_mof.default_namespace = conn.default_namespace
+        conn_mof.url = conn.url
+
+        conn = conn_mof
 
     # conn.debug = True
-    conn.default_namespace = args.namespace
 
-    if args.verbose:
-        print('MOF repository: Namespace %s in WBEM server %s' %
-              (conn.default_namespace, conn.url))
+    print('MOF repository: Namespace %s in WBEM server %s' %
+          (conn.default_namespace, conn.url))
+
+    if args.dry_run:
+        print('Executing in dry-run mode')
 
     include_dirs = args.include_dirs
     if include_dirs is None:
@@ -279,14 +286,20 @@ Example:
             if fname[0] != '/':
                 fname = os.path.curdir + '/' + fname
             mofcomp.compile_file(fname, args.namespace)
-    except Error:
-        # mof compiler outputs its own error messages today.
-        sys.exit(1)
+    except (Error, IOError) as exc:
+        print('%s: %s: %s' % (prog, exc.__class__.__name__, exc))
+        return 1
 
     if args.remove and not args.dry_run:
         # Removal works by recording the changes but not doing them, and then
         # rolling back and doing them.
-        conn.rollback(verbose=args.verbose)
+        try:
+            conn.rollback(verbose=args.verbose)
+        except Error as exc:
+            print('%s: %s: %s' % (prog, exc.__class__.__name__, exc))
+            return 1
+
+    return 0
 
 
 if __name__ == '__main__':

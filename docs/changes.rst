@@ -671,6 +671,12 @@ Bug fixes
 * In the mof_compiler.bat script file, fixed the issue that it did not return
   an exit code if the MOF compiler failed (Issue #1156).
 
+* Several fixes and display related improvements in the mof_compiler script:
+  MOF file not found is now also handled instead of failing with an exception
+  traceback. Exceptions are now displayed before exiting. Dry-run mode is now
+  displayed, for information. The target MOF repository is now always
+  displayed; previously it was displayed only in verbose mode. (Issue #1157).
+
 Cleanup
 ^^^^^^^
 
