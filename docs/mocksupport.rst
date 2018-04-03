@@ -73,9 +73,9 @@ The operation mode of the mock repository is selected when creating
 a :class:`~pywbem_mock.FakedWBEMConnection` object, through its `repo_lite`
 init parameter. Full mode is the default.
 
-The following example demonstrates setting up a faked connection, adding some
-CIM objects defined in a MOF string to its mock repository, and executing
-WBEM operations on the faked connection:
+The following example demonstrates setting up a faked connection, adding
+several CIM objects defined in a MOF string to its mock repository, and
+executing WBEM operations on the faked connection:
 
 .. code-block:: python
 
@@ -486,49 +486,25 @@ The faked pull operations are:
 Faked iter operations
 ^^^^^^^^^^^^^^^^^^^^^
 
-The faked iter operations (like the real iter operations) do not directly
-issue requests and responses on the connection, but instead are simply a
-layer on top of underlying operations. For example, `IterEnumerateInstances`
+The iter operations on a faked connection are in fact the iter operations
+on :class:`~pywbem.WBEMConnection`, because they do not directly issue requests
+and responses on the connection, but instead are simply a layer on top of
+underlying operations. For example, `IterEnumerateInstances`
 invokes either pull operations (i.e. `OpenEnumerateInstances` followed by
 `PullInstancesWithPath`) or traditional operations (i.e. `EnumerateInstances`).
-The approach by which the use of pull vs. traditional operations is controlled
-is the same as for the iter operations of :class:`~pywbem.WBEMConnection`,
-through the `use_pull_operations` init parameter of
+The use of pull vs. traditional operations is controlled via the
+`use_pull_operations` init parameter of
 :class:`~pywbem_mock.FakedWBEMConnection`.
 
-Therefore, the faked iter operations behave like the iter operations of
-:class:`~pywbem.WBEMConnection`, and their limitations are those of the
-underlying faked traditional operations or faked pull operations.
+The iter operations are:
 
-The faked iter operations are:
-
-- **IterEnumerateInstances**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterEnumerateInstances`,
-  with the stated exceptions.
-
-- **IterEnumerateInstancePaths**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterEnumerateInstancePaths`,
-  with the stated exceptions.
-
-- **IterAssociatorInstances**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterAssociatorInstances`,
-  with the stated exceptions.
-
-- **IterAssociatorInstancePaths**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`,
-  with the stated exceptions.
-
-- **IterReferenceInstances**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterReferenceInstances`,
-  with the stated exceptions.
-
-- **IterReferenceInstancePaths**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`,
-  with the stated exceptions.
-
-- **IterQueryInstances**: Behaves like
-  :meth:`~pywbem.WBEMConnection.IterQueryInstances`,
-  with the stated exceptions.
+- :meth:`~pywbem.WBEMConnection.IterEnumerateInstances`
+- :meth:`~pywbem.WBEMConnection.IterEnumerateInstancePaths`
+- :meth:`~pywbem.WBEMConnection.IterAssociatorInstances`
+- :meth:`~pywbem.WBEMConnection.IterAssociatorInstancePaths`
+- :meth:`~pywbem.WBEMConnection.IterReferenceInstances`
+- :meth:`~pywbem.WBEMConnection.IterReferenceInstancePaths`
+- :meth:`~pywbem.WBEMConnection.IterQueryInstances`
 
 
 .. _`Faked class operations`:

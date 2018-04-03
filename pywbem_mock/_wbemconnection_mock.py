@@ -355,11 +355,14 @@ class FakedWBEMConnection(WBEMConnection):
 
         If a CIM class or CIM qualifier type to be added already exists in the
         target namespace with the same name (comparing case insensitively),
-        this method fails, and the mock repository remains unchanged.
+        this method raises :exc:`~pywbem.CIMError`.
 
         If a CIM instance to be added already exists in the target namespace
-        with the same keybinding values, this method fails, and the mock
-        repository remains unchanged.
+        with the same keybinding values, this method raises
+        :exc:`~pywbem.CIMError`.
+
+        In all cases where this method raises an exception, the mock repository
+        remains unchanged.
 
         Parameters:
 
@@ -373,19 +376,23 @@ class FakedWBEMConnection(WBEMConnection):
             used.
 
           search_paths (:term:`py:iterable` of :term:`string`):
-            An iterable of path names of directories where MOF include files
-            will be looked up.
+            An iterable of directory path names where MOF dependent files will
+            be looked up.
+            See the description of the `search_path` init parameter of the
+            :class:`~pywbem.MOFCompiler` class for more information on MOF
+            dependent files.
 
           verbose (:class:`py:bool`):
             Controls whether to issue more detailed compiler messages.
 
         Raises:
 
+          IOError: MOF file not found.
+
           :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-            The mock repository remains unchanged.
 
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository. The mock repository remains unchanged.
+            mock repository.
         """
 
         if not namespace:
@@ -415,11 +422,14 @@ class FakedWBEMConnection(WBEMConnection):
 
         If a CIM class or CIM qualifier type to be added already exists in the
         target namespace with the same name (comparing case insensitively),
-        this method fails, and the mock repository remains unchanged.
+        this method  raises :exc:`~pywbem.CIMError`.
 
         If a CIM instance to be added already exists in the target namespace
-        with the same keybinding values, this method fails, and the mock
-        repository remains unchanged.
+        with the same keybinding values, this method raises
+        :exc:`~pywbem.CIMError`.
+
+        In all cases where this method raises an exception, the mock repository
+        remains unchanged.
 
         Parameters:
 
@@ -433,19 +443,23 @@ class FakedWBEMConnection(WBEMConnection):
             used.
 
           search_paths (:term:`py:iterable` of :term:`string`):
-            An iterable of path names of directories where MOF include files
-            will be looked up.
+            An iterable of directory path names where MOF dependent files will
+            be looked up.
+            See the description of the `search_path` init parameter of the
+            :class:`~pywbem.MOFCompiler` class for more information on MOF
+            dependent files.
 
           verbose (:class:`py:bool`):
             Controls whether to issue more detailed compiler messages.
 
         Raises:
 
+          IOError: MOF file not found.
+
           :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-            The mock repository remains unchanged.
 
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository. The mock repository remains unchanged.
+            mock repository.
         """
 
         if not namespace:
@@ -477,7 +491,8 @@ class FakedWBEMConnection(WBEMConnection):
         If the CIM namespace does not exist, it is created.
 
         The method imposes very few limits on the objects added. It does
-        require that the superclass exist for any class added.
+        require that the superclass exist for any class added and that
+        instances added include a path component.
 
         If a CIM class or CIM qualifier type to be added already exists in the
         target namespace with the same name (comparing case insensitively),
