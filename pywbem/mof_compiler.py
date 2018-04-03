@@ -2372,10 +2372,9 @@ class MOFCompiler(object):
 
         Raises:
 
-          MOFParseError: Syntax error in the MOF.
+          IOError: MOF file not found.
 
-          IOError: Filename required for the compile (ex. pragma include)
-          cannot be found
+          MOFParseError: Syntax error in the MOF.
 
           : Any exceptions that are raised by the repository connection class.
         """
@@ -2438,9 +2437,9 @@ class MOFCompiler(object):
 
         Raises:
 
-          MOFParseError: Syntax error in the MOF.
+          IOError: MOF file not found.
 
-          IOError: filename cannot be found.
+          MOFParseError: Syntax error in the MOF.
 
           : Any exceptions that are raised by the repository connection class.
         """
