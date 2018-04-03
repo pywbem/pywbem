@@ -342,7 +342,7 @@ class TestSchemaSearch(MOFTest):
        by search attribute. Searches the SCHEMA_MOF_DIR
     """
 
-    def test_all(self):
+    def test_compile_one(self):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
         """
@@ -350,6 +350,7 @@ class TestSchemaSearch(MOFTest):
                                                'System',
                                                'CIM_ComputerSystem.mof'),
                                   NAME_SPACE)
+
         ccs = self.mofcomp.handle.GetClass(
             'CIM_ComputerSystem',
             LocalOnly=False, IncludeQualifiers=True)
@@ -1700,7 +1701,8 @@ class TestPartialSchema(MOFTest):
         for cln in self.expected_dependent_classes():
             self.assertTrue(cln in clsrepo)
 
-        # TODO add specific checks for other places search should occur
+        # TODO issue #1160 ks add specific checks for other places search
+        #      should occur
 
     def test_build_from_schema_string(self):
         """
@@ -1725,7 +1727,61 @@ class TestPartialSchema(MOFTest):
         for cln in self.expected_dependent_classes():
             self.assertTrue(cln in clsrepo)
 
-        # TODO add specific checks for other places search should occur
+        # TODO issue #1160 ks add specific checks for other places search should
+        #      occur
+
+
+class TestFileErrors(MOFTest):
+    """
+        Test for IO errors in compile where file does not exist either
+        direct compile or expected in search path.
+    """
+
+    def create_mofcompiler(self):
+        """ Create the compiler with no search path """
+        def moflog(msg):
+            """Display message to moflog"""
+            print(msg, file=self.logfile)
+
+        moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
+        self.logfile = open(moflog_file, 'w')
+        self.mofcomp = MOFCompiler(
+            MOFWBEMConnection(),
+            verbose=False,
+            log_func=moflog)
+
+    def test_file_not_found(self):
+        """
+            Test for case where compile file does not exist.
+        """
+        self.create_mofcompiler()
+        try:
+            self.mofcomp.compile_file('NoSuchFile.mof', NAME_SPACE)
+        except IOError:
+            pass
+
+    def test_filedir_not_found(self):
+        """
+            Test for filename with dir component not found.
+        """
+        self.create_mofcompiler()
+        try:
+            self.mofcomp.compile_file('abc/NoSuchFile.mof', NAME_SPACE)
+        except IOError:
+            pass
+
+    def test_error_search(self):
+        """
+            Test for file not found in search path where search path is
+            schema dir.
+        """
+
+        try:
+            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+                                      'System', 'CIM_ComputerSystemx.mof'),
+                                      NAME_SPACE)
+        except IOError:
+            pass
 
 
 if __name__ == '__main__':

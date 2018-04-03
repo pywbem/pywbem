@@ -2317,12 +2317,12 @@ class MOFCompiler(object):
             for mof files to complete a compile operation.  The compiler
             searches these paths (including subdirectories) for
             mof in a number of cases including: 1) find a superclass that
-            is not in repository while compiling a class 2) Finding a
+            is not in repository while compiling a class 2) Find a
             qualifier that is not in the repository (it looks for filenames
-            'qualifiers' and 'qualifiers_optional', 3) finding a dependent
-            class reference property and the EmbeddedInstanceQualifier)
-            Currently this works for superclasses but not for embedded
-            instance qualifier and reference properties/parameters.
+            'qualifiers' and 'qualifiers_optional' in the search path, 3) find
+            a dependent class reference property and the
+            EmbeddedInstanceQualifier). Currently item 3 above is only partly
+            implemented. (See issue # 1138)
 
           verbose (:class:`py:bool`):
             Indicates whether to issue more detailed compiler messages.
@@ -2373,6 +2373,9 @@ class MOFCompiler(object):
         Raises:
 
           MOFParseError: Syntax error in the MOF.
+
+          IOError: Filename required for the compile (ex. pragma include)
+          cannot be found
 
           : Any exceptions that are raised by the repository connection class.
         """
@@ -2437,16 +2440,19 @@ class MOFCompiler(object):
 
           MOFParseError: Syntax error in the MOF.
 
+          IOError: filename cannot be found.
+
           : Any exceptions that are raised by the repository connection class.
         """
         if self.parser.verbose:
             self.parser.log('Compiling file ' + filename)
 
         if not os.path.exists(filename):
-            filename = os.path.basename(filename)
-            filename = self.find_mof(filename[:-4].lower())
-            if filename is None:
-                raise ValueError('No such file: %s' % filename)
+            # try to find in search path
+            rfilename = self.find_mof(os.path.basename(filename[:-4]).lower())
+            if rfilename is None:
+                raise IOError('No such file: %s' % filename)
+            filename = rfilename
         with open(filename, "r") as f:
             mof = f.read()
 
