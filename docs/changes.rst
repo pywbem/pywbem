@@ -173,6 +173,12 @@ Incompatible changes
   - The "fq" parameter of the filtering functions was renamed to "fs",
     for consistency with the query functions.
 
+* Fix issue where mof. compile_str could not compile mof that was
+  defined through a mof file containing  #pragma include statements.
+  This precluded using a string to define the classes to include in
+  a mof compile in a string and required that the include be a file.
+  See issue #1138
+
 Deprecations
 ^^^^^^^^^^^^
 

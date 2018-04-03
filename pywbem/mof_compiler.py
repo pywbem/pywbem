@@ -717,8 +717,9 @@ def p_compilerDirective(p):
     param = p[5]
     if directive == 'include':
         fname = param
-        if os.path.dirname(p.parser.file):
-            fname = os.path.dirname(p.parser.file) + '/' + fname
+        if p.parser.file:
+            if os.path.dirname(p.parser.file):
+                fname = os.path.dirname(p.parser.file) + '/' + fname
         p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
     elif directive == 'namespace':
         p.parser.handle.default_namespace = param
@@ -2312,8 +2313,16 @@ class MOFCompiler(object):
             not depend on existing CIM elements in the repository.
 
           search_paths (:term:`py:iterable` of :term:`string`):
-            An iterable of path names of directories where MOF include files
-            should be looked up.
+            An iterable of path names of directories where compiler will search
+            for mof files to complete a compile operation.  The compiler
+            searches these paths (including subdirectories) for
+            mof in a number of cases including: 1) find a superclass that
+            is not in repository while compiling a class 2) Find a
+            qualifier that is not in the repository (it looks for filenames
+            'qualifiers' and 'qualifiers_optional' in the search path, 3) find
+            a dependent class reference property and the
+            EmbeddedInstanceQualifier). Currently item 3 above is only partly
+            implemented. (See issue # 1138)
 
           verbose (:class:`py:bool`):
             Indicates whether to issue more detailed compiler messages.
@@ -2364,6 +2373,9 @@ class MOFCompiler(object):
         Raises:
 
           MOFParseError: Syntax error in the MOF.
+
+          IOError: Filename required for the compile (ex. pragma include)
+          cannot be found
 
           : Any exceptions that are raised by the repository connection class.
         """
@@ -2428,15 +2440,21 @@ class MOFCompiler(object):
 
           MOFParseError: Syntax error in the MOF.
 
+          IOError: filename cannot be found.
+
           : Any exceptions that are raised by the repository connection class.
         """
-
         if self.parser.verbose:
             self.parser.log('Compiling file ' + filename)
 
-        f = open(filename, 'r')
-        mof = f.read()
-        f.close()
+        if not os.path.exists(filename):
+            # try to find in search path
+            rfilename = self.find_mof(os.path.basename(filename[:-4]).lower())
+            if rfilename is None:
+                raise IOError('No such file: %s' % filename)
+            filename = rfilename
+        with open(filename, "r") as f:
+            mof = f.read()
 
         return self.compile_string(mof, ns, filename=filename)
 

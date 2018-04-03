@@ -60,9 +60,14 @@ class MOFTest(unittest.TestCase):
             verbose=False,
             log_func=moflog)
 
+        self.partial_schema_file = None
+
     def tearDown(self):
-        """Close the log file."""
+        """Close the log file and any partical schema file."""
         self.logfile.close()
+        if self.partial_schema_file:
+            if os.path.exists(self.partial_schema_file):
+                os.remove(self.partial_schema_file)
 
 
 class TestFlavors(MOFTest):
@@ -337,7 +342,7 @@ class TestSchemaSearch(MOFTest):
        by search attribute. Searches the SCHEMA_MOF_DIR
     """
 
-    def test_all(self):
+    def test_compile_one(self):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
         """
@@ -345,6 +350,7 @@ class TestSchemaSearch(MOFTest):
                                                'System',
                                                'CIM_ComputerSystem.mof'),
                                   NAME_SPACE)
+
         ccs = self.mofcomp.handle.GetClass(
             'CIM_ComputerSystem',
             LocalOnly=False, IncludeQualifiers=True)
@@ -1625,6 +1631,157 @@ class TestFullSchema(MOFTest):
             self.assertEqual(recompiled_class, orig_class)
 
         os.remove(mofout_filename)
+
+
+class TestPartialSchema(MOFTest):
+    """ Test the compile of a full DMTF schema and also
+        the recreation of the mof using tomof and recompile of this new
+        mof file. Tests have numbers to control ordering.
+    """
+    def define_partial_schema(self):
+        """
+        Build  a schema include file that has a subset of the files in
+        a complete DMTF schema.
+        """
+        schema_mof = """
+            #pragma locale ("en_US")
+            #pragma include ("Interop/CIM_RegisteredProfile.mof")
+            #pragma include ("Interop/CIM_ObjectManager.mof")
+            #pragma include ("Interop/CIM_ElementConformsToProfile.mof")
+            #pragma include ("Interop/CIM_ReferencedProfile.mof")
+            #pragma include ("System/CIM_LocalFileSystem.mof")
+            """
+        return schema_mof
+
+    def expected_classes(self):
+        """The classes expected to be directly compiled from the schema_mof
+           above
+        """
+        return('CIM_RegisteredProfile', 'CIM_ObjectManager',
+               'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile',
+               'CIM_LocalFileSystem')
+
+    def expected_dependent_classes(self):
+        """ Return tuple of expected dependent classes from the compile"""
+        return('CIM_ManagedElement', 'CIM_WBEMService', 'CIM_Service',
+               'CIM_RegisteredSpecification')
+
+    def test_build_from_partial_schema(self):
+        """
+        Build the schema qualifier and class objects in the repository.
+        This requires only that the leaf objects be defined in a mof
+        include file since the compiler finds the files for qualifiers
+        and dependent classes.
+        """
+        schema_mof = self.define_partial_schema()
+
+        # write the schema to a file in the schema directory
+        self.partial_schema_file = 'test_partial_schema.mof'
+        test_schemafile = os.path.join(SCHEMA_MOF_DIR,
+                                       self.partial_schema_file)
+        with open(test_schemafile, "w") as sf:
+            sf.write(schema_mof)
+
+        self.mofcomp.compile_file(test_schemafile, NAME_SPACE)
+
+        repo = self.mofcomp.handle
+        qualrepo = repo.qualifiers[NAME_SPACE]
+        clsrepo = repo.classes[NAME_SPACE]
+        # Assert that at least some qualifiers exist
+        # The compiler automatically add qualifiers to the schema compile
+        self.assertTrue('Abstract' in qualrepo)
+        self.assertEqual(len(qualrepo), TOTAL_QUALIFIERS)
+
+        # assert compiled classes exist
+        for cln in self.expected_classes():
+            self.assertTrue(cln in clsrepo)
+
+        # assert superclasses not specifically defined in the schema file
+        # were included from the compile search algorithm
+        for cln in self.expected_dependent_classes():
+            self.assertTrue(cln in clsrepo)
+
+        # TODO issue #1160 ks add specific checks for other places search
+        #      should occur
+
+    def test_build_from_schema_string(self):
+        """
+        Build the schema qualifier and class objects in the repository from
+        a mof file defined as a string.
+        """
+        schema_mof = self.define_partial_schema()
+
+        self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+
+        repo = self.mofcomp.handle
+        qualrepo = repo.qualifiers[NAME_SPACE]
+        clsrepo = repo.classes[NAME_SPACE]
+        # assert that at least some qualifiers exist
+        self.assertTrue('Abstract' in qualrepo)
+        self.assertEqual(len(qualrepo), TOTAL_QUALIFIERS)
+
+        # assert compiled classes exist
+        for cln in self.expected_classes():
+            self.assertTrue(cln in clsrepo)
+
+        for cln in self.expected_dependent_classes():
+            self.assertTrue(cln in clsrepo)
+
+        # TODO issue #1160 ks add specific checks for other places search should
+        #      occur
+
+
+class TestFileErrors(MOFTest):
+    """
+        Test for IO errors in compile where file does not exist either
+        direct compile or expected in search path.
+    """
+
+    def create_mofcompiler(self):
+        """ Create the compiler with no search path """
+        def moflog(msg):
+            """Display message to moflog"""
+            print(msg, file=self.logfile)
+
+        moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
+        self.logfile = open(moflog_file, 'w')
+        self.mofcomp = MOFCompiler(
+            MOFWBEMConnection(),
+            verbose=False,
+            log_func=moflog)
+
+    def test_file_not_found(self):
+        """
+            Test for case where compile file does not exist.
+        """
+        self.create_mofcompiler()
+        try:
+            self.mofcomp.compile_file('NoSuchFile.mof', NAME_SPACE)
+        except IOError:
+            pass
+
+    def test_filedir_not_found(self):
+        """
+            Test for filename with dir component not found.
+        """
+        self.create_mofcompiler()
+        try:
+            self.mofcomp.compile_file('abc/NoSuchFile.mof', NAME_SPACE)
+        except IOError:
+            pass
+
+    def test_error_search(self):
+        """
+            Test for file not found in search path where search path is
+            schema dir.
+        """
+
+        try:
+            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+                                      'System', 'CIM_ComputerSystemx.mof'),
+                                      NAME_SPACE)
+        except IOError:
+            pass
 
 
 if __name__ == '__main__':
