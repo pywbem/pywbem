@@ -16,13 +16,14 @@
 
 # pylint: disable=line-too-long
 """
-**Experimental:** *Configuration methods completely rewritten in pywbem 0.12.*
+**Experimental:** *New in pywbem 0.1.1 and redesigned in pywbem 0.12 as*
+                  *experimental.*
 
 .. _`Pywbem logging overview`:
 
 Pywbem logging overview
 ^^^^^^^^^^^^^^^^^^^^^^^
-The pywbem package implements selected logging using on the Python
+The pywbem package implements selected logging using the Python
 :mod:`py:logging` facility.
 
 Pywbem logging is used to record information passing between the pywbem client
@@ -36,51 +37,39 @@ Pywbem logging defines two Python :class:`~py:logging.Logger` objects
 
 * ``pywbem.api`` - Logs user-issued calls to :class:`~pywbem.WBEMConnection`
   methods that drive WBEM operations (see :ref:`WBEM operations`) and their
-  responses before they are passed back to the user. Log entries are defined at
-  DEBUG log level. This logs the parameters of each request and the results
-  including CIMObjects/exceptions in each method response. It also logs the
-  creation of the :class:`~pywbem.WBEMConnection` object to capture connection
-  information.
+  responses before they are passed back to the user. This logs the parameters
+  of each request and the results including CIM objects/exceptions in each
+  method response. It also logs the creation of the
+  :class:`~pywbem.WBEMConnection` object to capture connection information.
 
 * ``pywbem.http`` - Logs HTTP requests and responses between the pywbem client
   and WBEM server. This logs the http request data and response data including
   http headers and XML payload.
 
-The above logger names output log records when they are configured and
-activated. The pywbem loggers log at the DEBUG log level and when
-logging is activated for one or more :class:`~pywbem.WBEMConnection` instance
-objects.
+The above loggers output log records when they are configured and
+activated. The pywbem loggers log at the DEBUG log level.
 
 There are three components to configuration of the pywbem loggers:
 
 * **Configure Python logger names** - Sets the Python logger parameters
   (logging handlers, message formats, etc.). Either Python logging
   methods or methods defined in :ref:`Logging configuration methods` may be
-  used to configure the loggers. The `dest` parameter of the pywbem methods
-  configures the loggers for either stream or file loggers and the `name`
-  parameter defines which of the pywbem loggers is being configured. This
-  configure step does not activate any pywbem logger. If no loggers are
-  configured, pywbem defaults to a logger with the Python
-  logging NullHandler.
+  used to configure the loggers. By default, the two pywbem loggers have null
+  handlers (see logging.NullHandler) configured so that logging is not
+  propagated up the Python logger hierarchy
 
 * **Set the log record detail level for pywbem loggers(Optional)** - Because
-  pywbem logs can generate large quantities of information, they allow the user
-  to control the quantity of information in each log record.  This is a pywbem
+  pywbem loggerss can generate large quantities of information, they allow
+  the user to control the quantity of information in each log record (i.e. all
+  data, summary information, or data to a maximum log length).  This is a pywbem
   feature so it can only be configured using the pywbem methods defined in
-  :ref:`Logging configuration methods` using the `detail_level` parameter. The
-  `detail_level` possible values are defined in
-  :data:`~pywbem_logging.LOG_DETAIL_LEVELS`. The default for `detail_level` is
-  `all` which logs all if the data in the requests and responses if the
-  `detail_level` parameter is not set.
+  :ref:`Logging configuration methods`.
 
 * **Activate the pywbem loggers** - A pywbem logger is activated to
   actually output log records when any of the WBEMConnection methods that
   communicate with a WBEM server are executed for that WBEMConnection object.
-  Activation is controlled by the `connection` parameter of the
-  methods defined in :ref:`Logging configuration methods` which
-  activates logging for all subsequently created
-  :class:`~pywbem.WBEMConnection` objects or for a particular WBEMConnection
-  object.
+  Activation is controlled by a parameter of the methods defined in
+  :ref:`Logging configuration methods`.
 
 .. _`Logging configuration methods`:
 
@@ -90,24 +79,17 @@ The pywbem loggers may be configured through the following pywbem methods. These
 methods must be used to set the log detail_level and activate the loggers.
 
   * :meth:`~pywbem.WBEMConnection.configure_logger` - Configures and
-    optionally activates one or loggers. If the logger name is 'all'
-    it acts on both loggers. For example::
-
-       conn = WBEMConnection(...)
-       WBEMConnection.configure_logger('api', dest=file, log_filename='blah.log'
-                                       connection=conn)
+    optionally activates one or both loggers. If the logger name is 'all'
+    it acts on both loggers.
 
   * :func:`configure_loggers_from_string` - Allows configuring and
-    activating the pywbem loggers from a single formatted string. This is most
-    useful in defining the loggers from a command line tool such as pywbemcli.
-    Thus, for example, the following could be used to configure and
-    activate both loggers::
+    activating the pywbem loggers from a single formatted string that defines
+    logger names, log destination, and detail level. This is most
+    useful in defining the loggers from a command line tool such as pywbemcli
+    so the complete logger configuration can be compressed into a single
+    command line string.
 
-        configure_loggers_from_string('api=file:summary,http=stderr:all',
-                                      log_filename='mylog.log',
-                                      connection='True')
-
-.. _`Logging configuration Examples`:
+.. _`Logging configuration examples`:
 
 Logging configuration examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
