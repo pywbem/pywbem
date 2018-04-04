@@ -70,12 +70,12 @@ Action related options:
   Specify actions against the WBEM server's namespace. Default:
   Create/update elements.
 
-  -r, --remove          Remove elements (found in the MOF files) from the WBEM
-                        server's namespace, instead of creating or updating
-                        them
-  -d, --dry-run         Don't actually modify the WBEM server's namespace,
-                        just check MOF syntax. Connection to WBEM server is
-                        still required to check qualifiers.
+  -r, --remove          Removal mode: Remove elements (found in the MOF files)
+                        from the WBEM server's namespace, instead of creating
+                        or updating them
+  -d, --dry-run         Dry-run mode: Don't actually modify the WBEM server's
+                        namespace, just check MOF syntax. Connection to WBEM
+                        server is still required to check qualifiers.
 
 General options:
   -I dir, --include dir
