@@ -555,13 +555,15 @@ class LogOperationRecorder(BaseOperationRecorder):
         self._conn_id = conn_id
 
         self.detail_levels = {}
+
+        # logging only occurs if the corresponding detail level is not None
         self.api_detail_level = None
         self.http_detail_level = None
         self.api_maxlen = None
         self.http_maxlen = None
         self.set_detail_level(detail_levels)
 
-        # build name for logger
+        # build name for logger for this connection
         if conn_id:
             self.apilogger = logging.getLogger(
                 '%s.%s' % (LOGGER_API_CALLS_NAME, conn_id))
@@ -575,7 +577,6 @@ class LogOperationRecorder(BaseOperationRecorder):
         """
         Sets the detail levels from the input dictionary in detail_levels.
         """
-
         if detail_levels is None:
             return
 
@@ -593,17 +594,27 @@ class LogOperationRecorder(BaseOperationRecorder):
         """
         Log connection information. This includes the connection id (conn_id)
         that is output with the log entry. This entry is logged if either
-        http or api loggers are enable.
+        http or api loggers are enable. It honors both the logger and
+        detail level of either api logger if defined or http logger if defined.
+        If the api logger does not exist, the output shows this as an http
+        loggger output since we do not want to create an api logger for this
+        specific output
         """
         self._conn_id = wbem_connection.conn_id
 
         if self.enabled:
-            if self.api_detail_level or self.http_detail_level:
-                if self.api_detail_level == 'summary':
-                    fmt_str = 'Connection:%s %s'
-                else:
-                    fmt_str = 'Connection:%s %r'
-                self.apilogger.debug(fmt_str, self._conn_id, wbem_connection)
+            if self.api_detail_level is not None:
+                logger = self.apilogger
+                detail_level = self.api_detail_level
+            elif self.http_detail_level is not None:
+                logger = self.httplogger
+                detail_level = self.http_detail_level
+            else:
+                return
+
+            fmt_str = 'Connection:%s %s' if detail_level == 'summary' else \
+                      'Connection:%s %r'
+            logger.debug(fmt_str, self._conn_id, wbem_connection)
 
     def stage_pywbem_args(self, method, **kwargs):
         """
@@ -616,7 +627,8 @@ class LogOperationRecorder(BaseOperationRecorder):
         """
         # pylint: disable=attribute-defined-outside-init
         self._pywbem_method = method
-        if self.enabled and self.apilogger.isEnabledFor(logging.DEBUG):
+        if self.enabled and self.api_detail_level is not None and \
+                self.apilogger.isEnabledFor(logging.DEBUG):
 
             # TODO: future bypassed code to only ouput name and method if the
             # detail is summary.  We are not doing this because this is
@@ -655,11 +667,17 @@ class LogOperationRecorder(BaseOperationRecorder):
                         ret_type = type(ret[0]).__name__ if ret else ""
                         return 'list of %s; count=%s' % (ret_type, len(ret))
                     return 'Empty'
-                else:
-                    result = ret
-                result_fmt = '{0!r}'.format(result)
 
-            if self.api_detail_level == 'paths':
+                ret_type = type(ret).__name__
+                if hasattr(ret, 'classname'):
+                    name = ret.classname
+                elif hasattr(ret, 'name'):
+                    name = ret.name
+                else:
+                    name = ""
+                return '%s %s' % (ret_type, name)
+
+            elif self.api_detail_level == 'paths':
                 if isinstance(ret, list):
                     if ret:
                         if hasattr(ret[0], 'path'):
@@ -681,7 +699,8 @@ class LogOperationRecorder(BaseOperationRecorder):
                 result_fmt = result_fmt[:max_len] + '...'
             return result_fmt
 
-        if self.enabled and self.apilogger.isEnabledFor(logging.DEBUG):
+        if self.enabled and self.api_detail_level is not None and \
+                self.apilogger.isEnabledFor(logging.DEBUG):
             if exc:  # format exception
                 # exceptions are always either all or reduced length
                 result = format_result(
@@ -735,7 +754,8 @@ class LogOperationRecorder(BaseOperationRecorder):
     def stage_http_request(self, conn_id, version, url, target, method, headers,
                            payload):
         """Log request HTTP information including url, headers, etc."""
-        if self.enabled and self.httplogger.isEnabledFor(logging.DEBUG):
+        if self.enabled and self.http_detail_level is not None and \
+                self.httplogger.isEnabledFor(logging.DEBUG):
             # pylint: disable=attribute-defined-outside-init
             # if Auth header, mask data
             if 'Authorization' in headers:
@@ -773,7 +793,8 @@ class LogOperationRecorder(BaseOperationRecorder):
         # parameters. We ignore that
         if not self._http_response_version and not payload:
             return
-        if self.enabled and self.httplogger.isEnabledFor(logging.DEBUG):
+        if self.enabled and self.http_detail_level is not None and \
+                self.httplogger.isEnabledFor(logging.DEBUG):
             if self._http_response_headers:
                 header_str = \
                     ' '.join('{0}:{1!r}'.format(k, v)
