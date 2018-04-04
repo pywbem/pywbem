@@ -118,14 +118,14 @@ class TestCreateConnection(object):
     def test_add_operation_recorder(self):  # pylint: disable=no-self-use
         """Test addition of an operation recorder"""
         conn = WBEMConnection('http://localhost')
-        conn.add_operation_recorder(LogOperationRecorder())
+        conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
         # pylint: disable=protected-access
         assert len(conn._operation_recorders) == 1
 
     def test_add_operation_recorders(self):  # pylint: disable=no-self-use
         """Test addition of multiple operation recorders"""
         conn = WBEMConnection('http://localhost')
-        conn.add_operation_recorder(LogOperationRecorder())
+        conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
         tcr_fn = 'blah.yaml'
         tcr_file = MyTestClientRecorder.open_file(tcr_fn, 'a')
         conn.add_operation_recorder(MyTestClientRecorder(tcr_file))
@@ -135,14 +135,17 @@ class TestCreateConnection(object):
         os.remove(tcr_fn)
 
     def test_add_same_twice(self):  # pylint: disable=no-self-use
-        """ Test addition of same recorder twice"""
+        """
+        Test addition of same recorder twice. This not allowed so
+        generates exception
+        """
         conn = WBEMConnection('http://localhost')
-        conn.add_operation_recorder(LogOperationRecorder())
+        conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
         # pylint: disable=protected-access
         assert len(conn._operation_recorders) == 1
 
         with pytest.raises(ValueError):
-            conn.add_operation_recorder(LogOperationRecorder())
+            conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
 
 
 class TestGetRsltParams(object):

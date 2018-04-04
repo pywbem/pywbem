@@ -16,7 +16,8 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
-Unit test logging functionality in _logging.py
+Unit test logging functionality in _logging.py and
+the WBEMConnection.configure_logger methods
 
 """
 
@@ -29,10 +30,21 @@ import logging
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
 import unittest
-from testfixtures import LogCapture, log_capture
 
-from pywbem import PywbemLoggers, LOG_OPS_CALLS_NAME
-from pywbem._logging import get_logger
+# logging_tree is a useful tool to understand what the logging
+# configuraiton produces.  It is not normally installed in pywbem but simply
+# documented here for anyone changing these tests. You must manually install
+# it with pip. It displays a tree of loggers with pertinent information about
+# each logger.
+# from logging_tree import printout
+# To use the tool just set a line to printout() where you want to see what
+# loggers exist
+
+from testfixtures import LogCapture, log_capture, compare
+
+from pywbem import WBEMConnection
+from pywbem._logging import configure_loggers_from_string, \
+    LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 
 VERBOSE = False
 
@@ -43,14 +55,287 @@ LOG_FILE_NAME = 'test_logging.log'
 TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
 
 
-class BaseLoggingTests(unittest.TestCase):
+class BaseLoggingTest(unittest.TestCase):
+    """
+    Methods required by all tests
+    """
+    @staticmethod
+    def _get_logger(logger_name):
+        """Duplicate method local to recorder"""
+        logger = logging.getLogger(logger_name)
+        if logger_name != '' and not logger.handlers:
+            logger.addHandler(logging.NullHandler())
+        return logger
+
+
+class UnitLoggingTests(BaseLoggingTest):
     """Base class for logging unit tests"""
 
-    def setUp(self):
-        # reset the PywbemLoggers store for the next test.  This forces
-        # the dictionary back to empty. Since this is a class variable
-        # we clear it at the class level.
-        PywbemLoggers.loggers = {}
+    def logger_validate(self, log_name, log_dest, detail_level,
+                        log_filename=None):
+        """
+        Test for correct definition of one logger. Creates the logger and
+        tests the logger parameters against expected results. This does not
+        create any logs.
+        """
+        if log_name == 'all':
+            self.logger_validate('api', log_dest, detail_level,
+                                 log_filename=log_filename)
+            self.logger_validate('http', log_dest, detail_level,
+                                 log_filename=log_filename)
+
+        else:
+            if log_name == 'api':
+                logger = self._get_logger(LOGGER_API_CALLS_NAME)
+            elif log_name == 'http':
+                logger = self._get_logger(LOGGER_HTTP_NAME)
+            else:
+                self.fail('Input error. log_name %s ' % log_name)
+
+            # TODO compare detail_level
+
+            compare(logger.level, 10)
+            if logger.handlers[0]:
+                self.assertEqual(len(logger.handlers), 1)
+                if log_dest == 'file':
+                    self.assertTrue(isinstance(logger.handlers[0],
+                                               logging.FileHandler))
+                    self.assertTrue(log_filename is not None)
+                elif log_dest == 'stderr':
+                    self.assertTrue(isinstance(logger.handlers[0],
+                                               logging.StreamHandler))
+            else:
+                self.fail('No logger defined')
+
+    def configure_logger_test(self, log_name, log_dest=None, detail_level=None,
+                              log_filename=None, error=None):
+        """
+        Unified test function for the configure_logger function
+        """
+        if error:
+            try:
+                WBEMConnection.configure_logger(log_name, log_dest=log_dest,
+                                                detail_level=detail_level,
+                                                log_filename=log_filename)
+                self.fail('Exception expected')
+            except ValueError:
+                pass
+        else:
+            WBEMConnection.configure_logger(log_name, log_dest=log_dest,
+                                            detail_level=detail_level,
+                                            log_filename=log_filename)
+
+            self.logger_validate(log_name, log_dest, detail_level,
+                                 log_filename=log_filename)
+
+    def loggers_from_string_test(self, param, expected_result, log_file=None,
+                                 connection_defined=False):
+        """ Common test for successful parsing"""
+        # pylint: disable=protected-access
+
+        # logging handlers are static.  We must clear them between tests
+        # Remove any handlers from loggers for this test
+        api_logger = self._get_logger(LOGGER_API_CALLS_NAME)
+        api_logger.handlers = []
+        http_logger = self._get_logger(LOGGER_HTTP_NAME)
+        http_logger.handlers = []
+
+        # TODO for test below not yet implemented
+        # if connection_defined:
+        #    conn = WBEMConnection('http:/blah')
+
+        if expected_result == 'error':
+            try:
+                configure_loggers_from_string(param, log_filename=log_file)
+                self.fail('Exception expected')
+            except ValueError:
+                pass
+        else:
+            configure_loggers_from_string(param, log_filename=log_file)
+
+            api_logger = self._get_logger(LOGGER_API_CALLS_NAME)
+            http_logger = self._get_logger(LOGGER_HTTP_NAME)
+            if 'level' in expected_result:
+                level = expected_result['level']
+                if level[0]:
+                    compare(api_logger.level, level[0])
+
+                if level[1]:
+                    compare(http_logger.level, level[1])
+            if 'handler' in expected_result:
+                handler = expected_result['handler']
+
+                if handler[0]:
+                    self.assertEqual(len(api_logger.handlers), 1)
+                    self.assertTrue(isinstance(api_logger.handlers[0],
+                                               handler[0]))
+                if handler[1]:
+                    self.assertEqual(len(http_logger.handlers), 1)
+                    self.assertTrue(isinstance(http_logger.handlers[0],
+                                               handler[1]))
+
+            if 'detail' in expected_result:
+                detail_level = expected_result['detail']
+                if connection_defined:
+                    # TODO add test for when connection param exists
+                    # need to get to recorder and test detail level
+                    pass
+                    # print(conn)
+                else:
+                    if detail_level[0]:
+                        details = WBEMConnection._log_config_dict
+                        self.assertTrue(details['api']) == detail_level[0]
+
+        # remove handlers from our loggers.
+        for h in api_logger.handlers:
+            api_logger.removeHandler(h)
+            h.flush()
+            h.close()
+        for h in http_logger.handlers:
+            http_logger.removeHandler(h)
+            h.flush()
+            h.close()
+
+        # Close log file
+        if log_file:
+            if os.path.exists(log_file):
+                os.remove(log_file)
+
+
+class TestLoggersFromString(UnitLoggingTests):
+    """
+    Test the configure_loggers_from_string and WBEMConnection.configure_logger
+    functions. Some of the logging configuration methods are in WBEMConnection
+    """
+
+    def test_comp_only(self):
+        """'Test all' string"""
+        self.loggers_from_string_test('all', {'level': (0, 0),
+                                              'handler': (logging.NullHandler,
+                                                          logging.NullHandler),
+                                              'detail': (None, None)})
+
+    def test_comp_only2(self):
+        """'Test all=' string"""
+        param = 'all='
+        self.loggers_from_string_test(param, {'level': (0, 0),
+                                              'handler': (logging.NullHandler,
+                                                          logging.NullHandler)})
+
+    def test_complete1(self):
+        """Test all=file string"""
+        param = 'all=file'
+        self.loggers_from_string_test(param, {'level': (10, 10),
+                                              'handler': (logging.FileHandler,
+                                                          logging.FileHandler)},
+                                      log_file='blah.log')
+
+    def test_complete2(self):
+        """Test all=file:summary string"""
+        param = 'all=file:summary'
+        self.loggers_from_string_test(param, {'level': (10, 10),
+                                              'handler': (logging.FileHandler,
+                                                          logging.FileHandler),
+                                              'detail': ('summary', 'summary')},
+
+                                      log_file='blah.log')
+
+    def test_complete3(self):
+        """Test all=file:summary string"""
+        param = 'all=file:10'
+        self.loggers_from_string_test(param, {'level': (10, 10),
+                                              'handler': (logging.FileHandler,
+                                                          logging.FileHandler),
+                                              'detail': (10, 10)},
+
+                                      log_file='blah.log')
+
+    def test_multiple1(self):
+        """Test api=file:min,http=file:all string"""
+        param = 'api=file,http=file:all'
+        self.loggers_from_string_test(param, {'level': (10, 10),
+                                              'handler': (logging.FileHandler,
+                                                          logging.FileHandler)},
+                                      log_file='blah.log')
+
+    def test_multiple2(self):
+        """Test api=file:min,http=file:min string"""
+        param = 'api=file,http=stderr'
+        self.loggers_from_string_test(param, {'level': (10, 10),
+                                              'handler':
+                                              (logging.FileHandler,
+                                               logging.StreamHandler)},
+                                      log_file='blah.log')
+
+    def test_invalid_logname(self):
+        """Test for exception, log name invalid.  'blah' """
+        param = 'blah'
+        self.loggers_from_string_test(param, 'error')
+
+    def test_to_many_params(self):
+        """ test all=file:junk string """
+        param = "all=file:all:junk"
+        self.loggers_from_string_test(param, 'error')
+
+    def test_empty(self):
+        param = ""
+        self.loggers_from_string_test(param, 'error')
+
+
+class TestDefineLogger(UnitLoggingTests):
+    """ Test the configure_logger method."""
+
+    def test_configue_single_logger1(self):
+        """
+        Create a simple logger
+        """
+        self.configure_logger_test('api', 'file', detail_level='all',
+                                   log_filename=TEST_OUTPUT_LOG)
+
+    def test_create_single_logger2(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        self.configure_logger_test('http', 'file', detail_level='all',
+                                   log_filename=TEST_OUTPUT_LOG)
+
+    def test_create_single_logger3(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        self.configure_logger_test('http', 'stderr', detail_level='all',
+                                   log_filename=TEST_OUTPUT_LOG)
+
+    def test_create_single_logger4(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        self.configure_logger_test('all', 'stderr', detail_level='all',
+                                   log_filename=TEST_OUTPUT_LOG)
+
+    def test_create_single_logger5(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        self.configure_logger_test('all', 'stderr', detail_level='all',
+                                   log_filename=TEST_OUTPUT_LOG)
+
+    def test_create_single_loggerEr1(self):
+        """
+        Create a simple logger from detailed parameter input
+        """
+        self.configure_logger_test('api', 'blah', detail_level='all',
+                                   error=True)
+        self.configure_logger_test('http', 'blah', detail_level='all',
+                                   error=True)
+        self.configure_logger_test('api', 'blah', detail_level='al',
+                                   error=True)
+        self.configure_logger_test('http', 'blah', detail_level='al',
+                                   error=True)
+
+
+class BaseLoggingExecutionTests(BaseLoggingTest):
+    """Base class for logging unit tests"""
 
     def tearDown(self):
         LogCapture.uninstall_all()
@@ -59,290 +344,21 @@ class BaseLoggingTests(unittest.TestCase):
             os.remove(TEST_OUTPUT_LOG)
 
 
-class TestLogParse(BaseLoggingTests):
-    """
-    Test parse_log_specs
-    """
-    def parser_test(self, param, expected_result):
-        """ Common test for successful parsing"""
-        # pylint: disable=protected-access
-        result = PywbemLoggers._parse_log_specs(param)
-        self.assertEqual(result, expected_result)
-
-    def test_comp_only(self):
-        """Test all string"""
-        param = 'all'
-        self.parser_test(param, {'all': (None, None)})
-
-    def test_comp_only2(self):
-        """Test all= string"""
-        param = 'all='
-        self.parser_test(param, {'all': (None, None)})
-
-    def test_complete1(self):
-        """Test all=file:min string"""
-        param = 'all=file:min'
-        self.parser_test(param, {'all': ('file', 'min')})
-
-    def test_complete2(self):
-        """Test all=file:min: string"""
-        param = 'all=file:min'
-        self.parser_test(param, {'all': ('file', 'min')})
-
-    def test_complete3(self):
-        """Test all=file:min string"""
-        param = 'all=file:min'
-        self.parser_test(param, {'all': ('file', 'min')})
-
-    def test_multiple1(self):
-        """Test ops=file:min,http=file:min string"""
-        param = 'ops=file:min,http=file:min'
-        self.parser_test(param, {'ops': ('file', 'min'),
-                                 'http': ('file', 'min')})
-
-    def test_multiple2(self):
-        """Test ops=file:min,http=file:min string"""
-        param = 'ops=file:min,http='
-        self.parser_test(param, {'ops': ('file', 'min'),
-                                 'http': (None, None)})
-
-
-class TestLogParseErrors(BaseLoggingTests):
-    """ Test errors on the parse"""
-    def parser_error_test(self, param):
-        """Test for exception"""
-        try:
-            # pylint: disable=protected-access
-            PywbemLoggers._parse_log_specs(param)
-            self.fail('Param should generate exception %s' % param)
-        except ValueError:
-            pass
-
-    def test_to_many_params(self):
-        """ test all=file:min:junk string """
-        param = "all=file:min:junk"
-        self.parser_error_test(param)
-
-    def test_empty(self):
-        param = ""
-        self.parser_error_test(param)
-
-
-class TestLoggerCreate(BaseLoggingTests):
-    """ Test the PywbemLoggers.create_logger method."""
-    def test_create_single_logger1(self):
-        """
-        Create a simple logger
-        """
-        PywbemLoggers.create_logger('ops', 'file',
-                                    log_filename=TEST_OUTPUT_LOG,
-                                    log_detail_level='min')
-
-        if VERBOSE:
-            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
-        expected_result = \
-            {'pywbem.ops': ('min', 'file', TEST_OUTPUT_LOG)}
-
-        # test getting from logger variable
-        self.assertEqual(PywbemLoggers.loggers, expected_result)
-
-        # test use of __repr__
-        expected_result = 'PywbemLoggers(%s)' % expected_result
-        self.assertEqual(('%r' % PywbemLoggers), expected_result)
-
-    def test_create_single_logger2(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        PywbemLoggers.create_logger('http', 'file',
-                                    log_filename=TEST_OUTPUT_LOG,
-                                    log_detail_level='min')
-
-        if VERBOSE:
-            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
-        expected_result = \
-            {'pywbem.http': ('min', 'file', TEST_OUTPUT_LOG)}
-
-        self.assertEqual(PywbemLoggers.loggers, expected_result,
-                         'Actual %s, Expected %s' % (PywbemLoggers.loggers,
-                                                     expected_result))
-
-    def test_create_single_logger3(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        PywbemLoggers.create_logger('http', 'stderr',
-                                    log_filename=None,
-                                    log_detail_level='min')
-
-        if VERBOSE:
-            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
-        expected_result = \
-            {'pywbem.http': ('min', 'stderr', None)}
-
-        self.assertEqual(PywbemLoggers.loggers, expected_result,
-                         'Actual %s, Expected %s' % (PywbemLoggers.loggers,
-                                                     expected_result))
-
-    def test_create_single_logger4(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        PywbemLoggers.create_logger('all', 'stderr',
-                                    log_filename=None,
-                                    log_detail_level='min')
-
-        if VERBOSE:
-            print('pywbem_loggers dict %s' % PywbemLoggers.loggers)
-        expected_result = \
-            {'pywbem.http': ('min', 'stderr', None),
-             'pywbem.ops': ('min', 'stderr', None)}
-
-        self.assertEqual(PywbemLoggers.loggers, expected_result)
-
-
-class TestLoggerCreateErrors(BaseLoggingTests):
-    """Test errors in the LoggerCreate Function"""
-
-    def test_create_single_logger1(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        try:
-            PywbemLoggers.create_logger('httpx', 'stderr',
-                                        log_filename=None,
-                                        log_detail_level='min')
-            self.fail('Exception expected')
-        except ValueError as ve:
-            if VERBOSE:
-                print('ve %s' % ve)
-
-    def test_create_single_logger2(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        try:
-            PywbemLoggers.create_logger('http', 'stderrblah',
-                                        log_filename=None,
-                                        log_detail_level='min')
-            self.fail('Exception expected')
-        except ValueError as ve:
-            if VERBOSE:
-                print('ve %s' % ve)
-
-    def test_create_single_logger4(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        try:
-            PywbemLoggers.create_logger('http', 'stderr',
-                                        log_filename=None,
-                                        log_detail_level='mi')
-            self.fail('Exception expected')
-        except ValueError as ve:
-            if VERBOSE:
-                print('ve %s' % ve)
-
-    def test_create_single_logger5(self):
-        """
-        Create a simple logger from detailed parameter input
-        """
-        try:
-            PywbemLoggers.create_logger('http', 'file',
-                                        log_filename=None,
-                                        log_detail_level='mi')
-            self.fail('Exception expected')
-        except ValueError as ve:
-            if VERBOSE:
-                print('ve %s' % ve)
-
-
-class TestLoggersCreate(BaseLoggingTests):
-    """
-    Tests to create loggers using the PywbemLogger class and the
-    method create_loggers that creates logger definitions from
-    an input string
-    """
-    def valid_loggers_create(self, input_str, expected_result,
-                             log_filename=None):
-        """Common test to do the create loggers and test result."""
-        PywbemLoggers.create_loggers(input_str, log_filename)
-        self.assertEqual(PywbemLoggers.loggers, expected_result)
-        # TODO add test
-        # for name in PywbemLoggers.loggers:
-        #    print(PywbemLoggers.get_logger_info(name))
-
-    def test_create_logger(self):
-        """
-        Create a simple logger
-        """
-        test_input = 'ops=file:min,http=file:min'
-
-        expected_result = \
-            {'pywbem.http': ('min', 'file', TEST_OUTPUT_LOG),
-             'pywbem.ops': ('min', 'file', TEST_OUTPUT_LOG)}
-        self.valid_loggers_create(test_input, expected_result,
-                                  log_filename=TEST_OUTPUT_LOG)
-
-    def test_create_loggers1(self):
-        """
-        Create a simple logger
-        """
-        test_input = 'all=file:min'
-        expected_result = \
-            {'pywbem.http': ('min', 'file', TEST_OUTPUT_LOG),
-             'pywbem.ops': ('min', 'file', TEST_OUTPUT_LOG)}
-
-        self.valid_loggers_create(test_input, expected_result,
-                                  log_filename=TEST_OUTPUT_LOG)
-
-    def test_create_loggers2(self):
-        """
-        Create a simple logger
-        """
-        test_input = 'all=stderr:all'
-        expected_result = \
-            {'pywbem.http': ('all', 'stderr', None),
-             'pywbem.ops': ('all', 'stderr', None)}
-
-        self.valid_loggers_create(test_input, expected_result)
-
-    def test_get_logger_default(self):
-        """ Test the get_logger function."""
-        logger = get_logger(LOG_OPS_CALLS_NAME)
-        self.assertEqual(len(logger.handlers), 1)
-        log_info = PywbemLoggers.get_logger_info(LOG_OPS_CALLS_NAME)
-        self.assertEqual(log_info[2], 'none')
-        self.assertEqual(log_info[0], 'min')
-
-    def test_get_logger_invalid(self):
-        """ Test the get_logger function."""
-        try:
-            get_logger('pywbem.blah')
-            self.fail('Expected exception for invalid log name')
-        except ValueError:
-            pass
-
-
-class TestLoggerOutput(BaseLoggingTests):
+class TestLoggerOutput(BaseLoggingExecutionTests):
     """Test output from logging"""
 
     @log_capture()
     def test_log_output(self, l):  # pylint: disable=blacklisted-name
-        test_input = 'all=file:all'
+        test_input = 'all=file'
 
-        if VERBOSE:
-            print('log filename %s' % TEST_OUTPUT_LOG)
+        configure_loggers_from_string(test_input, TEST_OUTPUT_LOG)
 
-        PywbemLoggers.create_loggers(test_input, TEST_OUTPUT_LOG)
-
-        my_logger = get_logger(LOG_OPS_CALLS_NAME)
+        my_logger = self._get_logger(LOGGER_API_CALLS_NAME)
 
         self.assertNotEqual(my_logger, None,
                             'Valid named logger %s expected.'
-                            % LOG_OPS_CALLS_NAME)
-        # for name in PywbemLoggers.loggers:
-        #    print(PywbemLoggers.get_logger_info(name))
+                            % LOGGER_API_CALLS_NAME)
+
         max_size = 1000
         result = 'This is fake return data'
         return_name = 'Return'
@@ -354,7 +370,7 @@ class TestLoggerOutput(BaseLoggingTests):
 
         my_logger.debug('%s: %s: %s', return_name, 'FakeMethodName', result)
 
-        l.check(('pywbem.ops', 'DEBUG',
+        l.check(('pywbem.api', 'DEBUG',
                  "Return: FakeMethodName: 'This is fake return data'"))
 
 
