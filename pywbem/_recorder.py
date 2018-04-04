@@ -17,11 +17,8 @@
 
 """
 **Experimental:** *New in pywbem 0.9 as experimental.*
-**Experimental:** *pywbem 0.11 experimental, LogOperationRecorder.*
 
 Operation recorder interface and implementations.
-
-The LogOperationRecorder was heavily modified for pywbem 0.12.0
 """
 
 from __future__ import print_function, absolute_import
@@ -511,25 +508,28 @@ class BaseOperationRecorder(object):
 
 class LogOperationRecorder(BaseOperationRecorder):
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
+    **Experimental:** *New in pywbem 0.11 and redesigned in pywbem 0.12 as
+    experimental.*
 
-    A recorder that logs the WBEM operations to a loggers based on the
-    Python logging package.
+    A recorder that logs certain aspects of the WBEM operations driven by
+    pywbem users to Python loggers.
 
-    This recorder supports two logger names:
+    This recorder supports two Python loggers:
 
-    * :attr:`~pywbem._logging.LOGGER_API_CALLS_NAME` - Logs user-issued calls
-      to :class:`~pywbem.WBEMConnection` methods that drive WBEM operations
-      (see :ref:WBEM operations) and the responses before they are passed back
-      to the user
+    * API logger (Python logger name: `'pywbem.api'`) - Logs API calls and
+      returns, for the :class:`~pywbem.WBEMConnection` methods that drive WBEM
+      operations (see :ref:`WBEM operations`). This logs the API parameters and
+      results, including CIM objects/exceptions. It also logs the creation of
+      :class:`~pywbem.WBEMConnection` objects to capture connection information
+      in order to determine the connection to which a particular log record
+      belongs.
 
-    * :attr:`~pywbem._logging.LOGGER_HTTP_NAME` - Logs HTTP requests and
-      responses.
+    * HTTP logger (Python logger name: `'pywbem.http'`) - Logs HTTP requests
+      and responses between the pywbem client and WBEM server. This logs the
+      HTTP request data and response data including HTTP headers and CIM-XML
+      payload.
 
-    This also implements a method to log information on each
-    :class:`~pywbem.WBEMConnection` object created.
-
-        All logging calls are at the debug level.
+    All logging calls are at the :attr:`py:logging.DEBUG` logging level.
     """
     def __init__(self, conn_id, detail_levels=None):
         """
@@ -542,9 +542,13 @@ class LogOperationRecorder(BaseOperationRecorder):
             (ex.pywbem.ops.1-2343) so that each WBEMConnection could be
             logged with a separate logger.
 
-          detail_levels ( :class:`py:dict`):
-            Dictionary identifying the detail_level for one or both of
-            the logger names.
+          detail_levels (:class:`py:dict`):
+            Dictionary identifying the detail level for one or both of
+            the loggers.
+            Key: Simple logger name (e.g. 'api').
+            Value: Detail level, either a string from
+            :data:`~pywbem._logging.LOG_DETAIL_LEVELS`, or an integer that
+            specifies the maximum size of each log record.
         """
         super(LogOperationRecorder, self).__init__()
 
