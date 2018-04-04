@@ -606,15 +606,21 @@ class LogOperationRecorder(BaseOperationRecorder):
             if self.api_detail_level is not None:
                 logger = self.apilogger
                 detail_level = self.api_detail_level
+                max_len = self.api_maxlen
             elif self.http_detail_level is not None:
                 logger = self.httplogger
                 detail_level = self.http_detail_level
+                max_len = self.http_maxlen
             else:
                 return
 
-            fmt_str = 'Connection:%s %s' if detail_level == 'summary' else \
-                      'Connection:%s %r'
-            logger.debug(fmt_str, self._conn_id, wbem_connection)
+            if logger.isEnabledFor(logging.DEBUG):
+                conn_data = str(wbem_connection) if detail_level == 'summary' \
+                    else repr(wbem_connection)
+
+                if max_len and (len(conn_data) > max_len):
+                    conn_data = conn_data[:max_len] + '...'
+                logger.debug('Connection:%s %s', self._conn_id, conn_data)
 
     def stage_pywbem_args(self, method, **kwargs):
         """
