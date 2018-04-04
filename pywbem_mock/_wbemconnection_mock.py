@@ -263,6 +263,10 @@ class FakedWBEMConnection(WBEMConnection):
             If `True`, lite mode is set.
             If `False`, full mode is set.
         """
+        # Response delay in seconds. Any operation is delayed by this time.
+        # Initialize before superclass init because otherwise logger may
+        # fail with this attribute not found
+        self._response_delay = response_delay
 
         super(FakedWBEMConnection, self).__init__(
             'http://FakedUrl',
@@ -302,9 +306,6 @@ class FakedWBEMConnection(WBEMConnection):
         # be returned and the current position in the list. Any context in
         # this list is still open.
         self.enumeration_contexts = {}
-
-        # Response delay in seconds. Any operation is delayed by this time.
-        self._response_delay = response_delay
 
         self._imethodcall = Mock(side_effect=self._mock_imethodcall)
         self._methodcall = Mock(side_effect=self._mock_methodcall)
@@ -850,7 +851,7 @@ class FakedWBEMConnection(WBEMConnection):
     ##########################################################
 
     def _mock_imethodcall(self, methodname, namespace, response_params_rqd=None,
-                          **params):
+                          **params):  # pylint: disable=unused-argument
         """
         Mocks the WBEMConnection._imethodcall() method.
 
@@ -2998,7 +2999,7 @@ class FakedWBEMConnection(WBEMConnection):
         if bound_method is None:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
                            'Class %s for method %s in registered in methods '
-                           'repoository' %
+                           'repoository namespace %s' %
                            (localobject.classname, methodname, namespace))
 
         # Map the Params and **params into a single no-case dictionary
