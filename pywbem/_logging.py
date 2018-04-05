@@ -88,9 +88,8 @@ for logging through the following pywbem functions.
 These functions are the only mechanism for setting the detail level of a pywbem
 logger and for activating WBEM connection(s) for logging.
 
-* :meth:`~pywbem.WBEMConnection.configure_logger` - Configure the pywbem
-  loggers and optionally activate WBEM connections for logging and setting a
-  log detail level.
+* :func:`configure_logger` - Configure the pywbem loggers and optionally
+  activate WBEM connections for logging and setting a log detail level.
 
 * :func:`configure_loggers_from_string` - Configure the pywbem loggers and
   optionally activate WBEM connections for logging and setting a log detail
@@ -106,17 +105,15 @@ logger and for activating WBEM connection(s) for logging.
 Logging configuration examples
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Examples for using :meth:`~pywbem.WBEMConnection.configure_logger` for
-configuring pywbem loggers and for activating WBEM connections for logging:
+Examples for using :func:`configure_logger` for configuring pywbem loggers and
+for activating WBEM connections for logging:
 
 * Example: Configure the `'pywbem.api'` logger with detail level `'summary'`
   and output to stderr, and activate all subsequently created WBEM connections
   for logging::
 
-    WBEMConnection.configure_logger('api',
-                                    log_dest='stderr',
-                                    detail_level='summary',
-                                    connection=True)
+    configure_logger('api', log_dest='stderr', detail_level='summary',
+                     connection=True)
 
     # All of the following connections will log:
     conn1 = WBEMConnection(...)
@@ -126,11 +123,10 @@ configuring pywbem loggers and for activating WBEM connections for logging:
   and output to a file, and activate a single existing WBEM connection for
   logging::
 
-    conn = WBEMConnection()
+    conn = WBEMConnection(...)
 
-    WBEMConnection.configure_logger('all',
-                                    log_dest='file', log_filname='xxx.log',
-                                    connection=conn)
+    configure_logger('all', log_dest='file', log_filname='xxx.log',
+                     connection=conn)
 
 Examples for configuring the pywbem loggers using Python logging methods,
 and using the pywbem logging configuration functions only for setting the
@@ -147,9 +143,7 @@ detail level and for activating WBEM connections for logging:
 
     conn = WBEMConnection(...)
 
-    WBEMConnection.configure_logger('all',
-                                    detail_level='all',
-                                    connection=conn)
+    configure_logger('all', detail_level='all', connection=conn)
 
   TODO: This configures the pywbem loggers with a null handler and thus
   does not propagate up to the Python root logger. Clarify whether this
@@ -169,9 +163,7 @@ detail level and for activating WBEM connections for logging:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    WBEMConnection.configure_logger('api',
-                                    detail_level='summary',
-                                    connection=True)
+    configure_logger('api', detail_level='summary', connection=True)
 
     # All of the following connections will log:
     conn1 = WBEMConnection(...)
@@ -184,8 +176,7 @@ pywbem loggers and for activating WBEM connections for logging:
   and output to stderr, and activate all subsequently created WBEM connections
   for logging::
 
-    configure_loggers_from_string('api=stderr:summary',
-                                  connection=True)
+    configure_loggers_from_string('api=stderr:summary', connection=True)
 
     # All of the following connections will log:
     conn1 = WBEMConnection(...)
@@ -195,7 +186,7 @@ pywbem loggers and for activating WBEM connections for logging:
   (`'all'`) and output to a file, and activate a single existing WBEM
   connection for logging::
 
-    conn = WBEMConnection()
+    conn = WBEMConnection(...)
 
     configure_loggers_from_string('all=file', log_filname='xxx.log',
                                   connection=conn)
@@ -236,14 +227,12 @@ should be accessed via the ``pywbem`` namespace.
 """  # noqa: E501
 # pylint: enable=line-too-long
 
-# NOTE: cannot use from pywbem import WBEMConnection because it is circular
-# import.
-import pywbem.cim_operations
-
-__all__ = ['configure_loggers_from_string',
+__all__ = ['configure_logger', 'configure_loggers_from_string',
            'LOGGER_API_CALLS_NAME', 'LOGGER_HTTP_NAME', 'LOGGER_SIMPLE_NAMES',
            'LOG_DESTINATIONS', 'DEFAULT_LOG_DESTINATION', 'LOG_DETAIL_LEVELS',
            'DEFAULT_LOG_DETAIL_LEVEL']
+
+_CONN = None
 
 #: Name of the pywbem API logger, which logs user-issued calls to and returns
 #: from :class:`~pywbem.WBEMConnection` methods that drive WBEM operations.
@@ -294,6 +283,89 @@ LOG_DETAIL_LEVELS = ['all', 'paths', 'summary']
 DEFAULT_LOG_DETAIL_LEVEL = 'all'
 
 
+def configure_logger(simple_name, log_dest=DEFAULT_LOG_DESTINATION,
+                     detail_level=DEFAULT_LOG_DETAIL_LEVEL, log_filename=None,
+                     connection=None):
+    # pylint: disable=line-too-long
+    """
+    Configure the pywbem loggers and optionally activate WBEM connections
+    for logging and setting a log detail level.
+
+    Parameters:
+
+      simple_name (:term:`string`):
+        Simple name (ex. `'api'`) of the single pywbem logger this method
+        should affect, or `'all'` to affect all pywbem loggers.
+
+        Must be one of the strings in
+        :data:`~pywbem._logging.LOGGER_SIMPLE_NAMES`.
+
+      log_dest (:term:`string`):
+        Log destination for the affected pywbem loggers, controlling the
+        configuration of its Python logging parameters (log handler,
+        message format, and log level).
+
+        If it is a :term:`string`, it must be one of the strings in
+        :data:`~pywbem._logging.LOG_DESTINATIONS` and the Python logging
+        parameters of the loggers will be configured accordingly for their
+        log handler, message format, and with a logging level of
+        :attr:`py:logging.DEBUG`.
+
+        If `None`, the Python logging parameters of the loggers will not be
+        changed.
+
+      detail_level (:term:`string` or :class:`int` or `None`):
+        Detail level for the data in each log record that is generated by
+        the affected pywbem loggers.
+
+        If it is a :term:`string`, it must be one of the strings in
+        :data:`~pywbem._logging.LOG_DETAIL_LEVELS` and the loggers will
+        be configured for the corresponding detail level.
+
+        If it is an :class:`int`, it defines the maximum size of the log
+        records created and the loggers will be configured to output all
+        available information up to that size.
+
+        If `None`, the detail level configuration will not be changed.
+
+      log_filename (:term:`string`):
+        Path name of the log file (required if the log destination is
+        `'file'`; otherwise ignored).
+
+      connection (:class:`~pywbem.WBEMConnection` or :class:`py:bool` or `None`):
+        WBEM connection(s) that should be affected for activation and for
+        setting the detail level.
+
+        If it is a :class:`py:bool`, it must be `True`, and all subsequently
+        created :class:`~pywbem.WBEMConnection` objects will be activated for
+        logging and the detail level for each pywbem logger will be set on
+        these connections.
+
+        If it is a :class:`~pywbem.WBEMConnection` object, logging will be
+        activated for that WBEM connection only and the specified detail
+        level will be set for the affected pywbem loggers on the
+        connection.
+
+        If `None`, no WBEM connection will be activated for logging.
+
+    Raises:
+
+      ValueError: Invalid input parameters (loggers remain unchanged).
+    """  # noqa: E501
+    # pylint: enable=line-too-long
+
+    global _CONN
+    if _CONN is None:
+        from . import WBEMConnection as _CONN
+
+    _CONN._configure_logger(
+        simple_name,
+        log_dest=log_dest,
+        detail_level=detail_level,
+        log_filename=log_filename,
+        connection=connection)
+
+
 def configure_loggers_from_string(log_configuration_str, log_filename=None,
                                   connection=None):
     # pylint: disable=line-too-long
@@ -332,10 +404,10 @@ def configure_loggers_from_string(log_configuration_str, log_filename=None,
         WBEM connection(s) that should be affected for activation and for
         setting the detail level.
 
-        If it is a :class:`py:bool`, all subsequently created
-        :class:`~pywbem.WBEMConnection` objects will be affected:
-        If `True`, future connections will be activated for logging and the
-        detail level for each pywbem logger will be set on the connections.
+        If it is a :class:`py:bool`, it must be `True`, and all subsequently
+        created :class:`~pywbem.WBEMConnection` objects will be activated for
+        logging and the detail level for each pywbem logger will be set on
+        these connections.
 
         If it is a :class:`~pywbem.WBEMConnection` object, logging will be
         activated for that WBEM connection only and the specified detail level
@@ -369,45 +441,38 @@ def configure_loggers_from_string(log_configuration_str, log_filename=None,
 
     log_specs = log_configuration_str.split(',')
     for log_spec in log_specs:
-        try:
-            spec_split = log_spec.split("=", 1)
-        except ValueError:
-            raise ValueError('Log spec %s invalid. Contains too many '
-                             ' components' % log_spec)
+        spec_split = log_spec.split("=")
+        simple_name = spec_split[0]
+        if not simple_name:
+            raise ValueError("Simple logger name missing in log spec: %r" %
+                             log_spec)
         if len(spec_split) == 1:
-            simple_log_name = spec_split[0]
-            log_values = []
+            log_dest = None
+            detail_level = None
         elif len(spec_split) == 2:
-            simple_log_name = spec_split[0]
-            log_values = spec_split[1].split(':')
-        else:
-            raise ValueError("Log component name required in %s" % log_spec)
+            val_split = spec_split[1].split(':')
+            log_dest = val_split[0] or None
+            if len(val_split) == 1:
+                detail_level = None
+            elif len(val_split) == 2:
+                detail_level = val_split[1] or None
+            else:  # len(val_split) > 2
+                raise ValueError("Too many components separated by : in log "
+                                 "spec: %r" % log_spec)
+        else:  # len(spec_split) > 2:
+            raise ValueError("Too many components separated by = in log spec: "
+                             "%r" % log_spec)
 
-        # cvt empty strings to None
-        if log_values is None:
-            log_values = [None, None]
-        else:
-            # expand to full size if not all values supplied
-            while len(log_values) < 2:
-                log_values.append(None)
-
-        if simple_log_name not in LOGGER_SIMPLE_NAMES:
-            raise ValueError('Log string %s invalid. Log name %s not a valid '
-                             'pywbem logger name. Must be one of %s' %
-                             (log_configuration_str, simple_log_name,
-                              LOGGER_SIMPLE_NAMES))
-
-        detail_level = log_values[1]
-        # try to set as integer
+        # Convert to integer, if possible
         if detail_level:
             try:
                 detail_level = int(detail_level)
             except ValueError:
                 pass
 
-        pywbem.WBEMConnection.configure_logger(
-            simple_log_name,
-            log_dest=log_values[0],
+        configure_logger(
+            simple_name,
+            log_dest=log_dest,
             detail_level=detail_level,
             log_filename=log_filename,
             connection=connection)

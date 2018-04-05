@@ -40,7 +40,8 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
     CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder
+    Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder, \
+    configure_logger
 
 from pywbem.mof_compiler import MOFCompiler
 
@@ -145,7 +146,7 @@ class ClientTest(unittest.TestCase):
 
         # if log set, enable the logger.
         if self.output_log:
-            WBEMConnection.configure_logger(
+            configure_logger(
                 'http', log_dest='file', log_filename='run_cimoperations.log',
                 connection=self.conn)
 

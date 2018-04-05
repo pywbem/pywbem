@@ -33,6 +33,7 @@ from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
 from pywbem import WBEMConnection, LogOperationRecorder
+from pywbem import configure_logger
 
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
@@ -515,16 +516,17 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
     Test the LogOperationRecorder functions. Creates log entries and
     uses testfixture to validate results
     """
+
     def recorder_setup(self, detail_level=None):
         """Setup the recorder for a defined max output size"""
 
-        WBEMConnection.configure_logger('api', log_dest='file',
-                                        detail_level=detail_level,
-                                        log_filename=TEST_OUTPUT_LOG)
+        configure_logger('api', log_dest='file',
+                         detail_level=detail_level,
+                         log_filename=TEST_OUTPUT_LOG)
 
-        WBEMConnection.configure_logger('http', log_dest='file',
-                                        detail_level=detail_level,
-                                        log_filename=TEST_OUTPUT_LOG)
+        configure_logger('http', log_dest='file',
+                         detail_level=detail_level,
+                         log_filename=TEST_OUTPUT_LOG)
 
         # Define an attribute that is a single LogOperationRecorder to be used
         # in some of the tests.  Note that if detail_level is dict it is used
@@ -707,13 +709,18 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     a yaml file), and then inspects that file to determine if valid
     yaml was created
     """
+
+    def setUp(self):
+        """Setup that is run before each test method."""
+        WBEMConnection.future_logging_reset()
+
     @log_capture()
     def test_create_connection(self, lc):
         """Create connection with default parameters"""
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
-        conn.configure_logger('api', log_dest='stderr', detail_level='all',
-                              connection=conn)
+        configure_logger('api', log_dest='stderr', detail_level='all',
+                         connection=conn)
 
         # pywbem 2 and 3 differ in only the use of unicode for certain
         # string properties. (ex. classname)
@@ -747,8 +754,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
-        conn.configure_logger('api', log_dest='stderr', detail_level='all',
-                              connection=conn)
+        configure_logger('api', log_dest='stderr', detail_level='all',
+                         connection=conn)
 
         # fake conn id by directly setting internal attribute
         # pywbem 2 and 3 differ in only the use of unicode for certain
@@ -785,8 +792,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
-        conn.configure_logger('api', log_dest='stderr', detail_level='summary',
-                              connection=conn)
+        configure_logger('api', log_dest='stderr', detail_level='summary',
+                         connection=conn)
 
         # fake conn id by directly setting internal attribute
         # pywbem 2 and 3 differ in only the use of unicode for certain
@@ -1326,6 +1333,10 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
     call and the response together.
     """
 
+    def setUp(self):
+        """Setup that is run before each test method."""
+        WBEMConnection.future_logging_reset()
+
     @log_capture()
     def test_getinstance(self, lc):
         """Test the ops result log for get instance"""
@@ -1714,6 +1725,11 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
 class TestExternLoggerDef(BaseLogOperationRecorderTests):
     """ Test configuring loggers above level of our loggers"""
+
+    def setUp(self):
+        """Setup that is run before each test method."""
+        WBEMConnection.future_logging_reset()
+
     @log_capture()
     def test_root_logger(self, lc):
         """
@@ -1721,8 +1737,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         """
         logging.basicConfig(filename=TEST_OUTPUT_LOG, level=logging.DEBUG)
         detail_level = 10
-        WBEMConnection.configure_logger('api',
-                                        detail_level=10)
+        configure_logger('api', detail_level=10)
 
         detail_level = {'api': detail_level, 'http': detail_level}
 
@@ -1761,8 +1776,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-        WBEMConnection.configure_logger('api', detail_level='summary',
-                                        connection=True)
+        configure_logger('api', detail_level='summary', connection=True)
         try:
             conn = WBEMConnection('http://blah', timeout=1)
 

@@ -15,10 +15,9 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-"""
-Unit test logging functionality in _logging.py and
-the WBEMConnection.configure_logger methods
 
+"""
+Unit test logging functionality in _logging.py
 """
 
 from __future__ import absolute_import, print_function
@@ -41,9 +40,8 @@ import unittest
 # loggers exist
 
 from testfixtures import LogCapture, log_capture, compare
-
 from pywbem import WBEMConnection
-from pywbem._logging import configure_loggers_from_string, \
+from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 
 VERBOSE = False
@@ -59,6 +57,7 @@ class BaseLoggingTest(unittest.TestCase):
     """
     Methods required by all tests
     """
+
     @staticmethod
     def _get_logger(logger_name):
         """Duplicate method local to recorder"""
@@ -71,6 +70,10 @@ class BaseLoggingTest(unittest.TestCase):
 class UnitLoggingTests(BaseLoggingTest):
     """Base class for logging unit tests"""
 
+    def setUp(self):
+        """Setup that is run before each test method."""
+        WBEMConnection.future_logging_reset()
+
     def logger_validate(self, log_name, log_dest, detail_level,
                         log_filename=None):
         """
@@ -79,7 +82,7 @@ class UnitLoggingTests(BaseLoggingTest):
         create any logs.
         """
         if log_name == 'all':
-            self.logger_validate('api', log_dest, detail_level,
+            self.logger_validate('api', log_dest, detail_level=detail_level,
                                  log_filename=log_filename)
             self.logger_validate('http', log_dest, detail_level,
                                  log_filename=log_filename)
@@ -114,16 +117,16 @@ class UnitLoggingTests(BaseLoggingTest):
         """
         if error:
             try:
-                WBEMConnection.configure_logger(log_name, log_dest=log_dest,
-                                                detail_level=detail_level,
-                                                log_filename=log_filename)
+                configure_logger(log_name, log_dest=log_dest,
+                                 detail_level=detail_level,
+                                 log_filename=log_filename)
                 self.fail('Exception expected')
             except ValueError:
                 pass
         else:
-            WBEMConnection.configure_logger(log_name, log_dest=log_dest,
-                                            detail_level=detail_level,
-                                            log_filename=log_filename)
+            configure_logger(log_name, log_dest=log_dest,
+                             detail_level=detail_level,
+                             log_filename=log_filename)
 
             self.logger_validate(log_name, log_dest, detail_level,
                                  log_filename=log_filename)
@@ -140,18 +143,22 @@ class UnitLoggingTests(BaseLoggingTest):
         http_logger = self._get_logger(LOGGER_HTTP_NAME)
         http_logger.handlers = []
 
-        # TODO for test below not yet implemented
-        # if connection_defined:
-        #    conn = WBEMConnection('http:/blah')
+        if connection_defined:
+            self.fail('TODO: Test with connections not yet implemented')
+            conn = WBEMConnection('http:/blah')
+        else:
+            conn = True  # for all future connections
 
         if expected_result == 'error':
             try:
-                configure_loggers_from_string(param, log_filename=log_file)
+                configure_loggers_from_string(param, log_filename=log_file,
+                                              connection=conn)
                 self.fail('Exception expected')
             except ValueError:
                 pass
         else:
-            configure_loggers_from_string(param, log_filename=log_file)
+            configure_loggers_from_string(param, log_filename=log_file,
+                                          connection=conn)
 
             api_logger = self._get_logger(LOGGER_API_CALLS_NAME)
             http_logger = self._get_logger(LOGGER_HTTP_NAME)
@@ -175,16 +182,15 @@ class UnitLoggingTests(BaseLoggingTest):
                                                handler[1]))
 
             if 'detail' in expected_result:
-                detail_level = expected_result['detail']
+                exp_detail_levels = expected_result['detail']
                 if connection_defined:
                     # TODO add test for when connection param exists
                     # need to get to recorder and test detail level
-                    pass
-                    # print(conn)
+                    self.fail('TODO: Test with connections not yet implemented')
                 else:
-                    if detail_level[0]:
-                        details = WBEMConnection._log_config_dict
-                        self.assertTrue(details['api']) == detail_level[0]
+                    detail_levels = WBEMConnection._log_detail_levels
+                    self.assertTrue(detail_levels['api'], exp_detail_levels[0])
+                    self.assertTrue(detail_levels['http'], exp_detail_levels[1])
 
         # remove handlers from our loggers.
         for h in api_logger.handlers:
@@ -204,7 +210,7 @@ class UnitLoggingTests(BaseLoggingTest):
 
 class TestLoggersFromString(UnitLoggingTests):
     """
-    Test the configure_loggers_from_string and WBEMConnection.configure_logger
+    Test the configure_loggers_from_string and configure_logger
     functions. Some of the logging configuration methods are in WBEMConnection
     """
 
@@ -336,6 +342,10 @@ class TestDefineLogger(UnitLoggingTests):
 
 class BaseLoggingExecutionTests(BaseLoggingTest):
     """Base class for logging unit tests"""
+
+    def setUp(self):
+        """Setup that is run before each test method."""
+        WBEMConnection.future_logging_reset()
 
     def tearDown(self):
         LogCapture.uninstall_all()
