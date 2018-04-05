@@ -554,10 +554,12 @@ class LogOperationRecorder(BaseOperationRecorder):
 
         self._conn_id = conn_id
 
+        self.detail_levels = {}
         self.api_detail_level = None
         self.http_detail_level = None
         self.api_maxlen = None
         self.http_maxlen = None
+        self.set_detail_level(detail_levels)
 
         # build name for logger
         if conn_id:
@@ -569,14 +571,15 @@ class LogOperationRecorder(BaseOperationRecorder):
             self.apilogger = self._get_logger(LOGGER_API_CALLS_NAME)
             self.httplogger = self._get_logger(LOGGER_HTTP_NAME)
 
-        self.detail_levels = self.set_detail_level(detail_levels)
-
     def set_detail_level(self, detail_levels):
         """
         Sets the detail levels from the input dictionary in detail_levels.
         """
+
         if detail_levels is None:
-            return None
+            return
+
+        self.detail_levels = detail_levels
         if 'api' in detail_levels:
             self.api_detail_level = detail_levels['api']
         if 'http' in detail_levels:
@@ -585,8 +588,6 @@ class LogOperationRecorder(BaseOperationRecorder):
             self.api_maxlen = self.api_detail_level
         if isinstance(self.http_detail_level, int):
             self.http_maxlen = self.http_detail_level
-
-        return detail_levels
 
     def stage_wbem_connection(self, wbem_connection):
         """

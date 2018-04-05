@@ -304,7 +304,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     at the level of CIM-XML requests and responses.
     The :class:`~pywbem.LogOperationRecorder` class records the operations in
     the Python logging facility. This recorder is activated through the
-    `connection` parameter of :class:`~pywbem.WBEMConnection.configure_logger`.
+    `connection` parameter of :func:`~pywbem._logging.configure_logger`.
     The :class:`~pywbem.TestClientRecorder` class records the operations in a
     file in the YAML format suitable for the test_client.py unit test program.
     Before version 0.11.0, pywbem supported only a single operation recorder
@@ -361,7 +361,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     # WBEMConnection objects.
     #   Key: Simple logger name (e.g. 'api')
     #   Value: Detail level string from LOG_DETAIL_LEVELS.
-    _log_config_dict = {}
+    _log_detail_levels = {}
 
     # If True, logging will be activated for any newly created WBEMConnection
     # objects.
@@ -656,9 +656,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_server_response_time = None
 
         if self._activate_logging:
-            self.add_operation_recorder(
-                LogOperationRecorder(conn_id=self.conn_id,
-                                     detail_levels=self._log_config_dict))
+            recorder = LogOperationRecorder(
+                conn_id=self.conn_id,
+                detail_levels=self._log_detail_levels)
+            self.add_operation_recorder(recorder)
 
     @property
     def url(self):
@@ -1219,10 +1220,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 recorder_list)
 
     @classmethod
-    def configure_logger(cls, name, log_dest=DEFAULT_LOG_DESTINATION,
-                         detail_level=None,
-                         log_filename=DEFAULT_LOG_DESTINATION,
-                         connection=None):
+    def _configure_logger(cls, simple_name, log_dest=DEFAULT_LOG_DESTINATION,
+                          detail_level=None,
+                          log_filename=DEFAULT_LOG_DESTINATION,
+                          connection=None):
         # pylint: disable=line-too-long
         """
         Configure the pywbem loggers and optionally activate WBEM connections
@@ -1230,7 +1231,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          name (:term:`string`):
+          simple_name (:term:`string`):
             Simple name (ex. `'api'`) of the single pywbem logger this method
             should affect, or `'all'` to affect all pywbem loggers.
 
@@ -1273,10 +1274,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             WBEM connection(s) that should be affected for activation and for
             setting the detail level.
 
-            If it is a :class:`py:bool`, all subsequently created
-            :class:`~pywbem.WBEMConnection` objects will be affected:
-            If `True`, future connections will be activated for logging and the
-            detail level for each pywbem logger will be set on the connections.
+            If it is a :class:`py:bool`, it must be `True`, and all
+            subsequently created :class:`~pywbem.WBEMConnection` objects will
+            be activated for logging and the detail level for each pywbem
+            logger will be set on these connections.
 
             If it is a :class:`~pywbem.WBEMConnection` object, logging will be
             activated for that WBEM connection only and the specified detail
@@ -1291,42 +1292,30 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        if name not in LOGGER_SIMPLE_NAMES:
-            raise ValueError('The logger name %s is invalid.  It must be one '
-                             ' of the values in %s' % LOGGER_SIMPLE_NAMES)
-
-        # if all, activate all loggers with any input parameters
-        if name == 'all':
-            if detail_level is None:
-                detail_level = DEFAULT_LOG_DETAIL_LEVEL
-            cls.configure_logger('api', log_dest=log_dest,
-                                 log_filename=log_filename,
-                                 detail_level=detail_level,
-                                 connection=connection)
-            cls.configure_logger('http', log_dest=log_dest,
-                                 log_filename=log_filename,
-                                 detail_level=detail_level,
-                                 connection=connection)
+        if simple_name == 'all':
+            cls._configure_logger('api', log_dest=log_dest,
+                                  detail_level=detail_level,
+                                  log_filename=log_filename,
+                                  connection=connection)
+            cls._configure_logger('http', log_dest=log_dest,
+                                  detail_level=detail_level,
+                                  log_filename=log_filename,
+                                  connection=connection)
+            return
+        elif simple_name == 'api':
+            logger_name = LOGGER_API_CALLS_NAME
+        elif simple_name == 'http':
+            logger_name = LOGGER_HTTP_NAME
         else:
-            if name == 'api':
-                logger_name = LOGGER_API_CALLS_NAME
-                if detail_level is None:
-                    detail_level = DEFAULT_LOG_DETAIL_LEVEL
-            elif name == 'http':
-                logger_name = LOGGER_HTTP_NAME
-                if detail_level is None:
-                    detail_level = DEFAULT_LOG_DETAIL_LEVEL
-            else:
-                assert False
+            raise ValueError("Invalid simple logger name: %r; must be one "
+                             "of: %s" % (simple_name, LOGGER_SIMPLE_NAMES))
 
-            # build logging handler
-            handler = cls._configure_logger_handler(log_dest, log_filename)
+        handler = cls._configure_logger_handler(log_dest, log_filename)
 
-            # process detail_level
-            detail_level = cls._configure_detail_level(detail_level)
+        detail_level = cls._configure_detail_level(detail_level)
 
-            cls._activate_logger(logger_name, detail_level,
-                                 handler, connection)
+        cls._activate_logger(logger_name, simple_name, detail_level, handler,
+                             connection)
 
     @classmethod
     def _configure_detail_level(cls, detail_level):
@@ -1337,112 +1326,135 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # process detail_level
         if isinstance(detail_level, six.string_types):
             if detail_level not in LOG_DETAIL_LEVELS:
-                raise ValueError('log http detail level "%s" invalid.'
-                                 ' Must be in %s' % (detail_level,
-                                                     LOG_DETAIL_LEVELS))
+                raise ValueError("Invalid log detail level string: %r; must "
+                                 "be one of: %s" %
+                                 (detail_level, LOG_DETAIL_LEVELS))
         elif isinstance(detail_level, int):
             if detail_level < 0:
-                raise ValueError('Log detail_level integer input must be '
-                                 'positive integer. "%s" rejected' %
-                                 detail_level)
+                raise ValueError("Invalid log detail level integer: %r; must "
+                                 "be a positive integer." % detail_level)
 
         elif detail_level is None:
-            # pylint: disable=redefined-variable-type
             detail_level = DEFAULT_LOG_DETAIL_LEVEL
         else:
-            raise ValueError('log http detail level "%s" invalid. Must be in '
-                             ' %sor positive integer'
-                             % (detail_level, LOG_DETAIL_LEVELS))
+            raise ValueError("Invalid log detail level: %r; must be one of: "
+                             "%s, or a positive integer" %
+                             (detail_level, LOG_DETAIL_LEVELS))
         return detail_level
 
     @classmethod
     def _configure_logger_handler(cls, log_dest, log_filename):
         """
-        Configure the log destination and return the defined handler.
+        Return a logging handler for the specified log_dest,
+        or None if log_dest is None.
         """
-        msg_format = '%(asctime)s-%(name)s-%(message)s'
-        if not log_dest:
-            return None
-        if log_dest not in LOG_DESTINATIONS:
-            raise ValueError('Invalid log destination "%s". valid log '
-                             'destinations are: %s' %
-                             (log_dest, LOG_DESTINATIONS))
 
-        # process dest parameter
+        if log_dest is None:
+            return None
+
+        msg_format = '%(asctime)s-%(name)s-%(message)s'
+
         if log_dest == 'stderr':
-            # Cannot use the stream parameter because not defined for
-            # python 2.6. Removed stream=sys.stderr
+            # TODO: stream=sys.stderr parameter is not defined in py26
             handler = logging.StreamHandler()
             handler.setFormatter(logging.Formatter(msg_format))
         elif log_dest == 'file':
             if not log_filename:
-                raise ValueError('Filename required if log destination '
-                                 'is "file"')
-            # pylint: disable=redefined-variable-type
+                raise ValueError("Log filename is required if log destination "
+                                 "is 'file'")
             handler = logging.FileHandler(log_filename, encoding="UTF-8")
             handler.setFormatter(logging.Formatter(msg_format))
-        elif log_dest == 'none' or log_dest is None:
+        elif log_dest == 'none':
             handler = logging.NullHandler()
             handler.setFormatter(None)
         else:
-            raise ValueError('Invalid log dest parameter %s.' % log_dest)
+            raise ValueError("Invalid log destination: %r; Must be one "
+                             "of: %s" % (log_dest, LOG_DESTINATIONS))
 
         return handler
 
     @classmethod
-    def _activate_logger(cls, logger_name, detail_level, handler, connection):
+    def _activate_logger(cls, logger_name, simple_name, detail_level, handler,
+                         connection):
         """
-        Activate logger_name for defined connection. Links handler if defined to
-        the logger iwht logger_name and if connection is defined activates
-        the logger for the WBEMConnection object defined by connection and
-        sets the detail level for the that WBEMConnection object.
+        Configure the specified logger, and activate logging and set detail
+        level for connections.
 
-        If connection parameter is boolean and True, sets class level attribute
-        so all subsequent WBEMConnection objects are activated and sets detail
-        level in class parameter.
+        The specified logger is always a single pywbem logger; the simple
+        logger name 'all' has already been resolved by the caller into
+        multiple calls to this method.
+
+        The 'handler' parameter controls logger configuration:
+        * If None, nothing is done.
+        * If a Handler object, the specified logger gets its handlers replaced
+          with the new handler, and logging level DEBUG is set.
+
+        The 'connection' paraneter controls activation and setting of the
+        detail level:
+        * If None, nothing is done.
+        * If bool=True, log activation and log detail information is stored for
+          use by future connections in class variables of WBEMConnection.
+        * If a WBEMConnection object, logging is activated and detail level is
+          set immediately for that connection.
         """
 
-        # We allow only a single handler for any logger so must remove any
-        # existing handler before adding
-        # TODO why limit of single handler???
-        if handler:
+        if handler is not None:
+            assert isinstance(handler, logging.Handler)
+
+            # Replace existing handlers of the specified logger (e.g. from
+            # previous calls) by the specified handler
+
             logger = logging.getLogger(logger_name)
             for hdlr in logger.handlers:
                 logger.removeHandler(hdlr)
             logger.addHandler(handler)
+
             logger.setLevel(logging.DEBUG)
 
-        # TODO should force cimple name above.
-        logger_simple_name = logger_name.split('.')[1]
-
-        if connection:
+        if connection is not None:
             if isinstance(connection, bool):
+                if not connection:
+                    raise ValueError("Invalid boolean connection: %r; must "
+                                     "be True" % connection)
+
+                # Store the activation and detail level information for future
+                # connections. This information is used in the init method
+                # of WBEMConnection to activate logging at that point.
+
                 cls._activate_logging = True
+                cls._log_detail_levels[simple_name] = detail_level
+
             else:
                 assert isinstance(connection, WBEMConnection)
-                local_dict = cls._log_config_dict.copy()
-                local_dict[logger_simple_name] = detail_level
 
-                # Insert recorder into list if not already there.
-                # pylint: disable=protected-access
+                # Activate logging for this existing connection by ensuring
+                # the connection has a log recorder
+
                 recorder_found = False
-
+                # pylint: disable=protected-access
                 for recorder in connection._operation_recorders:
-                    # pylint: disable=unidiomatic-typecheck
                     if isinstance(recorder, LogOperationRecorder):
-                        recorder.set_detail_level(local_dict)
                         recorder_found = True
+                        break
 
                 if not recorder_found:
-                    connection.add_operation_recorder(LogOperationRecorder(
-                        conn_id=connection.conn_id,
-                        detail_levels=local_dict))
+                    recorder = LogOperationRecorder(conn_id=connection.conn_id)
+
+                # Add the log detail level for this logger to the log recorder
+                # of this connection
+
+                detail_levels = recorder.detail_levels.copy()
+                detail_levels[simple_name] = detail_level
+                recorder.set_detail_level(detail_levels)
+
+                if not recorder_found:
+                    # This call must be made after the detail levels of the
+                    # recorder have been set, because that data is used
+                    # for recording the WBEM connection information.
+                    connection.add_operation_recorder(recorder)
 
                 # TODO execute stage of wbem connection if not already executed.
                 # How do we know it is already executed???
-        else:
-            # set this detail in class level dictionary
-            cls._log_config_dict[logger_simple_name] = detail_level
 
     def add_operation_recorder(self, operation_recorder):
         # pylint: disable=line-too-long
@@ -1505,6 +1517,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         for recorder in self._operation_recorders:
             recorder.stage_pywbem_result(ret, exc)
             recorder.record_staged()
+
+    @classmethod
+    def future_logging_reset(cls):
+        """
+        Reset the activation of logging and the log detail levels for future
+        WBEM connections, by resetting the corresponding class variables
+        of :class:`~pywbem.WBEMConnection`.
+        """
+        cls._activate_logging = False
+        cls._log_detail_levels = {}
 
     def imethodcall(self, methodname, namespace, response_params_rqd=None,
                     **params):
