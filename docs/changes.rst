@@ -23,10 +23,6 @@ Released: Not yet
 Incompatible changes
 ^^^^^^^^^^^^^^^^^^^^
 
-* The installation for Windows on Python 2.7 now requires an additional
-  manual step for installing the M2CryptoWin32/64 Python package. For details,
-  see the Installation section in the documentation.
-
 * Finalized the Iter support that was experimental so far. This affects the
   `Iter...()` methods of class `WBEMConnection`, the `use_pull_operations`
   init parameter and instance attribute of class `WBEMConnection`, and the
@@ -133,11 +129,11 @@ Incompatible changes
   If you used this method and relied on the defaults being generated, you will
   now have to set these attributes explicitly.
 
-* If a WBEM server specifies contradicting TYPE and VALUETYPE attributes on a
-  KEYVALUE element returned to the client (this element is used in instance
-  paths, e.g. for the result of the EnumerateInstanceNames operation), TYPE now
-  takes precedence. Previously, VALUETYPE took precedence. DSP0201 leaves the
-  handling of such discrepancies open, and it seems more logical to let the
+* If a WBEM server specifies contradicting `TYPE` and `VALUETYPE` attributes on
+  a `KEYVALUE` element returned to the client (this element is used in instance
+  paths, e.g. for the result of the `EnumerateInstanceNames` operation), `TYPE`
+  now takes precedence. Previously, `VALUETYPE` took precedence. DSP0201 leaves
+  the handling of such discrepancies open, and it seems more logical to let the
   more precise value take precedence. Because WBEM servers are required to
   specify consistent values for these attributes, this change should not affect
   users of pywbem.
@@ -173,11 +169,26 @@ Incompatible changes
   - The "fq" parameter of the filtering functions was renamed to "fs",
     for consistency with the query functions.
 
-* Fix issue where mof. compile_str could not compile mof that was
-  defined through a mof file containing  #pragma include statements.
-  This precluded using a string to define the classes to include in
-  a mof compile in a string and required that the include be a file.
-  See issue #1138
+* Revamped the (experimental) logger configuration mechanism completely.
+  It remains experimental. See issue #859. The changes include:
+
+  - Created 3 methods in `WBEMConnection` that allow pywbem logs to be
+    configured and activated.  These methods contain parameters for:
+    a. configuring the Python loggers for either/or/both the api and http
+    loggers. b. Setting the level of detail in the log output. c. Activating
+    each logger within `WBEMConnection`.
+  - Allow for the standard Python loggers to be used to configure logger
+    names that will be used by the pywbem loggers. This allows the pywbem
+    loggers to be compatible with user code that creates their specific logger
+    configurations.
+  - Eliminated the `PyWBEMLogger` class that was the original
+    logging setup tool in pywbem 0.11.0 since its use was incompatible with
+    using standard Python logging configuration methods to define loggers.
+  - Created a function in the _logging module that allows pywbem logging
+    to be defined by a single string input.
+  - Addition of a new property `conn_id` to `WBEMConnection` which is a
+    unique identifier for each `WBEMConnection` object and is part of each log
+    record. This allows linking logs for each `WBEMConnection` in the log.
 
 Deprecations
 ^^^^^^^^^^^^
@@ -227,12 +238,11 @@ Enhancements
   has also been made available at the public API of pywbem.
   Its functionality is very close to the existing `tocimobj()` function.
 
-* Changed public attributes to properties with getter and setter in all CIM
-  object classes (e.g. `CIMInstance`). This solves the Sphinx warnings about
-  duplicate 'host' attribute when building the documentation (issue #761).
-
-* Added `libxml2` operating system package as a dependency. It provides xmllint,
-  which is used for testing.
+* Changed public attributes to Python properties with getter and setter methods
+  in all CIM object classes (e.g. `CIMInstance`). This allows normalizing and
+  applying checks for new values of these properties. In addition, it solves
+  the Sphinx warnings about duplicate 'host' attribute when building the
+  documentation (issue #761).
 
 * Added catching of some exceptions M2Cryptro can raise that were not caught
   so far: SSL.SSLError, SSL.Checker.SSLVerificationError. These exceptions
@@ -267,8 +277,9 @@ Enhancements
   describes this. This allows to have CIM objects in sets such that they
   behave as one would expect from a set. Previously, two CIM objects that
   were equal could both be in the same set, because their hash value was
-  different. Added a new section "Putting CIM objects in sets" that explains
-  the considerations when utilizing the hash value of the mutable CIM objects.
+  different. In the documentation, added a new section "Putting CIM objects
+  in sets" that explains the considerations when utilizing the hash value of
+  the mutable CIM objects.
 
 * Added support for retrieving the operation recorders of a connection
   via a new `operation_recorders` read-only property (Issue #976).
@@ -314,23 +325,6 @@ Enhancements
   elements in a CIM object(e.g.  properties of `CIMClass`), and raise
   TypeError if not supported.
 
-* Docs: Editorial improvements in the documentation (links, typos, formatting).
-
-* Docs: Clarifications and small fixes in the documentation of the
-  `WBEMConnection.Iter...()` generator functions.
-
-* Docs: Added "New in pywbem M.N ..." text to descriptions of anything that was
-  introduced in version 0.8 or later.
-
-* Docs: Clarified use of `ca_certs` parameter of `WBEMConnection` and its
-  defaults in `DEFAULT_CA_CERT_PATHS`.
-
-* Docs: Clarified that the instance path returned by the `CreateInstance()`
-  operation method has classname, keybindings and namespace set.
-
-* Docs: For CIM floating point types (real32, real64), added cautionary text
-  for equality comparison and hash value calculation.
-
 * Made the `ValueMapping` class more generally available and no longer tied
   to the `WBEMServer` class. It is now described in the "Client" chapter of the
   documentation, and it is possible to create new `ValueMapping` objects by
@@ -347,16 +341,13 @@ Enhancements
 * Added capability to mock WBEM Operations so that both pywbem and pywbem
   users can create unit tests without requiring a working WBEM Server,
   This feature allows the user to create CIM objects
-  in a mock WBEM Server defined with the class FakedWBEMConnection and
-  substitute that class for WBEMConnection to create a mock WBEM Server
+  in a mock WBEM Server defined with the class `FakedWBEMConnection` and
+  substitute that class for `WBEMConnection` to create a mock WBEM Server
   that responds to wbem operations.
   This enhancement is documented in the pywbem documentation section 10,
-  MockSupport. . See issue #838.
+  Mock Support. See issue #838.
 
-* Docs: Clarified that CIM-XML multi-requests are not supported by pywbem
-  and why that is not a functional limitation.
-
-* Improved the messages in ParseError exceptions raised when parsing CIM-XML
+* Improved the messages in `ParseError` exceptions raised when parsing CIM-XML
   received from a WBEM server.
 
 * The type of keybinding names in `CIMInstanceName` objects is now checked
@@ -364,8 +355,8 @@ Enhancements
   has always been documented. This was changed as part of addressing issue
   #1026.
 
-* Fixed the support for unnamed keys (i.e. instance paths with KEYVALUE
-  or VALUE.REFERENCE elements without a parent KEYBINDINGS element).
+* Fixed the support for unnamed keys (i.e. instance paths with `KEYVALUE`
+  or `VALUE.REFERENCE` elements without a parent `KEYBINDINGS` element).
   DSP0201 allows for this as a special case. (Issue #1026).
 
 * Added support for instance qualifiers when parsing received CIM-XML responses
@@ -375,9 +366,9 @@ Enhancements
   of CIM objects are now checked for validity, and `ValueError` is raised
   if not valid (Issue 1043).
 
-* Add new method to CIMInstanceName (from_instance) to create CIMInstanceName
-  element from class and instance.  This was done as part of building the
-  pywbem_mock environment.  See issue #1069.
+* Added a new method `CIMInstanceName.from_instance()` to create
+  `CIMInstanceName` objects from class and instance. This was done as part of
+  building the pywbem_mock environment. See issue #1069.
 
 * The `url` property of `WBEMConnection` now transforms its input value
   to unicode. (Issue #1068).
@@ -390,15 +381,6 @@ Enhancements
   `https_started` indicating whether the listener is started for the
   respective port.
 
-* Docs: In the wbemcli shell, improved and fixed the description of
-  operation functions. (Issue #1110).
-
-* Docs: Improved and fixed the description of `WBEMConnection`
-  operation methods. (Issue #1110).
-
-* Docs: Improved and fixed the description of the pywbem statistics
-  support. (Issue #1115).
-
 * `CIMInstance.tocimxml()/tocimxmlstr()` were extended to allow controlling
   whether the path is ignored even if present. This capability is used for
   ignoring the path in embedded instance parameter values (as part of
@@ -410,47 +392,32 @@ Enhancements
   consistency with ignoring the path on
   `CIMInstance.tocimxml()/tocimxmlstr()` (as part of fixing issue #1136).
 
-* Added unit test for WBEMServer class using pywbem_mock.  See the file
-  testsuite/test_wbemserverclass.py.  This test is incomplete today but tests
-  most of the main paths.
-
-* Revamped the logger configuration mechanism completely. This includes:
-  (1) Created 3 methods in WBEMConnection that allow pywbem logs to be
-  configured and activated.  These methods contain parameters for:
-  a. configuring the Python loggers for either/or/both the api and http
-  loggers. b. Setting the level of detail in the log output. c. Activating
-  each logger within WBEMConnection.
-  (2) Allow for the standard Python loggers to be used to configure logger
-  names that will be used by the pywbem loggers. This allows the pywbem
-  loggers to be compatible with user code that creates their specific logger
-  configurations.
-  (3) Eliminated the PyWBEMLogger class that was the original
-  logging setup tool in pywbem 0.11.0 since its use was incompatible with
-  using standard Python logging configuration methods to define loggers.
-  (see issue #859)
-  (4) Created a function in the _logging module that allows pywbem logging
-  to be defined by a single string input.
-  (5) ddition of a new property to WBEMConnection (conn_id) which is a
-  unique identifier for each WBEMConnection object and is part of each log
-  record. This allows linking logs for each WBEMConnection in the log.
-
-* Improved the complete pywbem documentation (Issue #1115).
-
 * Improved the handling of certain connection errors by retrying and by
   issuing user warnings instead of printing if debug. (Issue #1118).
 
 Bug fixes
 ^^^^^^^^^
 
-* Fixed issue in iterReferenceNames and IterAssociatiorNames where it was
-  not passing the IncludeQualifiers input parameter to the OpenReferenceNames.
-  This should not have been a significant issue since in general qualifiers
-  are not parts of instances.  Also changed code in IterQueryInstances were
-  parameters that are required by the called ExecQuery and OpenQueryInstances
-  were defined as NamedArguments where since they are required, the Name
-  component is not required.  This should not change operations except that
-  when we were mocking the methods, it returns sees the parameter as name=value
-  rather than value. See issue #833
+* Added `libxml2` operating system package as a dependency. It provides xmllint,
+  which is used for testing.
+
+* Fixed issue where `MOFCompiler.compile_str()` could not compile MOF that was
+  defined through a MOF file containing `#pragma include` statements.
+  This precluded using a string to define the classes to include in
+  a mof compile in a string and required that the include be a file.
+  See issue #1138.
+
+* Fixed issue in `IterReferenceNames` and `IterAssociatiorNames` where it was
+  not passing the `IncludeQualifiers` input parameter to the
+  `OpenReferenceNames` operation. This should not have been a significant issue
+  since in general qualifiers are not parts of instances. See issue #833.
+
+* Also changed code in `IterQueryInstances` were parameters that are required
+  by the called `ExecQuery` and `OpenQueryInstances` were defined as named
+  arguments where since they are required, the name component is not required.
+  This should not change operations except that when we were mocking the
+  methods, it returns sees the parameter as `name=value` rather than value.
+  See issue #833.
 
 * Fixed the bug that `CIMInstanceName.tocimxml()` produced invalid CIM-XML
   if a keybinding value was set to an invalid CIM object type (e.g. to
@@ -458,8 +425,8 @@ Bug fixes
   is `CIMInstanceName`, for keys that are references. Now, `TypeError` is
   raised in that case.
 
-* Fix issues in cim_operations.py where a open or pull that returned with
-  missing enumeration_context and eos would pass one of the internal tests.
+* Fix issues in `cim_operations.py` where a open or pull that returned with
+  missing `enumeration_context` and `eos` would pass one of the internal tests.
   See issue #844
 
 * Fixed an error in the CIM-XML representation of qualifier values where
@@ -480,22 +447,6 @@ Bug fixes
   and consistent with the other iteration mechanisms for CIM objects.
   The test cases that were supposed to verify that did not perform the
   correct check and were also fixed.
-
-* Docs: Fixed the documentation of the CIMInstanceName.keybindings setter
-  method, by adding 'number' as an allowed input type.
-
-* Docs: Moved the detail documentation of input to child element lists (e.g.
-  for properties of `CIMInstance`) as a data type 'properties input object',
-  etc., into the glossary. These types are now referenced as the type of
-  the corresponding parameter.
-
-* Docs: Clarified that the return type of `BaseOperationRecorder.open_file()`
-  is a file-like object and that the caller is responsible for closing that
-  file.
-
-* Docs: Clarified in the description of the `return_type` init parameter of
-  `CIMMethod` that array return types, void return types, and reference
-  return types are all not supported in pywbem. See issue #1038, for void.
 
 * Fixed the bug that an (unsupported!) reference type could be specified for
   the return value of CIM methods, by raising `ValueError` if
@@ -530,27 +481,25 @@ Bug fixes
   class name. Previously, that attribute was compared case-sensitively.
 
 * Fixed the use of hard coded value limits in the `ValueMapping` class
-  for open ranges of the ValueMap qualifier, by making them dependent on
+  for open ranges of the `ValueMap` qualifier, by making them dependent on
   the data type of the qualified element. This only affected elements
-  with data types other than Uint32 and only if the ValueMap qualifier
+  with data types other than Uint32 and only if the `ValueMap` qualifier
   defined open ranges whose open side reached the min or max limit (i.e.
   was first or last in the list). Extended the test cases to include
   this situation (Issue #992).
 
-* Fixed the lookup of the Values string for negative values in the
+* Fixed the lookup of the `Values` string for negative values in the
   `ValueMapping` class (found when solving #992).
 
-* Docs: Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
-  attribute to be `unicode string`.
-
 * Added support for octal, binary and hex numbers when parsing MOF
-  using the MOFCompiler class, in compliance with DSP0004 (Issue #974).
+  using the `MOFCompiler` class, in compliance with DSP0004 (Issue #974).
   Extended the testcases to cover such numbers.
 
-* Fixed the issue that any use of CIMDateTime objects in the TestClientRecorder
-  resulted in a RepresenterError being raised, by adding PyYAML representer and
-  constructor functions that serialize CIMDateTimeobjects to YAML. Extended
-  the testcases in test_recorder.py accordingly. (Issues #702, #588).
+* Fixed the issue that any use of `CIMDateTime` objects in the
+  `TestClientRecorder` resulted in a `RepresenterError` being raised, by adding
+  PyYAML representer and constructor functions that serialize `CIMDateTime`
+  objects to YAML. Extended the testcases in `test_recorder.py` accordingly
+  (Issues #702, #588).
 
 * Fixed an AttributeError when `ValueMapping` was used for methods, when an
   internal method attempted to access the 'type' attribute of the CIM object.
@@ -558,34 +507,34 @@ Bug fixes
   and parameters have now been added.
 
 * Fixed the issue that leading and trailing slash characters in namespace
-  names were preserved. This was leading to empty NAMESPACE.NAME elements,
+  names were preserved. This was leading to empty `NAMESPACE/NAME` elements,
   which can be rejected by WBEM servers. Now, leading and trailing slash
   characters on namespace names are stripped off in pywbem before sending
   the request to the server. (Issue #255).
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
-  required the VALUETYPE attribute of the KEYVALUE element. DSP0201 defines
-  VALUETYPE as optional, with a default of 'string'. That is now implemented.
+  required the `VALUETYPE` attribute of the `KEYVALUE` element. DSP0201 defines
+  `VALUETYPE` as optional, with a default of 'string'. That is now implemented.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
-  did not support hexadecimal representations of integers in the KEYVALUE
+  did not support hexadecimal representations of integers in the `KEYVALUE`
   element. They are now supported.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
   accepted characters for char16 typed values outside of the range for
-  UCS-2 characters. Such characters are now rejected by raising ParseError.
+  UCS-2 characters. Such characters are now rejected by raising `ParseError`.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
-  tolerated invalid child elements under INSTANCE, ERROR and
-  PROPERTY.REFERENCE elements, and invalid attributes on the PROPERTY.ARRAY
-  element. This now results in a ParseError being raised.
+  tolerated invalid child elements under `INSTANCE`, `ERROR` and
+  `PROPERTY.REFERENCE` elements, and invalid attributes on the `PROPERTY.ARRAY`
+  element. This now results in a `ParseError` being raised.
 
 * Fixed the issue that the parser for CIM-XML received from the WBEM server
-  did not set the `propagated` attribute to False in `CIMProperty` objects
+  did not set the `propagated` attribute to `False` in `CIMProperty` objects
   retrieved from operations (e.g. as part of a class or instance), as
   required by DSP0201. It does now.
 
-* Fixed the issue that VALUE.NULL (for representing array items that are NULL)
+* Fixed the issue that `VALUE.NULL` (for representing array items that are NULL)
   was not supported in array values returned by the WBEM server. Note that it
   already had been supported for array values sent to the server, or in CIM-XML
   created by `toximcml()` methods (Issue #1022).
@@ -600,8 +549,8 @@ Bug fixes
   tolerated but ignored (Issue #1033).
 
 * Fixed the issue that mixed case values (e.g. "True") for the boolean
-  attributes of the QUALIFIER element in CIM-XML was not supported and resulted
-  in `ParseError` to be raised (Issue #1042).
+  attributes of the `QUALIFIER` element in CIM-XML was not supported and
+  resulted in `ParseError` to be raised (Issue #1042).
 
 * Fixed the issue that an empty boolean value in a CIM-XML response returned
   from a WBEM server was accepted and treated as a NULL value. This treatment
@@ -609,11 +558,11 @@ Bug fixes
   to be issued, but otherwise continue to work as before. (Issue #1032).
 
 * Fixed the issue that invalid values were accepted for the boolean attributes
-  of the SCOPE element in CIM-XML received from a WBEM server. They now cause
+  of the `SCOPE` element in CIM-XML received from a WBEM server. They now cause
   `ParseError` to be raised (Issue #1040).
 
 * Fixed the issue that invalid values for the boolean attributes of
-  QUALIFIER.DECLARATION elements in CIM-XML responses from WBEM servers were
+  `QUALIFIER.DECLARATION` elements in CIM-XML responses from WBEM servers were
   tolerated and treated as `False`. They now cause `ParseError` to be raised
   (Issue #1041).
 
@@ -647,9 +596,9 @@ Bug fixes
 * In the wbemcli shell, fixed the "\*params" parameter of the `im()` function,
   to become "params" (an iterable). (Issue #1110).
 
-* For the InvokeMethod operation, fixed that passing Python `None` as an input
-  parameter valus resulted in TypeError. Extended the testclient testcases
-  for InvokeMethod accordingly. Documented that `None` is a valid CIM typed
+* For the `InvokeMethod` operation, fixed that passing Python `None` as an input
+  parameter valus resulted in `TypeError`. Extended the testclient testcases
+  for `InvokeMethod` accordingly. Documented that `None` is a valid CIM typed
   value (Issue #1123).
 
 * Fixed the error that embedded instances in parameter values were incorrectly
@@ -665,7 +614,7 @@ Bug fixes
   components that are present in the instance path (Issue #1136).
 
 * Fixed the missing support for generating a `VALUE.INSTANCEWITHPATH` element
-  in CIM-XML. This is needed when a CIMInstance with path has namespace and
+  in CIM-XML. This is needed when a `CIMInstance` with path has namespace and
   host. This error was previously now showing up because the
   `VALUE.NAMEDINSTANCE` element was always created (Issue #1136).
 
@@ -674,8 +623,8 @@ Bug fixes
   NULL entries in array values using an empty `VALUE` element. They now
   correctly generate the `VALUE.NULL` element for NULL entries (Issue #1136).
   In order to provide for backwards compatibility to WBEM servers that
-  do not support VALUE.NULL, a config option SEND_VALUE_NULL was added
-  that by default sends VALUE.NULL, but allows for disabling that
+  do not support `VALUE.NULL`, a config option `SEND_VALUE_NULL` was added
+  that by default sends `VALUE.NULL`, but allows for disabling that
   (Issue #1144).
 
 * Fixed the error that the special float values `INF`, `-INF` and `NaN`
@@ -688,8 +637,8 @@ Bug fixes
   (Issue #1136).
 
 * In the `WBEMServer.get_central_instances()` method, fixed the error that a
-  CIM status code of CIM_ERR_METHOD_NOT_FOUND returned when attempting to
-  invoke the GetCentralInstances CIM method lead to failing the
+  CIM status code of `CIM_ERR_METHOD_NOT_FOUND` returned when attempting to
+  invoke the `GetCentralInstances()` CIM method lead to failing the
   `get_central_instances()` method. Now, execution continues with attempting
   the next approach for determining the central instances (Issue #1145).
 
@@ -713,6 +662,9 @@ Cleanup
   change is compatible for WBEM servers that meet the requirement of DSP0201
   to treat boolean values case-insensitively.
 
+* Cleaned up the implementation of `CIMProperty/CIMParameter.tocimxml()`,
+  so that it is now easier understandable (as part of fixing issue #1136).
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -728,7 +680,7 @@ Build, test, quality
 
 * Add unit tests for the iter... operations. See issue #818
 
-* Migrated installation and development setup to use pbr and requirements
+* Migrated installation and development setup to use `pbr` and Pip requirements
   files. As a consequence, removed files no longer used: `os_setup.py`,
   `uninstall_pbr_on_py26.py`.
 
@@ -754,11 +706,38 @@ Build, test, quality
 
 * Enabled testing on OS-X in the Travis CI.
 
-* Cleaned up the implementation of `CIMProperty/CIMParamneter.tocimxml()`,
-  so that it is now easier understandable (as part of fixing issue #1136).
+* Added unit test for `WBEMServer` class using pywbem_mock.  See the file
+  testsuite/test_wbemserverclass.py.  This test is incomplete today but tests
+  most of the main paths.
 
 Documentation
 ^^^^^^^^^^^^^
+
+Improved the complete pywbem documentation (Issue #1115). Some specific
+changes are listed in the remainder of this section.
+
+* The installation for Windows on Python 2.7 now requires an additional
+  manual step for installing the M2CryptoWin32/64 Python package. For details,
+  see the Installation section in the documentation.
+
+* Fixed the documentation of the `CIMInstanceName.keybindings` setter
+  method, by adding 'number' as an allowed input type.
+
+* Moved the detail documentation of input to child element lists (e.g.
+  for properties of `CIMInstance`) as a data type 'properties input object',
+  etc., into the glossary. These types are now referenced as the type of
+  the corresponding parameter.
+
+* Clarified that the return type of `BaseOperationRecorder.open_file()`
+  is a file-like object and that the caller is responsible for closing that
+  file.
+
+* Clarified in the description of the `return_type` init parameter of
+  `CIMMethod` that array return types, void return types, and reference
+  return types are all not supported in pywbem. See issue #1038, for void.
+
+* Fixed the type `string` for the keys of the `CIMInstance.qualifiers`
+  attribute to be `unicode string`.
 
 * Many clarifications for CIM objects, e.g. about case preservation of
   CIM element names, or making copies of input parameters vs. storing the
@@ -766,8 +745,35 @@ Documentation
 
 * Improved the description of the `WBEMConnection.ModifyInstance()` method.
 
-* Improved the description of the tocimxml() and tocimxmlstr() methods
+* Improved the description of the `tocimxml()` and `tocimxmlstr()` methods
   on CIM objects.
+
+* Clarifications and small fixes in the documentation of the
+  `WBEMConnection.Iter...()` generator functions.
+
+* Added "New in pywbem M.N ..." text to descriptions of anything that was
+  introduced in version 0.8 or later.
+
+* Clarified use of `ca_certs` parameter of `WBEMConnection` and its defaults in
+  `DEFAULT_CA_CERT_PATHS`.
+
+* Clarified that the instance path returned by the `CreateInstance()` operation
+  method has classname, keybindings and namespace set.
+
+* For CIM floating point types (real32, real64), added cautionary text for
+  equality comparison and hash value calculation.
+
+* Clarified that CIM-XML multi-requests are not supported by pywbem and why
+  that is not a functional limitation.
+
+* In the wbemcli shell, improved and fixed the description of operation
+  functions (Issue #1110).
+
+* Improved and fixed the description of `WBEMConnection` operation methods
+  (Issue #1110).
+
+* Improved and fixed the description of the pywbem statistics support
+  (Issue #1115).
 
 
 pywbem v0.11.0
