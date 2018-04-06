@@ -155,9 +155,9 @@ from .cim_http import parse_url
 from .exceptions import ParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
-from ._logging import DEFAULT_LOG_DESTINATION, DEFAULT_LOG_DETAIL_LEVEL, \
-    LOG_DESTINATIONS, LOGGER_API_CALLS_NAME, \
-    LOGGER_HTTP_NAME, LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES
+from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
+    LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME, LOG_DETAIL_LEVELS, \
+    LOGGER_SIMPLE_NAMES
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
@@ -1220,10 +1220,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 recorder_list)
 
     @classmethod
-    def _configure_logger(cls, simple_name, log_dest=DEFAULT_LOG_DESTINATION,
-                          detail_level=None,
-                          log_filename=DEFAULT_LOG_DESTINATION,
-                          connection=None):
+    def _configure_logger(cls, simple_name, log_dest, detail_level,
+                          log_filename, connection):
         # pylint: disable=line-too-long
         """
         Configure the pywbem loggers and optionally activate WBEM connections
@@ -1274,10 +1272,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             WBEM connection(s) that should be affected for activation and for
             setting the detail level.
 
-            If it is a :class:`py:bool`, it must be `True`, and all
-            subsequently created :class:`~pywbem.WBEMConnection` objects will
-            be activated for logging and the detail level for each pywbem
-            logger will be set on these connections.
+            If it is a :class:`py:bool`, the information for activating logging
+            and for the detail level of the affected loggers will be stored for
+            use by subsequently created :class:`~pywbem.WBEMConnection` objects.
+            A value of `True` will store the information to activate the
+            connections for logging, and will add the detail level for the
+            logger(s).
+            A value of `False` will reset the stored information for future
+            connections to be deactivated with no detail levels specified.
 
             If it is a :class:`~pywbem.WBEMConnection` object, logging will be
             activated for that WBEM connection only and the specified detail
@@ -1354,8 +1356,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         msg_format = '%(asctime)s-%(name)s-%(message)s'
 
+        # TODO: Double check the best practices again for setting up Python
+        # logging in libraries (it seems the recommendation is to set a
+        # NullHandler to prevent propagation up the logger hierarchy). If so,
+        # find a place where to initially set the NullHandler, and on which
+        # logger:
+        #   handler = logging.NullHandler()
+        #   handler.setFormatter(None)
+
         if log_dest == 'stderr':
-            # TODO: stream=sys.stderr parameter is not defined in py26
+            # Note: sys.stderr is the default stream for StreamHandler
             handler = logging.StreamHandler()
             handler.setFormatter(logging.Formatter(msg_format))
         elif log_dest == 'file':
@@ -1364,9 +1374,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                  "is 'file'")
             handler = logging.FileHandler(log_filename, encoding="UTF-8")
             handler.setFormatter(logging.Formatter(msg_format))
-        elif log_dest == 'none':
-            handler = logging.NullHandler()
-            handler.setFormatter(None)
         else:
             raise ValueError("Invalid log destination: %r; Must be one "
                              "of: %s" % (log_dest, LOG_DESTINATIONS))
@@ -1394,6 +1401,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         * If None, nothing is done.
         * If bool=True, log activation and log detail information is stored for
           use by future connections in class variables of WBEMConnection.
+        * If bool=False, log activation and log detail information is reset.
         * If a WBEMConnection object, logging is activated and detail level is
           set immediately for that connection.
         """
@@ -1413,17 +1421,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         if connection is not None:
             if isinstance(connection, bool):
-                if not connection:
-                    raise ValueError("Invalid boolean connection: %r; must "
-                                     "be True" % connection)
-
-                # Store the activation and detail level information for future
-                # connections. This information is used in the init method
-                # of WBEMConnection to activate logging at that point.
-
-                cls._activate_logging = True
-                cls._log_detail_levels[simple_name] = detail_level
-
+                if connection:
+                    # Store the activation and detail level information for
+                    # future connections. This information is used in the init
+                    # method of WBEMConnection to activate logging at that
+                    # point.
+                    cls._activate_logging = True
+                    cls._log_detail_levels[simple_name] = detail_level
+                else:
+                    cls._reset_logging_config()
             else:
                 assert isinstance(connection, WBEMConnection)
 
@@ -1519,7 +1525,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             recorder.record_staged()
 
     @classmethod
-    def future_logging_reset(cls):
+    def _reset_logging_config(cls):
         """
         Reset the activation of logging and the log detail levels for future
         WBEM connections, by resetting the corresponding class variables

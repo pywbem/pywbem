@@ -712,7 +712,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
     def setUp(self):
         """Setup that is run before each test method."""
-        WBEMConnection.future_logging_reset()
+        WBEMConnection._reset_logging_config()
 
     @log_capture()
     def test_create_connection(self, lc):
@@ -1335,7 +1335,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
     def setUp(self):
         """Setup that is run before each test method."""
-        WBEMConnection.future_logging_reset()
+        WBEMConnection._reset_logging_config()
 
     @log_capture()
     def test_getinstance(self, lc):
@@ -1728,7 +1728,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
 
     def setUp(self):
         """Setup that is run before each test method."""
-        WBEMConnection.future_logging_reset()
+        WBEMConnection._reset_logging_config()
 
     @log_capture()
     def test_root_logger(self, lc):

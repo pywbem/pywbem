@@ -563,13 +563,13 @@ class LogOperationRecorder(BaseOperationRecorder):
 
         # build name for logger
         if conn_id:
-            self.apilogger = self._get_logger('%s.%s' % (LOGGER_API_CALLS_NAME,
-                                                         conn_id))
-            self.httplogger = self._get_logger('%s.%s' %
-                                               (LOGGER_HTTP_NAME, conn_id))
+            self.apilogger = logging.getLogger(
+                '%s.%s' % (LOGGER_API_CALLS_NAME, conn_id))
+            self.httplogger = logging.getLogger(
+                '%s.%s' % (LOGGER_HTTP_NAME, conn_id))
         else:
-            self.apilogger = self._get_logger(LOGGER_API_CALLS_NAME)
-            self.httplogger = self._get_logger(LOGGER_HTTP_NAME)
+            self.apilogger = logging.getLogger(LOGGER_API_CALLS_NAME)
+            self.httplogger = logging.getLogger(LOGGER_HTTP_NAME)
 
     def set_detail_level(self, detail_levels):
         """
@@ -806,41 +806,6 @@ class LogOperationRecorder(BaseOperationRecorder):
     def record(self, pywbem_args, pywbem_result, http_request, http_response):
         """Not used for logging"""
         pass
-
-    @staticmethod
-    def _get_logger(logger_name):
-        """
-        **Experimental:** *New in pywbem 0.11 as experimental.*
-
-        Return a :class:`~py:logging.Logger` object with the specified name.
-
-        A :class:`~py:logging.NullHandler` handler is added to the logger if it
-        does not have any handlers yet and if it is not the Python root logger.
-        This prevents the propagation of log requests up the Python logger
-        hierarchy, and therefore causes this package to be silent by default.
-
-        This prevents the propagation of log requests up the Python logger
-        hierarchy, and therefore causes this package to be silent by default.
-
-        Parameters
-
-          logger_name (:term:`string`):
-            Name of the logger which must be one of the named defined in
-            pywbem for loggers used by pywbem.  These names are structured
-            as prefix . <log_name>
-
-        Returns:
-
-          :class:`~py:logging.Logger`: Logger defined by logger name.
-
-        Raises:
-
-          ValueError: The name is not one of the valid pywbem loggers.
-        """
-        logger = logging.getLogger(logger_name)
-        if logger_name != '' and not logger.handlers:
-            logger.addHandler(logging.NullHandler())
-        return logger
 
 
 class TestClientRecorder(BaseOperationRecorder):
