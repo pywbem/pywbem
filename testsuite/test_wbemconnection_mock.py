@@ -576,7 +576,7 @@ def conn():
     """
     Create the FakedWBEMConnection and return it
     """
-    FakedWBEMConnection.future_logging_reset()
+    FakedWBEMConnection._reset_logging_config()
     return FakedWBEMConnection()
 
 
@@ -585,7 +585,7 @@ def conn_lite():
     """
     Create the FakedWBEMConnection with the repo_lite flag set and return it.
     """
-    FakedWBEMConnection.future_logging_reset()
+    FakedWBEMConnection._reset_logging_config()
     return FakedWBEMConnection(repo_lite=True)
 
 
@@ -611,7 +611,7 @@ class TestFakedWBEMConnection(object):
         Test the response delay attribute set both in constructor and with
         property
         """
-        FakedWBEMConnection.future_logging_reset()
+        FakedWBEMConnection._reset_logging_config()
         if set_on_init:
             conn = FakedWBEMConnection(response_delay=delay)
         else:
@@ -635,7 +635,7 @@ class TestFakedWBEMConnection(object):
     def test_repr(self):
         # pylint: disable=no-self-use
         """ Test output of repr"""
-        FakedWBEMConnection.future_logging_reset()
+        FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection(response_delay=3)
         repr_ = '%r' % conn
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
@@ -645,7 +645,7 @@ class TestFakedWBEMConnection(object):
         """
         Test other FadedWBEMConnection attributes
         """
-        FakedWBEMConnection.future_logging_reset()
+        FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection()
         assert conn.host == 'FakedUrl'
         assert conn.use_pull_operations is False

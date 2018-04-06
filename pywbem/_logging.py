@@ -254,14 +254,16 @@ LOGGER_SIMPLE_NAMES = ['api', 'http', 'all']
 #: List of log destinations that the logging configuration functions
 #: recognize, as follows:
 #:
-#: * `'stderr'` - Log to the standard error stream of the Python process
 #: * `'file'` - Log to a file (requires filename to be specified)
-#: * `'none'` - Log to the Python null handler (i.e. suppress logging)
-LOG_DESTINATIONS = ['stderr', 'file', 'none']
+#: * `'stderr'` - Log to the standard error stream of the Python process
+LOG_DESTINATIONS = ['file', 'stderr']
 
 #: Default log destination if not supplied to the logging configuration
 #: functions.
-DEFAULT_LOG_DESTINATION = 'none'
+DEFAULT_LOG_DESTINATION = 'file'
+
+#: Default path name of the log file to be used when logging to a file.
+DEFAULT_LOG_FILENAME = 'pywbem.log'
 
 #: List of the log detail levels that the logging configuration functions
 #: recognize, as follows:
@@ -284,7 +286,8 @@ DEFAULT_LOG_DETAIL_LEVEL = 'all'
 
 
 def configure_logger(simple_name, log_dest=DEFAULT_LOG_DESTINATION,
-                     detail_level=DEFAULT_LOG_DETAIL_LEVEL, log_filename=None,
+                     detail_level=DEFAULT_LOG_DETAIL_LEVEL,
+                     log_filename=DEFAULT_LOG_FILENAME,
                      connection=None):
     # pylint: disable=line-too-long
     """
@@ -336,10 +339,14 @@ def configure_logger(simple_name, log_dest=DEFAULT_LOG_DESTINATION,
         WBEM connection(s) that should be affected for activation and for
         setting the detail level.
 
-        If it is a :class:`py:bool`, it must be `True`, and all subsequently
-        created :class:`~pywbem.WBEMConnection` objects will be activated for
-        logging and the detail level for each pywbem logger will be set on
-        these connections.
+        If it is a :class:`py:bool`, the information for activating logging
+        and for the detail level of the affected loggers will be stored for
+        use by subsequently created :class:`~pywbem.WBEMConnection` objects.
+        A value of `True` will store the information to activate the
+        connections for logging, and will add the detail level for the
+        logger(s).
+        A value of `False` will reset the stored information for future
+        connections to be deactivated with no detail levels specified.
 
         If it is a :class:`~pywbem.WBEMConnection` object, logging will be
         activated for that WBEM connection only and the specified detail
@@ -366,7 +373,8 @@ def configure_logger(simple_name, log_dest=DEFAULT_LOG_DESTINATION,
         connection=connection)
 
 
-def configure_loggers_from_string(log_configuration_str, log_filename=None,
+def configure_loggers_from_string(log_configuration_str,
+                                  log_filename=DEFAULT_LOG_FILENAME,
                                   connection=None):
     # pylint: disable=line-too-long
     """
@@ -404,10 +412,14 @@ def configure_loggers_from_string(log_configuration_str, log_filename=None,
         WBEM connection(s) that should be affected for activation and for
         setting the detail level.
 
-        If it is a :class:`py:bool`, it must be `True`, and all subsequently
-        created :class:`~pywbem.WBEMConnection` objects will be activated for
-        logging and the detail level for each pywbem logger will be set on
-        these connections.
+        If it is a :class:`py:bool`, the information for activating logging
+        and for the detail level of the affected loggers will be stored for
+        use by subsequently created :class:`~pywbem.WBEMConnection` objects.
+        A value of `True` will store the information to activate the
+        connections for logging, and will add the detail level for the
+        logger(s).
+        A value of `False` will reset the stored information for future
+        connections to be deactivated with no detail levels specified.
 
         If it is a :class:`~pywbem.WBEMConnection` object, logging will be
         activated for that WBEM connection only and the specified detail level
@@ -441,19 +453,19 @@ def configure_loggers_from_string(log_configuration_str, log_filename=None,
 
     log_specs = log_configuration_str.split(',')
     for log_spec in log_specs:
-        spec_split = log_spec.split("=")
+        spec_split = log_spec.strip('=').split("=")
         simple_name = spec_split[0]
         if not simple_name:
             raise ValueError("Simple logger name missing in log spec: %r" %
                              log_spec)
         if len(spec_split) == 1:
-            log_dest = None
-            detail_level = None
+            log_dest = DEFAULT_LOG_DESTINATION
+            detail_level = DEFAULT_LOG_DETAIL_LEVEL
         elif len(spec_split) == 2:
-            val_split = spec_split[1].split(':')
+            val_split = spec_split[1].strip(':').split(':')
             log_dest = val_split[0] or None
             if len(val_split) == 1:
-                detail_level = None
+                detail_level = DEFAULT_LOG_DETAIL_LEVEL
             elif len(val_split) == 2:
                 detail_level = val_split[1] or None
             else:  # len(val_split) > 2
