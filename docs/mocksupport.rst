@@ -115,7 +115,7 @@ executing WBEM operations on the faked connection:
 
     # Compile the MOF string and add its CIM objects to the default namespace
     # of the mock repository
-    conn.compile_mof_str(mof)
+    conn.compile_mof_string(mof)
 
     # Perform a few operations on the faked connection:
 
@@ -388,7 +388,7 @@ with a simple callback function.
 
     # Compile the MOF string and add its CIM objects to the default namespace
     # of the mock repository
-    conn.compile_mof_str(mof)
+    conn.compile_mof_string(mof)
 
     # Register the method callback function to the mock repository, for the
     # default namespace of the connection
@@ -574,7 +574,7 @@ qualifier types to the mock repository of a
   The reason for having this method in addition to `CreateInstance` is that it
   performs fewer checks.
 
-* :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_str` and
+* :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_string` and
   :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_file` compile MOF in
   a string or file, respectively, and add the resulting CIM objects to the
   mock repository.
@@ -646,7 +646,7 @@ qualifier types and classes that are defined in a MOF string.
             TST_Class2 REF Ref2;
         };
     """
-    conn.compile_mof_str(mof, tst_namespace)
+    conn.compile_mof_string(mof, tst_namespace)
 
     conn.display_repository()
 

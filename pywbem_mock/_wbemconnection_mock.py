@@ -408,8 +408,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         self._merge_repos(mof_repo)
 
-    def compile_mof_str(self, mof_str, namespace=None, search_paths=None,
-                        verbose=None):
+    def compile_mof_string(self, mof_str, namespace=None, search_paths=None,
+                           verbose=None):
         """
         Compile the MOF definitions in the specified string and add the
         resulting CIM objects to the specified namespace of the mock
