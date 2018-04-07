@@ -277,3 +277,21 @@ For further discussion of good and bad practices regarding commits, see:
 
 .. _OpenStack Git Commit Good Practice: https://wiki.openstack.org/wiki/GitCommitMessages
 .. _How to Get Your Change Into the Linux Kernel: https://www.kernel.org/doc/Documentation/SubmittingPatches
+
+
+.. _`Core Development Team`:
+
+Core Development Team
+---------------------
+
+Anyone can contribute to pywbem via pull requests as described in the previous
+section.
+
+The pywbem project has a core development team that holds regular web conferences
+and that is using Slack for offline communication, on the Slack workspace:
+https://pywbem.slack.com.
+
+The web conference and the Slack workspace are by invitation, and if you want
+to participate in the core team, please
+`open an issue <https://github.com/pywbem/pywbem/issues>`_ to let us know.
+
