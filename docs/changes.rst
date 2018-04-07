@@ -665,6 +665,13 @@ Cleanup
 * Cleaned up the implementation of `CIMProperty/CIMParameter.tocimxml()`,
   so that it is now easier understandable (as part of fixing issue #1136).
 
+* Removed any logging.NullHandler objects on pywbem loggers, including
+  the pywbem listener loggers, because it turns out that for the use
+  of loggers as a trace tool, the DEBUG level is used by the pywbem client
+  and the INFO level is used by the pywbem listener, which are both not
+  printed by default by the Python root logger, so the use of null handlers
+  is not really needed (Issue #1175).
+
 Build, test, quality
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -775,6 +782,9 @@ changes are listed in the remainder of this section.
 * Improved and fixed the description of the pywbem statistics support
   (Issue #1115).
 
+* Clarified the use of logging for the pywbem client (in section
+  4.8 "WBEM operation logging") and for the pywbem listener (in
+  section 6.1.2 "Logging in the listener" (Issue #1175).
 
 pywbem v0.11.0
 --------------

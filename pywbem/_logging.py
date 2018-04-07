@@ -27,6 +27,9 @@ Pywbem logging overview
 
 The pywbem package implements selected logging using the Python
 :mod:`py:logging` facility.
+This section describes logging for use of the pywbem package as a WBEM client.
+Section :ref:`Logging in the listener` describes logging for use of the pywbem
+package as a WBEM listener.
 
 Pywbem logging is used to record information passing between the pywbem client
 and WBEM servers but not as a general recorder for errors, state, etc. within
@@ -48,8 +51,25 @@ termed `pywbem loggers`:
   responses between the pywbem client and WBEM server. This logs the HTTP
   request data and response data including HTTP headers and CIM-XML payload.
 
-These pywbem loggers output log records when they are configured and activated.
-The pywbem loggers log at the :attr:`py:logging.DEBUG` logging level.
+Pywbem uses the :attr:`py:logging.DEBUG` logging level for both loggers.
+
+The best practices for Python libraries suggest that libraries such as pywbem
+have a null handler attached to the Python logger for the package (the
+logger named `'pywbem'`, in this case), because since Python 2.7, the Python
+root logger will by default (i.e. when not being configured) print log
+records of logging level :attr:`py:logging.WARNING` or greater to `sys.stderr`.
+Having a null handler on the logger for the library prevent such log events
+from propagating up to the Python root logger, and the library will be silent
+by default.
+See for example this article:
+http://pieces.openpolitics.com/2012/04/python-logging-best-practices/
+or this section in the Python logging HOWTO:
+https://docs.python.org/2/howto/logging.html#configuring-logging-for-a-library
+
+Because pywbem logs only at the :attr:`py:logging.DEBUG` logging level, these
+log events will not be printed by the Python root logger by default, and
+therefore it is not necessary that pywbem attaches a null handler to any of its
+loggers.
 
 There are two steps to setting up pywbem logging:
 

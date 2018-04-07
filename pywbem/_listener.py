@@ -39,7 +39,8 @@ The following example creates and runs a listener::
 
     def main():
 
-        logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
+        # Configure logging of the listener via the Python root logger
+        logging.basicConfig(filename='listener.log', level=logging.WARNING,
             format='%(asctime)s - %(levelname)s - %(message)s)
 
         certkeyfile = 'listener.pem'
@@ -79,20 +80,47 @@ using a listener in combination with a subscription manager.
 Another listener example is in the script ``examples/listen.py`` (when you
 clone the GitHub pywbem/pywbem project). It is an interactive Python shell that
 creates a listener and displays any indications it receives, in MOF format.
+
+
+.. _`Logging in the listener`:
+
+Logging in the listener
+-----------------------
+
+Each :class:`~pywbem.WBEMListener` object has its own separate Python logger
+object with the name:
+
+  `'pywbem.listener.{id}'`
+
+where `{id}` is a string that is unique for each :class:`~pywbem.WBEMListener`
+object within the Python process.
+
+The :attr:`~pywbem.WBEMListener.logger` property of a
+:class:`~pywbem.WBEMListener` object provides access to that Python logger
+object, if needed.
+
+The listener will log any indications it receives and any responses it sends
+back to the indication sender, at the :attr:`py:logging.INFO` logging level.
+
+In addition, it will log errors at the :attr:`py:logging.ERROR` logging level.
+
+Since Python 2.7, the Python root logger will by default (i.e. when not being
+configured) print log records of logging level :attr:`py:logging.WARNING` or
+greater to `sys.stderr`. So the indication and response interactions will not
+be printed by default, but any errors logged at the :attr:`py:logging.ERROR`
+logging level will be printed by default.
+
+
+.. _`WBEMListener class`:
+
+WBEMListener class
+------------------
 """
 
 import sys
 import errno
 import re
 import logging
-try:  # Python 2.7+
-    from logging import NullHandler
-except ImportError:
-    class NullHandler(logging.Handler):
-        """Implement logging NullHandler for python 2.6"""
-        def emit(self, record):
-            pass
-    logging.NullHandler = NullHandler
 import ssl
 import threading
 import six
@@ -108,7 +136,6 @@ from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError, VersionError
-
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
 # These are returned in export message responses.
@@ -648,7 +675,6 @@ class WBEMListener(object):
         self._https_thread = None  # Thread for HTTPS
 
         self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
-        self._logger.addHandler(logging.NullHandler())
 
         self._callbacks = []  # Registered callback functions
 
@@ -762,31 +788,14 @@ class WBEMListener(object):
         """
         :class:`py:logging.Logger`: Logger object for this listener.
 
-        Each listener object has its own separate logger object that is
-        created via :func:`py:logging.getLogger`.
+        Each listener object has its own separate logger object with the name:
 
-        The name of this logger object is:
+          `'pywbem.listener.{id}'`
 
-          ``pywbem.listener.{id}``
+        where `{id}` is a unique string for each listener object.
 
-        where ``{id}`` is the :func:`id` value of the listener object. Users
-        of the listener should not look up the logger object by name, but
+        Users of the listener should not look up the logger object by name, but
         should use this property to get to it.
-
-        By default, this logger uses the :class:`~py:logging.NullHandler` log
-        handler, and its log level is :attr:`~py:logging.NOTSET`. This causes
-        this logger not to emit any log messages and to propagate them to the
-        Python root logger.
-
-        The behavior of this logger can be changed by invoking its methods
-        (see :class:`py:logging.Logger`). The behavior of the root logger can
-        for example be configured using :func:`py:logging.basicConfig`::
-
-            import sys
-            import logging
-
-            logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
-                format='%(asctime)s - %(levelname)s - %(message)s')
         """
         return self._logger
 

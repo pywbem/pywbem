@@ -1356,14 +1356,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         msg_format = '%(asctime)s-%(name)s-%(message)s'
 
-        # TODO: Double check the best practices again for setting up Python
-        # logging in libraries (it seems the recommendation is to set a
-        # NullHandler to prevent propagation up the logger hierarchy). If so,
-        # find a place where to initially set the NullHandler, and on which
-        # logger:
-        #   handler = logging.NullHandler()
-        #   handler.setFormatter(None)
-
         if log_dest == 'stderr':
             # Note: sys.stderr is the default stream for StreamHandler
             handler = logging.StreamHandler()
