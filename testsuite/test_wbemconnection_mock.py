@@ -720,7 +720,7 @@ class TestRepoMethods(object):
         # pylint: disable=no-self-use
         """ Test the class exists method"""
         if mof:
-            conn.compile_mof_str(tst_classes_mof, namespace=ns)
+            conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classes, namespace=ns)
         # pylint: disable=protected-access
@@ -750,7 +750,7 @@ class TestRepoMethods(object):
         add_cimobjects and compiled objects
         """
         if mof:
-            conn.compile_mof_str(tst_classes_mof, namespace=ns)
+            conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classes, namespace=ns)
         # pylint: disable=protected-access
@@ -774,7 +774,7 @@ class TestRepoMethods(object):
             Test the _get_superclassnames method
         """
         if mof:
-            conn.compile_mof_str(tst_classes_mof, namespace=ns)
+            conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classes, namespace=ns)
 
@@ -813,7 +813,7 @@ class TestRepoMethods(object):
         from the repository, creates a copy  and filters it.
         """
         if mof:
-            conn.compile_mof_str(tst_classes_mof, namespace=ns)
+            conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classes, namespace=ns)
 
@@ -896,7 +896,7 @@ class TestRepoMethods(object):
         of propertylist, include qualifiers, include class origin.
         """
         if mof:
-            conn.compile_mof_str(tst_instances_mof, namespace=ns)
+            conn.compile_mof_string(tst_instances_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
@@ -950,7 +950,7 @@ class TestRepoMethods(object):
         creation of the repo.
         """
         if mof:
-            conn.compile_mof_str(tst_instances_mof, namespace=ns)
+            conn.compile_mof_string(tst_instances_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
@@ -1002,7 +1002,7 @@ class TestRepoMethods(object):
         # Create the objects in all namespaces
         namespaces = ['root/blah', 'interop']
         for ns in namespaces:
-            conn.compile_mof_str(tst_instances_mof, namespace=ns)
+            conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
             # Subscribe to InvokeMethod callback methods in the class.
 
@@ -1088,7 +1088,7 @@ class TestRepoMethods(object):
         """
         Test compile qualifiers with namespace from mof
         """
-        conn.compile_mof_str(tst_qualifiers_mof, ns)
+        conn.compile_mof_string(tst_qualifiers_mof, ns)
 
         assert conn.GetQualifier(
             'Association', namespace=ns).name == 'Association'
@@ -1130,8 +1130,8 @@ class TestRepoMethods(object):
         };
         """
 
-        conn.compile_mof_str(qmof, ns)
-        conn.compile_mof_str(cmof, ns)
+        conn.compile_mof_string(qmof, ns)
+        conn.compile_mof_string(cmof, ns)
 
         with OutputCapture():
             conn.display_repository()
@@ -1193,12 +1193,12 @@ class TestRepoMethods(object):
         i4 = """
         instance of CIM_Foo { InstanceID = "CIM_Foo4"; };
         """
-        conn.compile_mof_str(q1, ns)
+        conn.compile_mof_string(q1, ns)
         qual_repo = \
             conn._get_qualifier_repo(tst_ns)  # pylint: disable=protected-access
 
         assert 'Association' in qual_repo
-        conn.compile_mof_str(q2, ns)
+        conn.compile_mof_string(q2, ns)
 
         qual_repo = \
             conn._get_qualifier_repo(tst_ns)  # pylint: disable=protected-access
@@ -1208,23 +1208,23 @@ class TestRepoMethods(object):
         assert conn.GetQualifier('Association', namespace=ns)
         assert conn.GetQualifier('Description', namespace=ns)
 
-        conn.compile_mof_str(c1, ns)
+        conn.compile_mof_string(c1, ns)
         assert conn.GetClass('CIM_Foo', namespace=ns, LocalOnly=False,
                              IncludeQualifiers=True, IncludeClassOrigin=True)
 
-        conn.compile_mof_str(c2, ns)
+        conn.compile_mof_string(c2, ns)
         assert conn.GetClass('CIM_Foo_sub', namespace=ns)
 
-        conn.compile_mof_str(i1, ns)
+        conn.compile_mof_string(i1, ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 1
-        conn.compile_mof_str(i2, ns)
+        conn.compile_mof_string(i2, ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 2
-        conn.compile_mof_str(i3, ns)
+        conn.compile_mof_string(i3, ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 3
-        conn.compile_mof_str(i4, ns)
+        conn.compile_mof_string(i4, ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 4
         for name in rtn_names:
@@ -1244,7 +1244,7 @@ class TestRepoMethods(object):
         """
         Test compile of classes into the repository
         """
-        conn.compile_mof_str(tst_classes_mof, namespace=ns)
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
 
         assert conn.GetClass('CIM_Foo', namespace=ns).classname == 'CIM_Foo'
         assert conn.GetClass('CIM_Foo_sub',
@@ -1284,7 +1284,7 @@ class TestRepoMethods(object):
         # The compiler builds the instance paths.
         all_mof = '%s\n\n%s' % (tst_classes_mof, insts_mof)
 
-        conn.compile_mof_str(all_mof, namespace=ns)
+        conn.compile_mof_string(all_mof, namespace=ns)
         rtn_names = conn.EnumerateInstanceNames('CIM_Foo', namespace=ns)
         assert len(rtn_names) == 2
 
@@ -1307,7 +1307,7 @@ class TestRepoMethods(object):
         Test the  tst_assoc_mof compiled mof to confirm compiled correct
         classes and instances.
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
 
@@ -1374,7 +1374,7 @@ class TestRepoMethods(object):
         """
 
         with pytest.raises(MOFParseError):
-            conn.compile_mof_str(q1)
+            conn.compile_mof_string(q1)
 
         captured_out = capsys.readouterr()[0]
         assert "Scope(associations)" in captured_out
@@ -1802,7 +1802,7 @@ class TestClassOperations(object):
             namespace if it does not exist.
         """
         # preinstall required qualifiers
-        conn.compile_mof_str(tst_qualifiers_mof, namespace=ns)
+        conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
 
         # if pretcl, create/install the pre test class.  Installs the
         # prerequisite classes into the repository.
@@ -2956,7 +2956,7 @@ class TestPullOperations(object):
             Test openenueratepaths where the open is the complete response
             and all parameters are default
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         source_inst_name = CIMInstanceName(src_inst[0],
                                            keybindings=dict(name=src_inst[1]),
@@ -3036,7 +3036,7 @@ class TestPullOperations(object):
             Test openenueratepaths where the open is the complete response
             and all parameters are default
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         source_inst_name = CIMInstanceName(src_inst[0],
                                            keybindings=dict(name=src_inst[1]),
@@ -3121,7 +3121,7 @@ class TestPullOperations(object):
             Test openenueratepaths where the open is the complete response
             and all parameters are default
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         source_inst_name = CIMInstanceName(src_inst[0],
                                            keybindings=dict(name=src_inst[1]),
@@ -3392,7 +3392,7 @@ class TestReferenceOperations(object):
         """
         if ns is None:
             ns = conn.default_namespace
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         # pylint: disable=protected-access
         clns = [cl.classname for cl in conn._get_association_classes(ns)]
@@ -3438,7 +3438,7 @@ class TestReferenceOperations(object):
         Test getting reference classnames with no options on call and default
         namespace. Tests for both string and CIMClassName input
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         # account for api where string classname only allowed with default
         # classname
@@ -3485,7 +3485,7 @@ class TestReferenceOperations(object):
         """
         Test getting reference instnames with no options
         """
-        conn.compile_mof_str(tst_assoc_mof)
+        conn.compile_mof_string(tst_assoc_mof)
 
         inst_name = CIMInstanceName('TST_Person',
                                     keybindings=dict(name='Mike'))
@@ -3546,7 +3546,7 @@ class TestReferenceOperations(object):
         """
         Test getting reference classnames
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         targ_iname = CIMInstanceName(tcln, keybindings=dict(name=key),
                                      namespace=ns)
@@ -3589,7 +3589,7 @@ class TestReferenceOperations(object):
         Test getting reference instances from default namespace with
         detault parameters
         """
-        conn.compile_mof_str(tst_assoc_mof)
+        conn.compile_mof_string(tst_assoc_mof)
 
         inst_name = CIMInstanceName('TST_Person',
                                     keybindings=dict(name='Mike'))
@@ -3636,7 +3636,7 @@ class TestReferenceOperations(object):
         """
         Test getting reference instance names with rc and role options.
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         inst_name = CIMInstanceName('TST_Person',
                                     keybindings=dict(name='Mike'),
@@ -3714,7 +3714,7 @@ class TestAssociationOperations(object):
         Test getting reference classnames with no options on call and default
         namespace. Tests for both string and CIMClassName input
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         if ns is not None:
             target_cln = CIMClassName(target_cln, namespace=ns)
@@ -3783,7 +3783,7 @@ class TestAssociationOperations(object):
         including role, etc.
         TODO add tests for IncludeQualifiers, PropertyList, IncludeClassOrigin
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         exp_ns = conn.default_namespace if ns is None else ns
 
@@ -3857,7 +3857,7 @@ class TestAssociationOperations(object):
         including role, etc.
         TODO add tests for IncludeQualifiers, PropertyList, IncludeClassOrigin
         """
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         exp_ns = conn.default_namespace if ns is None else ns
 
@@ -3932,7 +3932,7 @@ class TestAssociationOperations(object):
         """
 
         # TODO test error.  Failed if rc was TST_PERSON
-        conn.compile_mof_str(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         if ns is not None:
             cln = CIMClassName(cln, namespace=ns)
@@ -4236,7 +4236,7 @@ class TestInvokeMethod(object):
         Test extrinsic method invocation through the
         WBEMConnection.InovkeMethod method
         """
-        conn.compile_mof_str(tst_instances_mof, namespace=ns)
+        conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
         # Save expected info so that callbacks can use in in returns and tests
         # pylint: disable=attribute-defined-outside-init

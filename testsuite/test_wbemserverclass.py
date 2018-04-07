@@ -66,7 +66,7 @@ class BaseMethodsForTests(object):
             #pragma include ("Interop/CIM_ReferencedProfile.mof")
             """
         # See issue 1138.
-        # conn.compile_mof_str(class_list, namespace=namespace,
+        # conn.compile_mof_string(class_list, namespace=namespace,
         #                      search_paths=SCHEMA_MOF_DIR)
         with open(TEST_SCHEMA, "w") as schema_file:
             schema_file.write(class_list)
