@@ -31,6 +31,7 @@ It supports Python 2 and Python 3.
 from __future__ import absolute_import
 
 import sys
+
 from .cim_types import *  # noqa: F403,F401
 from .cim_constants import *  # noqa: F403,F401
 from .cim_operations import *  # noqa: F403,F401
@@ -49,6 +50,17 @@ from ._statistics import *  # noqa: F403,F401
 from ._logging import *  # noqa: F403,F401
 
 from ._version import __version__  # noqa: F401
+
+# TODO: Verify whether pywbem needs a logging null handler.
+# import logging
+# try:  # Python 2.7+ includes logging.NullHandler
+#     from logging import NullHandler
+# except ImportError:
+#     class NullHandler(logging.Handler):
+#         """Implement logging NullHandler for Python 2.6"""
+#         def emit(self, record):
+#             pass
+# logging.getLogger('pywbem').addHandler(NullHandler())
 
 _python_m = sys.version_info[0]  # pylint: disable=invalid-name
 _python_n = sys.version_info[1]  # pylint: disable=invalid-name
