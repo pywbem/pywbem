@@ -96,7 +96,7 @@ def _uprint(dest, text):
     If dest is None, the text is encoded to a codepage suitable for the current
     stdout and is written to stdout.
     """
-    if not dest:
+    if dest is None:
         btext = text.encode(STDOUT_ENCODING, 'replace')
         print(btext)
     else:
@@ -395,7 +395,7 @@ class FakedWBEMConnection(WBEMConnection):
             mock repository.
         """
 
-        if not namespace:
+        if namespace is None:
             namespace = self.default_namespace
 
         mofcomp = MOFCompiler(MOFWBEMConnection(),
@@ -462,7 +462,7 @@ class FakedWBEMConnection(WBEMConnection):
             mock repository.
         """
 
-        if not namespace:
+        if namespace is None:
             namespace = DEFAULT_NAMESPACE
 
         # TODO:ks Future we might be able to use our own MOFWBEMRepository to
@@ -522,7 +522,7 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        if not namespace:
+        if namespace is None:
             namespace = self.default_namespace
 
         if isinstance(objects, list):
@@ -547,12 +547,13 @@ class FakedWBEMConnection(WBEMConnection):
 
             elif isinstance(obj, CIMInstance):
                 inst = obj.copy()
-                if not inst.path:
-                    raise ValueError("Instances added must include path. "
-                                     "Inst %s does not include a path" % inst)
-                if not inst.path.namespace:
+                if inst.path is None:
+                    raise ValueError("Instances added must include a path. "
+                                     "Instance %r does not include a path" %
+                                     inst)
+                if inst.path.namespace is None:
                     inst.path.namespace = namespace
-                if inst.path.host:
+                if inst.path.host is not None:
                     inst.path.host = None
                 try:
                     inst_repo = self._get_instance_repo(namespace)
@@ -819,7 +820,7 @@ class FakedWBEMConnection(WBEMConnection):
             self.instances.clear()
             for ns, insts in six.iteritems(repo.instances):
                 for inst in insts:
-                    if not inst.path:
+                    if inst.path is None:
                         # use GetClass to get all properties
                         cc = self.GetClass(inst.classname, namespace=ns,
                                            LocalOnly=False,
@@ -1259,7 +1260,7 @@ class FakedWBEMConnection(WBEMConnection):
         rtn_tup = self._find_instance(iname, inst_repo)
         inst = rtn_tup[1]
 
-        if not inst:
+        if inst is None:
             raise CIMError(CIM_ERR_NOT_FOUND,
                            'Instance not found in repository namespace %s. '
                            'Path=%s' % (namespace, iname))
@@ -1920,7 +1921,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         # Get original instance in repo.  Does not copy the orig instance.
         mod_inst_path = modified_instance.path.copy()
-        if not modified_instance.path.namespace:
+        if modified_instance.path.namespace is None:
             mod_inst_path.namespace = namespace
 
         orig_instance_tup = self._find_instance(mod_inst_path, inst_repo)
@@ -2020,7 +2021,7 @@ class FakedWBEMConnection(WBEMConnection):
               CIM_ERR_NOT_FOUND
         """
         iname = params['InstanceName']
-        if not iname.namespace:
+        if iname.namespace is None:
             iname.namespace = namespace
 
         # If not repo lite, corresponding class must exist.

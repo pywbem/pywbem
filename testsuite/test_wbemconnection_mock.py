@@ -168,12 +168,14 @@ def tst_class():
 @pytest.fixture
 def tst_classes(tst_class):
     """
-    Builds and returns a list of 4 classes
+    Builds and returns a list of 5 classes
         CIM_Foo - top level in hiearchy
         CIM_Foo_sub - Subclass to CIMFoo
         CIM_Foo_sub2 - Subclass to CIMFoo
         CIM_Foo_sub_sub - Subclass to CIMFoo_sub
+        CIM_Foo_nokey - top level in hiearchy
     """
+    qkey = {'Key': CIMQualifier('Key', True)}
     dkey = {'Description': CIMQualifier('Description', 'blah blah')}
 
     c2 = CIMClass(
@@ -196,7 +198,19 @@ def tst_classes(tst_class):
                     CIMProperty('cimfoo_sub_sub', None, type='string',
                                 class_origin='CIM_Foo_sub_sub',
                                 propagated=False)})
-    return [tst_class, c2, c3, c4]
+
+    c5 = CIMClass(
+        'CIM_Foo_nokey', qualifiers=dkey,
+        properties=[
+            CIMProperty('InstanceID', None, qualifiers=qkey,
+                        type='string', class_origin='CIM_Foo_nokey',
+                        propagated=False),
+            CIMProperty('cimfoo', None, qualifiers=None,
+                        type='string', class_origin='CIM_Foo_nokey',
+                        propagated=False),
+        ])
+
+    return [tst_class, c2, c3, c4, c5]
 
 
 def build_cimfoo_instance(id_):
@@ -257,6 +271,15 @@ def build_cimfoosub_sub_instance(id_):
     return inst
 
 
+def build_cimfoo_nokey_instance():
+    """
+    Build a single instance of an instance of CIM_Foo_nokey.
+    """
+    return CIMInstance('CIM_Foo_nokey',
+                       properties={'cimfoo': 'none'},
+                       path=CIMInstanceName('CIM_Foo_nokey'))
+
+
 @pytest.fixture
 def tst_instances():
     """
@@ -273,6 +296,7 @@ def tst_instances():
         rtn.append(build_cimfoosub2_instance(i))
     for i in six.moves.range(10, 12):
         rtn.append(build_cimfoosub_sub_instance(i))
+    rtn.append(build_cimfoo_nokey_instance())
     return rtn
 
 
@@ -398,6 +422,14 @@ def tst_classes_mof(tst_qualifiers_mof):
               Uint64 OutputParam2[]);
 
         };
+
+             [Description ("blah blah")]
+        class CIM_Foo_nokey {
+                [Key, Description ("This is key prop")]
+            string InstanceID;
+
+            string cimfoo;
+        };
     """
     return tst_qualifiers_mof + '\n\n' + cl_str + '\n\n'
 
@@ -429,6 +461,7 @@ def tst_instances_mof(tst_classes_mof):
             cimfoo_sub = "data sub 11";
             cimfoo_sub_sub = "data sub_sub22";};
 
+        instance of CIM_Foo_nokey as $foonokey { cimfoo = "none"; };
     """
     return tst_classes_mof + '\n\n' + inst_str + '\n\n'
 
@@ -733,8 +766,8 @@ class TestRepoMethods(object):
     @pytest.mark.parametrize(
         "cln, di, exp_clns", [
             [None, True, ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2',
-                          'CIM_Foo_sub_sub']],
-            [None, False, ['CIM_Foo']],
+                          'CIM_Foo_sub_sub', 'CIM_Foo_nokey']],
+            [None, False, ['CIM_Foo', 'CIM_Foo_nokey']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
             ['CIM_Foo', False, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
@@ -1187,11 +1220,11 @@ class TestRepoMethods(object):
         instance of CIM_Foo as $foo2 { InstanceID = "CIM_Foo2"; };
         """
         i3 = """
-        instance of CIM_Foo as $foo2 { InstanceID = "CIM_Foo3"; };
+        instance of CIM_Foo as $foo3 { InstanceID = "CIM_Foo3"; };
         """
-        # instance without alias set so compiler does not create path
+        # TODO: Remove alias once inst without alias properly generates path
         i4 = """
-        instance of CIM_Foo { InstanceID = "CIM_Foo4"; };
+        instance of CIM_Foo as $foo4 { InstanceID = "CIM_Foo4"; };
         """
         conn.compile_mof_string(q1, ns)
         qual_repo = \
@@ -1255,11 +1288,11 @@ class TestRepoMethods(object):
                              namespace=ns).classname == 'CIM_Foo_sub_sub'
 
         clns = conn.EnumerateClassNames(namespace=ns)
-        assert len(clns) == 1
+        assert len(clns) == 2
         clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
-        assert len(clns) == 4
+        assert len(clns) == 5
         cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
-        assert len(cls) == 4
+        assert len(cls) == 5
         assert set(clns) == set([cl.classname for cl in cls])
 
     @pytest.mark.parametrize(
@@ -1547,10 +1580,10 @@ class TestClassOperations(object):
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
         "cn, di, cn_exp,", [
-            [None, None, ['CIM_Foo']],
-            [None, False, ['CIM_Foo']],
+            [None, None, ['CIM_Foo', 'CIM_Foo_nokey']],
+            [None, False, ['CIM_Foo', 'CIM_Foo_nokey']],
             [None, True, ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2',
-                          'CIM_Foo_sub_sub']],
+                          'CIM_Foo_sub_sub', 'CIM_Foo_nokey']],
             ['CIM_Foo', None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
@@ -1596,9 +1629,9 @@ class TestClassOperations(object):
         # pl_exp: Properties expected in response
         # len_exp: number of classes expected in response
         "cn_param, lo, di, pl_exp, len_exp", [
-            [None, None, None, ['InstanceID'], 1],
+            [None, None, None, ['InstanceID', 'cimfoo'], 2],
             [None, None, True, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
-                                'cimfoo_sub_sub'], 4],
+                                'cimfoo_sub_sub', 'cimfoo'], 5],
             ['CIM_Foo', None, None, ['InstanceID', 'cimfoo_sub',
                                      'cimfoo_sub2'], 2],
             ['CIM_Foo', None, True, ['InstanceID', 'cimfoo_sub',
@@ -1607,17 +1640,17 @@ class TestClassOperations(object):
             ['CIM_Foo_sub_sub', None, True, [], 0],
 
             [None, True, None, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
-                                'cimfoo_sub_sub'], 1],
-            [None, True, True, ['InstanceID'], 4],
+                                'cimfoo_sub_sub', 'cimfoo'], 2],
+            [None, True, True, ['InstanceID', 'cimfoo'], 5],
             ['CIM_Foo', True, None, ['InstanceID'], 2],
             ['CIM_Foo', True, True, ['InstanceID'], 3],
             ['CIM_Foo_sub_sub', True, None, [], 0],
             ['CIM_Foo_sub_sub', True, True, [], 0],
 
             [None, False, None, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
-                                 'cimfoo_sub_sub'], 1],
+                                 'cimfoo_sub_sub', 'cimfoo'], 2],
             [None, False, True, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
-                                 'cimfoo_sub_sub'], 4],
+                                 'cimfoo_sub_sub', 'cimfoo'], 5],
             ['CIM_Foo', False, None, ['InstanceID', 'cimfoo_sub',
                                       'cimfoo_sub2'], 2],
             ['CIM_Foo', False, True, ['InstanceID', 'cimfoo_sub',
@@ -2166,8 +2199,12 @@ class TestInstanceOperations(object):
             # instances of the defined class
             rtn_inst_names = conn.EnumerateInstanceNames(enum_classname, ns)
 
+            exp_clns = [enum_classname, 'CIM_Foo_sub', 'CIM_Foo_sub2',
+                        'CIM_Foo_sub_sub']
+
             # pylint: disable=protected-access
-            request_inst_names = [i.path for i in conn._get_inst_repo(ns)]
+            request_inst_names = [i.path for i in conn._get_inst_repo(ns)
+                                  if i.classname in exp_clns]
 
             assert len(rtn_inst_names) == len(request_inst_names)
 
@@ -2176,9 +2213,7 @@ class TestInstanceOperations(object):
                 assert inst_name in request_inst_names
                 # TODO change to use algorithm to get list of possible
                 # classes. Right now just fixed list
-                assert inst_name.classname in [enum_classname, 'CIM_Foo_sub',
-                                               'CIM_Foo_sub2',
-                                               'CIM_Foo_sub_sub']
+                assert inst_name.classname in exp_clns
 
         else:
             with pytest.raises(CIMError) as exec_info:

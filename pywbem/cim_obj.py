@@ -3044,8 +3044,7 @@ class CIMInstance(_CIMComparisonMixin):
         result = CIMInstance(self.classname)
         result.properties = self.properties.copy()
         result.qualifiers = self.qualifiers.copy()
-        result.path = (self.path is not None and
-                       [self.path.copy()] or [None])[0]
+        result.path = None if self.path is None else self.path.copy()
 
         return result
 
@@ -4200,8 +4199,7 @@ class CIMClass(_CIMComparisonMixin):
         result.methods = self.methods.copy()
         result.superclass = self.superclass
         result.qualifiers = self.qualifiers.copy()
-        result.path = (self.path is not None and
-                       [self.path.copy()] or [None])[0]
+        result.path = None if self.path is None else self.path.copy()
 
         return result
 
