@@ -21,7 +21,7 @@ import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import six
 from testfixtures import LogCapture, log_capture
 # Enabled only to display a tree of loggers
-# from logging_tree import printout as logging_tree_printout
+from logging_tree import printout as logging_tree_printout
 import yaml
 try:
     from collections import OrderedDict
@@ -40,6 +40,8 @@ from pywbem_mock import FakedWBEMConnection
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 from dmtf_mof_schema_def import install_dmtf_schema, SCHEMA_MOF_DIR
+
+from pywbem._logging import DEFAULT_LOG_FILENAME
 
 
 # test outpuf file for the recorder tests.  This is opened for each
@@ -2094,6 +2096,53 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
 
     @log_capture()
     def test_7(self, lc):
+        """
+        Configure a http logger with detail_level='all' and logger manually set
+        at level pywbem.
+        """
+        logging.basicConfig(filename='example.log', level=logging.DEBUG)
+        namespace = 'interop'
+        conn = self.build_repo(namespace)
+
+        logger = logging.getLogger('pywbem')
+        msg_format = '%(asctime)s-%(name)s-%(message)s'
+        handler = logging.FileHandler(DEFAULT_LOG_FILENAME, encoding="UTF-8")
+        handler.setFormatter(logging.Formatter(msg_format))
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
+        logging_tree_printout()
+
+        # Define the detail_level and WBEMConnection object to activate.
+        configure_logger('http', detail_level='all', log_dest=None,
+                         connection=conn)
+        logging_tree_printout()
+
+        conn.GetClass('CIM_ObjectManager', namespace=namespace)
+
+        conn_id = conn.conn_id
+
+        http_exp_log_id = 'pywbem.http.%s' % conn_id
+
+        # pylint: disable=line-too-long
+        con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
+              'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
+              'creds=None, conn_id=%s, default_namespace=' \
+              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'ca_certs=None, no_verification=False, timeout=None, ' \
+              "use_pull_operations=False, " \
+              "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
+              ')"))' % (conn_id, conn_id)
+
+        if six.PY3:
+            con = con.replace("u\'", "'")
+
+        lc.check(
+            (http_exp_log_id, 'DEBUG', con)
+        )
+
+    @log_capture()
+    def test_err1(self, lc):
         """
         Test configure_logger exception
         """
