@@ -131,7 +131,7 @@ for activating WBEM connections for logging:
     configure_logger('api', log_dest='stderr', detail_level='summary',
                      connection=True)
 
-    # All of the following connections will log:
+    # All of the following connections will log to stderr with summary output:
     conn1 = WBEMConnection(...)
     conn2 = WBEMConnection(...)
 
@@ -141,29 +141,12 @@ for activating WBEM connections for logging:
 
     conn = WBEMConnection(...)
 
-    configure_logger('all', log_dest='file', log_filname='xxx.log',
+    configure_logger('all', log_dest='file', log_filname='my_logfile.log',
                      connection=conn)
 
 Examples for configuring the pywbem loggers using Python logging methods,
 and using the pywbem logging configuration functions only for setting the
 detail level and for activating WBEM connections for logging:
-
-* Example: Configure the Python root logger for logging to a file, configure
-  both pywbem loggers for detail level `'all'`, and activate an existing WBEM
-  connection for logging::
-
-    import logging
-
-    # This configures the Python root logger
-    logging.basicConfig(filename='example.log', level=logging.DEBUG)
-
-    conn = WBEMConnection(...)
-
-    configure_logger('all', detail_level='all', connection=conn)
-
-  TODO: This configures the pywbem loggers with a null handler and thus
-  does not propagate up to the Python root logger. Clarify whether this
-  approach actually works.
 
 * Example: Configure the pywbem parent logger (named `'pywbem'`) for logging to
   a rotating file, configure both pywbem loggers for detail level `'summary'`,
@@ -179,17 +162,18 @@ detail level and for activating WBEM connections for logging:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    # configure without setting log_dest
     configure_logger('api', detail_level='summary', connection=True)
 
-    # All of the following connections will log:
+    # All of the following connections will log using the rotating file handler:
     conn1 = WBEMConnection(...)
     conn2 = WBEMConnection(...)
 
 Examples for using :func:`configure_loggers_from_string` for configuring the
 pywbem loggers and for activating WBEM connections for logging:
 
-* Example: Configure the `'pywbem.api'` logger with detail level `'summary'`
-  and output to stderr, and activate all subsequently created WBEM connections
+* Example: Configure the `'pywbem.api'` logger with detail level `'summary'`,
+  output to stderr, and activate all subsequently created WBEM connections
   for logging::
 
     configure_loggers_from_string('api=stderr:summary', connection=True)
@@ -199,12 +183,12 @@ pywbem loggers and for activating WBEM connections for logging:
     conn2 = WBEMConnection(...)
 
 * Example: Configure both pywbem loggers with the default detail level
-  (`'all'`) and output to a file, and activate a single existing WBEM
-  connection for logging::
+  (`'all'`) and output to the file 'my_log.log', and activate a single existing
+  WBEM connection object (conn) for logging::
 
     conn = WBEMConnection(...)
 
-    configure_loggers_from_string('all=file', log_filname='xxx.log',
+    configure_loggers_from_string('all=file', log_filname='my_log.log',
                                   connection=conn)
 
 
@@ -270,7 +254,8 @@ LOGGER_SIMPLE_NAMES = ['api', 'http', 'all']
 #: List of log destinations that the logging configuration functions
 #: recognize, as follows:
 #:
-#: * `'file'` - Log to a file (requires filename to be specified)
+#: * `'file'` - Log to a file (requires filename to be specified). The file
+#:   logger appends to the logger file defined by filename.
 #: * `'stderr'` - Log to the standard error stream of the Python process
 LOG_DESTINATIONS = ['file', 'stderr']
 

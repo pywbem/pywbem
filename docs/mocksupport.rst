@@ -10,12 +10,12 @@ Mock support
 Overview
 --------
 
-The pywbem package contains the ``pywbem_mock`` module which provides mock
+The pywbem package contains the ``pywbem_mock`` subpackage which provides mock
 support that enables usage of the pywbem library without a WBEM server.
-This module is used for testing the pywbem library itself and can also be used
-for the development and testing of Python programs using the pywbem library.
+This subpackage is used for testing the pywbem library itself and can be used
+for the development and testing of Python programs that use the pywbem library.
 
-The pywbem mock support consists of a :class:`pywbem_mock.FakedWBEMConnection`
+The pywbem mock support consists of the :class:`pywbem_mock.FakedWBEMConnection`
 class that establishes a *faked connection*. That class is a subclass of
 :class:`pywbem.WBEMConnection` and replaces its internal methods that use
 HTTP/HTTPS to communicate with a WBEM server with methods that instead operate
@@ -24,14 +24,14 @@ on a local in-memory repository of CIM objects (the *mock repository*).
 As a result, the operation methods of :class:`~pywbem_mock.FakedWBEMConnection`
 are those inherited from :class:`~pywbem.WBEMConnection`, so they have the
 exact same input parameters, output parameters, return values, and even most of
-the raised exceptions, as when they would be invoked on a
+the raised exceptions, as when being invoked on a
 :class:`~pywbem.WBEMConnection` object against a WBEM server.
 
 Each :class:`~pywbem_mock.FakedWBEMConnection` object has its own mock
 repository.
 The mock repository contains the same kinds of CIM objects a WBEM server
-contains: CIM classes, CIM instances, and CIM qualifier types (declarations),
-all contained in CIM namespaces.
+repository contains: CIM classes, CIM instances, and CIM qualifier types
+(declarations), all contained in CIM namespaces.
 
 Because :class:`~pywbem_mock.FakedWBEMConnection` operates only on the mock
 repository, the class does not have any connection- or security-related
