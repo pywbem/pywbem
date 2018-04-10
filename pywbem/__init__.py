@@ -31,6 +31,7 @@ It supports Python 2 and Python 3.
 from __future__ import absolute_import
 
 import sys
+import logging
 
 from .cim_types import *  # noqa: F403,F401
 from .cim_constants import *  # noqa: F403,F401
@@ -51,20 +52,21 @@ from ._logging import *  # noqa: F403,F401
 
 from ._version import __version__  # noqa: F401
 
-# TODO: Verify whether pywbem needs a logging null handler.
-# import logging
-# try:  # Python 2.7+ includes logging.NullHandler
-#     from logging import NullHandler
-# except ImportError:
-#     class NullHandler(logging.Handler):
-#         """Implement logging NullHandler for Python 2.6"""
-#         def emit(self, record):
-#             pass
-# logging.getLogger('pywbem').addHandler(NullHandler())
-
 _python_m = sys.version_info[0]  # pylint: disable=invalid-name
 _python_n = sys.version_info[1]  # pylint: disable=invalid-name
 if _python_m == 2 and _python_n < 6:
     raise RuntimeError('On Python 2, pywbem requires Python 2.6 or higher')
 elif _python_m == 3 and _python_n < 4:
     raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')
+
+# On Python 2, add a NullHandler to suppress the warning "No handlers could be
+# found for logger ...".
+if _python_m == 2:
+    try:  # Python 2.7+ includes logging.NullHandler
+        from logging import NullHandler
+    except ImportError:
+        class NullHandler(logging.Handler):
+            """Implement logging NullHandler for Python 2.6"""
+            def emit(self, record):
+                pass
+    logging.getLogger('pywbem').addHandler(NullHandler())

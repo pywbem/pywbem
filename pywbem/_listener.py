@@ -110,6 +110,15 @@ greater to `sys.stderr`. So the indication and response interactions will not
 be printed by default, but any errors logged at the :attr:`py:logging.ERROR`
 logging level will be printed by default.
 
+Pywbem adds a null handler to the logger named `'pywbem'`, in order to prevent
+the "No handlers could be found for logger ..." warning.
+This follows best practices recommended in `Configuring logging for a library
+<https://docs.python.org/2/howto/logging.html#configuring-logging-for-a-library>`_
+and in several articles, for example in `this article
+<http://pieces.openpolitics.com/2012/04/python-logging-best-practices/>`_.
+Because this warning is no longer issued on Python 3.4 and higher, pywbem
+adds a null handler only on Python 2.6 and 2.7.
+
 
 .. _`WBEMListener class`:
 
