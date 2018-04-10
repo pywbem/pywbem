@@ -53,18 +53,14 @@ termed `pywbem loggers`:
 
 Pywbem uses the :attr:`py:logging.DEBUG` logging level for both loggers.
 
-The best practices for Python libraries suggest that libraries such as pywbem
-have a null handler attached to the Python logger for the package (the
-logger named `'pywbem'`, in this case), because since Python 2.7, the Python
-root logger will by default (i.e. when not being configured) print log
-records of logging level :attr:`py:logging.WARNING` or greater to `sys.stderr`.
-Having a null handler on the logger for the library prevent such log events
-from propagating up to the Python root logger, and the library will be silent
-by default.
-See for example this article:
-http://pieces.openpolitics.com/2012/04/python-logging-best-practices/
-or this section in the Python logging HOWTO:
-https://docs.python.org/2/howto/logging.html#configuring-logging-for-a-library
+Pywbem adds a null handler to the logger named `'pywbem'`, in order to prevent
+the "No handlers could be found for logger ..." warning.
+This follows best practices recommended in `Configuring logging for a library
+<https://docs.python.org/2/howto/logging.html#configuring-logging-for-a-library>`_
+and in several articles, for example in `this article
+<http://pieces.openpolitics.com/2012/04/python-logging-best-practices/>`_.
+Because this warning is no longer issued on Python 3.4 and higher, pywbem
+adds a null handler only on Python 2.6 and 2.7.
 
 Because pywbem logs only at the :attr:`py:logging.DEBUG` logging level, these
 log events will not be printed by the Python root logger by default, and

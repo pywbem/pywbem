@@ -21,7 +21,7 @@ import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import six
 from testfixtures import LogCapture, log_capture
 # Enabled only to display a tree of loggers
-from logging_tree import printout as logging_tree_printout
+# from logging_tree import printout as logging_tree_printout
 import yaml
 try:
     from collections import OrderedDict
@@ -40,8 +40,6 @@ from pywbem_mock import FakedWBEMConnection
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 from dmtf_mof_schema_def import install_dmtf_schema, SCHEMA_MOF_DIR
-
-from pywbem._logging import DEFAULT_LOG_FILENAME
 
 
 # test outpuf file for the recorder tests.  This is opened for each
@@ -1828,7 +1826,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         )
 
 
-class TestLoggingExamples(BaseLogOperationRecorderTests):
+class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
     """
     Test the examples documented in _logging.py document string. Because
     there is not logging until the first http request, these extend the
@@ -1868,6 +1866,7 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
             """
         configure_logger('api', log_dest='file',
                          detail_level='summary',
+                         log_filename=TEST_OUTPUT_LOG,
                          connection=True)
         conn = FakedWBEMConnection('http://blah')
         conn.compile_mof_string(partial_schema, namespace=namespace,
@@ -1909,7 +1908,7 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
         namespace = 'interop'
         conn = self.build_repo(namespace)
         configure_logger('all', log_dest='file',
-                         log_filename='xxx.log',
+                         log_filename=TEST_OUTPUT_LOG,
                          detail_level=10,
                          connection=conn)
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
@@ -1983,7 +1982,7 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
         Differs from example in that we set detail_level to limit output for
         test
         """
-        logging.basicConfig(filename='example.log', level=logging.DEBUG)
+        logging.basicConfig(filename='basicconfig.log', level=logging.DEBUG)
         namespace = 'interop'
         conn = self.build_repo(namespace)
 
@@ -2020,9 +2019,10 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
         Differs from example in that we set detail_level to limit output for
-        test
+        test. The basic logger should have no effect since pywbem sets the
+        NULLHandler at the pywbem level.
         """
-        logging.basicConfig(filename='example.log', level=logging.DEBUG)
+        logging.basicConfig(filename='basicconfig.log', level=logging.DEBUG)
         namespace = 'interop'
         conn = self.build_repo(namespace)
 
@@ -2069,6 +2069,7 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
 
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all', log_dest='file',
+                         log_filename=TEST_OUTPUT_LOG,
                          connection=conn)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
@@ -2097,26 +2098,20 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
     @log_capture()
     def test_7(self, lc):
         """
-        Configure a http logger with detail_level='all' and logger manually set
-        at level pywbem.
+        Configure a http logger with detail_level='all', log_dest=none
+        a log config with just 'http'  (which produces no output because the
+        mocker does not generate http requests or responses) and at the
+        same time setting the logging basic logger which we do not use.
+        This test ability to generate connection log when only http log is
+        activated.
         """
         logging.basicConfig(filename='example.log', level=logging.DEBUG)
         namespace = 'interop'
         conn = self.build_repo(namespace)
 
-        logger = logging.getLogger('pywbem')
-        msg_format = '%(asctime)s-%(name)s-%(message)s'
-        handler = logging.FileHandler(DEFAULT_LOG_FILENAME, encoding="UTF-8")
-        handler.setFormatter(logging.Formatter(msg_format))
-        logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
-
-        logging_tree_printout()
-
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all', log_dest=None,
                          connection=conn)
-        logging_tree_printout()
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
@@ -2142,7 +2137,139 @@ class TestLoggingExamples(BaseLogOperationRecorderTests):
         )
 
     @log_capture()
-    def test_err1(self, lc):
+    def test_8(self, lc):
+        """
+        Configure a http logger with detail_level='all' and
+        a log config with just 'http'  (which produces no output because the
+        mocker does not generate http requests or responses) and at the
+        same time setting the logging basic logger which we do not use.
+        This test ability to generate connection log when only http log is
+        activated.
+        """
+        msg_format = '%(asctime)s-%(name)s-%(message)s'
+        handler = logging.FileHandler(TEST_OUTPUT_LOG, encoding="UTF-8")
+        handler.setFormatter(logging.Formatter(msg_format))
+        logger = logging.getLogger('pywbem')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+
+        namespace = 'interop'
+        conn = self.build_repo(namespace)
+
+        # Define the detail_level and WBEMConnection object to activate.
+        configure_logger('http', detail_level='all', log_dest=None,
+                         connection=conn)
+
+        conn.GetClass('CIM_ObjectManager', namespace=namespace)
+
+        conn_id = conn.conn_id
+
+        http_exp_log_id = 'pywbem.http.%s' % conn_id
+
+        # pylint: disable=line-too-long
+        con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
+              'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
+              'creds=None, conn_id=%s, default_namespace=' \
+              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'ca_certs=None, no_verification=False, timeout=None, ' \
+              "use_pull_operations=False, " \
+              "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
+              ')"))' % (conn_id, conn_id)
+
+        if six.PY3:
+            con = con.replace("u\'", "'")
+
+        lc.check(
+            (http_exp_log_id, 'DEBUG', con)
+        )
+
+    @log_capture()
+    def test_9(self, lc):
+        """
+        Configure a http logger with detail_level='all' and
+        a log config with just 'http'  (which produces no output because the
+        mocker does not generate http requests or responses) and at the
+        same time setting the logging basic logger which we do not use.
+        This test ability to generate connection log when only http log is
+        activated.
+        """
+
+        namespace = 'interop'
+        conn = self.build_repo(namespace)
+
+        # Define the detail_level and WBEMConnection object to activate.
+        configure_logger('http', detail_level='all', log_dest=None,
+                         connection=conn)
+
+        conn.GetClass('CIM_ObjectManager', namespace=namespace)
+
+        print(lc)
+
+        conn_id = conn.conn_id
+
+        http_exp_log_id = 'pywbem.http.%s' % conn_id
+
+        # pylint: disable=line-too-long
+        con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
+              'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
+              'creds=None, conn_id=%s, default_namespace=' \
+              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'ca_certs=None, no_verification=False, timeout=None, ' \
+              "use_pull_operations=False, " \
+              "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
+              ')"))' % (conn_id, conn_id)
+
+        if six.PY3:
+            con = con.replace("u\'", "'")
+
+        lc.check(
+            (http_exp_log_id, 'DEBUG', con)
+        )
+
+    @log_capture()
+    def test_10(self, lc):
+        """
+        Configure a http logger with detail_level='all' and
+        a log config with just 'http'  (which produces no output because the
+        mocker does not generate http requests or responses) and at the
+        same time setting the logging basic logger which we do not use.
+        This test ability to generate connection log when only http log is
+        activated.
+        """
+
+        namespace = 'interop'
+        # Define the detail_level and WBEMConnection object to activate.
+        configure_logger('http', detail_level='all',
+                         connection=True)
+        conn = self.build_repo(namespace)
+
+        conn.GetClass('CIM_ObjectManager', namespace=namespace)
+
+        print(lc)
+
+        conn_id = conn.conn_id
+
+        http_exp_log_id = 'pywbem.http.%s' % conn_id
+
+        # pylint: disable=line-too-long
+        con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
+              'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
+              'creds=None, conn_id=%s, default_namespace=' \
+              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'ca_certs=None, no_verification=False, timeout=None, ' \
+              "use_pull_operations=False, " \
+              "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
+              ')"))' % (conn_id, conn_id)
+
+        if six.PY3:
+            con = con.replace("u\'", "'")
+
+        lc.check(
+            (http_exp_log_id, 'DEBUG', con)
+        )
+
+    @log_capture()
+    def test_err(self, lc):
         """
         Test configure_logger exception
         """
