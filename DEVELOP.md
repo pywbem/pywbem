@@ -86,15 +86,11 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     To make the following changes:
 
-    * Set the pywbem version near the top of the file to the version that is
-      being released:
+    * Update the constants near the top of the file:
 
       `.. |pywbem-version| replace:: M.N.U`
-
-    * Remove any release planning info for the currenti version, if present.
-
-    * Optional: Add some preliminary release planning info for the next
-      version.
+      `.. |pywbem-next-version| replace:: M.N.U+1`
+      `.. |pywbem-next-issue| replace:: <issue-number>`
 
 6.  Perform a complete build (in your favorite Python virtual environment):
 
