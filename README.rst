@@ -1,32 +1,29 @@
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
+.. # begin of customization for the current version
 .. |pywbem-version| replace:: 0.11.0
+.. |pywbem-next-version| replace:: 0.12.0
+.. |pywbem-next-issue| replace:: 771
+.. # end of customization for the current version
 
-.. PyPI download statistics are broken, but the new PyPI warehouse makes PyPI
-.. download statistics available through Google BigQuery
-.. (https://bigquery.cloud.google.com).
-.. Query to list package downloads by version:
-..
-   SELECT
-     file.project,
-     file.version,
-     COUNT(*) as total_downloads,
-     SUM(CASE WHEN REGEXP_EXTRACT(details.python, r"^([^\.]+\.[^\.]+)") = "2.6" THEN 1 ELSE 0 END) as py26_downloads,
-     SUM(CASE WHEN REGEXP_EXTRACT(details.python, r"^([^\.]+\.[^\.]+)") = "2.7" THEN 1 ELSE 0 END) as py27_downloads,
-     SUM(CASE WHEN REGEXP_EXTRACT(details.python, r"^([^\.]+)\.[^\.]+") = "3" THEN 1 ELSE 0 END) as py3_downloads,
-   FROM
-     TABLE_DATE_RANGE(
-       [the-psf:pypi.downloads],
-       TIMESTAMP("19700101"),
-       CURRENT_TIMESTAMP()
-     )
-   WHERE
-     file.project = 'pywbem'
-   GROUP BY
-     file.project, file.version
-   ORDER BY
-     file.version DESC
+.. |pywbem-next-issue-link-1| raw:: html
+
+    <a href="https://github.com/pywbem/pywbem/issues/
+
+.. |pywbem-next-issue-link-2| raw:: html
+
+    ">issue
+
+.. |pywbem-next-issue-link-3| raw:: html
+
+    </a>
+
+.. |pywbem-next-issue-link| replace:: |pywbem-next-issue-link-1|\ |pywbem-next-issue|\ |pywbem-next-issue-link-2| |pywbem-next-issue|\ |pywbem-next-issue-link-3|
+
+.. |os-setup-link| raw:: html
+
+    <a href="https://pywbem.readthedocs.io/en/latest/_downloads/pywbem_os_setup.sh">pywbem_os_setup.sh</a>
 
 .. image:: https://img.shields.io/pypi/v/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
@@ -46,20 +43,22 @@ Pywbem - A WBEM client and related utilities, written in pure Python
 
 .. image:: https://readthedocs.org/projects/pywbem/badge/?version=latest
     :target: http://pywbem.readthedocs.io/en/latest/
-    :alt: Docs build status (latest)
+    :alt: Docs build status (master)
 
 .. image:: https://img.shields.io/coveralls/pywbem/pywbem.svg
     :target: https://coveralls.io/r/pywbem/pywbem
     :alt: Test coverage (master)
 
-.. contents:: **Contents:**
-   :local:
+.. # .. contents:: **Contents:**
+.. #    :local:
 
 Overview
 --------
 
 Pywbem is a WBEM client and WBEM indication listener, written in pure Python.
 It runs on Python 2 and Python 3.
+
+The latest released version of pywbem is |pywbem-version|.
 
 The major components of pywbem are shown in this diagram:
 
@@ -92,29 +91,20 @@ activities:
 * `WBEMServer`_ - provides APIs for managing basic characteristics of
   a WBEM server including:
 
+  * finding CIM namespaces and the Interop namespace,
+  * finding WBEM management profiles,
+  * finding basic information about the WBEM server.
+
 .. _WBEMServer: http://pywbem.readthedocs.io/en/stable/server.html
-
-  - finding CIM namespaces and the Interop namespace,
-  - finding WBEM management profiles,
-  - finding basic information about the WBEM server.
-
 
 Installation
 ------------
 
-.. |os-setup-link-pre| raw:: html
+To install the latest released version of pywbem:
 
-    <a href="https://github.com/pywbem/pywbem/raw/v
+* Install the prerequisite OS-level packages:
 
-.. |os-setup-link-post| raw:: html
-
-    /pywbem_os_setup.sh">pywbem_os_setup.sh</a>
-
-.. |os-setup-link| replace:: |os-setup-link-pre|\ |pywbem-version|\ |os-setup-link-post|
-
-* You first need to ensure that prerequisite OS-level packages are installed:
-
-  * Download the |os-setup-link| script (for pywbem version |pywbem-version|)
+  * Download the |os-setup-link| script
 
   * Execute that script:
 
@@ -122,7 +112,7 @@ Installation
 
         $ ./pywbem_os_setup.sh
 
-* Then, install the pywbem Python package using Pip:
+* With your target Python environment active, install pywbem:
 
   .. code-block:: bash
 
@@ -135,39 +125,31 @@ For more details and alternative ways to install, see the
 
 .. _Installation section: http://pywbem.readthedocs.io/en/stable/intro.html#installation
 
-Usage
------
-
-For information on how to use pywbem, or how to contribute to it, go to the
-`pywbem documentation`_ .
-
-.. _pywbem documentation: http://pywbem.readthedocs.io/en/stable/
-
 Documentation
 -------------
 
 The lastest pywbem documentation is available on ReadTheDocs:
 
-* `Documentation for latest version on Pypi`_
+* `Documentation for latest released version`_
 
-.. _Documentation for latest version on Pypi: http://pywbem.readthedocs.io/en/stable/
+.. _Documentation for latest released version: http://pywbem.readthedocs.io/en/stable/
 
-* `Documentation for master branch in the Git repo`_
+* `Documentation for latest unreleased development version`_
 
-.. _Documentation for master branch in the Git repo: http://pywbem.readthedocs.io/en/latest/
+.. _Documentation for latest unreleased development version: http://pywbem.readthedocs.io/en/latest/
 
 The documentation includes API documentation, user documentation,
 tutorial documentation, developer documentation.
 
-This includes a number of Jupyter notebooks that act as a
-`pywbem tutorial`_ and provide working examples of pywbem API usage.
+This includes a number of Jupyter notebooks that act as a `Tutorial`_ and
+provide working examples of pywbem API usage.
 
-.. _pywbem tutorial: http://pywbem.readthedocs.io/en/stable/tutorial.html
+.. _Tutorial: http://pywbem.readthedocs.io/en/stable/tutorial.html
 
-There are also a number of `presentations`_ on the status, concepts, and implementation
-of pywbem available in readthedocs.
+There are also a number of `Presentations`_ on the status, concepts, and implementation
+of pywbem available.
 
-.. _presentations: http://pywbem.github.io/pywbem/documentation.html
+.. _Presentations: http://pywbem.github.io/pywbem/documentation.html
 
 Command line tools
 ------------------
@@ -227,17 +209,19 @@ release.
 Planned Next Release
 --------------------
 
-Pywbem 0.12.0 is in development.
+Pywbem |pywbem-next-version| is in development.
 
-Pywbem github `Issue 771`_ defines the basic direction for release 0.12.0
-
-.. _Issue 771: https://github.com/pywbem/pywbem/issues/771
+Pywbem |pywbem-next-issue-link| defines the basic direction for version
+|pywbem-next-version|.
 
 Contributing
 ------------
 
-For information on how to contribute to pywbem, see the Development
-section in the documentation.
+For information on how to contribute to pywbem, see the
+`Contributing section`_ in the pywbem documentation.
+
+.. _Contributing section: http://pywbem.readthedocs.io/en/stable/development.html#contributing
+
 
 License
 -------
