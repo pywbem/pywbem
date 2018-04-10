@@ -305,7 +305,7 @@ LOG_DETAIL_LEVELS = ['all', 'paths', 'summary']
 DEFAULT_LOG_DETAIL_LEVEL = 'all'
 
 
-def configure_logger(simple_name, log_dest=DEFAULT_LOG_DESTINATION,
+def configure_logger(simple_name, log_dest=None,
                      detail_level=DEFAULT_LOG_DETAIL_LEVEL,
                      log_filename=DEFAULT_LOG_FILENAME,
                      connection=None):
