@@ -542,33 +542,41 @@ Note: For tooling reasons, the variable is shown as
 Standards conformance
 ---------------------
 
-Pywbem conforms to the following CIM and WBEM standards, in the version
-specified when following the links to the standards:
+The pywbem client and pywbem indication listener conform to the following
+CIM and WBEM standards, in the version specified when following the links
+to the standards:
 
-* The supported WBEM protocol is CIM-XML; it conforms to :term:`DSP0200` and
-  :term:`DSP0201`.
+* The implementation of the CIM-XML protocol in pywbem (client and
+  listener) conforms to :term:`DSP0200` and :term:`DSP0201`.
 
   Limitations:
-
-  - Multi-requests are not supported. This is not a functional limitation
-    though, because the use of multi-requests is entirely determined by the
-    client: If a client does not send multi-requests, the server does not send
-    back multi-responses.
-
-  - CIM-XML supports CIM methods with a void return type. However, DSP0004 does
-    not support them, and neither does pywbem.
-
-  - CIM-XML supports CIM references to classes. However, DSP0004 does not
-    support them, and neither does pywbem (references are always to instances).
-
-  - The ``EnumerationCount`` operation is not supported by pywbem.
 
   - The mock support of pywbem (see :ref:`Mock support`) does not support the
     ``ModifyClass`` operation. Note that in its implementation of the CIM-XML
     protocol, pywbem does support the ``ModifyClass`` operation.
 
+  - The ``EnumerationCount`` operation is not supported by pywbem. That
+    operation is optional for WBEM servers to support, and is hard to
+    implement reasonably.
+
+  - Multi-requests are not supported by pywbem. This is not a functional
+    limitation though, because the use of multi-requests is entirely
+    determined by the client: If a client does not use multi-requests,
+    the server does not use multi-responses.
+
+  Notes:
+
+  - The CIM-XML representation as defined in :term:`DSP0201` supports CIM
+    methods that have a void return type. However, the CIM architecture
+    defined in :term:`DSP0004` does not support that, and neither does pywbem.
+
+  - The CIM-XML representation as defined in :term:`DSP0201` supports
+    references to CIM classes. However, the CIM architecture defined in
+    :term:`DSP0004` does not support that, and neither does pywbem.
+
 * The CIM-XML representation of :ref:`CIM objects` as produced by their
-  ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to :term:`DSP0201`.
+  ``tocimxml()`` and ``tocimxmlstr()`` methods conforms to the representations
+  for these objects as defined in :term:`DSP0201`.
 
   Limitations:
 
@@ -577,8 +585,12 @@ specified when following the links to the standards:
     by pywbem, but is ignored and is not represented on the corresponding
     :ref:`CIM objects`.
 
+* The capabilities of :ref:`CIM objects` conform to the CIM architecture as
+  defined in :term:`DSP0004`.
+
 * The MOF as produced by the ``tomof()`` methods on :ref:`CIM objects` and as
-  parsed by the MOF compiler conforms to :term:`DSP0004`.
+  parsed by the MOF compiler conforms to the MOF syntax as defined in
+  :term:`DSP0004`.
 
   Limitations:
 
@@ -587,18 +599,15 @@ specified when following the links to the standards:
     in the instance, or have non-NULL default values (issue #1079).
 
   - The pywbem MOF compiler has the restriction that an alias must be defined
-    before it is used. In :term:`DSP0004`, no such requirement is defined
-    (issue #1078).
+    before it is used. In the MOF syntax defined in :term:`DSP0004`, no such
+    restriction exists (issue #1078).
 
   - The pywbem MOF compiler does not roll back changes to qualifier
     declarations when it aborts (issue #990).
 
-* The implemented CIM metamodel (e.g. in the :ref:`CIM objects`) conforms to
-  :term:`DSP0004`.
-
 * The WBEM URIs produced by the ``to_wbem_uri()`` methods of
   :class:`~pywbem.CIMInstanceName` and :class:`~pywbem.CIMClassName` conform to
-  :term:`DSP0207`.
+  the WBEM URI syntax as defined in :term:`DSP0207`.
 
   Note that the ``__str__()`` methods of these two classes produce strings that
   are similar but not conformant to :term:`DSP0207`, for historical reasons.
