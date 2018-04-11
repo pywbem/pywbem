@@ -40,6 +40,9 @@ Version 0.12.1
 
 Released: 2018-04-11
 
+* fix issue where wbemcli-help-txt was not being updated when wbemcli.py
+  changed.  Issue # 1205
+
 **Enhancements:**
 
 * Fixed package description on Pypi that did not format properly.
