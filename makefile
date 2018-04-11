@@ -497,7 +497,7 @@ endif
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $@"
 
-$(doc_conf_dir)/wbemcli.help.txt: wbemcli
+$(doc_conf_dir)/wbemcli.help.txt: wbemcli wbemcli.py
 	@echo "makefile: Creating wbemcli script help message file"
 	./wbemcli --help >$@
 	@echo "makefile: Done creating wbemcli script help message file: $@"
