@@ -16,23 +16,13 @@ Change log
 Version 0.12.1
 ^^^^^^^^^^^^^^
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
-
-**Bug fixes:**
+Released: 2018-04-11
 
 **Enhancements:**
 
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+* Fixed package description on Pypi that did not format properly.
+  Shortened the description, to point to the README file on GitHub
+  and to the documentation on RTD.
 
 
 pywbem v0.12.0
