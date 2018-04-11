@@ -86,11 +86,26 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     To make the following changes:
 
-    * Update the constants near the top of the file:
+    * Update the constants near the top of the file::
 
-      `.. |pywbem-version| replace:: M.N.U`
-      `.. |pywbem-next-version| replace:: M.N.U+1`
-      `.. |pywbem-next-issue| replace:: <issue-number>`
+        .. |pywbem-version| replace:: {M.N.U}
+        .. |pywbem-next-version| replace:: {M.N.U+1}
+        .. |pywbem-next-issue| replace:: {issue-number}
+
+      Where the items in curly braces are replaced with their actual values.
+
+5.  Edit the README_PYPI file:
+
+    - `vi README_PYPI.rst`
+
+    To make the following changes:
+
+    * Update the pywbem version in the two links near the bottom of the file::
+
+        .. _README file: https://github.com/pywbem/pywbem/blob/stable_{M.N}/README.rst
+        .. _Documentation: http://pywbem.readthedocs.io/en/stable_{M.N}/
+
+      Where the items in curly braces are replaced with their actual values.
 
 6.  Perform a complete build (in your favorite Python virtual environment):
 
