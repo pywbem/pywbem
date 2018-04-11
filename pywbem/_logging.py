@@ -289,7 +289,7 @@ DEFAULT_LOG_DETAIL_LEVEL = 'all'
 def configure_logger(simple_name, log_dest=None,
                      detail_level=DEFAULT_LOG_DETAIL_LEVEL,
                      log_filename=DEFAULT_LOG_FILENAME,
-                     connection=None):
+                     connection=None, propagate=False):
     # pylint: disable=line-too-long
     """
     Configure the pywbem loggers and optionally activate WBEM connections
@@ -356,6 +356,10 @@ def configure_logger(simple_name, log_dest=None,
 
         If `None`, no WBEM connection will be activated for logging.
 
+      propagate (:class:`py:bool`): Flag controlling whether the
+        affected pywbem logger should propagate log events to its
+        parent loggers.
+
     Raises:
 
       ValueError: Invalid input parameters (loggers remain unchanged).
@@ -371,12 +375,13 @@ def configure_logger(simple_name, log_dest=None,
         log_dest=log_dest,
         detail_level=detail_level,
         log_filename=log_filename,
-        connection=connection)
+        connection=connection,
+        propagate=propagate)
 
 
 def configure_loggers_from_string(log_configuration_str,
                                   log_filename=DEFAULT_LOG_FILENAME,
-                                  connection=None):
+                                  connection=None, propagate=False):
     # pylint: disable=line-too-long
     """
     Configure the pywbem loggers and optionally activate WBEM connections for
@@ -427,6 +432,10 @@ def configure_loggers_from_string(log_configuration_str,
         will be set for the affected pywbem loggers on the connection.
 
         If `None`, no WBEM connection will be activated for logging.
+
+      propagate (:class:`py:bool`): Flag controlling whether the
+        affected pywbem logger should propagate log events to its
+        parent loggers.
 
     Raises:
 
@@ -488,4 +497,5 @@ def configure_loggers_from_string(log_configuration_str,
             log_dest=log_dest,
             detail_level=detail_level,
             log_filename=log_filename,
-            connection=connection)
+            connection=connection,
+            propagate=propagate)

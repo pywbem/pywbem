@@ -1221,7 +1221,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def _configure_logger(cls, simple_name, log_dest, detail_level,
-                          log_filename, connection):
+                          log_filename, connection, propagate):
         # pylint: disable=line-too-long
         """
         Configure the pywbem loggers and optionally activate WBEM connections
@@ -1288,6 +1288,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, no WBEM connection will be activated for logging.
 
+        propagate (:class:`py:bool`): Flag controlling whether the
+          affected pywbem logger should propagate log events to its
+          parent loggers.
+
         Raises:
 
           ValueError: Invalid input parameters (loggers remain unchanged).
@@ -1298,11 +1302,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             cls._configure_logger('api', log_dest=log_dest,
                                   detail_level=detail_level,
                                   log_filename=log_filename,
-                                  connection=connection)
+                                  connection=connection,
+                                  propagate=propagate)
             cls._configure_logger('http', log_dest=log_dest,
                                   detail_level=detail_level,
                                   log_filename=log_filename,
-                                  connection=connection)
+                                  connection=connection,
+                                  propagate=propagate)
             return
         elif simple_name == 'api':
             logger_name = LOGGER_API_CALLS_NAME
@@ -1317,7 +1323,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         detail_level = cls._configure_detail_level(detail_level)
 
         cls._activate_logger(logger_name, simple_name, detail_level, handler,
-                             connection)
+                             connection, propagate)
 
     @classmethod
     def _configure_detail_level(cls, detail_level):
@@ -1374,7 +1380,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def _activate_logger(cls, logger_name, simple_name, detail_level, handler,
-                         connection):
+                         connection, propagate):
         """
         Configure the specified logger, and activate logging and set detail
         level for connections.
@@ -1386,7 +1392,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         The 'handler' parameter controls logger configuration:
         * If None, nothing is done.
         * If a Handler object, the specified logger gets its handlers replaced
-          with the new handler, and logging level DEBUG is set.
+          with the new handler, and logging level DEBUG is set, and the
+          `propagate` attribute of the logger is set according to the
+          `propagate` parameter.
 
         The 'connection' paraneter controls activation and setting of the
         detail level:
@@ -1410,6 +1418,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             logger.addHandler(handler)
 
             logger.setLevel(logging.DEBUG)
+            logger.propagate = propagate
 
         if connection is not None:
             if isinstance(connection, bool):
