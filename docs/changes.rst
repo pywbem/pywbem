@@ -26,6 +26,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* fix issue where wbemcli-help-txt was not being updated when wbemcli.py
+  changed.  Issue # 1205
+
 **Enhancements:**
 
 **Known issues:**
