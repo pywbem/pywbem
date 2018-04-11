@@ -23,12 +23,14 @@ Unit test logging functionality in _logging.py
 from __future__ import absolute_import, print_function
 
 import os
+import re
 import logging
 
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
 import unittest
+import pytest
 
 # logging_tree is a useful tool to understand what the logging
 # configuraiton produces.  It is not normally installed in pywbem but simply
@@ -39,7 +41,7 @@ import unittest
 # To use the tool just set a line to printout() where you want to see what
 # loggers exist
 
-from testfixtures import LogCapture, log_capture, compare
+from testfixtures import LogCapture, log_capture, compare, TempDirectory
 from pywbem import WBEMConnection
 from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
@@ -51,6 +53,12 @@ SCRIPT_DIR = os.path.dirname(__file__)
 
 LOG_FILE_NAME = 'test_logging.log'
 TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
+
+
+@pytest.fixture(autouse=True)
+def tmp_dir():
+    with TempDirectory() as dir:
+        yield dir
 
 
 class BaseLoggingTest(unittest.TestCase):
@@ -144,13 +152,13 @@ class UnitLoggingTests(BaseLoggingTest):
         if expected_result == 'error':
             try:
                 configure_loggers_from_string(param, log_filename=log_file,
-                                              connection=conn)
+                                              connection=conn, propagate=True)
                 self.fail('Exception expected')
             except ValueError:
                 pass
         else:
             configure_loggers_from_string(param, log_filename=log_file,
-                                          connection=conn)
+                                          connection=conn, propagate=True)
 
             api_logger = logging.getLogger(LOGGER_API_CALLS_NAME)
             http_logger = logging.getLogger(LOGGER_HTTP_NAME)
@@ -355,10 +363,11 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
     """Test output from logging"""
 
     @log_capture()
-    def test_log_output(self, l):  # pylint: disable=blacklisted-name
+    def test_log_output(self, lc):
         test_input = 'all=file'
 
-        configure_loggers_from_string(test_input, TEST_OUTPUT_LOG)
+        configure_loggers_from_string(
+            test_input, TEST_OUTPUT_LOG, propagate=True)
 
         my_logger = logging.getLogger(LOGGER_API_CALLS_NAME)
 
@@ -377,8 +386,71 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
 
         my_logger.debug('%s: %s: %s', return_name, 'FakeMethodName', result)
 
-        l.check(('pywbem.api', 'DEBUG',
+        lc.check(('pywbem.api', 'DEBUG',
                  "Return: FakeMethodName: 'This is fake return data'"))
+
+
+class TestLoggerPropagate(object):
+    """Test logging with propagate parameter variations"""
+
+    @pytest.mark.parametrize(
+        "propagate", (True, False)
+    )
+    @pytest.mark.parametrize(
+        "logger_names", (
+            ('api', 'pywbem.api'),
+            # http logger does not log WBEMConnection
+        )
+    )
+    def test_logger_propagate(self, tmp_dir, logger_names, propagate):
+
+        short_name, logger_name = logger_names
+
+        # The testing approach is to log to files and check their contents.
+        # Neither LogCapture nor OutputCapture seemed to work with pytest.
+        logger_filename = os.path.join(tmp_dir.path, 'pywbem.xxx.log')
+        pkg_filename = os.path.join(tmp_dir.path, 'pywbem.log')
+
+        # Create a log handler on the 'pywbem.<xxx>' logger to be tested
+        configure_logger(short_name, log_dest='file',
+                         log_filename=logger_filename,
+                         detail_level='all', connection=True,
+                         propagate=propagate)
+
+        # Create a log handler on the 'pywbem' logger (parent)
+        pkg_logger = logging.getLogger('pywbem')
+        pkg_handler = logging.FileHandler(pkg_filename, encoding="UTF-8")
+        pkg_handler.setLevel(logging.DEBUG)
+        pkg_formatter = logging.Formatter('%(asctime)s-%(name)s-%(message)s')
+        pkg_handler.setFormatter(pkg_formatter)
+        pkg_logger.addHandler(pkg_handler)
+
+        # Create a log event
+        WBEMConnection('bla')
+
+        # Verify the 'propagate' attribute of the logger to be tested
+        logger = logging.getLogger(logger_name)
+        assert logger.propagate == propagate
+
+        for h in logger.handlers + pkg_logger.handlers:
+            try:
+                h.flush()
+                h.close()
+            except AttributeError:
+                pass
+
+        pkg_logger.removeHandler(pkg_handler)
+
+        with open(logger_filename) as logger_fp:
+            logger_line = logger_fp.read()
+        assert re.match(r'.*-%s\..*-Connection:' % logger_name, logger_line)
+
+        with open(pkg_filename) as pkg_fp:
+            pkg_line = pkg_fp.read()
+        if propagate:
+            assert re.match(r'.*-pywbem.*-Connection:', pkg_line)
+        else:
+            assert pkg_line == ''
 
 
 if __name__ == '__main__':

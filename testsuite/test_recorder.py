@@ -536,11 +536,11 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
 
         configure_logger('api', log_dest='file',
                          detail_level=detail_level,
-                         log_filename=TEST_OUTPUT_LOG)
+                         log_filename=TEST_OUTPUT_LOG, propagate=True)
 
         configure_logger('http', log_dest='file',
                          detail_level=detail_level,
-                         log_filename=TEST_OUTPUT_LOG)
+                         log_filename=TEST_OUTPUT_LOG, propagate=True)
 
         # Define an attribute that is a single LogOperationRecorder to be used
         # in some of the tests.  Note that if detail_level is dict it is used
@@ -730,7 +730,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
         configure_logger('api', log_dest='stderr', detail_level='all',
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         # pywbem 2 and 3 differ in only the use of unicode for certain
         # string properties. (ex. classname)
@@ -765,7 +765,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               use_pull_operations=True,
                               stats_enabled=True)
         configure_logger('api', log_dest='stderr', detail_level='all',
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         # fake conn id by directly setting internal attribute
         # pywbem 2 and 3 differ in only the use of unicode for certain
@@ -803,7 +803,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               use_pull_operations=True,
                               stats_enabled=True)
         configure_logger('api', log_dest='stderr', detail_level='summary',
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         # fake conn id by directly setting internal attribute
         # pywbem 2 and 3 differ in only the use of unicode for certain
@@ -1778,7 +1778,8 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-        configure_logger('api', detail_level='summary', connection=True)
+        configure_logger('api', detail_level='summary', connection=True,
+                         propagate=True)
         try:
             conn = WBEMConnection('http://blah', timeout=1)
 
@@ -1867,7 +1868,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         configure_logger('api', log_dest='file',
                          detail_level='summary',
                          log_filename=TEST_OUTPUT_LOG,
-                         connection=True)
+                         connection=True, propagate=True)
         conn = FakedWBEMConnection('http://blah')
         conn.compile_mof_string(partial_schema, namespace=namespace,
                                 search_paths=[SCHEMA_MOF_DIR])
@@ -1910,7 +1911,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         configure_logger('all', log_dest='file',
                          log_filename=TEST_OUTPUT_LOG,
                          detail_level=10,
-                         connection=conn)
+                         connection=conn, propagate=True)
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
         conn_id = conn.conn_id
@@ -1948,7 +1949,8 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
-        configure_logger('all', detail_level=10, connection=conn)
+        configure_logger('all', detail_level=10, connection=conn,
+                         propagate=True)
 
         # logging_tree_printout()
 
@@ -1987,7 +1989,8 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
-        configure_logger('api', detail_level=10, connection=conn)
+        configure_logger('api', detail_level=10, connection=conn,
+                         propagate=True)
 
         # logging_tree_printout()
 
@@ -2027,7 +2030,8 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
-        configure_logger('api', detail_level=10, connection=conn)
+        configure_logger('api', detail_level=10, connection=conn,
+                         propagate=True)
 
         # logging_tree_printout()
 
@@ -2070,7 +2074,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all', log_dest='file',
                          log_filename=TEST_OUTPUT_LOG,
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
@@ -2111,7 +2115,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all', log_dest=None,
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
@@ -2158,7 +2162,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all', log_dest=None,
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
@@ -2199,7 +2203,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all', log_dest=None,
-                         connection=conn)
+                         connection=conn, propagate=True)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
@@ -2240,7 +2244,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         namespace = 'interop'
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all',
-                         connection=True)
+                         connection=True, propagate=True)
         conn = self.build_repo(namespace)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
@@ -2278,7 +2282,8 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         # Define the detail_level and WBEMConnection object to activate.
         try:
-            configure_logger('api', detail_level='blah', connection=conn)
+            configure_logger('api', detail_level='blah', connection=conn,
+                             propagate=True)
             self.fail("Exception expected")
         except ValueError:
             pass
