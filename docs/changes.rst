@@ -16,9 +16,7 @@ Change log
 pywbem v0.12.0
 --------------
 
-This version is currently in development and is shown as |version|.
-
-Released: Not yet
+Released: 2018-04-11
 
 Incompatible changes
 ^^^^^^^^^^^^^^^^^^^^
