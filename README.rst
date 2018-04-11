@@ -2,9 +2,9 @@ Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
 .. # begin of customization for the current version
-.. |pywbem-version| replace:: 0.11.0
-.. |pywbem-next-version| replace:: 0.12.0
-.. |pywbem-next-issue| replace:: 771
+.. |pywbem-version| replace:: 0.12.0
+.. |pywbem-next-version| replace:: 0.13.0
+.. |pywbem-next-issue| replace:: 1170
 .. # end of customization for the current version
 
 .. |pywbem-next-issue-link-1| raw:: html
@@ -23,7 +23,7 @@ Pywbem - A WBEM client and related utilities, written in pure Python
 
 .. |os-setup-link| raw:: html
 
-    <a href="https://pywbem.readthedocs.io/en/latest/_downloads/pywbem_os_setup.sh">pywbem_os_setup.sh</a>
+    <a href="https://pywbem.readthedocs.io/en/stable/_downloads/pywbem_os_setup.sh">pywbem_os_setup.sh</a>
 
 .. image:: https://img.shields.io/pypi/v/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
@@ -128,7 +128,7 @@ For more details and alternative ways to install, see the
 Documentation
 -------------
 
-The lastest pywbem documentation is available on ReadTheDocs:
+The latest pywbem documentation is available on ReadTheDocs:
 
 * `Documentation for latest released version`_
 
@@ -150,6 +150,12 @@ There are also a number of `Presentations`_ on the status, concepts, and impleme
 of pywbem available.
 
 .. _Presentations: http://pywbem.github.io/pywbem/documentation.html
+
+The detailed change history for the latest released version in the
+`Change log section`_.
+
+.. _Change log section: http://pywbem.readthedocs.io/en/stable/changes.html
+
 
 Command line tools
 ------------------
