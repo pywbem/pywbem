@@ -26,8 +26,8 @@ Released: not yet
 
 **Bug fixes:**
 
-* fix issue where wbemcli-help-txt was not being updated when wbemcli.py
-  changed.  (Issue #1205)
+* Fixed the issue where wbemcli-help-txt was not being updated when wbemcli.py
+  changed. (Issue #1205)
 
 * Test: Fixed access to incorrect tuple members in run_cim_operations.py.
   that were used only in long version of the test. Found by Pylint.
@@ -54,6 +54,15 @@ Released: not yet
   repository builds without having to  specifically declare all dependent
   classes for the classes the user needs in a repository if the mof for the
   dependent classes in in the search path. (Issue #1160).
+
+* Added a `tobinary()` method to the `ValueMapping` class, which translates the
+  value mapping from a `Values` string to binary integer values, or a range
+  thereof. This is the opposite direction of the existing `tovalues()` method.
+  (Issue #1153)
+
+* Added an `items()` generator method to the `ValueMapping` class for iterating
+  through the items of the value mapping, returning tuples of the binary value
+  (or a range thereof), and the `Values` string. (Issue #1153)
 
 **Cleanup**
 
