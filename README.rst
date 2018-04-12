@@ -1,7 +1,8 @@
+
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
-.. |pywbem-version| replace:: 0.11.0
+.. |pywbem-version| replace:: 0.11.1
 
 .. PyPI download statistics are broken, but the new PyPI warehouse makes PyPI
 .. download statistics available through Google BigQuery
