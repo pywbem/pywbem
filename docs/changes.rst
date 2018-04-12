@@ -16,32 +16,18 @@ Change log
 Version 0.12.2
 ^^^^^^^^^^^^^^
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2018-04-12
 
 **Bug fixes:**
 
-**Enhancements:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+* Fixed issue where wbemcli-help-txt was not being updated when wbemcli.py
+  changed. (Issue #1205)
 
 
 Version 0.12.1
 ^^^^^^^^^^^^^^
 
 Released: 2018-04-11
-
-* fix issue where wbemcli-help-txt was not being updated when wbemcli.py
-  changed.  Issue # 1205
 
 **Enhancements:**
 
