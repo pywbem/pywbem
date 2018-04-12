@@ -18,12 +18,12 @@ contains the `master` branch up to this commit:
 pywbem v0.11.1
 --------------
 
-Released: 2018-mm-dd
+Released: 2018-04-12
 
 Bug fixes
 ^^^^^^^^^
 
-* Docs: Fixed the descriprion of the pywbem installation on Windows, and added
+* Docs: Fixed the description of the pywbem installation on Windows, and added
   trouble shooting information.
 
 
