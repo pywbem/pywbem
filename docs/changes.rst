@@ -27,9 +27,20 @@ Released: not yet
 **Bug fixes:**
 
 * fix issue where wbemcli-help-txt was not being updated when wbemcli.py
-  changed.  Issue # 1205
+  changed.  (Issue #1205)
 
 **Enhancements:**
+
+* Extend MOFWBEMConnection to generate an exception if the compile of a
+  class with reference parameters or properties reference class is not in the
+  repository or if the class defined for an EmbeddedInstance qualifier is
+  not in the repository or. This makes use of the capability with the
+  mof compiler (extended slightly) to search the search path defined for the
+  compile for the corresponding missing classes if they are not in the
+  repository.  This means that the mof_compiler can be used to create complete
+  class repository builds without having to define specifically all dependent
+  classes for the classes defined for the build if those classes are in the
+  search path. (Issue #1160)
 
 **Cleanup**
 

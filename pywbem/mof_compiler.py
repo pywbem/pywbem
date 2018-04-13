@@ -599,25 +599,32 @@ def p_mp_createClass(p):
                     objects = list(cc.properties.values())
                     for meth in cc.methods.values():
                         objects += list(meth.parameters.values())
+                    # TODO the test for class in list does not work now that
+                    # we have made dep_classes a tuple with class and ce
                     dep_classes = []
+                    dep_rslts = []
                     for obj in objects:
                         if obj.type not in ['reference', 'string']:
                             continue
                         if obj.type == 'reference':
-                            if obj.reference_class.lower() not in dep_classes:
-                                dep_classes.append(obj.reference_class.lower())
+                            obj_ref = obj.reference_class.lower()
+                            if obj_ref not in dep_classes:
+                                dep_classes.append(obj_ref)
+                                dep_rslts.append((obj_ref, ce))
+                        elif obj.type == 'string':
+                            try:
+                                embedded_inst = \
+                                    obj.qualifiers['embeddedinstance']
+                            except KeyError:
+                                continue
+                            embedded_inst_cln = embedded_inst.value.lower()
+                            if embedded_inst_cln not in dep_classes:
+                                dep_classes.append(embedded_inst_cln)
+                                dep_rslts.append((embedded_inst_cln, ce))
+
                             continue
-                        # else obj.type is 'string'
-                        try:
-                            embedded_inst = obj.qualifiers['embeddedinstance']
-                        except KeyError:
-                            continue
-                        embedded_inst = embedded_inst.value.lower()
-                        if embedded_inst not in dep_classes:
-                            dep_classes.append(embedded_inst)
-                        continue
-                    for klass in dep_classes:
-                        if klass in p.parser.classnames[ns]:
+                    for cln, err in dep_rslts:
+                        if cln in p.parser.classnames[ns]:
                             continue
                         try:
                             # don't limit it with LocalOnly=True,
@@ -625,16 +632,22 @@ def p_mp_createClass(p):
                             # because of caching in case we're using the
                             # special WBEMConnection subclass used for
                             # removing schema elements
-                            p.parser.handle.GetClass(klass,
+                            p.parser.handle.GetClass(cln,
                                                      LocalOnly=False,
                                                      IncludeQualifiers=True)
-                            p.parser.classnames[ns].append(klass)
+                            p.parser.classnames[ns].append(cln)
                         except CIMError:
-                            moffile = p.parser.mofcomp.find_mof(klass)
+                            moffile = p.parser.mofcomp.find_mof(cln)
                             if not moffile:
-                                raise
-                            p.parser.mofcomp.compile_file(moffile, ns)
-                            p.parser.classnames[ns].append(klass)
+                                raise err
+                            try:
+                                p.parser.mofcomp.compile_file(moffile, ns)
+                            except CIMError as ce:
+                                if ce.args[0] == CIM_ERR_NOT_FOUND:
+                                    raise err
+                                else:
+                                    raise
+                            p.parser.classnames[ns].append(cln)
                     fixedRefs = True
                 else:
                     raise
@@ -2177,6 +2190,41 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         except KeyError:
             self.classes[self.default_namespace] = \
                 NocaseDict({cc.classname: cc})
+
+        objects = list(cc.properties.values())
+        for meth in cc.methods.values():
+            objects += list(meth.parameters.values())
+
+        for obj in objects:
+            # Validate that reference_class exists in repo
+            if obj.type == 'reference':
+                try:
+                    self.GetClass(obj.reference_class, LocalOnly=True,
+                                  IncludeQualifiers=True)
+                except CIMError as ce:
+                    if ce.args[0] == CIM_ERR_NOT_FOUND:
+                        ce.args = (CIM_ERR_INVALID_PARAMETER,
+                                   'Reference object "%s" of class "%s" '
+                                   'reference_class "%s" does not exist' %
+                                   (obj.name, cc.classname,
+                                    obj.reference_class))
+                    raise
+
+            elif obj.type == 'string':
+                if 'EmbeddedInstance' in obj.qualifiers:
+                    eiqualifier = obj.qualifiers['EmbeddedInstance']
+                    try:
+                        self.GetClass(eiqualifier.value, LocalOnly=True,
+                                      IncludeQualifiers=False)
+                    except CIMError as ce:
+                        if ce.args[0] == CIM_ERR_NOT_FOUND:
+                            ce.args = (CIM_ERR_INVALID_PARAMETER,
+                                       'EmbeddedInstance qualifier classname '
+                                       '"%s"  in object "%s" of class "%s" '
+                                       'does not exist.' %
+                                       (eiqualifier.value, obj.name,
+                                        cc.classname))
+                        raise
 
         # TODO #991: CreateClass should reject if the class already exists
         try:
