@@ -12,7 +12,7 @@ import six
 import pytest
 import pytest_extensions
 
-from pywbem.cim_obj import NocaseDict
+from pywbem._nocasedict import NocaseDict
 
 
 class NonCompare(object):

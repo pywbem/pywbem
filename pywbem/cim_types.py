@@ -81,6 +81,7 @@ import traceback
 import six
 
 from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
+from ._utils import _ensure_unicode, _hash_item
 
 if six.PY2:
     _Longint = long  # noqa: F821
@@ -328,7 +329,6 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
               interval.
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
         """
-        from .cim_obj import _ensure_unicode  # defer due to cyclic deps.
         self.__timedelta = None
         self.__datetime = None
         dtarg = _ensure_unicode(dtarg)
@@ -543,7 +543,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         self.__init__(arg)
 
     def _cmp(self, other):
-        from .cim_obj import cmpitem  # defer due to cyclic deps.
+        # Defer import due to circular import dependencies:
+        from .cim_obj import cmpitem
         if self is other:
             return 0
         elif not isinstance(other, CIMDateTime):
@@ -557,8 +558,6 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         Because these attributes are not modifiable, objects of this class are
         :term:`hashable` (and not just :term:`unchanged-hashable`).
         """
-        from .cim_obj import _hash_item  # defer due to cyclic deps.
-
         hashes = (
             _hash_item(self.datetime),
             _hash_item(self.timedelta),
@@ -834,6 +833,7 @@ def cimtype(obj):
     try:
         instancename_type = CIMInstanceName
     except NameError:
+        # Defer import due to circular import dependencies:
         from pywbem.cim_obj import CIMInstanceName as instancename_type
     if isinstance(obj, instancename_type):
         return 'reference'
@@ -841,6 +841,7 @@ def cimtype(obj):
     try:
         instance_type = CIMInstance
     except NameError:
+        # Defer import due to circular import dependencies:
         from pywbem.cim_obj import CIMInstance as instance_type
     if isinstance(obj, instance_type):  # embedded instance
         return 'string'
@@ -848,6 +849,7 @@ def cimtype(obj):
     try:
         class_type = CIMClass
     except NameError:
+        # Defer import due to circular import dependencies:
         from pywbem.cim_obj import CIMClass as class_type
     if isinstance(obj, class_type):  # embedded class
         return 'string'
@@ -918,7 +920,7 @@ def type_from_name(type_name):
         ValueError: Unknown CIM data type name.
     """
     if type_name == 'reference':
-        # move import to run time to avoid circular imports
+        # Defer import due to circular import dependencies:
         from .cim_obj import CIMInstanceName
         return CIMInstanceName
     try:
@@ -952,7 +954,6 @@ def atomic_to_cim_xml(obj):
 
         TypeError
     """
-    from .cim_obj import _ensure_unicode  # due to cycles
     if obj is None:
         return obj
     elif isinstance(obj, six.string_types):

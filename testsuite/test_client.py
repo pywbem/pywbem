@@ -42,7 +42,8 @@ from httpretty.core import HTTPrettyRequestEmpty
 from lxml import etree, doctestcompare
 import six
 import pywbem
-from pywbem.cim_obj import _ensure_unicode, NocaseDict
+from pywbem._utils import _ensure_unicode
+from pywbem._nocasedict import NocaseDict
 if six.PY2:
     from M2Crypto.Err import SSLError
 else:

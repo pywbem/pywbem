@@ -131,6 +131,7 @@ doc_dependent_files := \
     $(package_name)/_subscription_manager.py \
     $(package_name)/_valuemapping.py \
     $(package_name)/_version.py \
+    $(package_name)/_nocasedict.py \
     $(package_name)/cim_constants.py \
     $(package_name)/cim_http.py \
     $(package_name)/cim_obj.py \

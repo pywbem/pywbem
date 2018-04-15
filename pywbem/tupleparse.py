@@ -82,9 +82,11 @@ import re
 import warnings
 import six
 
+from ._utils import _stacklevel_above_module
+from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration, _stacklevel_above_module, NocaseDict
+    CIMQualifierDeclaration
 from .cim_types import CIMDateTime, type_from_name
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError

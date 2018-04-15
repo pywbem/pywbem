@@ -21,8 +21,9 @@ from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_INVALID_SUPERCLASS
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
-    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName, NocaseDict
+    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
 from pywbem import mof_compiler
+from pywbem._nocasedict import NocaseDict
 
 from unittest_extensions import CIMObjectMixin
 

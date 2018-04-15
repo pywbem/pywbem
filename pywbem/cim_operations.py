@@ -146,8 +146,9 @@ from .config import DEFAULT_ITER_MAXOBJECTCOUNT
 from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
+from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    CIMParameter, NocaseDict, tocimxml, tocimobj, _ensure_unicode
+    CIMParameter, tocimxml, tocimobj
 from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
@@ -158,6 +159,7 @@ from ._recorder import LogOperationRecorder
 from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME, LOG_DETAIL_LEVELS, \
     LOGGER_SIMPLE_NAMES
+from ._utils import _ensure_unicode
 
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']

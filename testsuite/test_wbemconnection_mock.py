@@ -42,7 +42,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
     CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED
 
-from pywbem.cim_obj import NocaseDict
+from pywbem._nocasedict import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 

@@ -88,9 +88,10 @@ except ImportError:
 import six
 from ply import yacc, lex
 
+from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
     CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
-    NocaseDict, tocimobj
+    tocimobj
 from .cim_operations import WBEMConnection
 from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \

@@ -48,7 +48,7 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
     DEFAULT_NAMESPACE, MOFCompiler, MOFWBEMConnection
-from pywbem.cim_obj import NocaseDict
+from pywbem._nocasedict import NocaseDict
 
 
 __all__ = ['FakedWBEMConnection', 'method_callback_interface']
