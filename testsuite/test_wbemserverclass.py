@@ -29,7 +29,7 @@ import os
 import pytest
 
 from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMInstanceName
-from pywbem.cim_obj import NocaseDict
+from pywbem._nocasedict import NocaseDict
 
 from pywbem_mock import FakedWBEMConnection
 

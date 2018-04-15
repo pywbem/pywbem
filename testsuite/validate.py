@@ -33,7 +33,7 @@ import os
 import os.path
 from subprocess import Popen, PIPE, STDOUT
 
-from pywbem.cim_obj import _ensure_bytes
+from pywbem._utils import _ensure_bytes
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 

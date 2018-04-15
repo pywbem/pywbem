@@ -31,6 +31,10 @@ Released: not yet
 
 **Enhancements:**
 
+**Cleanup**
+
+* Moved class `NocaseDict` into its own module (Issue #848).
+
 **Known issues:**
 
 * See `list of open issues`_.

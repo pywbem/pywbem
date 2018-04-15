@@ -33,9 +33,11 @@ from __future__ import absolute_import
 import sys
 import logging
 
+from ._utils import *  # noqa: F403,F401
 from .cim_types import *  # noqa: F403,F401
 from .cim_constants import *  # noqa: F403,F401
 from .cim_operations import *  # noqa: F403,F401
+from ._nocasedict import *  # noqa: F403,F401
 from .cim_obj import *  # noqa: F403,F401
 from .tupleparse import *  # noqa: F403,F401
 from .cim_http import *  # noqa: F403,F401

@@ -10,7 +10,7 @@ from __future__ import absolute_import
 import re
 import os
 
-from pywbem.cim_obj import NocaseDict
+from pywbem._nocasedict import NocaseDict
 
 
 class RegexpMixin(object):

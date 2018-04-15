@@ -33,12 +33,14 @@ import six
 import yaml
 from yaml.representer import RepresenterError
 
+from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration, NocaseDict, _ensure_unicode
+    CIMQualifierDeclaration
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
 from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
+from ._utils import _ensure_unicode
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order

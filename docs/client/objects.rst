@@ -6,6 +6,13 @@ CIM objects
 
 .. automodule:: pywbem.cim_obj
 
+.. _`NocaseDict`:
+
+NocaseDict
+^^^^^^^^^^
+
+.. automodule:: pywbem._nocasedict
+
 CIMInstanceName
 ^^^^^^^^^^^^^^^
 

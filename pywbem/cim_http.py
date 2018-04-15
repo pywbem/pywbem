@@ -50,9 +50,9 @@ import six
 from six.moves import http_client as httplib
 from six.moves import urllib
 
-from .cim_obj import CIMClassName, CIMInstanceName, _ensure_unicode, \
-    _ensure_bytes
+from .cim_obj import CIMClassName, CIMInstanceName
 from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
+from ._utils import _ensure_unicode, _ensure_bytes
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 

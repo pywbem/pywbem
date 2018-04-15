@@ -15,7 +15,7 @@ import sys
 import unittest
 
 from pywbem import cim_xml
-from pywbem.cim_obj import _ensure_bytes
+from pywbem._utils import _ensure_bytes
 
 DTD_FILE = 'CIM_DTD_V22.dtd'
 
