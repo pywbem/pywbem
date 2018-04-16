@@ -44,6 +44,7 @@ else:
     # pylint: disable=wrong-import-order
     from urllib.request import urlopen
 
+
 # Change the following variables when a new version of the CIM Schema is used
 # and remove the SCHEMA_DIR directory
 # This defines the version and the location of the schema zip file on the
@@ -54,6 +55,7 @@ else:
 # Location of the schema for use by test_mof_compiler.
 # This should not change unless you intend to use another schema directory
 SCRIPT_DIR = os.path.dirname(__file__)
+
 SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 SCHEMA_MOF_DIR = os.path.join(SCHEMA_DIR, 'mof')
 
@@ -64,6 +66,7 @@ SCHEMA_MOF_BN = DMTF_SCHEMA_VERSION + '.mof'
 
 # DMTF Schema zip filename and mof filename
 MOF_ZIP_FN = os.path.join(SCHEMA_DIR, MOF_ZIP_BN)
+
 SCHEMA_MOF_FN = os.path.join(SCHEMA_MOF_DIR, SCHEMA_MOF_BN)
 
 # Expected total of qualifiers and classes in the DMTF Schema.
@@ -100,9 +103,9 @@ def install_dmtf_schema():
             first = False
         print("Downloading CIM Schema archive from: %s" % MOF_ZIP_URL)
         ufo = urlopen(MOF_ZIP_URL)
-        with open(MOF_ZIP_FN, 'w') as fp:
+        with open(MOF_ZIP_FN, 'wb') as fp:
             for data in ufo:
-                fp.write(data)
+                fp.write()
 
     if not os.path.isdir(SCHEMA_MOF_DIR):
         if first:
@@ -117,6 +120,7 @@ def install_dmtf_schema():
             print("")
             first = False
         print("Unpacking CIM Schema archive: %s" % MOF_ZIP_FN)
+        zfp = None
         try:
             zfp = ZipFile(MOF_ZIP_FN, 'r')
             nlist = zfp.namelist()
@@ -129,4 +133,5 @@ def install_dmtf_schema():
                     with open(dfile, 'w+b') as dfp:
                         dfp.write(zfp.read(file_))
         finally:
-            zfp.close()
+            if zfp:
+                zfp.close()

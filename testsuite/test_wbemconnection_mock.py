@@ -27,6 +27,7 @@ using a set of local mock qualifiers, classes, and instances.
 from __future__ import absolute_import, print_function
 
 import os
+import shutil
 from datetime import datetime
 import operator
 try:
@@ -46,12 +47,15 @@ from pywbem._nocasedict import NocaseDict
 
 from pywbem.cim_operations import pull_path_result_tuple
 
-from pywbem_mock import FakedWBEMConnection
+from pywbem_mock import FakedWBEMConnection, DMTFSchema
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
-    install_dmtf_schema, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, SCRIPT_DIR
+    install_dmtf_schema, SCHEMA_MOF_FN, SCHEMA_MOF_DIR
 
 VERBOSE = False
+
+SCRIPT_DIR = os.path.dirname(__file__)
+SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
 
 
 # Temporarily set this because all of the fixtures generate this warning
@@ -4332,3 +4336,92 @@ class TestInvokeMethod(object):
                 print('exc.status_code_name %s cim_err_code %s' %
                       (exc.status_code_name, cim_err_code_name))
                 assert exc.status_code_name == cim_err_code_name
+
+
+@pytest.fixture()
+def test_schema_dir():
+    """
+    Fixture defines the test_schema_dir in the testsuite and also
+    removes the directory if it exists at the end of each test.
+    """
+    schema_dir = os.path.join(SCRIPT_DIR, 'test_schema')
+    yield schema_dir
+
+    # Executes at the close of each test function
+    if os.path.isdir(schema_dir):
+        shutil.rmtree(schema_dir)
+
+
+class TestDMTFSchema(object):
+    """
+    Test the DMTFSchema class in pywbem_mock.  Since we do not want to always
+    be downloading the DMTF schema for CI testing, we will generally skip the
+    first test.
+    """
+
+    def test_schema_load(self, test_schema_dir):
+        # pylint: disable=no-self-use
+        """
+        Test the DMTFSchema class and its methods to get a schema from the
+        DMTF, expand it, and to create a partial mof schema definition for
+        compilation.
+        """
+        schema = DMTFSchema((2, 49, 0), test_schema_dir, verbose=True)
+
+        assert schema.schema_ver == (2, 49, 0)
+        assert schema.schema_ver_str == '2.49.0'
+        assert schema.schema_dir == test_schema_dir
+        test_schema_mof_dir = os.path.join(test_schema_dir, 'mof')
+        assert schema.schema_mof_dir == test_schema_mof_dir
+
+        assert schema.schema_mof_filename == \
+            os.path.join(test_schema_mof_dir,
+                         'cim_schema_%s.mof' % (schema.schema_ver_str))
+
+        assert repr(schema) == "DMTFSchema(schema_ver=(2, 49, 0), " \
+                               "schema_dir=%s)" % test_schema_dir
+
+        schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
+
+        exp_mof = '#pragma locale ("en_US")\n' \
+                  '#pragma include ("System/CIM_ComputerSystem.mof")\n' \
+                  '#pragma include ("Device/CIM_Door.mof")\n'
+
+        assert schema_mof == exp_mof
+
+    def test_schema_invalid_version(self, test_schema_dir):
+        # pylint: disable=no-self-use
+        """
+        Test case where the class requested for the partial schema is not
+        in the DMTF schema
+        """
+        with pytest.raises(ValueError):
+            DMTFSchema((2, 159, 0), test_schema_dir, verbose=True)
+
+    def test_schema_build_err(self):
+        # pylint: disable=no-self-use
+        """
+        Test case where the class requested for the partial schema is not
+        in the DMTF schema. This uses the existing schema directory in
+        the testsuite
+        """
+        schema = DMTFSchema((2, 49, 0), SCHEMA_DIR, verbose=True)
+
+        with pytest.raises(ValueError):
+            schema.build_schema_mof(['CIM_ClassDoesNoExist'])
+
+    def test_schema_build(self):
+        # pylint: disable=no-self-use
+        """
+        Test case we use the existing DMTF schema used by other tests and
+        create a partial schema mof.
+        """
+        schema = DMTFSchema((2, 49, 0), SCHEMA_DIR, verbose=True)
+
+        schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
+
+        exp_mof = '#pragma locale ("en_US")\n' \
+                  '#pragma include ("System/CIM_ComputerSystem.mof")\n' \
+                  '#pragma include ("Device/CIM_Door.mof")\n'
+
+        assert schema_mof == exp_mof

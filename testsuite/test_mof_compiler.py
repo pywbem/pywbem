@@ -27,8 +27,12 @@ from pywbem._nocasedict import NocaseDict
 
 from unittest_extensions import CIMObjectMixin
 
-from dmtf_mof_schema_def import SCRIPT_DIR, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, \
+from dmtf_mof_schema_def import SCHEMA_MOF_FN, SCHEMA_MOF_DIR, \
     install_dmtf_schema, TOTAL_QUALIFIERS, TOTAL_CLASSES
+
+# Location of the schema for use by test_mof_compiler.
+# This should not change unless you intend to use another schema directory
+SCRIPT_DIR = os.path.dirname(__file__)
 
 # Constants
 NAME_SPACE = 'root/test'
