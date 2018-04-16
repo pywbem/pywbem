@@ -155,6 +155,7 @@ py_src_files := \
     setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
     $(wildcard testsuite/*.py) \
+    $(wildcard testsuite/testclient/*.py) \
     wbemcli \
     wbemcli.py \
     mof_compiler \
@@ -486,7 +487,7 @@ else
 	@echo "makefile: Done running Flake8; Log file: $@"
 endif
 
-$(test_log_file): makefile $(package_name)/*.py testsuite/*.py coveragerc
+$(test_log_file): makefile $(package_name)/*.py testsuite/*.py testsuite/testclient/*.py coveragerc
 	@echo "makefile: Running tests"
 ifeq ($(PLATFORM),Windows)
 	testsuite\test_uprint.bat
@@ -494,7 +495,7 @@ else
 	testsuite/test_uprint.sh
 endif
 	rm -f $(test_log_file)
-	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases --ignore=testsuite/testclient -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $@"
 
