@@ -599,31 +599,26 @@ def p_mp_createClass(p):
                     objects = list(cc.properties.values())
                     for meth in cc.methods.values():
                         objects += list(meth.parameters.values())
-                    # TODO the test for class in list does not work now that
-                    # we have made dep_classes a tuple with class and ce
-                    dep_classes = []
-                    dep_rslts = []
+
+                    dep_classes = NocaseDict()  # dict dep_class, ce
                     for obj in objects:
                         if obj.type not in ['reference', 'string']:
                             continue
                         if obj.type == 'reference':
-                            obj_ref = obj.reference_class.lower()
-                            if obj_ref not in dep_classes:
-                                dep_classes.append(obj_ref)
-                                dep_rslts.append((obj_ref, ce))
+                            if obj.reference_class not in dep_classes:
+                                dep_classes[obj.reference_class] = ce
                         elif obj.type == 'string':
                             try:
                                 embedded_inst = \
                                     obj.qualifiers['embeddedinstance']
                             except KeyError:
                                 continue
-                            embedded_inst_cln = embedded_inst.value.lower()
-                            if embedded_inst_cln not in dep_classes:
-                                dep_classes.append(embedded_inst_cln)
-                                dep_rslts.append((embedded_inst_cln, ce))
+                            if embedded_inst.value not in dep_classes:
+                                dep_classes[embedded_inst.value] = ce
 
                             continue
-                    for cln, err in dep_rslts:
+
+                    for cln, err in dep_classes.items():
                         if cln in p.parser.classnames[ns]:
                             continue
                         try:
@@ -641,6 +636,10 @@ def p_mp_createClass(p):
                             if not moffile:
                                 raise err
                             try:
+                                if p.parser.verbose:
+                                    p.parser.log('Creating missing dependent '
+                                                 'class %s:%s' %
+                                                 (ns, cc.classname))
                                 p.parser.mofcomp.compile_file(moffile, ns)
                             except CIMError as ce:
                                 if ce.args[0] == CIM_ERR_NOT_FOUND:
@@ -2203,11 +2202,12 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                   IncludeQualifiers=True)
                 except CIMError as ce:
                     if ce.args[0] == CIM_ERR_NOT_FOUND:
-                        ce.args = (CIM_ERR_INVALID_PARAMETER,
-                                   'Reference object "%s" of class "%s" '
-                                   'reference_class "%s" does not exist' %
-                                   (obj.name, cc.classname,
-                                    obj.reference_class))
+                        raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                       'Class %r referenced by element '
+                                       '%r of class %r in namespace '
+                                       '%r does not exist' %
+                                       (cc.classname, obj.name,
+                                        obj.reference_class, self.getns))
                     raise
 
             elif obj.type == 'string':
@@ -2218,12 +2218,13 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                       IncludeQualifiers=False)
                     except CIMError as ce:
                         if ce.args[0] == CIM_ERR_NOT_FOUND:
-                            ce.args = (CIM_ERR_INVALID_PARAMETER,
-                                       'EmbeddedInstance qualifier classname '
-                                       '"%s"  in object "%s" of class "%s" '
-                                       'does not exist.' %
-                                       (eiqualifier.value, obj.name,
-                                        cc.classname))
+                            raise CIMError(
+                                CIM_ERR_INVALID_PARAMETER,
+                                'Class %r specified by EmbeddInstance '
+                                'qualifier on element %r of class %r in '
+                                'namespace %r does not exist' %
+                                (eiqualifier.value, obj.name,
+                                 cc.classname, self.getns))
                         raise
 
         # TODO #991: CreateClass should reject if the class already exists
