@@ -27,9 +27,29 @@ Released: not yet
 **Bug fixes:**
 
 * fix issue where wbemcli-help-txt was not being updated when wbemcli.py
-  changed.  Issue # 1205
+  changed.  (Issue #1205)
 
 **Enhancements:**
+
+* Extend pywbem MOF compiler to search for dependent classes including:
+  a) reference classes (classes defined in reference properties or parameters)
+  b)EmbeddedInstance qualifier classes if they are not compiled before the
+  classes that reference them is compiled. Previously the lack of these
+  dependent classes was ignored.  The compiler already searches for superclasses
+  if they are not compiled before their subclasses.
+
+  Extends MOFWBEMConnection to generate an exception if the compile of a
+  class with reference parameters or properties reference class is not in the
+  repository or if the class defined for an EmbeddedInstance qualifier is
+  not in the repository.
+
+  This uses the capability in the MOF compiler to search the defined
+  search path for the missing classes if they are not in the repository.
+
+  This means that the mof_compiler can be used to create a complete class
+  repository builds without having to  specifically declare all dependent
+  classes for the classes the user needs in a repository if the mof for the
+  dependent classes in in the search path. (Issue #1160).
 
 **Cleanup**
 

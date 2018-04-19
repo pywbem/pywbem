@@ -64,7 +64,7 @@ class MOFTest(unittest.TestCase):
         self.partial_schema_file = None
 
     def tearDown(self):
-        """Close the log file and any partical schema file."""
+        """Close the log file and any partial schema file."""
         self.logfile.close()
         if self.partial_schema_file:
             if os.path.exists(self.partial_schema_file):
@@ -1639,7 +1639,7 @@ class TestPartialSchema(MOFTest):
         the recreation of the mof using tomof and recompile of this new
         mof file. Tests have numbers to control ordering.
     """
-    def define_partial_schema(self):
+    def define_partial_schema(self):  # pylint: disable=no-self-use
         """
         Build  a schema include file that has a subset of the files in
         a complete DMTF schema.
@@ -1654,7 +1654,7 @@ class TestPartialSchema(MOFTest):
             """
         return schema_mof
 
-    def expected_classes(self):
+    def expected_classes(self):  # pylint: disable=no-self-use
         """The classes expected to be directly compiled from the schema_mof
            above
         """
@@ -1662,7 +1662,7 @@ class TestPartialSchema(MOFTest):
                'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile',
                'CIM_LocalFileSystem')
 
-    def expected_dependent_classes(self):
+    def expected_dependent_classes(self):  # pylint: disable=no-self-use
         """ Return tuple of expected dependent classes from the compile"""
         return('CIM_ManagedElement', 'CIM_WBEMService', 'CIM_Service',
                'CIM_RegisteredSpecification')
@@ -1702,13 +1702,11 @@ class TestPartialSchema(MOFTest):
         for cln in self.expected_dependent_classes():
             self.assertTrue(cln in clsrepo)
 
-        # TODO issue #1160 ks add specific checks for other places search
-        #      should occur
-
     def test_build_from_schema_string(self):
         """
         Build the schema qualifier and class objects in the repository from
-        a mof file defined as a string.
+        a mof file defined as a string. This uses the same input data as
+        test_build_from_partial_schema above.
         """
         schema_mof = self.define_partial_schema()
 
@@ -1728,8 +1726,133 @@ class TestPartialSchema(MOFTest):
         for cln in self.expected_dependent_classes():
             self.assertTrue(cln in clsrepo)
 
-        # TODO issue #1160 ks add specific checks for other places search should
-        #      occur
+    def test_compile_class_withref(self):
+
+        """
+        Test compile a single class with reference properties that are not
+        listed in pragma.
+        """
+        schema_mof = """
+            #pragma locale ("en_US")
+            #pragma include ("Interop/CIM_ElementConformsToProfile.mof")
+            """
+        exp_classes = ['CIM_ElementConformsToProfile', 'CIM_ManagedElement',
+                       'CIM_RegisteredSpecification', 'CIM_RegisteredProfile']
+        self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+
+        repo = self.mofcomp.handle
+        clsrepo = repo.classes[NAME_SPACE]
+        self.assertEqual(len(exp_classes), len(clsrepo))
+        for cln in exp_classes:
+            self.assertTrue(cln in clsrepo)
+
+    def test_compile_classmethod_ref(self):
+
+        """
+        Test compile a single class with reference properties that are not
+        listed in pragma. This test installes the dependent classes
+        """
+        schema_mof = """
+           class My_ClassWithRef {
+                  [Key]
+                string InstanceID;
+
+                uint16 MyMethod(
+                    CIM_SettingData Ref MySettingData);
+            };
+            """
+        exp_classes = ['My_ClassWithRef', 'CIM_ManagedElement',
+                       'CIM_SettingData']
+        self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+
+        repo = self.mofcomp.handle
+        clsrepo = repo.classes[NAME_SPACE]
+        self.assertEqual(len(exp_classes), len(clsrepo))
+        for cln in exp_classes:
+            self.assertTrue(cln in clsrepo)
+
+    def test_compile_class_ref_err(self):
+
+        """
+        Test compile a single class with reference properties where the
+        reference class does not exist. Results in exception.
+        """
+        schema_mof = """
+            class My_BadAssoc
+            {
+                    [Key]
+                MY_ClassDoesNotexist REF Group;
+
+                    [Key]
+                MY_ClassDoesNotexist2 REF Component;
+            };
+            """
+        try:
+            self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+            self.fail("Exception expected")
+        except CIMError as ce:
+            self.assertTrue(ce.status_code == CIM_ERR_INVALID_PARAMETER)
+
+    def test_compile_class_embInst(self):
+
+        """
+        Test compile a single class with property and method param containing
+        embedded instance.
+        """
+
+        schema_mof = """
+            class My_ClassWithEmbeddedInst {
+                  [Key]
+                string InstanceID;
+
+                    [EmbeddedInstance ( "CIM_Keystore" )]
+                string FakeEmbeddedInstProp;
+
+                uint16 MyMethod(
+                        [EmbeddedInstance("CIM_SettingData")]
+                    string ParamWithEmbeddedInstance);
+            };
+            """
+
+        exp_classes = ['My_ClassWithEmbeddedInst', 'CIM_SettingData',
+                       'CIM_ManagedElement', 'CIM_Collection',
+                       'CIM_CredentialStore', 'CIM_Keystore']
+        self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+        repo = self.mofcomp.handle
+        clsrepo = repo.classes[NAME_SPACE]
+        self.assertEqual(len(exp_classes), len(clsrepo))
+        for cln in exp_classes:
+            self.assertTrue(cln in clsrepo)
+
+    def test_compile_class_circular(self):
+
+        """
+        Test compile a class that itself contains a circular reference, in this
+        case a reference to itself through the EmbeddedInstance qualifier.
+        """
+
+        schema_mof = """
+            class My_ClassWithEmbeddedInst {
+                  [Key]
+                string InstanceID;
+
+                    [EmbeddedInstance ( "My_ClassWithEmbeddedInst" )]
+                string FakeEmbeddedInstProp;
+
+                uint16 MyMethod(
+                        [EmbeddedInstance("CIM_SettingData")]
+                    string ParamWithEmbeddedInstance);
+            };
+            """
+
+        exp_classes = ['My_ClassWithEmbeddedInst', 'CIM_SettingData',
+                       'CIM_ManagedElement']
+        self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+        repo = self.mofcomp.handle
+        clsrepo = repo.classes[NAME_SPACE]
+        self.assertEqual(len(exp_classes), len(clsrepo))
+        for cln in exp_classes:
+            self.assertTrue(cln in clsrepo)
 
 
 class TestFileErrors(MOFTest):
@@ -1779,7 +1902,8 @@ class TestFileErrors(MOFTest):
 
         try:
             self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
-                                      'System', 'CIM_ComputerSystemx.mof'),
+                                                   'System',
+                                                   'CIM_ComputerSystemx.mof'),
                                       NAME_SPACE)
         except IOError:
             pass
