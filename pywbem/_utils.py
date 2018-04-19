@@ -14,6 +14,9 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+"""
+Utility functions for pywbem, with no use of other pywbem submodules.
+"""
 
 # This module is meant to be safe for 'import *'.
 

@@ -688,51 +688,6 @@ class TestFakedWBEMConnection(object):
         assert conn.operation_recorder_enabled is False
 
 
-result1 = (
-    u"mock_imethodcall method=GetClass, namespace=root/cimv2, "
-    u"response_params_rqd=None, params={'IncludeClassOrigin': None,"
-    u" 'ClassName': CIMClassName(classname=u'CIM_Foo', "
-    u"namespace=None, host=None), 'IncludeQualifiers': False,"
-    u" 'PropertyList': None, 'LocalOnly': None}",
-
-    u"mock result [('IRETURNVALUE', {}, [CIMClass(classname"
-    u"u'CIM_Foo', superclass=None, properties=NocaseDict(["
-    u"('InstanceID', CIMProperty(name=u'InstanceID', value=None,"
-    u" type=u'string', reference_class=None, embedded_object=None,"
-    u" is_array=False, array_size=None, class_origin=None, "
-    u"propagated=None, qualifiers=NocaseDict([])))]), "
-    u"methods=NocaseDict([('Fuzzy', CIMMethod(name=u'Fuzzy',"
-    u" return_type=u'string', class_origin=None, propagated=False,"
-    u" parameters=NocaseDict([]), qualifiers=NocaseDict([]))), "
-    u"('Delete', CIMMethod(name=u'Delete', return_type=u'uint32',"
-    u" class_origin=None, propagated=False, parameters="
-    u"NocaseDict([]), qualifiers=NocaseDict([])))]), "
-    u"qualifiers=NocaseDict([]), path=CIMClassName(classname",
-    u"=u'CIM_Foo', namespace=u'root/cimv2', host=u'FakedUrl'))])]")
-
-result2 = (
-    u"mock_imethodcall method=GetClass, namespace=root/cimv2, "
-    u"response_params_rqd=None, params={'IncludeClassOrigin': None,"
-    u" 'ClassName': CIMClassName(classname=u'CIM_Foo', "
-    u"namespace=None, host=None), 'IncludeQualifiers': False,"
-    u" 'PropertyList': None, 'LocalOnly': None}",
-
-    u"mock result [('IRETURNVALUE', {}, [CIMClass(classname"
-    u"u'CIM_Foo', superclass=None, properties=NocaseDict(["
-    u"('InstanceID', CIMProperty(name=u'InstanceID', value=None,"
-    u" type=u'string', reference_class=None, embedded_object=None,"
-    u" is_array=False, array_size=None, class_origin=None, "
-    u"propagated=None, qualifiers=NocaseDict([])))]), "
-    u"methods=NocaseDict([('Fuzzy', CIMMethod(name=u'Fuzzy',"
-    u" return_type=u'string', class_origin=None, propagated=False,"
-    u" parameters=NocaseDict([]), qualifiers=NocaseDict([]))), "
-    u"('Delete', CIMMethod(name=u'Delete', return_type=u'uint32',"
-    u" class_origin=None, propagated=False, parameters="
-    u"NocaseDict([]), qualifiers=NocaseDict([])))]), "
-    u"qualifiers=NocaseDict([]), path=CIMClassName(classname",
-    u"=u'CIM_Foo', namespace=u'root/cimv2', host=u'FakedUrl'))])]")
-
-
 class TestRepoMethods(object):
     """
     Test the repository support methods.
@@ -1790,29 +1745,38 @@ class TestClassOperations(object):
              'CIM_Foo_sub_sub', None],
 
             # Create valid 2nd level subclass with property override.
-            [['CIM_Foo', 'CIM_Foo_sub'],
-             CIMClass('CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
-                      properties={'cimfoo_sub':
-                                  CIMProperty(
-                                    'cimfoo_sub', "blah",  # noqa: E121
-                                    qualifiers={'Override':
-                                                CIMQualifier('Override',
-                                                             'cimfoo_sub_sub')},
-                                    type='string',
-                                    class_origin='CIM_Foo_sub_sub',
-                                    propagated=False)}),
-             None, None],
+            [
+                ['CIM_Foo', 'CIM_Foo_sub'],
+                CIMClass(
+                    'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                    properties={
+                        'cimfoo_sub': CIMProperty(
+                            'cimfoo_sub', "blah",  # noqa: E121
+                            qualifiers={
+                                'Override': CIMQualifier(
+                                    'Override', 'cimfoo_sub_sub')
+                            },
+                            type='string', class_origin='CIM_Foo_sub_sub',
+                            propagated=False)
+                    }
+                ),
+                None, None
+            ],
 
             # Create invalid subclass, dup property with no override
-            [['CIM_Foo', 'CIM_Foo_sub'],
-             CIMClass('CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
-                      properties={'cimfoo_sub':
-                                  CIMProperty(
-                                    'cimfoo_sub', "blah",  # noqa: E121
-                                    type='string',
-                                    class_origin='CIM_Foo_sub_sub',
-                                    propagated=False)}),
-             None, 'CIM_ERR_INVALID_PARAMETER'],
+            [
+                ['CIM_Foo', 'CIM_Foo_sub'],
+                CIMClass(
+                    'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                    properties={
+                        'cimfoo_sub': CIMProperty(
+                            'cimfoo_sub', "blah",  # noqa: E121
+                            type='string',
+                            class_origin='CIM_Foo_sub_sub', propagated=False)
+                    }
+                ),
+                None, 'CIM_ERR_INVALID_PARAMETER'
+            ],
 
             # Fail because superclass does not exist in namespace
             [None, 'CIM_Foo_sub', None, 'CIM_ERR_INVALID_SUPERCLASS'],
@@ -4267,6 +4231,7 @@ class TestInvokeMethod(object):
     def test_invokemethod(self, conn, ns, desc, inputs, exp_output,
                           exp_exception_type, cim_err_code_name,
                           tst_instances_mof):
+        # pylint: disable=unused-argument
         """
         Test extrinsic method invocation through the
         WBEMConnection.InovkeMethod method

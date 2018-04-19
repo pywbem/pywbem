@@ -529,6 +529,7 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
 @pytest_extensions.test_function
 def test_tupleparse_roundtrip(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     Test tupleparse parsing based upon roundtrip between CIM objects and their
     CIM-XML.
@@ -9816,6 +9817,7 @@ TESTCASES_TUPLEPARSE_XML = [
 @pytest_extensions.test_function
 def test_tupleparse_xml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     Test tupleparse parsing, based upon a CIM-XML string as input.
 

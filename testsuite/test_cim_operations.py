@@ -44,6 +44,7 @@ class TestCreateConnection(object):
             ('timeout', 30),
         ])
     def test_attrs_deprecated_setters(self, attr_name, value):
+        # pylint: disable=no-self-use
         """
         Test that the setting of certain attributes is deprecated.
         """
@@ -68,6 +69,7 @@ class TestCreateConnection(object):
             ('last_reply_len', 7),
         ])
     def test_attrs_readonly(self, attr_name, value):
+        # pylint: disable=no-self-use
         """
         Test that certain attributes that were previously public are now
         read-only and that the original value has not changed when trying to

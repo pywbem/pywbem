@@ -133,7 +133,10 @@ class ValidationTestCase(unittest.TestCase):
             representing the CIM object. `None` means that no test for an
             expected XML root element will happen.
         """
-        global _MODULE_PATH  # pylint: disable=global-variable-not-assigned
+
+        # pylint: disable=global-variable-not-assigned,global-statement
+        global _MODULE_PATH
+
         xml_str = obj.tocimxml().toxml()
         self.assertTrue(
             validate_xml(xml_str,
@@ -1521,6 +1524,7 @@ TESTCASES_CIMINSTANCENAME_HASH = [
 @pytest_extensions.test_function
 def test_CIMInstanceName_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMInstanceName.__hash__().
     """
@@ -2125,6 +2129,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMInstanceName_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMInstanceName.tocimxml().
     """
@@ -2147,6 +2152,7 @@ def test_CIMInstanceName_tocimxml(
 @pytest_extensions.test_function
 def test_CIMInstanceName_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMInstanceName.tocimxmlstr().
     """
@@ -2773,6 +2779,7 @@ class Test_CIMInstanceName_from_wbem_uri(object):
         testcases)
     def test_CIMInstanceName_from_wbem_uri(
             self, desc, uri, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMInstanceName.from_wbem_uri()."""
 
         if not condition:
@@ -3023,6 +3030,7 @@ class Test_CIMInstanceName_from_instance(object):
     def test_CIMInstanceName_from_instance(
             self, desc, cls_kwargs, inst_kwargs, exp_result, strict, ns, host,
             condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMInstanceName.from_instance."""
 
         if not condition:
@@ -3525,6 +3533,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
     def test_CIMInstanceName_to_wbem_uri_str(
             self, desc, attrs, format_, exp_result, exp_warn_type, condition,
             func_name):
+        # pylint: disable=unused-argument
         """All test cases for CIMInstanceName.to_wbem_uri() and .__str__()."""
 
         if not condition:
@@ -5070,6 +5079,7 @@ TESTCASES_CIMINSTANCE_HASH = [
 @pytest_extensions.test_function
 def test_CIMInstance_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMInstance.__hash__().
     """
@@ -5546,7 +5556,8 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
         dict(
             obj=CIMINSTANCE_INV_PROPERTY_1,
             kwargs=dict(),
-            exp_xml_str=None if CHECK_0_12_0 else ( \
+            exp_xml_str=None if CHECK_0_12_0 else \
+            (
                 '<INSTANCE CLASSNAME="CIM_Foo">',
                 '<PROPERTY NAME="Foo" TYPE="string">',
                 '<VALUE>bla</VALUE>',
@@ -5561,7 +5572,8 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
         dict(
             obj=CIMINSTANCE_INV_PROPERTY_2,
             kwargs=dict(),
-            exp_xml_str=None if CHECK_0_12_0 else ( \
+            exp_xml_str=None if CHECK_0_12_0 else \
+            (
                 '<INSTANCE CLASSNAME="CIM_Foo">',
                 '<PROPERTY NAME="Foo" TYPE="uint16">',
                 '<VALUE>42</VALUE>',
@@ -5580,6 +5592,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMInstance_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMInstance.tocimxml().
     """
@@ -5602,6 +5615,7 @@ def test_CIMInstance_tocimxml(
 @pytest_extensions.test_function
 def test_CIMInstance_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMInstance.tocimxmlstr().
     """
@@ -5897,6 +5911,7 @@ instance of C1 {
         testcases)
     def test_CIMInstance_tomof(
             self, desc, obj, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMInstance.tomof()."""
 
         if not condition:
@@ -8065,6 +8080,7 @@ TESTCASES_CIMPROPERTY_HASH = [
 @pytest_extensions.test_function
 def test_CIMProperty_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMProperty.__hash__().
     """
@@ -10797,6 +10813,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMProperty_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMProperty.tocimxml().
     """
@@ -10819,6 +10836,7 @@ def test_CIMProperty_tocimxml(
 @pytest_extensions.test_function
 def test_CIMProperty_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMProperty.tocimxmlstr().
     """
@@ -11383,6 +11401,7 @@ class Test_CIMProperty_tomof(object):
     def test_CIMProperty_tomof(
             self, desc, obj, is_instance, indent, exp_result, exp_warn_type,
             condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMProperty.tomof()."""
 
         if not condition:
@@ -12133,6 +12152,7 @@ TESTCASES_CIMQUALIFIER_HASH = [
 @pytest_extensions.test_function
 def test_CIMQualifier_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMQualifier.__hash__().
     """
@@ -14615,6 +14635,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMQualifier_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMQualifier.tocimxml().
     """
@@ -14637,6 +14658,7 @@ def test_CIMQualifier_tocimxml(
 @pytest_extensions.test_function
 def test_CIMQualifier_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMQualifier.tocimxmlstr().
     """
@@ -14959,6 +14981,7 @@ class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
         testcases)
     def test_CIMQualifier_tomof(
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMQualifier.tomof()."""
 
         if not condition:
@@ -15458,6 +15481,7 @@ TESTCASES_CIMCLASSNAME_HASH = [
 @pytest_extensions.test_function
 def test_CIMClassName_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMClassName.__hash__().
     """
@@ -15790,6 +15814,7 @@ TESTCASES_CIMCLASSNAME_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMClassName_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMClassName.tocimxml().
     """
@@ -15812,6 +15837,7 @@ def test_CIMClassName_tocimxml(
 @pytest_extensions.test_function
 def test_CIMClassName_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMClassName.tocimxmlstr().
     """
@@ -16072,6 +16098,7 @@ class Test_CIMClassName_from_wbem_uri(object):
         testcases)
     def test_CIMClassName_from_wbem_uri(
             self, desc, uri, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMClassName.from_wbem_uri()."""
 
         if not condition:
@@ -16340,6 +16367,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
     def test_CIMClassName_to_wbem_uri_str(
             self, desc, format_, attrs, exp_result, exp_warn_type, condition,
             func_name):
+        # pylint: disable=unused-argument
         """All test cases for CIMClassName.to_wbem_uri() and .__str__()."""
 
         if not condition:
@@ -17637,6 +17665,7 @@ TESTCASES_CIMCLASS_HASH = [
 @pytest_extensions.test_function
 def test_CIMClass_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMClass.__hash__().
     """
@@ -17969,6 +17998,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMClass_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMClass.tocimxml().
     """
@@ -17991,6 +18021,7 @@ def test_CIMClass_tocimxml(
 @pytest_extensions.test_function
 def test_CIMClass_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMClass.tocimxmlstr().
     """
@@ -18162,6 +18193,7 @@ class C1 {
         testcases)
     def test_CIMClass_tomof(
             self, desc, obj, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMClass.tomof()."""
 
         if not condition:
@@ -19110,6 +19142,7 @@ TESTCASES_CIMMETHOD_HASH = [
 @pytest_extensions.test_function
 def test_CIMMethod_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMMethod.__hash__().
     """
@@ -19492,6 +19525,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMMethod_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMMethod.tocimxml().
     """
@@ -19514,6 +19548,7 @@ def test_CIMMethod_tocimxml(
 @pytest_extensions.test_function
 def test_CIMMethod_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMMethod.tocimxmlstr().
     """
@@ -19809,6 +19844,7 @@ class Test_CIMMethod_tomof(object):  # pylint: disable=too-few-public-methods
         testcases)
     def test_CIMMethod_tomof(
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMMethod.tomof()."""
 
         if not condition:
@@ -20908,6 +20944,7 @@ TESTCASES_CIMPARAMETER_HASH = [
 @pytest_extensions.test_function
 def test_CIMParameter_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMParameter.__hash__().
     """
@@ -24053,6 +24090,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMParameter_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMParameter.tocimxml().
     """
@@ -24075,6 +24113,7 @@ def test_CIMParameter_tocimxml(
 @pytest_extensions.test_function
 def test_CIMParameter_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMParameter.tocimxmlstr().
     """
@@ -24410,6 +24449,7 @@ class Test_CIMParameter_tomof(object):  # pylint: disable=too-few-public-methods
         testcases)
     def test_CIMParameter_tomof(
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMParameter.tomof()."""
 
         if not condition:
@@ -25470,6 +25510,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_HASH = [
 @pytest_extensions.test_function
 def test_CIMQualifierDeclaration_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMQualifierDeclaration.__hash__().
     """
@@ -28298,6 +28339,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
 @pytest_extensions.test_function
 def test_CIMQualifierDeclaration_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMQualifierDeclaration.tocimxml().
     """
@@ -28320,6 +28362,7 @@ def test_CIMQualifierDeclaration_tocimxml(
 @pytest_extensions.test_function
 def test_CIMQualifierDeclaration_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for CIMQualifierDeclaration.tocimxmlstr().
     """
@@ -28731,6 +28774,7 @@ Qualifier Q1 : string,
         testcases)
     def test_CIMQualifierDeclaration_tomof(
             self, desc, obj, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for CIMQualifierDeclaration.tomof()."""
 
         if not condition:
@@ -29663,6 +29707,7 @@ class Test_mofstr(object):  # pylint: disable=too-few-public-methods
         testcases)
     def test_mofstr(
             self, desc, kwargs, exp_result, exp_warn_type, condition):
+        # pylint: disable=unused-argument
         """All test cases for mofstr()."""
 
         if not condition:

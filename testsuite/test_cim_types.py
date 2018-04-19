@@ -628,6 +628,7 @@ TESTCASES_CIMTYPE = [
 @pytest_extensions.test_function
 def test_cimtype(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for cimtype().
     """
@@ -802,6 +803,7 @@ TESTCASES_TYPE_FROM_NAME = [
 @pytest_extensions.test_function
 def test_type_from_name(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for type_from_name().
     """

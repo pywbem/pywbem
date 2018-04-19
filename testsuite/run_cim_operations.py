@@ -1654,7 +1654,7 @@ class PullReferencePaths(ClientTest):
                 result = self.cimcall(self.conn.PullInstancePaths,
                                       result.context, 1)
 
-                for path in result.path:
+                for path in result.paths:
                     self.assertInstanceNamesValid(path)
 
                 paths.extend(result.paths)
@@ -1894,7 +1894,7 @@ class PullAssociatorPaths(ClientTest):
             while not result.eos:
                 result = self.cimcall(self.conn.PullInstancePaths,
                                       result.context, 1)
-                for path in result.path:
+                for path in result.paths:
                     self.assertInstanceNamesValid(path)
                 paths_pulled.extend(result.paths)
 
@@ -5814,13 +5814,12 @@ class TestSubscriptionsClass(PyWBEMServerClass, RegexpMixin):
 
         try:
             if test_http_listener:
-                # pylint: disable=attribute-defined-outside-init
-                self.listener_url = '%s:%s' % (self.conn.url,
-                                               http_listener_port)
+                url = '%s:%s' % (self.conn.url, http_listener_port)
             else:
-                # pylint: disable=attribute-defined-outside-init
-                self.listener_url = '%s:%s' % (self.conn.url,
-                                               https_listener_port)
+                url = '%s:%s' % (self.conn.url, https_listener_port)
+
+            # pylint: disable=attribute-defined-outside-init
+            self.listener_url = url
 
             listener_addr = urlparse(self.system_url).netloc
 

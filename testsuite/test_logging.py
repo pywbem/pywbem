@@ -57,8 +57,8 @@ TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
 
 @pytest.fixture(autouse=True)
 def tmp_dir():
-    with TempDirectory() as dir:
-        yield dir
+    with TempDirectory() as tmpdir:
+        yield tmpdir
 
 
 class BaseLoggingTest(unittest.TestCase):
@@ -387,10 +387,11 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
         my_logger.debug('%s: %s: %s', return_name, 'FakeMethodName', result)
 
         lc.check(('pywbem.api', 'DEBUG',
-                 "Return: FakeMethodName: 'This is fake return data'"))
+                  "Return: FakeMethodName: 'This is fake return data'"))
 
 
 class TestLoggerPropagate(object):
+    # pylint: disable=too-few-public-methods
     """Test logging with propagate parameter variations"""
 
     @pytest.mark.parametrize(
@@ -403,6 +404,8 @@ class TestLoggerPropagate(object):
         )
     )
     def test_logger_propagate(self, tmp_dir, logger_names, propagate):
+        # pylint: disable=redefined-outer-name
+        """Test log event propagation behavior."""
 
         short_name, logger_name = logger_names
 

@@ -61,7 +61,9 @@ class Test_ValueMapping(object):
 
     def setup_method(self):
         """Setup WBEMConnection and WBEMSErver"""
+        # pylint: disable=attribute-defined-outside-init
         self.conn = WBEMConnection('dummy')
+        # pylint: disable=attribute-defined-outside-init
         self.server = WBEMServer(self.conn)
 
     def setup_for_property(self, server, type_, valuemap, values):
@@ -140,7 +142,8 @@ class Test_ValueMapping(object):
 
         return vm
 
-    def assertOutsideValueMap(self, vm, value):
+    @staticmethod
+    def assertOutsideValueMap(vm, value):
         """
         Test vm.tovalues Exception
         """

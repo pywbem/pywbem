@@ -621,7 +621,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._set_timeout(timeout)
 
         # Saving last request and reply
-        self.debug = False  # setter
+        self._debug = False
         self._last_raw_request = None
         self._last_raw_reply = None
         self._last_request = None

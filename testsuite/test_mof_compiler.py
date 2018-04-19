@@ -1639,7 +1639,9 @@ class TestPartialSchema(MOFTest):
         the recreation of the mof using tomof and recompile of this new
         mof file. Tests have numbers to control ordering.
     """
-    def define_partial_schema(self):  # pylint: disable=no-self-use
+
+    @staticmethod
+    def define_partial_schema():
         """
         Build  a schema include file that has a subset of the files in
         a complete DMTF schema.
@@ -1654,7 +1656,8 @@ class TestPartialSchema(MOFTest):
             """
         return schema_mof
 
-    def expected_classes(self):  # pylint: disable=no-self-use
+    @staticmethod
+    def expected_classes():
         """The classes expected to be directly compiled from the schema_mof
            above
         """
@@ -1662,7 +1665,8 @@ class TestPartialSchema(MOFTest):
                'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile',
                'CIM_LocalFileSystem')
 
-    def expected_dependent_classes(self):  # pylint: disable=no-self-use
+    @staticmethod
+    def expected_dependent_classes():
         """ Return tuple of expected dependent classes from the compile"""
         return('CIM_ManagedElement', 'CIM_WBEMService', 'CIM_Service',
                'CIM_RegisteredSpecification')
@@ -1863,6 +1867,7 @@ class TestFileErrors(MOFTest):
 
     def create_mofcompiler(self):
         """ Create the compiler with no search path """
+
         def moflog(msg):
             """Display message to moflog"""
             print(msg, file=self.logfile)
@@ -1901,10 +1906,10 @@ class TestFileErrors(MOFTest):
         """
 
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
-                                                   'System',
-                                                   'CIM_ComputerSystemx.mof'),
-                                      NAME_SPACE)
+            self.mofcomp.compile_file(
+                os.path.join(SCHEMA_MOF_DIR, 'System',
+                             'CIM_ComputerSystemx.mof'),
+                NAME_SPACE)
         except IOError:
             pass
 
