@@ -50,7 +50,7 @@ from pywbem.cim_operations import pull_path_result_tuple
 from pywbem_mock import FakedWBEMConnection, DMTFSchema
 
 from dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
-    install_dmtf_schema, SCHEMA_MOF_FN, SCHEMA_MOF_DIR
+    install_test_dmtf_schema
 
 VERBOSE = False
 
@@ -1345,10 +1345,10 @@ class TestRepoMethods(object):
         """
         ns = 'root/cimv2'
         # install the schema if necessary.
-        install_dmtf_schema()
+        dmtf_schema = install_test_dmtf_schema()
 
-        conn.compile_mof_file(SCHEMA_MOF_FN, namespace=ns,
-                              search_paths=[SCHEMA_MOF_DIR])
+        conn.compile_mof_file(dmtf_schema.schema_mof_filename, namespace=ns,
+                              search_paths=[dmtf_schema.schema_mof_dir])
 
         # pylint: disable=protected-access
         assert len(conn._get_class_repo(ns)) == TOTAL_CLASSES
@@ -1878,6 +1878,7 @@ class TestClassOperations(object):
             if new_class.superclass is None:
                 superclasses = []
             else:
+                # pylint: disable=protected-access
                 superclasses = conn._get_superclassnames(new_class.classname,
                                                          ns)
 
@@ -4359,7 +4360,7 @@ class TestDMTFSchema(object):
     first test.
     """
 
-    def test_schema_load(self, test_schema_dir):
+    def test_schema_final_load(self, test_schema_dir):
         # pylint: disable=no-self-use
         """
         Test the DMTFSchema class and its methods to get a schema from the
@@ -4370,8 +4371,12 @@ class TestDMTFSchema(object):
 
         assert schema.schema_ver == (2, 49, 0)
         assert schema.schema_ver_str == '2.49.0'
+        assert os.path.isdir(schema.schema_dir)
+        assert os.path.isdir(schema.schema_mof_dir)
+        assert os.path.isfile(schema.schema_mof_filename)
         assert schema.schema_dir == test_schema_dir
-        test_schema_mof_dir = os.path.join(test_schema_dir, 'mof')
+        mof_dir = 'mofFinal%s' % schema.schema_ver_str
+        test_schema_mof_dir = os.path.join(test_schema_dir, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
         assert schema.schema_mof_filename == \
@@ -4388,6 +4393,76 @@ class TestDMTFSchema(object):
                   '#pragma include ("Device/CIM_Door.mof")\n'
 
         assert schema_mof == exp_mof
+
+    def test_schema_experimental_load(self, test_schema_dir):
+        # pylint: disable=no-self-use
+        """
+        Test the DMTFSchema class and its methods to get a schema from the
+        DMTF, expand it, and to create a partial mof schema definition for
+        compilation.
+        """
+        schema = DMTFSchema((2, 49, 0), test_schema_dir, use_experimental=True,
+                            verbose=True)
+
+        assert schema.schema_ver == (2, 49, 0)
+        assert schema.schema_ver_str == '2.49.0'
+        assert os.path.isdir(schema.schema_dir)
+        assert os.path.isdir(schema.schema_mof_dir)
+        assert os.path.isfile(schema.schema_mof_filename)
+        assert schema.schema_dir == test_schema_dir
+        mof_dir = 'mofExperimental%s' % schema.schema_ver_str
+        test_schema_mof_dir = os.path.join(test_schema_dir, mof_dir)
+        assert schema.schema_mof_dir == test_schema_mof_dir
+
+        assert schema.schema_mof_filename == \
+            os.path.join(test_schema_mof_dir,
+                         'cim_schema_%s.mof' % (schema.schema_ver_str))
+
+    def test_two_schema_load(self, test_schema_dir):
+
+        schema1 = DMTFSchema((2, 49, 0), test_schema_dir, verbose=True)
+
+        schema2 = DMTFSchema((2, 50, 0), test_schema_dir, verbose=True)
+
+        assert schema1.schema_ver == (2, 49, 0)
+        assert schema1.schema_ver_str == '2.49.0'
+        assert schema1.schema_dir == test_schema_dir
+        assert os.path.isdir(schema1.schema_dir)
+        assert os.path.isdir(schema1.schema_mof_dir)
+        assert os.path.isfile(schema1.schema_mof_filename)
+        mof_dir = 'mofFinal%s' % schema1.schema_ver_str
+        test_schema_mof_dir = os.path.join(test_schema_dir, mof_dir)
+        assert schema1.schema_mof_dir == test_schema_mof_dir
+
+        assert schema1.schema_mof_filename == \
+            os.path.join(test_schema_mof_dir,
+                         'cim_schema_%s.mof' % (schema1.schema_ver_str))
+
+        assert schema2.schema_ver == (2, 50, 0)
+        assert schema2.schema_ver_str == '2.50.0'
+        assert os.path.isdir(schema2.schema_dir)
+        assert os.path.isdir(schema2.schema_mof_dir)
+        assert os.path.isfile(schema2.schema_mof_filename)
+        assert schema2.schema_dir == test_schema_dir
+        mof_dir = 'mofFinal%s' % schema2.schema_ver_str
+        test_schema_mof_dir = os.path.join(test_schema_dir, mof_dir)
+        assert schema2.schema_mof_dir == test_schema_mof_dir
+
+        assert schema2.schema_mof_filename == \
+            os.path.join(test_schema_mof_dir,
+                         'cim_schema_%s.mof' % (schema2.schema_ver_str))
+
+        schema1.clean()
+        assert os.path.exists(schema1.schema_mof_dir) is False
+
+        schema2.clean()
+        assert os.path.exists(schema2.schema_mof_dir) is False
+
+        schema1.remove()
+        assert os.path.exists(schema1._mof_zip_bn) is False
+
+        schema2.remove()
+        assert not os.path.exists(test_schema_dir)
 
     def test_schema_invalid_version(self, test_schema_dir):
         # pylint: disable=no-self-use

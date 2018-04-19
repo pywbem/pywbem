@@ -12,13 +12,8 @@ NOTE: The zip expansion is NOT committed to git, just the original zip file.
 
 To change the schema used:
 
-1. Change the following variables to match the DMTF schema to be used
-    (MOF_ZIP_BN, MOF_ZIP_URL, SCHEMA_MOF_BN)
-    NOTE: The BN, URL, and MOF_BN will change between versions. The V2xxx in the
-        URL must be updated and the version number in both MOF_ZIP_BN and
-        SCHEMA_MOF_BIN updated.
-    See the page http://www.dmtf.org/standards/cim if there are issues
-    downloading a particular schema version.
+1. Change the DMTF_SCHEMA_DIR to reflect the version of the schema that will
+   be the pywbem tests test schema
 
 2. Delete the SCHEMA_DIR (testsuite/schema). Be sure to delete the directory
    to be sure the new schema gets downloaded and correctly expanded.
@@ -34,15 +29,8 @@ To change the schema used:
 """
 
 import os
-from zipfile import ZipFile
-import six
 
-if six.PY2:
-    # pylint: disable=wrong-import-order
-    from urllib2 import urlopen
-else:
-    # pylint: disable=wrong-import-order
-    from urllib.request import urlopen
+from pywbem_mock import DMTFSchema
 
 
 # Change the following variables when a new version of the CIM Schema is used
@@ -55,19 +43,10 @@ else:
 # Location of the schema for use by test_mof_compiler.
 # This should not change unless you intend to use another schema directory
 SCRIPT_DIR = os.path.dirname(__file__)
-
 SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
-SCHEMA_MOF_DIR = os.path.join(SCHEMA_DIR, 'mof')
 
-DMTF_SCHEMA_VERSION = 'cim_schema_2.49.0'
-MOF_ZIP_BN = DMTF_SCHEMA_VERSION + 'Final-MOFs.zip'
-MOF_ZIP_URL = 'http://www.dmtf.org/standards/cim/cim_schema_v2490/' + MOF_ZIP_BN
-SCHEMA_MOF_BN = DMTF_SCHEMA_VERSION + '.mof'
-
-# DMTF Schema zip filename and mof filename
-MOF_ZIP_FN = os.path.join(SCHEMA_DIR, MOF_ZIP_BN)
-
-SCHEMA_MOF_FN = os.path.join(SCHEMA_MOF_DIR, SCHEMA_MOF_BN)
+# Defines the version of DMTF schema to be downloaded and installed
+DMTF_SCHEMA_VER = (2, 49, 0)
 
 # Expected total of qualifiers and classes in the DMTF Schema.
 # These may change for each schema release and will need to be manually
@@ -82,56 +61,12 @@ TOTAL_CLASSES = 1631
 # TOTAL_CLASSES = 1630
 
 
-def install_dmtf_schema():
+def install_test_dmtf_schema():
     """
     Install the DMTF schema if it is not already installed.  All the
     definitions of the installation are in the module variables.
     The user of ths should need
     """
-    first = True
+    schema = DMTFSchema(DMTF_SCHEMA_VER, SCHEMA_DIR)
 
-    if not os.path.isdir(SCHEMA_DIR):
-        if first:
-            print("")
-            first = False
-        print("Creating directory for CIM Schema archive: %s" % SCHEMA_DIR)
-        os.mkdir(SCHEMA_DIR)
-
-    if not os.path.isfile(MOF_ZIP_FN):
-        if first:
-            print("")
-            first = False
-        print("Downloading CIM Schema archive from: %s" % MOF_ZIP_URL)
-        ufo = urlopen(MOF_ZIP_URL)
-        with open(MOF_ZIP_FN, 'wb') as fp:
-            for data in ufo:
-                fp.write()
-
-    if not os.path.isdir(SCHEMA_MOF_DIR):
-        if first:
-            print("")
-            first = False
-        print("Creating directory for CIM Schema MOF files: %s" %
-              SCHEMA_MOF_DIR)
-        os.mkdir(SCHEMA_MOF_DIR)
-
-    if not os.path.isfile(SCHEMA_MOF_FN):
-        if first:
-            print("")
-            first = False
-        print("Unpacking CIM Schema archive: %s" % MOF_ZIP_FN)
-        zfp = None
-        try:
-            zfp = ZipFile(MOF_ZIP_FN, 'r')
-            nlist = zfp.namelist()
-            for file_ in nlist:
-                dfile = os.path.join(SCHEMA_MOF_DIR, file_)
-                if dfile[-1] == '/':
-                    if not os.path.exists(dfile):
-                        os.mkdir(dfile)
-                else:
-                    with open(dfile, 'w+b') as dfp:
-                        dfp.write(zfp.read(file_))
-        finally:
-            if zfp:
-                zfp.close()
+    return schema

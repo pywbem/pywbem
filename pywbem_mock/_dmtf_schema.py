@@ -24,9 +24,9 @@ The DMTF schema is the core set of mofs that represent the models used in
 most CIM/WBEM implementations that that utilize pywbem.
 
 The DMTFSchema class installs a DMTF MOF schema into a directory and makes
-information on that installation available. Donwloads a DMTF schema defined by
-its version number from the DMTF web site and expands it into a directory
-defined by a constructor input parameter.
+information on that directory availableas a property. Donwloads a DMTF schema
+defined by its version number from the DMTF web site and expands it into a
+directory defined by a constructor input parameter.
 
 The version defined will be downloaded in the directory defined by the
 'schema_dir' constructor parameter if that directory is empty does not exist
@@ -36,16 +36,34 @@ Installation into the 'schema_dir' directory includes:
 
 1. If necessary, creates the directory defined by schema_dir.
 
-2. Downloads the schema from the DMTF repository into the schema_dir.
+2. Downloads the schema from the DMTF web site into the schema_dir.
 
-3. Expands the zip file for the mof into the directory 'mof' in the schema_dir.
+3. Expands the zip file for the mof into the directory 'mof<schemaVersionNumber'
+   in the schema_dir.
 
-To change the DMTF schema version used by the DMTFSchema class in the
-same 'schema_dir':
+Multiple DMTF schemas may be maintained in the same 'schema_dir' simultaneously
+because each schema is expanded into a directory identified by the
+schema version information.
 
-1. Remove the directory (defined by 'schema_dir') for the existing version.
+Once a DMTF schema is expanded into the individual schema files it consumes
+considerable space since it expands to almost 3000 files.  Therefore it is
+logical to remove all of the individual mof files when not being used and
+also if the schema information is to be committed to be used in testing in
+an environment like github. Therefore, a method :meth:`~pywbem.DMTFSchema.clean`
+removes all of the mof files from local storage.  They are restored the next
+time the :class:`DMTFSchema` object for the same version is constructed.
 
-2. Recreate the DMTFSchema with the new schema version.
+The DMTF maintains two versions of each released schema:
+
+* Final - This schema does not contain any of the schema classes that are
+  marked experimantel.  It is considered the stable release.
+
+* Experimental - Contains the classes in the 'Final' zip file plus other
+  classes that are considered experimental. Typically it is considered less
+  stable.
+
+:class:`DMTFSchema` will optionally load the experimental schema if the
+constructor parameter 'user-experimental' is 'True'.
 
 The DMTFSchema class also provides a method to create a MOF include file
 from the DMTF Schema downloaded that includes only a subset of the classes
@@ -53,6 +71,7 @@ actually in the repository for compile into a MOF repository.
 """
 import os
 from zipfile import ZipFile
+import shutil
 import six
 
 if six.PY2:
@@ -74,7 +93,8 @@ class DMTFSchema(object):
 
     It also provides tools to build repositories with DMTF schema.
     """
-    def __init__(self, schema_ver, schema_dir, verbose=False):
+    def __init__(self, schema_ver, schema_dir, use_experimental=False,
+                 verbose=False):
         """
         The constructor downloads the schema if the 'schema_dir' does not exist
         and installs it into the directory defined by the 'schema_dir'
@@ -104,6 +124,13 @@ class DMTFSchema(object):
             This MUST represent a DMTF schema that is available from the
             DMTF web site.
 
+          use_experimental (:class:`py:bool`):
+            If True the expermintal version of the defined schema is
+            installed.
+
+            If False (the default) the Final released version of the DMTF
+            is installed.
+
           verbose (:class:`py:bool`):
             If 'True' status messages are output to the console
 
@@ -113,17 +140,21 @@ class DMTFSchema(object):
             schema currently set into the 'schema_dir'
 
         """
-        self._schema_dir = schema_dir
-        self._schema_mof_dir = os.path.join(self._schema_dir, 'mof')
-
         if not isinstance(schema_ver, tuple):
             raise ValueError('schema_ver must be tuple not %s' % schema_ver)
         if len(schema_ver) != 3:
             raise ValueError('DMTF Schema must have 3 integer components, '
                              '(major, minor, rev) not %s' % schema_ver)
+        schema_type = 'Experimental' if use_experimental else 'Final'
         self._schema_ver = schema_ver
+        self._schema_dir = schema_dir
+
+        mof_dir = 'mof%s%s' % (schema_type, self.schema_ver_str)
+        self._schema_mof_dir = os.path.join(self._schema_dir, mof_dir)
+
         self._dmtf_schema_ver = 'cim_schema_%s' % (self.schema_ver_str)
-        self._mof_zip_bn = self._dmtf_schema_ver + 'Final-MOFs.zip'
+        self._mof_zip_bn = '%s%s-MOFs.zip' % (self._dmtf_schema_ver,
+                                              schema_type)
         self._mof_zip_url = \
             'http://www.dmtf.org/standards/cim/cim_schema_v%s%s%s/%s' % \
             (schema_ver[0], schema_ver[1], schema_ver[2], self._mof_zip_bn)
@@ -168,7 +199,8 @@ class DMTFSchema(object):
         """
         :term:`string` defining the directory in which the DMTF CIM Schema
         mof is defined. This includes the expansion of the individual schema
-        mof files.  TODO What is this good for???
+        mof files. This property is very useful since it can be used as
+        the search path for compiling classes in the DMTF schema.
         """
         return self._schema_mof_dir
 
@@ -331,3 +363,30 @@ class DMTFSchema(object):
                                  (cln, self.schema_mof_filename))
 
         return ''.join(output_lines)
+
+    def clean(self):
+        """
+        Clean the individual mof files from the 'schema_dir'. This removes
+        all of the individual mof files and the mof... directory for
+        the defined schema.  This is useful because while the downloaded
+        schema is a single compressed zip file, it creates several
+        thousand mof files that take up considerable space.
+
+        The next time the DMTFSchema object for this schema_ver and schema_dir
+        is created, the zip file is expanded again.
+        """
+        if os.path.isdir(self.schema_mof_dir):
+            shutil.rmtree(self.schema_mof_dir)
+
+    def remove(self):
+        """
+        If the schema has been installed it is completely removed. If
+        the resulting 'schema_dir' is empty that directory is removed also.
+
+        If the schema defined by 'schema_ver' and
+        """
+        self.clean()
+        if os.path.isfile(self._mof_zip_filename):
+            os.remove(self._mof_zip_filename)
+        if os.path.isdir(self.schema_dir) and os.listdir(self.schema_dir) == []:
+            os.rmdir(self.schema_dir)

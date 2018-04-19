@@ -31,15 +31,12 @@ except ImportError:
 from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
-    HTTPError
+    HTTPError, WBEMConnection, LogOperationRecorder, configure_logger
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
-from pywbem import WBEMConnection, LogOperationRecorder
-from pywbem import configure_logger
-# used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 from pywbem_mock import FakedWBEMConnection
-from dmtf_mof_schema_def import install_dmtf_schema, SCHEMA_MOF_DIR
+from dmtf_mof_schema_def import install_test_dmtf_schema
 
 
 # test outpuf file for the recorder tests.  This is opened for each
@@ -526,6 +523,7 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
         Shut down any existing logger and reset WBEMConnection and
         reset WBEMConnection class attributes
         """
+        # pylint: disable=protected-access
         WBEMConnection._reset_logging_config()
         logging.shutdown()
         # NOTE We do not clean up handlers or logger names already defined.
@@ -1838,7 +1836,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
     def build_repo(self, namespace):
         """Build a fake repo and FakeWBEMConnection so we get responses back"""
-        install_dmtf_schema()
+        schema = install_test_dmtf_schema()
         partial_schema = """
             #pragma locale ("en_US")
             #pragma include ("Interop/CIM_ObjectManager.mof")
@@ -1846,7 +1844,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn = FakedWBEMConnection('http://blah')
         conn.compile_mof_string(partial_schema, namespace=namespace,
-                                search_paths=[SCHEMA_MOF_DIR])
+                                search_paths=[schema.schema_mof_dir])
         return conn
 
     @log_capture()
@@ -1860,7 +1858,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # setup schema in test because we configure before we create the
         # connection in this test.
         namespace = 'interop'
-        install_dmtf_schema()
+        schema = install_test_dmtf_schema()
         partial_schema = """
             #pragma locale ("en_US")
             #pragma include ("Interop/CIM_ObjectManager.mof")
@@ -1871,7 +1869,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
                          connection=True, propagate=True)
         conn = FakedWBEMConnection('http://blah')
         conn.compile_mof_string(partial_schema, namespace=namespace,
-                                search_paths=[SCHEMA_MOF_DIR])
+                                search_paths=[schema.schema_mof_dir])
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 

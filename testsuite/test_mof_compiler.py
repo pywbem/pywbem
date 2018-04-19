@@ -27,8 +27,8 @@ from pywbem._nocasedict import NocaseDict
 
 from unittest_extensions import CIMObjectMixin
 
-from dmtf_mof_schema_def import SCHEMA_MOF_FN, SCHEMA_MOF_DIR, \
-    install_dmtf_schema, TOTAL_QUALIFIERS, TOTAL_CLASSES
+from dmtf_mof_schema_def import install_test_dmtf_schema, TOTAL_QUALIFIERS, \
+    TOTAL_CLASSES
 
 # Location of the schema for use by test_mof_compiler.
 # This should not change unless you intend to use another schema directory
@@ -39,12 +39,21 @@ NAME_SPACE = 'root/test'
 
 TMP_FILE = 'test_mofRoundTripOutput.mof'
 
+# global that contains DMTFSchema object created by setUpModule
+TEST_DMTF_SCHEMA = None
+TEST_DMTF_SCHEMA_MOF_DIR = None
+
 
 def setUpModule():
     """ Setup the unittest. Includes possibly getting the
         schema mof from DMTF web
     """
-    install_dmtf_schema()
+    global TEST_DMTF_SCHEMA  # pylint: disable=global-statement
+    global TEST_DMTF_SCHEMA_MOF_DIR  # pylint: disable=global-statement
+
+    schema = install_test_dmtf_schema()
+    TEST_DMTF_SCHEMA = schema
+    TEST_DMTF_SCHEMA_MOF_DIR = schema.schema_mof_dir
 
 
 class MOFTest(unittest.TestCase):
@@ -61,7 +70,7 @@ class MOFTest(unittest.TestCase):
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
-            search_paths=[SCHEMA_MOF_DIR],
+            search_paths=[TEST_DMTF_SCHEMA_MOF_DIR],
             verbose=False,
             log_func=moflog)
 
@@ -306,33 +315,35 @@ class TestSchemaError(MOFTest):
         """
         self.mofcomp.parser.search_paths = []
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+            self.mofcomp.compile_file(os.path.join(TEST_DMTF_SCHEMA_MOF_DIR,
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
+            self.fail('Expected exception')
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_FAILED)
             self.assertEqual(ce.file_line[0],
-                             os.path.join(SCHEMA_MOF_DIR,
+                             os.path.join(TEST_DMTF_SCHEMA_MOF_DIR,
                                           'System',
                                           'CIM_ComputerSystem.mof'))
             if ce.file_line[1] != 2:
                 print('assert {}'.format(ce.file_line))
             self.assertEqual(ce.file_line[1], 2)
 
-        self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DMTF_SCHEMA_MOF_DIR,
                                                'qualifiers.mof'),
                                   NAME_SPACE)
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+            self.mofcomp.compile_file(os.path.join(TEST_DMTF_SCHEMA_MOF_DIR,
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
+            self.fail('Expected exception')
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
             self.assertEqual(ce.file_line[0],
                              os.path.join(
-                                 SCHEMA_MOF_DIR,
+                                 TEST_DMTF_SCHEMA_MOF_DIR,
                                  'System',
                                  'CIM_ComputerSystem.mof'))
             # TODO The following is cim version dependent.
@@ -344,14 +355,14 @@ class TestSchemaError(MOFTest):
 
 class TestSchemaSearch(MOFTest):
     """Test the search attribute for schema in a directory defined
-       by search attribute. Searches the SCHEMA_MOF_DIR
+       by search attribute. Searches the TEST_DMTF_SCHEMA_MOF_DIR
     """
 
     def test_compile_one(self):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
         """
-        self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DMTF_SCHEMA_MOF_DIR,
                                                'System',
                                                'CIM_ComputerSystem.mof'),
                                   NAME_SPACE)
@@ -1577,7 +1588,8 @@ class TestFullSchema(MOFTest):
 
         # original compile and write of output mof
         # start_time = time()
-        self.mofcomp.compile_file(SCHEMA_MOF_FN, NAME_SPACE)
+        self.mofcomp.compile_file(TEST_DMTF_SCHEMA.schema_mof_filename,
+                                  NAME_SPACE)
         # print('elapsed compile: %f  ' % (time() - start_time))
 
         repo = self.mofcomp.handle
@@ -1686,7 +1698,7 @@ class TestPartialSchema(MOFTest):
 
         # write the schema to a file in the schema directory
         self.partial_schema_file = 'test_partial_schema.mof'
-        test_schemafile = os.path.join(SCHEMA_MOF_DIR,
+        test_schemafile = os.path.join(TEST_DMTF_SCHEMA_MOF_DIR,
                                        self.partial_schema_file)
         with open(test_schemafile, "w") as sf:
             sf.write(schema_mof)
