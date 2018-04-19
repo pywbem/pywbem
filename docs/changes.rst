@@ -29,6 +29,10 @@ Released: not yet
 * fix issue where wbemcli-help-txt was not being updated when wbemcli.py
   changed.  (Issue #1205)
 
+* Test: Fixed access to incorrect tuple members in run_cim_operations.py.
+  that were used only in long version of the test. Found by Pylint.
+  (Issue #1206).
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
@@ -54,6 +58,8 @@ Released: not yet
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
+
+* Resolved several Pylint issues, including several fixes (Issue #1206).
 
 **Known issues:**
 

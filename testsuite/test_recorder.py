@@ -36,9 +36,9 @@ from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
 from pywbem import TestClientRecorder as _TestClientRecorder
 from pywbem import WBEMConnection, LogOperationRecorder
 from pywbem import configure_logger
-from pywbem_mock import FakedWBEMConnection
 # used to build result tuple for test
 from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
+from pywbem_mock import FakedWBEMConnection
 from dmtf_mof_schema_def import install_dmtf_schema, SCHEMA_MOF_DIR
 
 

@@ -248,6 +248,7 @@ class TestIndications(unittest.TestCase):
     #     self.send_indications(1000, 50000)
 
     def test_attrs(self):
+        # pylint: disable=no-self-use
         """
         Test WBEMListener attributes.
         """
@@ -267,6 +268,7 @@ class TestIndications(unittest.TestCase):
         assert listener.https_started is False
 
     def test_start_stop(self):
+        # pylint: disable=no-self-use
         """
         Test starting and stopping of the the listener.
         """
@@ -287,6 +289,7 @@ class TestIndications(unittest.TestCase):
         assert listener.https_started is False
 
     def test_port_in_use(self):
+        # pylint: disable=no-self-use
         """
         Test starting the listener when port is in use by another listener.
         """
@@ -326,6 +329,7 @@ class TestIndications(unittest.TestCase):
         listener2.stop()  # cleanup (for cases where it started)
 
     def test_context_mgr(self):
+        # pylint: disable=no-self-use
         """
         Test starting the listener and automatic closing in a context manager.
         """

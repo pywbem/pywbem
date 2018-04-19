@@ -181,6 +181,7 @@ def xml_to_tupletree(xml_string):
 
 class TestTupleTreeRegression(unittest.TestCase):
     """Setup the TupleTree tests"""
+
     def setUp(self):
         self.data_dir = resource_filename(__name__, 'tupletree_ok')
         # pylint: disable=unused-variable
@@ -208,6 +209,7 @@ class TestTupleTreeError(unittest.TestCase):
     """Base class for Testing Tuple tree errors. Does setUp and common
        method to test
     """
+
     def setUp(self):
         """Unittest setUp"""
         self.data_dir = resource_filename(__name__, 'tupletree_error')
@@ -223,7 +225,9 @@ class TestTupleTreeError(unittest.TestCase):
 
 
 class TestTupleTreeSax(unittest.TestCase):
+    # pylint: disable=too-few-public-methods
     """Class to execute SaxTupleTree tests"""
+
     def test_xml_to_tupletree_sax(self):
         """
         XML to tupletree with SAX is accurate.
@@ -241,6 +245,7 @@ class TestTupleTreeSax(unittest.TestCase):
 
 
 class Test_check_invalid_utf8_sequences(object):
+    # pylint: disable=too-few-public-methods
     """Tests for check_invalid_utf8_sequences()"""
 
     testcases = [
@@ -342,6 +347,7 @@ class Test_check_invalid_utf8_sequences(object):
     )
     def test_check_invalid_utf8_sequences(
             self, desc, utf8_string, exp_exc_type, condition):
+        # pylint: disable=no-self-use
         """Tests for check_invalid_utf8_sequences()"""
 
         if not condition:
@@ -363,6 +369,7 @@ class Test_check_invalid_utf8_sequences(object):
 
 
 class Test_check_invalid_xml_chars(object):
+    # pylint: disable=too-few-public-methods
     """Tests for check_invalid_xml_chars()"""
 
     testcases = [
@@ -450,6 +457,7 @@ class Test_check_invalid_xml_chars(object):
     )
     def test_check_invalid_xml_chars(
             self, desc, xml_string, exp_exc_type, condition):
+        # pylint: disable=no-self-use
         """Tests for check_invalid_xml_chars()"""
 
         if not condition:

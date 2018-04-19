@@ -5629,12 +5629,13 @@ class CIMParameter(_CIMComparisonMixin):
                         self.reference_class,
                         array_size,
                         qualifiers=qualifiers)
-                else:
-                    return cim_xml.PARAMETER_ARRAY(
-                        self.name,
-                        self.type,
-                        array_size,
-                        qualifiers=qualifiers)
+
+                # For non-reference array types:
+                return cim_xml.PARAMETER_ARRAY(
+                    self.name,
+                    self.type,
+                    array_size,
+                    qualifiers=qualifiers)
 
             else:  # scalar
 
@@ -5643,11 +5644,12 @@ class CIMParameter(_CIMComparisonMixin):
                         self.name,
                         self.reference_class,
                         qualifiers=qualifiers)
-                else:
-                    return cim_xml.PARAMETER(
-                        self.name,
-                        self.type,
-                        qualifiers=qualifiers)
+
+                # For non-reference types:
+                return cim_xml.PARAMETER(
+                    self.name,
+                    self.type,
+                    qualifiers=qualifiers)
 
     def tocimxmlstr(self, indent=None, as_value=False):
         """

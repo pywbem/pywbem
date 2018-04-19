@@ -591,6 +591,7 @@ TESTCASES_NOCASEDICT_HASH = [
 @pytest_extensions.test_function
 def test_NocaseDict_equal(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for NocaseDict.__eq__().
     """
@@ -621,6 +622,7 @@ def test_NocaseDict_equal(
 @pytest_extensions.test_function
 def test_NocaseDict_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
     """
     All test cases for NocaseDict.__hash__().
     """
@@ -800,9 +802,11 @@ class TestRepr(unittest.TestCase):
 
 
 class Test_unnamed_keys(object):
+    # pylint: disable=too-few-public-methods
     """Class to test unnamed keys (key is None) for NocaseDict"""
 
     def test_unnamed_keys(self):
+        # pylint: disable=no-self-use
         """Test unnamed keys."""
 
         dic = NocaseDict()

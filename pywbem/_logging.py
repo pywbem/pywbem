@@ -366,9 +366,10 @@ def configure_logger(simple_name, log_dest=None,
     """  # noqa: E501
     # pylint: enable=line-too-long
 
-    global _CONN
+    global _CONN  # pylint: disable=global-statement
     if _CONN is None:
-        from . import WBEMConnection as _CONN
+        from . import WBEMConnection
+        _CONN = WBEMConnection
 
     _CONN._configure_logger(
         simple_name,

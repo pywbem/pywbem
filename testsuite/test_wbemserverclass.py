@@ -46,7 +46,8 @@ class BaseMethodsForTests(object):
     build the DMTF schema and to build individual instances.
     """
 
-    def build_schema_list(self, conn, namespace):
+    @staticmethod
+    def build_schema_list(conn, namespace):
         """
         Build the schema qualifier and class objects in the repository.
         This requires only that the leaf objects be defined in a mof
@@ -78,7 +79,8 @@ class BaseMethodsForTests(object):
             os.remove(TEST_SCHEMA)
         return
 
-    def inst_from_class(self, klass, namespace=None,
+    @staticmethod
+    def inst_from_class(klass, namespace=None,
                         property_values=None,
                         include_null_properties=True,
                         include_path=True, strict=False,
@@ -413,8 +415,8 @@ class TestServerClass(BaseMethodsForTests):
         print('central inst %s' % insts[0])
         assert len(insts) == 1
         kb = NocaseDict([('SystemCreationClassName', 'CIM_ComputerSystem'),
-                        ('SystemName', system_name),
-                        ('CreationClassName', 'CIM_ObjectManager')])
+                         ('SystemName', system_name),
+                         ('CreationClassName', 'CIM_ObjectManager')])
         assert insts[0] == CIMInstanceName('CIM_ObjectManager', keybindings=kb,
                                            namespace=tst_namespace,
                                            host=conn.host)
