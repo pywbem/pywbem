@@ -49,10 +49,10 @@ from pywbem._logging import configure_loggers_from_string, configure_logger, \
 VERBOSE = False
 
 # Location of any test scripts for testing wbemcli.py
-SCRIPT_DIR = os.path.dirname(__file__)
+TEST_DIR = os.path.dirname(__file__)
 
 LOG_FILE_NAME = 'test_logging.log'
-TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
+TEST_OUTPUT_LOG = '%s/%s' % (TEST_DIR, LOG_FILE_NAME)
 
 
 @pytest.fixture(autouse=True)

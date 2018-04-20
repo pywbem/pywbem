@@ -12,25 +12,28 @@ NOTE: The zip expansion is NOT committed to git, just the original zip file.
 
 To change the schema used:
 
-1. Change the DMTF_SCHEMA_DIR to reflect the version of the schema that will
-   be the pywbem tests test schema
+1. Change the DMTF_SCHEMA_VER varaible to reflect the version of the schema
+   that will be the pywbem tests test schema
 
-2. Delete the SCHEMA_DIR (testsuite/schema). Be sure to delete the directory
-   to be sure the new schema gets downloaded and correctly expanded.
+2. Delete the SCHEMA_DIR (testsuite/schema). Delete the  SCHEMA_DIR directory
+   This eliminates the old schema.
 
 3. Execute testsuite/test_mof_compiler.py. This should cause the new schema
    to be downloaded and expanded as part of the test.
 
-4. The first test should generate an error if the values for total number of
+4. The first test may generate an error if the values for total number of
    classes or qualifiers have changed. Modify the  variables below to define
    the correct numbers and re-execute test_mof_compiler.
    NOTE: We are keeping some history of the counts for previous versions of
    the schema (see the comments at the end of this file)
+
+5. Add the new DMTF CIM schema zip file to git so that it is persisted for
+   Travis, etc. testing
 """
 
 import os
 
-from pywbem_mock import DMTFSchema
+from pywbem_mock import DMTFCIMSchema
 
 
 # Change the following variables when a new version of the CIM Schema is used
@@ -42,11 +45,13 @@ from pywbem_mock import DMTFSchema
 
 # Location of the schema for use by test_mof_compiler.
 # This should not change unless you intend to use another schema directory
-SCRIPT_DIR = os.path.dirname(__file__)
-SCHEMA_DIR = os.path.join(SCRIPT_DIR, 'schema')
+TEST_DIR = os.path.dirname(__file__)
+SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 
 # Defines the version of DMTF schema to be downloaded and installed
-DMTF_SCHEMA_VER = (2, 49, 0)
+# To use a different DMTF schema, replace the version number defined in the
+# following variable
+DMTF_TEST_SCHEMA_VER = (2, 49, 0)
 
 # Expected total of qualifiers and classes in the DMTF Schema.
 # These may change for each schema release and will need to be manually
@@ -67,6 +72,6 @@ def install_test_dmtf_schema():
     definitions of the installation are in the module variables.
     The user of ths should need
     """
-    schema = DMTFSchema(DMTF_SCHEMA_VER, SCHEMA_DIR)
+    schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, SCHEMA_DIR)
 
     return schema

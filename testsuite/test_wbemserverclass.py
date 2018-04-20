@@ -65,7 +65,8 @@ class BaseMethodsForTests(object):
             #pragma include ("Interop/CIM_ReferencedProfile.mof")
             """
 
-        test_schema = os.path.join(dmtf_schema.schema_dir, 'test_schema1.mof')
+        test_schema = os.path.join(dmtf_schema.schema_root_dir,
+                                   'test_schema1.mof')
 
         with open(test_schema, "w") as schema_file:
             schema_file.write(class_list)

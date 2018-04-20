@@ -49,6 +49,7 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
     DEFAULT_NAMESPACE, MOFCompiler, MOFWBEMConnection
 from pywbem._nocasedict import NocaseDict
+from ._dmtf_cim_schema import DMTFCIMSchema
 
 
 __all__ = ['FakedWBEMConnection', 'method_callback_interface']
@@ -434,7 +435,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          mof (:term:`string`):
+          mof_str (:term:`string`):
             A string with the MOF definitions to be compiled.
 
           namespace (:term:`string`):
@@ -479,6 +480,73 @@ class FakedWBEMConnection(WBEMConnection):
         mofcomp.compile_string(mof_str, namespace)
 
         self._merge_repos(mof_repo)
+
+    def compile_dmtf_schema(self, dmtf_schema_version, schema_dir, classes,
+                            use_experimental=False, verbose=False):
+        """
+        Compile the classes defined by `classes` and their dependent classes
+        from the DMTF CIM schema version defined by 'dmtf_version_version' and
+        keep the downloaded DMTF CIM schema in the directory defined by
+        `schema_dir`.
+
+        This method uses :class:`~pywbem_mock.DMTFCIMSchema` to get the schema
+        from the DMTF, save it in the `schema_dir` directory, expand it and make
+        a list of leaf classes from this directory that are to be compiled.
+
+        It automatically compiles the DMTF qualifier declarations.
+
+        Parameters:
+
+          schema_version  (tuple of 3 integers (m, n, n):
+            Represents the DMTF CIM schema version where:
+
+            * m is the DMTF CIM schema major version
+            * n is the DMTF CIM schema minor version
+            * u is the DMTF CIM schema update
+
+            This must represent a DMTF CIM schema that is available from the
+            DMTF web site.
+
+          schema_dir (:term:`string`):
+            Directory into which the DMTF CIM schema is installed or will be
+            installed.  A single `schema_dir` can be used for multiple
+            schema versions because subdirectories are uniquely defined by
+            schema version and schema_type (i.e. Final or Experimental).
+
+          schema_classes (:term:`py:list` of :term:`string`):
+            Classes from the DMTF CIM Schema to be included in the repository.
+
+            These must be classes in the defined DMTF CIM schema and can be just
+            a list of the leaf classes required for a workingrepository. The
+            compiler will try to find superclasses, classes defined in
+            reference properties, and classes defined in EmbeddedInstance
+            qualifiers in the DMTF repository MOF and compile them also.
+
+          use_experimental (:class:`py:bool`):
+            If `True` the expermintal version of the defined schema is
+            installed.
+
+            If `False` (the default) the Final released version of the DMTF
+            is installed.
+
+          verbose (:class:`py:bool`):
+            If `True`, progress messages are output to stdout
+
+        Raises:
+            ValueError: If the schema cannot be retrieved from the DMTF web
+              site.
+            TypeError: If the 'schema_version' is not a valid tuple with 3
+              integer components
+        """
+        schema = DMTFCIMSchema(dmtf_schema_version, schema_dir,
+                               use_experimental=use_experimental,
+                               verbose=verbose)
+        schema_mof = schema.build_schema_mof(classes)
+
+        search_paths = schema.schema_mof_dir
+        self.compile_mof_string(schema_mof, namespace=None,
+                                search_paths=search_paths,
+                                verbose=verbose)
 
     def add_cimobjects(self, objects, namespace=None):
         # pylint: disable=line-too-long
@@ -902,7 +970,7 @@ class FakedWBEMConnection(WBEMConnection):
         Test if class defined by classname parameter exists in
         repository defined by namespace parameter.
 
-        Returns True if class exists and False if it does not exist.
+        Returns `True` if class exists and `False` if it does not exist.
 
         Exception if the namespace does not exist
         """
@@ -1072,12 +1140,12 @@ class FakedWBEMConnection(WBEMConnection):
             repository for the defined namespace for which this class is a
             direct super class.
 
-            If deep_inheritance is True, get all direct and indirect
+            If deep_inheritance is `True`, get all direct and indirect
             subclasses.  If false, get only a the next level of the
             hiearchy.
 
         Returns:
-            list of strings defining the subclass names.
+            list of strings with the names of all subclasses of `classname`.
 
         """
         assert classname is None or isinstance(classname, six.string_types)
@@ -1119,15 +1187,15 @@ class FakedWBEMConnection(WBEMConnection):
             Namespace from which to retrieve the class
 
           local_only (:class:`py:bool`):
-            If True, only properties and methods in this specific class are
+            If `True`, only properties and methods in this specific class are
             returned. Otherwise properties and methods from the superclasses
             are included.
 
           include_qualifiers (:class:`py:bool`):
-            If True, include qualifiers. Otherwise remove all qualifiers
+            If `True`, include qualifiers. Otherwise remove all qualifiers
 
           include_classorigin (:class:`py:bool`):
-            If True return the class_origin attributes of properties and
+            If `True` return the class_origin attributes of properties and
             methods.
 
           property_list ():
@@ -2248,8 +2316,9 @@ class FakedWBEMConnection(WBEMConnection):
                           result_classes, role):
         """
         Test filters for a reference property
-        Returns true if matches the criteria. Returns False if it does not
-        match.
+        Returns `True` if matches the criteria.
+
+        Returns `False` if it does not match.
 
         The match criteria are:
           - target_classname == prop_reference_class
@@ -2270,7 +2339,7 @@ class FakedWBEMConnection(WBEMConnection):
                             assoc_classes, result_classes, result_role):
         """
         Test filters of a reference property and its associated entity
-        Returns true if matches the criteria. Returns False if it does not
+        Returns true if matches the criteria. Returns `False` if it does not
         match.
 
         Matches if ref_classname in assoc_classes, and result_role matches

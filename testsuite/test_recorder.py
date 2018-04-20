@@ -43,10 +43,10 @@ from dmtf_mof_schema_def import install_test_dmtf_schema
 # test to save yaml output and may be reloaded during the same test
 # to confirm the yaml results.
 TEST_YAML_FILE = 'test_recorder.yaml'
-SCRIPT_DIR = os.path.dirname(__file__)
+TEST_DIR = os.path.dirname(__file__)
 
 LOG_FILE_NAME = 'test_recorder.log'
-TEST_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
+TEST_OUTPUT_LOG = '%s/%s' % (TEST_DIR, LOG_FILE_NAME)
 
 VERBOSE = False
 
@@ -156,7 +156,7 @@ class ClientRecorderTests(BaseRecorderTests):
     """
     def setUp(self):
         """ Setup recorder instance including defining output file"""
-        self.testyamlfile = os.path.join(SCRIPT_DIR, TEST_YAML_FILE)
+        self.testyamlfile = os.path.join(TEST_DIR, TEST_YAML_FILE)
         if os.path.isfile(self.testyamlfile):
             os.remove(self.testyamlfile)
 

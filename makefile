@@ -142,6 +142,7 @@ doc_dependent_files := \
     $(package_name)/mof_compiler.py \
     $(mock_package_name)/__init__.py \
     $(mock_package_name)/_wbemconnection_mock.py\
+    $(mock_package_name)/_dmtf_cim_schema.py\
     wbemcli.py \
 
 # PyLint config file

@@ -2541,7 +2541,6 @@ class MOFCompiler(object):
           :term:`string`: Path name of the MOF file defining the CIM class, if
           it was found. `None`, if it was not found.
         """
-
         classname = classname.lower()
         for search in self.parser.search_paths:
             for root, dummy_dirs, files in os.walk(search):
@@ -2549,6 +2548,7 @@ class MOFCompiler(object):
                     if file_.endswith('.mof') and \
                             file_[:-4].lower() == classname:
                         return root + '/' + file_
+
         return None
 
     def rollback(self, verbose=False):
