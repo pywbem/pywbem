@@ -72,12 +72,12 @@ requests===2.12.4
 decorator===4.0.11
 yamlordereddictloader===0.4.0
 
-# Unit test (no imports, invoked via py.test script):
-pytest-cov===2.4.0
-
 # Coverage reporting (no imports, invoked via coveralls script):
 python-coveralls===2.8.0
 coverage===4.0.3
+
+# Unit test (no imports, invoked via py.test script):
+pytest-cov===2.4.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
 Sphinx===1.5.1
