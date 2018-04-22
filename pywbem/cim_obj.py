@@ -270,8 +270,7 @@ else:
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
-           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'tocimobj',
-           'cimvalue']
+           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'cimvalue']
 
 # Constants for MOF formatting output
 MOF_INDENT = 3
@@ -284,13 +283,13 @@ WBEM_URI_CLASSPATH_REGEXP = re.compile(
     r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
     r'(?://([\w.:@\[\]]*))?'  # authority
     r'(?:/|^/?)(\w+(?:/\w+)*)?'  # namespace name (leading slash optional)
-    r':(\w*)$',  # class name
+    r'(?::|^:?)(\w+)$',  # class name (leading colon optional)
     flags=re.UNICODE)
 WBEM_URI_INSTANCEPATH_REGEXP = re.compile(
     r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
     r'(?://([\w.:@\[\]]*))?'  # authority
     r'(?:/|^/?)(\w+(?:/\w+)*)?'  # namespace name (leading slash optional)
-    r':(\w*)'  # class name
+    r'(?::|^:?)(\w+)'  # class name (leading colon optional)
     r'\.(.+)$',  # key bindings
     flags=re.UNICODE)
 
@@ -313,10 +312,25 @@ WBEM_URI_KB_FINDALL_REGEXP = re.compile(
     r',\w+=%s' % _KB_VAL,
     flags=(re.UNICODE | re.IGNORECASE))
 
+# Pattern for DSP0004 binaryValue; group(1) is value without trailing B
+BINARY_VALUE = re.compile(
+    r'^([+\-]?(?:[0-1]+))B$',
+    flags=(re.UNICODE | re.IGNORECASE))
+
+# Pattern for DSP0004 octalValue
+OCTAL_VALUE = re.compile(
+    r'^[+\-]?0(?:[1-9]*)$',
+    flags=(re.UNICODE))
+
 # Pattern for DSP0004 decimalValue
 DECIMAL_VALUE = re.compile(
     r'^[+\-]?(?:0|[1-9][0-9]*)$',
     flags=(re.UNICODE))
+
+# Pattern for DSP0004 hexValue
+HEX_VALUE = re.compile(
+    r'^[+\-]?0X(?:[0-9A-F]+)$',
+    flags=(re.UNICODE | re.IGNORECASE))
 
 # Pattern for DSP0004 realValue (extended by INF, -INF, NAN)
 REAL_VALUE = re.compile(
@@ -1680,25 +1694,31 @@ class CIMInstanceName(_CIMComparisonMixin):
             cimval = val.lower() == 'true'
             return cimval
 
+        # For all integer values, the following applies:
+        # * The key value must be one of the integer CIM types 'uint<NN>' or
+        #   'sint<NN>'. For integer keybindings in an untyped WBEM URI, it is
+        #   not possible to detect the exact CIM data type. Therefore, pywbem
+        #   stores the value as a Python int type (or long in Python 2,
+        #   if needed).
+        # * Note that DSP0207 only allows only US-ASCII digits. However, the
+        #   Python int() function supports all Unicode digits (e.g. US-ASCII
+        #   digits, ARABIC-INDIC digits, superscripts, subscripts) and raises
+        #   ValueError for non-decimal digits (e.g. Kharoshthi digits).
+        #   Therefore, we check the string format explicitly for US-ASCII
+        #   digits, and therefore the int() function cannot fail.
+        m = BINARY_VALUE.match(val)
+        if m:
+            val = m.group(1)  # The trailing 'B' is CIM specific -> remove
+            cimval = int(val, 2)  # returns long if needed
+            return cimval
+        if OCTAL_VALUE.match(val):
+            cimval = int(val, 8)  # returns long if needed
+            return cimval
         if DECIMAL_VALUE.match(val):
-            # The key value must be one of the integer CIM types:
-            # * uintNN, sintNN (see decimalValue in DSP00004)
-
-            # For integer keybindings in an untyped WBEM URI, it is not
-            # possible to detect the exact CIM data type. Therefore, pywbem
-            # stores the value as a Python int type (or long in Python 2,
-            # if needed).
-
-            # Note that DSP0207 only allows only US-ASCII 0-9 for decimal
-            # numbers. The int() function supports all decimal Unicode
-            # digits (e.g. US-ASCII 0-9, ARABIC-INDIC digits, superscripts,
-            # or subscripts) and raises ValueError for non-decimal digits
-            # (e.g. Kharoshthi digits).
-
-            # Therefore, the decimalValue format has been checked explicitly,
-            # and an error in the int() function is not expected.
-
             cimval = int(val)  # returns long if needed
+            return cimval
+        if HEX_VALUE.match(val):
+            cimval = int(val, 16)  # returns long if needed
             return cimval
 
         if REAL_VALUE.match(val):
@@ -1768,6 +1788,10 @@ class CIMInstanceName(_CIMComparisonMixin):
           the slash (consistent with :term:`DSP0207`) when the WBEM URI is not
           local.
 
+        * :term:`DSP0207` requires a colon before the class name. For
+          historical reasons, pywbem tolerates a missing colon before the class
+          name, if it would have been the first character of the string.
+
         * :term:`DSP0207` requires datetime values in keybindings to be
           surrounded by double quotes. For historical reasons, pywbem tolerates
           datetime values that are not surrounded by double quotes, but issues
@@ -1798,6 +1822,12 @@ class CIMInstanceName(_CIMComparisonMixin):
         Examples::
 
             https://jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+            //jdd:test@acme.com:5989/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+            /cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+            cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+            /:CIM_RegisteredProfile.InstanceID="acme.1"
+            :CIM_RegisteredProfile.InstanceID="acme.1"
+            CIM_RegisteredProfile.InstanceID="acme.1"
             http://acme.com/root/cimv2:CIM_ComputerSystem.CreationClassName="ACME_CS",Name="sys1"
             /:CIM_SubProfile.Main="/:CIM_RegisteredProfile.InstanceID=\"acme.1\"",Sub="/:CIM_RegisteredProfile.InstanceID=\"acme.2\""
 
@@ -1830,6 +1860,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         host = m.group(2) or None
         namespace = m.group(3) or None
         classname = m.group(4) or None
+        assert classname is not None  # should be ensured by regexp
         keybindings_str = m.group(5) or None
 
         m = WBEM_URI_KEYBINDINGS_REGEXP.match(keybindings_str)
@@ -3107,6 +3138,10 @@ class CIMClassName(_CIMComparisonMixin):
           the slash (consistent with :term:`DSP0207`) when the WBEM URI is not
           local.
 
+        * :term:`DSP0207` requires a colon before the class name. For
+          historical reasons, pywbem tolerates a missing colon before the class
+          name, if it would have been the first character of the string.
+
         CIM class paths in the typed WBEM URI format defined in :term:`DSP0207`
         are not supported.
 
@@ -3119,6 +3154,7 @@ class CIMClassName(_CIMComparisonMixin):
             root/cimv2:CIM_ComputerSystem
             /:CIM_ComputerSystem
             :CIM_ComputerSystem
+            CIM_ComputerSystem
 
         Parameters:
 
@@ -3149,6 +3185,7 @@ class CIMClassName(_CIMComparisonMixin):
         host = m.group(2) or None
         namespace = m.group(3) or None
         classname = m.group(4) or None
+        assert classname is not None  # should be ensured by regexp
 
         obj = CIMClassName(
             classname=classname,
@@ -7063,16 +7100,13 @@ def tocimxmlstr(value, indent=None):
     return _ensure_unicode(xml_str)
 
 
-# Note: The new cimvalue() function introduced in pywbem 0.12 is now used
-# internally in the CIM object classes, instead of tocimobj(). However,
-# tocimobj() is still used internally in the tupleparser, plus it is part of
-# the public API.
-# TODO #904: Migrate remaining uses of tocimobj() to cimvalue() and deprecate
-
 # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
     """
     Return a CIM object representing the specified value and type.
+
+    **Deprecated:** This function has been deprecated in pywbem 0.13. Use
+    :func:`~pywbem.cimvalue` instead.
 
     Parameters:
 
