@@ -1354,7 +1354,7 @@ class TestRepoMethods(object):
         # install the schema if necessary.
         dmtf_schema = install_test_dmtf_schema()
 
-        conn.compile_mof_file(dmtf_schema.schema_mof_filename, namespace=ns,
+        conn.compile_mof_file(dmtf_schema.schema_mof_file, namespace=ns,
                               search_paths=[dmtf_schema.schema_mof_dir])
 
         # pylint: disable=protected-access
@@ -1364,25 +1364,30 @@ class TestRepoMethods(object):
     @pytest.mark.parametrize(
         "description, classnames, extra_rtnd_classnames, run_test",
         [
-            ["Test with several classes. Takes long time",
+            ["Test with several classes. ",
                 ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',
                  'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile'],
                 ['CIM_EnabledLogicalElement', 'CIM_Job',
                  'CIM_LogicalElement', 'CIM_ManagedSystemElement',
                  'CIM_Service', 'CIM_Service', 'CIM_ConcreteJob',
-                 'CIM_Dependency'],
-                False],
+                 'CIM_Dependency', 'CIM_ManagedElement', 'CIM_ManagedElement',
+                 'CIM_Error', 'CIM_RegisteredSpecification',
+                 'CIM_ReferencedSpecification', 'CIM_WBEMService'],
+                True],
 
             ["Test with single classes. Broken",
                 ['CIM_ObjectManager'],
-                [],
-                False],
+                ['CIM_EnabledLogicalElement', 'CIM_Error', 'CIM_LogicalElement',
+                 'CIM_ConcreteJob', 'CIM_WBEMService',
+                 'CIM_ManagedSystemElement', 'CIM_Service',
+                 'CIM_ManagedElement', 'CIM_Job'],
+                True],
 
-            ["Test with single classes. Broken",
+            ["Test with simple group of classes",
                 ['CIM_ElementConformsToProfile'],
                 ['CIM_ManagedElement',
                  'CIM_RegisteredSpecification', 'CIM_RegisteredProfile'],
-                False]
+                True]
         ]
     )
     def test_compile_dmtf_schema_method(self, conn, description, classnames,
@@ -1396,19 +1401,14 @@ class TestRepoMethods(object):
             pytest.skip("This test marked to be skipped")
 
         ns = 'root/cimv2'
-
         conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                                 class_names=classnames, verbose=True)
+                                 class_names=classnames, verbose=False)
 
         exp_classes = classnames
         exp_classes.extend(extra_rtnd_classnames)
-        print('\nclasses=%s\nexp_classes  %s\nextra %s' % (classes, exp_classes,
-                                                           extra_rtnd_classes))
 
         rslt_classes = conn.EnumerateClassNames(DeepInheritance=True,
                                                 namespace=ns)
-
-        print('rtn classnames=%s' % rslt_classes)
 
         assert set(rslt_classes) == set(exp_classes)
 
@@ -4392,8 +4392,6 @@ class TestInvokeMethod(object):
 
             exc = exec_info.value
             if cim_err_code_name:
-                print('exc.status_code_name %s cim_err_code %s' %
-                      (exc.status_code_name, cim_err_code_name))
                 assert exc.status_code_name == cim_err_code_name
 
 
@@ -4413,6 +4411,7 @@ def test_schema_root_dir():
         shutil.rmtree(schema_dir)
 
 
+# TODO ks Rewrite the following tests into a single test with parameterization
 class TestDMTFCIMSchema(object):
     """
     Test the DMTFCIMSchema class in pywbem_mock.  Since we do not want to always
@@ -4427,31 +4426,35 @@ class TestDMTFCIMSchema(object):
         the schema directory in any way.
         """
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                               verbose=True)
+                               verbose=False)
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
-        assert schema.schema_version_str == '%s.%s.%s' % \
-            (DMTF_TEST_SCHEMA_VER[0], DMTF_TEST_SCHEMA_VER[1],
-             DMTF_TEST_SCHEMA_VER[2])
+        assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
+        assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
-        assert os.path.isfile(schema.schema_mof_filename)
-        assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
+        assert os.path.isfile(schema.schema_mof_file)
+        assert os.path.isfile(schema.schema_zip_file)
+
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_filename == \
+        assert schema.schema_mof_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
         assert repr(schema) == 'DMTFCIMSchema(' \
                                'schema_version=%s, ' \
-                               'schema_root_dir=%s, schema_mof_dir=%s, ' \
-                               'schema_mof_filename=%s)' % \
-                               (DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                                schema.schema_mof_dir,
-                                schema.schema_mof_filename)
+                               'schema_root_dir=%s, schema_zip_file=%s, ' \
+                               'schema_mof_dir=%s, ' \
+                               'schema_mof_file=%s, schema_zip_url=%s)' % \
+                               (DMTF_TEST_SCHEMA_VER,
+                                TESTSUITE_SCHEMA_DIR,
+                                schema.schema_zip_file,
+                                test_schema_mof_dir,
+                                schema.schema_mof_file,
+                                schema.schema_zip_url)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
@@ -4461,9 +4464,8 @@ class TestDMTFCIMSchema(object):
 
         assert schema_mof == exp_mof
 
-        zip_path = schema._mof_zip_filename  # pylint: disable=protected-access
-        assert os.path.isfile(zip_path)
-        assert os.path.isfile(schema.schema_mof_filename)
+        assert os.path.isfile(schema.schema_zip_file)
+        assert os.path.isfile(schema.schema_mof_file)
 
     def test_schema_final_load(self, test_schema_root_dir):
         # pylint: disable=no-self-use
@@ -4477,31 +4479,34 @@ class TestDMTFCIMSchema(object):
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD set.")
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, test_schema_root_dir,
-                               verbose=True)
+                               verbose=False)
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
-        assert schema.schema_version_str == '%s.%s.%s' % \
-            (DMTF_TEST_SCHEMA_VER[0], DMTF_TEST_SCHEMA_VER[1],
-             DMTF_TEST_SCHEMA_VER[2])
+        assert schema.schema_root_dir == test_schema_root_dir
+        assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
-        assert os.path.isfile(schema.schema_mof_filename)
-        assert schema.schema_root_dir == test_schema_root_dir
+        assert os.path.isfile(schema.schema_mof_file)
+        assert os.path.isfile(schema.schema_zip_file)
+
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(test_schema_root_dir, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_filename == \
+        assert schema.schema_mof_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
         assert repr(schema) == 'DMTFCIMSchema(' \
                                'schema_version=%s, ' \
-                               'schema_root_dir=%s, schema_mof_dir=%s, ' \
-                               'schema_mof_filename=%s)' % \
+                               'schema_root_dir=%s, schema_zip_file=%s, ' \
+                               'schema_mof_dir=%s, ' \
+                               'schema_mof_file=%s, schema_zip_url=%s)' % \
                                (DMTF_TEST_SCHEMA_VER, test_schema_root_dir,
+                                schema.schema_zip_file,
                                 schema.schema_mof_dir,
-                                schema.schema_mof_filename)
+                                schema.schema_mof_file,
+                                schema.schema_zip_url)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
@@ -4524,28 +4529,26 @@ class TestDMTFCIMSchema(object):
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD set.")
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                               use_experimental=True, verbose=True)
+                               use_experimental=True, verbose=False)
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
-        assert schema.schema_version_str == '%s.%s.%s' % \
-            (DMTF_TEST_SCHEMA_VER[0], DMTF_TEST_SCHEMA_VER[1],
-             DMTF_TEST_SCHEMA_VER[2])
+        assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
-        assert os.path.isfile(schema.schema_mof_filename)
+        assert os.path.isfile(schema.schema_mof_file)
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
         mof_dir = 'mofExperimental%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert test_schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_filename == \
+        assert schema.schema_mof_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
         # remove the second schema and test to be sure removed.
         schema.remove()
         assert not os.path.isdir(test_schema_mof_dir)
-        assert not os.path.isfile(schema.schema_mof_filename)
+        assert not os.path.isfile(schema.schema_mof_file)
         assert os.path.isdir(schema.schema_root_dir)
 
     def test_second_schema_load(self):
@@ -4557,23 +4560,24 @@ class TestDMTFCIMSchema(object):
         if 'TEST_SCHEMA_DOWNLOAD' not in os.environ:
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD set.")
 
-        schema = DMTFCIMSchema((2, 50, 0), TESTSUITE_SCHEMA_DIR, verbose=True)
+        schema = DMTFCIMSchema((2, 50, 0), TESTSUITE_SCHEMA_DIR, verbose=False)
 
         assert schema.schema_version == (2, 50, 0)
         assert schema.schema_version_str == '2.50.0'
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
-        assert os.path.isfile(schema.schema_mof_filename)
+        assert os.path.isfile(schema.schema_mof_file)
+
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_filename == \
+        assert schema.schema_mof_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
-        zip_path = schema._mof_zip_filename  # pylint: disable=protected-access
+        zip_path = schema.schema_zip_file  # pylint: disable=protected-access
         assert os.path.isfile(zip_path)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
@@ -4592,27 +4596,25 @@ class TestDMTFCIMSchema(object):
         assert not os.path.exists(zip_path)
         assert os.path.exists(TESTSUITE_SCHEMA_DIR)
 
-    def test_schema_invalid_version(self, test_schema_root_dir):
+    @pytest.mark.parametrize(
+        "schema_version, excep", [
+            [(1, 2), ValueError],
+            ['blah', TypeError],
+            [(1, 'fred', 2), TypeError],
+            [(1, 205, 0), ValueError]
+        ]
+    )
+    def test_schema_invalid_version(self, test_schema_root_dir, schema_version,
+                                    excep):
         # pylint: disable=no-self-use
         """
         Test case where the class requested for the partial schema is not
         in the DMTF schema
         """
-        with pytest.raises(ValueError):
-            DMTFCIMSchema((2, 159, 0), test_schema_root_dir, verbose=True)
+        with pytest.raises(excep) as excinfo:
+            DMTFCIMSchema(schema_version, test_schema_root_dir, verbose=False)
 
-    def test_schema_build_err(self):
-        # pylint: disable=no-self-use
-        """
-        Test case where the class requested for the partial schema is not
-        in the DMTF schema. This uses the existing schema directory in
-        the testsuite
-        """
-        schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                               verbose=True)
-
-        with pytest.raises(ValueError):
-            schema.build_schema_mof(['CIM_ClassDoesNoExist'])
+        print(excinfo)
 
     def test_schema_build(self):
         # pylint: disable=no-self-use
@@ -4621,7 +4623,7 @@ class TestDMTFCIMSchema(object):
         create a partial schema mof.
         """
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                               verbose=True)
+                               verbose=False)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 

@@ -637,9 +637,10 @@ def p_mp_createClass(p):
                                 raise err
                             try:
                                 if p.parser.verbose:
-                                    p.parser.log('Creating missing dependent '
-                                                 'class %s:%s' %
-                                                 (ns, cc.classname))
+                                    p.parser.log('Class %s namespace %s '
+                                                 'depends on class %s which is '
+                                                 'not in repository.' %
+                                                 (cc.classname, ns, cln))
                                 p.parser.mofcomp.compile_file(moffile, ns)
                             except CIMError as ce:
                                 if ce.args[0] == CIM_ERR_NOT_FOUND:
@@ -2541,6 +2542,7 @@ class MOFCompiler(object):
           :term:`string`: Path name of the MOF file defining the CIM class, if
           it was found. `None`, if it was not found.
         """
+
         classname = classname.lower()
         for search in self.parser.search_paths:
             for root, dummy_dirs, files in os.walk(search):
@@ -2548,7 +2550,6 @@ class MOFCompiler(object):
                     if file_.endswith('.mof') and \
                             file_[:-4].lower() == classname:
                         return root + '/' + file_
-
         return None
 
     def rollback(self, verbose=False):

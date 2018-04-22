@@ -484,9 +484,9 @@ class FakedWBEMConnection(WBEMConnection):
     def compile_dmtf_schema(self, schema_version, schema_root_dir, class_names,
                             use_experimental=False, verbose=False):
         """
-        Compile the classes defined by `classes_names` and their dependent
+        Compile the classes defined by `class_names` and their dependent
         classes from the DMTF CIM schema version defined by
-        'schema_version' and keep the downloaded DMTF CIM schema in the
+        `schema_version` and keep the downloaded DMTF CIM schema in the
         directory defined by `schema_dir`.
 
         This method uses :class:`~pywbem_mock.DMTFCIMSchema` to get the schema
@@ -514,9 +514,11 @@ class FakedWBEMConnection(WBEMConnection):
             schema versions because subdirectories are uniquely defined by
             schema version and schema_type (i.e. Final or Experimental).
 
-          classes_names (:term:`py:list` of :term:`string`):
-            Class names from the DMTF CIM Schema to be included in the
+          class_names (:term:`py:list` of :term:`string` or :term:`string`):
+            List of class names from the DMTF CIM Schema to be included in the
             repository.
+
+            A single class may be defined as a string not in a list.
 
             These must be classes in the defined DMTF CIM schema and can be just
             a list of the leaf classes required for a working repository. The
@@ -525,10 +527,10 @@ class FakedWBEMConnection(WBEMConnection):
             qualifiers in the defined DMTF repository MOF and compile them also.
 
           use_experimental (:class:`py:bool`):
-            If `True` the `expermintal` version of the DMTF CIM Schema
+            If `True` the expermental version of the DMTF CIM Schema
             is installed or to be installed.
 
-            If `False` (the default) the `final` version of the DMTF
+            If `False` (the default) the final version of the DMTF
             CIM Schema is installed or to be installed.
 
           verbose (:class:`py:bool`):
@@ -544,10 +546,9 @@ class FakedWBEMConnection(WBEMConnection):
                                use_experimental=use_experimental,
                                verbose=verbose)
         schema_mof = schema.build_schema_mof(class_names)
-
         search_paths = schema.schema_mof_dir
         self.compile_mof_string(schema_mof, namespace=None,
-                                search_paths=search_paths,
+                                search_paths=[search_paths],
                                 verbose=verbose)
 
     def add_cimobjects(self, objects, namespace=None):

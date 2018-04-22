@@ -71,7 +71,7 @@ class MOFTest(unittest.TestCase):
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
-            verbose=False,
+            verbose=True,
             log_func=moflog)
 
         self.partial_schema_file = None
@@ -1588,7 +1588,7 @@ class TestFullSchema(MOFTest):
 
         # original compile and write of output mof
         # start_time = time()
-        self.mofcomp.compile_file(TEST_DMTF_CIMSCHEMA.schema_mof_filename,
+        self.mofcomp.compile_file(TEST_DMTF_CIMSCHEMA.schema_mof_file,
                                   NAME_SPACE)
         # print('elapsed compile: %f  ' % (time() - start_time))
 

@@ -349,7 +349,8 @@ with a simple callback function.
         ip1 = params['IP1']
 
         # Access the mock repository through the faked connection object.
-        # In case of a static CIM method, objectname is a CIMClassName object.
+        # In case of a static CIM method, objectname is a
+        :class:`~pywbem.CIMClassName` object.
         cl = conn.GetClass(objectname)
 
         # Set return value and output parameters
@@ -565,7 +566,7 @@ Building the mock repository
 ----------------------------
 
 The mock repository should contain the CIM qualifier declarations, CIM classes,
-CIMInstances, and CIM methods to be used in the mock environment. The
+CIM instances, and CIM methods to be used in the mock environment. The
 mock user creates a repository that contains the CIM Objects required for
 the operations to be executed in the mock environment. Thus, if the user only
 requires CIM_Computer system, only that class and its dependent classes need
@@ -578,7 +579,8 @@ repository.
 
 There are two ways to build a mock repository:
 
-* Directly from pywbem CIM objects (CIMClass. CIMInstance, etc). See
+* Directly from pywbem CIM objects (:class:`~pywbem.CIMClass`,
+  :class:`~pywbem.CIMInstance`, etc). See
   :meth:`~pywbem_mock.FakedWBEMConnection.add_cimobjects`
 
 * From MOF definitions of the objects (which can be a string or a file, in
