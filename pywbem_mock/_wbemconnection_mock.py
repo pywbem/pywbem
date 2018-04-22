@@ -481,28 +481,29 @@ class FakedWBEMConnection(WBEMConnection):
 
         self._merge_repos(mof_repo)
 
-    def compile_dmtf_schema(self, dmtf_schema_version, schema_dir, classes,
+    def compile_dmtf_schema(self, schema_version, schema_root_dir, class_names,
                             use_experimental=False, verbose=False):
         """
-        Compile the classes defined by `classes` and their dependent classes
-        from the DMTF CIM schema version defined by 'dmtf_version_version' and
-        keep the downloaded DMTF CIM schema in the directory defined by
-        `schema_dir`.
+        Compile the classes defined by `classes_names` and their dependent
+        classes from the DMTF CIM schema version defined by
+        'schema_version' and keep the downloaded DMTF CIM schema in the
+        directory defined by `schema_dir`.
 
         This method uses :class:`~pywbem_mock.DMTFCIMSchema` to get the schema
         from the DMTF, save it in the `schema_dir` directory, expand it and make
         a list of leaf classes from this directory that are to be compiled.
 
-        It automatically compiles the DMTF qualifier declarations.
+        It automatically compiles all of the DMTF qualifier declarations that
+        are in the files `qualifiers.mof` and `qualifiers_optional.mof`.
 
         Parameters:
 
-          schema_version  (tuple of 3 integers (m, n, n):
+          schema_version (tuple of 3 integers (m, n, u):
             Represents the DMTF CIM schema version where:
 
             * m is the DMTF CIM schema major version
             * n is the DMTF CIM schema minor version
-            * u is the DMTF CIM schema update
+            * u is the DMTF CIM schema update version
 
             This must represent a DMTF CIM schema that is available from the
             DMTF web site.
@@ -513,21 +514,22 @@ class FakedWBEMConnection(WBEMConnection):
             schema versions because subdirectories are uniquely defined by
             schema version and schema_type (i.e. Final or Experimental).
 
-          schema_classes (:term:`py:list` of :term:`string`):
-            Classes from the DMTF CIM Schema to be included in the repository.
+          classes_names (:term:`py:list` of :term:`string`):
+            Class names from the DMTF CIM Schema to be included in the
+            repository.
 
             These must be classes in the defined DMTF CIM schema and can be just
-            a list of the leaf classes required for a workingrepository. The
+            a list of the leaf classes required for a working repository. The
             compiler will try to find superclasses, classes defined in
             reference properties, and classes defined in EmbeddedInstance
-            qualifiers in the DMTF repository MOF and compile them also.
+            qualifiers in the defined DMTF repository MOF and compile them also.
 
           use_experimental (:class:`py:bool`):
-            If `True` the expermintal version of the defined schema is
-            installed.
+            If `True` the `expermintal` version of the DMTF CIM Schema
+            is installed or to be installed.
 
-            If `False` (the default) the Final released version of the DMTF
-            is installed.
+            If `False` (the default) the `final` version of the DMTF
+            CIM Schema is installed or to be installed.
 
           verbose (:class:`py:bool`):
             If `True`, progress messages are output to stdout
@@ -538,10 +540,10 @@ class FakedWBEMConnection(WBEMConnection):
             TypeError: If the 'schema_version' is not a valid tuple with 3
               integer components
         """
-        schema = DMTFCIMSchema(dmtf_schema_version, schema_dir,
+        schema = DMTFCIMSchema(schema_version, schema_root_dir,
                                use_experimental=use_experimental,
                                verbose=verbose)
-        schema_mof = schema.build_schema_mof(classes)
+        schema_mof = schema.build_schema_mof(class_names)
 
         search_paths = schema.schema_mof_dir
         self.compile_mof_string(schema_mof, namespace=None,
@@ -2339,7 +2341,7 @@ class FakedWBEMConnection(WBEMConnection):
                             assoc_classes, result_classes, result_role):
         """
         Test filters of a reference property and its associated entity
-        Returns true if matches the criteria. Returns `False` if it does not
+        Returns `True` if matches the criteria. Returns `False` if it does not
         match.
 
         Matches if ref_classname in assoc_classes, and result_role matches

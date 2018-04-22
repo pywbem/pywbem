@@ -565,53 +565,71 @@ Building the mock repository
 ----------------------------
 
 The mock repository should contain the CIM qualifier declarations, CIM classes,
-CIMInstances, and CIM methods to be used in the mock environment.
+CIMInstances, and CIM methods to be used in the mock environment. The
+mock user creates a repository that contains the CIM Objects required for
+the operations to be executed in the mock environment. Thus, if the user only
+requires CIM_Computer system, only that class and its dependent classes need
+be in the repository along with instances of the classes that will satisfy
+the methods called
 
 :class:`~pywbem_mock.FakedWBEMConnection` and
 :class:`~pywbem_mock.DMTFCIMSchema` provide the tools to build the mock
 repository.
 
-The repository can be build by either defining the mof for the items to be
-inserted into the repository (either by defining the pywbem CIM Objects or by
-defining the MOF and compiling the mof) or by compiling qualifiers and classes
-directly from a DMTF CIM schema. A particular test repository may be a
-combination of classes defined in a DMTF CIM Schema and user classes.
+There are two ways to build a mock repository:
 
-Starting with pywbem 0.13.0, the class :class:`~pywbem_mock.DMTFCIMSchema`
-along with :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_string`
-provides an easy path to compiling DMTF MOF qualifier declarations and
-classes in the repository
+* Directly from pywbem CIM objects (CIMClass. CIMInstance, etc). See
+  :meth:`~pywbem_mock.FakedWBEMConnection.add_cimobjects`
 
-The following methods can be used to add CIM instances, classes and
-qualifier types to the mock repository of a
-:class:`~pywbem_mock.FakedWBEMConnection` object:
+* From MOF definitions of the objects (which can be a string or a file, in
+  and  with MOF pragma include statements).
 
-* :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema` compile classes
-   and qualifier declarations from the the DMTF CIM schema defined into the
-   mock repository
+  There are two methods to help building the repository from MOF:
 
-* :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_string` and
-  :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_file` compile MOF in
-  a string or file, respectively, and add the resulting CIM objects to the
-  mock repository.
+  * Build from MOF definitions of the objects which are compiled into the
+    repository. See :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_string`
+    and See :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_file`.
 
+  * Build MOF qualifier declarations and classes directly from the DMTF
+    CIM schema by downloading the schema from the DMTF and selecting all
+    or part of the schema to compile. This automatically compiles all
+    qualifiers declarations into the mock repository and allows setting up
+    a partial class repository (i.e. just selected classes) in a single
+    method. See
+    :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema`.
 
-In all cases, the existing mock repository content is used for resolving any
-prerequisite objects:
+It may take a combination of all three of the above methods to build a schema
+that satisfies a particular requirement including:
 
-* For a CIM class to be added, the superclass of that class as well as CIM
-  qualifier types for the qualifiers used by that class must exist.
+1. Build the DMTF CIM Classes from the DMTF schema. This is easy to code,
+   and eliminates errors defining components. It also loads all qualifier
+   declarations.
 
-* For a CIM instance to be added, its CIM creation class must exist.
+2. Build non-DMTF classes (subclasses, etc.) by defining either MOF and
+   compiling or directly building the pywbem CIM Classes.
 
-Some CIM objects that are used by a CIM object to be added do not need to
-exist in the mock repository, which in fact allows forward references:
+3. Build CIM Instances by defining MOF and compiling or directly building
+   the pywbem CIM instances. Often MOF is easier for this because it
+   simplifies the definition of association instances with the instance
+   alias.
 
-* CIM classes specified in reference properties or in reference parameters of
-  methods of a class to be added do not need to exist.
+4. Add the definition of any CIM methods for which the mock server is expected
+   to respond. add_method_callback.  See
+   :meth:`~pywbem_mock.FakedWBEMConnection. add_method_callback`.
 
-* CIM classes specified in qualifiers (for example, in the `EmbeddedInstance`
-  qualifier) of a class to be added do not need to exist.
+The pywbem MOF compiler provides support for:
+
+1. Automatically including all qualifier declaractions if classes are added
+   with the method :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema`
+   or the :class:`DMTFCIMSchema`.
+
+2. Adding dependent classes from the DMTF schema in the case where they are
+   missing in the compiled mof and the compiler search path includes the
+   MOF directory of the DMTF CIM schema.  This include superclasses,
+   reference classes defined in reference properties and parameters, and
+   the class referenced through the EmbeddedInstance qualifier. Thus, the
+   user does not have to track down those dependent classes to be able to
+   create a working mock repository.
 
 .. _`Example: Set up qualifier types and classes DMTF MOF schema`:
 
@@ -839,7 +857,9 @@ FakedWBEMConnection
 .. _`DMTFCIMSchema`:
 
 DMTFCIMSchema
--------------------
+-------------
+
+.. automodule:: pywbem_mock._dmtf_cim_schema
 
 .. autoclass:: pywbem_mock.DMTFCIMSchema
    :members:

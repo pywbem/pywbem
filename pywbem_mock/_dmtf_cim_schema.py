@@ -17,9 +17,9 @@
 """
 A DMTF CIM schema is the collection of CIM qualifier declarations and CIM
 classes managed by the DMTF and released as a single tested, coherent package
-with a defined major, minor, update number.  The MOF representation of a DMTF
-schema release is packaged as a single zip file and is available on the DMTF
-web site.
+with a defined major, minor, update version number.  The MOF representation of
+a DMTF schema release is packaged as a single zip file and is available on the
+DMTF web site.
 
 Because the DMTF MOF schemas are the source of most of the classes that a WBEM
 server would implement we felt it was important to create a simple mechanism
@@ -35,10 +35,14 @@ Multiple DMTF CIM schemas may be maintained in the same `schema_root_dir`
 simultaneously because each schema is expanded into a subdirectory identified
 by the schema version information.
 
-NOTE: This class works only for the DMTF repository because a) it gets the
-original zip file from the DMTF repository and b)the implementation depends on
-the class names being unique as part of its process in
-:meth:`~pywbem_mock.DMTFCIMSchema.build_mof_schema`
+NOTE: This class works only for the DMTF repository because it gets the
+original zip file from the DMTF repository with the particular url and zip
+file organization of the DMTF CIM Schema release.
+
+The implementation of this class also depends on all of the zip files in
+the CIM schema having unique class names, which is always true for DMTF
+CIM schema releases to assure that they can be installed in the same
+namespace in a WBEM server repository.
 
 Once a DMTF CIM schema is expanded into the individual schema files it consumes
 considerable space since it expands to almost 3000 files.  Therefore it is
@@ -89,7 +93,7 @@ class DMTFCIMSchema(object):
     DMTF WEB site.
 
     This class manages the download and install of DMTF CIM schema releases into
-    a form that can be used by :class:`pywbem_mock.FakedWBEMConnection' to
+    a form that can be used by :class:`pywbem_mock.FakedWBEMConnection` to
     create a repository with class and qualifier declarations.
     """
     def __init__(self, schema_version, schema_root_dir, use_experimental=False,
@@ -113,7 +117,7 @@ class DMTFCIMSchema(object):
 
             * m is the DMTF CIM schema major version
             * n is the DMTF CIM schema minor version
-            * u is the DMTF CIM schema update
+            * u is the DMTF CIM schema update version
 
             This MUST represent a DMTF CIM schema that is available from the
             DMTF web site.
@@ -161,6 +165,7 @@ class DMTFCIMSchema(object):
              self._mof_zip_bn)
         schema_mof_bld_name = self._dmtf_schema_version + '.mof'
 
+        # This is object level variable only because of tests
         self._mof_zip_filename = os.path.join(self.schema_root_dir,
                                               self._mof_zip_bn)
         self._schema_mof_filename = os.path.join(self.schema_mof_dir,
@@ -177,8 +182,8 @@ class DMTFCIMSchema(object):
     @property
     def schema_version(self):
         """
-        :func:`py:tuple` of 3 integers with major version, minor version, and
-        revision of the DMTF Schema installed. Ex (2, 49, 0) defines DMTF
+        :func:`py:tuple`: of 3 integers with major version, minor version, and
+        update version of the DMTF Schema installed. Ex (2, 49, 0) defines DMTF
         schema version 2.49.0.
         """
         return self._schema_version
@@ -186,7 +191,7 @@ class DMTFCIMSchema(object):
     @property
     def schema_version_str(self):
         """
-        :term:`string` with the DMTF CIM schema version in the form
+        :term:`string`: with the DMTF CIM schema version in the form
         <major version>.<minor version>.<revison>.
         """
         return '%s.%s.%s' % (self.schema_version[0], self.schema_version[1],
@@ -195,7 +200,7 @@ class DMTFCIMSchema(object):
     @property
     def schema_root_dir(self):
         """
-        :term:`string` the directory in which the DMTF CIM Schema
+        :term:`string`: the directory in which the DMTF CIM Schema
         MOF is downloaded and expanded.
         """
         return self._schema_root_dir
@@ -203,7 +208,7 @@ class DMTFCIMSchema(object):
     @property
     def schema_mof_dir(self):
         """
-        :term:`string` the directory in which the DMTF CIM Schema
+        :term:`string`: Path name of the directory in which the DMTF CIM Schema
         MOF files are expanded from the downloaded zip file. This includes the
         expansion of the individual schema MOF files. This property is useful
         since it can be used as the MOF compiler search path for compiling
@@ -214,7 +219,7 @@ class DMTFCIMSchema(object):
     @property
     def schema_mof_filename(self):
         """
-        :term:`string` the path for the DMTF CIM schema MOF top level file
+        :term:`string`: the path for the DMTF CIM schema MOF top level file
         which includes the pragmas that define all of the files in the DMTF
         schema. This is the file that the compiler uses if the complete
         schema is to be compiled. This filename is of the general form::
@@ -281,7 +286,6 @@ class DMTFCIMSchema(object):
             TypeError:  If the `schema_version` is not a valid tuple with 3
               integer components
         """
-        first = [True]  # List allows setting variable from inner function
 
         def print_verbose(msg):
             """
@@ -289,13 +293,8 @@ class DMTFCIMSchema(object):
             `True`. Then it sets first to `False`.
             This allows displaying steps that are actually executed.
             """
-            if first:
-                if self.verbose:
-                    print("")
-                first[0] = False
-            else:
-                if self.verbose:
-                    print(msg)
+            if self.verbose:
+                print(msg)
 
         if not os.path.isdir(self.schema_root_dir):
             print_verbose("Creating directory for CIM Schema archive: %s" %
@@ -348,7 +347,7 @@ class DMTFCIMSchema(object):
         schema defined by this object.
 
         The class names in this list can be just leaf classes. The pywbem
-        mof compiler will search for dependent classes.
+        MOF compiler will search for dependent classes.
 
         It builds a compilable MOF string in the form::
 

@@ -50,7 +50,8 @@ SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 
 # Defines the version of DMTF schema to be downloaded and installed
 # To use a different DMTF schema, replace the version number defined in the
-# following variable
+# following variable. This must be defined as a tuple to be compatible
+# with DMTFCIMSchema.
 DMTF_TEST_SCHEMA_VER = (2, 49, 0)
 
 # Expected total of qualifiers and classes in the DMTF Schema.

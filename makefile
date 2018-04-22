@@ -19,6 +19,9 @@
 #   annotated html output html files showing lines covered and missed
 #   See the directory coverage_html for the html output.
 #
+#   TEST_SCHEMA_DOWNLOAD - When set, enables tests for downloading DMTF schema
+#       We do not do this often because each test downloads complete schema
+#       from DMTF
 # ------------------------------------------------------------------------------
 
 # Python / Pip commands
@@ -209,6 +212,13 @@ help:
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
 	@echo "  clobber    - Remove everything created to ensure clean start"
+	@echo ""
+	@echo "Environment variables:"
+	@echo "  TEST_SCHEMA_DOWNLOAD - When set adds tests to"
+	@echo "     test_wbemconnection_mock to test download of DMTF schema"
+	@echo "  PYWBEM_COVERAGE_REPORT - When set, forces coverage to create"
+	@echo "     annotated html output html files showing lines covered and"
+	@echo "     missed. See the directory coverage_html for the html output."
 
 .PHONY: _check_version
 _check_version:
