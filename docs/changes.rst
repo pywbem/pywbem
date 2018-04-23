@@ -24,6 +24,10 @@ Released: not yet
 
 **Deprecations:**
 
+* Deprecated the `tocimobj()` function because it has some inconsistencies,
+  in favor of the `cimvalue()` function introduced in pywbem 0.12. Changed all
+  internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
+
 **Bug fixes:**
 
 * Fixed the issue where wbemcli-help-txt was not being updated when wbemcli.py
@@ -32,6 +36,10 @@ Released: not yet
 * Test: Fixed access to incorrect tuple members in run_cim_operations.py.
   that were used only in long version of the test. Found by Pylint.
   (Issue #1206).
+
+* Fixed that `CIMInstanceName.from_wbem_uri()` did not support the
+  representation of integer key values in binary, octal or hex format
+  (part of Issue #904).
 
 **Enhancements:**
 
@@ -54,6 +62,10 @@ Released: not yet
   repository builds without having to  specifically declare all dependent
   classes for the classes the user needs in a repository if the mof for the
   dependent classes in in the search path. (Issue #1160).
+
+* Made `CIMInstanceName.from_wbem_uri()` and `CIMClassName.from_wbem_uri()`
+  more flexible w.r.t. tolerating non-standard WBEM URIs that omit the leading
+  colon before class names (part of Issue #904).
 
 * Added a `tobinary()` method to the `ValueMapping` class, which translates the
   value mapping from a `Values` string to binary integer values, or a range

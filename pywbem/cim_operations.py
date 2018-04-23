@@ -148,7 +148,7 @@ from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    CIMParameter, tocimxml, tocimobj
+    CIMParameter, tocimxml, cimvalue
 from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import parse_cim
 from .tupletree import xml_to_tupletree_sax
@@ -1909,7 +1909,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         if tup_tree and tup_tree[0][0] == 'RETURNVALUE':
 
-            returnvalue = tocimobj(tup_tree[0][1]['PARAMTYPE'], tup_tree[0][2])
+            returnvalue = cimvalue(tup_tree[0][2], tup_tree[0][1]['PARAMTYPE'])
             tup_tree = tup_tree[1:]
 
         # Convert zero or more PARAMVALUE elements into dictionary
@@ -1920,7 +1920,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if p[1] == 'reference':
                 output_params[p[0]] = p[2]
             else:
-                output_params[p[0]] = tocimobj(p[1], p[2])
+                output_params[p[0]] = cimvalue(p[2], p[1])
 
         return (returnvalue, output_params)
 

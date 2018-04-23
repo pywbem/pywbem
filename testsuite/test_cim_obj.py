@@ -2325,6 +2325,16 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             UserWarning, CHECK_0_12_0
         ),
         (
+            "local WBEM URI (with initial slash)",
+            '/root/cimv2:CIM_Foo.k1="v1"',
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=u'root/cimv2',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
             "local WBEM URI (with missing initial slash)",
             'root/cimv2:CIM_Foo.k1="v1"',
             dict(
@@ -2335,7 +2345,7 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "local WBEM URI with only class name",
+            "local WBEM URI with only class name (with initial slash+colon)",
             '/:CIM_Foo.k1="v1"',
             dict(
                 classname=u'CIM_Foo',
@@ -2345,8 +2355,18 @@ class Test_CIMInstanceName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "local WBEM URI with only class name (with missing initial slash)",
+            "local WBEM URI with only class name (without initial slash)",
             ':CIM_Foo.k1="v1"',
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(k1=u'v1'),
+                namespace=None,
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name (without initial slash+colon)",
+            'CIM_Foo.k1="v1"',
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
@@ -2446,6 +2466,84 @@ class Test_CIMInstanceName_from_wbem_uri(object):
         (
             "int key with invalid non-decimal digit U+10A44 (KHAROSHTHI TEN)",
             u'/n:C.k1=\U00010a44',
+            ValueError,
+            None, CHECK_0_12_0
+        ),
+        (
+            "positive int key in octal representation",
+            u'/n:C.k1=015',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', 13)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "negative int key in octal representation",
+            u'/n:C.k1=-017',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', -15)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "int key in octal representation with invalid octal digits",
+            u'/n:C.k1=018',
+            ValueError,
+            None, CHECK_0_12_0
+        ),
+        (
+            "positive int key in binary representation (upper case)",
+            u'/n:C.k1=0101B',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', 5)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "negative int key in binary representation (lower case)",
+            u'/n:C.k1=-0101b',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', -5)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "int key in binary representation with invalid binary digits",
+            u'/n:C.k1=0102',
+            ValueError,
+            None, CHECK_0_12_0
+        ),
+        (
+            "positive int key in hex representation (upper case)",
+            u'/n:C.k1=0X19AF',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', 0x19AF)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "negative int key in hex representation (lower case)",
+            u'/n:C.k1=-0x19af',
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('k1', -0x19AF)]),
+                namespace=u'n',
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "int key in hex representation with invalid hex digits",
+            u'/n:C.k1=0x19afg',
             ValueError,
             None, CHECK_0_12_0
         ),
@@ -16014,7 +16112,7 @@ class Test_CIMClassName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "local WBEM URI with only class name",
+            "local WBEM URI with only class name (with initial slash+colon)",
             '/:CIM_Foo',
             dict(
                 classname=u'CIM_Foo',
@@ -16023,8 +16121,17 @@ class Test_CIMClassName_from_wbem_uri(object):
             None, CHECK_0_12_0
         ),
         (
-            "local WBEM URI with only class name (with missing initial slash)",
+            "local WBEM URI with only class name (without initial slash)",
             ':CIM_Foo',
+            dict(
+                classname=u'CIM_Foo',
+                namespace=None,
+                host=None),
+            None, CHECK_0_12_0
+        ),
+        (
+            "local WBEM URI with only class name (without initial slash+colon)",
+            'CIM_Foo',
             dict(
                 classname=u'CIM_Foo',
                 namespace=None,

@@ -91,7 +91,7 @@ from ply import yacc, lex
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
     CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
-    tocimobj
+    cimvalue
 from .cim_operations import WBEMConnection
 from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
@@ -990,7 +990,7 @@ def p_qualifier(p):
         else:
             qval = qualdecl.value  # default value
     else:
-        qval = tocimobj(qualdecl.type, qval)
+        qval = cimvalue(qval, qualdecl.type)
     p[0] = CIMQualifier(qname, qval, type=qualdecl.type, **flavors)
 
     # Note: The propagated flag is not set because this is parsed MOF, which
@@ -1075,7 +1075,7 @@ def p_propertyDeclaration_6(p):
     # pylint: disable=line-too-long
     """propertyDeclaration_6 : qualifierList dataType propertyName defaultValue ';'"""  # noqa: E501
     quals = OrderedDict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], tocimobj(p[2], p[4]),
+    p[0] = CIMProperty(p[3], cimvalue(p[4], p[2]),
                        type=p[2], qualifiers=quals)
 
 
@@ -1090,7 +1090,7 @@ def p_propertyDeclaration_8(p):
     # pylint: disable=line-too-long
     """propertyDeclaration_8 : qualifierList dataType propertyName array defaultValue ';'"""  # noqa: E501
     quals = OrderedDict([(x.name, x) for x in p[1]])
-    p[0] = CIMProperty(p[3], tocimobj(p[2], p[5]),
+    p[0] = CIMProperty(p[3], cimvalue(p[5], p[2]),
                        type=p[2], qualifiers=quals, is_array=True,
                        array_size=p[4])
 
@@ -1663,7 +1663,7 @@ def p_instanceDeclaration(p):
             # qualifiers, default value,
             pprop = cprop.copy()
             pprop.qualifiers = NocaseDict(None)
-            pprop.value = tocimobj(cprop.type, pval)
+            pprop.value = cimvalue(pval, cprop.type)
             inst.properties[pname] = pprop
             # if alias and this is key property, add keybinding
             if alias and 'key' in cprop.qualifiers:
@@ -1671,8 +1671,8 @@ def p_instanceDeclaration(p):
 
         except ValueError as ve:
             ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid value for property %s: %s' %
-                          (pname, str(ve)))
+                          'Invalid value for property %r: %s' %
+                          (pname, ve))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
 
