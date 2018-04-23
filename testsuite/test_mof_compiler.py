@@ -1797,8 +1797,7 @@ class TestPartialSchema(MOFTest):
         except CIMError as ce:
             self.assertTrue(ce.status_code == CIM_ERR_INVALID_PARAMETER)
 
-    def test_compile_class_embInst(self):
-
+    def test_compile_class_embinst(self):
         """
         Test compile a single class with property and method param containing
         embedded instance.
@@ -1827,6 +1826,30 @@ class TestPartialSchema(MOFTest):
         self.assertEqual(len(exp_classes), len(clsrepo))
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
+
+    def test_compile_class_embinst_err(self):
+        """
+        Test finding class for EmbeddedInstance qualifier where
+        class does not exist.
+        """
+        schema_mof = """
+            class My_ClassWithEmbeddedInst {
+                  [Key]
+                string InstanceID;
+
+                    [EmbeddedInstance ( "CIM_ClassDoesNotExist" )]
+                string FakeEmbeddedInstProp;
+
+                uint16 MyMethod(
+                        [EmbeddedInstance("CIM_SettingData")]
+                    string ParamWithEmbeddedInstance);
+            };
+            """
+        try:
+            self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+            self.fail("Exception expected")
+        except CIMError as ce:
+            self.assertTrue(ce.status_code == CIM_ERR_INVALID_PARAMETER)
 
     def test_compile_class_circular(self):
 

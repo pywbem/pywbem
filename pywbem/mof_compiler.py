@@ -2206,8 +2206,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                        'Class %r referenced by element '
                                        '%r of class %r in namespace '
                                        '%r does not exist' %
-                                       (cc.classname, obj.name,
-                                        obj.reference_class, self.getns))
+                                       (obj.reference_class, obj.name,
+                                        cc.classname, self.getns()))
                     raise
 
             elif obj.type == 'string':
@@ -2224,7 +2224,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                 'qualifier on element %r of class %r in '
                                 'namespace %r does not exist' %
                                 (eiqualifier.value, obj.name,
-                                 cc.classname, self.getns))
+                                 cc.classname, self.getns()))
                         raise
 
         # TODO #991: CreateClass should reject if the class already exists
