@@ -21,12 +21,14 @@ requests>=2.12.4
 decorator>=4.0.11
 yamlordereddictloader>=0.4.0
 
+# Coverage reporting (no imports, invoked via coveralls script, only used on py27):
+# Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore
+# must be stated before pytest-cov, whose 2.5.1 specifies requirement
+# coverage>=3.7.1 and thus would get coverage 4.5 1 if processed first.
+python-coveralls>=2.8.0; python_version == '2.7'
+
 # Unit test (no imports, invoked via py.test script):
 pytest-cov>=2.4.0
-
-# Coverage reporting (no imports, invoked via coveralls script, only used on py27):
-python-coveralls>=2.8.0; python_version == '2.7'
-coverage>=4.0.3; python_version == '2.7'
 
 # Sphinx (no imports, invoked via sphinx-build script, issues on py26):
 Sphinx>=1.5.1; python_version >= '2.7'

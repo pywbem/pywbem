@@ -30,8 +30,8 @@ Released: not yet
 
 **Bug fixes:**
 
-* fix issue where wbemcli-help-txt was not being updated when wbemcli.py
-  changed.  (Issue #1205)
+* Fixed the issue where wbemcli-help-txt was not being updated when wbemcli.py
+  changed. (Issue #1205)
 
 * Test: Fixed access to incorrect tuple members in run_cim_operations.py.
   that were used only in long version of the test. Found by Pylint.
@@ -66,6 +66,15 @@ Released: not yet
 * Made `CIMInstanceName.from_wbem_uri()` and `CIMClassName.from_wbem_uri()`
   more flexible w.r.t. tolerating non-standard WBEM URIs that omit the leading
   colon before class names (part of Issue #904).
+
+* Added a `tobinary()` method to the `ValueMapping` class, which translates the
+  value mapping from a `Values` string to binary integer values, or a range
+  thereof. This is the opposite direction of the existing `tovalues()` method.
+  (Issue #1153)
+
+* Added an `items()` generator method to the `ValueMapping` class for iterating
+  through the items of the value mapping, returning tuples of the binary value
+  (or a range thereof), and the `Values` string. (Issue #1153)
 
 **Cleanup**
 
