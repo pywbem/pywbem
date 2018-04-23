@@ -495,7 +495,7 @@ def _create_ns(p, handle, ns):
         if 'PG_InterOp' in inames:
             cimom_type = 'pegasus'
     except CIMError as ce:
-        if ce.args[0] != CIM_ERR_NOT_FOUND:
+        if ce.status_code != CIM_ERR_NOT_FOUND:
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
     if not cimom_type:
@@ -527,7 +527,7 @@ def _create_ns(p, handle, ns):
         try:
             handle.CreateInstance(inst)
         except CIMError as ce:
-            if ce.args[0] != CIM_ERR_ALREADY_EXISTS:
+            if ce.status_code != CIM_ERR_ALREADY_EXISTS:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
 
@@ -564,7 +564,7 @@ def p_mp_createClass(p):
                 break
             except CIMError as ce:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
-                errcode = ce.args[0]
+                errcode = ce.status_code
                 if errcode == CIM_ERR_INVALID_NAMESPACE:
                     if fixedNS:
                         raise
@@ -643,7 +643,7 @@ def p_mp_createClass(p):
                                                  (cc.classname, ns, cln))
                                 p.parser.mofcomp.compile_file(moffile, ns)
                             except CIMError as ce:
-                                if ce.args[0] == CIM_ERR_NOT_FOUND:
+                                if ce.status_code == CIM_ERR_NOT_FOUND:
                                     raise err
                                 else:
                                     raise
@@ -654,7 +654,7 @@ def p_mp_createClass(p):
 
     except CIMError as ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
-        if ce.args[0] != CIM_ERR_ALREADY_EXISTS:
+        if ce.status_code != CIM_ERR_ALREADY_EXISTS:
             raise
         if p.parser.verbose:
             p.parser.log('Class %s already exist.  Modifying...' % cc.classname)
@@ -662,7 +662,7 @@ def p_mp_createClass(p):
             p.parser.handle.ModifyClass(cc, ns)
         except CIMError as ce:
             p.parser.log('Error Modifying class %s: %s, %s' %
-                         (cc.classname, ce.args[0], ce.args[1]))
+                         (cc.classname, ce.status_code, ce.status_description))
 
 
 def p_mp_createInstance(p):
@@ -673,14 +673,14 @@ def p_mp_createInstance(p):
     try:
         p.parser.handle.CreateInstance(inst)
     except CIMError as ce:
-        if ce.args[0] == CIM_ERR_ALREADY_EXISTS:
+        if ce.status_code == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
                 p.parser.log('Instance of class %s already exist.  '
                              'Modifying...' % inst.classname)
             try:
                 p.parser.handle.ModifyInstance(inst)
             except CIMError as ce:
-                if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                if ce.status_code == CIM_ERR_NOT_SUPPORTED:
                     if p.parser.verbose:
                         p.parser.log('ModifyInstance not supported.  '
                                      'Deleting instance of %s: %s' %
@@ -704,14 +704,14 @@ def p_mp_setQualifier(p):
     try:
         p.parser.handle.SetQualifier(qualdecl)
     except CIMError as ce:
-        if ce.args[0] == CIM_ERR_INVALID_NAMESPACE:
+        if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
                 p.parser.log('Creating namespace ' + ns)
             _create_ns(p, p.parser.handle, ns)
             if p.parser.verbose:
                 p.parser.log('Setting qualifier %s' % qualdecl.name)
             p.parser.handle.SetQualifier(qualdecl)
-        elif ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+        elif ce.status_code == CIM_ERR_NOT_SUPPORTED:
             if p.parser.verbose:
                 p.parser.log('Qualifier %s already exists.  Deleting...' %
                              qualdecl.name)
@@ -963,7 +963,7 @@ def p_qualifier(p):
         try:
             quals = p.parser.handle.EnumerateQualifiers()
         except CIMError as ce:
-            if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
+            if ce.status_code != CIM_ERR_INVALID_NAMESPACE:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
             _create_ns(p, p.parser.handle, ns)
@@ -1621,7 +1621,7 @@ def p_instanceDeclaration(p):
         p.parser.classnames[ns].append(cc.classname.lower())
     except CIMError as ce:
         ce.file_line = (p.parser.file, p.lexer.lineno)
-        if ce.args[0] == CIM_ERR_NOT_FOUND:
+        if ce.status_code == CIM_ERR_NOT_FOUND:
             file_ = p.parser.mofcomp.find_mof(cname)
             if p.parser.verbose:
                 p.parser.log('Class %s does not exist' % cname)
@@ -2176,7 +2176,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 _ = self.GetClass(cc.superclass, LocalOnly=True,  # noqa: F841
                                   IncludeQualifiers=False)
             except CIMError as ce:
-                if ce.args[0] == CIM_ERR_NOT_FOUND:
+                if ce.status_code == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
                     raise
                 else:
@@ -2202,7 +2202,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     self.GetClass(obj.reference_class, LocalOnly=True,
                                   IncludeQualifiers=True)
                 except CIMError as ce:
-                    if ce.args[0] == CIM_ERR_NOT_FOUND:
+                    if ce.status_code == CIM_ERR_NOT_FOUND:
                         raise CIMError(CIM_ERR_INVALID_PARAMETER,
                                        'Class %r referenced by element '
                                        '%r of class %r in namespace '
@@ -2218,7 +2218,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         self.GetClass(eiqualifier.value, LocalOnly=True,
                                       IncludeQualifiers=False)
                     except CIMError as ce:
-                        if ce.args[0] == CIM_ERR_NOT_FOUND:
+                        if ce.status_code == CIM_ERR_NOT_FOUND:
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
                                 'Class %r specified by EmbeddInstance '
@@ -2313,7 +2313,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     self.conn.DeleteInstance(inst.path)
                 except CIMError as ce:
                     print('Error deleting instance %s' % inst.path)
-                    print('     %s %s' % (ce.args[0], ce.args[1]))
+                    print('     %s %s' % (ce.status_code,
+                                          ce.status_description))
         for ns, cnames in self.class_names.items():
             self.default_namespace = ns
             cnames.reverse()
@@ -2324,7 +2325,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     self.conn.DeleteClass(cname)
                 except CIMError as ce:
                     print('Error deleting class %s:%s' % (ns, cname))
-                    print('     %s %s' % (ce.args[0], ce.args[1]))
+                    print('     %s %s' % (ce.status_code,
+                                          ce.status_description))
         # TODO #990: Also roll back changes to qualifier declarations
 
 
@@ -2480,8 +2482,11 @@ class MOFCompiler(object):
             else:
                 self.parser.log('Fatal Error:')
 
-            self.parser.log('%s%s' % (_statuscode2string(ce.args[0]),
-                                      ce.args[1] and ': ' + ce.args[1] or ''))
+            description = ':%s' % ce.status_description if \
+                ce.status_description else ""
+            self.parser.log('%s%s' % (_statuscode2string(ce.status_code),
+                                      description))
+
             raise
 
     def compile_file(self, filename, ns):

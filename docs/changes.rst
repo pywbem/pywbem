@@ -82,6 +82,8 @@ Released: not yet
 
 * Resolved several Pylint issues, including several fixes (Issue #1206).
 
+* Cleanup mof_compiler use of args[0] and args[1] with CIMError. (Issue #1221)
+
 **Known issues:**
 
 * See `list of open issues`_.
