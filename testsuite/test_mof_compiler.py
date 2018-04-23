@@ -307,7 +307,7 @@ class TestSchemaError(MOFTest):
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
         except CIMError as ce:
-            self.assertEqual(ce.args[0], CIM_ERR_FAILED)
+            self.assertEqual(ce.status_code, CIM_ERR_FAILED)
             self.assertEqual(ce.file_line[0],
                              os.path.join(SCHEMA_MOF_DIR,
                                           'System',
@@ -325,7 +325,7 @@ class TestSchemaError(MOFTest):
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
         except CIMError as ce:
-            self.assertEqual(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
+            self.assertEqual(ce.status_code, CIM_ERR_INVALID_SUPERCLASS)
             self.assertEqual(ce.file_line[0],
                              os.path.join(
                                  SCHEMA_MOF_DIR,
@@ -589,7 +589,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
             self.mofcomp.compile_string(third_instance, NAME_SPACE)
             self.fail('Must fail compile with invalid property name')
         except CIMError as ce:
-            self.assertEqual(ce.args[0], CIM_ERR_INVALID_PARAMETER)
+            self.assertEqual(ce.status_code, CIM_ERR_INVALID_PARAMETER)
 
     def test_dup_property(self):
         """Test compile of instance with duplicated property fails"""
@@ -613,7 +613,8 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
             self.mofcomp.compile_string(third_instance, NAME_SPACE)
             self.fail('Must fail compile with duplicate property name')
         except CIMError as ce:
-            self.assertEqual(ce.args[0], CIM_ERR_INVALID_PARAMETER)
+            self.assertEqual(ce.status_code,
+                             CIM_ERR_INVALID_PARAMETER)
 
     def test_mismatch_property(self):
         """Test compile of instance with duplicated property fails"""
@@ -637,7 +638,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
             self.mofcomp.compile_string(third_instance, NAME_SPACE)
             self.fail('Must fail compile with mismatch property name')
         except CIMError as ce:
-            self.assertEqual(ce.args[0], CIM_ERR_INVALID_PARAMETER)
+            self.assertEqual(ce.status_code, CIM_ERR_INVALID_PARAMETER)
 
     # TODO add test for array value in inst, not scalar
 
