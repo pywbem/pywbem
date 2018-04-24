@@ -40,3 +40,4 @@ setuptools-*.zip
 /tmp_*/
 /dist/pywbem*.tar.gz
 /dist/pywbem*.whl
+.DS_Store
