@@ -33,9 +33,7 @@ from pywbem._nocasedict import NocaseDict
 
 from pywbem_mock import FakedWBEMConnection
 
-from dmtf_mof_schema_def import install_dmtf_schema, SCHEMA_MOF_DIR
-
-TEST_SCHEMA = os.path.join(SCHEMA_MOF_DIR, 'test_schema1.mof')
+from dmtf_mof_schema_def import install_test_dmtf_schema
 
 VERBOSE = True
 
@@ -57,7 +55,7 @@ class BaseMethodsForTests(object):
         to do this because the compile_from_string does not support
         include files, etc. It does not search for files. See issue 1138
         """
-        install_dmtf_schema()
+        dmtf_schema = install_test_dmtf_schema()
         class_list = """
             #pragma locale ("en_US")
             #pragma include ("Interop/CIM_RegisteredProfile.mof")
@@ -66,17 +64,18 @@ class BaseMethodsForTests(object):
             #pragma include ("Interop/CIM_ElementConformsToProfile.mof")
             #pragma include ("Interop/CIM_ReferencedProfile.mof")
             """
-        # See issue 1138.
-        # conn.compile_mof_string(class_list, namespace=namespace,
-        #                      search_paths=SCHEMA_MOF_DIR)
-        with open(TEST_SCHEMA, "w") as schema_file:
+
+        test_schema = os.path.join(dmtf_schema.schema_root_dir,
+                                   'test_schema1.mof')
+
+        with open(test_schema, "w") as schema_file:
             schema_file.write(class_list)
 
-        conn.compile_mof_file(TEST_SCHEMA, namespace=namespace,
-                              search_paths=[SCHEMA_MOF_DIR])
+        conn.compile_mof_file(test_schema, namespace=namespace,
+                              search_paths=[dmtf_schema.schema_mof_dir])
 
-        if os.path.isfile(TEST_SCHEMA):
-            os.remove(TEST_SCHEMA)
+        if os.path.isfile(test_schema):
+            os.remove(test_schema)
         return
 
     @staticmethod
@@ -316,7 +315,7 @@ class TestServerClass(BaseMethodsForTests):
 
     @pytest.mark.parametrize(
         "tst_namespace",
-        ['interop'])  # TODO , 'root/interop', 'root/PG_Interop'
+        ['interop', 'root/interop', 'root/PG_Interop'])
     def test_server_basic(self, tst_namespace):
         """
         Test the basic functions that access server information. This test

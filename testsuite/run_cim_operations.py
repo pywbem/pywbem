@@ -52,9 +52,9 @@ from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
 from unittest_extensions import RegexpMixin
 
 # output files
-SCRIPT_DIR = os.path.dirname(__file__)
+TEST_DIR = os.path.dirname(__file__)
 LOG_FILE_NAME = 'run_cim_operations.log'
-RUN_CIM_OPERATIONS_OUTPUT_LOG = '%s/%s' % (SCRIPT_DIR, LOG_FILE_NAME)
+RUN_CIM_OPERATIONS_OUTPUT_LOG = '%s/%s' % (TEST_DIR, LOG_FILE_NAME)
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)

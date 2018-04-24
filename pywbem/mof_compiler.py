@@ -637,9 +637,10 @@ def p_mp_createClass(p):
                                 raise err
                             try:
                                 if p.parser.verbose:
-                                    p.parser.log('Creating missing dependent '
-                                                 'class %s:%s' %
-                                                 (ns, cc.classname))
+                                    p.parser.log('Class %s namespace %s '
+                                                 'depends on class %s which is '
+                                                 'not in repository.' %
+                                                 (cc.classname, ns, cln))
                                 p.parser.mofcomp.compile_file(moffile, ns)
                             except CIMError as ce:
                                 if ce.args[0] == CIM_ERR_NOT_FOUND:

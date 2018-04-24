@@ -27,20 +27,33 @@ from pywbem._nocasedict import NocaseDict
 
 from unittest_extensions import CIMObjectMixin
 
-from dmtf_mof_schema_def import SCRIPT_DIR, SCHEMA_MOF_FN, SCHEMA_MOF_DIR, \
-    install_dmtf_schema, TOTAL_QUALIFIERS, TOTAL_CLASSES
+from dmtf_mof_schema_def import install_test_dmtf_schema, TOTAL_QUALIFIERS, \
+    TOTAL_CLASSES
+
+# Location of the schema for use by test_mof_compiler.
+# This should not change unless you intend to use another schema directory
+TEST_DIR = os.path.dirname(__file__)
 
 # Constants
 NAME_SPACE = 'root/test'
 
 TMP_FILE = 'test_mofRoundTripOutput.mof'
 
+# global that contains DMTFCIMSchema object created by setUpModule
+TEST_DMTF_CIMSCHEMA = None
+TEST_DMTF_CIMSCHEMA_MOF_DIR = None
+
 
 def setUpModule():
     """ Setup the unittest. Includes possibly getting the
         schema mof from DMTF web
     """
-    install_dmtf_schema()
+    global TEST_DMTF_CIMSCHEMA  # pylint: disable=global-statement
+    global TEST_DMTF_CIMSCHEMA_MOF_DIR  # pylint: disable=global-statement
+
+    schema = install_test_dmtf_schema()
+    TEST_DMTF_CIMSCHEMA = schema
+    TEST_DMTF_CIMSCHEMA_MOF_DIR = schema.schema_mof_dir
 
 
 class MOFTest(unittest.TestCase):
@@ -53,12 +66,12 @@ class MOFTest(unittest.TestCase):
             """Display message to moflog"""
             print(msg, file=self.logfile)
 
-        moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
+        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
-            search_paths=[SCHEMA_MOF_DIR],
-            verbose=False,
+            search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
+            verbose=True,
             log_func=moflog)
 
         self.partial_schema_file = None
@@ -162,7 +175,7 @@ class TestAliases(MOFTest):
         """
         # compile the mof. The DMTF schema mof is installed by the setup
         self.mofcomp.compile_file(
-            os.path.join(SCRIPT_DIR, 'test.mof'), NAME_SPACE)
+            os.path.join(TEST_DIR, 'test.mof'), NAME_SPACE)
 
         # test for valid classes since we do not do that elsewhere
         pywbem_person_class = self.mofcomp.handle.GetClass(
@@ -302,33 +315,35 @@ class TestSchemaError(MOFTest):
         """
         self.mofcomp.parser.search_paths = []
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+            self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
+            self.fail('Expected exception')
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_FAILED)
             self.assertEqual(ce.file_line[0],
-                             os.path.join(SCHEMA_MOF_DIR,
+                             os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                           'System',
                                           'CIM_ComputerSystem.mof'))
             if ce.file_line[1] != 2:
                 print('assert {}'.format(ce.file_line))
             self.assertEqual(ce.file_line[1], 2)
 
-        self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                'qualifiers.mof'),
                                   NAME_SPACE)
         try:
-            self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+            self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
+            self.fail('Expected exception')
         except CIMError as ce:
             self.assertEqual(ce.args[0], CIM_ERR_INVALID_SUPERCLASS)
             self.assertEqual(ce.file_line[0],
                              os.path.join(
-                                 SCHEMA_MOF_DIR,
+                                 TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                  'System',
                                  'CIM_ComputerSystem.mof'))
             # TODO The following is cim version dependent.
@@ -340,14 +355,14 @@ class TestSchemaError(MOFTest):
 
 class TestSchemaSearch(MOFTest):
     """Test the search attribute for schema in a directory defined
-       by search attribute. Searches the SCHEMA_MOF_DIR
+       by search attribute. Searches the TEST_DMTF_CIMSCHEMA_MOF_DIR
     """
 
     def test_compile_one(self):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
         """
-        self.mofcomp.compile_file(os.path.join(SCHEMA_MOF_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                'System',
                                                'CIM_ComputerSystem.mof'),
                                   NAME_SPACE)
@@ -374,7 +389,7 @@ class TestParseError(MOFTest):
     def test_error01(self):
         """Test missing statement end comment"""
 
-        _file = os.path.join(SCRIPT_DIR,
+        _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error01.mof')
         try:
@@ -389,7 +404,7 @@ class TestParseError(MOFTest):
 
     def test_error02(self):
         """Test invalid instance def TODO what is error? ks 6/16"""
-        _file = os.path.join(SCRIPT_DIR,
+        _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error02.mof')
         try:
@@ -404,7 +419,7 @@ class TestParseError(MOFTest):
     def test_error03(self):
         """Test invalid mof, extra } character"""
 
-        _file = os.path.join(SCRIPT_DIR,
+        _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error03.mof')
         try:
@@ -421,7 +436,7 @@ class TestParseError(MOFTest):
 
         # TODO ks 6/16why does this generate end-of-file rather than more
         # logical error
-        _file = os.path.join(SCRIPT_DIR,
+        _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error04.mof')
         try:
@@ -467,7 +482,7 @@ class TestRefs(MOFTest):
 
     def test_all(self):
         """Execute test"""
-        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_refs.mof'),
                                   NAME_SPACE)
@@ -479,7 +494,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
     def test_good_compile(self):
         """Execute test with file containing class and two instances."""
 
-        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
                                   NAME_SPACE)
@@ -569,7 +584,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_invalid_property(self):
         """Test compile of instance with duplicated property fails"""
-        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
                                   NAME_SPACE)
@@ -593,7 +608,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_dup_property(self):
         """Test compile of instance with duplicated property fails"""
-        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
                                   NAME_SPACE)
@@ -617,7 +632,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_mismatch_property(self):
         """Test compile of instance with duplicated property fails"""
-        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
                                   NAME_SPACE)
@@ -647,7 +662,7 @@ class TestTypes(MOFTest, CIMObjectMixin):
 
     def test_all(self):
         """Execute test"""
-        self.mofcomp.compile_file(os.path.join(SCRIPT_DIR,
+        self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_types.mof'),
                                   NAME_SPACE)
@@ -1556,7 +1571,7 @@ class TestFullSchema(MOFTest):
             """Display message to moflog2"""
             print(msg, file=self.logfile2)
 
-        moflog_file2 = os.path.join(SCRIPT_DIR, 'moflog2.txt')
+        moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
         # pylint: disable=attribute-defined-outside-init
         self.logfile2 = open(moflog_file2, 'w')
 
@@ -1573,13 +1588,14 @@ class TestFullSchema(MOFTest):
 
         # original compile and write of output mof
         # start_time = time()
-        self.mofcomp.compile_file(SCHEMA_MOF_FN, NAME_SPACE)
+        self.mofcomp.compile_file(TEST_DMTF_CIMSCHEMA.schema_mof_file,
+                                  NAME_SPACE)
         # print('elapsed compile: %f  ' % (time() - start_time))
 
         repo = self.mofcomp.handle
 
         # Create file for mof output
-        mofout_filename = os.path.join(SCRIPT_DIR, TMP_FILE)
+        mofout_filename = os.path.join(TEST_DIR, TMP_FILE)
         mof_out_hndl = open(mofout_filename, 'w')
 
         # Output and verify the qualifier declarations
@@ -1682,7 +1698,7 @@ class TestPartialSchema(MOFTest):
 
         # write the schema to a file in the schema directory
         self.partial_schema_file = 'test_partial_schema.mof'
-        test_schemafile = os.path.join(SCHEMA_MOF_DIR,
+        test_schemafile = os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                        self.partial_schema_file)
         with open(test_schemafile, "w") as sf:
             sf.write(schema_mof)
@@ -1895,7 +1911,7 @@ class TestFileErrors(MOFTest):
             """Display message to moflog"""
             print(msg, file=self.logfile)
 
-        moflog_file = os.path.join(SCRIPT_DIR, 'moflog.txt')
+        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
@@ -1930,7 +1946,7 @@ class TestFileErrors(MOFTest):
 
         try:
             self.mofcomp.compile_file(
-                os.path.join(SCHEMA_MOF_DIR, 'System',
+                os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR, 'System',
                              'CIM_ComputerSystemx.mof'),
                 NAME_SPACE)
         except IOError:
