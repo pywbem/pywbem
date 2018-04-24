@@ -1,5 +1,124 @@
 """
-Module for running the testclient .yaml test cases.
+A conftest.py file is a Python module that is recognized by pytest via its name
+and that contains directory-specific pytest hook implementations. See
+https://docs.pytest.org/en/latest/writing_plugins.html#local-conftest-plugins.
+
+This particular conftest.py module is responsible for treating the .yaml
+files in this directory (nicknamed "testclient .yaml files" in some of the
+documentation) as test cases and for running them.
+
+A testclient .yaml file in this directory defines one or more test cases. Each
+test case invokes a single WBEM operation, and the test case specifies the
+WBEM operation along with its input parameters, the expected CIM-XML request,
+a mocked CIM-XML response, and the expected results of the operation. The
+test cases are run against a WBEMConnection object (i.e. not a
+FakedWBEMConnection object), whereby its http level transport is mocked using
+the Python 'httpretty' package. This allows asserting the HTTP request and
+injecting an HTTP response.
+
+When running such a test case, the WBEMConnection method for the operation that
+is specified in the test case will be invoked with the specified input
+parameters. Pywbem will process the operation and will at some point try to
+send the HTTP request. The HTTP request will be captured by httpretty and the
+test logic will be called back and will assert that the captured HTTP request
+matches the expected HTTP request that is specified in the test case. The HTTP
+response specified in the test case is then injected by httpretty and pywbem
+will process the HTTP response, and returns from the WBEMConnection method with
+the operation results. The test case logic finally asserts that the returned
+operation results match the expected results that are specified in the test
+case.
+
+The test case syntax allows specifying error cases and success cases.
+
+This allows testing the entire pywbem client layer (at least of its
+WBEMConnection class), with the exception of the lowest layers of the HTTP
+transport logic in the cim_http.py module of pywbem. This nearly holistic
+test approach for the client inspired the term "testclient .yaml files".
+
+The following is a description of a single test case in the testclient .yaml
+files in YAML syntax, using curly braces to indicate syntax elements, and
+using comment lines for informally stated conditions::
+
+    - name: {tc_name}
+      description: {tc_desc}
+      pywbem_request:
+        {WBEMConnection_ctor_args}
+        operation:
+          pywbem_method: {op_method_name}
+          {op_method_args}
+      pywbem_response:
+# if operation is a non-pull operation and expected to succeed:
+        result: {op_method_return}
+# if operation is an open/pull operation and expected to succeed:
+        pullresult: {pull_op_method_return}
+# if operation is expected to fail with CIM status code (CIMError exception):
+        cim_status: {op_cim_status}
+# if operation is expected to fail with an arbitrary exception:
+        exception: {op_exc_type}
+# optional:
+        request_len: {request_len}
+# optional:
+        reply_len: {reply_len}
+      http_request:
+        verb: {http_method}
+        url: {http_url}
+        headers:
+          {http_request_headers}
+        data: {http_request_body}
+      http_response:
+# if the mocked HTTP layer should succeed:
+        status: {http_status}
+        headers:
+          {http_response_headers}
+        data: {http_response_body}
+# if the mocked HTTP layer should fail:
+        exception: {http_exc_type}
+
+Syntax elements:
+
+* {tc_name}: String that identfies the test case, unique within the .yaml file.
+* {tc_desc}: One-line description of the test case.
+* {WBEMConnection_ctor_args}: Dict items representing the WBEMConnection
+  ctor arguments as kwargs. The argument values are represented as described in
+  the obj() function.
+* {op_method_name}: String that is the name of the WBEMConnection method
+  for the WBEM operation to be invoked by the test case.
+* {op_method_args}: Dict items representing the arguments for calling the
+  WBEM operation method as kwargs. The argument values are represented as
+  described in the obj() function. The following item keys are supported:
+  - url: url argument
+  - creds: creds argument
+  - namespace: default_namespace argument
+  - timeout: timeout argument
+  - stats-enabled: stats_enabled argument
+  - debug: debug attribute
+* {op_exc_type}: String that is the Python class name of the expected exception
+  raised by the operation method.
+* {op_cim_status}: Numeric CIM status code. This implies an expected exception
+  class CIMError.
+* {request_len}: Numeric length of HTTP request body
+* {reply_len}: Numeric length of HTTP response body
+* {op_method_return}: Expected return value of the operation method,
+  represented as described in the obj() function.
+* {pull_op_method_return}: Expected return value of the open or pull operation
+  method, represented as described in the obj() function.
+* {http_method}: String with the expected name of the HTTP method that is used
+  in the generated HTTP request, in upper case (e.g. POST).
+* {http_url}: String with the expected URL in the generated HTTP request.
+* {http_request_headers}: Dict items for the expected HTTP header fields in the
+  request. The request may contain more than those.
+* {http_request_body}: String with the expected body (CIM-XML) of the generated
+  HTTP request. The string can be split over
+* {http_status}: HTTP status to be used for the injected HTTP response (e.g.
+  200).
+* {http_response_headers}: Dict items with the HTTP header fields to be used
+  for the injected HTTP response. Some header fields are auto-generated without
+  being specified in the test case (see the code for details).
+* {http_response_body}: String with the body (CIM-XML) to be used for the
+  injected HTTP response.
+* {http_exc_type}: String that is the Python class name of the exception
+  to be raised by the mocked HTTP transport layer, which is then to be handled
+  by the pywbem code.
 """
 
 import doctest
@@ -45,7 +164,12 @@ class ExcThread(threading.Thread):
 
 
 def patched_makefile(self, mode='r', bufsize=-1):
-    """Returns this fake socket's own StringIO buffer.
+    """
+    Patched version of httpretty's makefile() function, which uses ExcThread
+    instead of Thread, in order to properly catch exceptions. See httpretty
+    issue https://github.com/gabrielfalcao/HTTPretty/issues/334.
+
+    Returns this fake socket's own StringIO buffer.
 
     If there is an entry associated with the socket, the file
     descriptor gets filled in with the entry data before being
@@ -79,6 +203,9 @@ fakesock.socket.makefile = patched_makefile
 def pytest_collect_file(parent, path):
     """
     py.test hook that is called for a directory to collect its test files.
+
+    For an example very similar to what we do here, see
+    https://docs.pytest.org/en/latest/example/nonpython.html
     """
     if path.ext == ".yaml":
         return YamlFile(path, parent)
@@ -109,6 +236,18 @@ class YamlItem(pytest.Item):
     """
 
     def __init__(self, name, parent, testcase, filepath):
+        """
+        Parameters:
+
+          name (string): Name of the testcase as recognized by py.test.
+
+          parent (YamlFile): Parent of this testcase as seen by py.test.
+
+          testcase (dict): The dict representing the subset of the testclient
+            .yaml file for a single test case.
+
+          filepath (string): Path name of the testclient .yaml file.
+        """
         super(YamlItem, self).__init__(name, parent)
         self.testcase = testcase
         self.filepath = filepath
@@ -121,12 +260,15 @@ class YamlItem(pytest.Item):
         return name
 
     def runtest(self):
+        """
+        Called by py.test to run this test case.
+        """
         runtestcase(self.testcase)
 
     def repr_failure(self, excinfo):
         """
-        Called when self.runtest() raises an exception, to provide details
-        about the failure.
+        Called by py.test when the runtest() method raised an exception, to
+        provide details about the failure.
         """
         exc = excinfo.value
         if isinstance(exc, ClientTestFailure):
@@ -137,6 +279,11 @@ class YamlItem(pytest.Item):
             return "Error: %s" % exc
 
     def reportinfo(self):
+        """
+        Called by py.test when the test case failed, to provide information
+        about the test case. The third tuple item is a string that
+        identifies the test case in a human readable way.
+        """
         return self.fspath, 0, "%s in %s" % (self.name, self.filepath)
 
 
@@ -162,7 +309,7 @@ def show_diff(conn, expected, actual, display_text):
 
 def str_tuple(tuple_):
     """
-    Prepare a tuple or NonType for output.
+    Prepare a tuple or NoneType for output.
 
     This gets around issues of type failure when trying to
     print tuples.
@@ -741,7 +888,7 @@ def runtestcase(testcase):
     # Continue with validating the result
 
     if isinstance(raised_exception, pywbem.CIMError):
-        cim_status = raised_exception.args[0]
+        cim_status = raised_exception.status_code
     else:
         cim_status = 0
     assert cim_status == exp_cim_status, \
