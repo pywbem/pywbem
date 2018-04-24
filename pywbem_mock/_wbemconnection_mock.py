@@ -489,9 +489,11 @@ class FakedWBEMConnection(WBEMConnection):
         `schema_version` and keep the downloaded DMTF CIM schema in the
         directory defined by `schema_dir`.
 
-        This method uses :class:`~pywbem_mock.DMTFCIMSchema` to get the schema
-        from the DMTF, save it in the `schema_dir` directory, expand it and make
-        a list of leaf classes from this directory that are to be compiled.
+        This method uses the :class:`~pywbem_mock.DMTFCIMSchema` class to
+        download the DMTF CIM schema defined by `schema_version` from the DMTF,
+        into the `schema_root_dir` directory, extract the MOF files, create a
+        MOF file with the `#include pragma` statements for the files in
+        `class_names` and attempt to compile this set of files.
 
         It automatically compiles all of the DMTF qualifier declarations that
         are in the files `qualifiers.mof` and `qualifiers_optional.mof`.
@@ -525,26 +527,27 @@ class FakedWBEMConnection(WBEMConnection):
 
             A single class may be defined as a string not in a list.
 
-            These must be classes in the defined DMTF CIM schema and can be just
-            a list of the leaf classes required for a working repository. The
-            compiler will try to find superclasses, classes defined in
-            reference properties, and classes defined in EmbeddedInstance
-            qualifiers in the defined DMTF repository MOF and compile them also.
+            These must be classes in the defined DMTF CIM schema and can be a
+            list of just the leaf classes required The MOF compiler will search
+            the DMTF CIM schema MOF classes for superclasses, classes defined
+            in reference properties, and classes defined in EmbeddedInstance
+            qualifiers  and compile them also.
 
           use_experimental (:class:`py:bool`):
             If `True` the expermental version of the DMTF CIM Schema
             is installed or to be installed.
 
-            If `False` (the default) the final version of the DMTF
+            If `False` (default) the final version of the DMTF
             CIM Schema is installed or to be installed.
 
           verbose (:class:`py:bool`):
             If `True`, progress messages are output to stdout
 
         Raises:
-            ValueError: If the schema cannot be retrieved from the DMTF web
-              site.
-            TypeError: If the 'schema_version' is not a valid tuple with 3
+            ValueError: The schema cannot be retrieved from the DMTF web
+              site, the schema_version is invalid, or a class name cannot
+              be found in the defined DMTF CIM schema.
+            TypeError: The 'schema_version' is not a valid tuple with 3
               integer components
         """
         schema = DMTFCIMSchema(schema_version, schema_root_dir,
