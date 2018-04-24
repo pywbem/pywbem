@@ -19,19 +19,19 @@ A DMTF CIM schema is the collection of CIM qualifier declarations and CIM
 classes managed by the DMTF and released as a single tested, coherent package
 with a defined major, minor, update version number.  The MOF representation of
 a DMTF schema release is packaged as a single zip file and is available on the
-DMTF web site ( https://www.dmtf.org/standards/cim )).
+DMTF web site ( https://www.dmtf.org/standards/cim ).
 
-Because the DMTF MOF schemas are the source of most of the classes that a WBEM
+Because the DMTF CIM schemas are the source of most of the classes that a WBEM
 server normally implements it was important to create a simple mechanism
 to include the DMTF CIM classes and qualifier declarations in the
-:class:`~pywbem.FakedWBEMConnection` mock repository.
+:class:`~pywbem_mock.FakedWBEMConnection` mock repository.
 
 The :class:`~pywbem_mock.DMTFCIMSchema` class downloads the DMTF CIM schema
 zip file defined by version from the DMTF web site into a defined directory,
 unzips the MOF files into a subdirectory and makes this subdirectory
 available as a property of the :class:`~pywbem_mock.DMTFCIMSchema` object.
 
-The implementation of this class also depends on all of the qualiifiers and
+The implementation of this class depends on all of the qualiifiers and
 classes in the CIM schema having unique class names; this is always true for
 DMTF CIM schema releases to assure that they can be installed in the same
 namespace in a WBEM server repository.
@@ -48,7 +48,7 @@ local storage.  They are restored the next time the
 The DMTF maintains two versions of each released schema:
 
 * Final - This schema does not contain any of the schema classes that are
-  marked experimentel.  It is considered the stable release.
+  marked experimental.  It is considered the stable release.
 
 * Experimental - Contains the classes in the final schema plus other
   classes that are considered experimental. It is considered less stable and
@@ -56,19 +56,20 @@ The DMTF maintains two versions of each released schema:
   incompatible changes .
 
 :class:`~pywbem_mock.DMTFCIMSchema` will install either the final or
-experimental schema depending on the value of the `use-experimental`
+experimental schema depending on the value of the `use_experimental`
 parameter.
 
 Because it is usually necessary to compile only a subset of the DMTF CIM
 classes into a mock repository for any test, the
 :class:`~pywbem_mock.DMTFCIMSchema` class provides a
-:meth:`~pywbem_mock.build_schema_mof` method to create a MOF include file that
-includes only a subset of the classes in the downloaded DMTF CIM Schema. The
-task of listing classes to be compiled is futher simplified because the pywbem
-MOF compiler searches the DMTF schema for prerequisite classes (superclasses,
-reference classes, and EmbeddedInstance classes) so that generally only the
-leaf CIM classes required for the repository need to be in the class list. This
-speeds up the process of compiling DMTF CIM classes for any test significantly.
+:meth:`~pywbem_mock.FakedWBEMConnection.build_schema_mof` method to create a
+MOF include file that includes only a subset of the classes in the downloaded
+DMTF CIM Schema. The task of listing classes to be compiled is futher
+simplified because the pywbem MOF compiler searches the DMTF schema for
+prerequisite classes (superclasses, reference classes, and EmbeddedInstance
+classes) so that generally only the leaf CIM classes required for the
+repository need to be in the class list. This speeds up the process of
+compiling DMTF CIM classes for any test significantly.
 """
 import os
 from zipfile import ZipFile
@@ -93,7 +94,7 @@ class DMTFCIMSchema(object):
 
     This class manages the download of the DMTF schema zip file and extraction
     of MOF files of DMTF CIM schema releases into a directory that can be used
-    by :class:`pywbem_mock.FakedWBEMConnection` to compile a mock repository
+    by :class:`~pywbem_mock.FakedWBEMConnection` to compile a mock repository
     with class and qualifier declarations.
     """
     def __init__(self, schema_version, schema_root_dir, use_experimental=False,
@@ -236,9 +237,9 @@ class DMTFCIMSchema(object):
 
         This filename is of the general form::
 
-            cim_schema_<schema_version>.mof
+            <schema_mof_dir>/cim_schema_<schema_version_str>.mof
 
-            ex: cim_schema_2.49.0.mof
+            ex: schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
         """
         return self._schema_mof_file
 
