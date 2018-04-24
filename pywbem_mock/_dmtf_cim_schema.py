@@ -31,17 +31,9 @@ zip file defined by version from the DMTF web site into a defined directory,
 unzips the MOF files into a subdirectory and makes this subdirectory
 available as a property of the :class:`~pywbem_mock.DMTFCIMSchema` object.
 
-Multiple DMTF CIM schemas may be maintained in the same `schema_root_dir`
-simultaneously because the MOF for each schema is extracted into a subdirectory
-identified by the schema version information.
-
-NOTE: This works only for the DMTF repository because it gets the original zip
-file from the DMTF repository with the particular url and zip file organization
-of the DMTF CIM Schema release.
-
-The implementation of this class also depends on all of the zip files in
-the CIM schema having unique class names; this is always true for DMTF
-CIM schema releases to assure that they can be installed in the same
+The implementation of this class also depends on all of the qualiifiers and
+classes in the CIM schema having unique class names; this is always true for
+DMTF CIM schema releases to assure that they can be installed in the same
 namespace in a WBEM server repository.
 
 Once a DMTF CIM schema is extracted into the individual MOF files it consumes
@@ -58,25 +50,25 @@ The DMTF maintains two versions of each released schema:
 * Final - This schema does not contain any of the schema classes that are
   marked experimentel.  It is considered the stable release.
 
-* Experimental - Contains the classes in the final schema file plus other
+* Experimental - Contains the classes in the final schema plus other
   classes that are considered experimental. It is considered less stable and
   the experimental classes with the Experimental qualifier are subject to
   incompatible changes .
 
 :class:`~pywbem_mock.DMTFCIMSchema` will install either the final or
-experimental schema depending on the value of the `user-experimental`
+experimental schema depending on the value of the `use-experimental`
 parameter.
 
 Because it is usually necessary to compile only a subset of the DMTF CIM
-classes into the mock repository for any test, the
+classes into a mock repository for any test, the
 :class:`~pywbem_mock.DMTFCIMSchema` class provides a
-:meth:`~pywbem_mock.build_schema_mof` to create a MOF include file from the
-DMTF Schema downloaded that includes only a subset of the classes actually in
-the repository for compile into a MOF repository. The task of listing classes
-to be compiled is futher simplified because the pywbem MOF compiler searches
-the DMTF schema for prerequisite classes (superclasses, reference classes, and
-EmbeddedInstance classes) so that generally only the leaf CIM classes required
-for the repository need to be in the class list.
+:meth:`~pywbem_mock.build_schema_mof` method to create a MOF include file that
+includes only a subset of the classes in the downloaded DMTF CIM Schema. The
+task of listing classes to be compiled is futher simplified because the pywbem
+MOF compiler searches the DMTF schema for prerequisite classes (superclasses,
+reference classes, and EmbeddedInstance classes) so that generally only the
+leaf CIM classes required for the repository need to be in the class list. This
+speeds up the process of compiling DMTF CIM classes for any test significantly.
 """
 import os
 from zipfile import ZipFile
@@ -99,10 +91,10 @@ class DMTFCIMSchema(object):
     :class:`DMTFCIMSchema` represents a DMTF CIM Schema downloaded from the
     DMTF web site.
 
-    This class manages the download of the DMTF schema zip file and  and
-    extraction of MOF files of DMTF CIM schema releases into
-    a directorythat can be used by :class:`pywbem_mock.FakedWBEMConnection` to
-    compile a mock repository with class and qualifier declarations.
+    This class manages the download of the DMTF schema zip file and extraction
+    of MOF files of DMTF CIM schema releases into a directory that can be used
+    by :class:`pywbem_mock.FakedWBEMConnection` to compile a mock repository
+    with class and qualifier declarations.
     """
     def __init__(self, schema_version, schema_root_dir, use_experimental=False,
                  verbose=False):
@@ -135,6 +127,11 @@ class DMTFCIMSchema(object):
             Path name of the schema root directory into which the DMTF CIM
             schema zip file is downloaded and in which a subdirectory for the
             extracted MOF files is created
+
+            Multiple DMTF CIM schemas may be maintained in the same
+            `schema_root_dir` simultaneously because the MOF for each schema is
+            extracted into a subdirectory identified by the schema version
+            information.
 
           use_experimental (:class:`py:bool`):
             If `True`, the experimental version of the defined DMTF schema is

@@ -597,8 +597,8 @@ There are two ways to build a mock repository:
     or part of the schema to compile. This automatically compiles all
     qualifiers declarations into the mock repository and allows setting up
     a partial class repository (i.e. just selected classes) in a single
-    method. See
-    :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema`.
+    method. See section `DMTF CIM schema download support`_ and the
+    :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema` method.
 
 It may take a combination of all three of the above methods to build a schema
 that satisfies a particular requirement including:
@@ -633,10 +633,10 @@ The pywbem MOF compiler provides support for:
    user does not have to track down those dependent classes to be able to
    create a working mock repository.
 
-.. _`Example: Set up qualifier types and classes DMTF MOF schema`:
+.. _`Example: Set up qualifier types and classes DMTF CIM schema`:
 
-Example: Set up qualifier types and classes DMTF MOF schema
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: Set up qualifier types and classes in DMTF CIM schema
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example creates a faked connection and compiles the classes defined in the
 list 'classes' from DMTF schema version 2.49.0 into the repository along with
@@ -856,10 +856,10 @@ FakedWBEMConnection
 .. autoclass:: pywbem_mock.FakedWBEMConnection
    :members:
 
-.. _`DMTFCIMSchema`:
+.. _`DMTF CIM schema download support`:
 
-DMTFCIMSchema
--------------
+DMTF CIM schema download support
+--------------------------------
 
 .. automodule:: pywbem_mock._dmtf_cim_schema
 

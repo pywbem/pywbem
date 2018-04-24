@@ -1347,7 +1347,7 @@ class TestRepoMethods(object):
     # pylint: disable=no-self-use
     def test_compile_dmtf_schema(self, conn):
         """
-        Test Compiling DMTF MOF schema. This is a test commpiles the
+        Test Compiling DMTF CIM schema. This is a test commpiles the
         complete DMTF schema that is defined in the testsuite.
         """
         ns = 'root/cimv2'
@@ -1394,7 +1394,7 @@ class TestRepoMethods(object):
                                         extra_rtnd_classnames, run_test):
         # pylint: disable=no-self-use
         """
-        Test Compiling DMTF MOF schema using the compile_dmtf_schema method
+        Test Compiling DMTF CIM schema using the compile_dmtf_schema method
         introduced in pywbem 0.13.0
         """
         if not run_test:

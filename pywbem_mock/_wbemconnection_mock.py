@@ -514,6 +514,11 @@ class FakedWBEMConnection(WBEMConnection):
             schema versions because subdirectories are uniquely defined by
             schema version and schema_type (i.e. Final or Experimental).
 
+            Multiple DMTF CIM schemas may be maintained in the same
+            `schema_root_dir` simultaneously because the MOF for each schema is
+            extracted into a subdirectory identified by the schema version
+            information.
+
           class_names (:term:`py:list` of :term:`string` or :term:`string`):
             List of class names from the DMTF CIM Schema to be included in the
             repository.
