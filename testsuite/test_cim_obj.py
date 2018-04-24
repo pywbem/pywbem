@@ -34,7 +34,8 @@ from pywbem import cim_obj, cim_types, __version__
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, \
-    Uint64, Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime
+    Uint64, Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
+    tocimobj
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
 
@@ -28946,7 +28947,7 @@ class ToCIMObj(unittest.TestCase):
 
     def test_all(self):
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             "Acme_OS.Name=\"acmeunit\",SystemName=\"UnixHost\"")
         self.assertTrue(isinstance(path, CIMInstanceName))
@@ -28957,7 +28958,7 @@ class ToCIMObj(unittest.TestCase):
         self.assertTrue(path.namespace is None)
         self.assertTrue(path.host is None)
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             "Acme_User.uid=33,OSName=\"acmeunit\","
             "SystemName=\"UnixHost\"")
@@ -28970,7 +28971,7 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['SystemName'], 'UnixHost')
         self.assertEqual(len(path.keybindings), 3)
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             'HTTP://CIMOM_host/root/CIMV2:CIM_Disk.key1="value1"')
         self.assertTrue(isinstance(path, CIMInstanceName))
@@ -28980,7 +28981,7 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['key1'], 'value1')
         self.assertEqual(len(path.keybindings), 1)
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             "ex_sampleClass.label1=9921,label2=8821")
         self.assertTrue(isinstance(path, CIMInstanceName))
@@ -28991,13 +28992,13 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['label2'], 8821)
         self.assertEqual(len(path.keybindings), 2)
 
-        path = cim_obj.tocimobj('reference', "ex_sampleClass")
+        path = tocimobj('reference', "ex_sampleClass")
         self.assertTrue(isinstance(path, CIMClassName))
         self.assertTrue(path.namespace is None)
         self.assertTrue(path.host is None)
         self.assertEqual(path.classname, 'ex_sampleClass')
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             '//./root/default:LogicalDisk.SystemName="acme",'
             'LogicalDisk.Drive="C"')
@@ -29009,7 +29010,7 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['Drive'], 'C')
         self.assertEqual(len(path.keybindings), 2)
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             "X.key1=\"John Smith\",key2=33.3")
         self.assertTrue(isinstance(path, CIMInstanceName))
@@ -29019,7 +29020,7 @@ class ToCIMObj(unittest.TestCase):
         self.assertEqual(path['key1'], 'John Smith')
         self.assertEqual(path['key2'], 33.3)
 
-        path = cim_obj.tocimobj(
+        path = tocimobj(
             'reference',
             "//./root/default:NetworkCard=2")
         # TODO How should pywbem deal with a single, unnamed, keybinding?

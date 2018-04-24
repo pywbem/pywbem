@@ -270,7 +270,8 @@ else:
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
-           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'cimvalue']
+           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'tocimobj',
+           'cimvalue']
 
 # Constants for MOF formatting output
 MOF_INDENT = 3
