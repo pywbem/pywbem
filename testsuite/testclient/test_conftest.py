@@ -1,5 +1,7 @@
 """
-Testcases for conftest.py
+This test module contains test cases for testing the conftest.py module,
+at least those functions that can reasonably be tested in a standalone
+manner.
 """
 
 from lxml import etree
