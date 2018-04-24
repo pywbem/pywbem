@@ -199,7 +199,7 @@ help:
 	@echo 'Makefile for $(package_name) project'
 	@echo 'Package version will be: $(package_version)'
 	@echo 'Uses the currently active Python environment: Python $(python_version)'
-	@echo "Valid targets are (they do just what is stated, i.e. no automatic prereq targets):"
+	@echo "Valid targets are:"
 	@echo "  install    - Install pywbem and its Python installation and runtime prereqs (includes install_os once after clobber)"
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
 	@echo "  build      - Build the distribution archive files in: $(dist_dir)"
@@ -224,14 +224,13 @@ help:
 .PHONY: _check_version
 _check_version:
 ifeq (,$(package_version))
-	@echo 'Error: Package version could not be determined (requires pbr; run "make develop")'
+	@echo 'Error: Package version could not be determined (requires pbr; run "make install")'
 	@false
 else
 	@true
 endif
 
-.PHONY: _install_basic
-_install_basic:
+install_basic.done:
 	@echo "makefile: Installing/upgrading basic Python packages (pip, etc., with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 ifeq ($(python_mn_version),26)
 	$(PIP_CMD) install importlib
@@ -246,14 +245,12 @@ else
 	$(PYTHON_CMD) -m pip install $(pip_level_opts) pip setuptools wheel
 endif
 	$(PIP_CMD) install $(pip_level_opts) pbr
+	touch install_basic.done
 	@echo "makefile: Done installing/upgrading basic Python packages"
 
 .PHONY: install_os
-install_os: _fresh_install_os install_os.done
+install_os: install_os.done
 	@echo "makefile: Target $@ done."
-
-_fresh_install_os:
-	rm -f install_os.done
 
 install_os.done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level installation and runtime requirements"
@@ -269,8 +266,7 @@ _show_bitsize:
 	$(PYTHON_CMD) -c "import platform; print(int(platform.architecture()[0].rstrip('bit')))"
 	@echo "makefile: Done determining bit size of Python executable"
 
-.PHONY: _install_pywbem
-_install_pywbem: requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg
+install_pywbem.done: requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg
 	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	rm -Rf build $(package_name).egg-info .eggs
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
@@ -281,20 +277,21 @@ ifeq ($(PYTHON_ARCH),64)
 	$(PIP_CMD) install $(pip_level_opts) -r win64-requirements.txt
 endif
 	$(PIP_CMD) install $(pip_level_opts) -e .
+	touch install_pywbem.done
 	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
 
 .PHONY: install
-install: makefile install_os.done _install_basic _show_bitsize _install_pywbem $(moftab_files)
+install: install.done
+	@echo "makefile: Target $@ done."
+
+install.done: makefile install_os.done install_basic.done install_pywbem.done
 	$(PYTHON_CMD) -c "import $(package_name); print('ok, version=%r'%$(package_name).__version__)"
 	$(PYTHON_CMD) -c "import $(mock_package_name); print('ok')"
-	@echo "makefile: Target $@ done."
+	touch install.done
 
 .PHONY: develop_os
-develop_os: _fresh_develop_os develop_os.done
+develop_os: develop_os.done
 	@echo "makefile: Target $@ done."
-
-_fresh_develop_os:
-	rm -f develop_os.done
 
 develop_os.done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level development requirements"
@@ -303,11 +300,14 @@ develop_os.done: pywbem_os_setup.sh
 	@echo "makefile: Done installing OS-level development requirements"
 
 .PHONY: develop
-develop: develop_os.done _install_basic dev-requirements.txt
+develop: develop.done
+	@echo "makefile: Target $@ done."
+
+develop.done: install.done develop_os.done install_basic.done dev-requirements.txt
 	@echo "makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	$(PIP_CMD) install $(pip_level_opts) -r dev-requirements.txt
+	touch develop.done
 	@echo "makefile: Done installing Python development requirements"
-	@echo "makefile: Target $@ done."
 
 .PHONY: build
 build: _check_version $(bdist_file) $(sdist_file)
@@ -457,7 +457,7 @@ $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moft
 	@echo "makefile: Done creating the distribution archive files: $@"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
-$(moftab_files): $(moftab_dependent_files) build_moftab.py
+$(moftab_files): install.done $(moftab_dependent_files) build_moftab.py
 	@echo "makefile: Creating the LEX/YACC table modules"
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
 	$(PYTHON_CMD) -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
@@ -498,14 +498,14 @@ else
 	@echo "makefile: Done running Flake8; Log file: $@"
 endif
 
-$(test_log_file): makefile $(package_name)/*.py testsuite/*.py testsuite/testclient/*.py coveragerc
+$(test_log_file): makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/*.py testsuite/test_uprint.* testsuite/testclient/*.py testsuite/testclient/*.yaml coveragerc
 	@echo "makefile: Running tests"
+	rm -f $(test_log_file)
 ifeq ($(PLATFORM),Windows)
 	testsuite\test_uprint.bat
 else
 	testsuite/test_uprint.sh
 endif
-	rm -f $(test_log_file)
 	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $@"
@@ -519,4 +519,3 @@ $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler
 	@echo "makefile: Creating mof_compiler script help message file"
 	./mof_compiler --help >$@
 	@echo "makefile: Done creating mof_compiler script help message file: $@"
-
