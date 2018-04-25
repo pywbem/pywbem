@@ -627,24 +627,18 @@ TESTCASES_CIMTYPE = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMTYPE)
-@pytest_extensions.test_function
-def test_cimtype(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_cimtype(testcase, obj, exp_type_name):
     """
     Test function for cimtype().
     """
 
-    obj = kwargs['obj']
-
     # The code to be tested
     type_name = cimtype(obj)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_type_name = kwargs['exp_type_name']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert type_name == exp_type_name
 
@@ -808,24 +802,18 @@ TESTCASES_TYPE_FROM_NAME = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_TYPE_FROM_NAME)
-@pytest_extensions.test_function
-def test_type_from_name(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_type_from_name(testcase, type_name, exp_type_obj):
     """
     Test function for type_from_name().
     """
 
-    type_name = kwargs['type_name']
-
     # The code to be tested
     type_obj = type_from_name(type_name)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_type_obj = kwargs['exp_type_obj']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert type_obj is exp_type_obj
 

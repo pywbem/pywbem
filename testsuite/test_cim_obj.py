@@ -1524,16 +1524,12 @@ TESTCASES_CIMINSTANCENAME_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_HASH)
-@pytest_extensions.test_function
-def test_CIMInstanceName_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMInstanceName_hash(testcase,
+                              obj1, obj2, exp_hash_equal):
     """
     Test function for CIMInstanceName.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -1542,11 +1538,9 @@ def test_CIMInstanceName_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -2138,26 +2132,22 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMInstanceName_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMInstanceName_tocimxml(testcase,
+                                  obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstanceName.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -2165,25 +2155,21 @@ def test_CIMInstanceName_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMInstanceName_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMInstanceName_tocimxmlstr(testcase,
+                                     obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstanceName.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -5196,16 +5182,12 @@ TESTCASES_CIMINSTANCE_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_HASH)
-@pytest_extensions.test_function
-def test_CIMInstance_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMInstance_hash(testcase,
+                          obj1, obj2, exp_hash_equal):
     """
     Test function for CIMInstance.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -5214,11 +5196,9 @@ def test_CIMInstance_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -5718,26 +5698,22 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMInstance_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMInstance_tocimxml(testcase,
+                              obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstance.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -5745,25 +5721,21 @@ def test_CIMInstance_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMInstance_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMInstance_tocimxmlstr(testcase,
+                                 obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstance.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -8216,16 +8188,12 @@ TESTCASES_CIMPROPERTY_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_HASH)
-@pytest_extensions.test_function
-def test_CIMProperty_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMProperty_hash(testcase,
+                          obj1, obj2, exp_hash_equal):
     """
     Test function for CIMProperty.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -8234,11 +8202,9 @@ def test_CIMProperty_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -10958,26 +10924,22 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMProperty_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMProperty_tocimxml(testcase,
+                              obj, kwargs, exp_xml_str):
     """
     Test function for CIMProperty.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -10985,25 +10947,21 @@ def test_CIMProperty_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMProperty_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMProperty_tocimxmlstr(testcase,
+                                 obj, kwargs, exp_xml_str):
     """
     Test function for CIMProperty.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -12307,16 +12265,12 @@ TESTCASES_CIMQUALIFIER_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_HASH)
-@pytest_extensions.test_function
-def test_CIMQualifier_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMQualifier_hash(testcase,
+                           obj1, obj2, exp_hash_equal):
     """
     Test function for CIMQualifier.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -12325,11 +12279,9 @@ def test_CIMQualifier_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -14799,26 +14751,22 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMQualifier_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMQualifier_tocimxml(testcase,
+                               obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifier.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -14826,25 +14774,21 @@ def test_CIMQualifier_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMQualifier_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMQualifier_tocimxmlstr(testcase,
+                                  obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifier.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -15655,16 +15599,12 @@ TESTCASES_CIMCLASSNAME_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_HASH)
-@pytest_extensions.test_function
-def test_CIMClassName_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMClassName_hash(testcase,
+                           obj1, obj2, exp_hash_equal):
     """
     Test function for CIMClassName.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -15673,11 +15613,9 @@ def test_CIMClassName_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -15997,26 +15935,22 @@ TESTCASES_CIMCLASSNAME_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMClassName_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMClassName_tocimxml(testcase,
+                               obj, kwargs, exp_xml_str):
     """
     Test function for CIMClassName.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -16024,25 +15958,21 @@ def test_CIMClassName_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMClassName_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMClassName_tocimxmlstr(testcase,
+                                  obj, kwargs, exp_xml_str):
     """
     Test function for CIMClassName.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -17867,16 +17797,12 @@ TESTCASES_CIMCLASS_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_HASH)
-@pytest_extensions.test_function
-def test_CIMClass_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMClass_hash(testcase,
+                       obj1, obj2, exp_hash_equal):
     """
     Test function for CIMClass.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -17885,11 +17811,9 @@ def test_CIMClass_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -18209,26 +18133,22 @@ TESTCASES_CIMCLASS_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMClass_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMClass_tocimxml(testcase,
+                           obj, kwargs, exp_xml_str):
     """
     Test function for CIMClass.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -18236,25 +18156,21 @@ def test_CIMClass_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMClass_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMClass_tocimxmlstr(testcase,
+                              obj, kwargs, exp_xml_str):
     """
     Test function for CIMClass.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -19363,16 +19279,12 @@ TESTCASES_CIMMETHOD_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_HASH)
-@pytest_extensions.test_function
-def test_CIMMethod_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMMethod_hash(testcase,
+                        obj1, obj2, exp_hash_equal):
     """
     Test function for CIMMethod.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -19381,11 +19293,9 @@ def test_CIMMethod_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -19755,26 +19665,22 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMMethod_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMMethod_tocimxml(testcase,
+                            obj, kwargs, exp_xml_str):
     """
     Test function for CIMMethod.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -19782,25 +19688,21 @@ def test_CIMMethod_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMMethod_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMMethod_tocimxmlstr(testcase,
+                               obj, kwargs, exp_xml_str):
     """
     Test function for CIMMethod.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -21184,16 +21086,12 @@ TESTCASES_CIMPARAMETER_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_HASH)
-@pytest_extensions.test_function
-def test_CIMParameter_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMParameter_hash(testcase,
+                           obj1, obj2, exp_hash_equal):
     """
     Test function for CIMParameter.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -21202,11 +21100,9 @@ def test_CIMParameter_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -24339,26 +24235,22 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMParameter_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMParameter_tocimxml(testcase,
+                               obj, kwargs, exp_xml_str):
     """
     Test function for CIMParameter.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -24366,25 +24258,21 @@ def test_CIMParameter_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMParameter_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMParameter_tocimxmlstr(testcase,
+                                  obj, kwargs, exp_xml_str):
     """
     Test function for CIMParameter.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -25769,16 +25657,12 @@ TESTCASES_CIMQUALIFIERDECLARATION_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_HASH)
-@pytest_extensions.test_function
-def test_CIMQualifierDeclaration_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMQualifierDeclaration_hash(testcase,
+                                      obj1, obj2, exp_hash_equal):
     """
     Test function for CIMQualifierDeclaration.__hash__().
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -25787,11 +25671,9 @@ def test_CIMQualifierDeclaration_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_hash_equal = kwargs['exp_hash_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_hash_equal:
         assert hash1 == hash2
@@ -28607,26 +28489,22 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMQualifierDeclaration_tocimxml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMQualifierDeclaration_tocimxml(testcase,
+                                          obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifierDeclaration.tocimxml().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml = obj.tocimxml(**func_kwargs)
+    obj_xml = obj.tocimxml(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
@@ -28634,25 +28512,21 @@ def test_CIMQualifierDeclaration_tocimxml(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
-@pytest_extensions.test_function
-def test_CIMQualifierDeclaration_tocimxmlstr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_CIMQualifierDeclaration_tocimxmlstr(testcase,
+                                             obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifierDeclaration.tocimxmlstr().
     """
 
-    obj = kwargs['obj']
-    func_kwargs = kwargs['kwargs']
-
     # The code to be tested
-    obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+    obj_xml_str = obj.tocimxmlstr(**kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(kwargs['exp_xml_str'])
+    exp_xml_str = ''.join(exp_xml_str)
 
     assert obj_xml_str == exp_xml_str
 
