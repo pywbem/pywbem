@@ -12,7 +12,7 @@
 # Unit test (imports into testcases):
 unittest2>=1.1.0
 pytest>=3.0.7,<3.3.0; python_version == '2.6'
-pytest>=3.0.7; python_version > '2.6'
+pytest>=3.3.0; python_version > '2.6'
 # testfixtures 6.0.0 no longer supports py26 and fails on py26 with syntax error
 testfixtures>=4.3.3,<6.0.0
 httpretty>=0.8.14,<0.9.1; python_version == '2.6'
@@ -21,6 +21,7 @@ lxml>=4.0.0
 requests>=2.12.4
 decorator>=4.0.11
 yamlordereddictloader>=0.4.0
+funcsigs>=1.0.2; python_version == '2'
 
 # Coverage reporting (no imports, invoked via coveralls script, only used on py27):
 # Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore

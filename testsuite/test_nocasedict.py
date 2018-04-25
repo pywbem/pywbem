@@ -209,24 +209,19 @@ TESTCASES_NOCASEDICT_INIT = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_INIT)
-@pytest_extensions.test_function
-def test_NocaseDict_init(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_init(testcase,
+                         init_args, init_kwargs, exp_dict, verify_order):
     """
     Test function for NocaseDict.__init__() / ncd=NocaseDict()
     """
 
-    init_args = kwargs['init_args']
-    init_kwargs = kwargs['init_kwargs']
-    exp_dict = kwargs['exp_dict']
-    verify_order = kwargs['verify_order']
-
     # The code to be tested
     act_dict = NocaseDict(*init_args, **init_kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     # The verification below also uses some NocaseDict features, but that is
     # unavoidable if we want to work through the public interface:
@@ -374,23 +369,19 @@ TESTCASES_NOCASEDICT_GETITEM = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_GETITEM)
-@pytest_extensions.test_function
-def test_NocaseDict_getitem(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_getitem(testcase,
+                            obj, key, exp_value):
     """
     Test function for NocaseDict.__getitem__() / ncd[key]
     """
 
-    obj = kwargs['obj']
-    key = kwargs['key']
-    exp_value = kwargs['exp_value']
-
     # The code to be tested
     act_value = obj[key]
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_value == exp_value, "Unexpected value at key %r" % key
 
@@ -517,23 +508,18 @@ TESTCASES_NOCASEDICT_SETITEM = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_SETITEM)
-@pytest_extensions.test_function
-def test_NocaseDict_setitem(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_setitem(testcase, obj, key, value):
     """
     Test function for NocaseDict.__setitem__() / ncd[key]=value
     """
 
-    obj = kwargs['obj']
-    key = kwargs['key']
-    value = kwargs['value']
-
     # The code to be tested
     obj[key] = value
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     # The verification below also uses some NocaseDict features, but that is
     # unavoidable if we want to work through the public interface:
@@ -653,28 +639,25 @@ TESTCASES_NOCASEDICT_DELITEM = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_DELITEM)
-@pytest_extensions.test_function
-def test_NocaseDict_delitem(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_delitem(testcase, obj, key):
     """
     Test function for NocaseDict.__delitem__() / del ncd[key]
     """
 
-    obj = kwargs['obj']
-    key = kwargs['key']
-
     # The code to be tested
     del obj[key]
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     # The verification below also uses some NocaseDict features, but that is
     # unavoidable if we want to work through the public interface:
 
     with pytest.raises(KeyError):
-        obj[key]  # Uses NocaseDict getitem
+        # The following line uses NocaseDict getitem
+        obj[key]  # pylint: disable=pointless-statement
 
 
 TESTCASES_NOCASEDICT_LEN = [
@@ -712,22 +695,18 @@ TESTCASES_NOCASEDICT_LEN = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_LEN)
-@pytest_extensions.test_function
-def test_NocaseDict_len(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_len(testcase, obj, exp_len):
     """
     Test function for NocaseDict.__len__() / len(ncd)
     """
 
-    obj = kwargs['obj']
-    exp_len = kwargs['exp_len']
-
     # The code to be tested
     act_len = len(obj)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_len == exp_len
 
@@ -854,23 +833,18 @@ TESTCASES_NOCASEDICT_CONTAINS = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_CONTAINS)
-@pytest_extensions.test_function
-def test_NocaseDict_contains(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_contains(testcase, obj, key, exp_result):
     """
     Test function for NocaseDict.__contains__() / key in ncd
     """
 
-    obj = kwargs['obj']
-    key = kwargs['key']
-    exp_result = kwargs['exp_result']
-
     # The code to be tested
     act_result = key in obj
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_result == exp_result, "Unexpected result at key %r" % key
 
@@ -1051,17 +1025,11 @@ TESTCASES_NOCASEDICT_GET = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_GET)
-@pytest_extensions.test_function
-def test_NocaseDict_get(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_get(testcase, obj, key, default, exp_value):
     """
     Test function for NocaseDict.get()
     """
-
-    obj = kwargs['obj']
-    key = kwargs['key']
-    default = kwargs['default']
-    exp_value = kwargs['exp_value']
 
     # The code to be tested
     if default is None:
@@ -1069,9 +1037,9 @@ def test_NocaseDict_get(
     else:
         act_value = obj.get(key, default)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_value == exp_value, "Unexpected value at key %r with " \
                                    "default %r" % (key, default)
@@ -1253,24 +1221,18 @@ TESTCASES_NOCASEDICT_SETDEFAULT = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_SETDEFAULT)
-@pytest_extensions.test_function
-def test_NocaseDict_setdefault(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_setdefault(testcase, obj, key, default, exp_value):
     """
     Test function for NocaseDict.setdefault()
     """
 
-    obj = kwargs['obj']
-    key = kwargs['key']
-    default = kwargs['default']
-    exp_value = kwargs['exp_value']
-
     # The code to be tested
     act_value = obj.setdefault(key, default)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_value == exp_value, "Unexpected value at key %r with " \
                                    "default %r" % (key, default)
@@ -1311,22 +1273,18 @@ TESTCASES_NOCASEDICT_ITEMS = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_keys(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_keys(testcase, obj, exp_items):
     """
     Test function for NocaseDict.keys()
     """
 
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
-
     # The code to be tested
     act_keys = obj.keys()
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     exp_keys = [item[0] for item in exp_items]
     assert act_keys == exp_keys
@@ -1335,22 +1293,18 @@ def test_NocaseDict_keys(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_values(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_values(testcase, obj, exp_items):
     """
     Test function for NocaseDict.values()
     """
 
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
-
     # The code to be tested
     act_values = obj.values()
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     exp_values = [item[1] for item in exp_items]
     assert act_values == exp_values
@@ -1359,22 +1313,18 @@ def test_NocaseDict_values(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_items(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_items(testcase, obj, exp_items):
     """
     Test function for NocaseDict.items()
     """
 
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
-
     # The code to be tested
     act_items = obj.items()
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_items == exp_items
 
@@ -1382,24 +1332,20 @@ def test_NocaseDict_items(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_iterkeys(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_iterkeys(testcase, obj, exp_items):
     """
     Test function for NocaseDict.iterkeys()
     """
-
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
 
     # The code to be tested
     act_keys = []
     for key in obj.iterkeys():
         act_keys.append(key)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     exp_keys = [item[0] for item in exp_items]
     assert act_keys == exp_keys
@@ -1408,24 +1354,20 @@ def test_NocaseDict_iterkeys(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_itervalues(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_itervalues(testcase, obj, exp_items):
     """
     Test function for NocaseDict.itervalues()
     """
-
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
 
     # The code to be tested
     act_values = []
     for value in obj.itervalues():
         act_values.append(value)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     exp_values = [item[1] for item in exp_items]
     assert act_values == exp_values
@@ -1434,24 +1376,20 @@ def test_NocaseDict_itervalues(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_iteritems(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_iteritems(testcase, obj, exp_items):
     """
     Test function for NocaseDict.iteritemss()
     """
-
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
 
     # The code to be tested
     act_items = []
     for item in obj.iteritems():
         act_items.append(item)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_items == exp_items
 
@@ -1459,15 +1397,11 @@ def test_NocaseDict_iteritems(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ITEMS)
-@pytest_extensions.test_function
-def test_NocaseDict_iter(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_iter(testcase, obj, exp_items):
     """
     Test function for NocaseDict.__iter__() / for key in ncd
     """
-
-    obj = kwargs['obj']
-    exp_items = kwargs['exp_items']
 
     # The code to be tested
     act_items = []
@@ -1475,9 +1409,9 @@ def test_NocaseDict_iter(
         value = obj[key]
         act_items.append((key, value))
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert act_items == exp_items
 
@@ -1514,21 +1448,18 @@ TESTCASES_NOCASEDICT_REPR = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_REPR)
-@pytest_extensions.test_function
-def test_NocaseDict_repr(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_repr(testcase, obj):
     """
     Test function for NocaseDict.__repr__() / repr(ncd)
     """
 
-    obj = kwargs['obj']
-
     # The code to be tested
     result = repr(obj)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert re.match(r'^NocaseDict\(.*\)$', result)
 
@@ -1801,24 +1732,19 @@ TESTCASES_NOCASEDICT_UPDATE = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_UPDATE)
-@pytest_extensions.test_function
-def test_NocaseDict_update(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_update(testcase,
+                           obj, args, kwargs, exp_obj):
     """
     Test function for NocaseDict.update()
     """
 
-    obj = kwargs['obj']
-    args = kwargs['args']
-    kwargs_ = kwargs['kwargs']
-    exp_obj = kwargs['exp_obj']
-
     # The code to be tested
-    obj.update(*args, **kwargs_)
+    obj.update(*args, **kwargs)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     # The verification below also uses some NocaseDict features, but that is
     # unavoidable if we want to work through the public interface:
@@ -1858,26 +1784,24 @@ TESTCASES_NOCASEDICT_CLEAR = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_CLEAR)
-@pytest_extensions.test_function
-def test_NocaseDict_clear(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_clear(testcase, obj):
     """
     Test function for NocaseDict.clear()
     """
 
-    obj = kwargs['obj']
-
     # The code to be tested
     obj.clear()
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     # The verification below also uses some NocaseDict features, but that is
     # unavoidable if we want to work through the public interface:
 
-    assert len(obj) == 0  # Uses NocaseDict len
+    # The following line uses NocaseDict len
+    assert len(obj) == 0  # pylint: disable=len-as-condition
 
 
 TESTCASES_NOCASEDICT_COPY = [
@@ -1918,23 +1842,19 @@ TESTCASES_NOCASEDICT_COPY = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_COPY)
-@pytest_extensions.test_function
-def test_NocaseDict_copy(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_copy(testcase,
+                         obj, test_key, test_value):
     """
     Test function for NocaseDict.copy()
     """
 
-    obj = kwargs['obj']
-    test_key = kwargs['test_key']
-    test_value = kwargs['test_value']
-
     # The code to be tested
     obj_copy = obj.copy()
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     # The verification below also uses some NocaseDict features, but that is
     # unavoidable if we want to work through the public interface:
@@ -2227,16 +2147,12 @@ TESTCASES_NOCASEDICT_HASH = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_EQUAL)
-@pytest_extensions.test_function
-def test_NocaseDict_eq(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_eq(testcase,
+                       obj1, obj2, exp_obj_equal):
     """
     Test function for NocaseDict.__eq__() / ncd1==ncd2
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -2245,11 +2161,9 @@ def test_NocaseDict_eq(
     eq1 = (obj1 == obj2)
     eq2 = (obj2 == obj1)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_obj_equal = kwargs['exp_obj_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert eq1 == exp_obj_equal
     assert eq2 == exp_obj_equal
@@ -2258,16 +2172,12 @@ def test_NocaseDict_eq(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_EQUAL)
-@pytest_extensions.test_function
-def test_NocaseDict_ne(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_ne(testcase,
+                       obj1, obj2, exp_obj_equal):
     """
     Test function for NocaseDict.__ne__() / ncd1!=ncd2
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -2276,11 +2186,9 @@ def test_NocaseDict_ne(
     ne1 = (obj1 != obj2)
     ne2 = (obj2 != obj1)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_obj_equal = kwargs['exp_obj_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert ne1 != exp_obj_equal
     assert ne2 != exp_obj_equal
@@ -2289,16 +2197,12 @@ def test_NocaseDict_ne(
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_HASH)
-@pytest_extensions.test_function
-def test_NocaseDict_hash(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_hash(testcase,
+                         obj1, obj2, exp_obj_equal):
     """
     Test function for NocaseDict.__hash__() / hash(ncd)
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
 
     # Double check they are different objects
     assert id(obj1) != id(obj2)
@@ -2307,11 +2211,9 @@ def test_NocaseDict_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
-
-    exp_obj_equal = kwargs['exp_obj_equal']
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     if exp_obj_equal:
         assert hash1 == hash2
@@ -2510,18 +2412,12 @@ TESTCASES_NOCASEDICT_ORDERING = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_ORDERING)
-@pytest_extensions.test_function
-def test_NocaseDict_ordering(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_NocaseDict_ordering(testcase,
+                             obj1, obj2, op, exp_result):
     """
     Test function for NocaseDict.__le__(), __lt__(), __ge__(), __gt__() / ord.
     """
-
-    obj1 = kwargs['obj1']
-    obj2 = kwargs['obj2']
-    op = kwargs['op']
-    exp_result = kwargs['exp_result']
 
     comp_str = 'obj1 %s obj2' % op
 
@@ -2531,9 +2427,9 @@ def test_NocaseDict_ordering(
     # The code to be tested
     result = eval(comp_str)  # pylint: disable=eval-used
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert result == exp_result
 

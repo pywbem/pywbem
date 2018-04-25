@@ -527,10 +527,8 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_TUPLEPARSE_ROUNDTRIP)
-@pytest_extensions.test_function
-def test_tupleparse_roundtrip(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_tupleparse_roundtrip(testcase, obj):
     """
     Test tupleparse parsing based upon roundtrip between CIM objects and their
     CIM-XML.
@@ -540,17 +538,15 @@ def test_tupleparse_roundtrip(
     object.
     """
 
-    obj = kwargs['obj']
-
     xml_str = obj.tocimxml().toxml()
     tt = tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
 
     # The code to be tested
     parsed_obj = tupleparse.parse_any(tt)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert parsed_obj == obj, "CIM-XML of input obj:\n%s" % xml_str
 
@@ -9818,10 +9814,8 @@ TESTCASES_TUPLEPARSE_XML = [
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_TUPLEPARSE_XML)
-@pytest_extensions.test_function
-def test_tupleparse_xml(
-        desc, kwargs, exp_exc_types, exp_warn_types, condition):
-    # pylint: disable=unused-argument
+@pytest_extensions.simplified_test_function
+def test_tupleparse_xml(testcase, xml_str, exp_result):
     """
     Test tupleparse parsing, based upon a CIM-XML string as input.
 
@@ -9829,17 +9823,14 @@ def test_tupleparse_xml(
     expected result.
     """
 
-    xml_str = kwargs['xml_str']  # Byte string or unicode string
-    exp_result = kwargs['exp_result']
-
     # This way to create a tuple tree is also used in _imethodcall() etc.
     tt = tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
 
     # The code to be tested
     result = tupleparse.parse_any(tt)
 
-    # Verify that an exception raised in this function is not mistaken
-    # to be the expected exception
-    assert exp_exc_types is None
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
     assert result == exp_result, "Input CIM-XML:\n%s" % xml_str
