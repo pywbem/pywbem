@@ -368,19 +368,28 @@ class NocaseDict(object):
 
     def update(self, *args, **kwargs):
         """
-        Update the dictionary from sequences of key/value pairs provided in any
-        positional arguments, and from key/value pairs provided in any keyword
-        arguments. The key/value pairs are not copied.
+        Update the dictionary from key/value pairs. If an item for a key
+        exists in the dictionary, its value is updated. If an item for a key
+        does not exist, it is added to the dictionary at the end.
+        The provided keys and values are not copied.
 
         Each positional argument can be:
 
           * an object with a method `items()` that returns an
             :term:`py:iterable` of tuples containing key and value.
+            A NocaseDict or other dict object would match that requirement.
 
           * an object without such a method, that is an :term:`py:iterable` of
             tuples containing key and value.
+            A list of tuples (key,value) would match that requirement.
 
         Each keyword argument is a key/value pair.
+
+        The updates are performed first for the positional arguments in the
+        iteration order of their iterables, and then for the keyword arguments.
+        Note that before Python 3.4, keyword arguments are passed to this
+        method as a standard dict, so the order of updates for the keyword
+        arguments is not preserved.
         """
         for mapping in args:
             if hasattr(mapping, 'items'):

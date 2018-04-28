@@ -4,9 +4,12 @@ Test the _nocasedict module.
 
 from __future__ import absolute_import
 
-import unittest
-import warnings
+import re
 import six
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 import pytest
 import pytest_extensions
@@ -14,9 +17,12 @@ import pytest_extensions
 from pywbem._nocasedict import NocaseDict
 
 
-class NonCompare(object):
+class NonComparable(object):
     # pylint: disable=too-few-public-methods
-    """Class that raises TypeError when comparing for equality or hashing."""
+    """
+    Class that raises TypeError when comparing its objects for equality or
+    when hashing its objects.
+    """
 
     def __eq__(self, other):
         raise TypeError("Cannot compare %s to %s" % (type(self), type(other)))
@@ -28,302 +34,1930 @@ class NonCompare(object):
         raise TypeError("Cannot hash %s" % type(self))
 
 
-class TestInit(unittest.TestCase):
-    """Test initialization"""
-    def test_all(self):
-        """Test all init options"""
-        # Empty
+TESTCASES_NOCASEDICT_INIT = [
 
-        dic = NocaseDict()
-        self.assertTrue(len(dic) == 0)
-
-        dic = NocaseDict(None)
-        self.assertTrue(len(dic) == 0)
-
-        dic = NocaseDict(list())
-        self.assertTrue(len(dic) == 0)
-
-        dic = NocaseDict(tuple())
-        self.assertTrue(len(dic) == 0)
-
-        dic = NocaseDict(dict())
-        self.assertTrue(len(dic) == 0)
-
-        dic = NocaseDict(dic)
-        self.assertTrue(len(dic) == 0)
-
-        # Initialise from iterable
-
-        dic = NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')])
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        dic = NocaseDict((('Dog', 'Cat'), ('Budgie', 'Fish')))
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        # Initialise from dictionary
-
-        with pytest.warns(UserWarning) as rec_warnings:
-            dic = NocaseDict({'Dog': 'Cat', 'Budgie': 'Fish'})
-        assert len(rec_warnings) == 1
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        # Initialise from kwargs
-
-        with pytest.warns(UserWarning) as rec_warnings:
-            dic = NocaseDict(Dog='Cat', Budgie='Fish')
-        assert len(rec_warnings) == 1
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        # Initialise from iterable and kwargs
-
-        dic = NocaseDict([('Dog', 'Cat'), ], Budgie='Fish')
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        dic = NocaseDict((('Dog', 'Cat'),), Budgie='Fish')
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        # Initialise from dictionary and kwargs
-
-        dic = NocaseDict({'Dog': 'Cat'}, Budgie='Fish')
-        self.assertTrue(len(dic) == 2)
-        self.assertTrue(dic['Dog'] == 'Cat' and dic['Budgie'] == 'Fish')
-
-        # Initialise from unsupported object type
-
-        try:
-            dic = NocaseDict('illegal')
-        except TypeError:
-            pass
-        else:
-            self.fail("TypeError was unexpectedly not thrown.")
-
-        # Initialise with too many positional arguments
-
-        try:
-            dic = NocaseDict(list(), list())
-        except TypeError:
-            pass
-        else:
-            self.fail("TypeError was unexpectedly not thrown.")
-
-
-class BaseTest(unittest.TestCase):
-    """Base class for following unit test. Does common setup which
-       creates a NoCaseDict.
-    """
-    def setUp(self):
-        """unittest setUp creates NoCaseDict"""
-
-        self.dic = NocaseDict()
-        self.dic['Dog'] = 'Cat'
-        self.dic['Budgie'] = 'Fish'
-
-        self.order_tuples = (
-            ('Dog', 'Cat'),
-            ('Budgie', 'Fish'),
-            ('Ham', 'Jam'),
-            ('Sofi', 'Blue'),
-            ('Gabi', 'Red'),
-        )
-
-
-class TestGetitem(BaseTest):
-    """Tests for getitem"""
-    def test_all(self):
-        """All tests"""
-        self.assertTrue(self.dic['dog'] == 'Cat')
-        self.assertTrue(self.dic['DOG'] == 'Cat')
-
-        try:
-            self.dic['notfound']
-        except KeyError:
-            pass
-        else:
-            self.fail("KeyError was unexpectedly not thrown.")
-
-
-class TestLen(BaseTest):
-    """Tests for len of dict"""
-    def test_all(self):
-        """Test method"""
-        self.assertTrue(len(self.dic) == 2)
-
-
-class TestSetitem(BaseTest):
-    """Test setting items"""
-    def test_all(self):
-        """All setitem tests"""
-        self.dic['DOG'] = 'Kitten'
-        self.assertTrue(self.dic['DOG'] == 'Kitten')
-        self.assertTrue(self.dic['Dog'] == 'Kitten')
-        self.assertTrue(self.dic['dog'] == 'Kitten')
-
-        # Check that using a non-string key raises an exception
-
-        try:
-            self.dic[1234] = '1234'
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError expected')
-
-
-class TestDelitem(BaseTest):
-    """Class for del items from dictionary"""
-    def test_all(self):
-        """All tests"""
-        del self.dic['DOG']
-        del self.dic['budgie']
-        self.assertTrue(self.dic.keys() == [])
-
-        try:
-            del self.dic['notfound']
-        except KeyError:
-            pass
-        else:
-            self.fail("KeyError was unexpectedly not thrown.")
-
-
-class TestHasKey(BaseTest):
-    """Class to test haskey on dict"""
-    def test_all(self):
-        """Method to test haskey"""
-        self.assertTrue('DOG' in self.dic)
-        self.assertTrue('budgie' in self.dic)
-
-        try:
-            1234 in self.dic
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError expected')
-
-
-class TestKeys(BaseTest):
-    """Class for TestKeys method"""
-    def test_all(self):
-        """All tests in single method"""
-        keys = self.dic.keys()
-        animals = ['Budgie', 'Dog']
-        for ani in animals:
-            self.assertTrue(ani in keys)
-            keys.remove(ani)
-        self.assertTrue(keys == [])
-
-
-class TestValues(BaseTest):
-    """Class for values tests"""
-    def test_all(self):
-        """Test all for TestValues"""
-        values = self.dic.values()
-        animals = ['Cat', 'Fish']
-        for ani in animals:
-            self.assertTrue(ani in values)
-            values.remove(ani)
-        self.assertTrue(values == [])
-
-
-class TestItems(BaseTest):
-    """Class for Test items"""
-    def test_all(self):
-        """All tests for item"""
-        items = self.dic.items()
-        animals = [('Dog', 'Cat'), ('Budgie', 'Fish')]
-        for ani in animals:
-            self.assertTrue(ani in items)
-            items.remove(ani)
-        self.assertTrue(items == [])
-
-
-class TestClear(BaseTest):
-    """Class for dict clear method"""
-    def test_all(self):
-        """All clear method tests"""
-        self.dic.clear()
-        self.assertTrue(len(self.dic) == 0)
-
-
-class TestUpdate(BaseTest):
-    """Class for test update method"""
-    def test_all(self):
-        """All methods for TestUpdate"""
-        self.dic.clear()
-        self.dic.update({'Chicken': 'Ham'})
-        self.assertTrue(self.dic.keys() == ['Chicken'])
-        self.assertTrue(self.dic.values() == ['Ham'])
-        self.dic.clear()
-        self.dic.update({'Chicken': 'Ham'}, {'Dog': 'Cat'})
-        keys = self.dic.keys()
-        vals = self.dic.values()
-        keys = list(keys)
-        vals = list(vals)
-        keys.sort()
-        vals.sort()
-        self.assertTrue(keys == ['Chicken', 'Dog'])
-        self.assertTrue(vals == ['Cat', 'Ham'])
-        self.dic.update([('Chicken', 'Egg')], {'Fish': 'Eel'})
-        self.assertTrue(self.dic['chicken'] == 'Egg')
-        self.assertTrue(self.dic['fish'] == 'Eel')
-        self.dic.update({'Fish': 'Salmon'}, Cow='Beef')
-        self.assertTrue(self.dic['fish'] == 'Salmon')
-        self.assertTrue(self.dic['Cow'] == 'Beef')
-        self.assertTrue(self.dic['COW'] == 'Beef')
-        self.assertTrue(self.dic['cow'] == 'Beef')
-
-
-class TestCopy(BaseTest):
-    """Class to test dict copy"""
-    def test_all(self):
-        """All tests for dict copy"""
-        cp = self.dic.copy()
-        self.assertEqual(cp, self.dic)
-        self.assertTrue(isinstance(cp, NocaseDict))
-        cp['Dog'] = 'Kitten'
-        self.assertTrue(self.dic['Dog'] == 'Cat')
-        self.assertTrue(cp['Dog'] == 'Kitten')
-
-
-class TestGet(BaseTest):
-    """Class to test get method"""
-    def test_all(self):
-        """Test get method"""
-        self.assertTrue(self.dic.get('Dog', 'Chicken') == 'Cat')
-        self.assertTrue(self.dic.get('Ningaui') is None)
-        self.assertTrue(self.dic.get('Ningaui', 'Chicken') == 'Chicken')
-
-
-class TestSetDefault(BaseTest):
-    """Class for setdefault test methods"""
-    def test_all(self):
-        """All tests for setdefault of dict"""
-        self.dic.setdefault('Dog', 'Kitten')
-        self.assertTrue(self.dic['Dog'] == 'Cat')
-        self.dic.setdefault('Ningaui', 'Chicken')
-        self.assertTrue(self.dic['Ningaui'] == 'Chicken')
-
-
-class TestPopItem(BaseTest):
-    """Class for PopItem"""
-    def test_all(self):
-        """This test does nothing"""
-        pass
-
-
-TESTCASES_NOCASEDICT_EQUAL_HASH = [
-
-    # Testcases for NocaseDict.__hash__(), __eq__(), __ne__().
+    # Testcases for NocaseDict.__init__() / ncd=NocaseDict()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * obj1: CIMInstanceName object #1 to use.
-    #   * obj2: CIMInstanceName object #2 to use.
+    #   * init_args: Tuple of positional arguments to NocaseDict().
+    #   * init_kwargs: Dict of keyword arguments to NocaseDict().
+    #   * exp_dict: Expected resulting dictionary, as OrderedDict.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict from no args",
+        dict(
+            init_args=(),
+            init_kwargs={},
+            exp_dict=OrderedDict(),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict from None as positional arg",
+        dict(
+            init_args=(None,),
+            init_kwargs={},
+            exp_dict=OrderedDict(),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict from empty list as positional arg",
+        dict(
+            init_args=(list(),),
+            init_kwargs={},
+            exp_dict=OrderedDict(),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict from empty tuple as positional arg",
+        dict(
+            init_args=(tuple(),),
+            init_kwargs={},
+            exp_dict=OrderedDict(),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict from empty dict as positional arg",
+        dict(
+            init_args=(dict(),),
+            init_kwargs={},
+            exp_dict=OrderedDict(),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict from empty NocaseDict as positional arg",
+        dict(
+            init_args=(NocaseDict(),),
+            init_kwargs={},
+            exp_dict=OrderedDict(),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Dict from list as positional arg",
+        dict(
+            init_args=([('Dog', 'Cat'), ('Budgie', 'Fish')],),
+            init_kwargs={},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Dict from tuple as positional arg",
+        dict(
+            init_args=((('Dog', 'Cat'), ('Budgie', 'Fish')),),
+            init_kwargs={},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Dict from dict as positional arg",
+        dict(
+            init_args=({'Dog': 'Cat', 'Budgie': 'Fish'},),
+            init_kwargs={},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=False,
+        ),
+        None, UserWarning, True
+    ),
+    (
+        "Dict from keyword args",
+        dict(
+            init_args=(),
+            init_kwargs={'Dog': 'Cat', 'Budgie': 'Fish'},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=False,
+        ),
+        None, UserWarning, True
+    ),
+    (
+        "Dict from list as positional arg and keyword args",
+        dict(
+            init_args=([('Dog', 'Cat')],),
+            init_kwargs={'Budgie': 'Fish'},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Dict from tuple as positional arg and keyword args",
+        dict(
+            init_args=((('Dog', 'Cat'),),),
+            init_kwargs={'Budgie': 'Fish'},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Dict from dict as positional arg and keyword args",
+        dict(
+            init_args=({'Dog': 'Cat'},),
+            init_kwargs={'Budgie': 'Fish'},
+            exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            verify_order=True,
+        ),
+        None, None, True
+    ),
+
+    # Error cases
+    (
+        "String type as positional arg",
+        dict(
+            init_args=('illegal',),
+            init_kwargs={},
+            exp_dict=None,
+            verify_order=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Two positional args",
+        dict(
+            init_args=(list(), list()),
+            init_kwargs={},
+            exp_dict=None,
+            verify_order=None,
+        ),
+        TypeError, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_INIT)
+@pytest_extensions.test_function
+def test_NocaseDict_init(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__init__() / ncd=NocaseDict()
+    """
+
+    init_args = kwargs['init_args']
+    init_kwargs = kwargs['init_kwargs']
+    exp_dict = kwargs['exp_dict']
+    verify_order = kwargs['verify_order']
+
+    # The code to be tested
+    act_dict = NocaseDict(*init_args, **init_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    # The verification below also uses some NocaseDict features, but that is
+    # unavoidable if we want to work through the public interface:
+
+    act_items = []
+    for key in act_dict:  # Uses NocaseDict iteration
+        act_value = act_dict[key]  # Uses NocaseDict getitem
+        assert key in exp_dict, "Unexpected extra key %r" % key
+        exp_value = exp_dict[key]
+        assert act_value == exp_value, "Unexpected value at key %r" % key
+        act_items.append((key, act_value))
+
+    exp_items = []
+    for key in exp_dict:
+        exp_value = exp_dict[key]
+        # Next line uses NocaseDict contains:
+        assert key in act_dict, "Unexpected missing key %r" % key
+        act_value = act_dict[key]  # Uses NocaseDict getitem
+        assert act_value == exp_value, "Unexpected value at key %r" % key
+        exp_items.append((key, exp_value))
+
+    if verify_order:
+        assert act_items == exp_items, "Unexpected order of items"
+
+
+TESTCASES_NOCASEDICT_GETITEM = [
+
+    # Testcases for NocaseDict.__getitem__() / ncd[key]
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * key: Key to be used for the test.
+    #   * exp_value: Expected value for the key.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=1234,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key (not found)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            exp_value=None,
+        ),
+        KeyError, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (not found)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            exp_value=None,
+        ),
+        KeyError, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Non-empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with empty string key (not found)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            exp_value=None,
+        ),
+        KeyError, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (not found)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+            exp_value=None,
+        ),
+        KeyError, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original upper case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='DOG',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original lower case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='dog',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original mixed case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_GETITEM)
+@pytest_extensions.test_function
+def test_NocaseDict_getitem(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__getitem__() / ncd[key]
+    """
+
+    obj = kwargs['obj']
+    key = kwargs['key']
+    exp_value = kwargs['exp_value']
+
+    # The code to be tested
+    act_value = obj[key]
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_value == exp_value, "Unexpected value at key %r" % key
+
+
+TESTCASES_NOCASEDICT_SETITEM = [
+
+    # Testcases for NocaseDict.__setitem__() / ncd[key]=value
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * key: Key to be used for the test.
+    #   * value: New value and expected value to be used for the test.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=None,
+            value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=1234,
+            value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty key",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            value='Kitten',
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Non-empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key=None,
+            value='Kitten',
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with empty string key",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='newkey',
+            value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            value='Kitten',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original upper case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='DOG',
+            value='Kitten',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original lower case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='dog',
+            value='Kitten',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original mixed case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            value='Kitten',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_SETITEM)
+@pytest_extensions.test_function
+def test_NocaseDict_setitem(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__setitem__() / ncd[key]=value
+    """
+
+    obj = kwargs['obj']
+    key = kwargs['key']
+    value = kwargs['value']
+
+    # The code to be tested
+    obj[key] = value
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    # The verification below also uses some NocaseDict features, but that is
+    # unavoidable if we want to work through the public interface:
+
+    act_value = obj[key]  # Uses NocaseDIct getitem
+
+    assert act_value == value, "Unexpected value at key %r" % key
+
+
+TESTCASES_NOCASEDICT_DELITEM = [
+
+    # Testcases for NocaseDict.__delitem__() / del ncd[key]
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * key: Key to be used for the test.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=1234,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key (not found)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+        ),
+        KeyError, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (not found)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+        ),
+        KeyError, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Non-empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with empty non-existing string key (not found)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+        ),
+        KeyError, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (not found)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+        ),
+        KeyError, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original upper case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='DOG',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original lower case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='dog',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original mixed case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_DELITEM)
+@pytest_extensions.test_function
+def test_NocaseDict_delitem(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__delitem__() / del ncd[key]
+    """
+
+    obj = kwargs['obj']
+    key = kwargs['key']
+
+    # The code to be tested
+    del obj[key]
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    # The verification below also uses some NocaseDict features, but that is
+    # unavoidable if we want to work through the public interface:
+
+    with pytest.raises(KeyError):
+        obj[key]  # Uses NocaseDict getitem
+
+
+TESTCASES_NOCASEDICT_LEN = [
+
+    # Testcases for NocaseDict.__len__() / len(ncd)
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * exp_len: Expected len() value.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty dict",
+        dict(
+            obj=NocaseDict(),
+            exp_len=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Dict with two items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            exp_len=2,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_LEN)
+@pytest_extensions.test_function
+def test_NocaseDict_len(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__len__() / len(ncd)
+    """
+
+    obj = kwargs['obj']
+    exp_len = kwargs['exp_len']
+
+    # The code to be tested
+    act_len = len(obj)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_len == exp_len
+
+
+TESTCASES_NOCASEDICT_CONTAINS = [
+
+    # Testcases for NocaseDict.__contains__() / key in ncd
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * key: Key to be used for the test.
+    #   * exp_result: Expected result (bool).
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=None,
+            exp_result=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=1234,
+            exp_result=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key (not found)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            exp_result=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (not found)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            exp_result=False,
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Non-empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key=None,
+            exp_result=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with empty non-existing string key (not found)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            exp_result=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (not found)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+            exp_result=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            exp_result=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original upper case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='DOG',
+            exp_result=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original lower case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='dog',
+            exp_result=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in non-original mixed case",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            exp_result=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_CONTAINS)
+@pytest_extensions.test_function
+def test_NocaseDict_contains(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__contains__() / key in ncd
+    """
+
+    obj = kwargs['obj']
+    key = kwargs['key']
+    exp_result = kwargs['exp_result']
+
+    # The code to be tested
+    act_result = key in obj
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_result == exp_result, "Unexpected result at key %r" % key
+
+
+TESTCASES_NOCASEDICT_GET = [
+
+    # Testcases for NocaseDict.get()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * key: Key to be used for the test.
+    #   * default: Default value to be used for the test, or None to not pass.
+    #   * exp_value: Expected value at the key.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=None,
+            default=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=1234,
+            default=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key (defaulted without default)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with empty string key (defaulted to a value)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            default='Newbie',
+            exp_value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (defaulted without default)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (defaulted to a value)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            default='Kitten',
+            exp_value='Kitten',
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Non-empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key=None,
+            default=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with empty string key (defaulted without default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with empty string key (defaulted to a value)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            default='Newbie',
+            exp_value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (defaulted without "
+        "default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (defaulted to a "
+        "value)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+            default='Newbie',
+            exp_value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case (no default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            default=None,
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case (with default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            default='Newbie',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in mixed case (no default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            default=None,
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in mixed case (with default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            default='Newbie',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_GET)
+@pytest_extensions.test_function
+def test_NocaseDict_get(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.get()
+    """
+
+    obj = kwargs['obj']
+    key = kwargs['key']
+    default = kwargs['default']
+    exp_value = kwargs['exp_value']
+
+    # The code to be tested
+    if default is None:
+        act_value = obj.get(key)
+    else:
+        act_value = obj.get(key, default)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_value == exp_value, "Unexpected value at key %r with " \
+                                   "default %r" % (key, default)
+
+
+TESTCASES_NOCASEDICT_SETDEFAULT = [
+
+    # Testcases for NocaseDict.setdefault()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * key: Key to be used for the test.
+    #   * default: Default value to be used for the test (None is passed).
+    #   * exp_value: Expected value at the key.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=None,
+            default=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            key=1234,
+            default=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key (defaulted without default)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with empty string key (defaulted to a value)",
+        dict(
+            obj=NocaseDict(),
+            key='',
+            default='Newbie',
+            exp_value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (defaulted without default)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty key (defaulted to a value)",
+        dict(
+            obj=NocaseDict(),
+            key='Dog',
+            default='Kitten',
+            exp_value='Kitten',
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict
+    (
+        "Non-empty dict, with None key (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key=None,
+            default=None,
+            exp_value=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with empty string key (defaulted without default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with empty string key (defaulted to a value)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='',
+            default='Newbie',
+            exp_value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (defaulted without "
+        "default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+            default=None,
+            exp_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with non-empty non-existing key (defaulted to a "
+        "value)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='invalid',
+            default='Newbie',
+            exp_value='Newbie',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case (no default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            default=None,
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in original case (with default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='Dog',
+            default='Newbie',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in mixed case (no default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            default=None,
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with existing key in mixed case (with default)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            key='doG',
+            default='Newbie',
+            exp_value='Cat',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_SETDEFAULT)
+@pytest_extensions.test_function
+def test_NocaseDict_setdefault(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.setdefault()
+    """
+
+    obj = kwargs['obj']
+    key = kwargs['key']
+    default = kwargs['default']
+    exp_value = kwargs['exp_value']
+
+    # The code to be tested
+    act_value = obj.setdefault(key, default)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_value == exp_value, "Unexpected value at key %r with " \
+                                   "default %r" % (key, default)
+
+
+TESTCASES_NOCASEDICT_ITEMS = [
+
+    # Testcases for NocaseDict.keys(), values(), items()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * exp_items: List with expected items (key,value) in expected order.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty dict",
+        dict(
+            obj=NocaseDict(),
+            exp_items=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Dict with two items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            exp_items=[('Dog', 'Cat'), ('Budgie', 'Fish')],
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_keys(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.keys()
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_keys = obj.keys()
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    exp_keys = [item[0] for item in exp_items]
+    assert act_keys == exp_keys
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_values(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.values()
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_values = obj.values()
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    exp_values = [item[1] for item in exp_items]
+    assert act_values == exp_values
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_items(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.items()
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_items = obj.items()
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_items == exp_items
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_iterkeys(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.iterkeys()
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_keys = []
+    for key in obj.iterkeys():
+        act_keys.append(key)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    exp_keys = [item[0] for item in exp_items]
+    assert act_keys == exp_keys
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_itervalues(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.itervalues()
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_values = []
+    for value in obj.itervalues():
+        act_values.append(value)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    exp_values = [item[1] for item in exp_items]
+    assert act_values == exp_values
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_iteritems(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.iteritemss()
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_items = []
+    for item in obj.iteritems():
+        act_items.append(item)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_items == exp_items
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ITEMS)
+@pytest_extensions.test_function
+def test_NocaseDict_iter(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__iter__() / for key in ncd
+    """
+
+    obj = kwargs['obj']
+    exp_items = kwargs['exp_items']
+
+    # The code to be tested
+    act_items = []
+    for key in obj:
+        value = obj[key]
+        act_items.append((key, value))
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert act_items == exp_items
+
+
+TESTCASES_NOCASEDICT_REPR = [
+
+    # Testcases for NocaseDict.__repr__() / repr(ncd)
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty dict",
+        dict(
+            obj=NocaseDict(),
+        ),
+        None, None, True
+    ),
+    (
+        "Dict with two items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_REPR)
+@pytest_extensions.test_function
+def test_NocaseDict_repr(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.__repr__() / repr(ncd)
+    """
+
+    obj = kwargs['obj']
+
+    # The code to be tested
+    result = repr(obj)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert re.match(r'^NocaseDict\(.*\)$', result)
+
+    # Note: This only tests for existence of each item, not for excess items
+    # or representing the correct order.
+    for item in obj.items():
+        exp_item_result = '(%r, %r)' % item
+        assert exp_item_result in result
+
+
+TESTCASES_NOCASEDICT_UPDATE = [
+
+    # Testcases for NocaseDict.update()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * args: List of positional args for update().
+    #   * kwargs: Dict of keyword args for update().
+    #   * exp_obj: Expected NocaseDict after being updated.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty NocaseDict
+    (
+        "Empty dict, with empty update args + kwargs",
+        dict(
+            obj=NocaseDict(),
+            args=[],
+            kwargs={},
+            exp_obj=NocaseDict(),
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with integer key in update args (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            args=[[(1234, 'Invalid')]],
+            kwargs={},
+            exp_obj=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with integer key in update kwargs (invalid type)",
+        dict(
+            obj=NocaseDict(),
+            args=[],
+            kwargs={1234: 'Invalid'},
+            exp_obj=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Empty dict, with empty string key in update args+items",
+        dict(
+            obj=NocaseDict(),
+            args=[OrderedDict([('', 'Cat')])],
+            kwargs={},
+            exp_obj=NocaseDict([('', 'Cat')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with empty string key in update args+iter",
+        dict(
+            obj=NocaseDict(),
+            args=[[('', 'Cat')]],
+            kwargs={},
+            exp_obj=NocaseDict([('', 'Cat')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with empty string key in update kwargs",
+        dict(
+            obj=NocaseDict(),
+            args=[],
+            kwargs={'': 'Cat'},
+            exp_obj=NocaseDict([('', 'Cat')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty string key in update args+items",
+        dict(
+            obj=NocaseDict(),
+            args=[OrderedDict([('Dog', 'Cat')])],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Cat')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty string key in update args+iter",
+        dict(
+            obj=NocaseDict(),
+            args=[[('Dog', 'Cat')]],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Cat')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Empty dict, with non-empty string key in update kwargs",
+        dict(
+            obj=NocaseDict(),
+            args=[],
+            kwargs={'Dog': 'Cat'},
+            exp_obj=NocaseDict([('Dog', 'Cat')]),
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict, insert new value
+    (
+        "Non-empty dict, with integer key in update args (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[[(1234, 'Invalud')]],
+            kwargs={},
+            exp_obj=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with integer key in update kwargs (invalid type)",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[],
+            kwargs={1234: 'Invalid'},
+            exp_obj=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Non-empty dict, with new empty string key in update args+items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[OrderedDict([('', 'Newbie')])],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish'),
+                                ('', 'Newbie')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with new empty string key in update args+iter",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[[('', 'Newbie')]],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish'),
+                                ('', 'Newbie')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with new empty string key in update kwargs",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[],
+            kwargs={'': 'Newbie'},
+            exp_obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish'),
+                                ('', 'Newbie')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with new non-empty string key in update args+items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[OrderedDict([('New', 'Newbie')])],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish'),
+                                ('New', 'Newbie')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with new non-empty string key in update args+iter",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[[('New', 'Newbie')]],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish'),
+                                ('New', 'Newbie')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, with new non-empty string key in update kwargs",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[],
+            kwargs={'New': 'Newbie'},
+            exp_obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish'),
+                                ('New', 'Newbie')]),
+        ),
+        None, None, True
+    ),
+
+    # Non-empty NocaseDict, update value of existing key
+    (
+        "Non-empty dict, updating at existing key in org. case via args+items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[OrderedDict([('Dog', 'Kitten')])],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Kitten'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, updating at existing key in org. case via args+iter",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[[('Dog', 'Kitten')]],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Kitten'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, updating at existing key in org. case via kwargs",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[],
+            kwargs={'Dog': 'Kitten'},
+            exp_obj=NocaseDict([('Dog', 'Kitten'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, updating at existing key in mixed case via args+items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[OrderedDict([('doG', 'Kitten')])],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Kitten'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, updating at existing key in mixed case via args+iter",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[[('doG', 'Kitten')]],
+            kwargs={},
+            exp_obj=NocaseDict([('Dog', 'Kitten'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+    (
+        "Non-empty dict, updating at existing key in mixed case via kwargs",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            args=[],
+            kwargs={'doG': 'Kitten'},
+            exp_obj=NocaseDict([('Dog', 'Kitten'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_UPDATE)
+@pytest_extensions.test_function
+def test_NocaseDict_update(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.update()
+    """
+
+    obj = kwargs['obj']
+    args = kwargs['args']
+    kwargs_ = kwargs['kwargs']
+    exp_obj = kwargs['exp_obj']
+
+    # The code to be tested
+    obj.update(*args, **kwargs_)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    # The verification below also uses some NocaseDict features, but that is
+    # unavoidable if we want to work through the public interface:
+
+    assert obj == exp_obj  # Uses NocaseDict equality
+
+
+TESTCASES_NOCASEDICT_CLEAR = [
+
+    # Testcases for NocaseDict.clear()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty dict",
+        dict(
+            obj=NocaseDict(),
+        ),
+        None, None, True
+    ),
+    (
+        "Dict with two items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_CLEAR)
+@pytest_extensions.test_function
+def test_NocaseDict_clear(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.clear()
+    """
+
+    obj = kwargs['obj']
+
+    # The code to be tested
+    obj.clear()
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    # The verification below also uses some NocaseDict features, but that is
+    # unavoidable if we want to work through the public interface:
+
+    assert len(obj) == 0  # Uses NocaseDict len
+
+
+TESTCASES_NOCASEDICT_COPY = [
+
+    # Testcases for NocaseDict.copy()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: NocaseDict object to be used for the test.
+    #   * test_key: Key for testing that copy is a copy, or None to skip.
+    #   * test_value: Value for testing that copy is a copy.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty dict",
+        dict(
+            obj=NocaseDict(),
+            test_key=None,
+            test_value=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Dict with two items",
+        dict(
+            obj=NocaseDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
+            test_key='Dog',
+            test_value='Kitten',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_COPY)
+@pytest_extensions.test_function
+def test_NocaseDict_copy(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    """
+    Test function for NocaseDict.copy()
+    """
+
+    obj = kwargs['obj']
+    test_key = kwargs['test_key']
+    test_value = kwargs['test_value']
+
+    # The code to be tested
+    obj_copy = obj.copy()
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    # The verification below also uses some NocaseDict features, but that is
+    # unavoidable if we want to work through the public interface:
+
+    assert obj_copy == obj  # Uses NocaseDict equality
+
+    # Verify that the copy is a copy
+    if test_key is not None:
+        org_value = obj[test_key]  # Uses NocaseDict get
+        obj_copy[test_key] = test_value  # Uses NocaseDict set
+        now_value = obj[test_key]  # Uses NocaseDict get
+        assert now_value == org_value
+
+
+TESTCASES_NOCASEDICT_EQUAL_HASH = [
+
+    # Testcases for NocaseDict.__hash__(), __eq__(), __ne__()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj1: NocaseDict object #1 to use.
+    #   * obj2: NocaseDict object #2 to use.
     #   * exp_obj_equal: Expected equality of the objects.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -541,13 +2175,13 @@ TESTCASES_NOCASEDICT_EQUAL_HASH = [
 
 TESTCASES_NOCASEDICT_EQUAL = [
 
-    # Testcases for NocaseDict.__eq__(), __ne__().
+    # Testcases for NocaseDict.__eq__(), __ne__()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * obj1: CIMInstanceName object #1 to use.
-    #   * obj2: CIMInstanceName object #2 to use.
+    #   * obj1: NocaseDict object #1 to use.
+    #   * obj2: NocaseDict object #2 to use.
     #   * exp_obj_equal: Expected equality of the objects.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -557,7 +2191,7 @@ TESTCASES_NOCASEDICT_EQUAL = [
         "A value raises TypeError when compared (and equal still succeeds)",
         dict(
             obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
-            obj2=NocaseDict([('Budgie', NonCompare()), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', NonComparable()), ('Dog', 'Cat')]),
             exp_obj_equal=False,
         ),
         None, None, True
@@ -566,13 +2200,13 @@ TESTCASES_NOCASEDICT_EQUAL = [
 
 TESTCASES_NOCASEDICT_HASH = [
 
-    # Testcases for NocaseDict.__hash__()
+    # Testcases for NocaseDict.__hash__() / hash(ncd)
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * obj1: CIMInstanceName object #1 to use.
-    #   * obj2: CIMInstanceName object #2 to use.
+    #   * obj1: NocaseDict object #1 to use.
+    #   * obj2: NocaseDict object #2 to use.
     #   * exp_obj_equal: Expected equality of the objects.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -582,7 +2216,7 @@ TESTCASES_NOCASEDICT_HASH = [
         "A value raises TypeError when compared (and hash fails)",
         dict(
             obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
-            obj2=NocaseDict([('Budgie', NonCompare()), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', NonComparable()), ('Dog', 'Cat')]),
             exp_obj_equal=False,
         ),
         TypeError, None, True
@@ -598,7 +2232,7 @@ def test_NocaseDict_eq(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    Test function for NocaseDict.__eq__().
+    Test function for NocaseDict.__eq__() / ncd1==ncd2
     """
 
     obj1 = kwargs['obj1']
@@ -629,7 +2263,7 @@ def test_NocaseDict_ne(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    Test function for NocaseDict.__ne__().
+    Test function for NocaseDict.__ne__() / ncd1!=ncd2
     """
 
     obj1 = kwargs['obj1']
@@ -660,7 +2294,7 @@ def test_NocaseDict_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    Test function for NocaseDict.__hash__().
+    Test function for NocaseDict.__hash__() / hash(ncd)
     """
 
     obj1 = kwargs['obj1']
@@ -685,187 +2319,241 @@ def test_NocaseDict_hash(
         assert hash1 != hash2
 
 
-class TestOrdering(BaseTest):
-    """Verify that ordering comparisons between NocaseDict instances
-    issue a deprecation warning, and for Python 3, in addition raise
-    TypeError."""
+TESTCASES_NOCASEDICT_ORDERING = [
 
-    def assertWarning(self, comp_str):
-        """Common function for assert warning"""
-        with warnings.catch_warnings(record=True) as wlist:
-            warnings.simplefilter("always")
-            if six.PY2:
-                eval(comp_str)  # pylint: disable=eval-used
-            else:
-                try:
-                    eval(comp_str)  # pylint: disable=eval-used
-                except TypeError as exc:
-                    msg = str(exc)
-                    if "not supported between instances" not in msg and \
-                            "unorderable types" not in msg:
-                        self.fail("Applying ordering to a dictionary in "
-                                  "Python 3 did raise TypeError but with an "
-                                  "unexpected message: %s" % msg)
-                except Exception as exc:  # pylint: disable=broad-except
-                    msg = str(exc)
-                    self.fail("Applying ordering to a dictionary in Python 3 "
-                              "did not raise TypeError, but %s: %s" %
-                              (exc.__class__.__name__, msg))
-                else:
-                    self.fail("Applying ordering to a dictionary in Python 3 "
-                              "succeeded (should not happen)")
-            assert len(wlist) >= 1
-            assert issubclass(wlist[-1].category, DeprecationWarning)
-            assert "deprecated" in str(wlist[-1].message)
+    # Testcases for NocaseDict.__le__(), __lt__(), __ge__(), __gt__() / ord.ops
 
-    def test_all(self):
-        """Test for the compare options that should generate assertWarning"""
-        self.assertWarning("self.dic < self.dic")
-        self.assertWarning("self.dic <= self.dic")
-        self.assertWarning("self.dic > self.dic")
-        self.assertWarning("self.dic >= self.dic")
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj1: NocaseDict object #1 to be used.
+    #   * obj2: NocaseDict object #2 to be used.
+    #   * op: Order comparison operator to be used, as a string (e.g. '>')
+    #   * exp_result: Expected result of the comparison, or None.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Empty dicts
+    (
+        "Empty dicts with >",
+        dict(
+            obj1=NocaseDict(),
+            obj2=NocaseDict(),
+            op='>',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Empty dicts with >=",
+        dict(
+            obj1=NocaseDict(),
+            obj2=NocaseDict(),
+            op='>=',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Empty dicts with <",
+        dict(
+            obj1=NocaseDict(),
+            obj2=NocaseDict(),
+            op='<',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Empty dicts with <=",
+        dict(
+            obj1=NocaseDict(),
+            obj2=NocaseDict(),
+            op='<=',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+
+    # Equal dicts
+    (
+        "Equal dicts with >",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='>',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Equal dicts with >=",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='>=',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Equal dicts with <",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='<',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Equal dicts with <=",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='<=',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+
+    # Dicts that compare less (obj1 < obj2)
+    (
+        "Less-comparing dicts with >",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='>',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Less-comparing dicts with >=",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='>=',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Less-comparing dicts with <",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='<',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Less-comparing dicts with <=",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish')]),
+            obj2=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            op='<=',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+
+    # Dicts that compare greater (obj1 > obj2)
+    (
+        "Greater-comparing dicts with >",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish')]),
+            op='>',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Greater-comparing dicts with >=",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish')]),
+            op='>=',
+            exp_result=True,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Greater-comparing dicts with <",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish')]),
+            op='<',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+    (
+        "Greater-comparing dicts with <=",
+        dict(
+            obj1=NocaseDict([('Budgie', 'Fish'), ('Dog', 'Cat')]),
+            obj2=NocaseDict([('Budgie', 'Fish')]),
+            op='<=',
+            exp_result=False,
+        ),
+        TypeError if six.PY3 else None, DeprecationWarning, True
+    ),
+
+    # Note: More subtle cases of less- or greater-comparing dicts are not
+    # tested because the ordering comparison for NocaseDict is deprecated.
+]
 
 
-class TestContains(BaseTest):
-    """Class for dict contains functionality"""
-    def test_all(self):
-        """Method for test dict contains functionality"""
-        self.assertTrue('dog' in self.dic)
-        self.assertTrue('Dog' in self.dic)
-        self.assertTrue('Cat' not in self.dic)
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_ORDERING)
+@pytest_extensions.test_function
+def test_NocaseDict_ordering(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
+    """
+    Test function for NocaseDict.__le__(), __lt__(), __ge__(), __gt__() / ord.
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+    op = kwargs['op']
+    exp_result = kwargs['exp_result']
+
+    comp_str = 'obj1 %s obj2' % op
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    result = eval(comp_str)  # pylint: disable=eval-used
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    assert result == exp_result
 
 
-class TestForLoop(BaseTest):
-    """Class for test for loop with dictionary"""
+def test_unnamed_keys():
+    """
+    Test function for unnamed keys (key=None). This can be allowed in the
+    NocaseDict via an undocumented attribute `allow_unnamed_keys`.
+    """
 
-    def test_all(self):
-        """Test method for TestForLoop"""
-        keys = set()
-        for key in self.dic:
-            keys.add(key)
-        self.assertEqual(keys, set(['Budgie', 'Dog']))
+    dic = NocaseDict()
+    dic.allow_unnamed_keys = True
 
-    def test_order_preservation(self):
-        """Test order preservation of for loop on dict"""
-        dic = NocaseDict()
-        for key, value in self.order_tuples:
-            dic[key] = value
-        i = 0
-        for key in dic:
-            item = (key, dic[key])
-            exp_item = self.order_tuples[i]
-            self.assertEqual(item, exp_item)
-            i += 1
+    dic[None] = 'a'
+    assert None in dic
+    assert len(dic) == 1
 
+    a_val = dic[None]
+    assert a_val == 'a'
 
-class TestIterkeys(BaseTest):
-    """Class for iterkeys test"""
-
-    def test_all(self):
-        """iterkeys test method"""
-        keys = set()
-        for key in self.dic.iterkeys():
-            keys.add(key)
-        self.assertEqual(keys, set(['Budgie', 'Dog']))
-
-    def test_order_preservation(self):
-        """Test order preservation of iterkeys()"""
-        dic = NocaseDict()
-        for key, value in self.order_tuples:
-            dic[key] = value
-        i = 0
-        for key in dic.iterkeys():
-            item = (key, dic[key])
-            exp_item = self.order_tuples[i]
-            self.assertEqual(item, exp_item)
-            i += 1
-
-
-class TestItervalues(BaseTest):
-    """Class for test itervalues test"""
-    def test_all(self):
-        """itervalues test method"""
-        vals = set()
-        for val in self.dic.itervalues():
-            vals.add(val)
-        self.assertEqual(vals, set(['Cat', 'Fish']))
-
-    def test_order_preservation(self):
-        """Test order preservation of itervalues()"""
-        dic = NocaseDict()
-        for key, value in self.order_tuples:
-            dic[key] = value
-        i = 0
-        for value in dic.itervalues():
-            exp_value = self.order_tuples[i][1]
-            self.assertEqual(value, exp_value)
-            i += 1
-
-
-class TestIteritems(BaseTest):
-    """Class to test iteritems for dict"""
-
-    def test_all(self):
-        """Method for test iteritems for dict"""
-        items = set()
-        for item in self.dic.iteritems():
-            items.add(item)
-        self.assertEqual(items, set([('Budgie', 'Fish'), ('Dog', 'Cat')]))
-
-    def test_order_preservation(self):
-        """Test order preservation of iteritems()"""
-        dic = NocaseDict()
-        for key, value in self.order_tuples:
-            dic[key] = value
-        i = 0
-        for item in dic.iteritems():
-            exp_item = self.order_tuples[i]
-            self.assertEqual(item, exp_item)
-            i += 1
-
-
-class TestRepr(unittest.TestCase):
-    """Class to test repr functionality for NocaseDict"""
-
-    def test_reliable_order(self):
-        """Test that repr() has a reliable result for two dicts with the same
-        insertion order."""
-
-        dic1 = NocaseDict()
-        dic1['Budgie'] = 'Fish'
-        dic1['Foo'] = 'Bla'
-        dic1['Dog'] = 'Cat'
-
-        dic2 = NocaseDict()
-        dic2['Budgie'] = 'Fish'
-        dic2['Foo'] = 'Bla'
-        dic2['Dog'] = 'Cat'
-
-        self.assertEqual(repr(dic1), repr(dic2))
-
-
-class Test_unnamed_keys(object):
-    # pylint: disable=too-few-public-methods
-    """Class to test unnamed keys (key is None) for NocaseDict"""
-
-    def test_unnamed_keys(self):
-        # pylint: disable=no-self-use
-        """Test unnamed keys."""
-
-        dic = NocaseDict()
-        dic.allow_unnamed_keys = True
-
-        dic[None] = 'a'
-        assert None in dic
-        assert len(dic) == 1
-
-        a_val = dic[None]
-        assert a_val == 'a'
-
-        del dic[None]
-        assert None not in dic
-        assert not dic
-
-
-if __name__ == '__main__':
-    unittest.main()
+    del dic[None]
+    assert None not in dic
+    assert not dic
