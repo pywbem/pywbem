@@ -1264,9 +1264,11 @@ class CIMInstanceNameSort(unittest.TestCase):
 
 TESTCASES_CIMINSTANCENAME_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMInstanceName.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMInstanceName object #1 to be tested.
     #   * obj2: CIMInstanceName object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -1527,7 +1529,7 @@ def test_CIMInstanceName_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMInstanceName.__hash__().
+    Test function for CIMInstanceName.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -1540,9 +1542,16 @@ def test_CIMInstanceName_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMInstanceName_repr(object):
@@ -1640,9 +1649,11 @@ CIMINSTANCENAME_INV_KEYBINDINGS_3.keybindings['Foo'] = CIMProperty(
 
 TESTCASES_CIMINSTANCENAME_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMInstanceName.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMInstanceName object to be tested.
     #   * kwargs: Dict of input args for tocimxml().
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -2132,7 +2143,7 @@ def test_CIMInstanceName_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMInstanceName.tocimxml().
+    Test function for CIMInstanceName.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -2140,6 +2151,10 @@ def test_CIMInstanceName_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -2155,7 +2170,7 @@ def test_CIMInstanceName_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMInstanceName.tocimxmlstr().
+    Test function for CIMInstanceName.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -2163,6 +2178,10 @@ def test_CIMInstanceName_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -2879,7 +2898,7 @@ class Test_CIMInstanceName_from_wbem_uri(object):
     def test_CIMInstanceName_from_wbem_uri(
             self, desc, uri, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMInstanceName.from_wbem_uri()."""
+        """Test function for CIMInstanceName.from_wbem_uri()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -3130,7 +3149,7 @@ class Test_CIMInstanceName_from_instance(object):
             self, desc, cls_kwargs, inst_kwargs, exp_result, strict, ns, host,
             condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMInstanceName.from_instance."""
+        """Test function for CIMInstanceName.from_instance."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -3633,7 +3652,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             self, desc, attrs, format_, exp_result, exp_warn_type, condition,
             func_name):
         # pylint: disable=unused-argument
-        """All test cases for CIMInstanceName.to_wbem_uri() and .__str__()."""
+        """Test function for CIMInstanceName.to_wbem_uri() and .__str__()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -4846,9 +4865,11 @@ with pytest.warns(DeprecationWarning):
 
 TESTCASES_CIMINSTANCE_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMInstance.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMInstance object #1 to be tested.
     #   * obj2: CIMInstance object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -5180,7 +5201,7 @@ def test_CIMInstance_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMInstance.__hash__().
+    Test function for CIMInstance.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -5193,9 +5214,16 @@ def test_CIMInstance_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMInstance_str(object):  # pylint: disable=too-few-public-methods
@@ -5330,9 +5358,11 @@ CIMINSTANCENAME_HOST1 = CIMInstanceName('CIM_Foo', namespace='interop',
 
 TESTCASES_CIMINSTANCE_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMInstance.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMInstance object to be tested.
     #   * kwargs: Dict of input args for tocimxml().
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -5693,7 +5723,7 @@ def test_CIMInstance_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMInstance.tocimxml().
+    Test function for CIMInstance.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -5701,6 +5731,10 @@ def test_CIMInstance_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -5716,7 +5750,7 @@ def test_CIMInstance_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMInstance.tocimxmlstr().
+    Test function for CIMInstance.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -5724,6 +5758,10 @@ def test_CIMInstance_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -6011,7 +6049,7 @@ instance of C1 {
     def test_CIMInstance_tomof(
             self, desc, obj, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMInstance.tomof()."""
+        """Test function for CIMInstance.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -7793,9 +7831,11 @@ class CIMPropertySort(unittest.TestCase):
 
 TESTCASES_CIMPROPERTY_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMProperty.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMProperty object #1 to be tested.
     #   * obj2: CIMProperty object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -8181,7 +8221,7 @@ def test_CIMProperty_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMProperty.__hash__().
+    Test function for CIMProperty.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -8194,9 +8234,16 @@ def test_CIMProperty_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMProperty_str(object):  # pylint: disable=too-few-public-methods
@@ -8396,9 +8443,11 @@ class Test_CIMProperty_repr(object):  # pylint: disable=too-few-public-methods
 
 TESTCASES_CIMPROPERTY_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMProperty.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMProperty object to be tested.
     #   * kwargs: Dict of input args for tocimxml() (empty).
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -10914,7 +10963,7 @@ def test_CIMProperty_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMProperty.tocimxml().
+    Test function for CIMProperty.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -10922,6 +10971,10 @@ def test_CIMProperty_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -10937,7 +10990,7 @@ def test_CIMProperty_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMProperty.tocimxmlstr().
+    Test function for CIMProperty.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -10945,6 +10998,10 @@ def test_CIMProperty_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -11501,7 +11558,7 @@ class Test_CIMProperty_tomof(object):
             self, desc, obj, is_instance, indent, exp_result, exp_warn_type,
             condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMProperty.tomof()."""
+        """Test function for CIMProperty.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -12035,9 +12092,11 @@ class CIMQualifierSort(unittest.TestCase):
 
 TESTCASES_CIMQUALIFIER_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMQualifier.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMQualifier object #1 to be tested.
     #   * obj2: CIMQualifier object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -12253,7 +12312,7 @@ def test_CIMQualifier_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMQualifier.__hash__().
+    Test function for CIMQualifier.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -12266,9 +12325,16 @@ def test_CIMQualifier_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMQualifier_str(object):  # pylint: disable=too-few-public-methods
@@ -12376,9 +12442,11 @@ class Test_CIMQualifier_repr(object):  # pylint: disable=too-few-public-methods
 
 TESTCASES_CIMQUALIFIER_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMQualifier.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMQualifier object to be tested.
     #   * kwargs: Dict of input args for tocimxml() (empty).
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -14736,7 +14804,7 @@ def test_CIMQualifier_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMQualifier.tocimxml().
+    Test function for CIMQualifier.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -14744,6 +14812,10 @@ def test_CIMQualifier_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -14759,7 +14831,7 @@ def test_CIMQualifier_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMQualifier.tocimxmlstr().
+    Test function for CIMQualifier.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -14767,6 +14839,10 @@ def test_CIMQualifier_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -15081,7 +15157,7 @@ class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
     def test_CIMQualifier_tomof(
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMQualifier.tomof()."""
+        """Test function for CIMQualifier.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -15430,9 +15506,11 @@ class CIMClassNameEquality(unittest.TestCase):
 
 TESTCASES_CIMCLASSNAME_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMClassName.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMClassName object #1 to be tested.
     #   * obj2: CIMClassName object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -15582,7 +15660,7 @@ def test_CIMClassName_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMClassName.__hash__().
+    Test function for CIMClassName.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -15595,9 +15673,16 @@ def test_CIMClassName_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMClassName_repr(object):  # pylint: disable=too-few-public-methods
@@ -15666,9 +15751,11 @@ class Test_CIMClassName_repr(object):  # pylint: disable=too-few-public-methods
 
 TESTCASES_CIMCLASSNAME_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMClassName.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMClassName object to be tested.
     #   * kwargs: Dict of input args for tocimxml().
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -15915,7 +16002,7 @@ def test_CIMClassName_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMClassName.tocimxml().
+    Test function for CIMClassName.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -15923,6 +16010,10 @@ def test_CIMClassName_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -15938,7 +16029,7 @@ def test_CIMClassName_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMClassName.tocimxmlstr().
+    Test function for CIMClassName.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -15946,6 +16037,10 @@ def test_CIMClassName_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -16207,7 +16302,7 @@ class Test_CIMClassName_from_wbem_uri(object):
     def test_CIMClassName_from_wbem_uri(
             self, desc, uri, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMClassName.from_wbem_uri()."""
+        """Test function for CIMClassName.from_wbem_uri()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -16476,7 +16571,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
             self, desc, format_, attrs, exp_result, exp_warn_type, condition,
             func_name):
         # pylint: disable=unused-argument
-        """All test cases for CIMClassName.to_wbem_uri() and .__str__()."""
+        """Test function for CIMClassName.to_wbem_uri() and .__str__()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -17330,9 +17425,11 @@ class CIMClassSort(unittest.TestCase):
 
 TESTCASES_CIMCLASS_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMClass.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMClass object #1 to be tested.
     #   * obj2: CIMClass object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -17775,7 +17872,7 @@ def test_CIMClass_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMClass.__hash__().
+    Test function for CIMClass.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -17788,9 +17885,16 @@ def test_CIMClass_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMClass_str(object):  # pylint: disable=too-few-public-methods
@@ -17917,9 +18021,11 @@ CIMCLASSNAME_HOST1 = CIMClassName('CIM_Foo', namespace='interop',
 
 TESTCASES_CIMCLASS_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMClass.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMClass object to be tested.
     #   * kwargs: Dict of input args for tocimxml() (empty).
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -18108,7 +18214,7 @@ def test_CIMClass_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMClass.tocimxml().
+    Test function for CIMClass.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -18116,6 +18222,10 @@ def test_CIMClass_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -18131,7 +18241,7 @@ def test_CIMClass_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMClass.tocimxmlstr().
+    Test function for CIMClass.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -18139,6 +18249,10 @@ def test_CIMClass_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -18302,7 +18416,7 @@ class C1 {
     def test_CIMClass_tomof(
             self, desc, obj, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMClass.tomof()."""
+        """Test function for CIMClass.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -18940,9 +19054,11 @@ class CIMMethodSort(unittest.TestCase):
 
 TESTCASES_CIMMETHOD_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMMethod.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMMethod object #1 to be tested.
     #   * obj2: CIMMethod object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -19252,7 +19368,7 @@ def test_CIMMethod_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMMethod.__hash__().
+    Test function for CIMMethod.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -19265,9 +19381,16 @@ def test_CIMMethod_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMMethod_str(object):  # pylint: disable=too-few-public-methods
@@ -19390,9 +19513,11 @@ class CIMMethodNoReturn(unittest.TestCase):
 
 TESTCASES_CIMMETHOD_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMMethod.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMMethod object to be tested.
     #   * kwargs: Dict of input args for tocimxml() (empty).
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -19635,7 +19760,7 @@ def test_CIMMethod_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMMethod.tocimxml().
+    Test function for CIMMethod.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -19643,6 +19768,10 @@ def test_CIMMethod_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -19658,7 +19787,7 @@ def test_CIMMethod_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMMethod.tocimxmlstr().
+    Test function for CIMMethod.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -19666,6 +19795,10 @@ def test_CIMMethod_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -19953,7 +20086,7 @@ class Test_CIMMethod_tomof(object):  # pylint: disable=too-few-public-methods
     def test_CIMMethod_tomof(
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMMethod.tomof()."""
+        """Test function for CIMMethod.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -20787,9 +20920,11 @@ class CIMParameterSort(unittest.TestCase):
 
 TESTCASES_CIMPARAMETER_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMParameter.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMParameter object #1 to be tested.
     #   * obj2: CIMParameter object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -21054,7 +21189,7 @@ def test_CIMParameter_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMParameter.__hash__().
+    Test function for CIMParameter.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -21067,9 +21202,16 @@ def test_CIMParameter_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMParameter_str(object):  # pylint: disable=too-few-public-methods
@@ -21187,9 +21329,11 @@ class Test_CIMParameter_repr(object):  # pylint: disable=too-few-public-methods
 
 TESTCASES_CIMPARAMETER_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMParameter.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMParameter object to be tested.
     #   * kwargs: Dict of input args for tocimxml().
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -24200,7 +24344,7 @@ def test_CIMParameter_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMParameter.tocimxml().
+    Test function for CIMParameter.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -24208,6 +24352,10 @@ def test_CIMParameter_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -24223,7 +24371,7 @@ def test_CIMParameter_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMParameter.tocimxmlstr().
+    Test function for CIMParameter.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -24231,6 +24379,10 @@ def test_CIMParameter_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -24558,7 +24710,7 @@ class Test_CIMParameter_tomof(object):  # pylint: disable=too-few-public-methods
     def test_CIMParameter_tomof(
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMParameter.tomof()."""
+        """Test function for CIMParameter.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -25288,9 +25440,11 @@ class CIMQualifierDeclarationSort(unittest.TestCase):
 
 TESTCASES_CIMQUALIFIERDECLARATION_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMQualifierDeclaration.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMQualifierDeclaration object #1 to be tested.
     #   * obj2: CIMQualifierDeclaration object #2 to be tested.
     #   * exp_hash_equal: Expected equality of the object hash values.
@@ -25620,7 +25774,7 @@ def test_CIMQualifierDeclaration_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMQualifierDeclaration.__hash__().
+    Test function for CIMQualifierDeclaration.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -25633,9 +25787,16 @@ def test_CIMQualifierDeclaration_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
     exp_hash_equal = kwargs['exp_hash_equal']
 
-    assert (hash1 == hash2) == exp_hash_equal
+    if exp_hash_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class Test_CIMQualifierDeclaration_str(object):
@@ -25769,9 +25930,11 @@ class Test_CIMQualifierDeclaration_repr(object):
 
 TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for CIMQualifierDeclaration.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: CIMQualifierDeclaration object to be tested.
     #   * kwargs: Dict of input args for tocimxml() (empty).
     #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
@@ -28449,7 +28612,7 @@ def test_CIMQualifierDeclaration_tocimxml(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMQualifierDeclaration.tocimxml().
+    Test function for CIMQualifierDeclaration.tocimxml().
     """
 
     obj = kwargs['obj']
@@ -28457,6 +28620,10 @@ def test_CIMQualifierDeclaration_tocimxml(
 
     # The code to be tested
     obj_xml = obj.tocimxml(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
@@ -28472,7 +28639,7 @@ def test_CIMQualifierDeclaration_tocimxmlstr(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for CIMQualifierDeclaration.tocimxmlstr().
+    Test function for CIMQualifierDeclaration.tocimxmlstr().
     """
 
     obj = kwargs['obj']
@@ -28480,6 +28647,10 @@ def test_CIMQualifierDeclaration_tocimxmlstr(
 
     # The code to be tested
     obj_xml_str = obj.tocimxmlstr(**func_kwargs)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_xml_str = ''.join(kwargs['exp_xml_str'])
 
@@ -28883,7 +29054,7 @@ Qualifier Q1 : string,
     def test_CIMQualifierDeclaration_tomof(
             self, desc, obj, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for CIMQualifierDeclaration.tomof()."""
+        """Test function for CIMQualifierDeclaration.tomof()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")
@@ -29816,7 +29987,7 @@ class Test_mofstr(object):  # pylint: disable=too-few-public-methods
     def test_mofstr(
             self, desc, kwargs, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
-        """All test cases for mofstr()."""
+        """Test function for mofstr()."""
 
         if not condition:
             pytest.skip("Condition for test case not met")

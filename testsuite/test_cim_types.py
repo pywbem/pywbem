@@ -409,9 +409,11 @@ def test_datetime_init(datetime_init_tuple):
 
 TESTCASES_CIMTYPE = [
 
-    # Each testcase tuple has these items:
+    # Testcases for cimtype()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: object to be tested.
     #   * exp_type_name: Expected CIM data type name.
     # * exp_exc_types: Expected exception type(s), or None.
@@ -630,13 +632,17 @@ def test_cimtype(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for cimtype().
+    Test function for cimtype().
     """
 
     obj = kwargs['obj']
 
     # The code to be tested
     type_name = cimtype(obj)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_type_name = kwargs['exp_type_name']
 
@@ -645,9 +651,11 @@ def test_cimtype(
 
 TESTCASES_TYPE_FROM_NAME = [
 
-    # Each testcase tuple has these items:
+    # Testcases for type_from_name()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * type_name: CIM type name to be tested.
     #   * exp_type: Expected Python type object.
     # * exp_exc_types: Expected exception type(s), or None.
@@ -805,13 +813,17 @@ def test_type_from_name(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for type_from_name().
+    Test function for type_from_name().
     """
 
     type_name = kwargs['type_name']
 
     # The code to be tested
     type_obj = type_from_name(type_name)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_type_obj = kwargs['exp_type_obj']
 

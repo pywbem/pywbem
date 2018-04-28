@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 """
-    Test case-insensitive dictionary implementation.
+Test the _nocasedict module.
 """
 
 from __future__ import absolute_import
@@ -318,9 +317,11 @@ class TestPopItem(BaseTest):
 
 TESTCASES_NOCASEDICT_EQUAL_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for NocaseDict.__hash__(), __eq__(), __ne__().
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMInstanceName object #1 to use.
     #   * obj2: CIMInstanceName object #2 to use.
     #   * exp_obj_equal: Expected equality of the objects.
@@ -540,9 +541,11 @@ TESTCASES_NOCASEDICT_EQUAL_HASH = [
 
 TESTCASES_NOCASEDICT_EQUAL = [
 
-    # Each testcase tuple has these items:
+    # Testcases for NocaseDict.__eq__(), __ne__().
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMInstanceName object #1 to use.
     #   * obj2: CIMInstanceName object #2 to use.
     #   * exp_obj_equal: Expected equality of the objects.
@@ -563,9 +566,11 @@ TESTCASES_NOCASEDICT_EQUAL = [
 
 TESTCASES_NOCASEDICT_HASH = [
 
-    # Each testcase tuple has these items:
+    # Testcases for NocaseDict.__hash__()
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj1: CIMInstanceName object #1 to use.
     #   * obj2: CIMInstanceName object #2 to use.
     #   * exp_obj_equal: Expected equality of the objects.
@@ -589,11 +594,11 @@ TESTCASES_NOCASEDICT_HASH = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_EQUAL)
 @pytest_extensions.test_function
-def test_NocaseDict_equal(
+def test_NocaseDict_eq(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for NocaseDict.__eq__().
+    Test function for NocaseDict.__eq__().
     """
 
     obj1 = kwargs['obj1']
@@ -605,13 +610,44 @@ def test_NocaseDict_equal(
     # The code to be tested
     eq1 = (obj1 == obj2)
     eq2 = (obj2 == obj1)
-    ne1 = (obj1 != obj2)
-    ne2 = (obj2 != obj1)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     exp_obj_equal = kwargs['exp_obj_equal']
 
     assert eq1 == exp_obj_equal
     assert eq2 == exp_obj_equal
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_NOCASEDICT_EQUAL_HASH + TESTCASES_NOCASEDICT_EQUAL)
+@pytest_extensions.test_function
+def test_NocaseDict_ne(
+        desc, kwargs, exp_exc_types, exp_warn_types, condition):
+    # pylint: disable=unused-argument
+    """
+    Test function for NocaseDict.__ne__().
+    """
+
+    obj1 = kwargs['obj1']
+    obj2 = kwargs['obj2']
+
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
+    # The code to be tested
+    ne1 = (obj1 != obj2)
+    ne2 = (obj2 != obj1)
+
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
+
+    exp_obj_equal = kwargs['exp_obj_equal']
+
     assert ne1 != exp_obj_equal
     assert ne2 != exp_obj_equal
 
@@ -624,7 +660,7 @@ def test_NocaseDict_hash(
         desc, kwargs, exp_exc_types, exp_warn_types, condition):
     # pylint: disable=unused-argument
     """
-    All test cases for NocaseDict.__hash__().
+    Test function for NocaseDict.__hash__().
     """
 
     obj1 = kwargs['obj1']
@@ -637,9 +673,16 @@ def test_NocaseDict_hash(
     hash1 = hash(obj1)
     hash2 = hash(obj2)
 
-    exp_hash_equal = kwargs['exp_obj_equal']
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
-    assert (hash1 == hash2) == exp_hash_equal
+    exp_obj_equal = kwargs['exp_obj_equal']
+
+    if exp_obj_equal:
+        assert hash1 == hash2
+    else:
+        assert hash1 != hash2
 
 
 class TestOrdering(BaseTest):
