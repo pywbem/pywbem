@@ -53,14 +53,15 @@ def qualifier_declaration_default_attrs(**overriding_attrs):
 # TESTCASES_TUPLEPARSE_XML).
 TESTCASES_TUPLEPARSE_ROUNDTRIP = [
 
-    # Each testcase tuple has these items:
+    # Testcases for roundtrip obj -> cim-xml -> obj
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * obj: Input CIM object.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
-    # * condition: Boolean condition for testcase to run, or 'pdb' for
-    #   debugger
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
     # CIMInstanceName tests
     (
@@ -547,7 +548,9 @@ def test_tupleparse_roundtrip(
     # The code to be tested
     parsed_obj = tupleparse.parse_any(tt)
 
-    assert exp_exc_types is None, "Expected exception was not raised"
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     assert parsed_obj == obj, "CIM-XML of input obj:\n%s" % xml_str
 
@@ -556,15 +559,16 @@ def test_tupleparse_roundtrip(
 # CIM-XML element, including invalid input.
 TESTCASES_TUPLEPARSE_XML = [
 
-    # Each testcase tuple has these items:
+    # Testcases for tupleparse
+
+    # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
-    # * kwargs: Input arguments for test function, as a dict:
+    # * kwargs: Keyword arguments for the test function:
     #   * xml_str: Input CIM-XML string.
     #   * exp_result: Expected parsing result.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
-    # * condition: Boolean condition for testcase to run, or 'pdb' for
-    #   debugger
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
     # General tests with invalidities
     (
@@ -9834,6 +9838,8 @@ def test_tupleparse_xml(
     # The code to be tested
     result = tupleparse.parse_any(tt)
 
-    assert exp_exc_types is None, "Expected exception was not raised"
+    # Verify that an exception raised in this function is not mistaken
+    # to be the expected exception
+    assert exp_exc_types is None
 
     assert result == exp_result, "Input CIM-XML:\n%s" % xml_str

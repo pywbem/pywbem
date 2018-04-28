@@ -8,44 +8,46 @@ import pytest
 from decorator import decorator
 
 
+__all__ = ['test_function']
+
+
 @decorator
 def test_function(test_func, desc, kwargs, exp_exc_types, exp_warn_types,
                   condition):
     """
-    A decorator for test functions that calls the test function and handles:
+    A decorator for test functions that simplifies the test function by
+    handling a number of things:
 
-    * Skipping the test if the condition is False,
-
-    * Invoking the Python debugger if condition == "pdb",
-
+    * Skipping the test if the `condition` item in the testcase is `False`,
+    * Invoking the Python debugger if the `condition` item in the testcase is
+      the string "pdb",
     * Capturing and validating any warnings issued by the test function,
-      if exp_warn_types is set,
-
+      if the `exp_warn_types` item in the testcase is set,
     * Catching and validating any exceptions raised by the test function,
-      if exp_exc_types is set,
+      if the `exp_exc_types` item in the testcase is set.
 
-    Parameters:
+    This is a signature-preserving decorator: The wrapper function has the
+    same signature as the test function that is decorated.
 
-    * test_func (function): The decorated function.
+    Parameters of the outer and inner function:
 
-    * desc (string): A short testcase description.
+    * desc (string): Short testcase description.
 
-    * kwargs (dict): Testcase-specific input parameters.
+    * kwargs (dict): Keyword arguments for the test function.
 
-    * exp_exc_types (Exception or list of Exception): Expected exception types.
+    * exp_exc_types (Exception or list of Exception): Expected exception types,
+      or `None` if no exceptions are expected.
 
-    * exp_warn_types (Warning or list of Warning): Expected warning types.
+    * exp_warn_types (Warning or list of Warning): Expected warning types,
+      or `None` if no warnings are expected.
 
     * condition (bool or 'pdb'): Boolean condition for running the testcase.
       If it evaluates to `bool(False)`, the testcase will be skipped.
       If it evaluates to `bool(True)`, the testcase will be run.
-      String value 'pdb' will cause the testcase to run under the Python
-      debugger.
+      The string value 'pdb' will cause the Python pdb debugger to be entered
+      before calling the test function.
 
     Notes:
-
-    * This is a parameter-preserving decorator: The decorated function has
-      the same parameters as the original function.
 
     * Using the decorator together with the `pytest.mark.parametrize`
       decorator requires applying this decorator first to the test function
@@ -53,7 +55,7 @@ def test_function(test_func, desc, kwargs, exp_exc_types, exp_warn_types,
 
     Example::
 
-        testcases_CIMClass_equal = [
+        TESTCASES_CIMCLASS_EQUAL = [
             # desc, kwargs, exp_exc_types, exp_warn_types, condition
             (
                 "Equality with different lexical case of name",
@@ -69,20 +71,25 @@ def test_function(test_func, desc, kwargs, exp_exc_types, exp_warn_types,
 
         @pytest.mark.parametrize(
             "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-            testcases_CIMClass_equal)
+            TESTCASES_CIMCLASS_EQUAL)
         @pytest_extensions.test_function
         def test_CIMClass_equal(
                 desc, kwargs, exp_exc_types, exp_warn_types, condition):
+            # pylint: disable=unused-argument
 
             obj1 = kwargs['obj1']
             obj2 = kwargs['obj2']
+            exp_equal = kwargs['exp_equal']
 
             # The code to be tested
             equal = (obj1 == obj2)
 
-            exp_equal = kwargs['exp_equal']
+            # Verify that an exception raised in this function is not mistaken
+            # to be the expected exception
+            assert exp_exc_types is None
+
+            # Verify the result
             assert equal == exp_equal
-        )
     """
 
     if not condition:
