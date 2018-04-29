@@ -110,6 +110,8 @@ def test_function(test_func, desc, kwargs, exp_exc_types, exp_warn_types,
                     test_func(*args)  # expecting an exception
 
                 ret = None  # Debugging hint
+                # In combination with exceptions, we do not verify warnings
+                # (they could have been issued before or after the exception).
             else:
                 if condition == 'pdb':
                     pdb.set_trace()
@@ -117,7 +119,7 @@ def test_function(test_func, desc, kwargs, exp_exc_types, exp_warn_types,
                 test_func(*args)  # not expecting an exception
 
                 ret = None  # Debugging hint
-        assert len(rec_warnings) == 1
+                assert len(rec_warnings) >= 1
     else:
         if exp_exc_types:
             with pytest.raises(exp_exc_types):
