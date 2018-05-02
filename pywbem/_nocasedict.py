@@ -371,17 +371,16 @@ class NocaseDict(object):
         Update the dictionary from key/value pairs. If an item for a key
         exists in the dictionary, its value is updated. If an item for a key
         does not exist, it is added to the dictionary at the end.
-        The provided keys and values are not copied.
+        The provided keys and values are stored in the dictionary without
+        being copied.
 
         Each positional argument can be:
 
           * an object with a method `items()` that returns an
             :term:`py:iterable` of tuples containing key and value.
-            A NocaseDict or other dict object would match that requirement.
 
           * an object without such a method, that is an :term:`py:iterable` of
             tuples containing key and value.
-            A list of tuples (key,value) would match that requirement.
 
         Each keyword argument is a key/value pair.
 
