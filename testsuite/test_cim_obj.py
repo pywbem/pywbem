@@ -1,12 +1,6 @@
 """
 Test CIM objects (e.g. `CIMInstance`).
 
-Ideally this file would completely describe the Python interface to
-CIM objects.  If a particular data structure or Python property is
-not implemented here, then it is not officially supported by PyWBEM.
-Any breaking of backwards compatibility of new development should be
-picked up here.
-
 Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
@@ -26,19 +20,17 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-
 import pytest
 import six
 
-from pywbem import cim_obj, cim_types, __version__
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
-    CIMQualifierDeclaration, Uint8, Uint16, Uint32, \
-    Uint64, Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
-    tocimobj
+    CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
+    Sint32, Sint64, Real32, Real64, CIMDateTime, tocimobj, MinutesFromUTC, \
+    __version__
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
-
+from pywbem.cim_obj import mofstr, MOF_INDENT, MAX_MOF_LINE
 try:
     from pywbem import cimvalue
 except ImportError:
@@ -358,546 +350,627 @@ class DictionaryTestCase(unittest.TestCase):
         self.assertEqual(len(obj), 2)
 
 
-class Test_CIMInstanceName_init(object):
-    """
-    Test CIMInstanceName.__init__().
+# Common constant objects for use in the test cases
 
-    Note that the order of the arguments `host` and `namespace` in the
-    constructor is swapped compared to their optionality, for historical
-    reasons (i.e. `namespace` should not be omitted if `host` is present).
-    """
+DATETIME1_DT = datetime(2014, 9, 22, 10, 49, 20, 524789)
+DATETIME1_OBJ = CIMDateTime(DATETIME1_DT)
 
-    # Defaults to expect for attributes when not specified in testcase
-    default_exp_attrs = dict(
-        keybindings=NocaseDict(),
-        host=None,
-        namespace=None,
-    )
+TIMEDELTA1_TD = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
+TIMEDELTA1_OBJ = CIMDateTime(TIMEDELTA1_TD)
 
-    datetime1_dt = datetime(2014, 9, 22, 10, 49, 20, 524789)
-    datetime1_obj = CIMDateTime(datetime1_dt)
+UNNAMED_KEY_NCD = NocaseDict()
+UNNAMED_KEY_NCD.allow_unnamed_keys = True
+UNNAMED_KEY_NCD[None] = 'abc'
 
-    timedelta1_td = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
-    timedelta1_obj = CIMDateTime(timedelta1_td)
+TESTCASES_CIMINSTANCENAME_INIT = [
 
-    ncd_unnamed_key = NocaseDict()
-    ncd_unnamed_key.allow_unnamed_keys = True
-    ncd_unnamed_key[None] = 'abc'
+    # Testcases for CIMInstanceName.__init__() / ip=CIMInstanceName()
 
-    def test_CIMInstanceName_init_pos_args(self):
-        # pylint: disable=unused-argument
-        """Test position of arguments in CIMInstanceName.__init__()."""
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_args: Tuple of positional arguments to CIMInstanceName().
+    #   * init_kwargs: Dict of keyword arguments to CIMInstanceName().
+    #   * exp_attrs: Dict of expected attributes of resulting object.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-        keybindings = dict(P1=True)
-
-        # The code to be tested
-        obj = CIMInstanceName(
-            'CIM_Foo',
-            keybindings,
-            'woot.com',
-            'cimv2')
-
-        assert obj.classname == u'CIM_Foo'
-        assert obj.keybindings == NocaseDict(keybindings)
-        assert obj.host == u'woot.com'
-        assert obj.namespace == u'cimv2'
-
-    testcases_succeeds = [
-        # Testcases where CIMInstanceName.__init__() succeeds.
-        # Each testcase has these items:
-        # * desc: Short testcase description.
-        # * kwargs: Dict of keyword arguments for __init__().
-        # * exp_attrs: Dict of expected attributes of resulting object.
-        # * exp_warn_type: Expected warning type.
-        # * condition: Condition for testcase to run.
-
-        # Classname tests
-        (
-            "Verify that binary classname is converted to unicode",
-            dict(classname=b'CIM_Foo'),
-            dict(classname=u'CIM_Foo'),
-            None, True
-        ),
-        (
-            "Verify that unicode classname remains unicode",
-            dict(classname=u'CIM_Foo'),
-            dict(classname=u'CIM_Foo'),
-            None, True
-        ),
-
-        # Keybinding tests
-        (
-            "Verify that keybinding with name None succeeds (since 0.12",
-            dict(
-                classname='CIM_Foo',
-                keybindings=dict(ncd_unnamed_key)),
-            dict(
+    # Order of positional arguments
+    (
+        "Verify order of positional arguments",
+        dict(
+            init_args=[
+                'CIM_Foo',
+                dict(P1=True),
+                'woot.com',
+                'cimv2',
+            ],
+            init_kwargs={},
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
-                keybindings=ncd_unnamed_key),
-            None, CHECK_0_12_0
+                keybindings=NocaseDict(P1=True),
+                host=u'woot.com',
+                namespace=u'cimv2',
+            ),
         ),
-        (
-            "Verify keybindings order preservation with list of CIMProperty",
-            dict(
+        None, None, True
+    ),
+
+    # Classname tests
+    (
+        "Verify that bytes classname is converted to unicode",
+        dict(
+            init_args=[],
+            init_kwargs=dict(classname=b'CIM_Foo'),
+            exp_attrs=dict(classname=u'CIM_Foo'),
+        ),
+        None, None, True
+    ),
+    (
+        "Verify that unicode classname remains unicode",
+        dict(
+            init_args=[],
+            init_kwargs=dict(classname=u'CIM_Foo'),
+            exp_attrs=dict(classname=u'CIM_Foo'),
+        ),
+        None, None, True
+    ),
+
+    # Keybinding tests
+    (
+        "Verify that keybinding with name None succeeds (since 0.12)",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=dict(UNNAMED_KEY_NCD)),
+            exp_attrs=dict(
+                classname=u'CIM_Foo',
+                keybindings=UNNAMED_KEY_NCD),
+        ),
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "Verify keybindings order preservation with list of CIMProperty",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=[
                     CIMProperty('K1', value='Ham'),
                     CIMProperty('K2', value='Cheese'),
                 ]
             ),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
                 ])
             ),
-            None, True
         ),
-        (
-            "Verify keybindings order preservation with OrderedDict",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybindings order preservation with OrderedDict",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=OrderedDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
                 ])
             ),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
                 ])
             ),
-            None, True
         ),
-        (
-            "Verify keybindings order preservation with list of tuple(key,val)",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybindings order preservation with list of tuple(key,val)",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=[
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
                 ]
             ),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
                 ])
             ),
-            None, True
         ),
-        (
-            "Verify keybinding with binary string value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with bytes string value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=b'Ham')),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=u'Ham' if CHECK_0_12_0 else b'Ham')),
-            None, True
         ),
-        (
-            "Verify keybinding with unicode string value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with unicode string value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
-                keybindings=dict(K1=u'H\u00E4m')),  # lower case a umlaut
-            dict(
+                # lower case a umlaut
+                keybindings=dict(K1=u'H\u00E4m')),
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=u'H\u00E4m')),
-            None, True
         ),
-        (
-            "Verify keybinding with boolean True value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with boolean True value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=True)),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=True)),
-            None, True
         ),
-        (
-            "Verify keybinding with boolean False value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with boolean False value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=False)),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=False)),
-            None, True
         ),
-        (
-            "Verify keybinding with int value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with int value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42)),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=42)),
-            None, True
         ),
-        (
-            "Verify keybinding with Uint8 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Uint8 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint8(42))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=42)),
-            None, True
         ),
-        (
-            "Verify keybinding with Uint16 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Uint16 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint16(4216))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=4216)),
-            None, True
         ),
-        (
-            "Verify keybinding with Uint32 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Uint32 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint32(4232))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=4232)),
-            None, True
         ),
-        (
-            "Verify keybinding with Uint64 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Uint64 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint64(4264))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=4264)),
-            None, True
         ),
-        (
-            "Verify keybinding with Sint8 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Sint8 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint8(-42))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=-42)),
-            None, True
         ),
-        (
-            "Verify keybinding with Sint16 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Sint16 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint16(-4216))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=-4216)),
-            None, True
         ),
-        (
-            "Verify keybinding with Sint32 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Sint32 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint32(-4232))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=-4232)),
-            None, True
         ),
-        (
-            "Verify keybinding with Sint64 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Sint64 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint64(-4264))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=-4264)),
-            None, True
         ),
-        (
-            "Verify keybinding with float value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with float value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=42.1)),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=42.1)),
-            None, True
         ),
-        (
-            "Verify keybinding with Real32 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Real32 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Real32(-42.32))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=-42.32)),
-            None, True
         ),
-        (
-            "Verify keybinding with Real64 value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with Real64 value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=Real64(-42.64))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(K1=-42.64)),
-            None, True
         ),
-        (
-            "Verify keybinding with datetime value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with datetime value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
-                keybindings=dict(K1=datetime1_obj)),
-            dict(
+                keybindings=dict(K1=DATETIME1_OBJ)),
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=datetime1_obj)),
-            None, True
+                keybindings=NocaseDict(K1=DATETIME1_OBJ)),
         ),
-        (
-            "Verify keybinding with timedelta value",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with timedelta value",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
-                keybindings=dict(K1=timedelta1_obj)),
-            dict(
+                keybindings=dict(K1=TIMEDELTA1_OBJ)),
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=timedelta1_obj)),
-            None, True
+                keybindings=NocaseDict(K1=TIMEDELTA1_OBJ)),
         ),
-        (
-            "Verify keybinding with CIMProperty (of arbitrary type and value)",
-            # Note: The full range of possible input values and types for
-            # CIMProperty objects is tested in CIMProperty testcases.
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify keybinding with CIMProperty (of arbitrary type and value)",
+        # Note: The full range of possible input values and types for
+        # CIMProperty objects is tested in CIMProperty testcases.
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMProperty('K1', value='Ham'))),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([('K1', u'Ham')])),
-            None, CHECK_0_12_0
         ),
-        (
-            "Verify two keybindings",
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "Verify two keybindings",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=OrderedDict([('K1', u'Ham'), ('K2', Uint8(42))])),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([('K1', u'Ham'), ('K2', Uint8(42))])),
-            None, True
         ),
-        (
-            "Verify case insensitivity of keybinding names",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify case insensitivity of keybinding names",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(Key1='Ham')),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([('kEY1', u'Ham')])),
-            None, True
         ),
+        None, None, True
+    ),
 
-        # Namespace tests
-        (
-            "Verify that binary namespace is converted to unicode",
-            dict(
+    # Namespace tests
+    (
+        "Verify that bytes namespace is converted to unicode",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace=b'root/cimv2'),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2'),
-            None, True
         ),
-        (
-            "Verify that unicode namespace remains unicode",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify that unicode namespace remains unicode",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace=u'root/cimv2'),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2'),
-            None, True
         ),
-        (
-            "Verify that one leading and trailing slash in namespace get "
-            "stripped",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify that one leading and trailing slash in namespace get "
+        "stripped",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace='/root/cimv2/'),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2'),
-            None, True
         ),
-        (
-            "Verify that two leading and trailing slashes in namespace get "
-            "stripped",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify that two leading and trailing slashes in namespace get "
+        "stripped",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace='//root/cimv2//'),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2'),
-            None, True
         ),
+        None, None, True
+    ),
 
-        # Host tests
-        (
-            "Verify that binary host is converted to unicode",
-            dict(
+    # Host tests
+    (
+        "Verify that bytes host is converted to unicode",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
                 host=b'woot.com'),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'woot.com'),
-            None, True
         ),
-        (
-            "Verify that unicode host remains unicode",
-            dict(
+        None, None, True
+    ),
+    (
+        "Verify that unicode host remains unicode",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
                 host=u'woot.com'),
-            dict(
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'woot.com'),
-            None, True
         ),
-    ]
+        None, None, True
+    ),
 
-    @pytest.mark.parametrize(
-        "desc, kwargs, exp_attrs, exp_warn_type, condition",
-        testcases_succeeds
-    )
-    def test_CIMInstanceName_init_succeeds(
-            self, desc, kwargs, exp_attrs, exp_warn_type, condition):
-        # pylint: disable=unused-argument
-        """All test cases where CIMInstanceName.__init__() succeeds."""
-
-        if not condition:
-            pytest.skip("Condition for test case not met")
-
-        exp_classname = exp_attrs['classname']
-        exp_keybindings = exp_attrs.get(
-            'keybindings', self.default_exp_attrs['keybindings'])
-        exp_host = exp_attrs.get(
-            'host', self.default_exp_attrs['host'])
-        exp_namespace = exp_attrs.get(
-            'namespace', self.default_exp_attrs['namespace'])
-
-        if exp_warn_type is None:
-
-            # The code to be tested
-            obj = CIMInstanceName(**kwargs)
-
-        else:
-            with pytest.warns(exp_warn_type) as rec_warnings:
-
-                # The code to be tested
-                obj = CIMInstanceName(**kwargs)
-
-            assert len(rec_warnings) == 1
-
-        assert obj.classname == exp_classname
-        assert isinstance(obj.classname, type(exp_classname))
-
-        assert obj.keybindings == exp_keybindings
-        assert isinstance(obj.keybindings, type(exp_keybindings))
-
-        assert obj.host == exp_host
-        assert isinstance(obj.host, type(exp_host))
-
-        assert obj.namespace == exp_namespace
-        assert isinstance(obj.namespace, type(exp_namespace))
-
-    testcases_fails = [
-        # Testcases where CIMInstanceName.__init__() fails.
-        # Each testcase has these items:
-        # * desc: Short testcase description.
-        # * kwargs: Dict of keyword arguments for __init__().
-        # * exp_exc_type: Expected exception type.
-        # * condition: Condition for testcase to run.
-        (
-            "Verify that classname None fails",
-            dict(classname=None),
-            ValueError,
-            True
+    # Exception testcases
+    (
+        "Verify that classname None fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(classname=None),
+            exp_attrs=None,
         ),
-        (
-            "Verify that keybinding with name None fails (before 0.12",
-            dict(
+        ValueError, None, True
+    ),
+    (
+        "Verify that keybinding with name None fails (before 0.12",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings={None: 'abc'}),
-            TypeError,
-            not CHECK_0_12_0
+            exp_attrs=None,
         ),
-        (
-            "Verify that keybinding with inconsistent name fails",
-            dict(
+        TypeError, None, not CHECK_0_12_0
+    ),
+    (
+        "Verify that keybinding with inconsistent name fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMProperty('K1_X', value='Ham'))),
-            ValueError,
-            CHECK_0_12_0
+            exp_attrs=None,
         ),
-        (
-            "Verify that keybinding with a value of an embedded class fails",
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that keybinding with a value of an embedded class fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMClass('CIM_EmbClass'))),
-            TypeError,
-            CHECK_0_12_0
+            exp_attrs=None,
         ),
-        (
-            "Verify that keybinding with a value of an embedded instance fails",
-            dict(
+        TypeError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that keybinding with a value of an embedded instance fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMInstance('CIM_EmbInst'))),
-            TypeError,
-            CHECK_0_12_0
+            exp_attrs=None,
         ),
-        (
-            "Verify that keybinding with an array value fails",
-            dict(
+        TypeError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that keybinding with an array value fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=[1, 2])),
-            TypeError,
-            CHECK_0_12_0
+            exp_attrs=None,
         ),
-        (
-            "Verify that keybinding with a value of some other unsupported "
-            "object type (e.g. exception type) fails",
-            dict(
+        TypeError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that keybinding with a value of some other unsupported "
+        "object type (e.g. exception type) fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
                 classname='CIM_Foo',
                 keybindings=dict(K1=TypeError)),
-            TypeError,
-            CHECK_0_12_0
+            exp_attrs=None,
         ),
-    ]
+        TypeError, None, CHECK_0_12_0
+    ),
+]
 
-    @pytest.mark.parametrize(
-        "desc, kwargs, exp_exc_type, condition",
-        testcases_fails)
-    def test_CIMInstanceName_init_fails(
-            self, desc, kwargs, exp_exc_type, condition):
-        # pylint: disable=unused-argument
-        """All test cases where CIMInstanceName.__init__() fails."""
 
-        if not condition:
-            pytest.skip("Condition for test case not met")
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_INIT)
+@pytest_extensions.simplified_test_function
+def test_CIMInstanceName_init(testcase,
+                              init_args, init_kwargs, exp_attrs):
+    """
+    Test function for CIMInstanceName.__init__() / ip=CIMInstanceName()
+    """
 
-        with pytest.raises(exp_exc_type):
+    # The code to be tested
+    obj = CIMInstanceName(*init_args, **init_kwargs)
 
-            # The code to be tested
-            CIMInstanceName(**kwargs)
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    exp_classname = exp_attrs['classname']
+    assert obj.classname == exp_classname
+    assert isinstance(obj.classname, type(exp_classname))
+
+    exp_keybindings = exp_attrs.get('keybindings', NocaseDict())
+    assert obj.keybindings == exp_keybindings
+    assert isinstance(obj.keybindings, type(exp_keybindings))
+
+    exp_host = exp_attrs.get('host', None)
+    assert obj.host == exp_host
+    assert isinstance(obj.host, type(exp_host))
+
+    exp_namespace = exp_attrs.get('namespace', None)
+    assert obj.namespace == exp_namespace
+    assert isinstance(obj.namespace, type(exp_namespace))
 
 
 class CIMInstanceNameCopy(unittest.TestCase, CIMObjectMixin):
@@ -908,7 +981,7 @@ class CIMInstanceNameCopy(unittest.TestCase, CIMObjectMixin):
     still the same.
     """
 
-    def test_all(self):
+    def test_CIMInstanceName_copy(self):  # XXX: Migrate to pytest
 
         i = CIMInstanceName('CIM_Foo',
                             keybindings={'InstanceID': '1234'},
@@ -934,7 +1007,7 @@ class CIMInstanceNameAttrs(unittest.TestCase, CIMObjectMixin):
     accessed and modified.
     """
 
-    def test_all(self):
+    def test_CIMInstanceName_attrs(self):  # XXX: Migrate to pytest
 
         kb = {'Chicken': 'Ham', 'Beans': Uint8(42)}
 
@@ -1033,7 +1106,7 @@ class CIMInstanceNameDict(DictionaryTestCase):
     Test the dictionary interface of `CIMInstanceName` objects.
     """
 
-    def test_all(self):
+    def test_CIMInstanceName_dict(self):  # XXX: Migrate to pytest
 
         kb = {'Chicken': 'Ham', 'Beans': Uint8(42)}
         obj = CIMInstanceName('CIM_Foo', kb)
@@ -1047,7 +1120,7 @@ class CIMInstanceNameEquality(unittest.TestCase):
     """
 
     # TODO 01/18 AM Remove test_all() once PR #955 is merged (is in test hash)
-    def test_all(self):
+    def test_CIMInstanceName_eq(self):  # XXX: Migrate to pytest
 
         # Basic equality tests
 
@@ -1174,7 +1247,7 @@ class CIMInstanceNameEquality(unittest.TestCase):
             CIMInstanceName('CIM_Foo') == CIMInstance('CIM_Foo')
 
     # TODO 01/18 AM Reformulate these tests in test hash once PR #955 is merged
-    def test_keybindings_order(self):
+    def test_keybindings_order(self):  # XXX: Migrate to pytest
         """
         Test that two CIMInstanceName objects compare equal if their key
         bindings have a different order.
@@ -1246,8 +1319,7 @@ class CIMInstanceNameCompare(unittest.TestCase):
     """
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMInstanceName
+    def test_CIMInstanceName_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -1257,8 +1329,7 @@ class CIMInstanceNameSort(unittest.TestCase):
     """
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMInstanceName
+    def test_CIMInstanceName_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -1531,9 +1602,6 @@ def test_CIMInstanceName_hash(testcase,
     Test function for CIMInstanceName.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -1542,87 +1610,95 @@ def test_CIMInstanceName_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMInstanceName_repr(object):
-    # pylint: disable=too-few-public-methods
+TESTCASES_CIMINSTANCENAME_REPR = [
+
+    # Testcases for CIMInstanceName.__repr__() / repr()
+    # Note: CIMInstanceName.__str__() is tested along with to_wbem_uri()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMInstanceName object to be tested.
+
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=None)
+    ),
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict())
+    ),
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID=None))
+    ),
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'))
+    ),
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'),
+            namespace='cimv2')
+    ),
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'),
+            namespace='root/cimv2',
+            host='10.11.12.13:5989')
+    ),
+    (
+        CIMInstanceName(
+            classname='CIM_Foo',
+            keybindings=dict(InstanceID='1234'),
+            namespace='root/cimv2',
+            host='jdd:test@10.11.12.13')
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMINSTANCENAME_REPR)
+def test_CIMInstanceName_repr(obj):
     """
-    Test CIMInstanceName.__repr__().
+    Test function for CIMInstanceName.__repr__() / repr()
+
+    Note: CIMInstanceName.__str__() is tested along with to_wbem_uri()
     """
 
-    testcases_succeeds = [
-        # Testcases where CIMInstanceName.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMInstanceName object to be tested.
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=None)
-        ),
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict())
-        ),
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID=None))
-        ),
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'))
-        ),
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'),
-                namespace='cimv2')
-        ),
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'),
-                namespace='root/cimv2',
-                host='10.11.12.13:5989')
-        ),
-        (
-            CIMInstanceName(
-                classname='CIM_Foo',
-                keybindings=dict(InstanceID='1234'),
-                namespace='root/cimv2',
-                host='jdd:test@10.11.12.13')
-        ),
-    ]
+    # The code to be tested
+    r = repr(obj)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMInstanceName_repr_succeeds(self, obj):
+    assert re.match(r'^CIMInstanceName\(', r)
 
-        r = repr(obj)
+    exp_classname = 'classname=%r' % obj.classname
+    assert exp_classname in r
 
-        assert re.match(r'^CIMInstanceName\(', r)
+    assert 'keybindings=' in r
+    if obj.keybindings:
+        for key in obj.keybindings.keys():
+            search_str = 'u?[\'"]%s[\'"], ' % key
+            assert re.search(search_str, r), "For key %r" % key
 
-        exp_classname = 'classname=%r' % obj.classname
-        assert exp_classname in r
+    exp_namespace = 'namespace=%r' % obj.namespace
+    assert exp_namespace in r
 
-        assert 'keybindings=' in r
-        if obj.keybindings:
-            for key in obj.keybindings.keys():
-                search_str = 'u?[\'"]%s[\'"], ' % key
-                assert re.search(search_str, r), "For key %r" % key
-
-        exp_namespace = 'namespace=%r' % obj.namespace
-        assert exp_namespace in r
-
-        exp_host = 'host=%r' % obj.host
-        assert exp_host in r
+    exp_host = 'host=%r' % obj.host
+    assert exp_host in r
 
 
 # Some CIMInstanceName objects for CIMInstanceName.tocimxml() tests
@@ -2170,541 +2246,650 @@ def test_CIMInstanceName_tocimxmlstr(testcase,
     assert testcase.exp_exc_types is None
 
     exp_xml_str = ''.join(exp_xml_str)
-
     assert obj_xml_str == exp_xml_str
 
 
-class Test_CIMInstanceName_from_wbem_uri(object):
-    # pylint: disable=too-few-public-methods
-    """
-    Test CIMInstanceName.from_wbem_uri().
-    """
+TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
 
-    testcases = [
-        # Testcases for CIMInstanceName.from_wbem_uri().
-        # Each testcase has these items:
-        # * desc: Short testcase description.
-        # * uri: WBEM URI string to be tested.
-        # * exp_result: Dict of all expected attributes of resulting object,
-        #     if expected to succeed. Exception type, if expected to fail.
-        # * exp_warn_type: Expected warning type.
-        #     None, if no warning expected.
-        # * condition: Condition for testcase to run.
-        (
-            "all components, normal case",
-            'https://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+    # Testcases for CIMInstanceName.from_wbem_uri()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * uri: WBEM URI string to be tested.
+    #   * exp_attrs: Dict of all expected attributes of created object, or None.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "all components, normal case",
+        dict(
+            uri='https://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "no authority",
-            'https:/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "no authority",
+        dict(
+            uri='https:/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "authority with user:password",
-            'https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "authority with user:password",
+        dict(
+            uri='https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'jdd:test@10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "authority with user (no password)",
-            'https://jdd@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "authority with user (no password)",
+        dict(
+            uri='https://jdd@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'jdd@10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "authority without port",
-            'https://10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "authority without port",
+        dict(
+            uri='https://10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13'),
-            None, CHECK_0_12_0
         ),
-        (
-            "authority with IPv6 address",
-            'https://[10:11:12:13]/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "authority with IPv6 address",
+        dict(
+            uri='https://[10:11:12:13]/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]'),
-            None, CHECK_0_12_0
         ),
-        (
-            "authority with IPv6 address and port",
-            'https://[10:11:12:13]:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "authority with IPv6 address and port",
+        dict(
+            uri='https://[10:11:12:13]:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "no namespace type",
-            '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "no namespace type",
+        dict(
+            uri='//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "namespace type http",
-            'http://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "namespace type http",
+        dict(
+            uri='http://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "namespace type upper case HTTP",
-            'HTTP://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "namespace type upper case HTTP",
+        dict(
+            uri='HTTP://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "namespace type mixed case HttpS",
-            'HttpS://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "namespace type mixed case HttpS",
+        dict(
+            uri='HttpS://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "namespace type cimxml-wbem",
-            'cimxml-wbem://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "namespace type cimxml-wbem",
+        dict(
+            uri='cimxml-wbem://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "namespace type cimxml-wbems",
-            'cimxml-wbems://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "namespace type cimxml-wbems",
+        dict(
+            uri='cimxml-wbems://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            None, CHECK_0_12_0
         ),
-        (
-            "unknown namespace type",
-            'xyz://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "unknown namespace type",
+        dict(
+            uri='xyz://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
-            UserWarning, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI (with initial slash)",
-            '/root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, UserWarning, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI (with initial slash)",
+        dict(
+            uri='/root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI (with missing initial slash)",
-            'root/cimv2:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI (with missing initial slash)",
+        dict(
+            uri='root/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI with only class name (with initial slash+colon)",
-            '/:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI with only class name (with initial slash+colon)",
+        dict(
+            uri='/:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=None,
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI with only class name (without initial slash)",
-            ':CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI with only class name (without initial slash)",
+        dict(
+            uri=':CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=None,
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI with only class name (without initial slash+colon)",
-            'CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI with only class name (without initial slash+colon)",
+        dict(
+            uri='CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=None,
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI with namespace that has only one component",
-            '/root:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI with namespace that has only one component",
+        dict(
+            uri='/root:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "local WBEM URI with namespace that has three components",
-            '/root/cimv2/test:CIM_Foo.k1="v1"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "local WBEM URI with namespace that has three components",
+        dict(
+            uri='/root/cimv2/test:CIM_Foo.k1="v1"',
+            exp_attrs=dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2/test',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "multiple keys (bool) - in alphabetical order",
-            '/n:C.k1=false,k2=true,k3=False,k4=True,k5=FALSE,k6=TRUE',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "multiple keys (bool) - in alphabetical order",
+        dict(
+            uri='/n:C.k1=false,k2=true,k3=False,k4=True,k5=FALSE,k6=TRUE',
+            exp_attrs=dict(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', False), ('k2', True),
-                                        ('k3', False), ('k4', True),
-                                        ('k5', False), ('k6', True)]),
+                keybindings=NocaseDict([
+                    ('k1', False), ('k2', True),
+                    ('k3', False), ('k4', True),
+                    ('k5', False), ('k6', True)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "multiple keys (bool) - in non-alphabetical order",
-            '/n:C.k1=false,k3=False,k2=true,k4=True,k5=FALSE,k6=TRUE',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "multiple keys (bool) - in non-alphabetical order",
+        dict(
+            uri='/n:C.k1=false,k3=False,k2=true,k4=True,k5=FALSE,k6=TRUE',
+            exp_attrs=dict(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', False), ('k3', False),
-                                        ('k2', True), ('k4', True),
-                                        ('k5', False), ('k6', True)]),
+                keybindings=NocaseDict([
+                    ('k1', False), ('k3', False),
+                    ('k2', True), ('k4', True),
+                    ('k5', False), ('k6', True)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "multiple keys (int) - in non-alphabetical order",
-            '/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=+42,'
-            'kmax32=4294967295,'
-            'kmin32=-4294967296,'
-            'kmax64=9223372036854775807,'
-            'kmin64=-9223372036854775808,'
-            'klong=9223372036854775808',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "multiple keys (int) - in non-alphabetical order",
+        dict(
+            uri='/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=+42,'
+                'kmax32=4294967295,'
+                'kmin32=-4294967296,'
+                'kmax64=9223372036854775807,'
+                'kmin64=-9223372036854775808,'
+                'klong=9223372036854775808',
+            exp_attrs=dict(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', 0), ('k2', -1), ('k3', -32769),
-                                        ('k4', 42), ('k5', 42),
-                                        ('kmax32', 4294967295),
-                                        ('kmin32', -4294967296),
-                                        ('kmax64', 9223372036854775807),
-                                        ('kmin64', -9223372036854775808),
-                                        ('klong', 9223372036854775808)]),
+                keybindings=NocaseDict([
+                    ('k1', 0), ('k2', -1), ('k3', -32769),
+                    ('k4', 42), ('k5', 42),
+                    ('kmax32', 4294967295),
+                    ('kmin32', -4294967296),
+                    ('kmax64', 9223372036854775807),
+                    ('kmin64', -9223372036854775808),
+                    ('klong', 9223372036854775808)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "int key with invalid decimal digit U+0661 (ARABIC-INDIC ONE)",
-            u'/n:C.k1=\u0661',
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "int key with invalid decimal digit U+0661 (ARABIC-INDIC ONE)",
+        dict(
+            uri=u'/n:C.k1=\u0661',
+            exp_attrs=None,
         ),
-        (
-            "int key with invalid decimal digit U+1D7CF (MATHEM. BOLD ONE)",
-            u'/n:C.k1=\U0001d7cf',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "int key with invalid decimal digit U+1D7CF (MATHEM. BOLD ONE)",
+        dict(
+            uri=u'/n:C.k1=\U0001d7cf',
+            exp_attrs=None,
         ),
-        (
-            "int key with invalid decimal digit U+2081 (SUBSCRIPT ONE)",
-            u'/n:C.k1=\u2081',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "int key with invalid decimal digit U+2081 (SUBSCRIPT ONE)",
+        dict(
+            uri=u'/n:C.k1=\u2081',
+            exp_attrs=None,
         ),
-        (
-            "int key with invalid decimal digit U+00B9 (SUPERSCRIPT ONE)",
-            u'/n:C.k1=\u00b9',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "int key with invalid decimal digit U+00B9 (SUPERSCRIPT ONE)",
+        dict(
+            uri=u'/n:C.k1=\u00b9',
+            exp_attrs=None,
         ),
-        (
-            "int key with invalid non-decimal digit U+10A44 (KHAROSHTHI TEN)",
-            u'/n:C.k1=\U00010a44',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "int key with invalid non-decimal digit U+10A44 (KHAROSHTHI TEN)",
+        dict(
+            uri=u'/n:C.k1=\U00010a44',
+            exp_attrs=None,
         ),
-        (
-            "positive int key in octal representation",
-            u'/n:C.k1=015',
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "positive int key in octal representation",
+        dict(
+            uri=u'/n:C.k1=015',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', 13)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "negative int key in octal representation",
-            u'/n:C.k1=-017',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "negative int key in octal representation",
+        dict(
+            uri=u'/n:C.k1=-017',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', -15)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "int key in octal representation with invalid octal digits",
-            u'/n:C.k1=018',
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "int key in octal representation with invalid octal digits",
+        dict(
+            uri=u'/n:C.k1=018',
+            exp_attrs=None,
         ),
-        (
-            "positive int key in binary representation (upper case)",
-            u'/n:C.k1=0101B',
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "positive int key in binary representation (upper case)",
+        dict(
+            uri=u'/n:C.k1=0101B',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', 5)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "negative int key in binary representation (lower case)",
-            u'/n:C.k1=-0101b',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "negative int key in binary representation (lower case)",
+        dict(
+            uri=u'/n:C.k1=-0101b',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', -5)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "int key in binary representation with invalid binary digits",
-            u'/n:C.k1=0102',
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "int key in binary representation with invalid binary digits",
+        dict(
+            uri=u'/n:C.k1=0102',
+            exp_attrs=None,
         ),
-        (
-            "positive int key in hex representation (upper case)",
-            u'/n:C.k1=0X19AF',
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "positive int key in hex representation (upper case)",
+        dict(
+            uri=u'/n:C.k1=0X19AF',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', 0x19AF)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "negative int key in hex representation (lower case)",
-            u'/n:C.k1=-0x19af',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "negative int key in hex representation (lower case)",
+        dict(
+            uri=u'/n:C.k1=-0x19af',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', -0x19AF)]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "int key in hex representation with invalid hex digits",
-            u'/n:C.k1=0x19afg',
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "int key in hex representation with invalid hex digits",
+        dict(
+            uri=u'/n:C.k1=0x19afg',
+            exp_attrs=None,
         ),
-        (
-            "multiple float keys - in non-alphabetical order",
-            '/n:C.k1=.0,k2=-0.1,k3=+.1,k4=+31.4E-1,k5=.4e1,'
-            'kmax32=3.402823466E38,'
-            'kmin32=1.175494351E-38,'
-            'kmax64=1.7976931348623157E308,'
-            'kmin64=4.9E-324',
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "multiple float keys - in non-alphabetical order",
+        dict(
+            uri='/n:C.k1=.0,k2=-0.1,k3=+.1,k4=+31.4E-1,k5=.4e1,'
+                'kmax32=3.402823466E38,'
+                'kmin32=1.175494351E-38,'
+                'kmax64=1.7976931348623157E308,'
+                'kmin64=4.9E-324',
+            exp_attrs=dict(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', 0.0), ('k2', -0.1), ('k3', 0.1),
-                                        ('k4', 31.4E-1), ('k5', 0.4E1),
-                                        ('kmax32', 3.402823466E38),
-                                        ('kmin32', 1.175494351E-38),
-                                        ('kmax64', 1.7976931348623157E308),
-                                        ('kmin64', 4.9E-324)]),
+                keybindings=NocaseDict([
+                    ('k1', 0.0), ('k2', -0.1), ('k3', 0.1),
+                    ('k4', 31.4E-1), ('k5', 0.4E1),
+                    ('kmax32', 3.402823466E38),
+                    ('kmin32', 1.175494351E-38),
+                    ('kmax64', 1.7976931348623157E308),
+                    ('kmin64', 4.9E-324),
+                ]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "invalid float key 1. (not allowed in realValue)",
-            '/n:C.k1=1.',
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "invalid float key 1. (not allowed in realValue)",
+        dict(
+            uri='/n:C.k1=1.',
+            exp_attrs=None,
         ),
-        (
-            "float key with special value INF (allowed by extension)",
-            '/n:C.k1=INF',
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "float key with special value INF (allowed by extension)",
+        dict(
+            uri='/n:C.k1=INF',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict(k1=float('inf')),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "float key with special value -INF (allowed by extension)",
-            '/n:C.k1=-INF',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "float key with special value -INF (allowed by extension)",
+        dict(
+            uri='/n:C.k1=-INF',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict(k1=float('-inf')),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "float key with special value NAN (allowed by extension)",
-            '/n:C.k1=NAN',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "float key with special value NAN (allowed by extension)",
+        dict(
+            uri='/n:C.k1=NAN',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict(k1=float('nan')),
                 namespace=u'n',
                 host=None),
-            None, False  # float('nan') does not compare equal to itself
         ),
-        (
-            "multiple string keys - in alphabetical order",
-            r'/n:C.k1="",k2="a",k3="42",k4="\"",k5="\\",k6="\\\"",k7="\'"',
-            dict(
+        None, None, False  # float('nan') does not compare equal to itself
+    ),
+    (
+        "multiple string keys - in alphabetical order",
+        dict(
+            uri=r'/n:C.k1="",k2="a",k3="42",k4="\"",k5="\\",k6="\\\"",k7="\'"',
+            exp_attrs=dict(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', ''), ('k2', 'a'), ('k3', '42'),
-                                        ('k4', '"'), ('k5', '\\'),
-                                        ('k6', '\\"'), ('k7', "'")]),
+                keybindings=NocaseDict([
+                    ('k1', ''), ('k2', 'a'), ('k3', '42'), ('k4', '"'),
+                    ('k5', '\\'), ('k6', '\\"'), ('k7', "'"),
+                ]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "string key with keybindings syntax in its value",
-            r'/n:C.k1="k2=42,k3=3"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "string key with keybindings syntax in its value",
+        dict(
+            uri=r'/n:C.k1="k2=42,k3=3"',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict(k1='k2=42,k3=3'),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "multiple char16 keys - in non-alphabetical order",
-            "/n:C.k1='a',k3='\"',k2='1',k4='\\'',k5='\\\\'",
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "multiple char16 keys - in non-alphabetical order",
+        dict(
+            uri="/n:C.k1='a',k3='\"',k2='1',k4='\\'',k5='\\\\'",
+            exp_attrs=dict(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', 'a'), ('k3', '"'), ('k2', '1'),
-                                        ('k4', "'"), ('k5', '\\')]),
+                keybindings=NocaseDict([
+                    ('k1', 'a'), ('k3', '"'), ('k2', '1'), ('k4', "'"),
+                    ('k5', '\\'),
+                ]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "empty char16 key",
-            "/n:C.k1=''",
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "empty char16 key",
+        dict(
+            uri="/n:C.k1=''",
+            exp_attrs=None,
         ),
-        (
-            "invalid char16 key with two characters",
-            "/n:C.k1='ab'",
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid char16 key with two characters",
+        dict(
+            uri="/n:C.k1='ab'",
+            exp_attrs=None,
         ),
-        (
-            "datetime key for point in time (in quotes)",
-            '/n:C.k1="19980125133015.123456-300"',
-            dict(
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "datetime key for point in time (in quotes)",
+        dict(
+            uri='/n:C.k1="19980125133015.123456-300"',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('19980125133015.123456-300')),
                 ]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "datetime key for interval (in quotes)",
-            '/n:C.k1="12345678133015.123456:000"',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "datetime key for interval (in quotes)",
+        dict(
+            uri='/n:C.k1="12345678133015.123456:000"',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('12345678133015.123456:000')),
                 ]),
                 namespace=u'n',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "datetime key for point in time (no quotes)",
-            '/n:C.k1=19980125133015.123456-300',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "datetime key for point in time (no quotes)",
+        dict(
+            uri='/n:C.k1=19980125133015.123456-300',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('19980125133015.123456-300')),
                 ]),
                 namespace=u'n',
                 host=None),
-            UserWarning, CHECK_0_12_0
         ),
-        (
-            "datetime key for interval (no quotes)",
-            '/n:C.k1=12345678133015.123456:000',
-            dict(
+        None, UserWarning, CHECK_0_12_0
+    ),
+    (
+        "datetime key for interval (no quotes)",
+        dict(
+            uri='/n:C.k1=12345678133015.123456:000',
+            exp_attrs=dict(
                 classname=u'C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('12345678133015.123456:000')),
                 ]),
                 namespace=u'n',
                 host=None),
-            UserWarning, CHECK_0_12_0
         ),
-        (
-            "reference key that has an int key (normal association)",
-            '/n1:C1.k1="/n2:C2.k2=1"',
-            dict(
+        None, UserWarning, CHECK_0_12_0
+    ),
+    (
+        "reference key that has an int key (normal association)",
+        dict(
+            uri='/n1:C1.k1="/n2:C2.k2=1"',
+            exp_attrs=dict(
                 classname=u'C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
@@ -2716,12 +2901,14 @@ class Test_CIMInstanceName_from_wbem_uri(object):
                 ]),
                 namespace=u'n1',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "reference key that has a string key (normal association)",
-            r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "reference key that has a string key (normal association)",
+        dict(
+            uri=r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
+            exp_attrs=dict(
                 classname=u'C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
@@ -2733,12 +2920,14 @@ class Test_CIMInstanceName_from_wbem_uri(object):
                 ]),
                 namespace=u'n1',
                 host=None),
-            None, CHECK_0_12_0
         ),
-        (
-            "double nested reference to int key (association to association)",
-            r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "double nested reference to int key (association to association)",
+        dict(
+            uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
+            exp_attrs=dict(
                 classname=u'C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
@@ -2754,14 +2943,17 @@ class Test_CIMInstanceName_from_wbem_uri(object):
                         namespace='n2')),
                 ]),
                 namespace=u'n1',
-                host=None),
-            None, CHECK_0_12_0
+                host=None,
+            ),
         ),
-        (
-            "double nested reference to string key (association to "
-            "association)",
-            r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
-            dict(
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "double nested reference to string key (association to "
+        "association)",
+        dict(
+            uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
+            exp_attrs=dict(
                 classname=u'C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
@@ -2777,178 +2969,176 @@ class Test_CIMInstanceName_from_wbem_uri(object):
                         namespace='n2')),
                 ]),
                 namespace=u'n1',
-                host=None),
-            None, CHECK_0_12_0
+                host=None,
+            ),
         ),
-        (
-            "missing delimiter / before authority",
-            'https:/10.11.12.13/cimv2:CIM_Foo.k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "missing delimiter / before authority",
+        dict(
+            uri='https:/10.11.12.13/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "invalid char ; in authority",
-            'https://10.11.12.13;5989/cimv2:CIM_Foo.k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid char ; in authority",
+        dict(
+            uri='https://10.11.12.13;5989/cimv2:CIM_Foo.k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "delimiter / before namespace replaced with :",
-            'https://10.11.12.13:5989:root:CIM_Foo.k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "delimiter / before namespace replaced with :",
+        dict(
+            uri='https://10.11.12.13:5989:root:CIM_Foo.k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "delimiter : before classname replaced with .",
-            'https://10.11.12.13:5989/root.CIM_Foo.k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "delimiter : before classname replaced with .",
+        dict(
+            uri='https://10.11.12.13:5989/root.CIM_Foo.k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "invalid '/' between namespace and classname",
-            'https://10.11.12.13:5989/cimv2/CIM_Foo.k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid '/' between namespace and classname",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2/CIM_Foo.k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "class name missing",
-            'https://10.11.12.13:5989/root/cimv2:k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "class name missing",
+        dict(
+            uri='https://10.11.12.13:5989/root/cimv2:k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "class path used as instance path",
-            'https://10.11.12.13:5989/root:CIM_Foo',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "class path used as instance path",
+        dict(
+            uri='https://10.11.12.13:5989/root:CIM_Foo',
+            exp_attrs=None,
         ),
-        (
-            "invalid ':' between classname and key k1",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo:k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid ':' between classname and key k1",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo:k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "invalid '/' between classname and key k1",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo/k1="v1"',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid '/' between classname and key k1",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo/k1="v1"',
+            exp_attrs=None,
         ),
-        (
-            "invalid '.' between key k1 and key k2",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2="v2"',
-            ValueError,
-            None, CHECK_0_12_0 and False
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid '.' between key k1 and key k2",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2="v2"',
+            exp_attrs=None,
         ),
-        (
-            "invalid ':' between key k1 and key k2",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1":k2="v2"',
-            ValueError,
-            None, CHECK_0_12_0 and False
+        ValueError, None, CHECK_0_12_0 and False
+    ),
+    (
+        "invalid ':' between key k1 and key k2",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1":k2="v2"',
+            exp_attrs=None,
         ),
-        (
-            "double quotes missing around string value of key k2",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=v2',
-            ValueError,
-            None, CHECK_0_12_0 and False
+        ValueError, None, CHECK_0_12_0 and False
+    ),
+    (
+        "double quotes missing around string value of key k2",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=v2',
+            exp_attrs=None,
         ),
-        (
-            "invalid double comma between keybindings",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",,k2=42',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0 and False
+    ),
+    (
+        "invalid double comma between keybindings",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",,k2=42',
+            exp_attrs=None,
         ),
-        (
-            "invalid comma after last keybinding",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k2=42,',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "invalid comma after last keybinding",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k2=42,',
+            exp_attrs=None,
         ),
-        (
-            "equal sign missing in keyinding",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k242',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "equal sign missing in keyinding",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k242',
+            exp_attrs=None,
         ),
-        (
-            "double equal sign in keyinding",
-            'https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k2==42',
-            ValueError,
-            None, CHECK_0_12_0
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "double equal sign in keyinding",
+        dict(
+            uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k2==42',
+            exp_attrs=None,
         ),
-    ]
+        ValueError, None, CHECK_0_12_0
+    ),
+]
 
-    @pytest.mark.parametrize(
-        "desc, uri, exp_result, exp_warn_type, condition",
-        testcases)
-    def test_CIMInstanceName_from_wbem_uri(
-            self, desc, uri, exp_result, exp_warn_type, condition):
-        # pylint: disable=unused-argument
-        """Test function for CIMInstanceName.from_wbem_uri()."""
 
-        if not condition:
-            pytest.skip("Condition for test case not met")
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI)
+@pytest_extensions.simplified_test_function
+def test_CIMInstanceName_from_wbem_uri(testcase,
+                                       uri, exp_attrs):
+    """
+    Test function for CIMInstanceName.from_wbem_uri()
+    """
 
-        if isinstance(exp_result, type) and issubclass(exp_result, Exception):
-            # We expect an exception
-            exp_exc_type = exp_result
-            exp_attrs = None
-        else:
-            # We expect the code to return
-            exp_exc_type = None
-            exp_attrs = exp_result
+    # The code to be tested
+    obj = CIMInstanceName.from_wbem_uri(uri)
 
-        if condition == 'pdb':
-            import pdb
-            pdb.set_trace()
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
 
-        if exp_warn_type:
-            with pytest.warns(exp_warn_type) as rec_warnings:
-                if exp_exc_type:
-                    with pytest.raises(exp_exc_type):
+    assert isinstance(obj, CIMInstanceName)
 
-                        # The code to be tested
-                        obj = CIMInstanceName.from_wbem_uri(uri)
+    exp_classname = exp_attrs['classname']
+    assert obj.classname == exp_classname
+    assert isinstance(obj.classname, type(exp_classname))
 
-                else:
+    exp_keybindings = exp_attrs['keybindings']
+    assert obj.keybindings == exp_keybindings
+    assert isinstance(obj.keybindings, type(exp_keybindings))
 
-                    # The code to be tested
-                    obj = CIMInstanceName.from_wbem_uri(uri)
+    exp_namespace = exp_attrs['namespace']
+    assert obj.namespace == exp_namespace
+    assert isinstance(obj.namespace, type(exp_namespace))
 
-            assert len(rec_warnings) == 1
-
-        else:
-            if exp_exc_type:
-                with pytest.raises(exp_exc_type):
-
-                    # The code to be tested
-                    obj = CIMInstanceName.from_wbem_uri(uri)
-
-            else:
-
-                # The code to be tested
-                obj = CIMInstanceName.from_wbem_uri(uri)
-
-        if exp_attrs:
-
-            exp_classname = exp_attrs['classname']
-            exp_keybindings = exp_attrs['keybindings']
-            exp_namespace = exp_attrs['namespace']
-            exp_host = exp_attrs['host']
-
-            assert isinstance(obj, CIMInstanceName)
-
-            assert obj.classname == exp_classname
-            assert isinstance(obj.classname, type(exp_classname))
-
-            assert obj.keybindings == exp_keybindings
-            assert isinstance(obj.keybindings, type(exp_keybindings))
-
-            assert obj.namespace == exp_namespace
-            assert isinstance(obj.namespace, type(exp_namespace))
-
-            assert obj.host == exp_host
-            assert isinstance(obj.host, type(exp_host))
+    exp_host = exp_attrs['host']
+    assert obj.host == exp_host
+    assert isinstance(obj.host, type(exp_host))
 
 
 class Test_CIMInstanceName_from_instance(object):
@@ -3131,7 +3321,7 @@ class Test_CIMInstanceName_from_instance(object):
     @pytest.mark.parametrize(
         "desc, cls_kwargs, inst_kwargs, exp_result, strict, condition",
         testcases)
-    def test_CIMInstanceName_from_instance(
+    def test_CIMInstanceName_from_instance(  # XXX: Migrate to s.tst.fnc.
             self, desc, cls_kwargs, inst_kwargs, exp_result, strict, ns, host,
             condition):
         # pylint: disable=unused-argument
@@ -3634,7 +3824,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
     @pytest.mark.parametrize(
         "desc, attrs, format_, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMInstanceName_to_wbem_uri_str(
+    def test_CIMInstanceName_to_wbem_uri_str(  # XXX: Migrate to s.tst.fnc.
             self, desc, attrs, format_, exp_result, exp_warn_type, condition,
             func_name):
         # pylint: disable=unused-argument
@@ -3727,7 +3917,7 @@ class Test_CIMInstance_init(object):
         property_list=None,
     )
 
-    def test_CIMInstance_init_pos_args(self):
+    def test_CIMInstance_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMInstance.__init__()."""
 
@@ -3780,7 +3970,7 @@ class Test_CIMInstance_init(object):
             None, not CHECK_0_12_0
         ),
         (
-            "Verify that binary classname is converted to unicode",
+            "Verify that bytes classname is converted to unicode",
             dict(classname=b'CIM_Foo'),
             dict(classname=u'CIM_Foo'),
             None, True
@@ -3848,7 +4038,7 @@ class Test_CIMInstance_init(object):
             None, True
         ),
         (
-            "Verify property with binary string value",
+            "Verify property with bytes string value",
             dict(
                 classname='CIM_Foo',
                 properties=dict(P1=b'Ham')),
@@ -4327,7 +4517,7 @@ class Test_CIMInstance_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMInstance_init_succeeds(
+    def test_CIMInstance_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMInstance.__init__() succeeds."""
@@ -4489,7 +4679,7 @@ class Test_CIMInstance_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMInstance_init_fails(
+    def test_CIMInstance_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMInstance.__init__() fails."""
@@ -4511,7 +4701,7 @@ class CIMInstanceCopy(unittest.TestCase):
     still the same.
     """
 
-    def test_all(self):
+    def test_CIMInstance_copy(self):  # XXX: Migrate to pytest
 
         # TODO Add tests for CIMInstance property_list argument
 
@@ -4562,7 +4752,7 @@ class CIMInstanceAttrs(unittest.TestCase):
     accessed and modified.
     """
 
-    def test_all(self):
+    def test_CIMInstance_attrs(self):  # XXX: Migrate to pytest
 
         props = {'Chicken': CIMProperty('Chicken', 'Ham'),
                  'Number': CIMProperty('Number', Uint32(42))}
@@ -4626,7 +4816,7 @@ class CIMInstanceAttrs(unittest.TestCase):
 class CIMInstanceDict(DictionaryTestCase):
     """Test the Python dictionary interface for CIMInstance."""
 
-    def test_all(self):
+    def test_CIMInstance_dict(self):  # XXX: Migrate to pytest
 
         props = {'Chicken': 'Ham', 'Beans': Uint32(42)}
 
@@ -4654,7 +4844,7 @@ class CIMInstanceDict(DictionaryTestCase):
 class CIMInstanceEquality(unittest.TestCase):
     """Test comparing CIMInstance objects."""
 
-    def test_all(self):
+    def test_CIMInstance_eq(self):  # XXX: Migrate to pytest
 
         # Basic equality tests
 
@@ -4819,8 +5009,7 @@ class CIMInstanceCompare(unittest.TestCase):
     """
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMInstance
+    def test_CIMInstance_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -4830,8 +5019,7 @@ class CIMInstanceSort(unittest.TestCase):
     """
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMInstance
+    def test_CIMInstance_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -5189,9 +5377,6 @@ def test_CIMInstance_hash(testcase,
     Test function for CIMInstance.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -5200,125 +5385,93 @@ def test_CIMInstance_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMInstance_str(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMINSTANCE_STR_REPR = [
+
+    # Testcases for CIMInstance.__repr__(), __str__() / repr(), str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMInstance object to be tested.
+
+    (
+        CIMInstance(
+            classname='CIM_Foo')
+    ),
+    (
+        CIMInstance(
+            classname='CIM_Foo',
+            properties=dict(
+                Name='Spottyfoot',
+                Ref1=CIMInstanceName('CIM_Bar')))
+    ),
+    (
+        CIMInstance(
+            classname='CIM_Foo',
+            properties=dict(
+                Name='Spottyfoot',
+                Ref1=CIMInstanceName('CIM_Bar')),
+            path=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=dict(Name='Spottyfoot')))
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMINSTANCE_STR_REPR)
+def test_CIMInstance_str(obj):
     """
-    Test CIMInstance.__str__().
-
-    That function returns for example::
-
-       CIMInstance(classname=CIM_Foo, path=CIMINstanceName(...), ...)
-    """
-
-    instpath_1 = CIMInstanceName(
-        'CIM_Foo',
-        keybindings=dict(Name='Spottyfoot'))
-
-    testcases_succeeds = [
-        # Testcases where CIMInstance.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMInstance object to be tested.
-        (
-            CIMInstance(
-                classname='CIM_Foo')
-        ),
-        (
-            CIMInstance(
-                classname='CIM_Foo',
-                properties=dict(
-                    Name='Spottyfoot',
-                    Ref1=CIMInstanceName('CIM_Bar')))
-        ),
-        (
-            CIMInstance(
-                classname='CIM_Foo',
-                properties=dict(
-                    Name='Spottyfoot',
-                    Ref1=CIMInstanceName('CIM_Bar')),
-                path=instpath_1)
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMInstance_str_succeeds(self, obj):
-        """All test cases where CIMInstance.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMInstance\(', s)
-
-        exp_classname = 'classname=%r' % obj.classname
-        assert exp_classname in s
-
-        exp_path = 'path=%r' % obj.path
-        assert exp_path in s
-
-
-class Test_CIMInstance_repr(object):  # pylint: disable=too-few-public-methods
-    """
-    Test CIMInstance.__repr__().
+    Test function for CIMInstance.__str__() / str()
     """
 
-    instpath_1 = CIMInstanceName(
-        'CIM_Foo',
-        keybindings=dict(Name='Spottyfoot'))
+    # The code to be tested
+    s = str(obj)
 
-    testcases_succeeds = [
-        # Testcases where CIMInstance.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMInstance object to be tested.
-        (
-            CIMInstance(
-                classname='CIM_Foo')
-        ),
-        (
-            CIMInstance(
-                classname='CIM_Foo',
-                properties=dict(
-                    Name='Spottyfoot',
-                    Ref1=CIMInstanceName('CIM_Bar')))
-        ),
-        (
-            CIMInstance(
-                classname='CIM_Foo',
-                properties=dict(
-                    Name='Spottyfoot',
-                    Ref1=CIMInstanceName('CIM_Bar')),
-                path=instpath_1)
-        ),
-    ]
+    assert re.match(r'^CIMInstance\(', s)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMInstance_repr_succeeds(self, obj):
-        """All test cases where CIMInstance.__repr__() succeeds."""
+    exp_classname = 'classname=%r' % obj.classname
+    assert exp_classname in s
 
-        r = repr(obj)
+    exp_path = 'path=%r' % obj.path
+    assert exp_path in s
 
-        assert re.match(r'^CIMInstance\(', r)
 
-        exp_classname = 'classname=%r' % obj.classname
-        assert exp_classname in r
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMINSTANCE_STR_REPR)
+def test_CIMInstance_repr(obj):
+    """
+    Test function for CIMInstance.__repr__() / repr()
+    """
 
-        exp_path = 'path=%r' % obj.path
-        assert exp_path in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_properties = 'properties=%r' % obj.properties
-        assert exp_properties in r
+    assert re.match(r'^CIMInstance\(', r)
 
-        exp_property_list = 'property_list=%r' % obj.property_list
-        assert exp_property_list in r
+    exp_classname = 'classname=%r' % obj.classname
+    assert exp_classname in r
 
-        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
-        assert exp_qualifiers in r
+    exp_path = 'path=%r' % obj.path
+    assert exp_path in r
+
+    exp_properties = 'properties=%r' % obj.properties
+    assert exp_properties in r
+
+    exp_property_list = 'property_list=%r' % obj.property_list
+    assert exp_property_list in r
+
+    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    assert exp_qualifiers in r
 
 
 # Some CIMInstance objects for CIMInstance.tocimxml() tests
@@ -6018,7 +6171,7 @@ instance of C1 {
     @pytest.mark.parametrize(
         "desc, obj, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMInstance_tomof(
+    def test_CIMInstance_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMInstance.tomof()."""
@@ -6071,7 +6224,7 @@ instance of C1 {
             assert isinstance(mof, six.text_type)
             assert mof == exp_mof
 
-    def test_CIMInstance_tomof_indent_warning(self):
+    def test_CIMInstance_tomof_indent_warning(self):  # XXX: Migrate to pytest
         """CIMInstance.tomof() with deprecated 'indent' parameter."""
 
         if not CHECK_0_12_0:
@@ -6097,7 +6250,7 @@ class CIMInstanceUpdatePath(unittest.TestCase):
     Test updating key and non-key properties of `CIMInstance` objects.
     """
 
-    def test_all(self):
+    def test_CIMInstance_update_path(self):  # XXX: Migrate to pytest
 
         iname = CIMInstanceName('CIM_Foo', namespace='root/cimv2',
                                 keybindings={'k1': None, 'k2': None})
@@ -6125,7 +6278,7 @@ class CIMInstancePropertyList(unittest.TestCase):
     property list.
     """
 
-    def test_all(self):
+    def test_CIMInstance_property_list(self):  # XXX: Migrate to pytest
 
         iname = CIMInstanceName('CIM_Foo', namespace='root/cimv2',
                                 keybindings={'k1': None, 'k2': None})
@@ -6169,7 +6322,7 @@ class CIMInstanceUpdateExisting(unittest.TestCase):
     There is also a test for update_existing() on `CIMInstanceName` objects.
     """
 
-    def test_all(self):
+    def test_CIMInstance_update_existing(self):  # XXX: Migrate to pytest
 
         i = CIMInstance('CIM_Foo',
                         {'string': 'string',
@@ -6236,7 +6389,7 @@ class Test_CIMProperty_init(object):
                   'sint8', 'sint16', 'sint32', 'sint64']
     _REAL_TYPES = ['real32', 'real64']
 
-    def test_CIMProperty_init_pos_args(self):
+    def test_CIMProperty_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMProperty.__init__()."""
 
@@ -6287,7 +6440,7 @@ class Test_CIMProperty_init(object):
     # A datetime and corresponding CIM datetime value
     datetime_2 = datetime(year=2014, month=9, day=24, hour=19, minute=30,
                           second=40, microsecond=654321,
-                          tzinfo=cim_types.MinutesFromUTC(120))
+                          tzinfo=MinutesFromUTC(120))
     cim_datetime_2 = '20140924193040.654321+120'
 
     emb_instance_1 = CIMInstance('CIM_Instance1')
@@ -6305,7 +6458,7 @@ class Test_CIMProperty_init(object):
 
         # Name tests
         (
-            "Verify that binary name is converted to unicode",
+            "Verify that bytes name is converted to unicode",
             dict(name=b'FooProp', value=u'abc'),
             dict(name=u'FooProp', value=u'abc', type=exp_type_string),
             None, True
@@ -6319,7 +6472,7 @@ class Test_CIMProperty_init(object):
 
         # Value/type tests: Initialization to CIM string type
         (
-            "Verify binary string without type",
+            "Verify bytes string without type",
             dict(name=u'FooProp', value=b'abc'),
             dict(name=u'FooProp', value=u'abc', type=exp_type_string),
             None, True
@@ -6331,7 +6484,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
         (
-            "Verify binary string with type",
+            "Verify bytes string with type",
             dict(name=u'FooProp', value=b'abc', type='string'),
             dict(name=u'FooProp', value=u'abc', type=u'string'),
             None, True
@@ -6651,7 +6804,7 @@ class Test_CIMProperty_init(object):
             None, True
         ),
         (
-            "Verify that binary reference_class is converted to unicode",
+            "Verify that bytes reference_class is converted to unicode",
             dict(name=u'FooProp', value=None, type='reference',
                  reference_class=b'CIM_Ref'),
             dict(name=u'FooProp', value=None, type=u'reference',
@@ -7356,7 +7509,7 @@ class Test_CIMProperty_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMProperty_init_succeeds(
+    def test_CIMProperty_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMProperty.__init__() succeeds."""
@@ -7579,7 +7732,7 @@ class Test_CIMProperty_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMProperty_init_fails(
+    def test_CIMProperty_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMProperty.__init__() fails."""
@@ -7595,7 +7748,7 @@ class Test_CIMProperty_init(object):
 
 class CIMPropertyCopy(unittest.TestCase, CIMObjectMixin):
 
-    def test_all(self):
+    def test_CIMProperty_copy(self):  # XXX: Migrate to pytest
 
         p = CIMProperty('Spotty', 'Foot')
         c = p.copy()
@@ -7612,7 +7765,7 @@ class CIMPropertyCopy(unittest.TestCase, CIMObjectMixin):
 
 class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
 
-    def test_all(self):
+    def test_CIMProperty_attrs(self):  # XXX: Migrate to pytest
 
         # Attributes for single-valued property
 
@@ -7648,7 +7801,7 @@ class CIMPropertyAttrs(unittest.TestCase, CIMObjectMixin):
 
 class CIMPropertyEquality(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMProperty_eq(self):  # XXX: Migrate to pytest
 
         # Compare single-valued properties
 
@@ -7788,16 +7941,14 @@ class CIMPropertyEquality(unittest.TestCase):
 class CIMPropertyCompare(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMProperty
+    def test_CIMProperty_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
 class CIMPropertySort(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMProperty
+    def test_CIMProperty_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -8195,9 +8346,6 @@ def test_CIMProperty_hash(testcase,
     Test function for CIMProperty.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -8206,205 +8354,144 @@ def test_CIMProperty_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMProperty_str(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMPROPERTY_STR_REPR = [
+
+    # Testcases for CIMProperty.__repr__(), __str__() / repr(), str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMProperty object to be tested.
+
+    (
+        CIMProperty(
+            name='Spotty',
+            value='Foot')
+    ),
+    (
+        CIMProperty(
+            name='Spotty',
+            value='Foot',
+            type='string')
+    ),
+    (
+        CIMProperty(
+            name='Spotty',
+            value=None,
+            type='reference',
+            reference_class='CIM_Foo')
+    ),
+    (
+        CIMProperty(
+            name='Spotty',
+            value=CIMInstance('CIM_Bar'),
+            type='string',
+            embedded_object='instance')
+    ),
+    (
+        CIMProperty(
+            name='Spotty',
+            value=CIMInstance('CIM_Bar'),
+            type='string',
+            embedded_object='object')
+    ),
+    (
+        CIMProperty(
+            name='Spotty',
+            value=CIMClass('CIM_Bar'),
+            type='string',
+            embedded_object='object')
+    ),
+    (
+        CIMProperty(
+            name='Spotty',
+            value=['Foot'],
+            is_array=True)
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMPROPERTY_STR_REPR)
+def test_CIMProperty_str(obj):
     """
-    Test CIMProperty.__str__().
-
-    That function returns for example::
-
-       CIMProperty(name=Prop, value=..., type=..., reference_class=...
-       embedded_object=..., is_array=...)
-    """
-
-    emb_classname = 'CIM_Bar'
-    emb_instance = CIMInstance(emb_classname)
-    emb_class = CIMClass(emb_classname)
-
-    testcases_succeeds = [
-        # Testcases where CIMProperty.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMProperty object to be tested.
-        (
-            CIMProperty(
-                name='Spotty',
-                value='Foot')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value='Foot',
-                type='string')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=None,
-                type='reference',
-                reference_class='CIM_Foo')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=emb_instance,
-                type='string',
-                embedded_object='instance')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=emb_instance,
-                type='string',
-                embedded_object='object')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=emb_class,
-                type='string',
-                embedded_object='object')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=['Foot'],
-                is_array=True)
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMProperty_str_succeeds(self, obj):
-        """All test cases where CIMProperty.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMProperty\(', s)
-
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in s
-
-        exp_value = 'value=%r' % obj.value
-        assert exp_value in s
-
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in s
-
-        exp_reference_class = 'reference_class=%r' % obj.reference_class
-        assert exp_reference_class in s
-
-        exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
-        assert exp_embedded_object in s
-
-        exp_is_array = 'is_array=%r' % obj.is_array
-        assert exp_is_array in s
-
-
-class Test_CIMProperty_repr(object):  # pylint: disable=too-few-public-methods
-    """
-    Test CIMProperty.__repr__().
+    Test function for CIMProperty.__str__() / str()
     """
 
-    emb_classname = 'CIM_Bar'
-    emb_instance = CIMInstance(emb_classname)
-    emb_class = CIMClass(emb_classname)
+    # The code to be tested
+    s = str(obj)
 
-    testcases_succeeds = [
-        # Testcases where CIMProperty.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMProperty object to be tested.
-        (
-            CIMProperty(
-                name='Spotty',
-                value='Foot')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value='Foot',
-                type='string')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=None,
-                type='reference',
-                reference_class='CIM_Foo')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=emb_instance,
-                type='string',
-                embedded_object='instance')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=emb_instance,
-                type='string',
-                embedded_object='object')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=emb_class,
-                type='string',
-                embedded_object='object')
-        ),
-        (
-            CIMProperty(
-                name='Spotty',
-                value=['Foot'],
-                is_array=True)
-        ),
-    ]
+    assert re.match(r'^CIMProperty\(', s)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMProperty_repr_succeeds(self, obj):
-        """All test cases where CIMProperty.__repr__() succeeds."""
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in s
 
-        r = repr(obj)
+    exp_value = 'value=%r' % obj.value
+    assert exp_value in s
 
-        assert re.match(r'^CIMProperty\(', r)
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in s
 
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in r
+    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    assert exp_reference_class in s
 
-        exp_value = 'value=%r' % obj.value
-        assert exp_value in r
+    exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
+    assert exp_embedded_object in s
 
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in r
+    exp_is_array = 'is_array=%r' % obj.is_array
+    assert exp_is_array in s
 
-        exp_reference_class = 'reference_class=%r' % obj.reference_class
-        assert exp_reference_class in r
 
-        exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
-        assert exp_embedded_object in r
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMPROPERTY_STR_REPR)
+def test_CIMProperty_repr(obj):
+    """
+    Test function for CIMProperty.__repr__() / repr()
+    """
 
-        exp_is_array = 'is_array=%r' % obj.is_array
-        assert exp_is_array in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_array_size = 'array_size=%r' % obj.array_size
-        assert exp_array_size in r
+    assert re.match(r'^CIMProperty\(', r)
 
-        exp_class_origin = 'class_origin=%r' % obj.class_origin
-        assert exp_class_origin in r
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in r
 
-        exp_propagated = 'propagated=%r' % obj.propagated
-        assert exp_propagated in r
+    exp_value = 'value=%r' % obj.value
+    assert exp_value in r
 
-        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
-        assert exp_qualifiers in r
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in r
+
+    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    assert exp_reference_class in r
+
+    exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
+    assert exp_embedded_object in r
+
+    exp_is_array = 'is_array=%r' % obj.is_array
+    assert exp_is_array in r
+
+    exp_array_size = 'array_size=%r' % obj.array_size
+    assert exp_array_size in r
+
+    exp_class_origin = 'class_origin=%r' % obj.class_origin
+    assert exp_class_origin in r
+
+    exp_propagated = 'propagated=%r' % obj.propagated
+    assert exp_propagated in r
+
+    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    assert exp_qualifiers in r
 
 
 TESTCASES_CIMPROPERTY_TOCIMXML = [
@@ -11512,7 +11599,7 @@ class Test_CIMProperty_tomof(object):
     @pytest.mark.parametrize(
         "desc, obj, is_instance, indent, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMProperty_tomof(
+    def test_CIMProperty_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, is_instance, indent, exp_result, exp_warn_type,
             condition):
         # pylint: disable=unused-argument
@@ -11566,7 +11653,7 @@ class Test_CIMProperty_tomof(object):
             assert isinstance(mof, six.text_type)
             assert mof == exp_mof
 
-    def test_CIMProperty_tomof_fail1(self):
+    def test_CIMProperty_tomof_fail1(self):  # Merge with normal func
         """CIMProperty.tomof() failure: Provoke TypeError with string"""
 
         if not CHECK_0_12_0:
@@ -11586,7 +11673,7 @@ class Test_CIMProperty_tomof(object):
             # The code to be tested
             obj.tomof(is_instance=False)
 
-    def test_CIMProperty_tomof_success1(self):
+    def test_CIMProperty_tomof_success1(self):  # Merge with normal func
         """CIMProperty.tomof(): Use plain float value"""
 
         if not CHECK_0_12_0:
@@ -11610,7 +11697,7 @@ class Test_CIMQualifier_init(object):
     Test CIMQualifier.__init__().
     """
 
-    def test_CIMQualifier_init_pos_args(self):
+    def test_CIMQualifier_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMQualifier.__init__()."""
 
@@ -11662,7 +11749,7 @@ class Test_CIMQualifier_init(object):
             None, not CHECK_0_12_0
         ),
         (
-            "Verify that binary name is converted to unicode",
+            "Verify that bytes name is converted to unicode",
             dict(name=b'FooParam', value=u'abc'),
             dict(name=u'FooParam', value=u'abc', type=exp_type_string),
             None, True
@@ -11676,7 +11763,7 @@ class Test_CIMQualifier_init(object):
 
         # Value/type tests
         (
-            "Verify that binary value is converted to unicode and "
+            "Verify that bytes value is converted to unicode and "
             "type is implied to string",
             dict(name=u'FooParam', value=b'abc'),
             dict(name=u'FooParam', value=u'abc' if CHECK_0_12_0 else b'abc',
@@ -11717,7 +11804,7 @@ class Test_CIMQualifier_init(object):
             None, True
         ),
         (
-            "Verify that binary array value is converted to unicode and "
+            "Verify that bytes array value is converted to unicode and "
             "type is implied to string",
             dict(name=u'FooParam', value=[b'abc']),
             dict(name=u'FooParam', value=[u'abc' if CHECK_0_12_0 else b'abc'],
@@ -11822,7 +11909,7 @@ class Test_CIMQualifier_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMQualifier_init_succeeds(
+    def test_CIMQualifier_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMQualifier.__init__() succeeds."""
@@ -11939,7 +12026,7 @@ class Test_CIMQualifier_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMQualifier_init_fails(
+    def test_CIMQualifier_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMQualifier.__init__() fails."""
@@ -11955,7 +12042,7 @@ class Test_CIMQualifier_init(object):
 
 class CIMQualifierCopy(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMQualifier_copy(self):  # XXX: Migrate to pytest
 
         q = CIMQualifier('Revision', '2.7.0', 'string')
         c = q.copy()
@@ -11971,7 +12058,7 @@ class CIMQualifierCopy(unittest.TestCase):
 class CIMQualifierAttrs(unittest.TestCase):
     """Test attributes of CIMQualifier object."""
 
-    def test_all(self):
+    def test_CIMQualifier_attrs(self):  # XXX: Migrate to pytest
 
         q = CIMQualifier('Revision', '2.7.0')
 
@@ -12007,7 +12094,7 @@ class CIMQualifierAttrs(unittest.TestCase):
 class CIMQualifierEquality(unittest.TestCase):
     """Compare CIMQualifier objects."""
 
-    def test_all(self):
+    def test_CIMQualifier_eq(self):  # XXX: Migrate to pytest
 
         self.assertEqual(CIMQualifier('Spotty', 'Foot'),
                          CIMQualifier('Spotty', 'Foot'))
@@ -12035,16 +12122,14 @@ class CIMQualifierEquality(unittest.TestCase):
 class CIMQualifierCompare(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMQualifier
+    def test_CIMQualifier_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
 class CIMQualifierSort(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMQualifier
+    def test_CIMQualifier_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -12272,9 +12357,6 @@ def test_CIMQualifier_hash(testcase,
     Test function for CIMQualifier.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -12283,113 +12365,94 @@ def test_CIMQualifier_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMQualifier_str(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMQUALIFIER_STR_REPR = [
+
+    # Testcases for CIMQualifier.__repr__(), __str__() / repr(), str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMQualifier object to be tested.
+    (
+        CIMQualifier('Spotty', 'Foot')
+    ),
+    (
+        CIMQualifier('Revision', Real32(2.7))
+    ),
+    (
+        CIMQualifier('RevisionList',
+                     [Uint16(x) for x in [1, 2, 3]],
+                     propagated=False)
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMQUALIFIER_STR_REPR)
+def test_CIMQualifier_str(obj):
     """
-    Test CIMQualifier.__str__().
-
-    That function returns for example::
-
-       CIMQualifier(name='Foo', value=True, type='boolean', ...)
-    """
-
-    testcases_succeeds = [
-        # Testcases where CIMQualifier.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMQualifier object to be tested.
-        (
-            CIMQualifier('Spotty', 'Foot')
-        ),
-        (
-            CIMQualifier('Revision', Real32(2.7))
-        ),
-        (
-            CIMQualifier('RevisionList',
-                         [Uint16(x) for x in [1, 2, 3]],
-                         propagated=False)
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMQualifier_str_succeeds(self, obj):
-        """All test cases where CIMQualifier.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMQualifier\(', s)
-
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in s
-
-        exp_value = 'value=%r' % obj.value
-        assert exp_value in s
-
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in s
-
-
-class Test_CIMQualifier_repr(object):  # pylint: disable=too-few-public-methods
-    """
-    Test CIMQualifier.__repr__().
+    Test function for CIMQualifier.__str__() / str()
     """
 
-    testcases_succeeds = [
-        # Testcases where CIMQualifier.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMQualifier object to be tested.
-        (
-            CIMQualifier('Spotty', 'Foot')
-        ),
-        (
-            CIMQualifier('Revision', Real32(2.7))
-        ),
-        (
-            CIMQualifier('RevisionList',
-                         [Uint16(x) for x in [1, 2, 3]],
-                         propagated=False)
-        ),
-    ]
+    # The code to be tested
+    s = str(obj)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMQualifier_repr_succeeds(self, obj):
-        """All test cases where CIMQualifier.__repr__() succeeds."""
+    assert re.match(r'^CIMQualifier\(', s)
 
-        r = repr(obj)
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in s
 
-        assert re.match(r'^CIMQualifier\(', r)
+    exp_value = 'value=%r' % obj.value
+    assert exp_value in s
 
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in r
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in s
 
-        exp_value = 'value=%r' % obj.value
-        assert exp_value in r
 
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in r
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMQUALIFIER_STR_REPR)
+def test_CIMQualifier_repr(obj):
+    """
+    Test function for CIMQualifier.__repr__() / repr()
+    """
 
-        exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
-        assert exp_tosubclass in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_overridable = 'overridable=%r' % obj.overridable
-        assert exp_overridable in r
+    assert re.match(r'^CIMQualifier\(', r)
 
-        exp_translatable = 'translatable=%r' % obj.translatable
-        assert exp_translatable in r
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in r
 
-        exp_toinstance = 'toinstance=%r' % obj.toinstance
-        assert exp_toinstance in r
+    exp_value = 'value=%r' % obj.value
+    assert exp_value in r
 
-        exp_propagated = 'propagated=%r' % obj.propagated
-        assert exp_propagated in r
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in r
+
+    exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
+    assert exp_tosubclass in r
+
+    exp_overridable = 'overridable=%r' % obj.overridable
+    assert exp_overridable in r
+
+    exp_translatable = 'translatable=%r' % obj.translatable
+    assert exp_translatable in r
+
+    exp_toinstance = 'toinstance=%r' % obj.toinstance
+    assert exp_toinstance in r
+
+    exp_propagated = 'propagated=%r' % obj.propagated
+    assert exp_propagated in r
 
 
 TESTCASES_CIMQUALIFIER_TOCIMXML = [
@@ -15098,7 +15161,7 @@ class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
     @pytest.mark.parametrize(
         "desc, obj, indent, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMQualifier_tomof(
+    def test_CIMQualifier_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMQualifier.tomof()."""
@@ -15163,7 +15226,7 @@ class Test_CIMClassName_init(object):
         namespace=None,
     )
 
-    def test_CIMClassName_init_pos_args(self):
+    def test_CIMClassName_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMClassName.__init__()."""
 
@@ -15188,7 +15251,7 @@ class Test_CIMClassName_init(object):
 
         # Classname tests
         (
-            "Verify that binary classname is converted to unicode",
+            "Verify that bytes classname is converted to unicode",
             dict(classname=b'CIM_Foo'),
             dict(classname=u'CIM_Foo'),
             None, True
@@ -15202,7 +15265,7 @@ class Test_CIMClassName_init(object):
 
         # Namespace tests
         (
-            "Verify that binary namespace is converted to unicode",
+            "Verify that bytes namespace is converted to unicode",
             dict(
                 classname='CIM_Foo',
                 namespace=b'root/cimv2'),
@@ -15246,7 +15309,7 @@ class Test_CIMClassName_init(object):
 
         # Host tests
         (
-            "Verify that binary host is converted to unicode",
+            "Verify that bytes host is converted to unicode",
             dict(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
@@ -15275,7 +15338,7 @@ class Test_CIMClassName_init(object):
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds
     )
-    def test_CIMClassName_init_succeeds(
+    def test_CIMClassName_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMClassName.__init__() succeeds."""
@@ -15329,7 +15392,7 @@ class Test_CIMClassName_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMClassName_init_fails(
+    def test_CIMClassName_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMClassName.__init__() fails."""
@@ -15345,7 +15408,7 @@ class Test_CIMClassName_init(object):
 
 class CIMClassNameCopy(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMClassName_copyl(self):  # XXX: Migrate to pytest
 
         c = CIMClassName('CIM_Foo')
         co = c.copy()
@@ -15365,7 +15428,7 @@ class CIMClassNameCopy(unittest.TestCase):
 
 class CIMClassNameAttrs(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMClassName_attrs(self):  # XXX: Migrate to pytest
 
         obj = CIMClassName('CIM_Foo')
 
@@ -15403,7 +15466,7 @@ class CIMClassNameAttrs(unittest.TestCase):
 
 class CIMClassNameEquality(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMClassName_eq(self):  # XXX: Migrate to pytest
 
         # Basic equality tests
 
@@ -15606,9 +15669,6 @@ def test_CIMClassName_hash(testcase,
     Test function for CIMClassName.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -15617,74 +15677,82 @@ def test_CIMClassName_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMClassName_repr(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMCLASSNAME_REPR = [
+
+    # Testcases for CIMClassName.__repr__() / repr()
+    # Note: CIMClassName.__str__() is tested along with to_wbem_uri()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMClassName object to be tested.
+
+    (
+        CIMClassName(
+            classname='CIM_Foo')
+    ),
+    (
+        CIMClassName(
+            classname='CIM_Foo',
+            namespace='cimv2')
+    ),
+    (
+        CIMClassName(
+            classname='CIM_Foo',
+            namespace='cimv2',
+            host='10.11.12.13')
+    ),
+    (
+        CIMClassName(
+            classname='CIM_Foo',
+            namespace='root/cimv2',
+            host='10.11.12.13')
+    ),
+    (
+        CIMClassName(
+            classname='CIM_Foo',
+            namespace='root/cimv2',
+            host='10.11.12.13:5989')
+    ),
+    (
+        CIMClassName(
+            classname='CIM_Foo',
+            namespace='root/cimv2',
+            host='jdd:test@10.11.12.13:5989')
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMCLASSNAME_REPR)
+def test_CIMClassName_repr(obj):
     """
-    Test CIMClassName.__repr__().
+    Test function for CIMClassName.__repr__() / repr()
+
+    Note: CIMClassName.__str__() is tested along with to_wbem_uri()
     """
 
-    testcases_succeeds = [
-        # Testcases where CIMClassName.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMClassName object to be tested.
-        (
-            CIMClassName(
-                classname='CIM_Foo')
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='cimv2')
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='cimv2',
-                host='10.11.12.13')
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='root/cimv2',
-                host='10.11.12.13')
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='root/cimv2',
-                host='10.11.12.13:5989')
-        ),
-        (
-            CIMClassName(
-                classname='CIM_Foo',
-                namespace='root/cimv2',
-                host='jdd:test@10.11.12.13:5989')
-        ),
-    ]
+    # The code to be tested
+    r = repr(obj)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMClassName_str_succeeds(self, obj):
-        """All test cases where CIMClassName.__str__() succeeds."""
+    assert re.match(r'^CIMClassName\(', r)
 
-        r = repr(obj)
+    exp_classname = 'classname=%r' % obj.classname
+    assert exp_classname in r
 
-        assert re.match(r'^CIMClassName\(', r)
+    exp_namespace = 'namespace=%r' % obj.namespace
+    assert exp_namespace in r
 
-        exp_classname = 'classname=%r' % obj.classname
-        assert exp_classname in r
-
-        exp_namespace = 'namespace=%r' % obj.namespace
-        assert exp_namespace in r
-
-        exp_host = 'host=%r' % obj.host
-        assert exp_host in r
+    exp_host = 'host=%r' % obj.host
+    assert exp_host in r
 
 
 TESTCASES_CIMCLASSNAME_TOCIMXML = [
@@ -16229,7 +16297,7 @@ class Test_CIMClassName_from_wbem_uri(object):
     @pytest.mark.parametrize(
         "desc, uri, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMClassName_from_wbem_uri(
+    def test_CIMClassName_from_wbem_uri(  # XXX: Migrate to s.tst.fnc.
             self, desc, uri, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMClassName.from_wbem_uri()."""
@@ -16497,7 +16565,7 @@ class Test_CIMClassName_to_wbem_uri_str(object):
     @pytest.mark.parametrize(
         "desc, attrs, format_, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMClassName_to_wbem_uri_str(
+    def test_CIMClassName_to_wbem_uri_str(  # XXX: Migrate to s.tst.fnc.
             self, desc, format_, attrs, exp_result, exp_warn_type, condition,
             func_name):
         # pylint: disable=unused-argument
@@ -16574,7 +16642,7 @@ class Test_CIMClass_init(object):
         path=None,
     )
 
-    def test_CIMClass_init_pos_args(self):
+    def test_CIMClass_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMClass.__init__()."""
 
@@ -16621,7 +16689,7 @@ class Test_CIMClass_init(object):
             None, not CHECK_0_12_0
         ),
         (
-            "Verify that binary classname is converted to unicode",
+            "Verify that bytes classname is converted to unicode",
             dict(classname=b'CIM_Foo'),
             dict(classname=u'CIM_Foo'),
             None, True
@@ -16635,7 +16703,7 @@ class Test_CIMClass_init(object):
 
         # Superclass tests
         (
-            "Verify that binary superclass is converted to unicode",
+            "Verify that bytes superclass is converted to unicode",
             dict(classname=u'CIM_Foo', superclass=b'CIM_Foo'),
             dict(classname=u'CIM_Foo', superclass=u'CIM_Foo'),
             None, True
@@ -16872,7 +16940,7 @@ class Test_CIMClass_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMClass_init_succeeds(
+    def test_CIMClass_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMClass.__init__() succeeds."""
@@ -17001,7 +17069,7 @@ class Test_CIMClass_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMClass_init_fails(
+    def test_CIMClass_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMClass.__init__() fails."""
@@ -17017,7 +17085,7 @@ class Test_CIMClass_init(object):
 
 class CIMClassCopy(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMClass_copy(self):  # XXX: Migrate to pytest
 
         path = CIMClassName('CIM_Bar', host='fred', namespace='root/cimv2')
 
@@ -17043,7 +17111,7 @@ class CIMClassCopy(unittest.TestCase):
 
 class CIMClassAttrs(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMClass_attrs(self):  # XXX: Migrate to pytest
 
         obj = CIMClass('CIM_Foo', superclass='CIM_Bar')
 
@@ -17179,7 +17247,7 @@ class CIMClassAttrs(unittest.TestCase):
 
 class CIMClassEquality(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMClass_eq(self):  # XXX: Migrate to pytest
 
         self.assertEqual(CIMClass('CIM_Foo'), CIMClass('CIM_Foo'))
         self.assertEqual(CIMClass('CIM_Foo'), CIMClass('cim_foo'))
@@ -17340,16 +17408,14 @@ class CIMClassEquality(unittest.TestCase):
 class CIMClassCompare(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMClass
+    def test_CIMClass_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
 class CIMClassSort(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMClass
+    def test_CIMClass_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -17804,9 +17870,6 @@ def test_CIMClass_hash(testcase,
     Test function for CIMClass.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -17815,125 +17878,93 @@ def test_CIMClass_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMClass_str(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMCLASS_STR_REPR = [
+
+    # Testcases for CIMClass.__repr__(), __str__() / repr(), str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMClass object to be tested.
+
+    (
+        CIMClass(
+            classname='CIM_Foo')
+    ),
+    (
+        CIMClass(
+            classname='CIM_Foo',
+            properties=[
+                CIMProperty('Name', 'string'),
+                CIMProperty('Ref1', 'reference'),
+            ])
+    ),
+    (
+        CIMClass(
+            classname='CIM_Foo',
+            properties=[
+                CIMProperty('Name', 'string'),
+                CIMProperty('Ref1', 'reference'),
+            ],
+            path=CIMClassName('CIM_Foo'))
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMCLASS_STR_REPR)
+def test_CIMClass_str(obj):
     """
-    Test CIMClass.__str__().
-
-    That function returns for example::
-
-       CIMClass(classname=CIM_Foo, ...)
-    """
-
-    classpath_1 = CIMClassName('CIM_Foo')
-
-    testcases_succeeds = [
-        # Testcases where CIMClass.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMClass object to be tested.
-        (
-            CIMClass(
-                classname='CIM_Foo')
-        ),
-        (
-            CIMClass(
-                classname='CIM_Foo',
-                properties=[
-                    CIMProperty('Name', 'string'),
-                    CIMProperty('Ref1', 'reference'),
-                ])
-        ),
-        (
-            CIMClass(
-                classname='CIM_Foo',
-                properties=[
-                    CIMProperty('Name', 'string'),
-                    CIMProperty('Ref1', 'reference'),
-                ],
-                path=classpath_1)
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMClass_str_succeeds(self, obj):
-        """All test cases where CIMClass.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMClass\(', s)
-
-        exp_classname = 'classname=%r' % obj.classname
-        assert exp_classname in s
-
-
-class Test_CIMClass_repr(object):  # pylint: disable=too-few-public-methods
-    """
-    Test CIMClass.__repr__().
+    Test function for CIMClass.__str__() / str()
     """
 
-    classpath_1 = CIMClassName('CIM_Foo')
+    # The code to be tested
+    s = str(obj)
 
-    testcases_succeeds = [
-        # Testcases where CIMClass.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMClass object to be tested.
-        (
-            CIMClass(
-                classname='CIM_Foo')
-        ),
-        (
-            CIMClass(
-                classname='CIM_Foo',
-                properties=[
-                    CIMProperty('Name', 'string'),
-                    CIMProperty('Ref1', 'reference'),
-                ])
-        ),
-        (
-            CIMClass(
-                classname='CIM_Foo',
-                properties=[
-                    CIMProperty('Name', 'string'),
-                    CIMProperty('Ref1', 'reference'),
-                ],
-                path=classpath_1)
-        ),
-    ]
+    assert re.match(r'^CIMClass\(', s)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMClass_repr_succeeds(self, obj):
-        """All test cases where CIMClass.__repr__() succeeds."""
+    exp_classname = 'classname=%r' % obj.classname
+    assert exp_classname in s
 
-        r = repr(obj)
 
-        assert re.match(r'^CIMClass\(', r)
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMCLASS_STR_REPR)
+def test_CIMClass_repr(obj):
+    """
+    Test function for CIMClass.__repr__() / repr()
+    """
 
-        exp_classname = 'classname=%r' % obj.classname
-        assert exp_classname in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_superclass = 'superclass=%r' % obj.superclass
-        assert exp_superclass in r
+    assert re.match(r'^CIMClass\(', r)
 
-        exp_properties = 'properties=%r' % obj.properties
-        assert exp_properties in r
+    exp_classname = 'classname=%r' % obj.classname
+    assert exp_classname in r
 
-        exp_methods = 'methods=%r' % obj.methods
-        assert exp_methods in r
+    exp_superclass = 'superclass=%r' % obj.superclass
+    assert exp_superclass in r
 
-        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
-        assert exp_qualifiers in r
+    exp_properties = 'properties=%r' % obj.properties
+    assert exp_properties in r
 
-        exp_path = 'path=%r' % obj.path
-        assert exp_path in r
+    exp_methods = 'methods=%r' % obj.methods
+    assert exp_methods in r
+
+    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    assert exp_qualifiers in r
+
+    exp_path = 'path=%r' % obj.path
+    assert exp_path in r
 
 
 # Some CIMClassName objects for CIMClass.tocimxml() tests
@@ -18329,7 +18360,7 @@ class C1 {
     @pytest.mark.parametrize(
         "desc, obj, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMClass_tomof(
+    def test_CIMClass_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMClass.tomof()."""
@@ -18388,7 +18419,7 @@ class Test_CIMMethod_init(object):
     Test CIMMethod.__init__().
     """
 
-    def test_CIMMethod_init_pos_args(self):
+    def test_CIMMethod_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMMethod.__init__()."""
 
@@ -18411,7 +18442,7 @@ class Test_CIMMethod_init(object):
         assert obj.propagated is True
         assert obj.qualifiers == NocaseDict(qualifiers)
 
-    def test_CIMMethod_init_methodname(self):
+    def test_CIMMethod_init_methodname(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test deprecated methodname argument of CIMMethod.__init__()."""
 
@@ -18425,7 +18456,7 @@ class Test_CIMMethod_init(object):
         assert len(rec_warnings) == 1
         assert obj.name == u'FooMethod'
 
-    def test_CIMMethod_init_name_methodname(self):
+    def test_CIMMethod_init_name_methodname(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test both name and methodname argument of CIMMethod.__init__()."""
 
@@ -18466,7 +18497,7 @@ class Test_CIMMethod_init(object):
 
         # Name tests
         (
-            "Verify that binary name and return type are converted to unicode",
+            "Verify that bytes name and return type are converted to unicode",
             dict(name=b'FooMethod', return_type=b'string'),
             dict(name=u'FooMethod', return_type=u'string'),
             None, True
@@ -18606,7 +18637,7 @@ class Test_CIMMethod_init(object):
             None, True
         ),
         (
-            "Verify that binary class_origin is converted to unicode",
+            "Verify that bytes class_origin is converted to unicode",
             dict(name=u'FooMethod', return_type=u'string',
                  class_origin=b'CIM_Origin'),
             dict(name=u'FooMethod', return_type=u'string',
@@ -18674,7 +18705,7 @@ class Test_CIMMethod_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMMethod_init_succeeds(
+    def test_CIMMethod_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMMethod.__init__() succeeds."""
@@ -18794,7 +18825,7 @@ class Test_CIMMethod_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, exp_warn_type, condition",
         testcases_fails)
-    def test_CIMMethod_init_fails(
+    def test_CIMMethod_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMMethod.__init__() fails."""
@@ -18820,7 +18851,7 @@ class Test_CIMMethod_init(object):
 
 class CIMMethodCopy(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMMethod_copy(self):  # XXX: Migrate to pytest
 
         m = CIMMethod('FooMethod', 'uint32',
                       parameters={'P1': CIMParameter('P1', 'uint32'),
@@ -18844,7 +18875,7 @@ class CIMMethodCopy(unittest.TestCase):
 
 class CIMMethodAttrs(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMMethod_attrs(self):  # XXX: Migrate to pytest
 
         m = CIMMethod('FooMethod', 'uint32',
                       parameters={'Param1': CIMParameter('Param1', 'uint32'),
@@ -18869,7 +18900,7 @@ class CIMMethodAttrs(unittest.TestCase):
 
 class CIMMethodEquality(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMMethod_eq(self):  # XXX: Migrate to pytest
 
         self.assertEqual(CIMMethod('FooMethod', 'uint32'),
                          CIMMethod('FooMethod', 'uint32'))
@@ -18955,16 +18986,14 @@ class CIMMethodEquality(unittest.TestCase):
 class CIMMethodCompare(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMMethod
+    def test_CIMMethod_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
 class CIMMethodSort(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMMethod
+    def test_CIMMethod_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -19286,9 +19315,6 @@ def test_CIMMethod_hash(testcase,
     Test function for CIMMethod.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -19297,122 +19323,95 @@ def test_CIMMethod_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMMethod_str(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMMETHOD_STR_REPR = [
+
+    # Testcases for CIMMethod.__repr__(), __str__() / repr(), str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMMethod object to be tested.
+
+    (
+        CIMMethod(
+            name='FooMethod',
+            return_type='uint32')
+    ),
+    (
+        CIMMethod(
+            name='FooMethod',
+            return_type='uint32',
+            parameters=dict(P1=CIMParameter('P1', type='uint32')),
+            class_origin='CIM_Origin',
+            propagated=True,
+            qualifiers=dict(Q1=CIMQualifier('Q1', value=True)))
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMMETHOD_STR_REPR)
+def test_CIMMethod_str(obj):
     """
-    Test CIMMethod.__str__().
-
-    That function returns for example::
-
-       CIMMethod(name='FooMethod', return_type='string')
-    """
-
-    parameter_P1 = CIMParameter('P1', type='uint32')
-    qualifier_Q1 = CIMQualifier('Q1', value=True)
-
-    testcases_succeeds = [
-        # Testcases where CIMMethod.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMMethod object to be tested.
-        (
-            CIMMethod(
-                name='FooMethod',
-                return_type='uint32')
-        ),
-        (
-            CIMMethod(
-                name='FooMethod',
-                return_type='uint32',
-                parameters=dict(P1=parameter_P1),
-                class_origin='CIM_Origin',
-                propagated=True,
-                qualifiers=dict(Q1=qualifier_Q1))
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMMethod_str_succeeds(self, obj):
-        """All test cases where CIMMethod.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMMethod\(', s)
-
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in s
-
-        exp_return_type = 'return_type=%r' % obj.return_type
-        assert exp_return_type in s
-
-
-class Test_CIMMethod_repr(object):  # pylint: disable=too-few-public-methods
-    """
-    Test CIMMethod.__repr__().
+    Test function for CIMMethod.__str__() / str()
     """
 
-    parameter_P1 = CIMParameter('P1', type='uint32')
-    qualifier_Q1 = CIMQualifier('Q1', value=True)
+    # The code to be tested
+    s = str(obj)
 
-    testcases_succeeds = [
-        # Testcases where CIMMethod.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMMethod object to be tested.
-        (
-            CIMMethod(
-                name='FooMethod',
-                return_type='uint32')
-        ),
-        (
-            CIMMethod(
-                name='FooMethod',
-                return_type='uint32',
-                parameters=dict(P1=parameter_P1),
-                class_origin='CIM_Origin',
-                propagated=True,
-                qualifiers=dict(Q1=qualifier_Q1))
-        ),
-    ]
+    assert re.match(r'^CIMMethod\(', s)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMMethod_repr_succeeds(self, obj):
-        """All test cases where CIMMethod.__repr__() succeeds."""
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in s
 
-        r = repr(obj)
+    exp_return_type = 'return_type=%r' % obj.return_type
+    assert exp_return_type in s
 
-        assert re.match(r'^CIMMethod\(', r)
 
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in r
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMMETHOD_STR_REPR)
+def test_CIMMethod_repr(obj):
+    """
+    Test function for CIMMethod.__repr__() / repr()
+    """
 
-        exp_return_type = 'return_type=%r' % obj.return_type
-        assert exp_return_type in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_parameters = 'parameters=%r' % obj.parameters
-        assert exp_parameters in r
+    assert re.match(r'^CIMMethod\(', r)
 
-        exp_class_origin = 'class_origin=%r' % obj.class_origin
-        assert exp_class_origin in r
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in r
 
-        exp_propagated = 'propagated=%r' % obj.propagated
-        assert exp_propagated in r
+    exp_return_type = 'return_type=%r' % obj.return_type
+    assert exp_return_type in r
 
-        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
-        assert exp_qualifiers in r
+    exp_parameters = 'parameters=%r' % obj.parameters
+    assert exp_parameters in r
+
+    exp_class_origin = 'class_origin=%r' % obj.class_origin
+    assert exp_class_origin in r
+
+    exp_propagated = 'propagated=%r' % obj.propagated
+    assert exp_propagated in r
+
+    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    assert exp_qualifiers in r
 
 
 class CIMMethodNoReturn(unittest.TestCase):
     """Test that CIMMethod without return value fails"""
 
-    def test_all(self):
+    def test_CIMMethod_init_NoReturn(self):  # XXX: Merge with succeeds
         try:
             str(CIMMethod('FooMethod'))
             self.fail('Expected Exception')
@@ -19985,7 +19984,7 @@ class Test_CIMMethod_tomof(object):  # pylint: disable=too-few-public-methods
     @pytest.mark.parametrize(
         "desc, obj, indent, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMMethod_tomof(
+    def test_CIMMethod_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMMethod.tomof()."""
@@ -20044,7 +20043,7 @@ class Test_CIMParameter_init(object):
     Test CIMParameter.__init__().
     """
 
-    def test_CIMParameter_init_pos_args(self):
+    def test_CIMParameter_init_pos_args(self):  # XXX: Merge with succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMParameter.__init__()."""
 
@@ -20105,7 +20104,7 @@ class Test_CIMParameter_init(object):
             None, not CHECK_0_12_0
         ),
         (
-            "Verify that binary name and type are converted to unicode",
+            "Verify that bytes name and type are converted to unicode",
             dict(name=b'FooParam', type=b'string'),
             dict(name=u'FooParam', type=u'string'),
             None, True
@@ -20117,7 +20116,7 @@ class Test_CIMParameter_init(object):
             None, True
         ),
         (
-            "Verify that binary reference_class is converted to unicode",
+            "Verify that bytes reference_class is converted to unicode",
             dict(name=u'FooParam', type=u'string',
                  reference_class=b'CIM_Ref'),
             dict(name=u'FooParam', type=u'string',
@@ -20431,7 +20430,7 @@ class Test_CIMParameter_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMParameter_init_succeeds(
+    def test_CIMParameter_init_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMParameter.__init__() succeeds."""
@@ -20525,7 +20524,7 @@ class Test_CIMParameter_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMParameter_init_fails(
+    def test_CIMParameter_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMParameter.__init__() fails."""
@@ -20541,7 +20540,7 @@ class Test_CIMParameter_init(object):
 
 class CIMParameterCopy(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMParameter_copy(self):  # XXX: Migrate to pytest
 
         p = CIMParameter('RefParam', 'reference',
                          reference_class='CIM_Foo',
@@ -20564,7 +20563,7 @@ class CIMParameterCopy(unittest.TestCase):
 
 class CIMParameterAttrs(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMParameter_attrs(self):  # XXX: Migrate to pytest
 
         obj = CIMParameter('Param0', 'string')
 
@@ -20641,7 +20640,7 @@ class CIMParameterAttrs(unittest.TestCase):
 
 class CIMParameterEquality(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMParameter_eq(self):  # XXX: Migrate to pytest
 
         # Single-valued parameters
 
@@ -20807,16 +20806,14 @@ class CIMParameterEquality(unittest.TestCase):
 class CIMParameterCompare(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMParameter
+    def test_CIMParameter_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
 class CIMParameterSort(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMParameter
+    def test_CIMParameter_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -21093,9 +21090,6 @@ def test_CIMParameter_hash(testcase,
     Test function for CIMParameter.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -21104,123 +21098,96 @@ def test_CIMParameter_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMParameter_str(object):  # pylint: disable=too-few-public-methods
+TESTCASES_CIMPARAMETER_STR_REPR = [
+
+    # Testcases for CIMParameter.__repr__(), __str__() / repr(), str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMParameter object to be tested.
+
+    (
+        CIMParameter(
+            name='Param1',
+            type='uint32')
+    ),
+    (
+        CIMParameter(
+            name='Param1',
+            type='uint32',
+            reference_class='CIM_Ref',
+            is_array=False,
+            array_size=None,
+            qualifiers=dict(Q1=CIMQualifier('Q1', value=Uint32(42))),
+            value=None)
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMPARAMETER_STR_REPR)
+def test_CIMParameter_str(obj):
     """
-    Test CIMParameter.__str__().
-
-    That function returns for example::
-
-       CIMParameter(name='Param1', type='string', reference_class=None,
-                    is_array=True, ...)
-    """
-
-    qualifier_Q1 = CIMQualifier('Q1', value=Uint32(42))
-
-    testcases_succeeds = [
-        # Testcases where CIMParameter.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMParameter object to be tested.
-        (
-            CIMParameter(
-                name='Param1',
-                type='uint32')
-        ),
-        (
-            CIMParameter(
-                name='Param1',
-                type='uint32',
-                reference_class='CIM_Ref',
-                is_array=False,
-                array_size=None,
-                qualifiers=dict(Q1=qualifier_Q1),
-                value=None)
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMParameter_str_succeeds(self, obj):
-        """All test cases where CIMParameter.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMParameter\(', s)
-
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in s
-
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in s
-
-        exp_reference_class = 'reference_class=%r' % obj.reference_class
-        assert exp_reference_class in s
-
-        exp_is_array = 'is_array=%r' % obj.is_array
-        assert exp_is_array in s
-
-
-class Test_CIMParameter_repr(object):  # pylint: disable=too-few-public-methods
-    """
-    Test CIMParameter.__repr__().
+    Test function for CIMParameter.__str__() / str()
     """
 
-    qualifier_Q1 = CIMQualifier('Q1', value=Uint32(42))
+    # The code to be tested
+    s = str(obj)
 
-    testcases_succeeds = [
-        # Testcases where CIMParameter.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMParameter object to be tested.
-        (
-            CIMParameter(
-                name='Param1',
-                type='uint32')
-        ),
-        (
-            CIMParameter(
-                name='Param1',
-                type='uint32',
-                reference_class='CIM_Ref',
-                is_array=False,
-                array_size=None,
-                qualifiers=dict(Q1=qualifier_Q1),
-                value=None)
-        ),
-    ]
+    assert re.match(r'^CIMParameter\(', s)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMParameter_repr_succeeds(self, obj):
-        """All test cases where CIMParameter.__repr__() succeeds."""
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in s
 
-        r = repr(obj)
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in s
 
-        assert re.match(r'^CIMParameter\(', r)
+    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    assert exp_reference_class in s
 
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in r
+    exp_is_array = 'is_array=%r' % obj.is_array
+    assert exp_is_array in s
 
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in r
 
-        exp_reference_class = 'reference_class=%r' % obj.reference_class
-        assert exp_reference_class in r
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMPARAMETER_STR_REPR)
+def test_CIMParameter_repr(obj):
+    """
+    Test function for CIMParameter.__repr__() / repr()
+    """
 
-        exp_is_array = 'is_array=%r' % obj.is_array
-        assert exp_is_array in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_array_size = 'array_size=%r' % obj.array_size
-        assert exp_array_size in r
+    assert re.match(r'^CIMParameter\(', r)
 
-        exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
-        assert exp_qualifiers in r
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in r
+
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in r
+
+    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    assert exp_reference_class in r
+
+    exp_is_array = 'is_array=%r' % obj.is_array
+    assert exp_is_array in r
+
+    exp_array_size = 'array_size=%r' % obj.array_size
+    assert exp_array_size in r
+
+    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    assert exp_qualifiers in r
 
 
 TESTCASES_CIMPARAMETER_TOCIMXML = [
@@ -24595,7 +24562,7 @@ class Test_CIMParameter_tomof(object):  # pylint: disable=too-few-public-methods
     @pytest.mark.parametrize(
         "desc, obj, indent, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMParameter_tomof(
+    def test_CIMParameter_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, indent, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMParameter.tomof()."""
@@ -24654,7 +24621,7 @@ class Test_CIMQualifierDeclaration_init(object):
     Test CIMQualifierDeclaration.__init__().
     """
 
-    def test_CIMQualifierDeclaration_init_pos_args(self):
+    def test_CIMQualifierDeclaration_init_pos_args(self):  # XXX: Mrg. succeeds
         # pylint: disable=unused-argument
         """Test position of arguments in CIMQualifierDeclaration.__init__()."""
 
@@ -24725,7 +24692,7 @@ class Test_CIMQualifierDeclaration_init(object):
             None, not CHECK_0_12_0
         ),
         (
-            "Verify that binary name and return type are converted to unicode",
+            "Verify that bytes name and return type are converted to unicode",
             dict(name=b'FooQual', type=b'string'),
             dict(name=u'FooQual', type=u'string'),
             None, True
@@ -25046,7 +25013,7 @@ class Test_CIMQualifierDeclaration_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_attrs, exp_warn_type, condition",
         testcases_succeeds)
-    def test_CIMQualifierDeclaration_init_succeeds(
+    def test_CIMQualifierDeclaration_init_succeeds(  # XXX: Migr. to s.tst.fnc.
             self, desc, kwargs, exp_attrs, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMQualifierDeclaration.__init__() succeeds."""
@@ -25182,7 +25149,7 @@ class Test_CIMQualifierDeclaration_init(object):
     @pytest.mark.parametrize(
         "desc, kwargs, exp_exc_type, condition",
         testcases_fails)
-    def test_CIMQualifierDeclaration_init_fails(
+    def test_CIMQualifierDeclaration_init_fails(  # XXX: Merge with succeeds
             self, desc, kwargs, exp_exc_type, condition):
         # pylint: disable=unused-argument
         """All test cases where CIMQualifierDeclaration.__init__() fails."""
@@ -25198,7 +25165,7 @@ class Test_CIMQualifierDeclaration_init(object):
 
 class CIMQualifierDeclarationCopy(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMQualifierDeclaration_copy(self):  # XXX: Migrate to pytest
 
         qd = CIMQualifierDeclaration('FooQualDecl', 'uint32')
         c = qd.copy()
@@ -25220,7 +25187,7 @@ class CIMQualifierDeclarationCopy(unittest.TestCase):
 
 class CIMQualifierDeclarationAttrs(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMQualifierDeclaration_attrs(self):  # XXX: Migrate to pytest
 
         obj = CIMQualifierDeclaration('Foo', 'string')
 
@@ -25249,7 +25216,7 @@ class CIMQualifierDeclarationAttrs(unittest.TestCase):
 
 class CIMQualifierDeclarationEquality(unittest.TestCase):
 
-    def test_all(self):
+    def test_CIMQualifierDeclaration_eq(self):  # XXX: Migrate to pytest
         self.assertEqual(CIMQualifierDeclaration('FooQualDecl', 'uint32'),
                          CIMQualifierDeclaration('FooQualDecl', 'uint32'))
 
@@ -25313,16 +25280,14 @@ class CIMQualifierDeclarationCompare(unittest.TestCase):
     # pylint: disable=invalid-name
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement ordering comparison test for CIMQualifierDeclaration
+    def test_CIMQualifierDeclaration_cmp(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
 class CIMQualifierDeclarationSort(unittest.TestCase):
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement sorting test for CIMQualifierDeclaration
+    def test_CIMQualifierDeclaration_sort(self):  # XXX: Implement with pytest
         raise AssertionError("test not implemented")
 
 
@@ -25664,9 +25629,6 @@ def test_CIMQualifierDeclaration_hash(testcase,
     Test function for CIMQualifierDeclaration.__hash__().
     """
 
-    # Double check they are different objects
-    assert id(obj1) != id(obj2)
-
     # The code to be tested
     hash1 = hash(obj1)
     hash2 = hash(obj2)
@@ -25675,139 +25637,111 @@ def test_CIMQualifierDeclaration_hash(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    # Double check they are different objects
+    assert id(obj1) != id(obj2)
+
     if exp_hash_equal:
         assert hash1 == hash2
     else:
         assert hash1 != hash2
 
 
-class Test_CIMQualifierDeclaration_str(object):
-    # pylint: disable=too-few-public-methods
+TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR = [
+
+    # Testcases for CIMQualifierDeclaration.__repr__(),__str__() / repr(),str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: CIMQualifierDeclaration object to be tested.
+
+    (
+        CIMQualifierDeclaration(
+            name='FooQualDecl',
+            type='string')
+    ),
+    (
+        CIMQualifierDeclaration(
+            name='FooQualDecl',
+            type='string',
+            value=['abc'],
+            is_array=True,
+            array_size=1,
+            scopes=dict(CLASS=True),
+            overridable=True,
+            tosubclass=True,
+            toinstance=False,
+            translatable=False)
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR)
+def test_CIMQualifierDeclaration_str(obj):
     """
-    Test CIMQualifierDeclaration.__str__().
-
-    That function returns for example::
-
-       CIMQualifierDeclaration(name='Qual1', value='abc', type='string',
-                               is_array=False, ...)
-    """
-
-    testcases_succeeds = [
-        # Testcases where CIMParameter.__str__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMParameter object to be tested.
-        (
-            CIMQualifierDeclaration(
-                name='FooQualDecl',
-                type='string')
-        ),
-        (
-            CIMQualifierDeclaration(
-                name='FooQualDecl',
-                type='string',
-                value=['abc'],
-                is_array=True,
-                array_size=1,
-                scopes=dict(CLASS=True),
-                overridable=True,
-                tosubclass=True,
-                toinstance=False,
-                translatable=False)
-        ),
-    ]
-
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMQualifierDeclaration_str_succeeds(self, obj):
-        """All test cases where CIMQualifierDeclaration.__str__() succeeds."""
-
-        s = str(obj)
-
-        assert re.match(r'^CIMQualifierDeclaration\(', s)
-
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in s
-
-        exp_value = 'value=%r' % obj.value
-        assert exp_value in s
-
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in s
-
-        exp_is_array = 'is_array=%r' % obj.is_array
-        assert exp_is_array in s
-
-
-class Test_CIMQualifierDeclaration_repr(object):
-    # pylint: disable=too-few-public-methods
-    """
-    Test CIMQualifierDeclaration.__repr__().
+    Test function for CIMQualifierDeclaration.__str__() / str()
     """
 
-    testcases_succeeds = [
-        # Testcases where CIMParameter.__repr__() succeeds.
-        # Each testcase has these items:
-        # * obj: CIMParameter object to be tested.
-        (
-            CIMQualifierDeclaration(
-                name='FooQualDecl',
-                type='string')
-        ),
-        (
-            CIMQualifierDeclaration(
-                name='FooQualDecl',
-                type='string',
-                value=['abc'],
-                is_array=True,
-                array_size=1,
-                scopes=dict(CLASS=True),
-                overridable=True,
-                tosubclass=True,
-                toinstance=False,
-                translatable=False)
-        ),
-    ]
+    # The code to be tested
+    s = str(obj)
 
-    @pytest.mark.parametrize(
-        "obj",
-        testcases_succeeds)
-    def test_CIMQualifierDeclaration_repr_succeeds(self, obj):
-        """All test cases where CIMQualifierDeclaration.__repr__() succeeds."""
+    assert re.match(r'^CIMQualifierDeclaration\(', s)
 
-        r = repr(obj)
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in s
 
-        assert re.match(r'^CIMQualifierDeclaration\(', r)
+    exp_value = 'value=%r' % obj.value
+    assert exp_value in s
 
-        exp_name = 'name=%r' % obj.name
-        assert exp_name in r
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in s
 
-        exp_value = 'value=%r' % obj.value
-        assert exp_value in r
+    exp_is_array = 'is_array=%r' % obj.is_array
+    assert exp_is_array in s
 
-        exp_type = 'type=%r' % obj.type
-        assert exp_type in r
 
-        exp_is_array = 'is_array=%r' % obj.is_array
-        assert exp_is_array in r
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR)
+def test_CIMQualifierDeclaration_repr(obj):
+    """
+    Test function for CIMQualifierDeclaration.__repr__() / repr()
+    """
 
-        exp_array_size = 'array_size=%r' % obj.array_size
-        assert exp_array_size in r
+    # The code to be tested
+    r = repr(obj)
 
-        exp_scopes = 'scopes=%r' % obj.scopes
-        assert exp_scopes in r
+    assert re.match(r'^CIMQualifierDeclaration\(', r)
 
-        exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
-        assert exp_tosubclass in r
+    exp_name = 'name=%r' % obj.name
+    assert exp_name in r
 
-        exp_overridable = 'overridable=%r' % obj.overridable
-        assert exp_overridable in r
+    exp_value = 'value=%r' % obj.value
+    assert exp_value in r
 
-        exp_translatable = 'translatable=%r' % obj.translatable
-        assert exp_translatable in r
+    exp_type = 'type=%r' % obj.type
+    assert exp_type in r
 
-        exp_toinstance = 'toinstance=%r' % obj.toinstance
-        assert exp_toinstance in r
+    exp_is_array = 'is_array=%r' % obj.is_array
+    assert exp_is_array in r
+
+    exp_array_size = 'array_size=%r' % obj.array_size
+    assert exp_array_size in r
+
+    exp_scopes = 'scopes=%r' % obj.scopes
+    assert exp_scopes in r
+
+    exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
+    assert exp_tosubclass in r
+
+    exp_overridable = 'overridable=%r' % obj.overridable
+    assert exp_overridable in r
+
+    exp_translatable = 'translatable=%r' % obj.translatable
+    assert exp_translatable in r
+
+    exp_toinstance = 'toinstance=%r' % obj.toinstance
+    assert exp_toinstance in r
 
 
 TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
@@ -28925,7 +28859,7 @@ Qualifier Q1 : string,
     @pytest.mark.parametrize(
         "desc, obj, exp_result, exp_warn_type, condition",
         testcases)
-    def test_CIMQualifierDeclaration_tomof(
+    def test_CIMQualifierDeclaration_tomof(  # XXX: Migrate to s.tst.fnc.
             self, desc, obj, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for CIMQualifierDeclaration.tomof()."""
@@ -28982,15 +28916,14 @@ Qualifier Q1 : string,
 class Test_tocimxml(object):  # pylint: disable=too-few-public-methods
 
     @unimplemented
-    def test_all(self):
-        # TODO Implement tocimxml() test for remaining types
+    def test_tocimxml(self):  # XXX: Implement with pytest
         # (bool, invalid array, other invalid cases)
         raise AssertionError("test not implemented")
 
 
 class ToCIMObj(unittest.TestCase):
 
-    def test_all(self):
+    def test_tocimobj(self):  # XXX: Migrate to pytest
 
         path = tocimobj(
             'reference',
@@ -29095,13 +29028,13 @@ class Test_cimvalue(object):
     max_sint32 = 2**31 - 1
     max_sint64 = 2**63 - 1
 
-    datetime1_dt = datetime(2014, 9, 22, 10, 49, 20, 524789)
+    DATETIME1_DT = datetime(2014, 9, 22, 10, 49, 20, 524789)
     datetime1_str = '20140922104920.524789+000'
-    datetime1_obj = CIMDateTime(datetime1_dt)
+    DATETIME1_OBJ = CIMDateTime(DATETIME1_DT)
 
-    timedelta1_td = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
+    TIMEDELTA1_TD = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
     timedelta1_str = '00000183132542.234567:000'
-    timedelta1_obj = CIMDateTime(timedelta1_td)
+    TIMEDELTA1_OBJ = CIMDateTime(TIMEDELTA1_TD)
 
     ref1_str = 'http://host/ns:CN.k1="abc"'
     ref1_obj = CIMInstanceName(classname='CN', keybindings=dict(k1="abc"),
@@ -29132,8 +29065,8 @@ class Test_cimvalue(object):
         (True, None, True, None, CHECK_0_12_0),
         (False, None, False, None, CHECK_0_12_0),
 
-        (datetime1_dt, None, datetime1_obj, None, CHECK_0_12_0),
-        (timedelta1_td, None, timedelta1_obj, None, CHECK_0_12_0),
+        (DATETIME1_DT, None, DATETIME1_OBJ, None, CHECK_0_12_0),
+        (TIMEDELTA1_TD, None, TIMEDELTA1_OBJ, None, CHECK_0_12_0),
 
         # Test cases where: Type is string
 
@@ -29247,13 +29180,13 @@ class Test_cimvalue(object):
 
         (None, 'datetime', None, None, CHECK_0_12_0),
 
-        (datetime1_dt, 'datetime', datetime1_obj, None, CHECK_0_12_0),
-        (datetime1_str, 'datetime', datetime1_obj, None, CHECK_0_12_0),
-        (datetime1_obj, 'datetime', datetime1_obj, None, CHECK_0_12_0),
+        (DATETIME1_DT, 'datetime', DATETIME1_OBJ, None, CHECK_0_12_0),
+        (datetime1_str, 'datetime', DATETIME1_OBJ, None, CHECK_0_12_0),
+        (DATETIME1_OBJ, 'datetime', DATETIME1_OBJ, None, CHECK_0_12_0),
 
-        (timedelta1_td, 'datetime', timedelta1_obj, None, CHECK_0_12_0),
-        (timedelta1_str, 'datetime', timedelta1_obj, None, CHECK_0_12_0),
-        (timedelta1_obj, 'datetime', timedelta1_obj, None, CHECK_0_12_0),
+        (TIMEDELTA1_TD, 'datetime', TIMEDELTA1_OBJ, None, CHECK_0_12_0),
+        (timedelta1_str, 'datetime', TIMEDELTA1_OBJ, None, CHECK_0_12_0),
+        (TIMEDELTA1_OBJ, 'datetime', TIMEDELTA1_OBJ, None, CHECK_0_12_0),
 
         # Test cases where: Type is reference
 
@@ -29267,7 +29200,7 @@ class Test_cimvalue(object):
     @pytest.mark.parametrize(
         "value, type, exp_obj, exp_warn_type, condition",
         testcases_succeeds)
-    def test_cimvalue_succeeds(
+    def test_cimvalue_succeeds(  # XXX: Migrate to s.tst.fnc.
             self, value, type, exp_obj, exp_warn_type, condition):
         # pylint: disable=redefined-builtin
         """All test cases where cimvalue() succeeds."""
@@ -29312,7 +29245,8 @@ class Test_cimvalue(object):
     @pytest.mark.parametrize(
         "value, type, exp_exc_type",
         testcases_fails)
-    def test_cimvalue_fails(self, value, type, exp_exc_type):
+    def test_cimvalue_fails(  # XXX: Merge with succeeds
+            self, value, type, exp_exc_type):
         # pylint: disable=redefined-builtin
         """All test cases where cimvalue() fails."""
 
@@ -29323,13 +29257,13 @@ class Test_cimvalue(object):
 
 
 class Test_mofstr(object):  # pylint: disable=too-few-public-methods
-    """Test cases for cim_obj.mofstr()."""
+    """Test cases for mofstr()."""
 
     # Default input arguments if not specified in testcase
     # They do not necessarily have to match the default values.
     default_kwargs = dict(
-        indent=cim_obj.MOF_INDENT,
-        maxline=cim_obj.MAX_MOF_LINE,
+        indent=MOF_INDENT,
+        maxline=MAX_MOF_LINE,
         line_pos=0,
         end_space=0,
         avoid_splits=False,
@@ -29337,7 +29271,7 @@ class Test_mofstr(object):  # pylint: disable=too-few-public-methods
     )
 
     testcases = [
-        # Testcases for cim_obj.mofstr().
+        # Testcases for mofstr().
         # Each testcase has these items:
         # * desc: Short testcase description.
         # * kwargs: Dict of keyword arguments for mofstr():
@@ -29858,7 +29792,7 @@ class Test_mofstr(object):  # pylint: disable=too-few-public-methods
     @pytest.mark.parametrize(
         "desc, kwargs, exp_result, exp_warn_type, condition",
         testcases)
-    def test_mofstr(
+    def test_mofstr(  # XXX: Migrate to s.tst.fnc.
             self, desc, kwargs, exp_result, exp_warn_type, condition):
         # pylint: disable=unused-argument
         """Test function for mofstr()."""
@@ -29903,12 +29837,12 @@ class Test_mofstr(object):  # pylint: disable=too-few-public-methods
                     with pytest.raises(exp_exc_type):
 
                         # The code to be tested
-                        result = cim_obj.mofstr(**kwargs)
+                        result = mofstr(**kwargs)
 
                 else:
 
                     # The code to be tested
-                    result = cim_obj.mofstr(**kwargs)
+                    result = mofstr(**kwargs)
 
             assert len(rec_warnings) == 1
 
@@ -29917,12 +29851,12 @@ class Test_mofstr(object):  # pylint: disable=too-few-public-methods
                 with pytest.raises(exp_exc_type):
 
                     # The code to be tested
-                    result = cim_obj.mofstr(**kwargs)
+                    result = mofstr(**kwargs)
 
             else:
 
                 # The code to be tested
-                result = cim_obj.mofstr(**kwargs)
+                result = mofstr(**kwargs)
 
         if exp_mof:
             if CHECK_0_12_0:

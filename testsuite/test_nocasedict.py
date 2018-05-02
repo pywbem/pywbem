@@ -1974,7 +1974,7 @@ TESTCASES_NOCASEDICT_EQUAL_HASH = [
         None, None, True
     ),
     (
-        "Comparing unicode value with binary value",
+        "Comparing unicode value with bytes value",
         dict(
             obj1=NocaseDict([('k1', b'v1')]),
             obj2=NocaseDict([('k2', u'v2')]),
