@@ -41,6 +41,13 @@ Released: not yet
   representation of integer key values in binary, octal or hex format
   (part of Issue #904).
 
+* Fixed an issue with running the tests on Travis CI that occurred on
+  Python 2.6 with the latest package level and that was caused by the fact
+  that a new version of the "httpretty" Python package was released that
+  had dropped support for Python 2.6. This was fixed by limiting the
+  version of httpretty to <0.9 when running on Python 2.6. Note that
+  this only affects the development environment.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
