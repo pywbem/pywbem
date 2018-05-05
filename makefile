@@ -269,6 +269,7 @@ _show_bitsize:
 install_pywbem.done: requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg
 	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	rm -Rf build $(package_name).egg-info .eggs
+	rm -f PKG-INFO
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
 ifeq ($(PYTHON_ARCH),32)
 	$(PIP_CMD) install $(pip_level_opts) -r win32-requirements.txt
@@ -277,6 +278,7 @@ ifeq ($(PYTHON_ARCH),64)
 	$(PIP_CMD) install $(pip_level_opts) -r win64-requirements.txt
 endif
 	$(PIP_CMD) install $(pip_level_opts) -e .
+	cp -r $(package_name).egg-info/PKG-INFO .
 	touch install_pywbem.done
 	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
 
@@ -453,7 +455,9 @@ MANIFEST.in: makefile
 $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "makefile: Creating the distribution archive files"
 	rm -rf MANIFEST $(package_name).egg-info .eggs build
+	rm -f PKG-INFO
 	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
+	cp -r $(package_name).egg-info/PKG-INFO .
 	@echo "makefile: Done creating the distribution archive files: $@"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
