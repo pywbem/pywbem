@@ -13,7 +13,7 @@ pbr>=1.10.0
 six>=1.10.0
 ply>=3.10
 PyYAML>=3.12  # yaml package
-M2Crypto>=0.24.0,!=0.27.0; (python_version == '2.6' or python_version == '2.7') and sys_platform != 'win32'
-# M2CryptoWin32/64 are specified in win32/64-requirements.txt
+# On Windows, M2Crypto must be installed via pywbem_os_setup.bat
+M2Crypto>=0.30.1; python_version < '3.0' and sys_platform != 'win32'
 ordereddict>=1.1; python_version == '2.6'
 mock>=2.0.0

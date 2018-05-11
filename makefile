@@ -254,7 +254,11 @@ install_os: install_os.done
 
 install_os.done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level installation and runtime requirements"
+ifeq ($(PLATFORM),Windows)
+	cmd /c pywbem_os_setup.bat install
+else
 	./pywbem_os_setup.sh install
+endif
 	touch install_os.done
 	@echo "makefile: Done installing OS-level installation and runtime requirements"
 
@@ -266,17 +270,11 @@ _show_bitsize:
 	$(PYTHON_CMD) -c "import platform; print(int(platform.architecture()[0].rstrip('bit')))"
 	@echo "makefile: Done determining bit size of Python executable"
 
-install_pywbem.done: requirements.txt win32-requirements.txt win64-requirements.txt setup.py setup.cfg
+install_pywbem.done: requirements.txt setup.py setup.cfg
 	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	rm -Rf build $(package_name).egg-info .eggs
 	rm -f PKG-INFO
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
-ifeq ($(PYTHON_ARCH),32)
-	$(PIP_CMD) install $(pip_level_opts) -r win32-requirements.txt
-endif
-ifeq ($(PYTHON_ARCH),64)
-	$(PIP_CMD) install $(pip_level_opts) -r win64-requirements.txt
-endif
 	$(PIP_CMD) install $(pip_level_opts) -e .
 	cp -r $(package_name).egg-info/PKG-INFO .
 	touch install_pywbem.done
@@ -297,7 +295,11 @@ develop_os: develop_os.done
 
 develop_os.done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level development requirements"
+ifeq ($(PLATFORM),Windows)
+	cmd /c pywbem_os_setup.bat develop
+else
 	./pywbem_os_setup.sh develop
+endif
 	touch develop_os.done
 	@echo "makefile: Done installing OS-level development requirements"
 

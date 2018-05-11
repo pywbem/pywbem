@@ -100,7 +100,7 @@ activities:
 Installation
 ------------
 
-To install the latest released version of pywbem:
+To install the latest released version of pywbem on Linux:
 
 * Install the prerequisite OS-level packages:
 
@@ -120,7 +120,8 @@ To install the latest released version of pywbem:
 
   This will also install any prerequisite Python packages.
 
-For more details and alternative ways to install, see the
+For more details, installation on other operating systems, and alternative
+ways to install, see the
 `Installation section`_ in the pywbem documentation.
 
 .. _Installation section: http://pywbem.readthedocs.io/en/stable/intro.html#installation
