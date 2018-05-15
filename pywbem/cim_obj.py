@@ -240,7 +240,7 @@ The following examples all preserve the order of properties in the class:
 from __future__ import print_function, absolute_import
 
 import warnings
-from copy import copy
+from copy import copy, deepcopy
 import traceback
 import re
 try:
@@ -3685,10 +3685,10 @@ class CIMClass(_CIMComparisonMixin):
         Return a copy of the :class:`~pywbem.CIMClass` object.
         """
         result = CIMClass(self.classname)
-        result.properties = self.properties.copy()
-        result.methods = self.methods.copy()
+        result.properties = deepcopy(self.properties)
+        result.methods = deepcopy(self.methods)
         result.superclass = self.superclass
-        result.qualifiers = self.qualifiers.copy()
+        result.qualifiers = deepcopy(self.qualifiers)
         result.path = None if self.path is None else self.path.copy()
 
         return result
@@ -4317,7 +4317,7 @@ class CIMProperty(_CIMComparisonMixin):
                            propagated=self.propagated,
                            is_array=self.is_array,
                            reference_class=self.reference_class,
-                           qualifiers=self.qualifiers.copy())
+                           qualifiers=deepcopy(self.qualifiers))
 
     def __str__(self):
         """
