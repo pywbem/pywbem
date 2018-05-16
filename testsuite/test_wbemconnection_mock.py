@@ -147,8 +147,9 @@ def tst_class():
     Builds and returns a single class: CIM_Foo that to be used as a
     test class for the mock class tests.
     """
-    qkey = {'Key': CIMQualifier('Key', True)}
-    dkey = {'Description': CIMQualifier('Description', 'blah blah')}
+    qkey = {'Key': CIMQualifier('Key', True, propagated=False)}
+    dkey = {'Description': CIMQualifier('Description', 'blah blah',
+                                        propagated=False)}
 
     c = CIMClass(
         'CIM_Foo', qualifiers=dkey,
@@ -175,8 +176,9 @@ def tst_classes(tst_class):
         CIM_Foo_sub_sub - Subclass to CIMFoo_sub
         CIM_Foo_nokey - top level in hiearchy
     """
-    qkey = {'Key': CIMQualifier('Key', True)}
-    dkey = {'Description': CIMQualifier('Description', 'blah blah')}
+    qkey = {'Key': CIMQualifier('Key', True, propagated=False)}
+    dkey = {'Description': CIMQualifier('Description', 'blah blah',
+                                        propagated=False)}
 
     c2 = CIMClass(
         'CIM_Foo_sub', superclass='CIM_Foo', qualifiers=dkey,
@@ -1425,7 +1427,8 @@ class TestClassOperations(object):
 
         """
         conn.add_cimobjects(tst_class)
-        cl = conn.GetClass('CIM_Foo', IncludeQualifiers=True)
+        cl = conn.GetClass('CIM_Foo', IncludeQualifiers=True,
+                           IncludeClassOrigin=True)
 
         cl.path = None
         assert cl == tst_class
@@ -1482,12 +1485,9 @@ class TestClassOperations(object):
         assert tst_class is not None
 
         conn.add_cimobjects(tst_classes, namespace=ns)
-        if iq is None:
-            cl = conn.GetClass(cn, namespace=ns, IncludeQualifiers=iq,
-                               LocalOnly=True)
-        else:
-            cl = conn.GetClass(cn, namespace=ns, IncludeQualifiers=iq,
-                               LocalOnly=True)
+
+        cl = conn.GetClass(cn, namespace=ns, IncludeQualifiers=iq,
+                           LocalOnly=True, IncludeClassOrigin=ico)
 
         cl.path = None
 
@@ -1510,7 +1510,7 @@ class TestClassOperations(object):
             for method in c_tst.methods:
                 c_tst.methods[method].class_origin = None
 
-        assert(cl == c_tst)
+        assert cl == c_tst
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1790,18 +1790,24 @@ class TestClassOperations(object):
              'CIM_Foo_sub_sub', None],
 
             # Create valid 2nd level subclass with property override.
-            [['CIM_Foo', 'CIM_Foo_sub'],
-             CIMClass('CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
-                      properties={'cimfoo_sub':
-                                  CIMProperty(
-                                    'cimfoo_sub', "blah",  # noqa: E121
-                                    qualifiers={'Override':
-                                                CIMQualifier('Override',
-                                                             'cimfoo_sub_sub')},
-                                    type='string',
-                                    class_origin='CIM_Foo_sub_sub',
-                                    propagated=False)}),
-             None, None],
+            [
+                ['CIM_Foo', 'CIM_Foo_sub'],
+                CIMClass(
+                    'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                    properties={
+                        'cimfoo_sub': CIMProperty(
+                            'cimfoo_sub', "blah",  # noqa: E121
+                            qualifiers={
+                                'Override': CIMQualifier(
+                                    'Override', 'cimfoo_sub_sub',
+                                    propagated=False)
+                            },
+                            type='string', class_origin='CIM_Foo_sub_sub',
+                            propagated=False)
+                    }
+                ),
+                None, None
+            ],
 
             # Create invalid subclass, dup property with no override
             [['CIM_Foo', 'CIM_Foo_sub'],
@@ -1885,9 +1891,14 @@ class TestClassOperations(object):
                 # and propagated set
                 for cl in tst_classes:
                     if cl.classname == exp_rtn_cl:
+                        if cl != rtn_class:
+                            print('cl==rtn_class\n%r\n%r' % (cl, rtn_class))
                         assert cl == rtn_class
             else:
                 if isinstance(tcl, CIMClass):
+                    if tcl != rtn_class:
+                        print('\ntcl==rtn_class\n%r\n%r' % (tcl, rtn_class))
+                    # tcl does not have propagated False on override qualifier
                     assert tcl == rtn_class
                 else:
                     assert set(rtn_class.properties) == \
