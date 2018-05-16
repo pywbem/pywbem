@@ -408,8 +408,16 @@ class NocaseDict(object):
 
     def copy(self):
         """
-        Return a shallow copy of the dictionary (i.e. the keys and values are
-        not copied).
+        Return a copy of the dictionary.
+
+        This is a middle-deep copy; the copy is independent of the original in
+        all attributes that have mutable types except for:
+
+        * The values in the dictionary
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
         result = NocaseDict()
         result._data = self._data.copy()  # pylint: disable=protected-access

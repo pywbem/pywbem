@@ -22,6 +22,20 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Changed the `path` argument of `CIMInstance` to be deep copied, because it 
+  may be modified by setting properties. It was previously shallow copied
+  (and incorrectly documented as not being copied). This is only incompatible
+  if user code relies on the init method modifying the keybindings of its
+  `path` input argument. If user code relies on that, it is highly recommended
+  that you decouple such dependencies (Issue #1251).
+
+* Changed the `path` argument of `CIMClass` to be shallow copied, in order
+  to decouple the created object from its input arguments. It was previously
+  not copied but referenced. This is only incompatible if user code relies on
+  the init method modifying the provided `path` input argument. If user code
+  relies on that, it is highly recommended that you decouple such
+  dependencies (Issue #1251).
+
 **Deprecations:**
 
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
@@ -83,6 +97,14 @@ Released: not yet
   through the items of the value mapping, returning tuples of the binary value
   (or a range thereof), and the `Values` string. (Issue #1153)
 
+* Docs: Clarified that the `copy()` methods of `NocaseDict` and of the CIM object
+  classes produce middle-deep copies, whereby mutable leaf attributes are not
+  copied and thus are shared between original and copy (Issue #1251).
+
+* Docs: Added a note to the description of the `copy()` methods of the CIM
+  objects that states that `copy.copy()` and `copy.deepcopy()` can be used
+  to create completely shallow or completely deep copies (Issue #1251).
+
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
@@ -90,6 +112,10 @@ Released: not yet
 * Resolved several Pylint issues, including several fixes (Issue #1206).
 
 * Cleanup mof_compiler use of args[0] and args[1] with CIMError. (Issue #1221)
+
+* Removed one level of superflous copies of dictionaries in the `copy()`
+  methods of the CIM object classes. These dictionaries are already copied
+  in the setter methods for the respective attributes (Issue #1251).
 
 **Known issues:**
 

@@ -240,7 +240,7 @@ The following examples all preserve the order of properties in the class:
 from __future__ import print_function, absolute_import
 
 import warnings
-from copy import copy
+import copy as copy_
 import traceback
 import re
 try:
@@ -953,7 +953,7 @@ def _cim_keybinding(key, value):
             raise ValueError("Invalid keybinding name: CIMProperty.name must "
                              "be dictionary key %s, but is %s" %
                              (key, value.name))
-        return copy(value.value)
+        return copy_.copy(value.value)
 
     if value is None:
         return None
@@ -1424,14 +1424,26 @@ class CIMInstanceName(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy of the :class:`~pywbem.CIMInstanceName` object.
+
+        This is a middle-deep copy; any mutable types in attributes except the
+        following are copied, so besides these exceptions, modifications of the
+        original object will not affect the returned copy, and vice versa. The
+        following mutable types are not copied and are therefore shared between
+        original and copy:
+
+        * Any mutable object types (see :ref:`CIM data types`) in the
+          :attr:`~pywbem.CIMInstanceName.keybindings` dictionary (but not the
+          dictionary object itself)
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-
-        result = CIMInstanceName(self.classname)
-        result.keybindings = self.keybindings.copy()
-        result.host = self.host
-        result.namespace = self.namespace
-
-        return result
+        return CIMInstanceName(
+            self.classname,
+            keybindings=self.keybindings,  # setter copies
+            host=self.host,
+            namespace=self.namespace)
 
     def update(self, *args, **kwargs):
         """
@@ -2158,6 +2170,10 @@ class CIMInstance(_CIMComparisonMixin):
           properties (:term:`properties input object`):
             The property values for the instance.
 
+            If the specified path has keybindings that correspond to these
+            properties, the values of these keybindings will be updated to
+            match the property values.
+
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the instance.
 
@@ -2167,8 +2183,12 @@ class CIMInstance(_CIMComparisonMixin):
           path (:class:`~pywbem.CIMInstanceName`):
             Instance path for the instance.
 
-            The provided object will be stored in the
-            :class:`~pywbem.CIMInstance` object (no copy is made).
+            The provided object will be copied before being stored in the
+            :class:`~pywbem.CIMInstance` object.
+
+            If this path has keybindings that correspond to the specified
+            properties, the values of the keybindings in (the copy of) this
+            path will be updated to match the property values.
 
             `None` means that the instance path is unspecified, and the
             same-named attribute in the :class:`~pywbem.CIMInstance` object
@@ -2256,7 +2276,8 @@ class CIMInstance(_CIMComparisonMixin):
         The CIM property values can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. In that case,
         the provided input value must be a :class:`~pywbem.CIMProperty`
-        object::
+        object. A corresponding keybinding in the instance path (if set) will
+        not (!) be updated in this case::
 
             inst = CIMInstance(...)
             p1 = CIMProperty('p1', ...)  # must be CIMProperty
@@ -2268,7 +2289,9 @@ class CIMInstance(_CIMComparisonMixin):
         In addition, the CIM properties can be accessed and manipulated one by
         one by using the entire :class:`~pywbem.CIMInstance` object like a
         dictionary. In that case, the provided input value may be specified as
-        a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object::
+        a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object.
+        The value of a corresponding keybinding in the instance path (if set)
+        will be updated to the new property value::
 
             inst = CIMInstance(...)
             p2 = Uint32(...)  # may be CIM data type or CIMProperty
@@ -2374,7 +2397,10 @@ class CIMInstance(_CIMComparisonMixin):
         """Setter method; for a description see the getter method."""
 
         # pylint: disable=attribute-defined-outside-init
-        self._path = copy(path)  # It is modified by the properties setter
+        self._path = copy_.deepcopy(path)
+
+        # The provided path is deep copied because its keybindings may be
+        # updated when setting properties (in __setitem__()).
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
@@ -2522,13 +2548,36 @@ class CIMInstance(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return copy of the :class:`~pywbem.CIMInstance` object.
-        """
+        Return a copy of the :class:`~pywbem.CIMInstance` object.
 
-        result = CIMInstance(self.classname)
-        result.properties = self.properties.copy()
-        result.qualifiers = self.qualifiers.copy()
-        result.path = None if self.path is None else self.path.copy()
+        This is a middle-deep copy; any mutable types in attributes except the
+        following are copied, so besides these exceptions, modifications of the
+        original object will not affect the returned copy, and vice versa. The
+        following mutable types are not copied and are therefore shared between
+        original and copy:
+
+        * The :class:`~pywbem.CIMProperty` objects in the
+          :attr:`~pywbem.CIMInstance.properties` dictionary (but not the
+          dictionary object itself)
+        * The :class:`~pywbem.CIMQualifier` objects in the
+          :attr:`~pywbem.CIMInstance.qualifiers` dictionary (but not the
+          dictionary object itself)
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
+        """
+        result = CIMInstance(
+            self.classname,
+            properties=self.properties,  # setter copies
+            qualifiers=self.qualifiers)  # setter copies
+
+        # The path is set after the init method, because the init method
+        # would overwrite the values of keybindings that have corresponding
+        # properties. In order to be consistent with the behavior of the
+        # original version of pywbem (0.7.0), this copy() method preserves
+        # the provided input path.
+        result.path = self.path  # setter copies deep
 
         return result
 
@@ -2954,9 +3003,19 @@ class CIMClassName(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy the :class:`~pywbem.CIMClassName` object.
+
+        Objects of this class have no mutable types in any attributes, so
+        modifications of the original object will not affect the returned copy,
+        and vice versa.
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-        return CIMClassName(self.classname, host=self.host,
-                            namespace=self.namespace)
+        return CIMClassName(
+            self.classname,
+            host=self.host,
+            namespace=self.namespace)
 
     def _cmp(self, other):
         """
@@ -3328,8 +3387,8 @@ class CIMClass(_CIMComparisonMixin):
 
             Class path for the class.
 
-            The provided object will be stored in the :class:`~pywbem.CIMClass`
-            object (no copy is made).
+            The provided object will be copied before being stored in the
+            :class:`~pywbem.CIMClass` object.
 
             `None` means that the instance path is unspecified, and the
             same-named attribute in the :class:`~pywbem.CIMClass` object will
@@ -3604,7 +3663,10 @@ class CIMClass(_CIMComparisonMixin):
         """Setter method; for a description see the getter method."""
 
         # pylint: disable=attribute-defined-outside-init
-        self._path = path
+        self._path = copy_.copy(path)
+
+        # The provided path is shallow copied; it does not have any attributes
+        # with mutable types.
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
@@ -3683,15 +3745,34 @@ class CIMClass(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy of the :class:`~pywbem.CIMClass` object.
-        """
-        result = CIMClass(self.classname)
-        result.properties = self.properties.copy()
-        result.methods = self.methods.copy()
-        result.superclass = self.superclass
-        result.qualifiers = self.qualifiers.copy()
-        result.path = None if self.path is None else self.path.copy()
 
-        return result
+        This is a middle-deep copy; any mutable types in attributes except the
+        following are copied, so besides these exceptions, modifications of the
+        original object will not affect the returned copy, and vice versa. The
+        following mutable types are not copied and are therefore shared between
+        original and copy:
+
+        * The :class:`~pywbem.CIMProperty` objects in the
+          :attr:`~pywbem.CIMClass.properties` dictionary (but not the
+          dictionary object itself)
+        * The :class:`~pywbem.CIMMethod` objects in the
+          :attr:`~pywbem.CIMClass.methods` dictionary (but not the dictionary
+          object itself)
+        * The :class:`~pywbem.CIMQualifier` objects in the
+          :attr:`~pywbem.CIMClass.qualifiers` dictionary (but not the
+          dictionary object itself)
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
+        """
+        return CIMClass(
+            self.classname,
+            properties=self.properties,  # setter copies
+            methods=self.methods,  # setter copies
+            superclass=self.superclass,
+            qualifiers=self.qualifiers,  # setter copies
+            path=self.path)  # setter copies
 
     def tocimxml(self):
         """
@@ -4308,16 +4389,31 @@ class CIMProperty(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy of the :class:`~pywbem.CIMProperty` object.
+
+        This is a middle-deep copy; any mutable types in attributes except the
+        following are copied, so besides these exceptions, modifications of the
+        original object will not affect the returned copy, and vice versa. The
+        following mutable types are not copied and are therefore shared between
+        original and copy:
+
+        * The :class:`~pywbem.CIMQualifier` objects in the
+          :attr:`~pywbem.CIMProperty.qualifiers` dictionary (but not the
+          dictionary object itself)
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-        return CIMProperty(self.name,
-                           self.value,
-                           type=self.type,
-                           class_origin=self.class_origin,
-                           array_size=self.array_size,
-                           propagated=self.propagated,
-                           is_array=self.is_array,
-                           reference_class=self.reference_class,
-                           qualifiers=self.qualifiers.copy())
+        return CIMProperty(
+            self.name,
+            self.value,
+            type=self.type,
+            class_origin=self.class_origin,
+            array_size=self.array_size,
+            propagated=self.propagated,
+            is_array=self.is_array,
+            reference_class=self.reference_class,
+            qualifiers=self.qualifiers)  # setter copies
 
     def __str__(self):
         """
@@ -5006,16 +5102,31 @@ class CIMMethod(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy of the :class:`~pywbem.CIMMethod` object.
+
+        This is a middle-deep copy; any mutable types in attributes except the
+        following are copied, so besides these exceptions, modifications of the
+        original object will not affect the returned copy, and vice versa. The
+        following mutable types are not copied and are therefore shared between
+        original and copy:
+
+        * The :class:`~pywbem.CIMParameter` objects in the
+          :attr:`~pywbem.CIMMethod.parameters` dictionary (but not the
+          dictionary object itself)
+        * The :class:`~pywbem.CIMQualifier` objects in the
+          :attr:`~pywbem.CIMMethod.qualifiers` dictionary (but not the
+          dictionary object itself)
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-        result = CIMMethod(self.name,
-                           return_type=self.return_type,
-                           class_origin=self.class_origin,
-                           propagated=self.propagated)
-
-        result.parameters = self.parameters.copy()
-        result.qualifiers = self.qualifiers.copy()
-
-        return result
+        return CIMMethod(
+            self.name,
+            return_type=self.return_type,
+            class_origin=self.class_origin,
+            propagated=self.propagated,
+            parameters=self.parameters,  # setter copies
+            qualifiers=self.qualifiers)  # setter copies
 
     def tocimxml(self):
         """
@@ -5555,18 +5666,30 @@ class CIMParameter(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy of the :class:`~pywbem.CIMParameter` object.
+
+        This is a middle-deep copy; any mutable types in attributes except the
+        following are copied, so besides these exceptions, modifications of the
+        original object will not affect the returned copy, and vice versa. The
+        following mutable types are not copied and are therefore shared between
+        original and copy:
+
+        * The :class:`~pywbem.CIMQualifier` objects in the
+          :attr:`~pywbem.CIMParameter.qualifiers` dictionary (but not the
+          dictionary object itself)
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-        result = CIMParameter(self.name,
-                              self.type,
-                              reference_class=self.reference_class,
-                              is_array=self.is_array,
-                              array_size=self.array_size,
-                              value=self.value,
-                              embedded_object=self.embedded_object)
-
-        result.qualifiers = self.qualifiers.copy()
-
-        return result
+        return CIMParameter(
+            self.name,
+            self.type,
+            reference_class=self.reference_class,
+            is_array=self.is_array,
+            array_size=self.array_size,
+            value=self.value,
+            embedded_object=self.embedded_object,
+            qualifiers=self.qualifiers)  # setter copies
 
     def tocimxml(self, as_value=False):
         """
@@ -6199,15 +6322,24 @@ class CIMQualifier(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy of the :class:`~pywbem.CIMQualifier` object.
+
+        Objects of this class have no mutable types in any attributes, so
+        modifications of the original object will not affect the returned copy,
+        and vice versa.
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-        return CIMQualifier(self.name,
-                            self.value,
-                            type=self.type,
-                            propagated=self.propagated,
-                            overridable=self.overridable,
-                            tosubclass=self.tosubclass,
-                            toinstance=self.toinstance,
-                            translatable=self.translatable)
+        return CIMQualifier(
+            self.name,
+            self.value,
+            type=self.type,
+            propagated=self.propagated,
+            overridable=self.overridable,
+            tosubclass=self.tosubclass,
+            toinstance=self.toinstance,
+            translatable=self.translatable)
 
     def tocimxml(self):
         """
@@ -6837,17 +6969,26 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     def copy(self):
         """
         Return a copy the :class:`~pywbem.CIMQualifierDeclaration` object.
+
+        Objects of this class have no mutable types in any attributes, so
+        modifications of the original object will not affect the returned copy,
+        and vice versa.
+
+        Note that the Python functions :func:`py:copy.copy` and
+        :func:`py:copy.deepcopy` can be used to create completely shallow or
+        completely deep copies of objects of this class.
         """
-        return CIMQualifierDeclaration(self.name,
-                                       self.type,
-                                       value=self.value,
-                                       is_array=self.is_array,
-                                       array_size=self.array_size,
-                                       scopes=self.scopes,
-                                       overridable=self.overridable,
-                                       tosubclass=self.tosubclass,
-                                       toinstance=self.toinstance,
-                                       translatable=self.translatable)
+        return CIMQualifierDeclaration(
+            self.name,
+            self.type,
+            value=self.value,
+            is_array=self.is_array,
+            array_size=self.array_size,
+            scopes=self.scopes,  # setter copies
+            overridable=self.overridable,
+            tosubclass=self.tosubclass,
+            toinstance=self.toinstance,
+            translatable=self.translatable)
 
     def tocimxml(self):
         """
