@@ -465,7 +465,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
 
         if namespace is None:
-            namespace = DEFAULT_NAMESPACE
+            namespace = self.default_namespace
 
         # TODO:ks Future we might be able to use our own MOFWBEMRepository to
         # directly insert into our repository instead of copying them
@@ -482,7 +482,8 @@ class FakedWBEMConnection(WBEMConnection):
         self._merge_repos(mof_repo)
 
     def compile_dmtf_schema(self, schema_version, schema_root_dir, class_names,
-                            use_experimental=False, verbose=False):
+                            use_experimental=False, namespace=None,
+                            verbose=False):
         """
         Compile the classes defined by `class_names` and their dependent
         classes from the DMTF CIM schema version defined by
@@ -510,7 +511,7 @@ class FakedWBEMConnection(WBEMConnection):
             This must represent a DMTF CIM schema that is available from the
             DMTF web site.
 
-          schema_dir (:term:`string`):
+          schema_root_dir (:term:`string`):
             Directory into which the DMTF CIM schema is installed or will be
             installed.  A single `schema_dir` can be used for multiple
             schema versions because subdirectories are uniquely defined by
@@ -540,6 +541,12 @@ class FakedWBEMConnection(WBEMConnection):
             If `False` (default) the final version of the DMTF
             CIM Schema is installed or to be installed.
 
+          namespace (:term:`string`):
+            The name of the target CIM namespace in the mock repository. This
+            namespace is also used for lookup of any existing or dependent
+            CIM objects. If `None`, the default namespace of the connection is
+            used.
+
           verbose (:class:`py:bool`):
             If `True`, progress messages are output to stdout
 
@@ -555,7 +562,7 @@ class FakedWBEMConnection(WBEMConnection):
                                verbose=verbose)
         schema_mof = schema.build_schema_mof(class_names)
         search_paths = schema.schema_mof_dir
-        self.compile_mof_string(schema_mof, namespace=None,
+        self.compile_mof_string(schema_mof, namespace=namespace,
                                 search_paths=[search_paths],
                                 verbose=verbose)
 
@@ -1089,6 +1096,14 @@ class FakedWBEMConnection(WBEMConnection):
            CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
           does not exist in the  classrepository
         """
+        if namespace not in self.instances:
+            # create empty instance repo if there is a class repo for the
+            # namespace
+            if self._get_class_repo(namespace):
+                self.instances[namespace] = []
+                if namespace not in self.methods:
+                    self.methods[namespace] = NocaseDict()
+
         return self._validate_repo(namespace, self.instances, 'instances')
 
     def _get_qualifier_repo(self, namespace):
@@ -1227,6 +1242,7 @@ class FakedWBEMConnection(WBEMConnection):
         # try to get the target class and create a copy for response
         try:
             cc = classes_repo[classname].copy()
+            # local properties and methods are marked not propagated.
             for prop in cc.properties.values():
                 prop.propagated = False
             for method in cc.properties.values():
