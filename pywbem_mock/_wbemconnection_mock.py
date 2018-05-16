@@ -2050,7 +2050,7 @@ class FakedWBEMConnection(WBEMConnection):
             if p in modified_instance:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
                                'ModifyInstance cannot modify key property %s' %
-                               (p.name))
+                               p)
 
         # remove any properties from modified instance not in the property_list
         if property_list:
