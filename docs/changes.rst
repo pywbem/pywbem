@@ -21,11 +21,39 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Changed the `path` argument of `CIMInstance` to be deep copied, because it 
+  may be modified by setting properties. It was previously shallow copied
+  (and incorrectly documented as not being copied). This is only incompatible
+  if your code relies on the init method modifying the keybindings of its
+  `path` input argument. If your code relies on that, it is highly recommended
+  that you decouple such dependencies (Issue #1251).
+
+* Changed the `path` argument of `CIMClass` to be shallow copied, in order
+  to decouple the created object from its input arguments. It was previously
+  not copied but referenced. This is only incompatible if your code relies on
+  the init method modifying the provided `path` input argument. If your code
+  relies on that, it is highly recommended that you decouple such
+  dependencies (Issue #1251).
+
 **Deprecations:**
 
 **Bug fixes:**
 
 **Enhancements:**
+
+* Docs: Clarified that the `copy()` methods of `NocaseDict` and of the CIM object
+  classes produce middle-deep copies, whereby mutable leaf attributes are not
+  copied and thus are shared between original and copy (Issue #1251).
+
+* Docs: Added a note to the description of the `copy()` methods of the CIM
+  objects that states that `copy.copy()` and `copy.deepcopy()` can be used
+  to create completely shallow or completely deep copies (Issue #1251).
+
+** Cleanup:**
+
+* Removed one level of superflous copies of dictionaries in the `copy()`
+  methods of the CIM object classes. These dictionaries are already copied
+  in the setter methods for the respective attributes (Issue #1251).
 
 **Known issues:**
 
