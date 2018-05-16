@@ -43,6 +43,16 @@ Released: not yet
   (CIM_ERR_NOT_FOUND rather than CIM_ERR_METHOD_NOT_FOUND) when the
   class for a method is not defined in the methods repository. issue #1256
 
+* Fixed issue in pywbem_mock where we were not creating deepcopy (we were using
+  the pywbem .copy that is part of each object (see issue #1251) of objects
+  returned from the repository so that if the objects were modified some of the
+  changes bled back into the repository. Code modified to do deepcopy of
+  everything inserted into the repository through add_cimobjects and the
+  Create... methods and returned from the repository with any of the
+  get/enumerate/etc. methods.  We also modified code so that if there is a
+  class repository there is also an instance repository even if it
+  is empty. See issue #1253
+
 **Enhancements:**
 
 * Docs: Clarified that the `copy()` methods of `NocaseDict` and of the CIM object

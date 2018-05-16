@@ -27,7 +27,7 @@ For documentation, see mocksupport.rst.
 
 from __future__ import absolute_import, print_function
 
-import copy
+from copy import deepcopy
 import uuid
 import time
 import sys
@@ -464,7 +464,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
 
         if namespace is None:
-            namespace = DEFAULT_NAMESPACE
+            namespace = self.default_namespace
 
         # TODO:ks Future we might be able to use our own MOFWBEMRepository to
         # directly insert into our repository instead of copying them
@@ -533,7 +533,7 @@ class FakedWBEMConnection(WBEMConnection):
         else:
             obj = objects
             if isinstance(obj, CIMClass):
-                cc = obj.copy()
+                cc = deepcopy(obj)
                 if cc.superclass:
                     if not self._class_exists(cc.superclass, namespace):
                         raise ValueError('Class %s defines superclass %s but '
@@ -547,7 +547,7 @@ class FakedWBEMConnection(WBEMConnection):
                     self.classes[namespace] = NocaseDict({cc.classname: cc})
 
             elif isinstance(obj, CIMInstance):
-                inst = obj.copy()
+                inst = deepcopy(obj)
                 if inst.path is None:
                     raise ValueError("Instances added must include a path. "
                                      "Instance %r does not include a path" %
@@ -571,7 +571,7 @@ class FakedWBEMConnection(WBEMConnection):
                                        ' CIMError %s' % ce)
 
             elif isinstance(obj, CIMQualifierDeclaration):
-                qual = obj.copy()
+                qual = deepcopy(obj)
                 try:
                     self.qualifiers[namespace][qual.name] = qual
                 except KeyError:
@@ -797,9 +797,9 @@ class FakedWBEMConnection(WBEMConnection):
         Move our repo to the mofcompile repo to provide a basis
         for the compile.
         """
-        repo.classes = copy.deepcopy(self.classes)
-        repo.qualifiers = copy.deepcopy(self.qualifiers)
-        repo.instances = copy.deepcopy(self.instances)
+        repo.classes = deepcopy(self.classes)
+        repo.qualifiers = deepcopy(self.qualifiers)
+        repo.instances = deepcopy(self.instances)
 
     def _merge_repos(self, repo):
         """
@@ -1010,6 +1010,15 @@ class FakedWBEMConnection(WBEMConnection):
            CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
           does not exist in the  classrepository
         """
+        if namespace not in self.instances:
+            # create empty instance repo if there is a class repo for the
+            # namespace. Existence of the class repo should imply existence
+            # of instance repo
+            if self._get_class_repo(namespace):
+                self.instances[namespace] = []
+                if namespace not in self.methods:
+                    self.methods[namespace] = NocaseDict()
+
         return self._validate_repo(namespace, self.instances, 'instances')
 
     def _get_qualifier_repo(self, namespace):
@@ -1147,7 +1156,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         # try to get the target class and create a copy for response
         try:
-            cc = classes_repo[classname].copy()
+            cc = deepcopy(classes_repo[classname])
+            # local properties and methods are marked not propagated.
             for prop in cc.properties.values():
                 prop.propagated = False
             for method in cc.properties.values():
@@ -1169,11 +1179,11 @@ class FakedWBEMConnection(WBEMConnection):
                                    (cx.classname, sc_name))
                 for prop in super_class.properties.values():
                     if prop.name not in cc.properties:
-                        cc.properties[prop.name] = prop.copy()
+                        cc.properties[prop.name] = deepcopy(prop)
                         cc.properties[prop.name].propagated = True
                 for meth in super_class.methods.values():
                     if meth.name not in cc.methods:
-                        cc.methods[meth.name] = meth.copy()
+                        cc.methods[meth.name] = deepcopy(meth)
                         cc.methods[meth.name].propagated = True
 
                 sc_name = super_class.superclass
@@ -1265,7 +1275,7 @@ class FakedWBEMConnection(WBEMConnection):
             raise CIMError(CIM_ERR_NOT_FOUND,
                            'Instance not found in repository namespace %s. '
                            'Path=%s' % (namespace, iname))
-        rtn_inst = inst.copy()
+        rtn_inst = deepcopy(inst)
 
         # If local_only remove properties where class_origin
         # differs from class of target instance
@@ -1481,7 +1491,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         # If there is a superclass defined, test existence and test for
         # overridden properties
-        new_class = new_class.copy()
+        new_class = deepcopy(new_class)
 
         if new_class.superclass:
             try:
@@ -1857,7 +1867,7 @@ class FakedWBEMConnection(WBEMConnection):
                 self.methods[namespace] = NocaseDict()
 
         # Create instance returns model path, path relative to namespace
-        return self._make_tuple([new_instance.path.copy()])
+        return self._make_tuple([deepcopy(new_instance.path)])
 
     def _fake_modifyinstance(self, namespace, **params):
         """
@@ -1875,7 +1885,7 @@ class FakedWBEMConnection(WBEMConnection):
                            ' supported when repo_lite set.')
 
         inst_repo = self._get_instance_repo(namespace)
-        modified_instance = params['ModifiedInstance'].copy()
+        modified_instance = deepcopy(params['ModifiedInstance'])
         property_list = params['PropertyList']
 
         # Return if empty property list
@@ -1966,14 +1976,14 @@ class FakedWBEMConnection(WBEMConnection):
             if original_instance[p] == modified_instance[p]:
                 del modified_instance[p]
 
-        # confirm no key properties in remaining modified instance
+        # Confirm no key properties in remaining modified instance
         for p in key_props:
             if p in modified_instance:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
                                'ModifyInstance cannot modify key property %s' %
                                p)
 
-        # remove any properties from modified instance not in the property_list
+        # Remove any properties from modified instance not in the property_list
         if property_list:
             for p in list(modified_instance):
                 if p not in property_list:
@@ -2163,7 +2173,7 @@ class FakedWBEMConnection(WBEMConnection):
         inst_paths = [inst.path for inst in inst_repo
                       if inst.path.classname in clns]
 
-        rtn_paths = [path.copy() for path in inst_paths]
+        rtn_paths = [deepcopy(path) for path in inst_paths]
 
         return self._make_tuple(rtn_paths)
 
@@ -2463,7 +2473,7 @@ class FakedWBEMConnection(WBEMConnection):
         assert isinstance(obj_name, CIMInstanceName)
         ref_paths = self._get_reference_instnames(obj_name, namespace,
                                                   rc, role)
-        rtn_names = [r.copy() for r in ref_paths]
+        rtn_names = [deepcopy(r) for r in ref_paths]
 
         for iname in rtn_names:
             if iname.host is None:
@@ -2543,7 +2553,7 @@ class FakedWBEMConnection(WBEMConnection):
                                                        namespace,
                                                        ac, rc,
                                                        result_role, role)
-        results = [p.copy() for p in rtn_paths]
+        results = [deepcopy(p) for p in rtn_paths]
 
         for iname in results:
             if iname.host is None:
@@ -2922,7 +2932,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         """
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
-            localobject = objectname.copy()
+            localobject = deepcopy(objectname)
             if localobject.namespace is None:
                 localobject.namespace = self.default_namespace
                 localobject.host = None
