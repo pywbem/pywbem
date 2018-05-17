@@ -62,6 +62,10 @@ Released: not yet
   version of httpretty to <0.9 when running on Python 2.6. Note that
   this only affects the development environment.
 
+* Correct issue in pywbem_mock where we return incorrect CIMError
+  (CIM_ERR_NOT_FOUND rather than CIM_ERR_METHOD_NOT_FOUND) when the
+  class for a method is not defined in the methods repository. issue #1256
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:

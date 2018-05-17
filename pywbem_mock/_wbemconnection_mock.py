@@ -3043,30 +3043,35 @@ class FakedWBEMConnection(WBEMConnection):
                              local_only=False, include_qualifiers=True,
                              include_classorigin=True)
 
+        # Determine if method defined in classname defined in
+        # the classorigin of the method
         try:
-            target_class = cc.methods[methodname].class_origin
+            target_cln = cc.methods[methodname].class_origin
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
-                           'in %s class hiearchy' % (methodname,
-                                                     localobject.classname))
+                           'in class %s.' % (methodname,
+                                             localobject.classname))
+        if target_cln != cc.classname:
+            # TODO FUTURE: add method to repo that allows privileged users
+            # direct access so we don't have to go through _get_class and can
+            # test classes directly in repo
+            tcc = self._get_class(target_cln, namespace,
+                                  local_only=False, include_qualifiers=True,
+                                  include_classorigin=True)
+            if methodname not in tcc.methods:
+                raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
+                               'in origin class %s derived from '
+                               'objectname class %s' % (methodname, target_cln,
+                                                        localobject.classname))
 
-        # test for target class in methods repo
+        # Test for target class in methods repo
         try:
-            methods = methodsrepo[target_class]
+            methods = methodsrepo[target_cln]
         except KeyError:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s for Method %s in '
-                                              'namespace %s not '
-                                              'registered in methods '
-                                              'repository' %
+            raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
+                           'Class %s for method %s in namespace %s not '
+                           'registered in methods repository' %
                            (localobject.classname, methodname, namespace))
-
-        # test for method in local class.
-        try:
-            cc.methods[methodname]
-        except KeyError:
-            raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
-                           'in method repository for class %s' %
-                           (methodname, localobject.classname))
 
         try:
             bound_method = methods[methodname]
