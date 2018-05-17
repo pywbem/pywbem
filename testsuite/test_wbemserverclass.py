@@ -30,12 +30,15 @@ import pytest
 
 from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMInstanceName
 from pywbem._nocasedict import NocaseDict
-
+from dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from pywbem_mock import FakedWBEMConnection
 
-from dmtf_mof_schema_def import install_test_dmtf_schema
-
 VERBOSE = True
+
+# location of testsuite/schema dir used by all tests as test DMTF CIM Schema
+# This directory is permanent and should not be removed.
+TEST_DIR = os.path.dirname(__file__)
+TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 
 
 class BaseMethodsForTests(object):
@@ -44,39 +47,25 @@ class BaseMethodsForTests(object):
     build the DMTF schema and to build individual instances.
     """
 
-    @staticmethod
-    def build_schema_list(conn, namespace):
+    def build_class_repo(self, default_namespace):
         """
         Build the schema qualifier and class objects in the repository.
         This requires only that the leaf objects be defined in a mof
         include file since the compiler finds the files for qualifiers
         and dependent classes.
-        TODO: ks 3/18 Right now we must build a file in the schema directory
-        to do this because the compile_from_string does not support
-        include files, etc. It does not search for files. See issue 1138
         """
-        dmtf_schema = install_test_dmtf_schema()
-        class_list = """
-            #pragma locale ("en_US")
-            #pragma include ("Interop/CIM_RegisteredProfile.mof")
-            #pragma include ("Interop/CIM_Namespace.mof")
-            #pragma include ("Interop/CIM_ObjectManager.mof")
-            #pragma include ("Interop/CIM_ElementConformsToProfile.mof")
-            #pragma include ("Interop/CIM_ReferencedProfile.mof")
-            """
+        FakedWBEMConnection._reset_logging_config()
+        conn = FakedWBEMConnection(default_namespace=default_namespace)
+        classnames = ['CIM_Namespace',
+                      'CIM_ObjectManager',
+                      'CIM_RegisteredProfile',
+                      'CIM_ElementConformsToProfile']
 
-        test_schema = os.path.join(dmtf_schema.schema_root_dir,
-                                   'test_schema1.mof')
+        conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER,
+                                 TESTSUITE_SCHEMA_DIR,
+                                 class_names=classnames, verbose=False)
 
-        with open(test_schema, "w") as schema_file:
-            schema_file.write(class_list)
-
-        conn.compile_mof_file(test_schema, namespace=namespace,
-                              search_paths=[dmtf_schema.schema_mof_dir])
-
-        if os.path.isfile(test_schema):
-            os.remove(test_schema)
-        return
+        return conn
 
     @staticmethod
     def inst_from_class(klass, namespace=None,
@@ -316,7 +305,7 @@ class TestServerClass(BaseMethodsForTests):
     @pytest.mark.parametrize(
         "tst_namespace",
         ['interop', 'root/interop', 'root/PG_Interop'])
-    def test_server_basic(self, tst_namespace):
+    def test_wbemserver_basic(self, tst_namespace):
         """
         Test the basic functions that access server information. This test
         creates the mock repository and adds classes and instances for
@@ -326,10 +315,9 @@ class TestServerClass(BaseMethodsForTests):
         for easily getting classes and instances into the repo and to provide
         a basic test of functionality.
         """
-        conn = FakedWBEMConnection()
-        self.build_schema_list(conn, tst_namespace)
-        system_name = 'Mock_Test_server_class'
+        system_name = 'Mock_Test_subscription_mgr'
         object_manager_name = 'MyFakeObjectManager'
+        conn = self.build_class_repo(tst_namespace)
         server = WBEMServer(conn)
 
         # Build CIM_ObjectManager instance
