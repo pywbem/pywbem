@@ -3049,8 +3049,8 @@ class FakedWBEMConnection(WBEMConnection):
             target_cln = cc.methods[methodname].class_origin
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
-                           'in class %s class' % (methodname,
-                                                  localobject.classname))
+                           'in class %s.' % (methodname,
+                                             localobject.classname))
         if target_cln != cc.classname:
             # TODO FUTURE: add method to repo that allows privileged users
             # direct access so we don't have to go through _get_class and can
@@ -3060,7 +3060,9 @@ class FakedWBEMConnection(WBEMConnection):
                                   include_classorigin=True)
             if methodname not in tcc.methods:
                 raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
-                               'in class %s' % (methodname, target_cln))
+                               'in origin class %s derived from '
+                               'objectname class %s' % (methodname, target_cln,
+                                                        localobject.classname))
 
         # Test for target class in methods repo
         try:
