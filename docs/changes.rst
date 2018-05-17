@@ -21,7 +21,7 @@ Released: not yet
 
 **Incompatible changes:**
 
-* Changed the `path` argument of `CIMInstance` to be deep copied, because it 
+* Changed the `path` argument of `CIMInstance` to be deep copied, because it
   may be modified by setting properties. It was previously shallow copied
   (and incorrectly documented as not being copied). This is only incompatible
   if user code relies on the init method modifying the keybindings of its
@@ -38,6 +38,10 @@ Released: not yet
 **Deprecations:**
 
 **Bug fixes:**
+
+* Correct issue in pywbem_mock where we return incorrect CIMError
+  (CIM_ERR_NOT_FOUND rather than CIM_ERR_METHOD_NOT_FOUND) when the
+  class for a method is not defined in the methods repository. issue #1256
 
 **Enhancements:**
 
