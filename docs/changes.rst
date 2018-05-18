@@ -15,9 +15,7 @@ Change log
 Version 0.12.3
 ^^^^^^^^^^^^^^
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
+Released: 2018-05-18
 
 **Incompatible changes:**
 
@@ -34,8 +32,6 @@ Released: not yet
   the init method modifying the provided `path` input argument. If user code
   relies on that, it is highly recommended that you decouple such
   dependencies (Issue #1251).
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -68,12 +64,6 @@ Released: not yet
 * Removed one level of superflous copies of dictionaries in the `copy()`
   methods of the CIM object classes. These dictionaries are already copied
   in the setter methods for the respective attributes (Issue #1251).
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 Version 0.12.2
