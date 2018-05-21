@@ -9838,7 +9838,6 @@ TESTCASES_TUPLEPARSE_XML = [
     ),
 
     # TODO: IPARAMVALUE tests
-    # TODO: PARAMVALUE tests
     # TODO: EXPPARAMVALUE tests
     # TODO: RETURNVALUE tests
     # TODO: IRETURNVALUE tests
