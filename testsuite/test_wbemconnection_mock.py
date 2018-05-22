@@ -154,7 +154,9 @@ def tst_class():
     test class for the mock class tests.
     """
     qkey = {'Key': CIMQualifier('Key', True, propagated=False)}
-    dkey = {'Description': CIMQualifier('Description', 'blah blah',
+    dkey = {'Description': CIMQualifier('Description', 'class description',
+                                        propagated=False)}
+    pkey = {'Description': CIMQualifier('Description', 'property',
                                         propagated=False)}
 
     c = CIMClass(
@@ -163,10 +165,10 @@ def tst_class():
                     CIMProperty('InstanceID', None, qualifiers=qkey,
                                 type='string', class_origin='CIM_Foo',
                                 propagated=False)},
-        methods={'Delete': CIMMethod('Delete', 'uint32', qualifiers=dkey,
+        methods={'Delete': CIMMethod('Delete', 'uint32', qualifiers=pkey,
                                      class_origin='CIM_Foo',
                                      propagated=False),
-                 'Fuzzy': CIMMethod('Fuzzy', 'string', qualifiers=dkey,
+                 'Fuzzy': CIMMethod('Fuzzy', 'string', qualifiers=pkey,
                                     class_origin='CIM_Foo',
                                     propagated=False)})
     return c
@@ -185,11 +187,14 @@ def tst_classes(tst_class):
     qkey = {'Key': CIMQualifier('Key', True, propagated=False)}
     dkey = {'Description': CIMQualifier('Description', 'blah blah',
                                         propagated=False)}
+    pkey = {'Description': CIMQualifier('Description', 'property',
+                                        propagated=False)}
 
     c2 = CIMClass(
         'CIM_Foo_sub', superclass='CIM_Foo', qualifiers=dkey,
         properties={'cimfoo_sub':
                     CIMProperty('cimfoo_sub', None, type='string',
+                                qualifiers=pkey,
                                 class_origin='CIM_Foo_sub',
                                 propagated=False)})
 
@@ -197,6 +202,7 @@ def tst_classes(tst_class):
         'CIM_Foo_sub2', superclass='CIM_Foo', qualifiers=dkey,
         properties={'cimfoo_sub2':
                     CIMProperty('cimfoo_sub2', None, type='string',
+                                qualifiers=pkey,
                                 class_origin='CIM_Foo_sub2',
                                 propagated=False)})
 
@@ -204,6 +210,7 @@ def tst_classes(tst_class):
         'CIM_Foo_sub_sub', superclass='CIM_Foo_sub', qualifiers=dkey,
         properties={'cimfoo_sub_sub':
                     CIMProperty('cimfoo_sub_sub', None, type='string',
+                                qualifiers=pkey,
                                 class_origin='CIM_Foo_sub_sub',
                                 propagated=False)})
 
@@ -213,7 +220,7 @@ def tst_classes(tst_class):
             CIMProperty('InstanceID', None, qualifiers=qkey,
                         type='string', class_origin='CIM_Foo_nokey',
                         propagated=False),
-            CIMProperty('cimfoo', None, qualifiers=None,
+            CIMProperty('cimfoo', None, qualifiers=pkey,
                         type='string', class_origin='CIM_Foo_nokey',
                         propagated=False),
         ])
@@ -1506,28 +1513,41 @@ class TestClassOperations(object):
         cl = conn.GetClass(cn, namespace=ns, IncludeQualifiers=iq,
                            LocalOnly=True, IncludeClassOrigin=ico)
 
-        cl.path = None
-
-        c_tst = tst_class.copy()
+        # test with LocalOnly True to get just the local properties
+        cl = conn.GetClass(cn, namespace=ns, IncludeQualifiers=iq,
+                           LocalOnly=True, IncludeClassOrigin=ico)
+        # TODO ks confirm whether following needed
+        # cl.path = None
 
         # remove all qualifiers and class_origins and test for equality
         if not iq:
-            c_tst.qualifiers = NocaseDict()
-
-            for prop in c_tst.properties:
-                c_tst.properties[prop].qualifiers = NocaseDict()
-            for method in c_tst.methods:
-                c_tst.methods[method].qualifiers = NocaseDict()
-                for param in c_tst.methods[method].parameters:
-                    c_tst.methods[method].parameters[param].qualifiers = \
+            tst_class.qualifiers = NocaseDict()
+            for prop in cl.properties:
+                tst_class.properties[prop].qualifiers = NocaseDict()
+            for method in cl.methods:
+                tst_class.methods[method].qualifiers = NocaseDict()
+                for param in cl.methods[method].parameters:
+                    tst_class.methods[method].parameters[param].qualifiers = \
                         NocaseDict()
-        if not ico:
-            for prop in c_tst.properties:
-                c_tst.properties[prop].class_origin = None
-            for method in c_tst.methods:
-                c_tst.methods[method].class_origin = None
 
-        assert cl == c_tst
+        # remove class origin if ico = None. Else test
+        if not ico:
+            for prop in tst_class.properties:
+                tst_class.properties[prop].class_origin = None
+            for method in tst_class.methods:
+                tst_class.methods[method].class_origin = None
+        else:
+            # The following is a test
+            for pname in tst_class.properties:
+                tst_class.properties[pname].class_origin == tst_class.classname
+            for mname in tst_class.methods:
+                tst_class.methods[mname].class_origin == tst_class.classname
+
+        # Test the modified tst_class against the returned class
+        tst_ns = ns if ns else conn.default_namespace
+        tst_class.path = CIMClassName(cn, host='FakedUrl', namespace=tst_ns)
+
+        assert(cl == tst_class)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1552,17 +1572,23 @@ class TestClassOperations(object):
         """
         conn.add_cimobjects(tst_classes, namespace=ns)
 
-        if not lo:
-            cl = conn.GetClass(cn, namespace=ns, LocalOnly=lo,
-                               IncludeQualifiers=True)
-        else:
-            cl = conn.GetClass(cn, namespace=ns, LocalOnly=lo,
-                               IncludeQualifiers=True)
+        cl = conn.GetClass(cn, namespace=ns, LocalOnly=lo,
+                           IncludeQualifiers=True,
+                           IncludeClassOrigin=True)
 
         assert cl.classname == cn
         assert len(cl.properties) == len(pl_exp)
         rtn_props = cl.properties.keys()
         assert set(rtn_props) == set(pl_exp)
+
+        tst_cls_dict = dict()
+        for cl in tst_classes:
+            tst_cls_dict[cl.classname] = cl
+        for pname, prop in cl.properties.items():
+            prop_class_origin = prop.class_origin
+            class_prop_qualifiers = \
+                tst_cls_dict[prop_class_origin].properties[pname].qualifiers
+            assert prop.qualifiers == class_prop_qualifiers
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
