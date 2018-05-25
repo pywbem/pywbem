@@ -1,0 +1,94 @@
+// This is a simple mof model that creates the qualifier declarations,
+// classes, and instances for a very simplistic model to be used in the
+// pywbemcli mock test environment.
+
+#pragma locale ("en_US")
+Qualifier Association : boolean = false,
+    Scope(association),
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Indication : boolean = false,
+    Scope(class, indication),
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Abstract : boolean = false,
+    Scope(class, association, indication),
+    Flavor(EnableOverride, Restricted);
+
+Qualifier Aggregate : boolean = false,
+    Scope(reference),
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Description : string = null,
+    Scope(any),
+    Flavor(EnableOverride, ToSubclass, Translatable);
+
+Qualifier In : boolean = true,
+    Scope(parameter),
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Key : boolean = false,
+    Scope(property, reference),
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Out : boolean = false,
+    Scope(parameter),
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Override : string = null,
+    Scope(property, reference, method),
+    Flavor(EnableOverride, Restricted);
+
+     [Description ("Simple CIM Class")]
+class CIM_Foo {
+        [Key, Description ("This is key property.")]
+    string InstanceID;
+
+        [Description ("This is Uint32 property.")]
+    uint32 IntegerProp;
+
+        [Description ("Method with in and out parameters")]
+    uint32 Fuzzy(
+        [IN, Description("FuzzyMethod Param")]
+      string FuzzyParameter,
+
+        [IN, OUT, Description ( "Test of ref in/out parameter")]
+      CIM_Foo REF Foo,
+
+        [IN ( false ), OUT, Description("TestMethod Param")]
+      string OutputParam);
+
+        [ Description("Method with no Parameters") ]
+    uint32 DeleteNothing();
+};
+
+    [Description ("Subclass of CIM_Foo")]
+class CIM_Foo_sub : CIM_Foo {
+    string cimfoo_sub;
+};
+
+    [Description ("Subclass of CIM_Foo_sub")]
+class CIM_Foo_sub_sub : CIM_Foo_sub {
+    string cimfoo_sub_sub;
+        [Description("Sample method with input and output parameters")]
+    uint32 Method1(
+        [IN ( false), OUT, Description("Response param 2")]
+      string OutputParam2);
+};
+
+
+class CIM_Foo_sub2 : CIM_Foo {
+    string cimfoo_sub2;
+};
+
+instance of CIM_Foo as $foo1 {
+    InstanceID = "CIM_Foo1";
+    IntegerProp = 1;
+    };
+
+instance of CIM_Foo as $foo2 {
+    InstanceID = "CIM_Foo2";
+    IntegerProp = 2;
+    };
+
+instance of CIM_Foo as $foo3 { InstanceID = "CIM_Foo3"; };

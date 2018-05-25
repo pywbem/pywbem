@@ -35,9 +35,25 @@ from subprocess import Popen, PIPE
 from collections import namedtuple
 import six
 
+TEST_DIR = os.path.dirname(__file__)
+TEST_MOCK_MOF = os.path.join(TEST_DIR, 'simple_mock_model.mof')
+
+
+def abs_path(filename):
+    """
+    create an absolute path name for filename in the same directory as this
+    python code.  Also, replace any backslashes with forward slashes to
+    account for executing this in windows.
+    """
+    script_dir = os.path.dirname(__file__)
+    script_file = os.path.join(script_dir, filename)
+    return script_file.replace('\\', '/')
+
 # Output fragments to test against for each test defined
 # Each item is a list of fragmants that are tested against the cmd execution
 # result
+
+
 HELP_OUTPUT = ['-n namespace, --namespace',
                '-t timeout, --timeout']
 LOG_DEST_STDERR_OUTPUT = ['log=on',
@@ -62,6 +78,11 @@ NAMESPACE_OUTPUT = ['log=off',
 LOG_STDERR_OUTPUT = ['pywbem.api.']
 
 DEF_NAMESPACE_OUTPUT = ['default-namespace=root/cimv2']
+
+GOOD_MOCK_OUTPUT = ['Connection: http://FakedUrl, no creds,',
+                    'cacerts=sys-default, verifycert=on,',
+                    'default-namespace=root/cimv2 stats=on,',
+                    'log=off,', 'mock-server']
 
 
 # pylint: disable=invalid-name
@@ -92,18 +113,21 @@ TESTS_MAP = [  # pylint: disable=invalid-name
     tst_def('error_param', '-n', None, 2,
             ['argument -n/--namespace: expected one argument'], None),
     tst_def('error_url', '', None, 2,
-            ['error: Invalid scheme on server argument'], 'httpx://xxx'), ]
-
-
-def create_abs_path(filename):
-    """
-    create an absolute path name for filename in the same directory as this
-    python code.  Also, replace any backslashes with forward slashes to
-    account for executing this in windows.
-    """
-    script_dir = os.path.dirname(__file__)
-    script_file = os.path.join(script_dir, filename)
-    return script_file.replace('\\', '/')
+            ['error: Invalid scheme on server argument'], 'httpx://xxx'),
+    tst_def('mock_server', '--mock-server %s' %
+            abs_path('simple_mock_model.mof'),
+            GOOD_MOCK_OUTPUT, 0,
+            None, 'http://blah'),
+    tst_def('mock_server_err', '--mock-server %s' % abs_path('blah.blah'),
+            None, 2,
+            'error: Build Repository failed: File name blah.blah does not '
+            'exist',
+            'http://blah'),
+    tst_def('mock_server', '--mock-server %s %s' %
+            (abs_path('simple_mock_model.mof'),
+             abs_path('simple_mock_add_obj.py')),
+            GOOD_MOCK_OUTPUT, 0,
+            None, 'http://blah'), ]
 
 
 class ContainerMeta(type):
@@ -128,7 +152,7 @@ class ContainerMeta(type):
                 """ The test method that is generated."""
                 # create the path for the quit script. Required to
                 # exit wbemcli after the test.
-                quit_script_file = create_abs_path('wbemcli_quit_script.py')
+                quit_script_file = abs_path('wbemcli_quit_script.py')
 
                 script_name = 'wbemcli.bat' if os.name == 'nt' else 'wbemcli'
 
@@ -180,7 +204,7 @@ class ContainerMeta(type):
                         match_result = re.search(item, std_err)
                         self.assertNotEqual(match_result, None, 'Test %s: '
                                             'stderr did not match test '
-                                            'definition. Expected %s in %s' %
+                                            'definition. Expected: %s in \n%s' %
                                             (test_name, item, std_err))
 
                 if test_params.expected_stdout is not None:
@@ -188,8 +212,9 @@ class ContainerMeta(type):
                         match_result = re.search(item, std_out)
                         self.assertNotEqual(match_result, None,
                                             'Test=%s: stdout did not match '
-                                            'test definition. Expected %s in %s'
-                                            % (test_name, item, std_out))
+                                            'test definition. Expected: %s '
+                                            'in\n%s' %
+                                            (test_name, item, std_out))
                 else:
                     self.assertEqual(std_out, "",
                                      'Test %s: stdout not empty as expected. '

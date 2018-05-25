@@ -90,6 +90,7 @@ import sys as _sys
 import os as _os
 import getpass as _getpass
 import re
+import traceback
 import errno as _errno
 import code as _code
 import argparse as _argparse
@@ -115,6 +116,7 @@ from pywbem._logging import LOG_DESTINATIONS, \
     LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES, DEFAULT_LOG_DETAIL_LEVEL, \
     DEFAULT_LOG_DESTINATION, configure_loggers_from_string
 from pywbem import __version__
+from pywbem_mock import FakedWBEMConnection
 
 # Connection global variable. Set by remote_connection and use
 # by all functions that execute operations.
@@ -126,6 +128,47 @@ ARGS = None
 WBEMCLI_LOG_FILENAME = 'wbemcli.log'
 
 
+def build_mock_repository(conn_, file_path_list, verbose):
+    """
+    Build the mock repository from the file_path list and fake connection
+    instance.  This allows both mof files and python files to be used to
+    build the repository.
+
+    If verbose is True, it displays the respository after it is build as
+    mof.
+    """
+    for file_path in file_path_list:
+        ext = _os.path.splitext(file_path)[1]
+        if not _os.path.exists(file_path):
+            raise ValueError('File name %s does not exist' % file_path)
+        if ext == '.mof':
+            conn_.compile_mof_file(file_path)
+        elif ext == '.py':
+            try:
+                with open(file_path) as fp:
+                    # the exec includes CONN and VERBOSE
+                    globalparams = {'CONN': conn_, 'VERBOSE': verbose}
+                    # pylint: disable=exec-used
+                    exec(fp.read(), globalparams, None)
+
+            except Exception as ex:
+                exc_type, exc_value, exc_traceback = _sys.exc_info()
+                tb = repr(traceback.format_exception(exc_type, exc_value,
+                                                     exc_traceback))
+                raise ValueError(
+                    'Exception failure of "--mock-server" python script %r '
+                    'with conn %r Exception: %r\nTraceback\n%s' %
+                    (file_path, conn, ex, tb))
+
+        else:
+            raise ValueError('Invalid suffix %s on "--mock-server" '
+                             'global parameter %s. Must be "py" or "mof".'
+                             % (ext, file_path))
+
+    if verbose:
+        conn_.display_repository()
+
+
 def _remote_connection(server, opts, argparser_):
     """Initiate a remote connection, via PyWBEM. Arguments for
        the request are part of the command line arguments and include
@@ -133,6 +176,25 @@ def _remote_connection(server, opts, argparser_):
     """
 
     global CONN     # pylint: disable=global-statement
+
+    if opts.timeout is not None:
+        if opts.timeout < 0 or opts.timeout > 300:
+            argparser_.error('timeout option(%s) out of range' % opts.timeout)
+
+    # mock only uses the namespace timeout and statistics options from the
+    # original set of options. It ignores the url
+    if opts.mock_server:
+        CONN = FakedWBEMConnection(
+            default_namespace=opts.namespace,
+            timeout=opts.timeout,
+            stats_enabled=opts.statistics)
+
+        try:
+            build_mock_repository(CONN, opts.mock_server, opts.verbose)
+        except ValueError as ve:
+            argparser_.error('Build Repository failed: %s' % ve)
+
+        return CONN
 
     if server[0] == '/':
         url = server
@@ -158,10 +220,6 @@ def _remote_connection(server, opts, argparser_):
 
     if opts.user is not None or opts.password is not None:
         creds = (opts.user, opts.password)
-
-    if opts.timeout is not None:
-        if opts.timeout < 0 or opts.timeout > 300:
-            argparser_.error('timeout option(%s) out of range' % opts.timeout)
 
     # if client cert and key provided, create dictionary for
     # wbem connection
@@ -3001,7 +3059,10 @@ def _get_connection_info():
     # pylint: disable=protected-access
     info += ' stats=%s, ' % ('on' if CONN._statistics else 'off')
 
-    info += 'log=%s, ' % ('on' if CONN._operation_recorders else 'off')
+    info += 'log=%s' % ('on' if CONN._operation_recorders else 'off')
+
+    if isinstance(CONN, FakedWBEMConnection):
+        info += ', mock-server'
 
     return fill(info, 78, subsequent_indent='    ')
 
@@ -3174,6 +3235,13 @@ Examples:
         action='store_true', default=False,
         help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(
+        '--mock-server', dest='mock_server', metavar='file name', nargs='*',
+        help='R|Activate pywbem_mock in place of a live WBEMConnection and \n'
+             'compile/build the files defined (".mof" suffix or "py" suffix.\n'
+             'MOF files are compiled and python files are executed assuming\n'
+             'that they include mock_pywbem methods that add objects to the\n'
+             'repository.')
+    general_arggroup.add_argument(
         '-l', '--log', dest='log', metavar='log_spec[,logspec]',
         action='store', default=None,
         help='R|Log_spec defines characteristics of the various named\n'
@@ -3204,7 +3272,7 @@ Examples:
     global ARGS  # pylint: disable=global-statement
     ARGS = args
 
-    if not args.server:
+    if not args.server and not args.mock_server:
         argparser.error('No WBEM server specified')
 
     # Set up a client connection
