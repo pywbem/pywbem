@@ -3277,7 +3277,7 @@ Examples:
         help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(
         '--mock-server', dest='mock_server', metavar='file name', nargs='*',
-        help='R|Activate pywbem_mock in place of a live WBEMConnection and \n'
+        help='R|Activate pywbem_mock in place of a live WBEMConnection and\n'
              'compile/build the files defined (".mof" suffix or "py" suffix.\n'
              'MOF files are compiled and python files are executed assuming\n'
              'that they include mock_pywbem methods that add objects to the\n'
