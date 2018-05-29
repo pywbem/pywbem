@@ -1175,7 +1175,11 @@ class FakedWBEMConnection(WBEMConnection):
             list of strings with the names of all subclasses of `classname`.
 
         """
-        assert classname is None or isinstance(classname, six.string_types)
+        assert classname is None or isinstance(classname, (six.string_types,
+                                                           CIMClassName))
+
+        if isinstance(classname, CIMClassName):
+            classname = classname.classname
 
         # retrieve first level of subclasses for which classname is superclass
         rtn_classnames = [
@@ -1455,13 +1459,29 @@ class FakedWBEMConnection(WBEMConnection):
         Enumerate classes from class repository. If classname parameter
         exists, use it as the starting point for the hiearchy to get subclasses.
 
+        Returns:
+
+            return tuple including list of classes
+
+        Raises:
+
+            CIMError: CIM_ERR_INVALID_NAMESPACE if invalid namespace,
+            CIMError: CIM_ERR_NOT_FOUND if Classname not found
+            CIMError: CIM_ERR_INVALID_CLASS if class that is basis for tes
+                      does not exist
+
         """
         self._get_class_repo(namespace)
 
-        cns = self._get_subclass_names(
-            params.get('classname', None),
-            namespace,
-            params['DeepInheritance'])
+        classname = params.get('ClassName', None)
+        if classname:
+            assert(isinstance(classname, CIMClassName))
+            if not self._class_exists(classname.classname, namespace):
+                raise CIMError(CIM_ERR_INVALID_CLASS,
+                               'The class %s does not exist in namespace %s' %
+                               (classname, namespace))
+        cns = self._get_subclass_names(classname, namespace,
+                                       params['DeepInheritance'])
 
         classes = [
             self._get_class(cn, namespace,
@@ -1488,9 +1508,19 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_INVALID_NAMESPACE if invalid namespace,
             CIMError: CIM_ERR_NOT_FOUND if Classname not found
+            CIMError: CIM_ERR_INVALID_CLASS if class that is basis for tes
+                      does not exist
         """
-        clns = self._get_subclass_names(params.get('classname', None),
-                                        namespace,
+        self._get_class_repo(namespace)
+
+        classname = params.get('ClassName', None)
+        if classname:
+            assert(isinstance(classname, CIMClassName))
+            if not self._class_exists(classname.classname, namespace):
+                raise CIMError(CIM_ERR_INVALID_CLASS,
+                               'The class %s does not exist in namespace %s' %
+                               (classname, namespace))
+        clns = self._get_subclass_names(classname, namespace,
                                         params['DeepInheritance'])
 
         rtn_clns = [
@@ -1672,6 +1702,7 @@ class FakedWBEMConnection(WBEMConnection):
         self.classes[namespace][new_class.classname] = new_class
 
     def _fake_modifyclass(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Currently not implemented
         Implements a mock server responder for
@@ -1687,7 +1718,6 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_NOT_SUPPORTED
         """
-        print('ModifyClass not supported %s %s' % (namespace, params))
         self._get_class_repo(namespace)
         raise CIMError(CIM_ERR_NOT_SUPPORTED, 'Currently ModifyClass not '
                                               'supported in '
@@ -1719,13 +1749,14 @@ class FakedWBEMConnection(WBEMConnection):
             class_repo[cname]
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s in namespace %s'
-                           'not in repository. Not deleted.' %
+                           'not in repository. Nothing deleted.' %
                            (cname, namespace))
 
         classnames = self._get_subclass_names(cname, namespace, True)
         classnames.append(cname)
 
-        # delete all instances and names in this class and subclasses
+        # delete all instances in this class and subclasses and delete
+        # this class and subclasses
         for clname in classnames:
             if self.instances:
                 inst_names = self.EnumerateInstanceNames(clname, namespace)
@@ -2264,6 +2295,7 @@ class FakedWBEMConnection(WBEMConnection):
         return self._make_tuple(rtn_paths)
 
     def _fake_execquery(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Implements a mock WBEM server responder for
             :meth:`~pywbem.WBEMConnection.ExecQuery`
@@ -2271,7 +2303,6 @@ class FakedWBEMConnection(WBEMConnection):
         Executes the equilavent of the WBEMConnection ExecQuery for
         the querylanguage and query defined
         """
-        print('_fake_execquery ns %s, params %s' % (namespace, params))
         self._get_instance_repo(namespace)
         raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery Not Implemented!')
 
