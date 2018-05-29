@@ -22,7 +22,7 @@ Released: not yet
 
 **Incompatible changes:**
 
-* Changed the `path` argument of `CIMInstance` to be deep copied, because it 
+* Changed the `path` argument of `CIMInstance` to be deep copied, because it
   may be modified by setting properties. It was previously shallow copied
   (and incorrectly documented as not being copied). This is only incompatible
   if user code relies on the init method modifying the keybindings of its
@@ -75,6 +75,10 @@ Released: not yet
   get/enumerate/etc. methods.  We also modified code so that if there is a
   class repository there is also an instance repository even if it
   is empty. See issue #1253
+
+* Fixed issue where pywbem_mock EnumerateClass and EnumerateClassNames
+  parameter losing the ClassName parameter and no test for the ClassName
+  parameter not existing in the repository. (See issue #1271)
 
 **Enhancements:**
 

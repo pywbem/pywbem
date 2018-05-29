@@ -41,7 +41,7 @@ from testfixtures import OutputCapture
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
-    CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED
+    CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS
 
 from pywbem._nocasedict import NocaseDict
 
@@ -1596,18 +1596,26 @@ class TestClassOperations(object):
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "cn, di, cn_exp,", [
+        # cn - Classname for request (May be None)
+        # di - Boolean defines DeepInheritance value for request
+        # exp_cn - Expected classnames on response or if CIMError, expected
+        #          CIMError
+        "cn, di, exp_rslt,", [
             [None, None, ['CIM_Foo', 'CIM_Foo_nokey']],
             [None, False, ['CIM_Foo', 'CIM_Foo_nokey']],
             [None, True, ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2',
                           'CIM_Foo_sub_sub', 'CIM_Foo_nokey']],
             ['CIM_Foo', None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
+            [CIMClassName('CIM_Foo'), None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
+            [CIMClassName('CIM_Foo'), True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
+                                             'CIM_Foo_sub_sub']],
             ['CIM_Foo_sub_sub', None, []],
+            ['CIM_Foo_sub_subxx', None, CIMError(CIM_ERR_INVALID_CLASS)],
         ]
     )
-    def test_enumerateclassnames(self, conn, ns, cn, di, cn_exp, tst_classes):
+    def test_enumerateclassnames(self, conn, ns, cn, di, exp_rslt, tst_classes):
         # pylint: disable=no-self-use
         """
         Test EnumerateClassNames mock with parameters for namespace,
@@ -1615,22 +1623,26 @@ class TestClassOperations(object):
         """
         conn.add_cimobjects(tst_classes, namespace=ns)
 
+        if isinstance(exp_rslt, CIMError):
+            with pytest.raises(CIMError) as exec_info:
+                conn.EnumerateClassNames(ClassName=cn, namespace=ns,
+                                         DeepInheritance=di)
+            exc = exec_info.value
+            assert exc.status_code == exp_rslt.status_code
+            return
+
         if cn is None:
             rtn_clns = conn.EnumerateClassNames(namespace=ns,
-                                                DeepInheritance=di,
-                                                IncludeQualifiers=True)
+                                                DeepInheritance=di)
         else:
-            rtn_clns = conn.EnumerateClassNames(classname=cn,
+            rtn_clns = conn.EnumerateClassNames(ClassName=cn,
                                                 namespace=ns,
-                                                DeepInheritance=di,
-                                                IncludeQualifiers=True)
+                                                DeepInheritance=di)
 
         for cn_ in rtn_clns:
             assert isinstance(cn_, six.string_types)
-        assert len(rtn_clns) == len(cn_exp)
-        assert set(rtn_clns) == set(cn_exp)
-        # TODO add detailed test for di attribute.  This involves creating local
-        # expected return and then comparing.
+        assert len(rtn_clns) == len(exp_rslt)
+        assert set(rtn_clns) == set(exp_rslt)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1645,7 +1657,9 @@ class TestClassOperations(object):
         # di: deepinheritance input parameter
         # pl_exp: Properties expected in response
         # len_exp: number of classes expected in response
-        "cn_param, lo, di, pl_exp, len_exp", [
+        # exp_rslt: If integer, expected number of class in respons. If
+        # CIMError, expected error code
+        "cn_param, lo, di, pl_exp, exp_rslt", [
             [None, None, None, ['InstanceID', 'cimfoo'], 2],
             [None, None, True, ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2',
                                 'cimfoo_sub_sub', 'cimfoo'], 5],
@@ -1674,10 +1688,13 @@ class TestClassOperations(object):
                                       'cimfoo_sub2', 'cimfoo_sub_sub'], 3],
             ['CIM_Foo_sub_sub', False, None, [], 0],
             ['CIM_Foo_sub_sub', False, True, [], 0],
+            ['CIM_Foo_sub_subxx', False, True, [],
+             CIMError(CIM_ERR_INVALID_CLASS)],
+
         ]
     )
     def test_enumerateclasses(self, conn, iq, ico, ns, cn_param, lo, di,
-                              pl_exp, len_exp, tst_classes):
+                              pl_exp, exp_rslt, tst_classes):
         # pylint: disable=no-self-use
         """
         Test EnumerateClasses for proper processing of input parameters.
@@ -1687,6 +1704,14 @@ class TestClassOperations(object):
         """
         conn.add_cimobjects(tst_classes, namespace=ns)
 
+        if isinstance(exp_rslt, CIMError):
+            with pytest.raises(CIMError) as exec_info:
+                conn.EnumerateClassNames(ClassName=cn_param, namespace=ns,
+                                         DeepInheritance=di)
+            exc = exec_info.value
+            assert exc.status_code == exp_rslt.status_code
+            return
+
         if cn_param is None:
             rtn_classes = conn.EnumerateClasses(DeepInheritance=di,
                                                 namespace=ns,
@@ -1694,14 +1719,15 @@ class TestClassOperations(object):
                                                 IncludeQualifiers=iq,
                                                 IncludeClassOrigin=ico)
         else:
-            rtn_classes = conn.EnumerateClasses(classname=cn_param,
+            rtn_classes = conn.EnumerateClasses(ClassName=cn_param,
                                                 namespace=ns,
                                                 DeepInheritance=di,
                                                 LocalOnly=lo,
                                                 IncludeQualifiers=iq,
                                                 IncludeClassOrigin=ico)
 
-        assert len(rtn_classes) == len_exp
+        assert isinstance(exp_rslt, six.integer_types)
+        assert len(rtn_classes) == exp_rslt
 
         for rtn_class in rtn_classes:
             assert(isinstance(rtn_class, CIMClass))
