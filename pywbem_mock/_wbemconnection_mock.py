@@ -1429,7 +1429,7 @@ class FakedWBEMConnection(WBEMConnection):
         Remove properties from an instance or class that aren't in the
         plist parameter
 
-        obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMClass):
+        obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance):
             The class or instance from which properties are to be filtered
 
         property_list(list of :term:`string`):
