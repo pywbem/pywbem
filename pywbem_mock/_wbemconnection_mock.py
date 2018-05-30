@@ -1465,11 +1465,12 @@ class FakedWBEMConnection(WBEMConnection):
 
         Raises:
 
-            CIMError: CIM_ERR_INVALID_NAMESPACE if invalid namespace,
-            CIMError: CIM_ERR_NOT_FOUND if Classname not found
-            CIMError: CIM_ERR_INVALID_CLASS if class that is basis for tes
-                      does not exist
-
+            CIMError: CIM_ERR_INVALID_NAMESPACE: invalid namespace,
+            CIMError: CIM_ERR_NOT_FOUND: A class that should be a subclass
+            of either the root or "ClassName" parameter was not found in the
+            repository. This is probably a repository build error.
+            CIMError: CIM_ERR_INVALID_CLASS: class defined by the classname
+            parameter does not exist.
         """
         self._get_class_repo(namespace)
 
@@ -1478,11 +1479,15 @@ class FakedWBEMConnection(WBEMConnection):
             assert(isinstance(classname, CIMClassName))
             if not self._class_exists(classname.classname, namespace):
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'The class %s does not exist in namespace %s' %
+                               'The class %s  defined by "ClassName" parameter '
+                               'does not exist in namespace %s' %
                                (classname, namespace))
         cns = self._get_subclass_names(classname, namespace,
                                        params['DeepInheritance'])
 
+        # Note: _get_class will return NOT_FOUND if the class not in the
+        # repo but it was just found by _get_subclass_names so that would
+        # probably be some form of repo corruption.
         classes = [
             self._get_class(cn, namespace,
                             local_only=params['LocalOnly'],
@@ -1506,10 +1511,9 @@ class FakedWBEMConnection(WBEMConnection):
 
         Raises:
 
-            CIMError: CIM_ERR_INVALID_NAMESPACE if invalid namespace,
-            CIMError: CIM_ERR_NOT_FOUND if Classname not found
-            CIMError: CIM_ERR_INVALID_CLASS if class that is basis for tes
-                      does not exist
+            CIMError: CIM_ERR_INVALID_NAMESPACE: invalid namespace,
+            CIMError: CIM_ERR_INVALID_CLASS: class defined by the classname
+            parameter does not exist
         """
         self._get_class_repo(namespace)
 
@@ -1518,7 +1522,8 @@ class FakedWBEMConnection(WBEMConnection):
             assert(isinstance(classname, CIMClassName))
             if not self._class_exists(classname.classname, namespace):
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'The class %s does not exist in namespace %s' %
+                               'The class %s  defined by "ClassName" parameter '
+                               'does not exist in namespace %s' %
                                (classname, namespace))
         clns = self._get_subclass_names(classname, namespace,
                                         params['DeepInheritance'])
