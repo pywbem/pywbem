@@ -123,6 +123,11 @@ Released: not yet
   objects that states that `copy.copy()` and `copy.deepcopy()` can be used
   to create completely shallow or completely deep copies (Issue #1251).
 
+* Extend wbemcli to use pywbem_mock with a new command line parameter
+  (--mock_server <mock_info-filename>). Added a set of new tests for this
+  parameter and a mof file and pythong to testsuite to test the new option.
+  (Issue #1268)
+
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

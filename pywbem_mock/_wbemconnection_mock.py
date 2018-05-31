@@ -227,7 +227,7 @@ class FakedWBEMConnection(WBEMConnection):
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
-                 response_delay=None, repo_lite=False):
+                 timeout=None, response_delay=None, repo_lite=False):
         """
         Parameters:
 
@@ -239,6 +239,10 @@ class FakedWBEMConnection(WBEMConnection):
           use_pull_operations (:class:`py:bool`):
             Flag to control whether pull or traditional operaitons are
             used in the iter operations.
+            This parameter has the same characteristics as the same-named init
+            parameter of :class:`~pywbem.WBEMConnection`.
+
+          timeout (:term:`number`):
             This parameter has the same characteristics as the same-named init
             parameter of :class:`~pywbem.WBEMConnection`.
 
@@ -273,7 +277,7 @@ class FakedWBEMConnection(WBEMConnection):
             'http://FakedUrl',
             default_namespace=default_namespace,
             use_pull_operations=use_pull_operations,
-            stats_enabled=stats_enabled)
+            stats_enabled=stats_enabled, timeout=timeout)
 
         # The CIM classes in the mock repository.
         # This is a dictionary of dictionaries where the top level key is the
@@ -1425,7 +1429,7 @@ class FakedWBEMConnection(WBEMConnection):
         Remove properties from an instance or class that aren't in the
         plist parameter
 
-        obj(:class:`~pywbem.CIMClassName` or :class:`~pywbem.CIMClassName):
+        obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance):
             The class or instance from which properties are to be filtered
 
         property_list(list of :term:`string`):
