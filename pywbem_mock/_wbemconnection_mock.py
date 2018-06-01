@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2018 InovaDevelopment.com
+# (C) Copyright 2018 InovaDevelopment.comn
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -2315,7 +2315,7 @@ class FakedWBEMConnection(WBEMConnection):
         the querylanguage and query defined
         """
         self._get_instance_repo(namespace)
-        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery Not Implemented!')
+        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery not implemented!')
 
     #####################################################################
     #
@@ -2819,7 +2819,7 @@ class FakedWBEMConnection(WBEMConnection):
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
                            'EnumerationContext %r not found in mock server '
-                           'Enumeration contexts.' % context_id)
+                           'enumeration contexts.' % context_id)
 
         if context_data['pull_type'] != req_type:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
@@ -3031,12 +3031,12 @@ class FakedWBEMConnection(WBEMConnection):
             # with the context.
             if context_data['namespace'] != namespace:
                 raise CIMError(CIM_ERR_INVALID_NAMESPACE,
-                               'Incorrect Namespace %r for CloseEnumeration '
+                               'Invalid namespace %r for CloseEnumeration '
                                '%r' % (namespace, context_id))
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
                            'EnumerationContext %r not found in mock server '
-                           'EnumerationContexts. ' % context_id)
+                           'enumeration contexts. ' % context_id)
         del self.enumeration_contexts[context_id]
 
     #####################################################################
@@ -3128,7 +3128,7 @@ class FakedWBEMConnection(WBEMConnection):
             methods = methodsrepo[target_cln]
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
-                           'Class %r for Method %r in namespace %r not '
+                           'Class %r for method %r in namespace %r not '
                            'registered in methods repository' %
                            (localobject.classname, methodname, namespace))
 
@@ -3151,7 +3151,7 @@ class FakedWBEMConnection(WBEMConnection):
         if bound_method is None:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
                            'Class %r for method %r in registered in '
-                           'methods repoository namespace %r' %
+                           'methods repository namespace %r' %
                            (localobject.classname, methodname, namespace))
 
         # Map the Params and **params into a single no-case dictionary
