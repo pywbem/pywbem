@@ -39,7 +39,7 @@ import pytest
 from testfixtures import OutputCapture
 
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
-    CIMParameter, cimtype, Uint32, MOFParseError, \
+    CIMParameter, Uint32, CIMType, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
     CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS
 
@@ -1002,47 +1002,70 @@ class TestRepoMethods(object):
         """
         pass
 
-    def test_display_repository(self, conn, tst_instances_mof):
+    def test_display_repository(self, conn, tst_instances_mof, capsys):
         """
         Test the display of the repository with it various options.
+        This is done in a single test method for simplicity
         """
         # Create the objects in all namespaces
         namespaces = ['root/blah', 'interop']
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
-            # Subscribe to InvokeMethod callback methods in the class.
-
-            conn.add_method_callback('CIM_Foo_sub_sub', 'Method1',
-                                     self.method1_callback,
-                                     namespace=ns)
-            conn.add_method_callback('CIM_Foo_sub_sub', 'Method2',
-                                     self.method2_callback,
-                                     namespace=ns)
-
             conn.add_method_callback('CIM_Foo', 'Fuzzy',
                                      self.fuzzy_callback,
                                      namespace=ns)
 
-        # pylint: disable=unused-variable
-        # Test various display_repository input and output options
-        with OutputCapture() as output:  # noqa: F841
-            conn.display_repository()
-            for param in ('xml', 'mof', 'repr'):
-                conn.display_repository(output_format=param)
-            conn.display_repository(namespaces=namespaces)
-            ns = namespaces[0]
-            conn.display_repository(namespaces=[ns])
-            conn.display_repository(namespaces=ns)
+        # Test basic display repo output
+        conn.display_repository()
+        captured = capsys.readouterr()
+        # print('\nCAPTURED\n\n')
+        # print(captured.out)
+        result = captured.out
+        assert result.startswith(
+            "# ========Mock Repo Display fmt=mof namespaces=all")
+        assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in result
+        assert 'instance of CIM_Foo {' in result
+        assert '# Namespace root/blah: contains 5 Classes' in result
+        assert '# Namespace root/blah: contains 9 Instances' in result
+        assert 'Qualifier Abstract : boolean = false,' in result
 
+        # Confirm that the display formats work
+        for param in ('xml', 'mof', 'repr'):
+            conn.display_repository(output_format=param)
+            captured = capsys.readouterr()
+            assert len(captured.out) > 0
+
+
+        # confirm that the two repositories exist
+        conn.display_repository(namespaces=namespaces)
+        captured = capsys.readouterr()
+        assert len(captured.out) > 0
+        ns = namespaces[0]
+        conn.display_repository(namespaces=[ns])
+        captured = capsys.readouterr()
+        assert len(captured.out) > 0
+        conn.display_repository(namespaces=ns)
+        captured = capsys.readouterr()
+        assert len(captured.out) > 0
+
+        # test for invalid output_format
         with pytest.raises(ValueError):
             conn.display_repository(output_format='blah')
 
+        # Test with file output
         tst_file_name = 'test_wbemconnection_mock_repo.txt'
         tst_file = os.path.join(TEST_DIR, tst_file_name)
 
         conn.display_repository(dest=tst_file)
         assert os.path.isfile(tst_file)
+        with open (tst_file, 'r') as f:
+            data = f.read()
+        assert data.startswith(
+            "# ========Mock Repo Display fmt=mof namespaces=all")
+        assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in data
+        assert 'instance of CIM_Foo {' in data
+        assert 'Qualifier Abstract : boolean = false,' in data
         os.remove(tst_file)
 
     # TODO: Add test of format of the repo outut with a very simple schema
@@ -4371,7 +4394,7 @@ class TestInvokeMethod(object):
                     params_dict[param.name] = param
                 elif isinstance(param, tuple):
                     params_dict[param[0]] = CIMParameter(param[0],
-                                                         cimtype(param[1]),
+                                                         CIMType(param[1]),
                                                          value=param[1])
                 else:
                     assert False, "Invalid exp_input_params"
@@ -4380,7 +4403,7 @@ class TestInvokeMethod(object):
         if 'params' in inputs:
             for param in inputs['params']:
                 self.exp_input_params[param] = \
-                    CIMParameter(param, cimtype(param[param]),
+                    CIMParameter(param, CIMType(param[param]),
                                  value=param[param])
 
         self.return_value = exp_output['return']

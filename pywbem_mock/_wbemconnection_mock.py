@@ -99,6 +99,7 @@ def _uprint(dest, text):
     """
     if dest is None:
         btext = text.encode(STDOUT_ENCODING, 'replace')
+        btext = btext.decode(STDOUT_ENCODING)
         print(btext)
     else:
         btext = text.encode('utf-8')
