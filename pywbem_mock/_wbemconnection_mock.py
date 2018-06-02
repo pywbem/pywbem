@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2018 InovaDevelopment.com
+# (C) Copyright 2018 InovaDevelopment.comn
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -1052,7 +1052,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         if namespace not in repo_dict:
             raise CIMError(CIM_ERR_INVALID_NAMESPACE,
-                           'Namespace %s not found for %s' % (namespace,
+                           'Namespace %r not found for %r' % (namespace,
                                                               repo_type))
         return repo_dict[namespace]
 
@@ -1257,8 +1257,9 @@ class FakedWBEMConnection(WBEMConnection):
             for method in cc.properties.values():
                 method.propagated = False
         except KeyError:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s not found in namespace '
-                                              '%s.' % (classname, namespace))
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %r not found in '
+                                              'namespace %r.' %
+                           (classname, namespace))
 
         if not local_only and cc.superclass:
             sc_name = cc.superclass
@@ -1269,7 +1270,7 @@ class FakedWBEMConnection(WBEMConnection):
                 except KeyError:
                     cx = cc if super_class is None else super_class
                     raise CIMError(CIM_ERR_INVALID_SUPERCLASS,
-                                   'Class %s has invalid superclass %s.' %
+                                   'Class %r has invalid superclass %r.' %
                                    (cx.classname, sc_name))
                 for prop in super_class.properties.values():
                     if prop.name not in cc.properties:
@@ -1337,7 +1338,7 @@ class FakedWBEMConnection(WBEMConnection):
                     # TODO:ks Future Remove dup test since we should be
                     # insuring no dups on instance creation
                     raise CIMError(CIM_ERR_FAILED, 'Invalid Repository. '
-                                   'Multiple instances with same path %s'
+                                   'Multiple instances with same path %r.'
                                    % rtn_inst.path)
                 rtn_inst = inst
                 rtn_index = index
@@ -1367,8 +1368,8 @@ class FakedWBEMConnection(WBEMConnection):
 
         if inst is None:
             raise CIMError(CIM_ERR_NOT_FOUND,
-                           'Instance not found in repository namespace %s. '
-                           'Path=%s' % (namespace, iname))
+                           'Instance not found in repository namespace %r. '
+                           'Path=%r' % (namespace, iname))
         rtn_inst = deepcopy(inst)
 
         # If local_only remove properties where class_origin
@@ -1388,8 +1389,8 @@ class FakedWBEMConnection(WBEMConnection):
                                      local_only=local_only)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
-                    raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s not found '
-                                   ' for instance %s in namespace %s.' %
+                    raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %r not found'
+                                   ' for instance %r in namespace %r.' %
                                    (iname.classname, iname, namespace))
 
             class_pl = cl.properties.keys()
@@ -1413,8 +1414,8 @@ class FakedWBEMConnection(WBEMConnection):
         """
         if not self._repo_lite:
             if not self._class_exists(classname, namespace):
-                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s not found '
-                               'in namespace %s' % (classname, namespace))
+                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %r not found '
+                               'in namespace %r.' % (classname, namespace))
             clns = self._get_subclass_names(classname, namespace, True) \
                 if self.classes else []
         else:
@@ -1483,8 +1484,8 @@ class FakedWBEMConnection(WBEMConnection):
             assert(isinstance(classname, CIMClassName))
             if not self._class_exists(classname.classname, namespace):
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'The class %s  defined by "ClassName" parameter '
-                               'does not exist in namespace %s' %
+                               'The class %r defined by "ClassName" parameter '
+                               'does not exist in namespace %r' %
                                (classname, namespace))
         cns = self._get_subclass_names(classname, namespace,
                                        params['DeepInheritance'])
@@ -1526,8 +1527,8 @@ class FakedWBEMConnection(WBEMConnection):
             assert(isinstance(classname, CIMClassName))
             if not self._class_exists(classname.classname, namespace):
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'The class %s  defined by "ClassName" parameter '
-                               'does not exist in namespace %s' %
+                               'The class %r defined by "ClassName" parameter '
+                               'does not exist in namespace %r' %
                                (classname, namespace))
         clns = self._get_subclass_names(classname, namespace,
                                         params['DeepInheritance'])
@@ -1568,8 +1569,8 @@ class FakedWBEMConnection(WBEMConnection):
             return
         if qualifier.name not in qual_repo:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Qualifier '
-                           ' declaration %s required by CreateClass not found '
-                           ' in namespace %s'
+                           ' declaration %r required by CreateClass not '
+                           'found in namespace %r.'
                            % (qualifier.name, namespace))
 
     def _fake_createclass(self, namespace, **params):
@@ -1601,7 +1602,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         if not isinstance(new_class, CIMClass):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           'NewClass not valid CIMClass. Rcvd type: %s' %
+                           'NewClass not valid CIMClass. Rcvd type=%s' %
                            type(new_class))
 
         if namespace not in self.classes:
@@ -1611,7 +1612,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         if new_class.classname in self.classes[namespace]:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                           'Class %s already exists in namespace %s.' %
+                           'Class %r already exists in namespace %r.' %
                            (new_class.classname, namespace))
 
         # If there is a superclass defined, test existence and test for
@@ -1627,8 +1628,9 @@ class FakedWBEMConnection(WBEMConnection):
                                      include_classorigin=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
-                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS, 'Superclass %s '
-                                   ' for class % snot found in namespace %s' %
+                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS, 'Superclass '
+                                   '%r for class %r not found in namespace '
+                                   ' %r.' %
                                    (new_class.superclass, new_class.classname,
                                     namespace))
                 else:
@@ -1639,8 +1641,8 @@ class FakedWBEMConnection(WBEMConnection):
                     # TODO: should we use prop name from qualifier in override?
                     if 'Override' not in new_class.properties[pname].qualifiers:
                         raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                       'Property %s duplicates property in %s '
-                                       ' without override'
+                                       'Property %r duplicates property in '
+                                       '%r without override.'
                                        % (pname, sc.classname))
                     else:
                         sp = sc.properties[pname]
@@ -1648,17 +1650,17 @@ class FakedWBEMConnection(WBEMConnection):
                             or sp.is_array != prop.is_array \
                                 or sp.embedded_object != prop.embedded_object:
                             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                           'Invalid new_class property %s. '
+                                           'Invalid new_class property %r. '
                                            'Does not match overridden '
-                                           'property in class %s' %
+                                           'property in class %r' %
                                            (pname, sc.classname))
 
             for mname, method in six.iteritems(new_class.methods):
                 if mname in sc.methods:
                     if 'Override' not in new_class.method.qualifiers:
                         raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                       'Method %s duplicates method in %s '
-                                       ' without override'
+                                       'Method %r duplicates method in class '
+                                       '%r without override'
                                        % (mname, sc.classname))
                     else:
                         super_meth = sc.method[mname]
@@ -1666,9 +1668,9 @@ class FakedWBEMConnection(WBEMConnection):
                             or super_meth.is_array != method.is_array \
                                 or super_meth.return_type != method.return_type:
                             raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                           'Invalid new_class method %s. '
+                                           'Invalid new_class method %r. '
                                            'Does not match overridden '
-                                           'method in class %s' %
+                                           'method in class %r.' %
                                            (mname, sc.classname))
                         # TODO: match qualifiers in override.
 
@@ -1688,8 +1690,8 @@ class FakedWBEMConnection(WBEMConnection):
             for prop in six.itervalues(new_class.properties):
                 if not association_class and prop.type == 'reference':
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                   'Reference property %s not allowed on '
-                                   'non-association class %s' %
+                                   'Reference property %r not allowed on '
+                                   'non-association class %r' %
                                    (prop.name, new_class.classname))
                 prop.class_origin = new_class.classname
                 prop.propagated = False
@@ -1757,7 +1759,7 @@ class FakedWBEMConnection(WBEMConnection):
         try:
             class_repo[cname]
         except KeyError:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %s in namespace %s'
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Class %r in namespace %r'
                            'not in repository. Nothing deleted.' %
                            (cname, namespace))
 
@@ -1821,8 +1823,8 @@ class FakedWBEMConnection(WBEMConnection):
             return self._make_tuple([qualifier])
         except KeyError:
             ce = CIMError(CIM_ERR_NOT_FOUND,
-                          'Qualifier declaration %s not found in namespace %s.'
-                          % (qname, namespace))
+                          'Qualifier declaration %r not found in namespace '
+                          '%r.' % (qname, namespace))
             raise ce
 
     def _fake_setqualifier(self, namespace, **params):
@@ -1849,13 +1851,13 @@ class FakedWBEMConnection(WBEMConnection):
         if not isinstance(qual, CIMQualifierDeclaration):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'QualifierDeclaration parameter is not a '
-                           'valid CIMQualifierDeclaration. Rcvd type: %s' %
+                           'valid CIMQualifierDeclaration. Rcvd type=%s' %
                            type(qual))
 
         if qual.name in self.qualifiers[namespace]:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                           'Qualifier declaration %s already exists in '
-                           'namespace %s.'
+                           'Qualifier declaration %r already exists in '
+                           'namespace %r.'
                            % (qual.name, namespace))
         try:
             self.qualifiers[namespace][qual.name] = qual
@@ -1882,8 +1884,8 @@ class FakedWBEMConnection(WBEMConnection):
             del qualifier_repo[qname]
         else:
             raise CIMError(CIM_ERR_NOT_FOUND,
-                           'QualifierDeclaration %s not found in '
-                           'namespace %s.' % (qname, namespace))
+                           'QualifierDeclaration %r not found in '
+                           'namespace %r.' % (qname, namespace))
 
     #####################################################################
     #
@@ -1918,7 +1920,7 @@ class FakedWBEMConnection(WBEMConnection):
         if not isinstance(new_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'NewInstance parameter is not a '
-                           'valid CIMInstance. Rcvd type: %s' %
+                           'valid CIMInstance. Rcvd type=%s' %
                            type(new_instance))
 
         # Requires corresponding class to build path to be returned
@@ -1932,7 +1934,7 @@ class FakedWBEMConnection(WBEMConnection):
             if ce.status_code == CIM_ERR_NOT_FOUND:
                 raise CIMError(CIM_ERR_INVALID_CLASS,
                                'Cannot modify instance because its creation '
-                               ' class %s does not exist in namespace %s.' %
+                               ' class %r does not exist in namespace %r.' %
                                (new_instance.classname, namespace))
             else:
                 raise
@@ -1945,7 +1947,7 @@ class FakedWBEMConnection(WBEMConnection):
         for pn in key_props:
             if pn not in new_instance:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                               'Key property %s not in NewInstance ' % pn)
+                               'Key property %r not in NewInstance ' % pn)
 
         # If property not in instance, add it from class and use default value
         # from class
@@ -1959,8 +1961,8 @@ class FakedWBEMConnection(WBEMConnection):
         for ipname in new_instance:
             if ipname not in target_class.properties:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                               'Property %s specified in NewInstance is not '
-                               'exposed by class %s in namespace %s'
+                               'Property %r specified in NewInstance is not '
+                               'exposed by class %s in namespace %r'
                                % (ipname, target_class.classname, namespace))
             else:
                 cprop = target_class.properties[ipname]
@@ -1968,7 +1970,7 @@ class FakedWBEMConnection(WBEMConnection):
                 if iprop.is_array != cprop.is_array or \
                         iprop.type != cprop.type:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                   'Instance and class property %s types '
+                                   'Instance and class property %r types '
                                    'do not match: instance=%r, class=%r' %
                                    (ipname, iprop, cprop))
 
@@ -1983,8 +1985,8 @@ class FakedWBEMConnection(WBEMConnection):
             for inst in self.instances[namespace]:
                 if inst.path == new_instance.path:
                     raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                                   'NewInstance already exists. %s in '
-                                   'namespace %s.' %
+                                   'NewInstance %r already exists in '
+                                   'namespace %r.' %
                                    (new_instance.path, namespace))
             self.instances[namespace].append(new_instance)
         except KeyError:
@@ -2024,14 +2026,14 @@ class FakedWBEMConnection(WBEMConnection):
         if not isinstance(modified_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'The ModifiedInstance parameter is not a '
-                           'valid CIMInstance. Rcvd type: %s' %
+                           'valid CIMInstance. Rcvd type=%s' %
                            type(modified_instance))
 
         # Classnames in instance and path must match
         if modified_instance.classname != modified_instance.path.classname:
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'ModifyInstance classname in path and instance do '
-                           'not match. classname=%s, path.classname=%s' %
+                           'not match. classname=%r, path.classname=%r' %
                            (modified_instance.classname,
                             modified_instance.path.classname))
 
@@ -2046,8 +2048,8 @@ class FakedWBEMConnection(WBEMConnection):
             if ce.status_code == CIM_ERR_NOT_FOUND:
                 raise CIMError(CIM_ERR_INVALID_CLASS,
                                'Cannot modify instance because its creation '
-                               ' class %s does not exist in namespace %s.' %
-                               (modified_instance.classname, namespace))
+                               ' class %r does not exist in namespace %r.'
+                               % (modified_instance.classname, namespace))
             else:
                 raise
 
@@ -2064,8 +2066,8 @@ class FakedWBEMConnection(WBEMConnection):
         orig_instance_tup = self._find_instance(mod_inst_path, inst_repo)
         if orig_instance_tup[0] is None:
             raise CIMError(CIM_ERR_NOT_FOUND,
-                           'Original Instance %s not found in namespace %s' %
-                           (modified_instance.path, namespace))
+                           'Original Instance %r not found in namespace %r'
+                           % (modified_instance.path, namespace))
         original_instance = orig_instance_tup[1]
 
         # Remove duplicate properties from property_list
@@ -2079,13 +2081,13 @@ class FakedWBEMConnection(WBEMConnection):
             for p in property_list:
                 if p not in cl_props:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                   'Property %s in PropertyList not in class '
-                                   '%s' % (p, modified_instance.classname))
+                                   'Property %r in PropertyList not in class '
+                                   '%r' % (p, modified_instance.classname))
         for p in modified_instance:
             if p not in cl_props:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                               'Property %s in ModifiedInstance not in class '
-                               ' %s' % (p, modified_instance.classname))
+                               'Property %r in ModifiedInstance not in class '
+                               '%r' % (p, modified_instance.classname))
 
         # Set the class value for properties in the property list but not
         # in the modified_instance. This sets just the value component.
@@ -2106,7 +2108,7 @@ class FakedWBEMConnection(WBEMConnection):
         for p in key_props:
             if p in modified_instance:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                               'ModifyInstance cannot modify key property %s' %
+                               'ModifyInstance cannot modify key property %r' %
                                p)
 
         # Remove any properties from modified instance not in the property_list
@@ -2120,8 +2122,8 @@ class FakedWBEMConnection(WBEMConnection):
         for pname in modified_instance:
             if pname not in target_class.properties:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                               'Property %s specified in ModifiedInstance is '
-                               'not exposed by class %s in namespace %s'
+                               'Property %r specified in ModifiedInstance is '
+                               'not exposed by class %r in namespace %r'
                                % (pname, target_class.classname, namespace))
             else:
                 cprop = target_class.properties[pname]
@@ -2130,7 +2132,7 @@ class FakedWBEMConnection(WBEMConnection):
                         or iprop.type != cprop.type \
                         or iprop.array_size != cprop.array_size:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                   'Instance and class property name=%s type '
+                                   'Instance and class property name=%r type '
                                    'or other attributes do not match: '
                                    'instance=%r, class=%r' %
                                    (pname, iprop, cprop))
@@ -2164,8 +2166,8 @@ class FakedWBEMConnection(WBEMConnection):
         # If not repo lite, corresponding class must exist.
         if not self._repo_lite:
             if not self._class_exists(iname.classname, namespace):
-                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s for '
-                               'GetInstance of instance %s does not exist.'
+                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %r for '
+                               'GetInstance of instance %r does not exist.'
                                % (iname.classname, iname))
 
         inst = self._get_instance(iname, namespace,
@@ -2196,8 +2198,8 @@ class FakedWBEMConnection(WBEMConnection):
         if not self._repo_lite:
             if not self._class_exists(iname.classname, namespace):
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'Class %s in namespace %s not found. '
-                               ' Cannot delete instance %s' %
+                               'Class %r in namespace %r not found. '
+                               ' Cannot delete instance %r' %
                                (iname.classname, namespace, iname))
 
         del_inst = None
@@ -2208,7 +2210,7 @@ class FakedWBEMConnection(WBEMConnection):
                 if del_inst is not None:
                     raise CIMError(CIM_ERR_FAILED, 'Internal Error: Invalid '
                                    ' Repository. Multiple instances with same '
-                                   ' path %s' % inst.path)
+                                   ' path %r' % inst.path)
                 # TODO:ks Future remove this test for duplicate inst paths since
                 #       we test for dups on insertion
                 else:
@@ -2216,8 +2218,8 @@ class FakedWBEMConnection(WBEMConnection):
                     del_inst = iname
 
         if not del_inst:
-            raise CIMError(CIM_ERR_NOT_FOUND, 'Instance %s not found in '
-                           'repository namespace %s' % (iname, namespace))
+            raise CIMError(CIM_ERR_NOT_FOUND, 'Instance %r not found in '
+                           'repository namespace %r' % (iname, namespace))
 
     def _fake_enumerateinstances(self, namespace, **params):
         """
@@ -2313,7 +2315,7 @@ class FakedWBEMConnection(WBEMConnection):
         the querylanguage and query defined
         """
         self._get_instance_repo(namespace)
-        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery Not Implemented!')
+        raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery not implemented!')
 
     #####################################################################
     #
@@ -2816,13 +2818,13 @@ class FakedWBEMConnection(WBEMConnection):
             context_data = self.enumeration_contexts[context_id]
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'EnumerationContext %s not found in mock server '
-                           'contexts.' % context_id)
+                           'EnumerationContext %r not found in mock server '
+                           'enumeration contexts.' % context_id)
 
         if context_data['pull_type'] != req_type:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'Invalid pull operations %s does not match expected '
-                           '%s for EnumerationContext %s'
+                           'Invalid pull operations %r does not match '
+                           'expected %r for EnumerationContext %r'
                            % (context_data['pull_type'], req_type, context_id))
 
         objs_list = context_data['data']
@@ -2854,14 +2856,14 @@ class FakedWBEMConnection(WBEMConnection):
         if params['FilterQueryLanguage']:
             if params['FilterQueryLanguage'] != 'DMTF:FQL':
                 raise CIMError(CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED,
-                               'FilterQueryLanguage %s not supported'
+                               'FilterQueryLanguage %r not supported'
                                % params['FilterQueryLanguage'])
         ot = params['OperationTimeout']
         if ot:
             if not isinstance(ot, six.integer_types) or ot < 0 \
                     or ot > OPEN_MAX_TIMEOUT:
                 raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                               'OperationTimeout %s must be positive integer '
+                               'OperationTimeout %r must be positive integer '
                                ' less than %s' % (ot, OPEN_MAX_TIMEOUT))
 
     def _fake_openenumerateinstancepaths(self, namespace, **params):
@@ -3029,12 +3031,12 @@ class FakedWBEMConnection(WBEMConnection):
             # with the context.
             if context_data['namespace'] != namespace:
                 raise CIMError(CIM_ERR_INVALID_NAMESPACE,
-                               'Incorrect Namespace %s for CloseEnumeration %s '
-                               % (namespace, context_id))
+                               'Invalid namespace %r for CloseEnumeration '
+                               '%r' % (namespace, context_id))
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                           'EnumerationContext %s not found in mock server '
-                           'EnumerationContexts. ' % context_id)
+                           'EnumerationContext %r not found in mock server '
+                           'enumeration contexts. ' % context_id)
         del self.enumeration_contexts[context_id]
 
     #####################################################################
@@ -3071,7 +3073,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         else:
             raise TypeError('FakedWBEMConnection InvokeMethod invalid type for '
-                            'objectname: %s' % type(objectname))
+                            'objectname: %r' % type(objectname))
 
         namespace = localobject.namespace
         try:
@@ -3082,8 +3084,8 @@ class FakedWBEMConnection(WBEMConnection):
                 if namespace in self.classes or \
                         namespace in self.instances:
                     raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
-                                   'Method %s in namespace %s not registered '
-                                   'in repository' %
+                                   'Method %r in namespace %r not '
+                                   'registered in repository' %
                                    (methodname, namespace))
                 else:
                     raise
@@ -3106,7 +3108,7 @@ class FakedWBEMConnection(WBEMConnection):
             target_cln = cc.methods[methodname].class_origin
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
-                           'in class %s.' % (methodname,
+                           'in class %r.' % (methodname,
                                              localobject.classname))
         if target_cln != cc.classname:
             # TODO FUTURE: add method to repo that allows privileged users
@@ -3116,9 +3118,9 @@ class FakedWBEMConnection(WBEMConnection):
                                   local_only=False, include_qualifiers=True,
                                   include_classorigin=True)
             if methodname not in tcc.methods:
-                raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %s not found '
-                               'in origin class %s derived from '
-                               'objectname class %s' % (methodname, target_cln,
+                raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %r not found '
+                               'in origin class %r derived from '
+                               'objectname class %r' % (methodname, target_cln,
                                                         localobject.classname))
 
         # Test for target class in methods repo
@@ -3126,22 +3128,30 @@ class FakedWBEMConnection(WBEMConnection):
             methods = methodsrepo[target_cln]
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
-                           'Class %s for method %s in namespace %s not '
+                           'Class %r for method %r in namespace %r not '
                            'registered in methods repository' %
                            (localobject.classname, methodname, namespace))
+
+        # Test for method in local class.
+        try:
+            cc.methods[methodname]
+        except KeyError:
+            raise CIMError(CIM_ERR_METHOD_NOT_FOUND, 'Method %r not found '
+                           'in methods repository for class %r' %
+                           (methodname, localobject.classname))
 
         try:
             bound_method = methods[methodname]
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
-                           'Method %s in namespace %s not registered in '
+                           'Method %r in namespace %r not registered in '
                            ' methods repository. Internal error' %
                            (methodname, namespace))
 
         if bound_method is None:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
-                           'Class %s for method %s in registered in methods '
-                           'repoository namespace %s' %
+                           'Class %r for method %r in registered in '
+                           'methods repository namespace %r' %
                            (localobject.classname, methodname, namespace))
 
         # Map the Params and **params into a single no-case dictionary
@@ -3157,8 +3167,8 @@ class FakedWBEMConnection(WBEMConnection):
                                                          value=param[1])
                 else:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                   'InvokeMethod Param %s invalid type, %s. '
-                                   'Expected tuple or CIMParameter' %
+                                   'InvokeMethod Param %r invalid type, '
+                                   '%r. Expected tuple or CIMParameter' %
                                    (param, type(param)))
 
         if params:
@@ -3180,20 +3190,21 @@ class FakedWBEMConnection(WBEMConnection):
                                                  exc_traceback))
 
             raise CIMError(CIM_ERR_FAILED, 'Exception failure of invoked '
-                                           'method %s in namespace %s with '
-                                           'input localobject %r, parameters '
-                                           '%r. Exception: %r\nTraceback\n%s' %
+                                           'method %r in namespace %r with '
+                                           'input localobject "%r", parameters '
+                                           '"%r". Exception: %r\nTraceback\n%s'
+                           %
                            (methodname, namespace, localobject, params, ex, tb))
 
         # test for valid data in response.
         if not isinstance(result, (list, tuple)):
-            raise CIMError(CIM_ERR_FAILED, 'Callback method returned %s '
+            raise CIMError(CIM_ERR_FAILED, 'Callback method returned %r '
                            'response type. Expected list or tuple' %
                            type(result))
         for param in result[1]:
             if not isinstance(param, CIMParameter):
                 raise CIMError(CIM_ERR_FAILED, 'Callback method returned '
-                               '%s response type. Expected CIMParameter. '
+                               '%r response type. Expected CIMParameter. '
                                % type(param))
 
         # Map output params to NocaseDict to be compatible with return
