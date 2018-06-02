@@ -39,7 +39,7 @@ import pytest
 from testfixtures import OutputCapture
 
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
-    CIMParameter, Uint32, CIMType, MOFParseError, \
+    CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
     CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS
 
@@ -1002,6 +1002,18 @@ class TestRepoMethods(object):
         """
         pass
 
+    def test_dr(self, conn, tst_instances_mof):
+        namespaces = ['root/blah', 'interop']
+        for ns in namespaces:
+            conn.compile_mof_string(tst_instances_mof, namespace=ns)
+
+            conn.add_method_callback('CIM_Foo', 'Fuzzy',
+                                     self.fuzzy_callback,
+                                     namespace=ns)
+
+        # Test basic display repo output
+        conn.display_repository()
+
     def test_display_repository(self, conn, tst_instances_mof, capsys):
         """
         Test the display of the repository with it various options.
@@ -1019,15 +1031,19 @@ class TestRepoMethods(object):
         # Test basic display repo output
         conn.display_repository()
         captured = capsys.readouterr()
-        # print('\nCAPTURED\n\n')
-        # print(captured.out)
         result = captured.out
         assert result.startswith(
             "# ========Mock Repo Display fmt=mof namespaces=all")
         assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in result
         assert 'instance of CIM_Foo {' in result
+        assert '# Namespace root/blah: contains 9 Qualifier Declarations' in \
+               result
+        assert '# Namespace interop: contains 9 Qualifier Declarations' in \
+               result
         assert '# Namespace root/blah: contains 5 Classes' in result
         assert '# Namespace root/blah: contains 9 Instances' in result
+        assert '# Namespace interop: contains 5 Classes' in result
+        assert '# Namespace interop: contains 9 Instances' in result
         assert 'Qualifier Abstract : boolean = false,' in result
 
         # Confirm that the display formats work
@@ -1035,7 +1051,6 @@ class TestRepoMethods(object):
             conn.display_repository(output_format=param)
             captured = capsys.readouterr()
             assert len(captured.out) > 0
-
 
         # confirm that the two repositories exist
         conn.display_repository(namespaces=namespaces)
@@ -1053,13 +1068,17 @@ class TestRepoMethods(object):
         with pytest.raises(ValueError):
             conn.display_repository(output_format='blah')
 
-        # Test with file output
+    def test_display_repo_tofile(self, conn, tst_instances_mof):
+        """
+        """
+        conn.compile_mof_string(tst_instances_mof, namespace='interop')
+
         tst_file_name = 'test_wbemconnection_mock_repo.txt'
         tst_file = os.path.join(TEST_DIR, tst_file_name)
-
+        print('displaytstfile=%s' % tst_file)
         conn.display_repository(dest=tst_file)
         assert os.path.isfile(tst_file)
-        with open (tst_file, 'r') as f:
+        with open(tst_file, 'r') as f:
             data = f.read()
         assert data.startswith(
             "# ========Mock Repo Display fmt=mof namespaces=all")
@@ -4394,7 +4413,7 @@ class TestInvokeMethod(object):
                     params_dict[param.name] = param
                 elif isinstance(param, tuple):
                     params_dict[param[0]] = CIMParameter(param[0],
-                                                         CIMType(param[1]),
+                                                         cimtype(param[1]),
                                                          value=param[1])
                 else:
                     assert False, "Invalid exp_input_params"
@@ -4403,7 +4422,7 @@ class TestInvokeMethod(object):
         if 'params' in inputs:
             for param in inputs['params']:
                 self.exp_input_params[param] = \
-                    CIMParameter(param, CIMType(param[param]),
+                    CIMParameter(param, cimtype(param[param]),
                                  value=param[param])
 
         self.return_value = exp_output['return']

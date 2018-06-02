@@ -51,6 +51,9 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
 from pywbem._nocasedict import NocaseDict
 from ._dmtf_cim_schema import DMTFCIMSchema
 
+if six.PY2:
+    import codecs  # pylint: disable=wrong-import-order
+
 
 __all__ = ['FakedWBEMConnection', 'method_callback_interface']
 
@@ -99,12 +102,15 @@ def _uprint(dest, text):
     """
     if dest is None:
         btext = text.encode(STDOUT_ENCODING, 'replace')
-        btext = btext.decode(STDOUT_ENCODING)
-        print(btext)
+        print(btext.decode(STDOUT_ENCODING))
     else:
-        btext = text.encode('utf-8')
-        with open(dest, 'a') as f:
-            print(btext, file=f)
+        if six.PY2:
+            # Open with codecs to define text mode
+            with codecs.open(dest, mode='a', encoding='utf-8')as f:
+                print(text, file=f)
+        else:
+            with open(dest, 'a') as f:
+                print(text, file=f)
 
 
 def method_callback_interface(conn, objectname, methodname, **params):
