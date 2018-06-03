@@ -1003,7 +1003,7 @@ class TestRepoMethods(object):
         pass
 
     def test_dr(self, conn, tst_instances_mof):
-        namespaces = ['root/blah', 'interop']
+        namespaces = ['interop']
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
@@ -1011,8 +1011,31 @@ class TestRepoMethods(object):
                                      self.fuzzy_callback,
                                      namespace=ns)
 
+            inst_id = 'CIM_foo_sub_sub_test_unicode'
+
+            str_data = u'\u212b \u0420 \u043e \u0441 \u0441\u0438 \u044f \u00e0'
+            inst = CIMInstance(
+                'CIM_Foo_sub_sub',
+                properties={
+                    'InstanceID': inst_id,
+                    'cimfoo_sub': 'cimfoo_sub prop:  %s' % str_data,
+                    'cimfoo_sub_sub': 'cimfoo_sub_sub: %s' % str_data},
+                path=CIMInstanceName('CIM_Foo_sub_sub',
+                                     {'InstanceID': inst_id}))
+            conn.add_cimobjects(inst, namespace=ns
+
+            # The following will not compile.  Gets compiler error
+            # str = u'instance of CIM_Foo_sub2 as $foosub22 {' \
+            # u'InstanceID = "CIM_Foo_unicode";\n' \
+            # u'cimfoo_sub2 = \u212b \u0420 \u043e \u0441 \u0441' \
+            # u' \u0438 \u044f \u00e0;};'
+            # conn.compile_mof_string(str, namespace=ns)
+
         # Test basic display repo output
         conn.display_repository()
+        tst_file_name = 'tmp_testfrom_test_dr.txt'
+        tst_file = os.path.join(TEST_DIR, tst_file_name)
+        conn.display_repository(dest=tst_file)
 
     def test_display_repository(self, conn, tst_instances_mof, capsys):
         """

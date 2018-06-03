@@ -102,7 +102,10 @@ def _uprint(dest, text):
     """
     if dest is None:
         btext = text.encode(STDOUT_ENCODING, 'replace')
-        print(btext.decode(STDOUT_ENCODING))
+        if six.PY3:
+            print(btext.decode(STDOUT_ENCODING))
+        else:
+            print(btext)
     else:
         if six.PY2:
             # Open with codecs to define text mode
@@ -767,7 +770,7 @@ class FakedWBEMConnection(WBEMConnection):
             raise ValueError('Invalid output format definition %s. '
                              '%s are valid.' % (output_format, OUTPUT_FORMATS))
 
-        _uprint(dest, '%s========Mock Repo Display fmt=%s namespaces=%s '
+        _uprint(dest, u'%s========Mock Repo Display fmt=%s namespaces=%s '
                       '=========%s\n' %
                 (cmt_begin, output_format,
                  ('all' if namespaces is None else namespaces), cmt_end))
@@ -806,7 +809,7 @@ class FakedWBEMConnection(WBEMConnection):
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
 
-        _uprint(dest, '============End Repository=================')
+        _uprint(dest, u'============End Repository=================')
 
     @staticmethod
     def _display_objects(obj_type, objects_repo, namespace, cmt_begin, cmt_end,
@@ -820,12 +823,12 @@ class FakedWBEMConnection(WBEMConnection):
         # TODO:ks FUTURE Consider sorting to perserve order of compile/add.
         if namespace in objects_repo:
             if obj_type == 'Methods':
-                _uprint(dest, '%sNamespace %s: contains %s %s:%s\n' %
+                _uprint(dest, u'%sNamespace %s: contains %s %s:%s\n' %
                         (cmt_begin, namespace,
                          len(objects_repo[namespace]),
                          obj_type, cmt_end))
             else:
-                _uprint(dest, '%sNamespace %s: contains %s %s %s\n' %
+                _uprint(dest, u'%sNamespace %s: contains %s %s %s\n' %
                         (cmt_begin, namespace,
                          len(objects_repo[namespace]), obj_type, cmt_end))
             if summary:
@@ -840,14 +843,14 @@ class FakedWBEMConnection(WBEMConnection):
                 # TODO:ks Future: Possibly sort insts by path order.
                 for inst in insts:
                     if output_format == 'xml':
-                        _uprint(dest, '%s Path=%s %s\n%s' %
+                        _uprint(dest, u'%s Path=%s %s\n%s' %
                                 (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
                                  _pretty_xml(inst.tocimxmlstr())))
                     elif output_format == 'repr':
-                        _uprint(dest, 'Path:\n%r\nInst:\n%r\n' %
+                        _uprint(dest, u'Path:\n%r\nInst:\n%r\n' %
                                 (inst.path, inst))
                     else:
-                        _uprint(dest, '%s Path=%s %s\n%s' %
+                        _uprint(dest, u'%s Path=%s %s\n%s' %
                                 (cmt_begin, inst.path.to_wbem_uri(), cmt_end,
                                  inst.tomof()))
 
@@ -860,7 +863,7 @@ class FakedWBEMConnection(WBEMConnection):
 
                 for cln in methods:
                     for method in methods[cln]:
-                        _uprint(dest, '%sClass: %s, method: %s, '
+                        _uprint(dest, u'%sClass: %s, method: %s, '
                                       'callback: %s %s' %
                                 (cmt_begin, cln, method,
                                  methods[cln][method].__name__, cmt_end))
@@ -875,7 +878,7 @@ class FakedWBEMConnection(WBEMConnection):
                     if output_format == 'xml':
                         _uprint(dest, _pretty_xml(obj.tocimxmlstr()))
                     elif output_format == 'repr':
-                        _uprint(dest, '%r' % obj)
+                        _uprint(dest, u'%r' % obj)
                     else:
                         _uprint(dest, obj.tomof())
 
