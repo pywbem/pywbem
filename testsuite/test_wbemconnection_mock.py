@@ -26,6 +26,7 @@ using a set of local mock qualifiers, classes, and instances.
 """
 from __future__ import absolute_import, print_function
 
+import sys
 import os
 import shutil
 from datetime import datetime
@@ -1022,7 +1023,7 @@ class TestRepoMethods(object):
                     'cimfoo_sub_sub': 'cimfoo_sub_sub: %s' % str_data},
                 path=CIMInstanceName('CIM_Foo_sub_sub',
                                      {'InstanceID': inst_id}))
-            conn.add_cimobjects(inst, namespace=ns
+            conn.add_cimobjects(inst, namespace=ns)
 
             # The following will not compile.  Gets compiler error
             # str = u'instance of CIM_Foo_sub2 as $foosub22 {' \
@@ -1054,38 +1055,47 @@ class TestRepoMethods(object):
         # Test basic display repo output
         conn.display_repository()
         captured = capsys.readouterr()
-        result = captured.out
-        assert result.startswith(
-            "# ========Mock Repo Display fmt=mof namespaces=all")
-        assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in result
-        assert 'instance of CIM_Foo {' in result
-        assert '# Namespace root/blah: contains 9 Qualifier Declarations' in \
-               result
-        assert '# Namespace interop: contains 9 Qualifier Declarations' in \
-               result
-        assert '# Namespace root/blah: contains 5 Classes' in result
-        assert '# Namespace root/blah: contains 9 Instances' in result
-        assert '# Namespace interop: contains 5 Classes' in result
-        assert '# Namespace interop: contains 9 Instances' in result
-        assert 'Qualifier Abstract : boolean = false,' in result
+        # python 2.6 does not include the .out
+        if sys.version_info[0:2] != (2, 6):
+            result = captured.out
+            assert result.startswith(
+                "# ========Mock Repo Display fmt=mof namespaces=all")
+            assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in result
+            assert 'instance of CIM_Foo {' in result
+            assert '# Namespace root/blah: contains 9 Qualifier Declarations' \
+                   in result
+            assert '# Namespace interop: contains 9 Qualifier Declarations' in \
+                   result
+            assert '# Namespace root/blah: contains 5 Classes' in result
+            assert '# Namespace root/blah: contains 9 Instances' in result
+            assert '# Namespace interop: contains 5 Classes' in result
+            assert '# Namespace interop: contains 9 Instances' in result
+            assert 'Qualifier Abstract : boolean = false,' in result
 
         # Confirm that the display formats work
         for param in ('xml', 'mof', 'repr'):
             conn.display_repository(output_format=param)
             captured = capsys.readouterr()
-            assert len(captured.out) > 0
+            if sys.version_info[0:2] != (2, 6):
+                assert len(captured.out) > 0
 
         # confirm that the two repositories exist
         conn.display_repository(namespaces=namespaces)
         captured = capsys.readouterr()
-        assert len(captured.out) > 0
+        if sys.version_info[0:2] != (2, 6):
+            assert len(captured.out) > 0
+
+        # test with a defined namespace
         ns = namespaces[0]
         conn.display_repository(namespaces=[ns])
         captured = capsys.readouterr()
-        assert len(captured.out) > 0
+        if sys.version_info[0:2] != (2, 6):
+            assert len(captured.out) > 0
+
         conn.display_repository(namespaces=ns)
         captured = capsys.readouterr()
-        assert len(captured.out) > 0
+        if sys.version_info[0:2] != (2, 6):
+            assert len(captured.out) > 0
 
         # test for invalid output_format
         with pytest.raises(ValueError):
