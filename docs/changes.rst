@@ -80,6 +80,10 @@ Released: not yet
   parameter losing the ClassName parameter and no test for the ClassName
   parameter not existing in the repository. (See issue #1271)
 
+* Correct issue in pywbem_mock where we return incorrect CIMError
+  (CIM_ERR_NOT_FOUND rather than CIM_ERR_METHOD_NOT_FOUND) when the
+  class for a method is not defined in the methods repository. issue #1256
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
@@ -139,6 +143,18 @@ Released: not yet
 * Removed one level of superflous copies of dictionaries in the `copy()`
   methods of the CIM object classes. These dictionaries are already copied
   in the setter methods for the respective attributes (Issue #1251).
+
+Build, test, quality
+^^^^^^^^^^^^^^^^^^^^
+
+* Add tests for WBEMSubscriptionManager class using pywbem_mock.  This involved
+  changing the tests for the WBEMServer class using pywbem_mock because the the
+  WBEMSubscriptionManager class depends on the existence of the classes and
+  instances that support the pywbem WbemServer class existing in the WBEM
+  server.  A new file (wbemserver_mock.py) was added to the testsuite directory
+  that creates the pywbem_mock for any tests that depend on classes like
+  CIM_Namespace, CIM_ObjectManager existing in the mocked server. See issue
+  #1250
 
 **Known issues:**
 
