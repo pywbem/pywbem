@@ -1206,8 +1206,8 @@ class TestRepoMethods(object):
         cmof = u"""
         class CIM_Foo {
                 [Key,
-                 Description ("Å \u0420\u043e\u0441\u0441\u0438\u044f"
-                              "\u00E0 voil\u00e0")]
+                 Description ("\u212b \u0420\u043e\u0441\u0441\u0438"
+                              "\u044f\u00E0 voil\u00e0")]
             string InstanceID;
         };
         """

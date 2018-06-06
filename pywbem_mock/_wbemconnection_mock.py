@@ -100,6 +100,7 @@ def _uprint(dest, text):
     If dest is None, the text is encoded to a codepage suitable for the current
     stdout and is written to stdout.
     """
+    assert isinstance(text, six.text_type)
     if dest is None:
         btext = text.encode(STDOUT_ENCODING, 'replace')
         if six.PY3:
@@ -109,10 +110,10 @@ def _uprint(dest, text):
     else:
         if six.PY2:
             # Open with codecs to define text mode
-            with codecs.open(dest, mode='a', encoding='utf-8')as f:
+            with codecs.open(dest, mode='a', encoding='utf-8') as f:
                 print(text, file=f)
         else:
-            with open(dest, 'a') as f:
+            with open(dest, 'a', encoding='utf-8') as f:
                 print(text, file=f)
 
 
@@ -795,7 +796,7 @@ class FakedWBEMConnection(WBEMConnection):
         repo_nss = sorted(repo_nss)
 
         for ns in repo_nss:
-            _uprint(dest, '\n%sNAMESPACE %s%s\n' % (cmt_begin, ns, cmt_end))
+            _uprint(dest, u'\n%sNAMESPACE %s%s\n' % (cmt_begin, ns, cmt_end))
             self._display_objects('Qualifier Declarations', self.qualifiers,
                                   ns, cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
