@@ -320,6 +320,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         server = WBEMServer(self.conn)
 
         listener_url = '%s:%s' % (self.conn.url, 50000)
+        print('LISTENER_URL %s' % listener_url)
 
         # Create a single not_owned subscription
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
