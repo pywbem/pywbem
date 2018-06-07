@@ -1003,7 +1003,12 @@ class TestRepoMethods(object):
         """
         pass
 
-    def test_dr(self, conn, tst_instances_mof):
+    @pytest.mark.skip(reason="Used only to display repo so not real test.")
+    def test_disp_repo_tostdout(self, conn, tst_instances_mof):
+        """
+        Test method used only for manual tests.
+        TODO: This test can be removed before we finalize mock
+        """
         namespaces = ['interop']
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
@@ -1077,38 +1082,42 @@ class TestRepoMethods(object):
             conn.display_repository(output_format=param)
             captured = capsys.readouterr()
             if sys.version_info[0:2] != (2, 6):
-                assert len(captured.out) > 0
+                assert captured.out
 
         # confirm that the two repositories exist
         conn.display_repository(namespaces=namespaces)
         captured = capsys.readouterr()
         if sys.version_info[0:2] != (2, 6):
-            assert len(captured.out) > 0
+            assert captured.out
 
         # test with a defined namespace
         ns = namespaces[0]
         conn.display_repository(namespaces=[ns])
         captured = capsys.readouterr()
         if sys.version_info[0:2] != (2, 6):
-            assert len(captured.out) > 0
+            assert captured.out
 
         conn.display_repository(namespaces=ns)
         captured = capsys.readouterr()
         if sys.version_info[0:2] != (2, 6):
-            assert len(captured.out) > 0
+            assert captured.out
 
         # test for invalid output_format
         with pytest.raises(ValueError):
             conn.display_repository(output_format='blah')
+            captured = capsys.readouterr()
+            if sys.version_info[0:2] != (2, 6):
+                assert captured.out
 
     def test_display_repo_tofile(self, conn, tst_instances_mof):
+        # pylint: disable=no-self-use
         """
+        Test output of the display_repository method to a file.
         """
         conn.compile_mof_string(tst_instances_mof, namespace='interop')
 
         tst_file_name = 'test_wbemconnection_mock_repo.txt'
         tst_file = os.path.join(TEST_DIR, tst_file_name)
-        print('displaytstfile=%s' % tst_file)
         conn.display_repository(dest=tst_file)
         assert os.path.isfile(tst_file)
         with open(tst_file, 'r') as f:
@@ -1449,29 +1458,29 @@ class TestRepoMethods(object):
         "description, classnames, extra_rtnd_classnames, run_test",
         [
             ["Test with several classes. ",
-                ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',
-                 'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile'],
-                ['CIM_EnabledLogicalElement', 'CIM_Job',
-                 'CIM_LogicalElement', 'CIM_ManagedSystemElement',
-                 'CIM_Service', 'CIM_Service', 'CIM_ConcreteJob',
-                 'CIM_Dependency', 'CIM_ManagedElement', 'CIM_ManagedElement',
-                 'CIM_Error', 'CIM_RegisteredSpecification',
-                 'CIM_ReferencedSpecification', 'CIM_WBEMService'],
-                True],
+             ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',
+              'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile'],
+             ['CIM_EnabledLogicalElement', 'CIM_Job',
+              'CIM_LogicalElement', 'CIM_ManagedSystemElement',
+              'CIM_Service', 'CIM_Service', 'CIM_ConcreteJob',
+              'CIM_Dependency', 'CIM_ManagedElement', 'CIM_ManagedElement',
+              'CIM_Error', 'CIM_RegisteredSpecification',
+              'CIM_ReferencedSpecification', 'CIM_WBEMService'],
+             True],
 
             ["Test with single classes. Broken",
-                ['CIM_ObjectManager'],
-                ['CIM_EnabledLogicalElement', 'CIM_Error', 'CIM_LogicalElement',
-                 'CIM_ConcreteJob', 'CIM_WBEMService',
-                 'CIM_ManagedSystemElement', 'CIM_Service',
-                 'CIM_ManagedElement', 'CIM_Job'],
-                True],
+             ['CIM_ObjectManager'],
+             ['CIM_EnabledLogicalElement', 'CIM_Error', 'CIM_LogicalElement',
+              'CIM_ConcreteJob', 'CIM_WBEMService',
+              'CIM_ManagedSystemElement', 'CIM_Service',
+              'CIM_ManagedElement', 'CIM_Job'],
+             True],
 
             ["Test with simple group of classes",
-                ['CIM_ElementConformsToProfile'],
-                ['CIM_ManagedElement',
-                 'CIM_RegisteredSpecification', 'CIM_RegisteredProfile'],
-                True]
+             ['CIM_ElementConformsToProfile'],
+             ['CIM_ManagedElement',
+              'CIM_RegisteredSpecification', 'CIM_RegisteredProfile'],
+             True]
         ]
     )
     def test_compile_dmtf_schema_method(self, conn, description, classnames,
@@ -1614,9 +1623,9 @@ class TestClassOperations(object):
         else:
             # The following is a test
             for pname in tst_class.properties:
-                tst_class.properties[pname].class_origin == tst_class.classname
+                tst_class.properties[pname].class_origin = tst_class.classname
             for mname in tst_class.methods:
-                tst_class.methods[mname].class_origin == tst_class.classname
+                tst_class.methods[mname].class_origin = tst_class.classname
 
         # Test the modified tst_class against the returned class
         tst_ns = ns if ns else conn.default_namespace
