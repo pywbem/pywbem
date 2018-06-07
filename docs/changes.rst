@@ -84,6 +84,9 @@ Released: not yet
   (CIM_ERR_NOT_FOUND rather than CIM_ERR_METHOD_NOT_FOUND) when the
   class for a method is not defined in the methods repository. issue #1256
 
+* Fix issue causing pywbem_mock/_wbemconnection_mock.py display_repository()
+  to display as bytes in Python 3.  See issue # 1276
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:

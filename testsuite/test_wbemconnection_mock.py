@@ -26,6 +26,7 @@ using a set of local mock qualifiers, classes, and instances.
 """
 from __future__ import absolute_import, print_function
 
+import sys
 import os
 import shutil
 from datetime import datetime
@@ -1002,47 +1003,130 @@ class TestRepoMethods(object):
         """
         pass
 
-    def test_display_repository(self, conn, tst_instances_mof):
+    @pytest.mark.skip(reason="Used only to display repo so not real test.")
+    def test_disp_repo_tostdout(self, conn, tst_instances_mof):
+        """
+        Test method used only for manual tests.
+        TODO: This test can be removed before we finalize mock
+        """
+        namespaces = ['interop']
+        for ns in namespaces:
+            conn.compile_mof_string(tst_instances_mof, namespace=ns)
+
+            conn.add_method_callback('CIM_Foo', 'Fuzzy',
+                                     self.fuzzy_callback,
+                                     namespace=ns)
+
+            inst_id = 'CIM_foo_sub_sub_test_unicode'
+
+            str_data = u'\u212b \u0420 \u043e \u0441 \u0441\u0438 \u044f \u00e0'
+            inst = CIMInstance(
+                'CIM_Foo_sub_sub',
+                properties={
+                    'InstanceID': inst_id,
+                    'cimfoo_sub': 'cimfoo_sub prop:  %s' % str_data,
+                    'cimfoo_sub_sub': 'cimfoo_sub_sub: %s' % str_data},
+                path=CIMInstanceName('CIM_Foo_sub_sub',
+                                     {'InstanceID': inst_id}))
+            conn.add_cimobjects(inst, namespace=ns)
+
+            # The following will not compile.  Gets compiler error
+            # str = u'instance of CIM_Foo_sub2 as $foosub22 {' \
+            # u'InstanceID = "CIM_Foo_unicode";\n' \
+            # u'cimfoo_sub2 = \u212b \u0420 \u043e \u0441 \u0441' \
+            # u' \u0438 \u044f \u00e0;};'
+            # conn.compile_mof_string(str, namespace=ns)
+
+        # Test basic display repo output
+        conn.display_repository()
+        tst_file_name = 'tmp_testfrom_test_dr.txt'
+        tst_file = os.path.join(TEST_DIR, tst_file_name)
+        conn.display_repository(dest=tst_file)
+
+    def test_display_repository(self, conn, tst_instances_mof, capsys):
         """
         Test the display of the repository with it various options.
+        This is done in a single test method for simplicity
         """
         # Create the objects in all namespaces
         namespaces = ['root/blah', 'interop']
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
-            # Subscribe to InvokeMethod callback methods in the class.
-
-            conn.add_method_callback('CIM_Foo_sub_sub', 'Method1',
-                                     self.method1_callback,
-                                     namespace=ns)
-            conn.add_method_callback('CIM_Foo_sub_sub', 'Method2',
-                                     self.method2_callback,
-                                     namespace=ns)
-
             conn.add_method_callback('CIM_Foo', 'Fuzzy',
                                      self.fuzzy_callback,
                                      namespace=ns)
 
-        # pylint: disable=unused-variable
-        # Test various display_repository input and output options
-        with OutputCapture() as output:  # noqa: F841
-            conn.display_repository()
-            for param in ('xml', 'mof', 'repr'):
-                conn.display_repository(output_format=param)
-            conn.display_repository(namespaces=namespaces)
-            ns = namespaces[0]
-            conn.display_repository(namespaces=[ns])
-            conn.display_repository(namespaces=ns)
+        # Test basic display repo output
+        conn.display_repository()
+        captured = capsys.readouterr()
+        # python 2.6 does not include the .out
+        if sys.version_info[0:2] != (2, 6):
+            result = captured.out
+            assert result.startswith(
+                "# ========Mock Repo Display fmt=mof namespaces=all")
+            assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in result
+            assert 'instance of CIM_Foo {' in result
+            assert '# Namespace root/blah: contains 9 Qualifier Declarations' \
+                   in result
+            assert '# Namespace interop: contains 9 Qualifier Declarations' in \
+                   result
+            assert '# Namespace root/blah: contains 5 Classes' in result
+            assert '# Namespace root/blah: contains 9 Instances' in result
+            assert '# Namespace interop: contains 5 Classes' in result
+            assert '# Namespace interop: contains 9 Instances' in result
+            assert 'Qualifier Abstract : boolean = false,' in result
 
+        # Confirm that the display formats work
+        for param in ('xml', 'mof', 'repr'):
+            conn.display_repository(output_format=param)
+            captured = capsys.readouterr()
+            if sys.version_info[0:2] != (2, 6):
+                assert captured.out
+
+        # confirm that the two repositories exist
+        conn.display_repository(namespaces=namespaces)
+        captured = capsys.readouterr()
+        if sys.version_info[0:2] != (2, 6):
+            assert captured.out
+
+        # test with a defined namespace
+        ns = namespaces[0]
+        conn.display_repository(namespaces=[ns])
+        captured = capsys.readouterr()
+        if sys.version_info[0:2] != (2, 6):
+            assert captured.out
+
+        conn.display_repository(namespaces=ns)
+        captured = capsys.readouterr()
+        if sys.version_info[0:2] != (2, 6):
+            assert captured.out
+
+        # test for invalid output_format
         with pytest.raises(ValueError):
             conn.display_repository(output_format='blah')
+            captured = capsys.readouterr()
+            if sys.version_info[0:2] != (2, 6):
+                assert captured.out
+
+    def test_display_repo_tofile(self, conn, tst_instances_mof):
+        # pylint: disable=no-self-use
+        """
+        Test output of the display_repository method to a file.
+        """
+        conn.compile_mof_string(tst_instances_mof, namespace='interop')
 
         tst_file_name = 'test_wbemconnection_mock_repo.txt'
         tst_file = os.path.join(TEST_DIR, tst_file_name)
-
         conn.display_repository(dest=tst_file)
         assert os.path.isfile(tst_file)
+        with open(tst_file, 'r') as f:
+            data = f.read()
+        assert data.startswith(
+            "# ========Mock Repo Display fmt=mof namespaces=all")
+        assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in data
+        assert 'instance of CIM_Foo {' in data
+        assert 'Qualifier Abstract : boolean = false,' in data
         os.remove(tst_file)
 
     # TODO: Add test of format of the repo outut with a very simple schema
@@ -1131,8 +1215,8 @@ class TestRepoMethods(object):
         cmof = u"""
         class CIM_Foo {
                 [Key,
-                 Description ("Å \u0420\u043e\u0441\u0441\u0438\u044f"
-                              "\u00E0 voil\u00e0")]
+                 Description ("\u212b \u0420\u043e\u0441\u0441\u0438"
+                              "\u044f\u00E0 voil\u00e0")]
             string InstanceID;
         };
         """
@@ -1374,29 +1458,29 @@ class TestRepoMethods(object):
         "description, classnames, extra_rtnd_classnames, run_test",
         [
             ["Test with several classes. ",
-                ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',
-                 'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile'],
-                ['CIM_EnabledLogicalElement', 'CIM_Job',
-                 'CIM_LogicalElement', 'CIM_ManagedSystemElement',
-                 'CIM_Service', 'CIM_Service', 'CIM_ConcreteJob',
-                 'CIM_Dependency', 'CIM_ManagedElement', 'CIM_ManagedElement',
-                 'CIM_Error', 'CIM_RegisteredSpecification',
-                 'CIM_ReferencedSpecification', 'CIM_WBEMService'],
-                True],
+             ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',
+              'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile'],
+             ['CIM_EnabledLogicalElement', 'CIM_Job',
+              'CIM_LogicalElement', 'CIM_ManagedSystemElement',
+              'CIM_Service', 'CIM_Service', 'CIM_ConcreteJob',
+              'CIM_Dependency', 'CIM_ManagedElement', 'CIM_ManagedElement',
+              'CIM_Error', 'CIM_RegisteredSpecification',
+              'CIM_ReferencedSpecification', 'CIM_WBEMService'],
+             True],
 
             ["Test with single classes. Broken",
-                ['CIM_ObjectManager'],
-                ['CIM_EnabledLogicalElement', 'CIM_Error', 'CIM_LogicalElement',
-                 'CIM_ConcreteJob', 'CIM_WBEMService',
-                 'CIM_ManagedSystemElement', 'CIM_Service',
-                 'CIM_ManagedElement', 'CIM_Job'],
-                True],
+             ['CIM_ObjectManager'],
+             ['CIM_EnabledLogicalElement', 'CIM_Error', 'CIM_LogicalElement',
+              'CIM_ConcreteJob', 'CIM_WBEMService',
+              'CIM_ManagedSystemElement', 'CIM_Service',
+              'CIM_ManagedElement', 'CIM_Job'],
+             True],
 
             ["Test with simple group of classes",
-                ['CIM_ElementConformsToProfile'],
-                ['CIM_ManagedElement',
-                 'CIM_RegisteredSpecification', 'CIM_RegisteredProfile'],
-                True]
+             ['CIM_ElementConformsToProfile'],
+             ['CIM_ManagedElement',
+              'CIM_RegisteredSpecification', 'CIM_RegisteredProfile'],
+             True]
         ]
     )
     def test_compile_dmtf_schema_method(self, conn, description, classnames,
@@ -1539,9 +1623,9 @@ class TestClassOperations(object):
         else:
             # The following is a test
             for pname in tst_class.properties:
-                tst_class.properties[pname].class_origin == tst_class.classname
+                tst_class.properties[pname].class_origin = tst_class.classname
             for mname in tst_class.methods:
-                tst_class.methods[mname].class_origin == tst_class.classname
+                tst_class.methods[mname].class_origin = tst_class.classname
 
         # Test the modified tst_class against the returned class
         tst_ns = ns if ns else conn.default_namespace

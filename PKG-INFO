@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: pywbem
-Version: 0.12.1.dev32
+Version: 0.12.1.dev42
 Summary: pywbem - A WBEM client
 Home-page: http://pywbem.github.io/pywbem/
 Author: Tim Potter
