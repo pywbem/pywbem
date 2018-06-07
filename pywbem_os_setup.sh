@@ -213,12 +213,13 @@ elif [[ "$distro_family" == "osx" ]]; then
 
 elif [[ "$distro_family" == "windows" ]]; then
 
-  # Nothing needed for "install" because the M2CryptoWin32/64 packages are
-  # binary packages and don't invoke Swig during their installation.
-
+  if [[ "$purpose" == "install" ]]; then
+    echo "$myname: Invoking 'pywbem_os_setup.bat install' on platform ${platform}." >&2
+    cmd /c pywbem_os_setup.bat install
+  fi
   if [[ "$purpose" == "develop" ]]; then
-    echo "$myname: Warning: Installation of OS-level packages for development must be performned manually on platform ${platform}." >&2
-    echo ". See the 'Development' chapter of the documentation for instructions." >&2
+    echo "$myname: Invoking 'pywbem_os_setup.bat develop' on platform ${platform}." >&2
+    cmd /c pywbem_os_setup.bat develop
   fi
 
 else

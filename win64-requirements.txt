@@ -1,9 +1,0 @@
-# Additional pip requirements file for pywbem runtime dependencies for 64-bit Python on Windows.
-#
-# The order of packages is significant, because pip processes them in the order
-# of appearance.
-
-# Make sure that the package versions in minimum-constraints.txt are also
-# the minimum versions required in requirements.txt and dev-requirements.txt.
-
-M2CryptoWin64>=0.21.1.post3; (python_version == '2.6' or python_version == '2.7') and sys_platform == 'win32'

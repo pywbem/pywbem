@@ -135,6 +135,12 @@ Released: not yet
   parameter and a mof file and pythong to testsuite to test the new option.
   (Issue #1268)
 
+* Installation on Windows is now more automated by means of a new
+  `pywbem_os_setup.bat` script. As part of that, the latest `M2Crypto` version
+  0.30.1 is now used on Windows, and no longer the somewhat aged versions in
+  the `M2CryptoWin32/64` packages. For details, see the installation section
+  in the documentation.
+  
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

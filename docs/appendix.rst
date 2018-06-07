@@ -407,6 +407,27 @@ name). On RHEL, the missing package is `python-dev`.
 For more details, see
 :ref:`Prerequisite operating system packages for development`.
 
+Installation fails with "invalid command 'bdist_wheel'"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The installation of M2Crypto and probably other Python packages requires the
+Python "wheel" package. If that package is not installed in the current Python
+environment, the installation will fail with the following (or similar)
+symptom::
+
+    Creating library build\temp.win-amd64-2.7\Release\SWIG_m2crypto.lib and object build\temp.win- amd64-2.7\Release\SWIG_m2crypto.exp
+    python setup.py bdist_wheel
+    usage: setup.py [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
+    or: setup.py --help [cmd1 cmd2 ...]
+    or: setup.py --help-commands
+    or: setup.py cmd --help
+    error: invalid command 'bdist_wheel'
+
+To fix this, install the Python "wheel" package::
+
+    pip install wheel
+
+
 .. _'Glossary`:
 
 Glossary
