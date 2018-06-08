@@ -87,6 +87,12 @@ Released: not yet
 * Fix issue causing pywbem_mock/_wbemconnection_mock.py display_repository()
   to display as bytes in Python 3.  See issue # 1276
 
+* Fixed the support for Unicode escape sequences in the MOF compiler. It
+  supported only lower case `\x1234` but not upper case `\X1234`.
+  Also, it tolerated an invalid `\x` escape sequence, when DSP0004 requires
+  1..4 hex characters to be present.
+  See issue #1278.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:

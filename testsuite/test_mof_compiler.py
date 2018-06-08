@@ -8,7 +8,7 @@
 from __future__ import print_function, absolute_import
 
 import os
-import unittest
+import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import six
 from ply import lex
 try:
@@ -82,6 +82,99 @@ class MOFTest(unittest.TestCase):
         if self.partial_schema_file:
             if os.path.exists(self.partial_schema_file):
                 os.remove(self.partial_schema_file)
+
+
+class TestInstancesUnicode(MOFTest):
+    """
+    Test compile of an instance with Unicode characters in string properties
+    """
+
+    def test_instance_unicode_literal(self):
+        """
+        Test compile of string property with literal Unicode characters
+        """
+
+        repo = self.mofcomp.handle
+
+        class_mof = \
+            'class PyWBEM_TestUnicode {\n' \
+            '    string uprop;\n' \
+            '};'
+        self.mofcomp.compile_string(class_mof, NAME_SPACE)
+
+        inst_mof = \
+            u'instance of PyWBEM_TestUnicode {\n' \
+            u'    uprop = "\u212b \u0420 \u043e \u0441 \u0441"\n' \
+            u'            "\u0438 \u044f \u00e0";\n' \
+            u'};'
+        exp_uprop = u"\u212b \u0420 \u043e \u0441 \u0441" \
+                    u"\u0438 \u044f \u00e0"
+
+        self.mofcomp.compile_string(inst_mof, NAME_SPACE)
+
+        for inst in repo.instances[NAME_SPACE]:
+            if inst.classname == 'PyWBEM_TestUnicode':
+                break
+        else:
+            inst = None
+        assert inst is not None
+
+        uprop = inst.properties['uprop'].value
+
+        self.assertEqual(uprop, exp_uprop)
+
+    def test_instance_unicode_escape(self):
+        """
+        Test compile of string property with MOF escaped Unicode characters
+        """
+
+        repo = self.mofcomp.handle
+
+        class_mof = \
+            'class PyWBEM_TestUnicode {\n' \
+            '    string uprop;\n' \
+            '};'
+        self.mofcomp.compile_string(class_mof, NAME_SPACE)
+
+        inst_mof = \
+            u'instance of PyWBEM_TestUnicode {\n' \
+            u'    uprop = "\\X212B \\X0420 \\x043E \\x0441 \\x0441 ' \
+            u'\\x0438 \\x044f \\x00e0";\n' \
+            u'};'
+        exp_uprop = u"\u212b \u0420 \u043e \u0441 \u0441 " \
+                    u"\u0438 \u044f \u00e0"
+
+        self.mofcomp.compile_string(inst_mof, NAME_SPACE)
+
+        for inst in repo.instances[NAME_SPACE]:
+            if inst.classname == 'PyWBEM_TestUnicode':
+                break
+        else:
+            inst = None
+        assert inst is not None
+
+        uprop = inst.properties['uprop'].value
+
+        self.assertEqual(uprop, exp_uprop)
+
+    def test_instance_unicode_escape_fail1(self):
+        """
+        Test compile of string property with Unicode escape with no hex chars
+        """
+
+        class_mof = \
+            'class PyWBEM_TestUnicode {\n' \
+            '    string uprop;\n' \
+            '};'
+        self.mofcomp.compile_string(class_mof, NAME_SPACE)
+
+        inst_mof = \
+            u'instance of PyWBEM_TestUnicode {\n' \
+            u'    uprop = "\\xzzzz";\n' \
+            u'};'
+
+        with self.assertRaises(MOFParseError):
+            self.mofcomp.compile_string(inst_mof, NAME_SPACE)
 
 
 class TestFlavors(MOFTest):
