@@ -152,7 +152,8 @@ class WBEMServer(object):
         """
         if not isinstance(conn, WBEMConnection):
             raise TypeError("conn argument of WBEMServer must be a "
-                            "WBEMConnection object")
+                            "WBEMConnection object, but has type: %s" %
+                            type(conn))
         self._conn = conn
         self._interop_ns = None
         self._namespaces = None
@@ -345,9 +346,25 @@ class WBEMServer(object):
                                            'RegisteredOrganization')
         rtn = []
         for inst in self.profiles:
-            inst_org = org_vm.tovalues(inst['RegisteredOrganization'])
-            inst_name = inst['RegisteredName']
-            inst_version = inst['RegisteredVersion']
+            try:
+                inst_org_value = inst['RegisteredOrganization']
+            except KeyError:
+                raise KeyError("CIM_RegisteredProfile instance in %r does not "
+                               "have a property 'RegisteredOrganization'" %
+                               self.interop_ns)
+            inst_org = org_vm.tovalues(inst_org_value)
+            try:
+                inst_name = inst['RegisteredName']
+            except KeyError:
+                raise KeyError("CIM_RegisteredProfile instance in %r does not "
+                               "have a property 'RegisteredName'" %
+                               self.interop_ns)
+            try:
+                inst_version = inst['RegisteredVersion']
+            except KeyError:
+                raise KeyError("CIM_RegisteredProfile instance in %r does not "
+                               "have a property 'RegisteredVersion'" %
+                               self.interop_ns)
 
             # pylint: disable=too-many-boolean-expressions
             if (registered_org is None or registered_org == inst_org) and \
@@ -442,8 +459,9 @@ class WBEMServer(object):
         """  # noqa: E501
         # pylint: enable=line-too-long
         if not isinstance(profile_path, CIMInstanceName):
-            raise TypeError("profile_path must be a CIMInstanceName, but is "
-                            "a %s" % type(profile_path))
+            raise TypeError("The profile_path argument must be a "
+                            "CIMInstanceName, but has type: %s" %
+                            type(profile_path))
 
         # Try GetCentralInstances() method:
         try:
@@ -462,8 +480,10 @@ class WBEMServer(object):
                 raise
         else:
             if ret_val != 0:
-                raise ValueError("GetCentralInstances() implemented but "
-                                 "failed with rc=%s" % ret_val)
+                raise ValueError("The GetCentralInstances() method is "
+                                 "implemented but failed with rc=%s, for "
+                                 "profile instance: %s" %
+                                 (ret_val, profile_path))
             return out_params['CentralInstances']
 
         # Try central methodology
@@ -481,7 +501,9 @@ class WBEMServer(object):
             raise ValueError("No central instances found after applying "
                              "GetCentralInstances and central class "
                              "methodologies, and parameters for scoping "
-                             "class methodology were not specified")
+                             "class methodology were not specified, for "
+                             "profile instance: %s" %
+                             profile_path)
 
         # Go up one level on the profile side
         referencing_profile_paths = self._conn.AssociatorNames(
@@ -489,9 +511,13 @@ class WBEMServer(object):
             AssocClass="CIM_ReferencedProfile",
             ResultRole="Dependent")
         if not referencing_profile_paths:
-            raise ValueError("No referencing profile found")
+            raise ValueError("When attempting the scoping class methodology, "
+                             "no referencing profiles were found, for "
+                             "profile instance: %s" % profile_path)
         elif len(referencing_profile_paths) > 1:
-            raise ValueError("More than one referencing profile found")
+            raise ValueError("When attempting the scoping class methodology, "
+                             "more than one referencing profiles were found, "
+                             "for profile instance: %s" % profile_path)
 
         # Traverse to the resource side (remember that scoping instances are
         # the central instances at the next upper level).
@@ -506,7 +532,9 @@ class WBEMServer(object):
             referencing_profile_paths[0],
             upper_central_class, scoping_class, upper_scoping_path)
         if not scoping_inst_paths:
-            raise ValueError("No scoping instances found")
+            raise ValueError("When attempting the scoping class methodology, "
+                             "no scoping instances were found, "
+                             "for profile instance: %s" % profile_path)
 
         # Go down one level on the resource side (using the last
         # entry in the scoping path as the association to traverse)
@@ -519,9 +547,12 @@ class WBEMServer(object):
                 ResultClass=central_class)
             if not ci_paths:
                 # At least one central instance for each scoping instance
-                raise ValueError("No central instances found traversing down "
-                                 "across %s to %s" %
-                                 (assoc_class, central_class))
+                raise ValueError("When attempting the scoping class "
+                                 "methodology, no central instances were found "
+                                 "when traversing down across association %r "
+                                 "to central class %r, for profile instance: "
+                                 "%s" %
+                                 (assoc_class, central_class, profile_path))
             total_ci_paths.extend(ci_paths)
 
         return total_ci_paths

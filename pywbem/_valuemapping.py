@@ -32,6 +32,7 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from .cim_types import CIMInt, type_from_name
+from .cim_obj import CIMProperty, CIMMethod, CIMParameter
 
 __all__ = ['ValueMapping']
 
@@ -247,7 +248,11 @@ class ValueMapping(object):
                               namespace=namespace,
                               LocalOnly=False,
                               IncludeQualifiers=True)
-        property_obj = class_obj.properties[propname]
+        try:
+            property_obj = class_obj.properties[propname]
+        except KeyError:
+            raise KeyError("Class %r (in %r) does not have a property %r" %
+                           (classname, namespace, propname))
 
         new_vm = cls._create_for_element(property_obj, conn, namespace,
                                          classname, propname=propname)
@@ -305,7 +310,11 @@ class ValueMapping(object):
                               namespace=namespace,
                               LocalOnly=False,
                               IncludeQualifiers=True)
-        method_obj = class_obj.methods[methodname]
+        try:
+            method_obj = class_obj.methods[methodname]
+        except KeyError:
+            raise KeyError("Class %r (in %r) does not have a method %r" %
+                           (classname, namespace, methodname))
 
         new_vm = cls._create_for_element(method_obj, conn, namespace,
                                          classname, methodname=methodname)
@@ -368,8 +377,17 @@ class ValueMapping(object):
                               namespace=namespace,
                               LocalOnly=False,
                               IncludeQualifiers=True)
-        method_obj = class_obj.methods[methodname]
-        parameter_obj = method_obj.parameters[parametername]
+        try:
+            method_obj = class_obj.methods[methodname]
+        except KeyError:
+            raise KeyError("Class %r (in %r) does not have a method %r" %
+                           (classname, namespace, methodname))
+        try:
+            parameter_obj = method_obj.parameters[parametername]
+        except KeyError:
+            raise KeyError("Method %r.%r() (in %r) does not have a parameter "
+                           "%r" %
+                           (classname, methodname, namespace, parametername))
 
         new_vm = cls._create_for_element(parameter_obj, conn, namespace,
                                          classname, methodname=methodname,
@@ -377,8 +395,7 @@ class ValueMapping(object):
 
         return new_vm
 
-    @classmethod
-    def _values_tuple(cls, i, valuemap_list, values_list, cimtype):
+    def _values_tuple(self, i, valuemap_list, values_list, cimtype):
         """
         Return a tuple for the value range or unclaimed marker at position i,
         with these items:
@@ -409,13 +426,15 @@ class ValueMapping(object):
         except ValueError:
             m = re.match(r'^([+-]?[0-9]*)\.\.([+-]?[0-9]*)$', valuemap_str)
             if m is None:
-                raise ValueError("Invalid ValueMap entry: %r" % valuemap_str)
+                raise ValueError("The value-mapped %s has an invalid "
+                                 "ValueMap entry: %r" %
+                                 (self._element_str(), valuemap_str))
             lo = m.group(1)
             if lo == '':
                 if i == 0:
                     lo = cimtype.minvalue
                 else:
-                    _, previous_hi, _ = cls._values_tuple(
+                    _, previous_hi, _ = self._values_tuple(
                         i - 1, valuemap_list, values_list, cimtype)
                     lo = previous_hi + 1
             else:
@@ -425,7 +444,7 @@ class ValueMapping(object):
                 if i == len(valuemap_list) - 1:
                     hi = cimtype.maxvalue
                 else:
-                    next_lo, _, _ = cls._values_tuple(
+                    next_lo, _, _ = self._values_tuple(
                         i + 1, valuemap_list, values_list, cimtype)
                     hi = next_lo - 1
             else:
@@ -484,17 +503,6 @@ class ValueMapping(object):
 
         # pylint: disable=protected-access
 
-        try:
-            typename = element_obj.type  # Property, Parameter
-        except AttributeError:
-            typename = element_obj.return_type  # Method
-
-        cimtype = type_from_name(typename)
-
-        if not issubclass(cimtype, CIMInt):
-            raise TypeError("The CIM element is not integer-typed: %s" %
-                            typename)
-
         vm = ValueMapping()
         vm._element_obj = element_obj
         vm._conn = conn
@@ -504,10 +512,22 @@ class ValueMapping(object):
         vm._methodname = methodname
         vm._parametername = parametername
 
+        try:
+            typename = element_obj.type  # Property, Parameter
+        except AttributeError:
+            typename = element_obj.return_type  # Method
+
+        cimtype = type_from_name(typename)
+
+        if not issubclass(cimtype, CIMInt):
+            raise TypeError("The value-mapped %s is not integer-typed, but "
+                            "has CIM type: %s" % (vm._element_str(), typename))
+
         values_qual = element_obj.qualifiers.get('Values', None)
         if values_qual is None:
             # DSP0004 defines no default for a missing Values qualifier
-            raise ValueError("No Values qualifier defined")
+            raise ValueError("The value-mapped %s has no Values qualifier "
+                             "defined" % vm._element_str())
         values_list = values_qual.value
 
         valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
@@ -531,7 +551,7 @@ class ValueMapping(object):
                     vm._b2v_unclaimed = values_str
                     vm._v2b_dict[values_str] = None
                 else:
-                    lo, hi, values_str = cls._values_tuple(
+                    lo, hi, values_str = vm._values_tuple(
                         i, valuemap_list, values_list, cimtype)
                     if lo == hi:
                         # single value
@@ -544,6 +564,22 @@ class ValueMapping(object):
 
         # pylint: enable=protected-access
         return vm
+
+    def _element_str(self):
+        """
+        Return a string that identifies the value-mapped element.
+        """
+        if isinstance(self.element, CIMProperty):
+            return "property %r.%r (in %r)" % \
+                (self.classname, self.propname, self.namespace)
+        elif isinstance(self.element, CIMMethod):
+            return "method %r.%r() (in %r)" % \
+                (self.classname, self.methodname, self.namespace)
+        else:
+            assert isinstance(self.element, CIMParameter)
+            return "parameter %r.%r(%r) (in %r)" % \
+                (self.classname, self.methodname, self.parametername,
+                 self.namespace)
 
     def __repr__(self):
         """
@@ -641,8 +677,9 @@ class ValueMapping(object):
         """
 
         if not isinstance(element_value, (six.integer_types, CIMInt)):
-            raise TypeError("Element value is not an integer type: %s" %
-                            type(element_value))
+            raise TypeError("The value for value-mapped %s is not "
+                            "integer-typed, but has Python type: %s" %
+                            (self._element_str(), type(element_value)))
 
         # try single value
         try:
@@ -660,8 +697,9 @@ class ValueMapping(object):
         if self._b2v_unclaimed is not None:
             return self._b2v_unclaimed
 
-        raise ValueError("Element value outside of the set defined by "
-                         "ValueMap: %r" % element_value)
+        raise ValueError("The value for value-mapped %s is outside of the set "
+                         "defined by its ValueMap qualifier: %r" %
+                         (self._element_str(), element_value))
 
     def tobinary(self, values_str):
         """
@@ -700,14 +738,16 @@ class ValueMapping(object):
         """
 
         if not isinstance(values_str, six.string_types):
-            raise TypeError("Values string is not a string type: %s" %
-                            type(values_str))
+            raise TypeError("The values string for value-mapped %s is not "
+                            "string-typed, but has Python type: %s" %
+                            (self._element_str(), type(values_str)))
 
         try:
             return self._v2b_dict[values_str]
         except KeyError:
-            raise ValueError("Values string outside of the set defined by "
-                             "Values: %r" % values_str)
+            raise ValueError("The values string for value-mapped %s is outside "
+                             "of the set defined by its Values qualifier: %r" %
+                             (self._element_str(), values_str))
 
     def items(self):
         """
