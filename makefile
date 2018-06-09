@@ -72,8 +72,12 @@ endif
 # Directory for coverage html output. Must be in sync with the one in coveragerc.
 coverage_html_dir := coverage_html
 
-# Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")
-package_version := $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; print(VersionInfo('pywbem').release_string())")
+# Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")#
+# Note: Some make actions (such as clobber) cause the package version to change,
+# e.g. because the pywbem.egg-info directory or the PKG-INFO file are deleted,
+# when a new version tag has been assigned. Therefore, this variable is assigned with
+# "=" so that it is evaluated every time it is used.
+package_version = $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; print(VersionInfo('pywbem').release_string())")
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
@@ -83,10 +87,11 @@ python_mn_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s%
 dist_dir := dist
 
 # Distribution archives
-bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
-sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
+# These variables are set with "=" for the same reason as package_version.
+bdist_file = $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
+sdist_file = $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
-dist_files := $(bdist_file) $(sdist_file)
+dist_files = $(bdist_file) $(sdist_file)
 
 # Source files in the packages
 package_py_files := \
@@ -212,7 +217,7 @@ help:
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
-	@echo "  clobber    - Remove everything created to ensure clean start"
+	@echo "  clobber    - Remove everything created to ensure clean start - use after setting git tag"
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  TEST_SCHEMA_DOWNLOAD - When set adds tests to"
@@ -340,7 +345,7 @@ all: install develop build builddoc check pylint test
 .PHONY: clobber
 clobber: clean
 	@echo "makefile: Removing everything for a fresh start"
-	rm -f *.done pylint.log  flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files) pywbem/*,cover wbemcli.log
+	rm -f *.done pylint.log flake8.log epydoc.log test_*.log $(moftab_files) $(dist_files) pywbem/*,cover wbemcli.log
 	rm -Rf $(doc_build_dir) .tox $(coverage_html_dir)
 	@echo "makefile: Done removing everything for a fresh start"
 	@echo "makefile: Target $@ done."
@@ -460,14 +465,14 @@ $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moft
 	rm -f PKG-INFO
 	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
 	cp -r $(package_name).egg-info/PKG-INFO .
-	@echo "makefile: Done creating the distribution archive files: $@"
+	@echo "makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 $(moftab_files): install.done $(moftab_dependent_files) build_moftab.py
 	@echo "makefile: Creating the LEX/YACC table modules"
 	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
 	$(PYTHON_CMD) -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
-	@echo "makefile: Done creating the LEX/YACC table modules: $@"
+	@echo "makefile: Done creating the LEX/YACC table modules: $(moftab_files)"
 
 # TODO: Once pylint has no more errors, remove the dash "-"
 # PyLint status codes:

@@ -107,26 +107,45 @@ Their upstream repos are assumed to have the remote name `origin`.
 
       Where the items in curly braces are replaced with their actual values.
 
-6.  Perform a complete build (in your favorite Python virtual environment):
+6.  Tag the version (temporary tagging, only locally):
 
-    - `make clobber all`
+    Note: This is the basis on which `pbr` determines the package version for
+    the subsequent steps. Because we also have PKG-INFO in the repo, tagging
+    now needs to be done in two steps, this temporary step and a subsequent
+    final step.
+
+    Create a tag for the new version (just locally):
+
+    - `git tag $MNU`
+
+    Remove the build products so that the next build picks up the tagged
+    version:
+
+    - `make clobber`
+
+7.  Perform a complete build (in your favorite Python virtual environment):
+
+    - `make all`
 
     If this fails, fix and iterate over this step until it succeeds.
 
-7.  Commit the changes and push to upstream:
+8.  Commit the changes and push to upstream:
+
+    Note: This also includes PKG-INFO in the commit, which now has the tagged
+    version.
 
     - `git status` - to double check which files have been changed
     - `git commit -asm "Release $MNU"`
     - `git push --set-upstream origin release_$MNU`
 
-8.  On Github, create a Pull Request for branch `release_$MNU`. This will
+9.  On Github, create a Pull Request for branch `release_$MNU`. This will
     trigger the CI runs in Travis and Appveyor.
 
     Important: When creating Pull Requests, GitHub by default targets
     the `master` branch. If you are releasing a fix version, you need to
     change the target branch of the Pull Request to `stable_M.N`.
 
-9.  Perform a complete test using Tox:
+10. Optional: Perform a complete test using Tox:
 
     - `tox`
 
@@ -134,51 +153,40 @@ Their upstream repos are assumed to have the remote name `origin`.
     and will invoke `make test` (with its prerequisite make targets) in each
     of them.
 
-10. Optional: Perform a test in a local CI environment (Andy):
+11. Optional: Perform a test in a local multi-platform test environment (Andy):
 
     - Post the results to the release PR.
 
-11. Optional: Perform a test against a real WBEM server (Karl):
+12. Optional: Perform a test against a real WBEM server (Karl):
 
     - Post the results to the release PR.
 
-12. If any of the tests mentioned above fails, fix the problem and iterate
+13. If any of the tests mentioned above fails, fix the problem and iterate
     back to step 6. until they all succeed.
 
-13. On GitHub, once all of these tests succeed:
+14. On GitHub, once the CI runs for the Pull Request succeed:
 
     - Merge the Pull Request (no review is needed)
     - Delete the branch of the Pull Request (`release_M.N.U`)
 
-14. Checkout the branch you are releasing, update it from upstream, and
+15. Checkout the branch you are releasing, update it from upstream, and
     delete the local topic branch you created:
 
     - `git checkout $BRANCH`
     - `git pull`
     - `git branch -d release_$MNU`
 
-15. Tag the version:
+16. Tag the version (final tagging, both locally and remotely):
 
-    - Important: This is the basis on which `pbr` determines the package
-      version. The tag string must be exactly the version string `M.N.U`
-      (i.e. no leading 'v', as we used in earlier versions).
+    This step moves the local tag to the correct commit and pushes it upstream:
 
-    - Create a tag for the new version and push the addition upstream:
+    - `git status` - double check that the branch to be released
+      (`$BRANCH`) is checked out
+    - `git tag -d $MNU`
+    - `git tag $MNU`
+    - `git push --tags`
 
-      - `git status` - double check that the branch to be released
-        (`$BRANCH`) is checked out
-      - `git tag $MNU`
-      - `git push --tags`
-
-      If the previous commands fail because this tag already exists for
-      some reason, delete the tag and push the deletion upstream:
-
-      - `git tag -l $MNU |xargs git tag -d`
-      - `git push --tags`
-
-      Then repeat the creation of the tag and pushing its addition upstream.
-
-16. If you released the `master` branch (for a new minor or major version),
+17. If you released the `master` branch (for a new minor or major version),
     it will be fixed separately, so it needs a new fix stream.
 
     * Create a branch for its fix stream and push it upstream:
@@ -191,15 +199,15 @@ Their upstream repos are assumed to have the remote name `origin`.
     * Log on to [RTD](https://readthedocs.org/), go to the `pywbem` project,
       and activate the new branch `stable_M.N` as a version to be built.
 
-17. On GitHub, edit the new tag, and create a release description on it. This
+18. On GitHub, edit the new tag, and create a release description on it. This
     will cause it to appear in the Release tab.
 
-18. On GitHub, close milestone `M.N.U`.
+19. On GitHub, close milestone `M.N.U`.
 
     Note: Issues with that milestone will be moved forward in the section
     "Starting a new version".
 
-19. Upload the package to PyPI:
+20. Upload the package to PyPI:
 
     **Attention!!** This only works once. You cannot re-release the same
     version to PyPI.
@@ -208,19 +216,19 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     Verify that it arrived on PyPI: https://pypi.python.org/pypi/pywbem/
 
-20. Switch to the directory of the `pywbem.github.io` repo and perform the
+21. Switch to the directory of the `pywbem.github.io` repo and perform the
     following steps from that directory:
 
     - `cd ../pywbem.github.io`
 
-21. Check out the `master` branch and update it from upstream:
+22. Check out the `master` branch and update it from upstream:
 
     - `git checkout master`
     - `git pull`
 
     In this repo, we don´t use a topic branch for these changes.
 
-22. Edit the installation page:
+23. Edit the installation page:
 
     - `vi pywbem/installation.html`
 
@@ -234,13 +242,13 @@ Their upstream repos are assumed to have the remote name `origin`.
     `pywbem/installation.html` that the new release shows up correctly,
     and that all of its links work.
 
-23. Commit the changes and push to the upstream repo:
+24. Commit the changes and push to the upstream repo:
 
     - `git status` - to double check which files have been changed
     - `git commit -asm "Release $MNU"`
     - `git push`
 
-24. Announce the new version on the
+25. Announce the new version on the
     [pywbem-devel mailing list](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
 
 Starting a new version
