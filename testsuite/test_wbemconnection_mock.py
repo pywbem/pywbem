@@ -4753,10 +4753,8 @@ class TestDMTFCIMSchema(object):
         Test case where the class requested for the partial schema is not
         in the DMTF schema
         """
-        with pytest.raises(excep) as excinfo:
+        with pytest.raises(excep):
             DMTFCIMSchema(schema_version, test_schema_root_dir, verbose=False)
-
-        print(excinfo)
 
     def test_schema_build(self):
         # pylint: disable=no-self-use
