@@ -32,6 +32,8 @@ import locale
 import six
 from pywbem_mock._wbemconnection_mock import _uprint
 
+DEBUG = False
+
 
 def main():
     """Main routine"""
@@ -41,12 +43,15 @@ def main():
     else:
         mode = 'small'
 
-    print("Debug: mode=%s; sys.stdout: isatty=%r, encoding=%r" %
-          (mode, sys.stdout.isatty(), getattr(sys.stdout, 'encoding', None)),
-          file=sys.stderr)
-    print("Debug: sys.getfilesystemencoding=%r locale.getpreferredencoding=%r" %
-          (sys.getfilesystemencoding(), locale.getpreferredencoding()),
-          file=sys.stderr)
+    if DEBUG:
+        print("Debug: mode=%s; sys.stdout: isatty=%r, encoding=%r" %
+              (mode, sys.stdout.isatty(), getattr(sys.stdout, 'encoding',
+               None)),
+              file=sys.stderr)
+        print("Debug: sys.getfilesystemencoding=%r "
+              "locale.getpreferredencoding=%r" %
+              (sys.getfilesystemencoding(), locale.getpreferredencoding()),
+              file=sys.stderr)
 
     if mode == 'small':
         test_string = u'\u212b \u0420 \u043e \u0441 \u0441 \u0438 \u044f \u00e0'

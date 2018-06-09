@@ -723,10 +723,11 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     """
 
     @log_capture()
-    def test_create_connection(self, lc):
+    def test_create_connection1(self, lc):
         """Create connection with default parameters"""
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
+        # TODO AM 2018-06: Suppress the printing to stderr
         configure_logger('api', log_dest='stderr', detail_level='all',
                          connection=conn, propagate=True)
 
@@ -762,6 +763,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
+        # TODO AM 2018-06: Suppress the printing to stderr
         configure_logger('api', log_dest='stderr', detail_level='all',
                          connection=conn, propagate=True)
 
@@ -800,6 +802,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
+        # TODO AM 2018-06: Suppress the printing to stderr
         configure_logger('api', log_dest='stderr', detail_level='summary',
                          connection=conn, propagate=True)
 
@@ -2205,8 +2208,6 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
-        print(lc)
-
         conn_id = conn.conn_id
 
         http_exp_log_id = 'pywbem.http.%s' % conn_id
@@ -2246,8 +2247,6 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         conn = self.build_repo(namespace)
 
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
-
-        print(lc)
 
         conn_id = conn.conn_id
 
