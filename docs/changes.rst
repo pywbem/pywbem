@@ -140,7 +140,10 @@ Released: not yet
   0.30.1 is now used on Windows, and no longer the somewhat aged versions in
   the `M2CryptoWin32/64` packages. For details, see the installation section
   in the documentation.
-  
+
+* Docs: Added a shell command for determining the version of an installed
+  pywbem package, that covers all released pywbem versions (Issue #1246).
+
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

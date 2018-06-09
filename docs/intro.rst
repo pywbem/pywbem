@@ -579,14 +579,31 @@ follows:
 Package version
 ---------------
 
-The version of the pywbem package can be accessed by programs using the
-``pywbem.__version__`` variable:
+Since pywbem 0.8.1, the version of the pywbem package can be accessed by
+programs using the ``pywbem.__version__`` variable:
 
 .. autodata:: pywbem._version.__version__
 
 Note: For tooling reasons, the variable is shown as
 ``pywbem._version.__version__``, but it should be used as
 ``pywbem.__version__``.
+
+From earlier versions of pywbem, pywbem 0.7.0 was the only version released to
+Pypi, and most likely also the only version that was packaged as an operating
+system package into Linux distributions.
+
+The following shell command can be used to determine the version of pywbem, for
+all versions that were released to Pypi, and independently of whether pywbem
+was installed as an operating system package or as a Python package::
+
+    python -c "\
+    import pywbem, os, subprocess; \
+    fs=os.path.join(os.path.dirname(pywbem.__file__),'setup.py'); \
+    vs=subprocess.check_output(['python',fs,'--version']).strip() \
+    if os.path.exists(fs) else None; \
+    v=getattr(pywbem, '__version__', vs if vs else '0.7.0-assumed'); \
+    print(v) \
+    "
 
 
 .. _`Standards conformance`:
