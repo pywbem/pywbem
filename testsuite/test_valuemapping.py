@@ -151,8 +151,8 @@ class Test_ValueMapping(object):
             vm.tovalues(value)
         exc = exc_info.value
         exc_msg = str(exc)
-        assert re.match("Element value outside of the set defined by "
-                        "ValueMap.*", exc_msg) is not None
+        assert re.match(".*outside of the set defined by its ValueMap "
+                        "qualifier.*", exc_msg) is not None
 
     def assertOutsideValues(self, vm, value):
         """
@@ -162,8 +162,8 @@ class Test_ValueMapping(object):
             vm.tobinary(value)
         exc = exc_info.value
         exc_msg = str(exc)
-        assert re.match("Values string outside of the set defined by "
-                        "Values.*", exc_msg) is not None
+        assert re.match(".*outside of the set defined by its Values "
+                        "qualifier.*", exc_msg) is not None
 
     def test_empty(self, element_kind, server_arg, integer_type):
         # pylint: disable=redefined-outer-name
@@ -291,7 +291,9 @@ class Test_ValueMapping(object):
                                    valuemap, values)
         exc = exc_info.value
         assert isinstance(exc, ValueError)
-        assert exc.args[0].startswith('Invalid ValueMap entry')
+        exc_msg = exc.args[0]
+        assert re.match(".*has an invalid ValueMap entry.*",
+                        exc_msg) is not None
 
     def test_invalid_element_type(self, element_kind, server_arg):
         # pylint: disable=redefined-outer-name
@@ -304,7 +306,9 @@ class Test_ValueMapping(object):
                                    valuemap, values)
         exc = exc_info.value
         assert isinstance(exc, TypeError)
-        assert exc.args[0].startswith('The CIM element is not integer-typed')
+        exc_msg = exc.args[0]
+        assert re.match(".*is not integer-typed.*",
+                        exc_msg) is not None
 
     def test_invalid_tovalues_type(self, element_kind, server_arg,
                                    integer_type):
@@ -320,7 +324,9 @@ class Test_ValueMapping(object):
             vm.tovalues('0')
         exc = exc_info.value
         assert isinstance(exc, TypeError)
-        assert exc.args[0].startswith('Element value is not an integer type')
+        exc_msg = exc.args[0]
+        assert re.match(".*is not integer-typed.*",
+                        exc_msg) is not None
 
     def test_invalid_tobinary_type(self, element_kind, server_arg,
                                    integer_type):
@@ -336,7 +342,9 @@ class Test_ValueMapping(object):
             vm.tobinary(0)
         exc = exc_info.value
         assert isinstance(exc, TypeError)
-        assert exc.args[0].startswith('Values string is not a string type')
+        exc_msg = exc.args[0]
+        assert re.match(".*is not string-typed.*",
+                        exc_msg) is not None
 
     def test_no_values_qualifier(self, element_kind, server_arg, integer_type):
         # pylint: disable=redefined-outer-name
@@ -349,7 +357,9 @@ class Test_ValueMapping(object):
                                    valuemap, values)
         exc = exc_info.value
         assert isinstance(exc, ValueError)
-        assert exc.args[0].startswith('No Values qualifier defined')
+        exc_msg = exc.args[0]
+        assert re.match(".*has no Values qualifier defined.*",
+                        exc_msg) is not None
 
     def test_valuemap_default(self, element_kind, server_arg, integer_type):
         # pylint: disable=redefined-outer-name
