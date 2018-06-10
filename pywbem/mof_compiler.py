@@ -287,7 +287,7 @@ def t_decimalValue(t):
 
 
 simpleEscape = r"""[bfnrt'"\\]"""
-hexEscape = r'x[0-9a-fA-F]{1,4}'
+hexEscape = r'[xX][0-9a-fA-F]{1,4}'
 escapeSequence = r'[\\]((%s)|(%s))' % (simpleEscape, hexEscape)
 cChar = r"[^'\\\n\r]|(%s)" % escapeSequence
 sChar = r'[^"\\\n\r]|(%s)' % escapeSequence
@@ -750,7 +750,7 @@ def p_pragmaName(p):
 
 def p_pragmaParameter(p):
     """pragmaParameter : stringValue"""
-    p[0] = _fixStringValue(p[1])
+    p[0] = _fixStringValue(p[1], p)
 
 
 def p_classDeclaration(p):
@@ -1305,7 +1305,7 @@ def p_constantValueList(p):
         p[0] = p[1] + [p[3]]
 
 
-def _fixStringValue(s):
+def _fixStringValue(s, p):
     """Clean up string value including special characters, etc."""
 
     # pylint: disable=too-many-branches
@@ -1352,7 +1352,13 @@ def _fixStringValue(s):
                 else:
                     hexc |= ord(c) - ord('A') + 0XA
                 j += 1
-            rv += chr(hexc)
+            if j == 0:
+                # DSP0004 requires 1..4 hex chars - we have 0
+                raise MOFParseError(
+                    parser_token=p,
+                    msg="Unicode escape sequence (e.g. '\\x12AB') requires "
+                        "at least one hex character")
+            rv += six.unichr(hexc)
             i += j - 1
 
         esc = False
@@ -1365,9 +1371,9 @@ def p_stringValueList(p):
                        | stringValueList stringValue
                        """
     if len(p) == 2:
-        p[0] = _fixStringValue(p[1])
+        p[0] = _fixStringValue(p[1], p)
     else:
-        p[0] = p[1] + _fixStringValue(p[2])
+        p[0] = p[1] + _fixStringValue(p[2], p)
 
 
 def p_constantValue(p):

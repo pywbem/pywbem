@@ -120,7 +120,6 @@ class TestServerClass(BaseMethodsForTests):
                                                      registered_version='1.1.0')
         profile_path = profile_insts[0].path
         insts = server.get_central_instances(profile_path, 'CIM_ObjectManager')
-        print('central inst %s' % insts[0])
         assert len(insts) == 1
         kb = NocaseDict([('SystemCreationClassName', 'CIM_ComputerSystem'),
                          ('SystemName', mock_wbemserver.system_name),
