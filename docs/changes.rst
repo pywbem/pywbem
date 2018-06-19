@@ -147,14 +147,15 @@ Released: not yet
   the `M2CryptoWin32/64` packages. For details, see the installation section
   in the documentation.
 
-
 * Made exception messages more explicit in the ValueMapping and WBEMServer
   classes. Issue #1281.
  
-
 * Docs: Added a shell command for determining the version of an installed
   pywbem package, that covers all released pywbem versions (Issue #1246).
 
+* Make: Eliminated the confusing but unproblematic error message about
+  pbr importing when running certain make targets in a freshly created
+  Python environment. Issue #1288.
 
 **Cleanup**
 

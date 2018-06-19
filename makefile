@@ -77,7 +77,7 @@ coverage_html_dir := coverage_html
 # e.g. because the pywbem.egg-info directory or the PKG-INFO file are deleted,
 # when a new version tag has been assigned. Therefore, this variable is assigned with
 # "=" so that it is evaluated every time it is used.
-package_version = $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; print(VersionInfo('pywbem').release_string())")
+package_version := $(shell $(PYTHON_CMD) -c $$'try:\n from pbr.version import VersionInfo\nexcept ImportError:\n pass\nelse:\n print(VersionInfo("$(package_name)").release_string())\n')
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
@@ -88,10 +88,10 @@ dist_dir := dist
 
 # Distribution archives
 # These variables are set with "=" for the same reason as package_version.
-bdist_file = $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
-sdist_file = $(dist_dir)/$(package_name)-$(package_version).tar.gz
+bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
+sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
-dist_files = $(bdist_file) $(sdist_file)
+dist_files := $(bdist_file) $(sdist_file)
 
 # Source files in the packages
 package_py_files := \
@@ -319,7 +319,7 @@ develop.done: install.done develop_os.done install_basic.done dev-requirements.t
 	@echo "makefile: Done installing Python development requirements"
 
 .PHONY: build
-build: _check_version $(bdist_file) $(sdist_file)
+build: $(bdist_file) $(sdist_file)
 	@echo "makefile: Target $@ done."
 
 .PHONY: builddoc
@@ -459,7 +459,7 @@ MANIFEST.in: makefile
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 # Note: Deleting build is a safeguard against picking up partial build products
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
-$(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+$(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "makefile: Creating the distribution archive files"
 	rm -rf MANIFEST $(package_name).egg-info .eggs build
 	rm -f PKG-INFO
