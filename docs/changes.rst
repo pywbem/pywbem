@@ -27,6 +27,10 @@ Released: not yet
 
 **Enhancements:**
 
+* Make: Eliminated the confusing but unproblematic error message about
+  pbr importing when running certain make targets in a freshly created
+  Python environment. Issue #1288.
+
 **Known issues:**
 
 * See `list of open issues`_.

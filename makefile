@@ -69,8 +69,12 @@ endif
 # Directory for coverage html output. Must be in sync with the one in coveragerc.
 coverage_html_dir := coverage_html
 
-# Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")
-package_version := $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; print(VersionInfo('pywbem').release_string())")
+# Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")#
+# Note: Some make actions (such as clobber) cause the package version to change,
+# e.g. because the pywbem.egg-info directory or the PKG-INFO file are deleted,
+# when a new version tag has been assigned. Therefore, this variable is assigned with
+# "=" so that it is evaluated every time it is used.
+package_version := $(shell $(PYTHON_CMD) -c $$'try:\n from pbr.version import VersionInfo\nexcept ImportError:\n pass\nelse:\n print(VersionInfo("$(package_name)").release_string())\n')
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
@@ -297,7 +301,7 @@ develop: develop_os.done _install_basic dev-requirements.txt
 	@echo "makefile: Target $@ done."
 
 .PHONY: build
-build: _check_version $(bdist_file) $(sdist_file)
+build: $(bdist_file) $(sdist_file)
 	@echo "makefile: Target $@ done."
 
 .PHONY: builddoc
@@ -437,7 +441,7 @@ MANIFEST.in: makefile
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 # Note: Deleting build is a safeguard against picking up partial build products
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
-$(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+$(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "makefile: Creating the distribution archive files"
 	rm -rf MANIFEST $(package_name).egg-info .eggs build
 	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
@@ -506,4 +510,3 @@ $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler
 	@echo "makefile: Creating mof_compiler script help message file"
 	./mof_compiler --help >$@
 	@echo "makefile: Done creating mof_compiler script help message file: $@"
-
