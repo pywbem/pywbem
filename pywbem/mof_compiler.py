@@ -2341,11 +2341,11 @@ class MOFCompiler(object):
             case, the MOF compiler can only process standalone MOF that does
             not depend on existing CIM elements in the repository.
 
-          search_paths (:term:`py:iterable` of :term:`string`):
-            An iterable of directory path names where the MOF compiler will
-            search for MOF dependent files if the MOF element they define is
-            not in the target namespace of the CIM repository. The compiler
-            searches the specified directories and their subdirectories.
+          search_paths (:term:`py:iterable` of :term:`string` or :term:`string`):
+            Directory path name(s) where the MOF compiler will search for MOF
+            dependent files if the MOF element they define is not in the target
+            namespace of the CIM repository. The compiler searches the
+            specified directories and their subdirectories.
 
             MOF dependent files are:
 
@@ -2373,7 +2373,7 @@ class MOFCompiler(object):
             A logger function that is invoked for each compiler message.
             The logger function must take one parameter of string type.
             The default logger function prints to stdout.
-        """
+        """  # noqa: E501
 
         if isinstance(handle, WBEMConnection):
             conn = handle
@@ -2393,18 +2393,18 @@ class MOFCompiler(object):
                             "BaseRepositoryConnection) or a WBEM connection "
                             "(WBEMConnection), but is: %s" % type(handle))
 
-        if conn:
-            server = WBEMServer(conn)
-        else:
-            server = None
+        server = WBEMServer(conn) if conn else None
 
         if search_paths is None:
             search_paths = []
-        if not isinstance(search_paths, (list, tuple)):
+        elif isinstance(search_paths, six.string_types):
+            search_paths = [search_paths]
+        elif not isinstance(search_paths, (list, tuple)):
             raise TypeError("search_paths parameter must be list or tuple, "
                             "but is: %s" % type(search_paths))
 
         self.parser = _yacc(verbose)
+
         self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle

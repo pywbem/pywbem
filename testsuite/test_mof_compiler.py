@@ -502,8 +502,53 @@ class TestSchemaSearch(MOFTest):
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cele.properties['RequestedState'].type, 'uint16')
 
-        # TODO ks 4/16 add error test for something not found
-        # in schema directory
+    def test_search_single_string(self):
+        """
+        Test search_paths with single string as path definition.  Compiles
+        a single file and tests that file compiled
+        """
+        def moflog(msg):
+            """Display message to moflog"""
+            print(msg, file=self.logfile)
+
+        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        open(moflog_file, 'w')
+        mofcomp = MOFCompiler(
+            MOFWBEMConnection(),
+            search_paths=TEST_DMTF_CIMSCHEMA_MOF_DIR,
+            verbose=True,
+            log_func=moflog)
+        mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
+                                          'System',
+                                          'CIM_ComputerSystem.mof'),
+                             NAME_SPACE)
+        mofcomp.handle.GetClass(
+            'CIM_ComputerSystem',
+            LocalOnly=False, IncludeQualifiers=True)
+
+    def test_search_None(self):
+        """
+        Test search_paths with single string as path definition.  Compiles
+        a single file and tests that file compiled
+        """
+        def moflog(msg):
+            """Display message to moflog"""
+            print(msg, file=self.logfile)
+
+        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        open(moflog_file, 'w')
+        mofcomp = MOFCompiler(
+            MOFWBEMConnection(),
+            verbose=True,
+            log_func=moflog)
+        try:
+            mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
+                                              'System',
+                                              'CIM_ComputerSystem.mof'),
+                                 NAME_SPACE)
+            self.fail("Exception expected")
+        except CIMError as ce:
+            self.assertTrue(ce.status_code == CIM_ERR_FAILED)
 
 
 class TestParseError(MOFTest):
