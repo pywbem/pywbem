@@ -679,7 +679,7 @@ class TestFakedWBEMConnection(object):
         exec_time = float(diff.seconds) + (float(diff.microseconds) / 1000000)
 
         if delay:
-            assert exec_time > delay * .8 and exec_time < delay * 1.3
+            assert exec_time > delay * .8 and exec_time < delay * 2.0
         else:
             assert exec_time < 0.1
 
