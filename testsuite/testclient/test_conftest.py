@@ -12,7 +12,8 @@ from conftest import xml_embed, xml_unembed
 class Test_EmbedUnembed(object):
     """Test case for xml_embed() / xml_unembed() functions."""
 
-    def test_unembed_simple(self):
+    @staticmethod
+    def test_unembed_simple():
         """Unembed a simple embedded instance string."""
 
         emb_str = b'&lt;INSTANCE NAME=&quot;C1&quot;&gt;' \
@@ -38,10 +39,11 @@ class Test_EmbedUnembed(object):
         assert len(property_elem) == 1
         value_elem = property_elem[0]
         assert value_elem.tag == 'VALUE'
-        assert len(value_elem.attrib) == 0
+        assert len(value_elem.attrib) == 0  # pylint: disable=len-as-condition
         assert value_elem.text == 'V1'
 
-    def test_embed_simple(self):
+    @staticmethod
+    def test_embed_simple():
         """Embed a simple instance."""
 
         instance_elem = etree.Element('INSTANCE')

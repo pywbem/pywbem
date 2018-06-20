@@ -6,14 +6,16 @@ so the class CIM_Foo exists.
 """
 from pywbem import CIMInstance, CIMInstanceName
 
-iname = 'CIM_Foo%s' % 'wbemcli_tst-1'
-inst_path = CIMInstanceName('CIM_Foo', {'InstanceID': iname})
-inst = CIMInstance('CIM_Foo',
-                   properties={'InstanceID': iname},
-                   path=inst_path)
+_INAME = 'CIM_Foo%s' % 'wbemcli_tst-1'
+_INST_PATH = CIMInstanceName('CIM_Foo', {'InstanceID': _INAME})
+_INST = CIMInstance('CIM_Foo',
+                    properties={'InstanceID': _INAME},
+                    path=_INST_PATH)
 
-global CONN
-CONN.add_cimobjects(inst)  # noqa: F821
+# CONN is a defined global variable in the wbemcli environment
+global CONN  # pylint: disable=global-at-module-level
+
+CONN.add_cimobjects(_INST)  # noqa: F821 pylint: disable=undefined-variable
 
 # test that instance inserted
-assert(CONN.GetInstance(inst_path))  # noqa: F821
+assert(CONN.GetInstance(_INST_PATH))  # noqa: F821,E501 pylint: disable=undefined-variable

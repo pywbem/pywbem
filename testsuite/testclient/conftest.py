@@ -123,7 +123,6 @@ Syntax elements:
 
 import doctest
 import socket
-import pytest
 import re
 import traceback
 import threading
@@ -134,6 +133,7 @@ except ImportError:
     from ordereddict import OrderedDict
 import yaml
 import yamlordereddictloader
+import pytest
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty, fakesock
 from lxml import etree, doctestcompare
@@ -150,15 +150,17 @@ class ExcThread(threading.Thread):
     """
 
     def run(self):
+        # pylint: disable=attribute-defined-outside-init
         self.exc = None
         try:
             threading.Thread.run(self)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             import sys
             self.exc = sys.exc_info()
+        # pylint: enable=attribute-defined-outside-init
 
-    def join(self, *args, **kwargs):
-        threading.Thread.join(self, *args, **kwargs)
+    def join(self, timeout=None):
+        threading.Thread.join(self, timeout)
         if self.exc:
             six.reraise(*self.exc)
 
@@ -175,6 +177,7 @@ def patched_makefile(self, mode='r', bufsize=-1):
     descriptor gets filled in with the entry data before being
     returned.
     """
+    # pylint: disable=protected-access
     self._mode = mode
     self._bufsize = bufsize
 
@@ -193,6 +196,7 @@ def patched_makefile(self, mode='r', bufsize=-1):
             raise socket.timeout
 
     return self.fd
+    # pylint: enable=protected-access
 
 
 # Monkey-patching httpretty to pass exception raised in callbacks
@@ -265,7 +269,8 @@ class YamlItem(pytest.Item):
         """
         runtestcase(self.testcase)
 
-    def repr_failure(self, excinfo):
+    @staticmethod
+    def repr_failure(excinfo):
         """
         Called by py.test when the runtest() method raised an exception, to
         provide details about the failure.
@@ -275,8 +280,7 @@ class YamlItem(pytest.Item):
             return "Failure running test case: %s" % exc
         elif isinstance(exc, ClientTestError):
             return "Error in definition of test case: %s" % exc
-        else:
-            return "Error: %s" % exc
+        return "Error: %s" % exc
 
     def reportinfo(self):
         """
@@ -415,7 +419,8 @@ def tc_getattr(tc_name, dict_, key, default=-1):
     except (KeyError, IndexError, TypeError):
         if default != -1:
             return default
-        raise ClientTestError("%r attribute missing" % key)
+        raise ClientTestError("%r attribute missing in test case %s" %
+                              (key, tc_name))
     return value
 
 
@@ -437,7 +442,8 @@ def tc_getattr_list(tc_name, dict_, key, default=-1):
     except KeyError:
         if default != -1:
             return default
-        raise ClientTestError("%r attribute missing" % key)
+        raise ClientTestError("%r attribute missing in test case %s" %
+                              (key, tc_name))
     return value
 
 
@@ -641,6 +647,7 @@ def assertXMLEqual(s_act, s_exp, entity=None):
                 first = None
                 after = None
                 for i in range(0, len(parent)):
+                    # TODO 6/18 AM: Loop above should probably be on elems
                     if parent[i].tag == tag and first is None:
                         first = i
                     if parent[i].tag != tag and first is not None:
@@ -888,7 +895,7 @@ def runtestcase(testcase):
     # Continue with validating the result
 
     if isinstance(raised_exception, pywbem.CIMError):
-        cim_status = raised_exception.status_code
+        cim_status = raised_exception.status_code  # pylint: disable=no-member
     else:
         cim_status = 0
     assert cim_status == exp_cim_status, \
