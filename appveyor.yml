@@ -107,7 +107,7 @@ install:
   # See GenShim issue https://github.com/chocolatey/shimgen/issues/43
   # Therefore, we install swig here in order to create the swig.exe shim file.
   # TODO: Remove the circumvention once it works in pywbem_os_setup.bat.
-  - choco install -r -y swig
+  - choco install -r -y --allow-empty-checksums swig
   - where swig
 
   # Examine the final environment
