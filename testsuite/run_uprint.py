@@ -45,8 +45,8 @@ def main():
 
     if DEBUG:
         print("Debug: mode=%s; sys.stdout: isatty=%r, encoding=%r" %
-              (mode, sys.stdout.isatty(), getattr(sys.stdout, 'encoding',
-               None)),
+              (mode, sys.stdout.isatty(),
+               getattr(sys.stdout, 'encoding', None)),
               file=sys.stderr)
         print("Debug: sys.getfilesystemencoding=%r "
               "locale.getpreferredencoding=%r" %

@@ -575,11 +575,10 @@ class ValueMapping(object):
         elif isinstance(self.element, CIMMethod):
             return "method %r.%r() (in %r)" % \
                 (self.classname, self.methodname, self.namespace)
-        else:
-            assert isinstance(self.element, CIMParameter)
-            return "parameter %r.%r(%r) (in %r)" % \
-                (self.classname, self.methodname, self.parametername,
-                 self.namespace)
+        assert isinstance(self.element, CIMParameter)
+        return "parameter %r.%r(%r) (in %r)" % \
+            (self.classname, self.methodname, self.parametername,
+             self.namespace)
 
     def __repr__(self):
         """

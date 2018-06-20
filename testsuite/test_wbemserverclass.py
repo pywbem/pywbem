@@ -54,7 +54,8 @@ class TestServerClass(BaseMethodsForTests):
     @pytest.mark.parametrize(
         "tst_namespace",
         ['interop', 'root/interop', 'root/PG_Interop'])
-    def test_wbemserver_basic(self, tst_namespace):
+    @staticmethod
+    def test_wbemserver_basic(tst_namespace):
         """
         Test the basic functions that access server information. This test
         creates the mock repository and adds classes and instances for

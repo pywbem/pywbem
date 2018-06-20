@@ -154,7 +154,8 @@ class Test_ValueMapping(object):
         assert re.match(".*outside of the set defined by its ValueMap "
                         "qualifier.*", exc_msg) is not None
 
-    def assertOutsideValues(self, vm, value):
+    @staticmethod
+    def assertOutsideValues(vm, value):
         """
         Test vm.tobinary() Exception
         """
@@ -256,6 +257,8 @@ class Test_ValueMapping(object):
 
         assert re.match(r'^ValueMapping\(', r)
 
+        # pylint: disable=protected-access
+
         exp_conn = '_conn=%r' % vm._conn
         assert exp_conn in r
 
@@ -276,6 +279,8 @@ class Test_ValueMapping(object):
 
         exp_element_obj = '_element_obj=%r' % vm._element_obj
         assert exp_element_obj in r
+
+        # pylint: enable=protected-access
 
         # We don't check the internal data attributes.
 
