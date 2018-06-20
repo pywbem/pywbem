@@ -154,6 +154,10 @@ This version contains all fixes up to pywbem 0.12.4.
   to the user as a list of `CIMInstance` objects in a new `instances` property
   of the `CIMError` exception that is raised. See issue #1380.
 
+* Fixed issue in mof_compiler search_paths where doc defined iterable as
+  input but since string is an interable it was allowed but misused. Extended
+  code to specifically allow single string on input. See issue #1227.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
