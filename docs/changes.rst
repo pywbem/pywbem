@@ -157,6 +157,9 @@ Released: not yet
   pbr importing when running certain make targets in a freshly created
   Python environment. Issue #1288.
 
+* In `MOFCompiler.__init__()`, added a type check for the search_paths parameter
+  to avoid accidential passing of a single string. Issue #1292.
+
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
