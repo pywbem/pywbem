@@ -7,11 +7,6 @@ from pywbem import WBEMServer, ValueMapping, CIMInstance
 from pywbem_mock import FakedWBEMConnection
 from dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 
-# Temporary until we agree on pr to incorporate instance_from_class method
-# into cim_obj.CIMInstance
-from instance_from_class_method import instance_from_class
-CIMInstance.instance_from_class = instance_from_class
-
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.
 TEST_DIR = os.path.dirname(__file__)
@@ -161,7 +156,7 @@ class WbemServerMock(object):
                             IncludeQualifiers=True, include_class_origin=True,
                             property_list=property_list)
 
-        return CIMInstance.instance_from_class(
+        return CIMInstance.from_class(
             cls, namespace=namespace, property_values=property_values,
             include_null_properties=include_null_properties,
             strict=strict, include_path=include_path)

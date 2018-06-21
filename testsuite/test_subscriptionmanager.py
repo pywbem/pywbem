@@ -29,8 +29,7 @@ import os
 import re
 from socket import getfqdn
 
-from pywbem import WBEMServer, CIMInstance, \
-    CIMClassName, WBEMSubscriptionManager
+from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager
 
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME
@@ -38,11 +37,6 @@ from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
 
 from dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from wbemserver_mock import WbemServerMock
-
-# Temporary until we agree on pr to incorporate instance_from_class method
-# into cim_obj.CIMInstance
-from instance_from_class_method import instance_from_class
-CIMInstance.instance_from_class = instance_from_class
 
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.

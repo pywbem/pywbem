@@ -6367,6 +6367,420 @@ class CIMInstanceUpdateExisting(unittest.TestCase):
         self.assertEqual(i['string'], 'STRING')
 
 
+# Components to build the test class for the instance_from class test
+TST_CLS = 'CIM_Foo'
+ID_PROP = CIMProperty(u'ID', None, type='string', class_origin=TST_CLS,
+                      qualifiers={'Key': CIMQualifier('Key', True)})
+STR_PROP = CIMProperty(u'STR', None, type='string', class_origin=TST_CLS)
+INT_PROP = CIMProperty(u'U32', None, type='uint32', class_origin=TST_CLS)
+ARR_PROP = CIMProperty(u'A32', None, type='uint32', is_array=True,
+                       class_origin=TST_CLS)
+REF_PROP = CIMProperty(u'REF', None, type='reference', class_origin=TST_CLS,
+                       reference_class='CIM_Foo')
+# Properties with default in class
+ID_PROP_D = CIMProperty(u'ID', u"cls_id", type='string', class_origin=TST_CLS,
+                        qualifiers={'Key': CIMQualifier('Key', True)})
+STR_PROP_D = CIMProperty(u'STR', u"cls_str", type='string',
+                         class_origin=TST_CLS)
+INT_PROP_D = CIMProperty(u'U32', 4, type='uint32', class_origin=TST_CLS)
+
+
+# Temporary flags to clarify state of each test
+# set condition to OK for tests that we know passed.  Setting OK to True runs
+#     all tests and OK = False, bypasses all tests with OK
+# Set condition to FAIL for any tests currently failing. Bypasses these tests
+# Set condition to RUN for test being run
+OK = True
+FAIL = False
+RUN = True
+
+TESTCASES_CIMINSTANCE_FROMCLASS = [
+
+    # Testcases for CIMInstance.tocimxml() and tocimxmlstr()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * cls_props: Dict of input properties for CIMClass.
+    #   * inst_prop_vals: Dict of property values for the instance
+    #   * kwargs: Dict of input args to from_class method
+    #   * exp_props: Expected properties in created instance
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Tests based on class with 3 properties
+    (
+        "Verify same properties in instance and class and default params"
+        " passes (returns instance that matches exp_props",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3)},
+            kwargs={},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify same property names case independent. This only works if "
+        "property_values is a case independent dictionary.",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals=NocaseDict([(u'id', u'inst_id'),
+                                      (u'str', u'str_val'),
+                                      (u'u32', Uint32(3))]),
+            kwargs={'include_path': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify same properties in instance and class and default params"
+        " passes (returns instance that matches exp_props",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP, REF_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3), u'REF':
+                            CIMInstanceName('CIM_Foo',
+                                            keybindings={'InstID': '1234'},
+                                            host='woot.com',
+                                            namespace='root/cimv2')},
+            kwargs={},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3),
+                       u'REF': CIMProperty(u'REF',
+                                           CIMInstanceName(
+                                               'CIM_Foo',
+                                               keybindings={'InstID': '1234'},
+                                               host='woot.com',
+                                               namespace='root/cimv2'),
+                                           type='reference',
+                                           reference_class='CIM_Foo')},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify class with only 2 props defined in instance, 3 in class. "
+        "inc_null_prop=True passes",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val'},
+            kwargs={'include_null_properties': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': CIMProperty(u'U32', None, type='uint32')},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify 2 props defined in instance inc_nul_prop=True passes",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val'},
+            kwargs={'include_null_properties': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': CIMProperty(u'U32', None, type='uint32')},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify 2 props defined in instance inc_null_prop=False passes",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val'},
+            kwargs={'include_null_properties': False},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val'},
+        ),
+        None, None, OK
+    ),
+    # Test include path option
+    (
+        "Verify class and inst with 3 properties tests include path = True "
+        "passes.",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3)},
+            kwargs={'include_path': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify Class with 3 properties, params: include_path=False passes",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': 'inst_id', u'STR': 'str_val',
+                            u'U32': Uint32(3)},
+            kwargs={'include_path': False},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    # test expect properties value None
+    (
+        "Instance with some properties with None. Fails because cannot infer"
+        "with None and no type",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': 'inst_id', u'STR': None, u'U32': None},
+            kwargs={'include_path': False},
+            exp_props={u'ID': u'inst_id', u'STR': None, u'U32': None},
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Verify instance with same props as class one prop with None value and"
+        "typed passes",
+
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': 'inst_id', u'STR': 'blah', u'U32': None},
+
+            kwargs={'include_path': False},
+            exp_props={u'ID': u'inst_id', u'STR': "blah",
+                       u'U32': CIMProperty(u'U32', None, 'uint32')},
+        ),
+        None, None, OK
+    ),
+    # test include_class_origin = True
+    (
+        "Verify class with one property. include_class_origin=True passes",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id'},
+            kwargs={'include_path': False, 'include_class_origin': True,
+                    'include_null_properties': False},
+            exp_props={u'ID': CIMProperty(u'ID', u'inst_id', type='string',
+                                          class_origin='CIM_Foo')},
+        ),
+        None, None, OK
+    ),
+
+    # test strict parameter.
+    (
+        "Verify Class and instance same properties, params: inc path=False, "
+        "strict=true passes",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3)},
+            kwargs={'include_path': False, 'strict': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    # test strict true, false If true all key props must be in instance
+    (
+        "Verify same properties in instance & class inc_path=True, "
+        "strict=True creates instance",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3)},
+            kwargs={'include_path': True, 'strict': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    # Include path, strict true, no ID property. Fails only if
+    # include_null_properties is False since otherwise the missing
+    # id property is included.
+    # TODO This test passes because of issue #1188 that does not test for
+    # Null key values.
+    (
+        "Verify nstance with missing id property in instance flags: inc path, "
+        "strict, include_null_properties=False fails.",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'STR': u'str_val', u'U32': Uint32(99999)},
+            kwargs={'include_path': True, 'strict': True,
+                    'include_null_properties': False},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(99999)},
+        ),
+        ValueError, None, OK
+    ),
+    # TODO test marked FAIL because of issue #1188,
+    (
+        "Instance with missing id property in instance flags: inc path, "
+        "strict. Test fails, key propety value None",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'STR': u'str_val', u'U32': Uint32(99999)},
+            kwargs={'include_path': True, 'strict': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(99999)},
+        ),
+        ValueError, None, FAIL
+    ),
+
+    (
+        "Instance with property in instance but not in class fails",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3),
+                            u'BLAH': Uint64(9)},
+            kwargs={},
+            exp_props={u'ID': 'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Instance with property type different than class fails",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': u'blah'},
+            kwargs={},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Class with with valid array property passes test",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP, ARR_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3), u'A32': [Uint32(3),
+                                                        Uint32(9999)]},
+            kwargs={},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3), u'A32': [Uint32(3), Uint32(9999)]},
+        ),
+        None, None, OK
+    ),
+    (
+        "Class with with array property but non-array in instance fails",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP, ARR_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3), u'A32': Uint32(3)},
+            kwargs={},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3), u'A32': Uint32(3)},
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Same properties in instance and class. Default params witn namespace",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val',
+                            u'U32': Uint32(3)},
+            kwargs={'namespace': 'root/blah', 'include_path': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+
+    # Tests with defaults prop values in class
+    (
+        "Class with default props. No props in instance. Fails because "
+        "include_null_properties not set. No properties set in instance",
+        dict(
+            cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
+            inst_prop_vals={},
+            kwargs={'include_path': True,
+                    'strict': True,
+                    'include_null_properties': False},
+            exp_props={u'ID': u'cls_id', u'STR': u'cls_str', u'U32': Uint32(4)},
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Class with default props. No props in instance passesbecause "
+        "include_null_properties is set",
+        dict(
+            cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
+            inst_prop_vals={},
+            kwargs={'include_path': True,
+                    'strict': True,
+                    'include_null_properties': True},
+            exp_props={u'ID': u'cls_id', u'STR': u'cls_str', u'U32': Uint32(4)},
+        ),
+        None, None, OK
+    ),
+    (
+        "Class default props. All props in instance. ",
+        dict(
+            cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
+            inst_prop_vals={'ID': 'inst_id', 'STR': 'str_val',
+                            'U32': Uint32(3), 'A32': Uint32(3)},
+            kwargs={'include_path': True,
+                    'strict': True,
+                    'include_null_properties': False},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        ValueError, None, OK
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCE_FROMCLASS)
+@pytest_extensions.simplified_test_function
+def test_instance_from_class(testcase, cls_props, inst_prop_vals, kwargs,
+                             exp_props):
+    """
+    Test the static method from_class where cls_props defines the
+    class properties used to build the class, inst_prop_vals defines the
+    property values to be input into the property_values parameter of the
+    method being tested, kwargs defines any other arguments for the method
+    call, and exp_props defines the properties expected in the created
+    instance.
+    """
+    # Create the test class
+    cim_class = CIMClass('CIM_Foo', properties=cls_props)
+
+    # define expected params for call with their defaults for result tests
+    include_path = kwargs.get('include_path', True)
+    strict = kwargs.get('strict', False)
+    namespace = kwargs.get('namespace', None)
+    include_class_origin = kwargs.get('include_class_origin', False)
+
+    # test the method
+    act_inst = CIMInstance.from_class(cim_class,
+                                      property_values=inst_prop_vals,
+                                      **kwargs)
+
+    exp_inst = CIMInstance('CIM_Foo', properties=exp_props)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    if include_path:
+        exp_inst.path = CIMInstanceName.from_instance(cim_class,
+                                                      exp_inst,
+                                                      namespace,
+                                                      strict=strict)
+        assert act_inst.path
+        assert act_inst.path.namespace == namespace
+    else:
+        assert act_inst.path is None
+
+    for prop in act_inst.properties.values():
+        if include_class_origin:
+            assert prop.class_origin
+        else:
+            assert prop.class_origin is None
+
+    assert exp_inst == act_inst
+
+
 class Test_CIMProperty_init(object):
     """
     Test CIMProperty.__init__().
