@@ -1,27 +1,25 @@
 # ------------------------------------------------------------------------------
-# Makefile for pywbem
+# Makefile for pybem repository of pywbem project
 #
-# Supported platforms for this makefile:
-#   Linux
-#   OS-X
-#   Windows (with CygWin, MinGW, etc.)
+# Supported OS platforms for this makefile:
+#     Linux (any distro)
+#     OS-X
+#     Windows with UNIX-like env such as CygWin (with Python in UNIX-like env)
+#     native Windows (with Python in Windows)
 #
-# Prerequisite commands for this makefile:
-#   make
-#   bash, sh, rm, mv, mkdir, echo
-#   find, xargs, grep, sed, tar
-#   python (Some active Python version, virtualenv is supported)
-#   pip (in the active Python environment)
-#   twine
-#
-# Optional environment variables/command line variables
-#   PYWBEM_COVERAGE_REPORT - When set, forces coverage to create temporary
-#   annotated html output html files showing lines covered and missed
-#   See the directory coverage_html for the html output.
-#
-#   TEST_SCHEMA_DOWNLOAD - When set, enables tests for downloading DMTF schema
-#       We do not do this often because each test downloads complete schema
-#       from DMTF
+# Prerequisites for running this makefile:
+#   These commands are used on all supported OS platforms:
+#     make (GNU make)
+#     bash
+#     echo, rm, mv, find, xargs, tee, touch, chmod, wget
+#     python (This Makefile uses the active Python environment, virtual Python
+#        environments are supported)
+#     pip (in the active Python environment)
+#     twine (in the active Python environment)
+#   These additional commands are used on Linux, OS-X and Windows with UNIX env:
+#     uname
+#   These additional commands are used on native Windows:
+#     cmd
 # ------------------------------------------------------------------------------
 
 # Python / Pip commands
@@ -63,8 +61,8 @@ mock_package_name := pywbem_mock
 # The variable can be passed in as either an environment variable or
 # command line variable. When set, generates a set of reports of the
 # pywbem/*.py files showing line by line coverage.
-ifdef PYWBEM_COVERAGE_REPORT
-  coverage_report := --cov-report=html
+ifdef COVERAGE_REPORT
+  coverage_report := --cov-report=annotate --cov-report=html
 else
   coverage_report :=
 endif
@@ -174,6 +172,12 @@ py_src_files := \
 test_log_file := test_$(python_mn_version).log
 test_tmp_file := test_$(python_mn_version).tmp.log
 
+ifdef TESTCASES
+pytest_opts := -k $(TESTCASES)
+else
+pytest_opts :=
+endif
+
 # Files to be put into distribution archive.
 # Keep in sync with dist_dependent_files.
 # This is used for 'include' statements in MANIFEST.in. The wildcards are used
@@ -201,10 +205,11 @@ dist_dependent_files := \
 
 .PHONY: help
 help:
-	@echo 'Makefile for $(package_name) project'
-	@echo 'Package version will be: $(package_version)'
-	@echo 'Uses the currently active Python environment: Python $(python_version)'
-	@echo "Valid targets are:"
+	@echo "Makefile for $(package_name) repository of pywbem project"
+	@echo "Package version will be: $(package_version)"
+	@echo "Uses the currently active Python environment: Python $(python_version)"
+	@echo ""
+	@echo "Make targets:"
 	@echo "  install    - Install pywbem and its Python installation and runtime prereqs (includes install_os once after clobber)"
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
 	@echo "  build      - Build the distribution archive files in: $(dist_dir)"
@@ -220,11 +225,25 @@ help:
 	@echo "  clobber    - Remove everything created to ensure clean start - use after setting git tag"
 	@echo ""
 	@echo "Environment variables:"
-	@echo "  TEST_SCHEMA_DOWNLOAD - When set adds tests to"
-	@echo "     test_wbemconnection_mock to test download of DMTF schema"
-	@echo "  PYWBEM_COVERAGE_REPORT - When set, forces coverage to create"
-	@echo "     annotated html output html files showing lines covered and"
-	@echo "     missed. See the directory coverage_html for the html output."
+	@echo "  COVERAGE_REPORT - When set, the 'test' target creates a coverage report as"
+	@echo "      annotated html files showing lines covered and missed, in the directory:"
+	@echo "      $(coverage_html_dir)"
+	@echo "      Optional, defaults to no such coverage report."
+	@echo "  TESTCASES - When set, 'test' target runs only the specified test cases. The"
+	@echo "      value is used for the -k option of pytest (see 'pytest --help')."
+	@echo "      Optional, defaults to running all tests."
+	@echo "  TEST_SCHEMA_DOWNLOAD - When set, enables test cases in test_wbemconnection_mock"
+	@echo "      to test downloading of DMTF schema from the DMTF web site."
+	@echo "      Optional, defaults to disabling these test cases."
+	@echo "  PACKAGE_LEVEL - Package level to be used for installing dependent Python"
+	@echo "      packages in 'install' and 'develop' targets:"
+	@echo "        latest - Latest package versions available on Pypi"
+	@echo "        minimum - A minimum version as defined in minimum-constraints.txt"
+	@echo "      Optional, defaults to 'latest'."
+	@echo "  PYTHON_CMD - Python command to be used. Useful for Python 3 in some envs."
+	@echo "      Optional, defaults to 'python'."
+	@echo "  PIP_CMD - Pip command to be used. Useful for Python 3 in some envs."
+	@echo "      Optional, defaults to 'pip'."
 
 .PHONY: _check_version
 _check_version:
@@ -355,7 +374,7 @@ clobber: clean
 clean:
 	@echo "makefile: Removing temporary build products"
 	find . -name "*.pyc" -delete
-	sh -c "find . -name \"__pycache__\" |xargs rm -Rf __pycache__"
+	bash -c "find . -name \"__pycache__\" |xargs -n 1 rm -Rf"
 	rm -Rf tmp_ tmp_*
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
@@ -517,7 +536,7 @@ ifeq ($(PLATFORM),Windows)
 else
 	testsuite/test_uprint.sh
 endif
-	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $@"
 
