@@ -2406,7 +2406,12 @@ class MOFCompiler(object):
         """
 
         self.parser = _yacc(verbose)
-        self.parser.search_paths = search_paths if search_paths else []
+        if search_paths is None:
+            search_paths = []
+        if not isinstance(search_paths, (list, tuple)):
+            raise TypeError("search_paths parameter must be list or tuple, "
+                            "but is: %s" % type(search_paths))
+        self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle
         self.lexer = _lex(verbose)
