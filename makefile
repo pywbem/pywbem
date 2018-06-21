@@ -77,7 +77,7 @@ coverage_html_dir := coverage_html
 # e.g. because the pywbem.egg-info directory or the PKG-INFO file are deleted,
 # when a new version tag has been assigned. Therefore, this variable is assigned with
 # "=" so that it is evaluated every time it is used.
-package_version := $(shell $(PYTHON_CMD) -c $$'try:\n from pbr.version import VersionInfo\nexcept ImportError:\n pass\nelse:\n print(VersionInfo("$(package_name)").release_string())\n')
+package_version = $(shell $(PYTHON_CMD) -c "$$(printf 'try:\n from pbr.version import VersionInfo\nexcept ImportError:\n pass\nelse:\n print(VersionInfo(\042$(package_name)\042).release_string())\n')")
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
@@ -88,10 +88,10 @@ dist_dir := dist
 
 # Distribution archives
 # These variables are set with "=" for the same reason as package_version.
-bdist_file := $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
-sdist_file := $(dist_dir)/$(package_name)-$(package_version).tar.gz
+bdist_file = $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
+sdist_file = $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
-dist_files := $(bdist_file) $(sdist_file)
+dist_files = $(bdist_file) $(sdist_file)
 
 # Source files in the packages
 package_py_files := \
