@@ -355,7 +355,7 @@ clobber: clean
 clean:
 	@echo "makefile: Removing temporary build products"
 	find . -name "*.pyc" -delete
-	sh -c "find . -name \"__pycache__\" |xargs rm -Rf __pycache__"
+	sh -c "find . -name \"__pycache__\" |xargs -n 1 rm -Rf"
 	rm -Rf tmp_ tmp_*
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
