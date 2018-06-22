@@ -39,7 +39,7 @@ they should be used from the ``pywbem`` namespace.
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT',
-           'SEND_VALUE_NULL']
+           'SEND_VALUE_NULL', 'IGNORE_NULL_KEY_VALUE']
 
 #: Enforce the allowable value range for CIM integer types (e.g.
 #: :class:`~pywbem.Uint8`). For details, see the :class:`~pywbem.CIMInt` base
@@ -93,3 +93,17 @@ DEBUG_WARNING_ORIGIN = False
 #:
 #: *New in pywbem 0.12.*
 SEND_VALUE_NULL = True
+
+#: Backward compatibility option that controls creating CIMInstanceNames with
+#: null values for keybindings.
+
+#: :term:`DSP0004`, section 7.9 specifically forbids key properties with
+#: no values but because pywbem has always allowed this, adding the code to
+#: disallow None as a keybinding value is an incompatible change.
+#:
+#: * True: Pywbem ignores None as a value when keybindings are defined.
+#: * False (default): Pywbem generates ValueError when keybindings are created
+#:   where any key will have the value `None`.
+#:
+#: *New in pywbem 0.12.*
+IGNORE_NULL_KEY_VALUE = False

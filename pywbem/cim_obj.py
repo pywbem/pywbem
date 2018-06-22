@@ -253,6 +253,7 @@ import six
 
 from . import cim_xml
 from .config import DEBUG_WARNING_ORIGIN, SEND_VALUE_NULL
+import pywbem.config
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
     Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
@@ -1160,6 +1161,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         Raises:
 
           ValueError: An error in the provided argument values.
+          ValueError: A keybinding value is `None` and the config variable
+            IGNORE_NULL_KEY_VALUE is `False`
           TypeError: An error in the provided argument types.
         """  # noqa: E501
 
@@ -1208,6 +1211,8 @@ class CIMInstanceName(_CIMComparisonMixin):
           preserved.
 
         * value (:term:`CIM data type` or :term:`number`): Keybinding value.
+          If the config variable IGNORE_NULL_KEY_VALUE is True, `None` is
+          allowed as a key value.
 
         The order of keybindings in the instance path is preserved.
 
@@ -1271,6 +1276,13 @@ class CIMInstanceName(_CIMComparisonMixin):
                 else:
                     raise TypeError("Input object for keybindings has "
                                     "invalid item in iterable: %r" % item)
+                if value is None and \
+                        pywbem.config.IGNORE_NULL_KEY_VALUE is False:
+                    raise ValueError('CIMInstance keybinding %s key %s '
+                                     'value is "None" which is not allowed '
+                                     'unless "IGNORE_NULL_KEY_VALUE" is '
+                                     'True.' %
+                                     (keybindings, key))
                 self.keybindings[key] = _cim_keybinding(key, value)
 
     @property
