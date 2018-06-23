@@ -71,7 +71,7 @@ class BaseMethodsForTests(object):
     def inst_from_classname(self, conn, class_name, namespace=None,
                             property_list=None,
                             property_values=None,
-                            include_null_properties=True,
+                            include_missing_properties=True,
                             strict=False, include_path=True):
         """
         Build instance from class using class_name property to get class
@@ -83,7 +83,7 @@ class BaseMethodsForTests(object):
 
         return self.inst_from_class(
             cls, namespace=namespace, property_values=property_values,
-            include_null_properties=include_null_properties,
+            include_missing_properties=include_missing_properties,
             strict=strict, include_path=include_path)
 
     def add_filter(self, sub_mgr, server_id, filter_id, owned=True):

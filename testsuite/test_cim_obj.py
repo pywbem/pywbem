@@ -6385,11 +6385,11 @@ STR_PROP_D = CIMProperty(u'STR', u"cls_str", type='string',
 INT_PROP_D = CIMProperty(u'U32', 4, type='uint32', class_origin=TST_CLS)
 
 
-# Temporary flags to clarify state of each test
+# Temporary flags to clarify state of each test below.
 # set condition to OK for tests that we know passed.  Setting OK to True runs
 #     all tests and OK = False, bypasses all tests with OK
 # Set condition to FAIL for any tests currently failing. Bypasses these tests
-# Set condition to RUN for test being run
+# Set condition to RUN for test currently being run
 OK = True
 FAIL = False
 RUN = True
@@ -6404,7 +6404,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
     #   * cls_props: Dict of input properties for CIMClass.
     #   * inst_prop_vals: Dict of property values for the instance
     #   * kwargs: Dict of input args to from_class method
-    #   * exp_props: Expected properties in created instance
+    #   * exp_props: Expected properties in created instance as a dictionary
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -6424,16 +6424,28 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         None, None, OK
     ),
     (
+        "Verify same property names case independent. Instance properties set"
+        "to lower case in test",
+        dict(
+            cls_props=(ID_PROP, STR_PROP, INT_PROP),
+            inst_prop_vals={u'id': u'inst_id', u'str': u'str_val',
+                            u'u32': Uint32(3)},
+            kwargs={'include_path': True},
+            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
+                       u'U32': Uint32(3)},
+        ),
+        None, None, OK
+    ),
+    (
         "Verify same property names case independent. This only works if "
         "property_values is a case independent dictionary.",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=NocaseDict([(u'id', u'inst_id'),
-                                      (u'str', u'str_val'),
-                                      (u'u32', Uint32(3))]),
+            inst_prop_vals={u'id': u'inst_id', u'str': u'str_val',
+                            u'u32': Uint32(3)},
             kwargs={'include_path': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={u'id': u'inst_id', u'str': u'str_val',
+                       u'u32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -6468,7 +6480,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val'},
-            kwargs={'include_null_properties': True},
+            kwargs={'include_missing_properties': True},
             exp_props={u'ID': u'inst_id', u'STR': u'str_val',
                        u'U32': CIMProperty(u'U32', None, type='uint32')},
         ),
@@ -6479,7 +6491,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val'},
-            kwargs={'include_null_properties': True},
+            kwargs={'include_missing_properties': True},
             exp_props={u'ID': u'inst_id', u'STR': u'str_val',
                        u'U32': CIMProperty(u'U32', None, type='uint32')},
         ),
@@ -6490,7 +6502,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals={u'ID': u'inst_id', u'STR': u'str_val'},
-            kwargs={'include_null_properties': False},
+            kwargs={'include_missing_properties': False},
             exp_props={u'ID': u'inst_id', u'STR': u'str_val'},
         ),
         None, None, OK
@@ -6554,7 +6566,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals={u'ID': u'inst_id'},
             kwargs={'include_path': False, 'include_class_origin': True,
-                    'include_null_properties': False},
+                    'include_missing_properties': False},
             exp_props={u'ID': CIMProperty(u'ID', u'inst_id', type='string',
                                           class_origin='CIM_Foo')},
         ),
@@ -6589,19 +6601,16 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         ),
         None, None, OK
     ),
-    # Include path, strict true, no ID property. Fails only if
-    # include_null_properties is False since otherwise the missing
-    # id property is included.
     # TODO This test passes because of issue #1188 that does not test for
     # Null key values.
     (
         "Verify nstance with missing id property in instance flags: inc path, "
-        "strict, include_null_properties=False fails.",
+        "strict, include_missing_properties=False fails.",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals={u'STR': u'str_val', u'U32': Uint32(99999)},
             kwargs={'include_path': True, 'strict': True,
-                    'include_null_properties': False},
+                    'include_missing_properties': False},
             exp_props={u'ID': u'inst_id', u'STR': u'str_val',
                        u'U32': Uint32(99999)},
         ),
@@ -6687,26 +6696,26 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
     # Tests with defaults prop values in class
     (
         "Class with default props. No props in instance. Fails because "
-        "include_null_properties not set. No properties set in instance",
+        "include_missing_properties not set. No properties set in instance",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
             inst_prop_vals={},
             kwargs={'include_path': True,
                     'strict': True,
-                    'include_null_properties': False},
+                    'include_missing_properties': False},
             exp_props={u'ID': u'cls_id', u'STR': u'cls_str', u'U32': Uint32(4)},
         ),
         ValueError, None, OK
     ),
     (
-        "Class with default props. No props in instance passesbecause "
-        "include_null_properties is set",
+        "Class with default props. No props in instance passes because "
+        "include_missing_properties is set",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
             inst_prop_vals={},
             kwargs={'include_path': True,
                     'strict': True,
-                    'include_null_properties': True},
+                    'include_missing_properties': True},
             exp_props={u'ID': u'cls_id', u'STR': u'cls_str', u'U32': Uint32(4)},
         ),
         None, None, OK
@@ -6719,11 +6728,36 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
                             'U32': Uint32(3), 'A32': Uint32(3)},
             kwargs={'include_path': True,
                     'strict': True,
-                    'include_null_properties': False},
+                    'include_missing_properties': False},
             exp_props={u'ID': u'inst_id', u'STR': u'str_val',
                        u'U32': Uint32(3)},
         ),
         ValueError, None, OK
+    ),
+    (
+        "Verify no input properties with include_path True and "
+        "include_missing_properties False returns empty instance",
+        dict(
+            cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
+            inst_prop_vals={},
+            kwargs={'include_path': False,
+                    'strict': False,
+                    'include_missing_properties': False},
+            exp_props={},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify invalid_type for property_values cause exception",
+        dict(
+            cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
+            inst_prop_vals='blah',
+            kwargs={'include_path': False,
+                    'strict': False,
+                    'include_missing_properties': False},
+            exp_props={},
+        ),
+        TypeError, None, OK
     ),
 ]
 
@@ -6755,6 +6789,12 @@ def test_instance_from_class(testcase, cls_props, inst_prop_vals, kwargs,
     act_inst = CIMInstance.from_class(cim_class,
                                       property_values=inst_prop_vals,
                                       **kwargs)
+
+    assert isinstance(exp_props, dict)
+    if not isinstance(exp_props, NocaseDict):
+        ncd = NocaseDict()
+        ncd.update(exp_props)
+        exp_props = ncd
 
     exp_inst = CIMInstance('CIM_Foo', properties=exp_props)
 

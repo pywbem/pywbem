@@ -146,7 +146,7 @@ class WbemServerMock(object):
     def inst_from_classname(conn, class_name, namespace=None,
                             property_list=None,
                             property_values=None,
-                            include_null_properties=True,
+                            include_missing_properties=True,
                             strict=False, include_path=True):
         """
         Build instance from classname using class_name property to get class
@@ -158,7 +158,7 @@ class WbemServerMock(object):
 
         return CIMInstance.from_class(
             cls, namespace=namespace, property_values=property_values,
-            include_null_properties=include_null_properties,
+            include_missing_properties=include_missing_properties,
             strict=strict, include_path=include_path)
 
     def build_obj_mgr_inst(self, conn, system_name, object_manager_name,
@@ -179,7 +179,7 @@ class WbemServerMock(object):
         ominst = self.inst_from_classname(conn, "CIM_ObjectManager",
                                           namespace=self.interop_ns,
                                           property_values=omdict, strict=True,
-                                          include_null_properties=False,
+                                          include_missing_properties=False,
                                           include_path=True)
 
         conn.add_cimobjects(ominst, namespace=self.interop_ns)
@@ -205,7 +205,7 @@ class WbemServerMock(object):
                                               namespace=self.interop_ns,
                                               property_values=nsdict,
                                               strict=True,
-                                              include_null_properties=False,
+                                              include_missing_properties=False,
                                               include_path=True)
             conn.add_cimobjects(ominst, namespace=self.interop_ns)
 
@@ -244,7 +244,7 @@ class WbemServerMock(object):
                                               namespace=self.interop_ns,
                                               property_values=reg_prof_dict,
                                               strict=True,
-                                              include_null_properties=False,
+                                              include_missing_properties=False,
                                               include_path=True)
 
             conn.add_cimobjects(rpinst, namespace=self.interop_ns)
@@ -266,7 +266,7 @@ class WbemServerMock(object):
                                         namespace=self.interop_ns,
                                         property_values=element_conforms_dict,
                                         strict=True,
-                                        include_null_properties=False,
+                                        include_missing_properties=False,
                                         include_path=True)
         conn.add_cimobjects(inst, namespace=self.interop_ns)
 

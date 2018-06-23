@@ -2067,11 +2067,11 @@ class CIMInstanceName(_CIMComparisonMixin):
         :class:`~pywbem.CIMInstanceName` from the class key properties and
         instance key property values.
 
-        If the `strict` parameter is False, and a property value does not exist
-        in the `instance` that entry is not included in the constructed
+        If the `strict` parameter is `False`, and a property value does not
+        exist in the `instance` that entry is not included in the constructed
         CIMInstanceName
 
-        If the `strict` parameter is True all key properties in the `class_`
+        If the `strict` parameter is `True` all key properties in the `class_`
         must exist in the `instance` or a ValueError exception is raised.
 
         Parameters:
@@ -2079,17 +2079,19 @@ class CIMInstanceName(_CIMComparisonMixin):
             `class_` (:class:`~pywbem.CIMClass`):
                 The CIM class with the key properties.
 
-                In strict mode, that class must contain all key properties that
-                are required to create the :class:`~pywbem.CIMInstanceName`
-                object. Thus, for example, if the class were retrieved from a
-                server, generally, the `LocalOnly` parameter in the request
-                should be `False` to assure that superclass properties are
-                retrieved and `IncludeQualifiers` parameter should be set to
-                `True` to assure that qualifiers are retrieved.
+                In strict mode, that class  and the instance must contain all
+                key properties that are required to create the
+                :class:`~pywbem.CIMInstanceName` object. Thus, for example, if
+                the class were retrieved from a server, generally, the
+                `LocalOnly` parameter in the request should be `False` to
+                assure that superclass properties are retrieved and
+                `IncludeQualifiers` parameter should be set to `True` to assure
+                that qualifiers are retrieved.
 
-                In non-strict mode, that class may have missing key properties.
-                Any missing key properties will result in missing key bindings
-                in the created :class:`~pywbem.CIMInstanceName` object.
+                In non-strict mode, that class and instance may have missing
+                key properties. Any missing key properties will result in
+                missing key bindings in the created
+                :class:`~pywbem.CIMInstanceName` object.
 
                 The specified class does not need to be the creation class of
                 the instance. Thus, it could be a superclass as long as it has
@@ -2856,91 +2858,115 @@ class CIMInstance(_CIMComparisonMixin):
     @staticmethod
     def from_class(klass, namespace=None,
                    property_values=None,
-                   include_null_properties=True,
+                   include_missing_properties=True,
                    include_path=True, strict=False,
                    include_class_origin=False):
         """
-        Build a new CIMInstance from the input CIMClass using the
-        property_values dictionary to complete properties and the other
+        Create a new CIMInstance from the input CIMClass using the
+        property_values parameter to complete properties and the other
         parameters to filter properties, validate the properties, and
-        optionally set the path component of the CIMInstance.  If any of the
-        properties in the class have default values, those values are passed
-        to the instance unless overridden by the property_values dictionary.
+        optionally set the path component of the CIMInstance.
         No CIMProperty qualifiers are included in the created instance and the
         `class_origin` attribute is transfered from the class only if the
-        `include_class_origin` parameter is True
+        `include_class_origin` parameter is `True`.
 
         Parameters:
           klass (:class:`pywbem:CIMClass`)
-            CIMClass from which the instance will be constructed.  This
-            class must include qualifiers and should include properties
-            from any superclasses to be sure it includes all properties
-            that are to be built into the instance. Properties may be
-            excluded from the instance by not including them in the `klass`
-            parameter.
+            CIMClass from which the instance will be constructed.  This class
+            must include qualifiers and should include properties from any
+            superclasses to be sure it includes all properties that are to be
+            built into the instance, in particular any key properties if the
+            `include+path` parameter is `True`. See
+            :meth:`~pywbem.CIMInstanceName.from_class` for further requirements
+            on the class.
 
           namespace (:term:`string`):
-            Namespace in the WBEMConnection used to retrieve the class or
-            `None` if the default_namespace is to be used.
+            Namespace to be included in the path component of the returned
+            CIMInstance if `include_path` parameter is `True`.
 
           property_values (:class:`py:dict` or `NocaseDict`_):
             Dictionary containing name/value pairs where the names are the
             names of properties in the class and the properties are the
-            property values to be set into the instance. The values must match
-            the type defined for the property in the class. If a property is in
-            the property_values dictionary but not in the class a ValueError
-            exception is raised. Property name case independence is only
-            honored if it is a NoCaseDict (`NocaseDict`_).
+            property values to be set into the instance properties. The values
+            must match the type defined for the property in the class. If a
+            property is in the property_values dictionary but not in the class
+            a ValueError exception is raised.
 
-          include_null_properties (:class:`py:bool`):
-            Determines if properties not in the property_values dictionary are
-            included in the instance. Default is `True`.
+          include_missing_properties (:class:`py:bool`):
+            Determines if properties not in the `property_values` parameter are
+            included in the instance.
 
-            If `True` they are included in the instance returned with any
-            value from the class.
+            If `True` all properties from the class are included in the new
+            instance including those not defined in `property_values` parameter
+            with any value from the class. This is the `Default`.
 
-            If `False` they are not included in the instance returned.
+            If `False` only properties in the `property_values` parameter are
+            included in the new instance.
 
          include_class_origin  (:class:`py:bool`):
-            Determines if ClassOrigin information is included in the returned
-            instance. Default is `False`.
+            Determines if class origin information from the class is included
+            in the returned instance. Default is `False`.
 
-            If None or False, class origin information is not included.
+            If `None` or `False`, class origin information is not included.
 
-            If True, class origin information is included.
+            If `True`, class origin information is included.
 
           include_path (:class:`py:bool`:):
-            If `True` the CIMInstanceName path is build and inserted into
-            the new instance.  If `strict` all key properties must be in the
-            instance. Default is `True`
+            If `True` the :class:`~pywbem.CIMInstanceName` path is inserted
+            into the new instance based on properties in the new instance.  If
+            `strict` all key properties must be in the instance.
 
           strict (:class:`py:bool`:):
-            If `True` and `include_path` is set, all key properties must be in
-            the instance so that a correct path can be built. Default is
-            `False`.
+            This parameter is only used if the `include_path parameter is
+            `True`.
 
-            If not `True` The path component is created even if not all
-            key properties are in the created instance.
+            If `True` all key properties from the class must exist the instance
+            so that a correct path can be built. Default is `False` or an
+            ValueError exception is raised. This is the default.
+
+            If `None` or `False` any key properties in the class but not in the
+            new instance are ignored when building the path and a path with
+            missing keybinding components may be created.
 
         Returns:
-            Returns an instance with the defined properties and optionally
-            the path set.  No qualifiers are included in the returned instance
-            and the existence of ClassOrigin depends on the
-            `include_class_origin` parameter. The value of each property is
-            either the value from the `property_values` dictionary, the
-            default_value from the class or Null(unless
-            `include_null_properties` is False). All other attributes of each
-            property are the same as the corresponding class property.
+
+          :class:`~pywbem.CIMInstance`:
+
+            A CIM instance created from the `klass` and `property_values`
+            parameters with the defined properties and optionally the path
+            component set.
+
+            No qualifiers are included in the returned instance and the
+            existence of the class origin attribute depends on the
+            `include_class_origin` parameter.
+
+            All other attributes of each property are the same as the
+            corresponding class property.
 
         Raises:
+
            ValueError: if there are conflicts between the class properties and
            property_values dictionary or strict is set and the instance does not
-           include all key properties.
+           include all key properties defined in the class.
+
+           TypeError: if there is a mismatch beteen types of the property values
+           in `property_values` and the property type in the corresponding
+           class property
         """
         class_name = klass.classname
         inst = CIMInstance(class_name)
+
         if property_values is None:
-            property_values = {}
+            property_values = NocaseDict()
+        # if not a NoCaseDict, map the input to NoCaseDict
+        if not isinstance(property_values, NocaseDict):
+            if isinstance(property_values, dict):
+                ncd = NocaseDict()
+                ncd.update(property_values)
+                property_values = ncd
+            else:
+                raise TypeError('property_values param must be a dictionary. '
+                                'Type is %s' % type(property_values))
         for pname in property_values:
             if pname not in klass.properties:
                 raise ValueError('Property name %r in property_values param '
@@ -2960,7 +2986,7 @@ class CIMInstance(_CIMComparisonMixin):
                                  embedded_object=cp.embedded_object)
                 inst[ip.name] = ip
             else:
-                if include_null_properties:
+                if include_missing_properties:
                     cpc = cp.copy()
                     cpc.class_origin = co
                     cpc.qualifiers = OrderedDict()
@@ -4692,8 +4718,8 @@ class CIMProperty(_CIMComparisonMixin):
 
         Parameters:
 
-          is_instance (bool): If True, return MOF for a property value in a CIM
-            instance. Else, return MOF for a property definition in a CIM
+          is_instance (bool): If `True`, return MOF for a property value in a
+            CIM instance. Else, return MOF for a property definition in a CIM
             class.
 
           indent (:term:`integer`): Number of spaces to indent each line of
