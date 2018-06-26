@@ -2898,14 +2898,15 @@ class CIMInstance(_CIMComparisonMixin):
 
             If `True` all properties from the class are included in the new
             instance including those not defined in `property_values` parameter
-            with any value from the class. This is the `Default`.
+            with with the default value defined in the class if one is defined,
+            or otherwise None".
 
             If `False` only properties in the `property_values` parameter are
             included in the new instance.
 
          include_class_origin  (:class:`py:bool`):
             Determines if class origin information from the class is included
-            in the returned instance. Default is `False`.
+            in the returned instance.
 
             If `None` or `False`, class origin information is not included.
 
@@ -2922,7 +2923,7 @@ class CIMInstance(_CIMComparisonMixin):
 
             If `True` all key properties from the class must exist the instance
             so that a correct path can be built. Default is `False` or an
-            ValueError exception is raised. This is the default.
+            ValueError exception is raised.
 
             If `None` or `False` any key properties in the class but not in the
             new instance are ignored when building the path and a path with
