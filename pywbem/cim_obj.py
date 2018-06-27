@@ -2859,8 +2859,7 @@ class CIMInstance(_CIMComparisonMixin):
     def from_class(klass, namespace=None,
                    property_values=None,
                    include_missing_properties=True,
-                   include_path=True, strict=False,
-                   include_class_origin=False):
+                   include_path=True, include_class_origin=False):
         """
         Create a new CIMInstance from the input CIMClass using the
         property_values parameter to complete properties and the other
@@ -2874,9 +2873,9 @@ class CIMInstance(_CIMComparisonMixin):
           klass (:class:`pywbem:CIMClass`)
             CIMClass from which the instance will be constructed.  This class
             must include qualifiers and should include properties from any
-            superclasses to be sure it includes all properties that are to be
-            built into the instance, in particular any key properties if the
-            `include+path` parameter is `True`. See
+            superclasses in the model insure it includes all properties that
+            are to be built into the instance, in particular any key properties
+            if the `include+path` parameter is `True`. See
             :meth:`~pywbem.CIMInstanceName.from_class` for further requirements
             on the class.
 
@@ -2890,7 +2889,8 @@ class CIMInstance(_CIMComparisonMixin):
             property values to be set into the instance properties. The values
             must match the type defined for the property in the class. If a
             property is in the property_values dictionary but not in the class
-            a ValueError exception is raised.
+            a ValueError exception is raised. Not all properties in the class
+            need to be defined in `property_values`.
 
           include_missing_properties (:class:`py:bool`):
             Determines if properties not in the `property_values` parameter are
@@ -2913,27 +2913,24 @@ class CIMInstance(_CIMComparisonMixin):
             If `True`, class origin information is included.
 
           include_path (:class:`py:bool`:):
-            If `True` the :class:`~pywbem.CIMInstanceName` path is inserted
-            into the new instance based on properties in the new instance.  If
-            `strict` all key properties must be in the instance.
+            Controls creation of a path element in the new instance.
 
-          strict (:class:`py:bool`:):
-            This parameter is only used if the `include_path parameter is
-            `True`.
+            If `True` a :class:`~pywbem.CIMInstanceName` path is created from
+            the key properties in the new instance and inserted
+            into the new instance based on properties in the new instance.
 
-            If `True` all key properties from the class must exist the instance
-            so that a correct path can be built. Default is `False` or an
-            ValueError exception is raised.
+            All properties with key qualifier in the class defined by the
+            `klass` parameter must exist in the new instance and have non-null
+            values or the path creation fails with a ValueError exception.
 
-            If `None` or `False` any key properties in the class but not in the
-            new instance are ignored when building the path and a path with
-            missing keybinding components may be created.
+            If `None` or `False` no path element is created and the new
+            instance is returned with the path element ``None`.
 
         Returns:
 
           :class:`~pywbem.CIMInstance`:
 
-            A CIM instance created from the `klass` and `property_values`
+            A CIM instance created from `klass` and `property_values`
             parameters with the defined properties and optionally the path
             component set.
 
@@ -2946,13 +2943,13 @@ class CIMInstance(_CIMComparisonMixin):
 
         Raises:
 
-           ValueError: if there are conflicts between the class properties and
-           property_values dictionary or strict is set and the instance does not
-           include all key properties defined in the class.
+           ValueError: Conflicts between the class properties and
+           `property_values` parameter or the instance does
+           not include all key properties defined in the class.
 
-           TypeError: if there is a mismatch beteen types of the property values
-           in `property_values` and the property type in the corresponding
-           class property
+           TypeError: Mismatch between types of the property values in
+           `property_values` parameter and the property type in the
+           corresponding class property
         """
         class_name = klass.classname
         inst = CIMInstance(class_name)
@@ -2994,8 +2991,10 @@ class CIMInstance(_CIMComparisonMixin):
                     inst[cp.name] = cpc
 
         if include_path:
+            # Uses strict so all key properties in klass must exist in
+            # the instance or a ValueError is generated by from_instance
             inst.path = CIMInstanceName.from_instance(klass, inst, namespace,
-                                                      strict=strict)
+                                                      strict=True)
         return inst
 
 
