@@ -29,8 +29,8 @@ import os
 import re
 from socket import getfqdn
 
-from pywbem import WBEMServer, CIMInstance, \
-    CIMClassName, WBEMSubscriptionManager
+from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
+    CIMInstanceName
 
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME
@@ -38,11 +38,6 @@ from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
 
 from dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from wbemserver_mock import WbemServerMock
-
-# Temporary until we agree on pr to incorporate instance_from_class method
-# into cim_obj.CIMInstance
-from instance_from_class_method import instance_from_class
-CIMInstance.instance_from_class = instance_from_class
 
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.
@@ -65,6 +60,7 @@ class BaseMethodsForTests(object):
         it with the classes required for the subscription manager.
         """
         server = WbemServerMock(interop_ns='interop')
+        # pylint: disable=attribute-defined-outside-init
         self.conn = server.wbem_server.conn
         classnames = ['CIM_IndicationSubscription',
                       'CIM_ListenerDestinationCIMXML',
@@ -74,11 +70,12 @@ class BaseMethodsForTests(object):
                                       TESTSUITE_SCHEMA_DIR,
                                       class_names=classnames, verbose=False)
 
-    def inst_from_classname(self, conn, class_name, namespace=None,
+    @staticmethod
+    def inst_from_classname(conn, class_name, namespace=None,
                             property_list=None,
                             property_values=None,
-                            include_null_properties=True,
-                            strict=False, include_path=True):
+                            include_missing_properties=True,
+                            include_path=True):
         """
         Build instance from class using class_name property to get class
         from a repository.
@@ -87,10 +84,10 @@ class BaseMethodsForTests(object):
                             IncludeQualifiers=True, include_class_origin=True,
                             property_list=property_list)
 
-        return self.inst_from_class(
+        return CIMInstanceName.from_class(
             cls, namespace=namespace, property_values=property_values,
-            include_null_properties=include_null_properties,
-            strict=strict, include_path=include_path)
+            include_missing_properties=include_missing_properties,
+            include_path=include_path)
 
     def add_filter(self, sub_mgr, server_id, filter_id, owned=True):
         """
@@ -361,6 +358,6 @@ class TestSubMgrClass(BaseMethodsForTests):
             sub_mgr.remove_destinations(
                 server_id, dest_paths)
 
-            for filter in sub_mgr.get_all_filters(server_id):
-                sub_mgr.remove_filter(server_id, filter.path)
+            for filter_ in sub_mgr.get_all_filters(server_id):
+                sub_mgr.remove_filter(server_id, filter_.path)
             assert self.get_object_count(sub_mgr, server_id) == 0

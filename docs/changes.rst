@@ -149,7 +149,7 @@ Released: not yet
 
 * Made exception messages more explicit in the ValueMapping and WBEMServer
   classes. Issue #1281.
- 
+
 * Docs: Added a shell command for determining the version of an installed
   pywbem package, that covers all released pywbem versions (Issue #1246).
 
@@ -159,6 +159,9 @@ Released: not yet
 
 * In `MOFCompiler.__init__()`, added a type check for the search_paths parameter
   to avoid accidential passing of a single string. Issue #1292.
+
+* Add new static method to CIMInstance (from_class) that builds an
+  instance from a class and dictionary of property values. Issue #1188
 
 **Cleanup**
 

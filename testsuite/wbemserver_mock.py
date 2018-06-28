@@ -7,11 +7,6 @@ from pywbem import WBEMServer, ValueMapping, CIMInstance
 from pywbem_mock import FakedWBEMConnection
 from dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 
-# Temporary until we agree on pr to incorporate instance_from_class method
-# into cim_obj.CIMInstance
-from instance_from_class_method import instance_from_class
-CIMInstance.instance_from_class = instance_from_class
-
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.
 TEST_DIR = os.path.dirname(__file__)
@@ -39,7 +34,6 @@ TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 #  registered_profiles: The Organization, profile name, profile version for any
 #  registered profiles
 #
-#  TODO
 DEFAULT_WBEM_SERVER_MOCK_DICT = {
     'dmtf_schema': {'version': DMTF_TEST_SCHEMA_VER,
                     'dir': TESTSUITE_SCHEMA_DIR},
@@ -151,8 +145,8 @@ class WbemServerMock(object):
     def inst_from_classname(conn, class_name, namespace=None,
                             property_list=None,
                             property_values=None,
-                            include_null_properties=True,
-                            strict=False, include_path=True):
+                            include_missing_properties=True,
+                            include_path=True):
         """
         Build instance from classname using class_name property to get class
         from a repository.
@@ -161,10 +155,10 @@ class WbemServerMock(object):
                             IncludeQualifiers=True, include_class_origin=True,
                             property_list=property_list)
 
-        return CIMInstance.instance_from_class(
+        return CIMInstance.from_class(
             cls, namespace=namespace, property_values=property_values,
-            include_null_properties=include_null_properties,
-            strict=strict, include_path=include_path)
+            include_missing_properties=include_missing_properties,
+            include_path=include_path)
 
     def build_obj_mgr_inst(self, conn, system_name, object_manager_name,
                            object_manager_element_name,
@@ -183,8 +177,8 @@ class WbemServerMock(object):
 
         ominst = self.inst_from_classname(conn, "CIM_ObjectManager",
                                           namespace=self.interop_ns,
-                                          property_values=omdict, strict=True,
-                                          include_null_properties=False,
+                                          property_values=omdict,
+                                          include_missing_properties=False,
                                           include_path=True)
 
         conn.add_cimobjects(ominst, namespace=self.interop_ns)
@@ -209,8 +203,7 @@ class WbemServerMock(object):
             ominst = self.inst_from_classname(conn, "CIM_Namespace",
                                               namespace=self.interop_ns,
                                               property_values=nsdict,
-                                              strict=True,
-                                              include_null_properties=False,
+                                              include_missing_properties=False,
                                               include_path=True)
             conn.add_cimobjects(ominst, namespace=self.interop_ns)
 
@@ -248,8 +241,7 @@ class WbemServerMock(object):
             rpinst = self.inst_from_classname(conn, "CIM_RegisteredProfile",
                                               namespace=self.interop_ns,
                                               property_values=reg_prof_dict,
-                                              strict=True,
-                                              include_null_properties=False,
+                                              include_missing_properties=False,
                                               include_path=True)
 
             conn.add_cimobjects(rpinst, namespace=self.interop_ns)
@@ -270,8 +262,7 @@ class WbemServerMock(object):
         inst = self.inst_from_classname(conn, class_name,
                                         namespace=self.interop_ns,
                                         property_values=element_conforms_dict,
-                                        strict=True,
-                                        include_null_properties=False,
+                                        include_missing_properties=False,
                                         include_path=True)
         conn.add_cimobjects(inst, namespace=self.interop_ns)
 
