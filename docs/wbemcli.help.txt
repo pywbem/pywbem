@@ -1,0 +1,110 @@
+usage: wbemcli [options] server
+
+Provide an interactive shell for issuing operations against a WBEM server.
+
+wbemcli executes the WBEMConnection as part of initialization so the user can
+input requests as soon as the interactive shell is started.
+
+Use h() in thenteractive shell for help for wbemcli methods and variables.
+
+Positional arguments:
+  server                Host name or url of the WBEM server in this format:
+                            [{scheme}://]{host}[:{port}]
+                        - scheme: Defines the protocol to use;
+                            - "https" for HTTPs protocol
+                            - "http" for HTTP protocol.
+                          Default: "https".
+                        - host: Defines host name as follows:
+                             - short or fully qualified DNS hostname,
+                             - literal IPV4 address(dotted)
+                             - literal IPV6 address (RFC 3986) with zone
+                               identifier extensions(RFC 6874)
+                               supporting "-" or %25 for the delimiter.
+                        - port: Defines the WBEM server port to be used
+                          Defaults:
+                             - HTTP  - 5988
+                             - HTTPS - 5989
+
+Server related options:
+  Specify the WBEM server namespace and timeout
+
+  -n namespace, --namespace namespace
+                        Default namespace in the WBEM server for operation
+                        requests when namespace option not supplied with
+                        operation request.
+                        Default: root/cimv2
+  -t timeout, --timeout timeout
+                        Timeout of the completion of WBEM Server operation
+                        in seconds(integer between 0 and 300).
+                        Default: No timeout
+
+Connection security related options:
+  Specify user name and password or certificates and keys
+
+  -u user, --user user  User name for authenticating with the WBEM server.
+                        Default: No user name.
+  -p password, --password password
+                        Password for authenticating with the WBEM server.
+                        Default: Will be prompted for, if user name
+                        specified.
+  -nvc, --no-verify-cert
+                        Client will not verify certificate returned by the
+                        WBEM server (see cacerts). This bypasses the client-
+                        side verification of the server identity, but allows
+                        encrypted communication with a server for which the
+                        client does not have certificates.
+  --cacerts cacerts     File or directory containing certificates that will be
+                        matched against a certificate received from the WBEM
+                        server. Set the --no-verify-cert option to bypass
+                        client verification of the WBEM server certificate.
+                        Default: Searches for matching certificates in the
+                        following system directories:
+                        /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
+                        /etc/ssl/certs
+                        /etc/ssl/certificates
+  --certfile certfile   Client certificate file for authenticating with the
+                        WBEM server. If option specified the client attempts
+                        to execute mutual authentication.
+                        Default: Simple authentication.
+  --keyfile keyfile     Client private key file for authenticating with the
+                        WBEM server. Not required if private key is part of the
+                        certfile option. Not allowed if no certfile option.
+                        Default: No client key file. Client private key should
+                        then be part  of the certfile
+
+General options:
+  -s [scripts [scripts ...]], --scripts [scripts [scripts ...]]
+                        Execute the python code defined by the script before the
+                        user gets control. This argument may be repeated to load
+                        multiple scripts or multiple scripts may be listed for a
+                        single use of the option. Scripts are executed after the
+                        WBEMConnection call
+  -v, --verbose         Print more messages while processing
+  -V, --version         Display pywbem version and exit.
+  --statistics          Enable gathering of statistics on operations.
+  --mock-server [file name [file name ...]]
+                        Activate pywbem_mock in place of a live WBEMConnection and 
+                        compile/build the files defined (".mof" suffix or "py" suffix.
+                        MOF files are compiled and python files are executed assuming
+                        that they include mock_pywbem methods that add objects to the
+                        repository.
+  -l log_spec[,logspec], --log log_spec[,logspec]
+                        Log_spec defines characteristics of the various named
+                        loggers. It is the form:
+                         COMP=[DEST[:DETAIL]] where:
+                           COMP:   Logger component name:[api|http|all].
+                                   (Default=all)
+                           DEST:   Destination for component:[file|stderr].
+                                   (Default=file)
+                           DETAIL: Detail Level to log: [all|paths|summary] or
+                                   an integer that defines the maximum length of
+                                   of each log record.
+                                   (Default=all)
+  -h, --help            Show this help message and exit
+
+Examples:
+  wbemcli https://localhost:15345 -n vendor -u sheldon -p penny
+          - (https localhost, port=15345, namespace=vendor user=sheldon
+         password=penny)
+
+  wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)

@@ -36,6 +36,13 @@ Released: not yet
   relies on that, it is highly recommended that you decouple such
   dependencies (Issue #1251).
 
+* Changed keybinding processing to disallow NULL keybinding values unless the
+  config property `IGNORE_NULL_KEY_VALUE` in config.py is set `True`. This is
+  in accord with DSP0004. This is only incompatible if user code relies on
+  creating a keybinding having `None` as a value. If this is the case setting
+  this property to `TRUE` will restore the original behavior but the NULL
+  keybinding may be an issue with some WBEM servers.(Issue #1298)
+
 **Deprecations:**
 
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
@@ -92,6 +99,8 @@ Released: not yet
   Also, it tolerated an invalid `\x` escape sequence, when DSP0004 requires
   1..4 hex characters to be present.
   See issue #1278.
+
+* Fixed issue where Null key values allowed. See issue #1298
 
 **Enhancements:**
 

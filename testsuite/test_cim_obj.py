@@ -16,6 +16,7 @@ import os.path
 from datetime import timedelta, datetime
 import warnings
 import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
+from mock import patch
 try:
     from collections import OrderedDict
 except ImportError:
@@ -28,6 +29,7 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, tocimobj, MinutesFromUTC, \
     __version__
+
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
 from pywbem.cim_obj import mofstr, MOF_INDENT, MAX_MOF_LINE
@@ -770,6 +772,19 @@ TESTCASES_CIMINSTANCENAME_INIT = [
         ),
         None, None, True
     ),
+    (
+        "Verify that keybinding with None value fails with ValueError",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=dict(Key1=None)),
+            exp_attrs=dict(
+                classname=u'CIM_Foo',
+                keybindings=dict(Key1=None)),
+        ),
+        ValueError, None, True
+    ),
 
     # Namespace tests
     (
@@ -971,6 +986,81 @@ def test_CIMInstanceName_init(testcase,
     exp_namespace = exp_attrs.get('namespace', None)
     assert obj.namespace == exp_namespace
     assert isinstance(obj.namespace, type(exp_namespace))
+
+
+TESTCASES_KEYBINDING_CONFIG = [
+
+    # Testcases for CIMInstanceName.__init__() / ip=CIMInstanceName()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_args: Tuple of positional arguments to CIMInstanceName().
+    #   * ignore_flag: Value of IGNORE_NULL_KEY_VALUE config variable
+    #   * init_kwargs: Dict of keyword arguments to CIMInstanceName().
+    #   * exp_attrs: Dict of expected attributes of resulting object.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+    (
+        "Verify that keybinding with None value fails with ValueError when"
+        "config variable False",
+        dict(
+            init_args=[],
+            ignore_flag=False,
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=dict(Key1=None)),
+            exp_attrs=dict(
+                classname=u'CIM_Foo',
+                keybindings=dict(Key1=None)),
+        ),
+        ValueError, None, True
+    ),
+    (
+        "Verify that keybinding with None value OK with config True",
+        dict(
+            init_args=[],
+            ignore_flag=True,
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=dict(Key1=None)),
+            exp_attrs=dict(
+                classname=u'CIM_Foo',
+                keybindings=dict(Key1=None)),
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_KEYBINDING_CONFIG)
+@pytest_extensions.simplified_test_function
+def test_keybinding_config_option(testcase,
+                                  init_args, ignore_flag, init_kwargs,
+                                  exp_attrs):
+    """
+    Test CIMInstanceName behavior with changes to config variable
+    IGNORE_NULL_KEY_VALUE.
+    """
+    # The code to be tested
+    # pylint: disable=unused-variable
+    # patch with context resets original at end of test
+    with patch('pywbem.config.IGNORE_NULL_KEY_VALUE', ignore_flag):
+        obj = CIMInstanceName(*init_args, **init_kwargs)
+
+        # Ensure that exceptions raised in the remainder of this function
+        # are not mistaken as expected exceptions
+        assert testcase.exp_exc_types is None
+
+        exp_classname = exp_attrs['classname']
+        assert obj.classname == exp_classname
+        assert isinstance(obj.classname, type(exp_classname))
+
+        exp_keybindings = exp_attrs.get('keybindings', NocaseDict())
+        assert obj.keybindings == exp_keybindings
 
 
 class CIMInstanceNameCopy(unittest.TestCase, CIMObjectMixin):
@@ -1637,11 +1727,11 @@ TESTCASES_CIMINSTANCENAME_REPR = [
             classname='CIM_Foo',
             keybindings=dict())
     ),
-    (
-        CIMInstanceName(
-            classname='CIM_Foo',
-            keybindings=dict(InstanceID=None))
-    ),
+    # (
+    #    CIMInstanceName(
+    #        classname='CIM_Foo',
+    #        keybindings=dict(InstanceID=None))
+    # ),
     (
         CIMInstanceName(
             classname='CIM_Foo',
@@ -6253,7 +6343,7 @@ class CIMInstanceUpdatePath(unittest.TestCase):
     def test_CIMInstance_update_path(self):  # XXX: Migrate to pytest
 
         iname = CIMInstanceName('CIM_Foo', namespace='root/cimv2',
-                                keybindings={'k1': None, 'k2': None})
+                                keybindings={'k1': 'blah', 'k2': 'blah'})
 
         i = CIMInstance('CIM_Foo', path=iname)
 
@@ -6281,7 +6371,7 @@ class CIMInstancePropertyList(unittest.TestCase):
     def test_CIMInstance_property_list(self):  # XXX: Migrate to pytest
 
         iname = CIMInstanceName('CIM_Foo', namespace='root/cimv2',
-                                keybindings={'k1': None, 'k2': None})
+                                keybindings={'k1': 'blah', 'k2': 'blah'})
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
