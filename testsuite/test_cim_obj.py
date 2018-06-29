@@ -30,7 +30,6 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, tocimobj, MinutesFromUTC, \
     __version__
 
-import pywbem.config
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
 from pywbem.cim_obj import mofstr, MOF_INDENT, MAX_MOF_LINE
@@ -1031,8 +1030,6 @@ TESTCASES_KEYBINDING_CONFIG = [
                 keybindings=dict(Key1=None)),
         ),
         None, None, True
-        # TODO: Renable when I figure out how to set variable in
-        #       config.py for a particular test.
     ),
 ]
 
@@ -1050,12 +1047,8 @@ def test_keybinding_config_option(testcase,
     """
     # The code to be tested
     # pylint: disable=unused-variable
-    print('IGNORE_FLAG_FOR_TEST=%s' % ignore_flag)
     # patch with context resets original at end of test
     with patch('pywbem.config.IGNORE_NULL_KEY_VALUE', ignore_flag):
-
-        print('\nIGNORE_NULL_KEY_VALUE_AFTER_SET=%s' %
-              pywbem.config.IGNORE_NULL_KEY_VALUE)
         obj = CIMInstanceName(*init_args, **init_kwargs)
 
         # Ensure that exceptions raised in the remainder of this function

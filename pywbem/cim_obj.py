@@ -246,14 +246,14 @@ import re
 try:
     from collections import OrderedDict
 except ImportError:
-    from ordereddict import OrderedDict
+    from ordereddict import OrderedDict  # pylint: disable=import-error
 from xml.dom.minidom import Element
 
 import six
 
 from . import cim_xml
 from .config import DEBUG_WARNING_ORIGIN, SEND_VALUE_NULL
-import pywbem.config
+from . import config
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
     Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
@@ -1277,7 +1277,7 @@ class CIMInstanceName(_CIMComparisonMixin):
                     raise TypeError("Input object for keybindings has "
                                     "invalid item in iterable: %r" % item)
                 if value is None and \
-                        pywbem.config.IGNORE_NULL_KEY_VALUE is False:
+                        config.IGNORE_NULL_KEY_VALUE is False:
                     raise ValueError('CIMInstance keybinding %s key %s '
                                      'value is "None" which is not allowed '
                                      'unless "IGNORE_NULL_KEY_VALUE" is '

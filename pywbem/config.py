@@ -94,15 +94,15 @@ DEBUG_WARNING_ORIGIN = False
 #: *New in pywbem 0.12.*
 SEND_VALUE_NULL = True
 
-#: Backward compatibility option that controls creating CIMInstanceNames with
-#: null values for keybindings.
+#: Backward compatibility option that controls creating
+#: :class:`~pywbem.CIMInstanceName` objects with NULL values for keybindings.
 
 #: :term:`DSP0004`, section 7.9 specifically forbids key properties with
-#: no values but because pywbem has always allowed this, adding the code to
-#: disallow None as a keybinding value is an incompatible change.
+#: values that are NULL but because pywbem has always allowed this, adding the
+#:  code to disallow `None` as a keybinding value is an incompatible change.
 #:
-#: * True: Pywbem ignores None as a value when keybindings are defined.
-#: * False (default): Pywbem generates ValueError when keybindings are created
+#: * `True`: Pywbem tolerates `None` as a value when keybindings are defined.
+#: * `False` (default): Pywbem raises ValueError when keybindings are created
 #:   where any key will have the value `None`.
 #:
 #: *New in pywbem 0.12.*
