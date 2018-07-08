@@ -9799,7 +9799,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="EnumerationContext">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext', None, u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=(u'EnumerationContext',
+                        None,
+                        u'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -9810,7 +9812,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="EnumerationContext" PARAMTYPE="string">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext', u'string', u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=(u'EnumerationContext',
+                        u'string',
+                        u'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -9821,7 +9825,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="EnumerationContext" TYPE="string">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext', u'string', u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=(u'EnumerationContext',
+                        u'string',
+                        u'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -9829,10 +9835,13 @@ TESTCASES_TUPLEPARSE_XML = [
         "PARAMVALUE with both TYPE and PARAMTYPE",
         dict(
             xml_str=''
-            '<PARAMVALUE NAME="EnumerationContext" PARAMTYPE="string" TYPE="boolean">'
+            '<PARAMVALUE NAME="EnumerationContext" '
+            'PARAMTYPE="string" TYPE="boolean">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext', u'string', u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=(u'EnumerationContext',
+                        u'string',
+                        u'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
