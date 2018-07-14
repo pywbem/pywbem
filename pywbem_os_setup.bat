@@ -24,7 +24,7 @@ goto end
 
 :do_install
 
-echo Installing OS-level prerequisite packages for install...
+echo Installing OS-level prerequisite packages for install on platform Windows ...
 
 if not exist ..\tmp_pywbem_os_setup mkdir ..\tmp_pywbem_os_setup
 pushd ..\tmp_pywbem_os_setup
@@ -160,6 +160,9 @@ popd
 goto end
 
 :do_develop
+
+echo Installing OS-level prerequisite packages for develop on platform Windows ...
+
 echo Warning: Package 'libxml2' must be installed manually.
 goto end
 

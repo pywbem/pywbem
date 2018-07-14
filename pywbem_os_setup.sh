@@ -74,13 +74,23 @@ function install_osx() {
 }
 
 if [[ "$OS" == "Windows_NT" ]]; then
-  distro_id="windows"
-  distro_family="windows"
-  platform="Windows"
-elif [[ "$(uname -s | sed -e 's/-.*//g')" == "CYGWIN_NT" ]]; then
-  distro_id="cygwin"
-  distro_family="windows"
-  platform="CygWin"
+  # Note: Native Windows and CygWin are hard to distinguish: The native Windows
+  # envvars are set in CygWin as well. Using uname will display CYGWIN_NT-.. on
+  # both platforms. If the CygWin make is used on native Windows, most of the
+  # CygWin behavior is then visible in context of that make (e.g. a SHELL envvar
+  # is set, the PATH envvar gets converted to UNIX syntax, execution of batch
+  # files requires execute permission, etc.). The check below with
+  # :/usr/local/bin: being in PATH was found to work even when using the CygWin
+  # make on native Windows.
+  if [[ $PATH == *:/usr/local/bin:* ]]; then
+    distro_id="cygwin"
+    distro_family="cygwin"
+    platform="CygWin"
+  else
+    distro_id="windows"
+    distro_family="windows"
+    platform="Windows"
+  fi
 # If you need support for more Unix-like environments on Windows (e.g. MinGW)
 # please provide the code for detecting them here.
 elif [[ "$(uname -s)" == "Linux" ]]; then
@@ -215,11 +225,11 @@ elif [[ "$distro_family" == "windows" ]]; then
 
   if [[ "$purpose" == "install" ]]; then
     echo "$myname: Invoking 'pywbem_os_setup.bat install' on platform ${platform}." >&2
-    cmd /c pywbem_os_setup.bat install
+    cmd /d /c pywbem_os_setup.bat install
   fi
   if [[ "$purpose" == "develop" ]]; then
     echo "$myname: Invoking 'pywbem_os_setup.bat develop' on platform ${platform}." >&2
-    cmd /c pywbem_os_setup.bat develop
+    cmd /d /c pywbem_os_setup.bat develop
   fi
 
 else
