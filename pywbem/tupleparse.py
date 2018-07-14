@@ -1654,8 +1654,11 @@ def parse_paramvalue(tup_tree):
     # Version 2.1.1 of DSP0201 lacks the %ParamType entity but it is present as
     # optional (for backwards compatibility) in version 2.2.
 
+    # VMAX returns TYPE instead of PARAMTYPE, toleration support added to use
+    # TYPE when present if PARAMTYPE is not present.
+
     check_node(tup_tree, 'PARAMVALUE', ['NAME'],
-               ['PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
+               ['TYPE', 'PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'])
 
     child = optional_child(tup_tree,
                            ['VALUE', 'VALUE.REFERENCE', 'VALUE.ARRAY',
@@ -1665,6 +1668,8 @@ def parse_paramvalue(tup_tree):
 
     if 'PARAMTYPE' in attrl:
         paramtype = attrl['PARAMTYPE']
+    elif 'TYPE' in attrl:
+        paramtype = attrl['TYPE']
     else:
         paramtype = None
 
