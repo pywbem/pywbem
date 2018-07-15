@@ -18,22 +18,17 @@
 Pywbem supports a very limited number of configuration variables that influence
 certain specific behavior.
 
-These configuration variables are read by pywbem only after its modules have
-been loaded, so they can be modified by the user directly after importing
-pywbem. For example:
+These configuration variables can be modified by the user directly after
+importing pywbem. For example:
 
 ::
 
     import pywbem
-    pywbem.ENFORCE_INTEGER_RANGE = False
+    pywbem.config.ENFORCE_INTEGER_RANGE = False
 
 Note that the pywbem source file defining these variables should not be changed
 by the user. Instead, the technique shown in the example above should be used to
 modify the configuration variables.
-
-Note: Due to limitations of the documentation tooling, the following
-configuration variables are shown in the ``pywbem.config`` namespace. However,
-they should be used from the ``pywbem`` namespace.
 """
 
 # This module is meant to be safe for 'import *'.

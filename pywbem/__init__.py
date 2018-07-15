@@ -33,6 +33,13 @@ from __future__ import absolute_import
 import sys
 import logging
 
+# The config namespace is imported as a sub-namespace to make the config
+# variables accessible directly via their defining namespace. Importing
+# them into the pywbem namespace would duplicate their names and thus
+# would cause changes to the config variables not to be visible in their
+# original namespace.
+from . import config  # noqa: F401
+
 from ._utils import *  # noqa: F403,F401
 from .cim_types import *  # noqa: F403,F401
 from .cim_constants import *  # noqa: F403,F401
@@ -48,7 +55,6 @@ from ._server import *  # noqa: F403,F401
 from ._subscription_manager import *  # noqa: F403,F401
 from ._listener import *  # noqa: F403,F401
 from ._recorder import *  # noqa: F403,F401
-from .config import *  # noqa: F403,F401
 from ._statistics import *  # noqa: F403,F401
 from ._logging import *  # noqa: F403,F401
 

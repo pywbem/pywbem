@@ -43,6 +43,14 @@ Released: not yet
   this property to `TRUE` will restore the original behavior but the NULL
   keybinding may be an issue with some WBEM servers.(Issue #1298)
 
+* The fix for issue #1302 removed the pywbem config variables from the
+  `pywbem` namespace. They are now only available via the `pywbem.config`
+  namespace. However, this change should not affect you because the
+  previously documented approach for changing them through the `pywbem`
+  namespace did not work, so if you changed the config variables
+  successfully, you have done that through the `pywbem.config` namespace
+  already.
+
 **Deprecations:**
 
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
@@ -101,6 +109,19 @@ Released: not yet
   See issue #1278.
 
 * Fixed issue where Null key values allowed. See issue #1298
+
+* Fixed issue with updating pywbem config variables.
+  So far, the pywbem config variables were defined in the `pywbem.config`
+  namespace and then imported by pywbem into the `pywbem` namespace.
+  Pywbem documented that these config variables should be accessed (read
+  and written) through the `pywbem` namespace. However, pywbem code
+  read them in nearly all cases from the `pywbem.config` namespace.
+  This caused an update that is done by a pywbem user through the `pywbem`
+  namespace, not to be visible in the `pywbem.config` namespace, so pywbem
+  did not react to the user's change.
+  This was fixed by only using the `pywbem.config` namespace for config
+  variables. They are no longer imported into the `pywbem` namespace.
+  See issue #1302.
 
 **Enhancements:**
 
