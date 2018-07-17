@@ -172,6 +172,15 @@ Released: not yet
 * Add new static method to CIMInstance (from_class) that builds an
   instance from a class and dictionary of property values. Issue #1188
 
+* Added support for tolerating a `TYPE` attribute in the `PARAMVALUE` element
+  of received CIM-XML responses. The `TYPE` attribute is not allowed as
+  per DSP0201. However, there are devices that have incorrectly implemented
+  a `TYPE` attribute instead of the standard `PARAMTYPE` attribute.
+  The `TYPE` attribute when present is now used when `PARAMTYPE` is not
+  present. If both are present, `PARAMTYPE` is used and `TYPE` is ignored.
+  Also, test cases were added for tupleparse for the `PARAMVALUE` element.
+  See issue #1241.
+
 **Cleanup**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
