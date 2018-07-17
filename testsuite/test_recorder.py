@@ -828,8 +828,10 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_stage_result_exception(self, lc):
         """Test the ops result log None return, HTTPError exception."""
         self.recorder_setup(detail_level=10)
-        ce = CIMError(6, "Fake CIMError")
-        exc = HTTPError(500, "Fake Reason", cimerror='%s' % ce)
+
+        # Note: cimerror is the CIMError HTTP header field
+        exc = HTTPError(500, "Fake Reason", cimerror="Fake CIMError")
+
         self.test_recorder.stage_pywbem_result(None, exc)
 
         lc.check(
@@ -840,21 +842,15 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_stage_result_exception_all(self, lc):
         """Test the ops result log None return, HTTPError exception."""
         self.recorder_setup(detail_level='all')
-        ce = CIMError(6, "Fake CIMError")
-        exc = HTTPError(500, "Fake Reason", cimerror='%s' % ce)
+
+        # Note: cimerror is the CIMError HTTP header field
+        exc = HTTPError(500, "Fake Reason", cimerror="Fake CIMError")
+
         self.test_recorder.stage_pywbem_result(None, exc)
 
-        # TODO. V2 valid string has extra single quote after CIMError
-        if six.PY2:
-            lc.check(
-                ("pywbem.api.test_id", "DEBUG",
-                 "Exception:test_id None('HTTPError(500 (Fake Reason), "
-                 "CIMError: 6: Fake CIMError)')"),)
-        else:
-            lc.check(
-                ("pywbem.api.test_id", "DEBUG",
-                 "Exception:test_id None('HTTPError(500 (Fake Reason), "
-                 "CIMError: 6: Fake CIMError)')"),)
+        lc.check(
+            ("pywbem.api.test_id", "DEBUG",
+             "Exception:test_id None('HTTPError(%s)')" % exc),)
 
     @log_capture()
     def test_stage_getinstance_args(self, lc):
@@ -1418,8 +1414,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "classname=u'CIM_Foo', keybindings=NocaseDict([('Chicken', "
                  "u'Ham')]), namespace=u'root/cimv2', host=u'woot.com'))"),
                 ("pywbem.api.test_id", "DEBUG",
-                 "Exception:test_id GetInstance('CIMError(6: Fake "
-                 "CIMError)')"),)
+                 "Exception:test_id GetInstance('CIMError(%s)')" % exc),)
         else:
             lc.check(
                 ("pywbem.api.test_id", "DEBUG",
@@ -1427,8 +1422,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
                  "classname='CIM_Foo', keybindings=NocaseDict([('Chicken', "
                  "'Ham')]), namespace='root/cimv2', host='woot.com'))"),
                 ("pywbem.api.test_id", "DEBUG",
-                 "Exception:test_id GetInstance('CIMError(6: Fake "
-                 "CIMError)')"),)
+                 "Exception:test_id GetInstance('CIMError(%s)')" % exc),)
 
     @log_capture()
     def test_getinstance_result_all(self, lc):
