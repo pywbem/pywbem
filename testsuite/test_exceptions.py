@@ -12,9 +12,11 @@ import pytest
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
     ParseError, VersionError, CIMError
 
-
 def _assert_subscription(exc):
-    """Test the exception defined by exc for required args"""
+    """
+    Test the exception defined by exc for required args.
+    """
+
     # Access by subscription is only supported in Python 2:
     if six.PY2:
         assert exc[:] == exc.args
@@ -38,35 +40,47 @@ def _assert_subscription(exc):
                 assert False, "Access by index did not fail in Python 3"
 
 
-# The exception classes for which the simple test should be done:
 @pytest.fixture(params=[
-    Error, ConnectionError, AuthError, TimeoutError, ParseError, VersionError
+    # The exception classes for which the simple test should be done:
+    Error,
+    ConnectionError,
+    AuthError,
+    TimeoutError,
+    ParseError,
+    VersionError,
 ], scope='module')
 def simple_class(request):
-    """Return request.param as defined by the fixture. Representing
-       the exception classes.
+    """
+    Fixture representing variations of the simple exception classes.
+
+    Returns the exception class.
     """
     return request.param
 
 
-# The init arguments for the simple exception classes:
 @pytest.fixture(params=[
+    # Tuple of positional init arguments for the simple exception classes
     (),
+    ('',),
     ('foo',),
     ('foo', 42),
 ], scope='module')
 def simple_args(request):
-    """Return request.param defined by the pytest.fixture
-       representing arguments for the exception class
+    """
+    Fixture representing variations of positional init arguments for the simple
+    exception classes.
+
+    Returns a tuple of positional arguments for initializing an exception
+    object.
     """
     return request.param
 
 
 def test_simple(simple_class, simple_args):
-    """Test exceptions classes and arguments using the
-      testfixtures.
-    """
     # pylint: disable=redefined-outer-name
+    """
+    Test the simple exception classes.
+    """
 
     exc = simple_class(*simple_args)
 
@@ -81,22 +95,31 @@ def test_simple(simple_class, simple_args):
     _assert_subscription(exc)
 
 
-# The init arguments for the HTTPError exception class:
 @pytest.fixture(params=[
+    # The init arguments for the HTTPError exception class:
     # (status, reason, cimerror=None, cimdetails={})
+    # Note: cimerror is the CIMError HTTP header field
     (200, 'OK'),
     (404, 'Not Found', 'instance xyz not found'),
-    (404, 'Not Found', 'instance xyz not found', 'foo'),
+    (404, 'Not Found', 'instance xyz not found', {'foo': 'bar'}),
 ], scope='module')
 def httperror_args(request):
-    """Returns init arguments for the HTTPError exception class as
-       pytest.fixture
+    """
+    Fixture representing variations of positional init arguments for the
+    HTTPError exception class.
+
+    Returns a tuple of positional arguments for initializing a HTTPError
+    exception object.
     """
     return request.param
 
 
-def test_httperror(httperror_args):  # pylint: disable=redefined-outer-name
-    """Test httperror arguments from test fixture"""
+def test_httperror(httperror_args):
+    # pylint: disable=redefined-outer-name
+    """
+    Test HTTPError exception class.
+    """
+
     exc = HTTPError(*httperror_args)
 
     assert exc.status == httperror_args[0]
@@ -119,8 +142,8 @@ def test_httperror(httperror_args):  # pylint: disable=redefined-outer-name
     _assert_subscription(exc)
 
 
-# The CIM status codes for the CIMError exception class:
 @pytest.fixture(params=[
+    # The CIM status codes for the CIMError exception class:
     # (code, name)
     # Note: We don't test the exact default description text.
     # Note: name = None means that the status code is invalid.
@@ -157,16 +180,23 @@ def test_httperror(httperror_args):  # pylint: disable=redefined-outer-name
     (30, None),
 ], scope='module')
 def status_tuple(request):
-    """pytest.fixture returns status codes for CIMError
-       exception
+    """
+    Fixture representing variations of CIM status codes for initializing a
+    CIMError exception class.
+
+    Returns a tuple of positional arguments for initializing a CIMError
+    exception object.
     """
     return request.param
 
 
-def test_cimerror_1(status_tuple):  # pylint: disable=redefined-outer-name
-    """Test cimerror"""
-    status_code = status_tuple[0]
-    status_code_name = status_tuple[1]
+def test_cimerror_1(status_tuple):
+    # pylint: disable=redefined-outer-name
+    """
+    Test CIMError exception class with just status_code as input.
+    """
+
+    status_code, status_code_name = status_tuple
 
     invalid_code_name = 'Invalid status code %s' % status_code
     invalid_code_desc = 'Invalid status code %s' % status_code
@@ -188,14 +218,15 @@ def test_cimerror_1(status_tuple):  # pylint: disable=redefined-outer-name
     _assert_subscription(exc)
 
 
-def test_cimerror_2(status_tuple):  # pylint: disable=redefined-outer-name
-    """Test cimerror status tuple from date in status-tuple fixture"""
+def test_cimerror_2(status_tuple):
+    # pylint: disable=redefined-outer-name
+    """
+    Test CIMError exception class with status_code and description as input.
+    """
 
-    status_code = status_tuple[0]
-    status_code_name = status_tuple[1]
+    status_code, status_code_name = status_tuple
 
     invalid_code_name = 'Invalid status code %s' % status_code
-
     input_desc = 'foo'
 
     exc = CIMError(status_code, input_desc)
