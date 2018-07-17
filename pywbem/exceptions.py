@@ -29,7 +29,50 @@ __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
 
 class Error(Exception):
     """Base class for pywbem specific exceptions."""
-    pass
+
+    def __init__(self, *args, **kwargs):
+        """
+        Parameters:
+
+          conn (:class:`~pywbem.WBEMConnection`): Must be a keyword argument.
+            Connection in whose context the error happened. Omitted or `None`
+            if the error did not happen in context of any connection, or if the
+            connection context was not known.
+
+          Any other positional arguments or keyword arguments are passed to
+          :exc:`py:Exception`.
+        """
+        if 'conn' in kwargs:
+            conn = kwargs['conn']
+            del kwargs['conn']
+        else:
+            conn = None
+        super(Error, self).__init__(*args, **kwargs)
+        self._conn = conn
+
+    @property
+    def conn(self):
+        """
+        :class:`~pywbem.WBEMConnection`: Connection in whose context
+        the error happened. `None` if the error did not happen in context
+        of any connection, or if the connection context was not known.
+        """
+        return self._conn
+
+    @property
+    def conn_str(self):
+        """
+        :term:`unicode string`: String that identifies the connection in
+        exception messages.
+        """
+        conn_id = self.conn.conn_id if self.conn else None
+        ret_str = "Connection id: %s" % conn_id
+        return ret_str
+
+    def __str__(self):
+        error_str = super(Error, self).__str__()
+        ret_str = "%s, %s" % (error_str, self.conn_str)
+        return ret_str
 
 
 class ConnectionError(Error):
@@ -58,7 +101,8 @@ class HTTPError(Error):
     """
 
     # pylint: disable=super-init-not-called
-    def __init__(self, status, reason, cimerror=None, cimdetails=None):
+    def __init__(self, status, reason, cimerror=None, cimdetails=None,
+                 conn=None):
         """
         Parameters:
 
@@ -67,7 +111,7 @@ class HTTPError(Error):
           reason (:term:`string`): HTTP reason phrase (e.g.
             "Internal Server Error").
 
-          cimerror (:term:`string`): Value of the `CIMError` header field,
+          cimerror (:term:`string`): Value of the `CIMError` HTTP header field,
             if present. `None`, otherwise.
 
           cimdetails (dict): Dictionary with CIMOM-specific header
@@ -78,10 +122,18 @@ class HTTPError(Error):
             * Value: header field value (i.e. text message)
 
             Passing `None` will result in an empty dictionary.
+
+          conn (:class:`~pywbem.WBEMConnection`): Connection in whose context
+            the error happened. `None` if the error did not happen in context
+            of any connection, or if the connection context was not known.
+
+        :ivar args: A tuple (status, reason, cimerror, cimdetails) set from the
+            corresponding init arguments.
         """
         if cimdetails is None:
             cimdetails = {}
-        self.args = (status, reason, cimerror, cimdetails)
+        super(HTTPError, self).__init__(
+            status, reason, cimerror, cimdetails, conn=conn)
 
     @property
     def status(self):
@@ -104,7 +156,7 @@ class HTTPError(Error):
     @property
     def cimerror(self):
         """
-        :term:`string`: Value of `CIMError` header field in response, if
+        :term:`string`: Value of `CIMError` HTTP header field in response, if
         present. `None`, otherwise.
 
         See :term:`DSP0200` for a list of values.
@@ -128,6 +180,7 @@ class HTTPError(Error):
             ret_str += ", CIMError: %s" % self.cimerror
         for key in self.cimdetails:
             ret_str += ", %s: %s" % (key, self.cimdetails[key])
+        ret_str += ", %s" % self.conn_str
         return ret_str
 
 
@@ -184,7 +237,7 @@ class CIMError(Error):
     """
 
     # pylint: disable=super-init-not-called
-    def __init__(self, status_code, status_description=None):
+    def __init__(self, status_code, status_description=None, conn=None):
         """
         Parameters:
 
@@ -195,10 +248,15 @@ class CIMError(Error):
             describing the error. `None`, if the server did not return
             a description text.
 
+          conn (:class:`~pywbem.WBEMConnection`): Connection in whose context
+            the error happened. `None` if the error did not happen in context
+            of any connection, or if the connection context was not known.
+
         :ivar args: A tuple (status_code, status_description) set from the
-              corresponding init arguments.
+            corresponding init arguments.
         """
-        self.args = (status_code, status_description)
+        super(CIMError, self).__init__(
+            status_code, status_description, conn=conn)
 
     @property
     def status_code(self):
@@ -239,4 +297,6 @@ class CIMError(Error):
         return self.args[1] or _statuscode2string(self.status_code)
 
     def __str__(self):
-        return "%s: %s" % (self.status_code, self.status_description)
+        ret_str = "%s: %s, %s" % (self.status_code, self.status_description,
+                                  self.conn_str)
+        return ret_str
