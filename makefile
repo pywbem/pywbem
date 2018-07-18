@@ -8,7 +8,8 @@
 #     native Windows (with Python in Windows)
 #
 # Prerequisites for running this makefile:
-#   These commands are used on all supported OS platforms:
+#   These commands are used on all supported OS platforms. On native Windows,
+#   they may be provided by CygWin:
 #     make (GNU make)
 #     bash
 #     echo, rm, mv, find, xargs, tee, touch, chmod, wget
@@ -44,12 +45,31 @@ else
   endif
 endif
 
-# Determine OS platform make runs on
+# Determine OS platform make runs on.
+# Note: Native Windows and CygWin are hard to distinguish: The native Windows
+# envvars are set in CygWin as well. Using uname will display CYGWIN_NT-.. on
+# both platforms. If the CygWin make is used on native Windows, most of the
+# CygWin behavior is then visible in context of that make (e.g. a SHELL envvar
+# is set, the PATH envvar gets converted to UNIX syntax, execution of batch
+# files requires execute permission, etc.). The check below with
+# :/usr/local/bin: being in PATH was found to work even when using the CygWin
+# make on native Windows.
 ifeq ($(OS),Windows_NT)
-  PLATFORM := Windows
+  ifeq ($(findstring :/usr/local/bin:,$(PATH)),:/usr/local/bin:)
+    PLATFORM := CygWin
+  else
+    PLATFORM := Windows
+  endif
 else
   # Values: Linux, Darwin
   PLATFORM := $(shell uname -s)
+endif
+
+ifeq ($(PLATFORM),Windows)
+  # Using the CygWin find
+  FIND := /bin/find
+else
+  FIND := find
 endif
 
 # Name of this Python package
@@ -208,6 +228,7 @@ help:
 	@echo "Makefile for $(package_name) repository of pywbem project"
 	@echo "Package version will be: $(package_version)"
 	@echo "Uses the currently active Python environment: Python $(python_version)"
+	@echo "Platform: $(PLATFORM)"
 	@echo ""
 	@echo "Make targets:"
 	@echo "  install    - Install pywbem and its Python installation and runtime prereqs (includes install_os once after clobber)"
@@ -278,8 +299,9 @@ install_os: install_os.done
 
 install_os.done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level installation and runtime requirements"
+	@echo "Debug: PATH=$(PATH)"
 ifeq ($(PLATFORM),Windows)
-	cmd /c pywbem_os_setup.bat install
+	cmd /d /c pywbem_os_setup.bat install
 else
 	./pywbem_os_setup.sh install
 endif
@@ -320,7 +342,7 @@ develop_os: develop_os.done
 develop_os.done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level development requirements"
 ifeq ($(PLATFORM),Windows)
-	cmd /c pywbem_os_setup.bat develop
+	cmd /d /c pywbem_os_setup.bat develop
 else
 	./pywbem_os_setup.sh develop
 endif
@@ -373,8 +395,8 @@ clobber: clean
 .PHONY: clean
 clean:
 	@echo "makefile: Removing temporary build products"
-	find . -name "*.pyc" -delete
-	bash -c "find . -name \"__pycache__\" |xargs -n 1 rm -Rf"
+	bash -c "$(FIND) . -name '*.pyc' -delete"
+	bash -c "$(FIND) . -name \"__pycache__\" |xargs -n 1 rm -Rf"
 	rm -Rf tmp_ tmp_*
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
 	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
@@ -532,7 +554,7 @@ $(test_log_file): makefile $(package_name)/*.py $(mock_package_name)/*.py testsu
 	@echo "makefile: Running tests"
 	rm -f $(test_log_file)
 ifeq ($(PLATFORM),Windows)
-	testsuite\test_uprint.bat
+	cmd /d /c testsuite\test_uprint.bat
 else
 	testsuite/test_uprint.sh
 endif
@@ -542,10 +564,18 @@ endif
 
 $(doc_conf_dir)/wbemcli.help.txt: wbemcli wbemcli.py
 	@echo "makefile: Creating wbemcli script help message file"
+ifeq ($(PLATFORM),Windows)
+	cmd /d /c wbemcli.bat --help >$@
+else
 	./wbemcli --help >$@
+endif
 	@echo "makefile: Done creating wbemcli script help message file: $@"
 
 $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler.py
 	@echo "makefile: Creating mof_compiler script help message file"
+ifeq ($(PLATFORM),Windows)
+	cmd /d /c mof_compiler.bat --help >$@
+else
 	./mof_compiler --help >$@
+endif
 	@echo "makefile: Done creating mof_compiler script help message file: $@"

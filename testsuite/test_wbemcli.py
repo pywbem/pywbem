@@ -154,24 +154,31 @@ class ContainerMeta(type):
                 # exit wbemcli after the test.
                 quit_script_file = abs_path('wbemcli_quit_script.py')
 
+                # CygWin returns os.name="posix"
                 script_name = 'wbemcli.bat' if os.name == 'nt' else 'wbemcli'
 
                 url = 'http://blah' if test_params.url is None \
                     else test_params.url
 
-                cmd = ('%s %s %s -s %s' % (script_name,
-                                           url,
-                                           test_params.cmd,
-                                           quit_script_file))
+                script_cmd = ('%s %s %s -s %s' % (script_name,
+                                                  url,
+                                                  test_params.cmd,
+                                                  quit_script_file))
 
                 # Disable python warnings for wbemcli call
                 # because some imports generate deprecated warnings
                 # that appear in std_err when nothing expected
-                bash_cmd = 'bash -c "PYTHONWARNINGS= %s"' % cmd
+                if os.name == 'nt':
+                    cmd = 'cmd /d /c %s' % script_cmd
+                    shell = False
+                else:
+                    cmd = 'bash -c "PYTHONWARNINGS= %s"' % script_cmd
+                    shell = True
 
-                proc = Popen(bash_cmd, shell=True, stdout=PIPE, stderr=PIPE)
+                proc = Popen(cmd, shell=shell, stdout=PIPE, stderr=PIPE)
                 std_out, std_err = proc.communicate()
                 exitcode = proc.returncode
+                std_err = std_err.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
 
                 if six.PY3:
                     std_out = std_out.decode()
@@ -187,25 +194,33 @@ class ContainerMeta(type):
                                       (test_name, test_params.expected_exitcode,
                                        exitcode, cmd, std_err)))
 
-                if test_params.expected_stderr is None:
-                    if re.search('ImportWarning', std_err) is None:
-                        self.assertEqual(std_err, "",
-                                         'Test %s: stderr not empty as '
-                                         'expected. Returned %s'
-                                         % (test_name, std_err))
+                # Remove certain warnings from stderr
+                lines = []
+                remove_lines = 0
+                for line in std_err.splitlines():
+                    if re.search(r'(Import|Deprecation|Resource)Warning:',
+                                 line) is not None:
+                        remove_lines = 2
+                    if remove_lines > 0:
+                        remove_lines -= 1
                     else:
-                        print('Ignored junk in stderr %s' % std_err)
-                    self.assertEqual(std_err, "",
-                                     'Test %s: stderr not empty as expected. '
-                                     'Returned %s'
-                                     % (test_name, std_err))
-                else:
+                        lines.append(line)
+                std_err_clean = '\n'.join(lines)
+                if std_err_clean:
+                    std_err_clean += '\n'
+
+                if test_params.expected_stderr is not None:
                     for item in test_params.expected_stderr:
-                        match_result = re.search(item, std_err)
+                        match_result = re.search(item, std_err_clean)
                         self.assertNotEqual(match_result, None, 'Test %s: '
                                             'stderr did not match test '
                                             'definition. Expected: %s in \n%s' %
-                                            (test_name, item, std_err))
+                                            (test_name, item, std_err_clean))
+                else:
+                    self.assertEqual(std_err_clean, "",
+                                     'Test %s: stderr not empty as '
+                                     'expected: %s'
+                                     % (test_name, std_err_clean))
 
                 if test_params.expected_stdout is not None:
                     for item in test_params.expected_stdout:
@@ -217,8 +232,8 @@ class ContainerMeta(type):
                                             (test_name, item, std_out))
                 else:
                     self.assertEqual(std_out, "",
-                                     'Test %s: stdout not empty as expected. '
-                                     'Returned %s'
+                                     'Test %s: stdout not empty as '
+                                     'expected: %s'
                                      % (test_name, std_out))
             return test
 
