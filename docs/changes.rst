@@ -12,6 +12,20 @@ Change log
    .. git_changelog::
       :revisions: 1
 
+Version 0.12.4
+^^^^^^^^^^^^^^
+
+Released: 2018-07-20
+
+**Bug fixes:**
+
+* Fixed issue where the `tomof()` methods of `CIMProperty`, `CIMQualifier`,
+  and `CIMQualifierDeclaration` raised `IndexError` when the value was
+  an empty array. This issue perculated up to higher level CIM objects
+  that are using these objects, i.e. `CIMInstance` or `CIMClass`.
+  Added according testcases.
+  See issue #1312.
+
 Version 0.12.3
 ^^^^^^^^^^^^^^
 
@@ -48,13 +62,6 @@ Released: 2018-05-18
   get/enumerate/etc. methods.  We also modified code so that if there is a
   class repository there is also an instance repository even if it
   is empty. See issue #1253
-
-* Fixed issue where the `tomof()` methods of `CIMProperty`, `CIMQualifier`,
-  and `CIMQualifierDeclaration` raised `IndexError` when the value was
-  an empty array. This issue perculated up to higher level CIM objects
-  that are using these objects, i.e. `CIMInstance` or `CIMClass`.
-  Added according testcases.
-  See issue #1312.
 
 **Enhancements:**
 
