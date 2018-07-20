@@ -174,6 +174,7 @@ class TestGetRsltParams(object):
         Test combminations of IRETURNVALUE, EOS and EnumerationContext for
         both good and fail responses.
         """
+        conn = WBEMConnection('http://localhost')
         result = [
             (u'IRETURNVALUE', {}, irval),
             (u'EnumerationContext', None, ec),
@@ -183,14 +184,14 @@ class TestGetRsltParams(object):
         if exc_exp:
             with pytest.raises(CIMError) as exec_info:
                 # pylint: disable=protected-access
-                result = WBEMConnection._get_rslt_params(result, 'root/blah')
+                result = conn._get_rslt_params(result, 'root/blah')
 
             exc = exec_info.value
             assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
 
         else:
             # pylint: disable=protected-access
-            result = WBEMConnection._get_rslt_params(result, 'root/blah')
+            result = conn._get_rslt_params(result, 'root/blah')
             # the _get_rslt_params method sets context to None if eos True
             ecs = None if eos_exp is True else (ec, 'root/blah')
             assert result == (irval, eos_exp, ecs)
@@ -201,12 +202,13 @@ class TestGetRsltParams(object):
         Test both Enum context and EndOfSequence completely missing.
         Generates exception
         """
+        conn = WBEMConnection('http://localhost')
         result = [
             (u'IRETURNVALUE', {}, {})
         ]
         with pytest.raises(CIMError) as exec_info:
             # pylint: disable=protected-access
-            result = WBEMConnection._get_rslt_params(result, 'namespace')
+            result = conn._get_rslt_params(result, 'namespace')
 
         exc = exec_info.value
         assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
