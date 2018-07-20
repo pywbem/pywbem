@@ -14,11 +14,13 @@ Change log
 
 
 Version 0.13.0
-^^^^^^^^^^^^^^
+--------------
 
 This version is currently in development and is shown as |version|.
 
 Released: not yet
+
+This version contains all fixes up to pywbem 0.12.4.
 
 **Incompatible changes:**
 
@@ -41,7 +43,7 @@ Released: not yet
   in accord with DSP0004. This is only incompatible if user code relies on
   creating a keybinding having `None` as a value. If this is the case setting
   this property to `TRUE` will restore the original behavior but the NULL
-  keybinding may be an issue with some WBEM servers.(Issue #1298)
+  keybinding may be an issue with some WBEM servers. (Issue #1298)
 
 * The fix for issue #1302 removed the pywbem config variables from the
   `pywbem` namespace. They are now only available via the `pywbem.config`
@@ -54,8 +56,8 @@ Released: not yet
 **Deprecations:**
 
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
-  in favor of the `cimvalue()` function introduced in pywbem 0.12. Changed all
-  internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
+  in favor of the `cimvalue()` function introduced in pywbem 0.12.0. Changed
+  all internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
 
 **Bug fixes:**
 
@@ -133,11 +135,13 @@ Released: not yet
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
+
   a) reference classes (classes defined in reference properties or parameters)
-  b)EmbeddedInstance qualifier classes if they are not compiled before the
-  classes that reference them is compiled. Previously the lack of these
-  dependent classes was ignored.  The compiler already searches for superclasses
-  if they are not compiled before their subclasses.
+
+  b) EmbeddedInstance qualifier classes if they are not compiled before the
+     classes that reference them are compiled. Previously the lack of these
+     dependent classes was ignored.  The compiler already searches for
+     superclasses if they are not compiled before their subclasses.
 
   Extends MOFWBEMConnection to generate an exception if the compile of a
   class with reference parameters or properties reference class is not in the
@@ -209,7 +213,7 @@ Released: not yet
   Also, test cases were added for tupleparse for the `PARAMVALUE` element.
   See issue #1241.
 
-**Cleanup**
+**Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
 
@@ -221,8 +225,7 @@ Released: not yet
   methods of the CIM object classes. These dictionaries are already copied
   in the setter methods for the respective attributes (Issue #1251).
 
-Build, test, quality
-^^^^^^^^^^^^^^^^^^^^
+**Build, test, quality:**
 
 * Add tests for WBEMSubscriptionManager class using pywbem_mock.  This involved
   changing the tests for the WBEMServer class using pywbem_mock because the the
@@ -240,13 +243,12 @@ Build, test, quality
 .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
-pywbem v0.12.0
---------------
+pywbem 0.12.0
+-------------
 
 Released: 2018-04-11
 
-Incompatible changes
-^^^^^^^^^^^^^^^^^^^^
+**Incompatible changes:**
 
 * Finalized the Iter support that was experimental so far. This affects the
   `Iter...()` methods of class `WBEMConnection`, the `use_pull_operations`
@@ -323,12 +325,12 @@ Incompatible changes
 * Initializing a `CIMProperty` object as an embedded object or embedded
   instance and with a value of `None` now requires specifying `type="string"`.
 
-  Previously (but only starting with pywbem v0.8.1), the type was inferred from
+  Previously (but only starting with pywbem 0.8.1), the type was inferred from
   the `embedded_instance` parameter and thus could be omitted. This new
   requirement for specifying `type` is not really intentional, but a by-product
   of simplifying the implementation of `CIMProperty`. It was considered
   acceptable because that should not be a common case (and has not been
-  supported before pywbem v0.8.1 anyway).
+  supported before pywbem 0.8.1 anyway).
 
 * When converting a `CIMInstance` object to CIM-XML using its `tocimxml()`
   method, instance properties whose values are simple types instead of
@@ -415,8 +417,7 @@ Incompatible changes
     unique identifier for each `WBEMConnection` object and is part of each log
     record. This allows linking logs for each `WBEMConnection` in the log.
 
-Deprecations
-^^^^^^^^^^^^
+**Deprecations:**
 
 * Deprecated modifications of the connection-related attributes of
   `WBEMConnection` objects (Issue #1068).
@@ -425,8 +426,7 @@ Deprecations
   `pywbem.tocimxml()`, because it generates an empty `VALUE` element
   (which represents an empty string) (Issue #1136).
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Finalized the time statistics support that was experimental so far. This
   affects classes `OperationStatistic`, `Statistics`, the init argument
@@ -620,8 +620,7 @@ Enhancements
 * Improved the handling of certain connection errors by retrying and by
   issuing user warnings instead of printing if debug. (Issue #1118).
 
-Bug fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Added `libxml2` operating system package as a dependency. It provides xmllint,
   which is used for testing.
@@ -876,8 +875,7 @@ Bug fixes
   displayed, for information. The target MOF repository is now always
   displayed; previously it was displayed only in verbose mode. (Issue #1157).
 
-Cleanup
-^^^^^^^
+**Cleanup:**
 
 * Removed the unimplemented and unused `popitem()` method of `NocaseDict`.
 
@@ -897,8 +895,7 @@ Cleanup
   printed by default by the Python root logger, so the use of null handlers
   is not really needed (Issue #1175).
 
-Build, test, quality
-^^^^^^^^^^^^^^^^^^^^
+**Build, test, quality:**
 
 * Added a boolean config variable `DEBUG_WARNING_ORIGIN` that when enabled
   causes a stack traceback to be added to the message of most warnings issued
@@ -942,8 +939,7 @@ Build, test, quality
   testsuite/test_wbemserverclass.py.  This test is incomplete today but tests
   most of the main paths.
 
-Documentation
-^^^^^^^^^^^^^
+**Documentation:**
 
 Improved the complete pywbem documentation (Issue #1115). Some specific
 changes are listed in the remainder of this section.
@@ -984,7 +980,7 @@ changes are listed in the remainder of this section.
   `WBEMConnection.Iter...()` generator functions.
 
 * Added "New in pywbem M.N ..." text to descriptions of anything that was
-  introduced in version 0.8 or later.
+  introduced in pywbem 0.8.0 or later.
 
 * Clarified use of `ca_certs` parameter of `WBEMConnection` and its defaults in
   `DEFAULT_CA_CERT_PATHS`.
@@ -1011,18 +1007,18 @@ changes are listed in the remainder of this section.
   4.8 "WBEM operation logging") and for the pywbem listener (in
   section 6.1.2 "Logging in the listener" (Issue #1175).
 
-pywbem v0.11.0
---------------
+pywbem 0.11.0
+-------------
 
 Released: 2017-09-27
 
-Incompatible changes
-^^^^^^^^^^^^^^^^^^^^
+This version contains all fixes up to pywbem 0.10.1.
+
+**Incompatible changes:**
 
 None
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Added support for automatically finding out whether for RHEL/CentOS/Fedora,
   the IUS version of the Python development packages should be used,
@@ -1129,8 +1125,7 @@ Enhancements
 * Made sure that ``str()`` on ``CIMInstanceName`` produces reliable order of
   key bindings in the returned WBEM URI, by ordering them by key name.
 
-Bug fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fix issue with MaxObjectCount on PullInstances and PullInstancePaths
   CIM_Operations.py methods.  The MaxObjectCount was defined as a keyword
@@ -1220,8 +1215,7 @@ Bug fixes
 
 * Clean up pylint new messages tied to use of len and if else. See issue #770
 
-Build, test, quality
-^^^^^^^^^^^^^^^^^^^^
+**Build, test, quality:**
 
 * Added Python 3.6 to the environments to be tested in Travis CI and Appveyor
   CI (issue #661).
@@ -1250,11 +1244,10 @@ Build, test, quality
 * Improved the build process to ensure that half-built artefacts are
   removed before building (issue #754).
 
-* Pinned the version of the ``wheel`` package to <0.30.0 for Python 2.6,
-  because wheel removed Python 2.6 support in its 0.30.0 version.
+* Pinned the version of the `wheel` package to <0.30.0 for Python 2.6,
+  because `wheel` removed Python 2.6 support in its 0.30.0 version.
 
-Documentation
-^^^^^^^^^^^^^
+**Documentation:**
 
 * Documented that pywbem is not supported on Python 2.6 on Windows.
   and that 64-bit versions of Python are not supported on Windows.
@@ -1262,23 +1255,21 @@ Documentation
 * Added material to README and changed to use restructured text. issue #642
 
 
-pywbem v0.10.0
---------------
+pywbem 0.10.0
+-------------
 
 Released: 2016-12-20
 
-Incompatible changes
-^^^^^^^^^^^^^^^^^^^^
+**Incompatible changes:**
 
 * All methods of the `WBEMSubscriptionManager` class that returned instance
-  paths (or lists thereof) in pywbem v0.9 now return the complete instances
+  paths (or lists thereof) in pywbem 0.9.x now return the complete instances
   (or lists thereof) (pr #607).
 
 * In `wbemcli`, removed the long global function names (e.g.
   `EnumerateInstances`), and kept the short names (e.g. `ei`) (issue #548).
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * **Experimental:** Added new methods to `WBEMConnection` to provide integrated
   APIs for the non-pull and pull operations, reducing the amount of code app
@@ -1296,7 +1287,7 @@ Enhancements
   memory usage (issue #498).
 
 * Declared the WBEM indications API and the WBEM server API to be final. These
-  APIs had been introduced in v0.9.0 as experimental.
+  APIs had been introduced in pywbem 0.9.0 as experimental.
 
 * Added enter and exit methods to `WBEMSubscriptionManager` to enable using it
   as a context manager, whose exit method automatically cleans up by calling
@@ -1338,8 +1329,7 @@ Enhancements
 
 * Improved robustness and diagnostics in `os_setup.py` (issue #556).
 
-Bug fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fixed the use of a variable before it was set in the `remove_destinations()`
   method of class `WBEMSubscriptionManager`.
@@ -1372,8 +1362,7 @@ Bug fixes
 
 * Fixed access to None in recorder (issue #621)
 
-Build, test, quality
-^^^^^^^^^^^^^^^^^^^^
+**Build, test, quality:**
 
 * Added flake8 as an additional lint tool. It is executed with `make check`.
   Fixed all flake8 issues (issues #512, #520, #523, #533, #542, #560, #567,
@@ -1412,8 +1401,7 @@ Build, test, quality
 
 * Improved the tests in `run_cim_operations.py`.
 
-Documentation
-^^^^^^^^^^^^^
+**Documentation:**
 
 * Added the global functions available in the wbemcli shell to the
   documentation (issue #602).
@@ -1443,13 +1431,12 @@ Documentation
 * Added the `wbemcli` global functions to the documentation (issue #608).
 
 
-pywbem v0.9.0
--------------
+pywbem 0.9.0
+------------
 
 Released: 2016-09-06
 
-Deprecations
-^^^^^^^^^^^^
+**Deprecations:**
 
 * Deprecated the use of the `value` instance variable and ctor parameter
   of the `CIMParameter` class, because that class represents CIM parameter
@@ -1472,8 +1459,7 @@ Deprecations
   removed completely in the future.  Its use now causes a `DeprecationWarning`
   to be issued. (Issue #297)
 
-Known Issues
-^^^^^^^^^^^^
+**Known Issues:**
 
 * Installing PyWBEM on Python 2.6 has a conflict with the `pbr` package
   from PyPI, resulting in a TypeError: "dist must be a Distribution
@@ -1486,8 +1472,7 @@ Known Issues
   MOF compiler. For example, a CIM property named 'indication'.
   See issue #62 on GitHub.
 
-Clean Code
-^^^^^^^^^^
+**Clean Code:**
 
 * Moved the following unused modules from the pywbem package directory
   into a new `attic` directory, in order to clean up the pywbem
@@ -1506,8 +1491,7 @@ Clean Code
 
 * Removed half-baked code for HTTP proxy/tunneling support.
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Implemented pull operations per DMTF specification DSP0200 and DSP0201.
   This includes the following new client operations to execute enumeration
@@ -1547,7 +1531,7 @@ Enhancements
   - Added a demo of the discovery abilities of the `WBEMServer` class in the
     `examples/explore.py` script.
 
-  **Experimental** - This new class is experimental for pywbem version 0.9.0
+  **Experimental** - This new class is experimental for pywbem 0.9.0
   because this is the initial release of a significant change and subject to
   changes to the API.
 
@@ -1566,8 +1550,8 @@ Enhancements
   - Added unit tests for these new classes and extended other existing tests
     accordingly, e.g. `run_cim_operations.py`.
 
-  **Experimental** - These new classes are experimental for pywbem version
-  0.9.0 because this is the initial release of a significant change and subject
+  **Experimental** - These new classes are experimental for pywbem 0.9.0
+  because this is the initial release of a significant change and subject
   to changes to the API.
 
   (Issues #66, #421, #414, #379, #378)
@@ -1579,7 +1563,7 @@ Enhancements
 
   (Issue #242)
 
-* Starting with v0.9.0, pywbem no longer stores the distribution archives
+* Starting with pywbem 0.9.0, pywbem no longer stores the distribution archives
   in the repository, because the process for releasing to PyPI creates new
   distribution archives instead of using the created ones. This makes it
   difficult to ensure that the archives stored in the repository are the
@@ -1728,8 +1712,7 @@ Enhancements
 * Modified qualifier MOF output to stay within 80 column limits.
   (Issue #35)
 
-Bug fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fixed `KeyError` when iterating over `CIMInstance` and `CIMInstanceName`
   objects.
@@ -1809,13 +1792,12 @@ Bug fixes
   against a live server. (Issues #363, #364)
 
 
-pywbem v0.8.4
--------------
+pywbem 0.8.4
+------------
 
 Released: 2016-05-13
 
-Bug fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fixed an IndexError in cim_http.wbem_request() that occurred during
   handling of another exception.
@@ -1829,8 +1811,7 @@ Bug fixes
   (using the Python SSL module) from the code for Python 2 (using
   M2Crypto) (issues #150, #273, #274, #288).
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Improved description in INSTALL.md to better describe how to establish
   OS-level prerequisites.
@@ -1857,19 +1838,17 @@ Enhancements
   NOTE: The --no-ssl and --port options have been removed. Specify
   the protocol and port number in the server URL.
 
-Clean code
-^^^^^^^^^^
+**Clean code:**
 
 * Removed half-baked code for HTTP proxy/tunneling support.
 
 
-pywbem v0.8.3
--------------
+pywbem 0.8.3
+------------
 
 Released: 2016-04-15
 
-Bug fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * To address some M2Crypto issues, upgraded to use M2Crypto >=0.24 from
   PyPI.
@@ -1881,28 +1860,25 @@ Bug fixes
   import errors for freshly installed packages (e.g. M2Crypto) no longer
   occur.
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Added Windows versions of WBEM utility commands: wbemcli.bat,
   mof_compiler.bat.
 
 
-pywbem v0.8.2
--------------
+pywbem 0.8.2
+------------
 
 Released: 2016-03-20
 
-Bug Fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Eliminated dependency on `six` package during installation of pywbem.
   (Andreas Maier)
 
-Dependencies
-^^^^^^^^^^^^
+**Dependencies:**
 
-* v0.8.x has the following dependencies on other PyPI packages
+* Pywbem 0.8.x has the following dependencies on other PyPI packages
   (see `install_requires` argument in setup script):
 
   - `M2Crypto`
@@ -1910,13 +1886,12 @@ Dependencies
   - `six`
 
 
-pywbem v0.8.1
--------------
+pywbem 0.8.1
+------------
 
 Released: 2016-03-18
 
-Known Issues
-^^^^^^^^^^^^
+**Known Issues:**
 
 * Installing PyWBEM on Python 2.6 has a conflict with the `pbr` package
   from PyPI, resulting in a TypeError: "dist must be a Distribution
@@ -1940,21 +1915,20 @@ Known Issues
   - The CIM indication listener in the `irecv` directory.
     See issue #66 on GitHub.
 
-Changes
-^^^^^^^
+**Changes:**
 
 * The MOF compiler is now available as the command 'mof_compiler' that gets
   installed into the Python script directory. It is now separate from the
-  'mof_compiler' module within the 'pywbem' package. In 0.7.0, the module
-  was at the same time the script.  (Andreas Maier)
+  'mof_compiler' module within the 'pywbem' package. In pywbem 0.7.0, the
+  module was at the same time the script.  (Andreas Maier)
 
 * The WBEM client CLI is now available as the command 'wbemcli' that gets
   installed into the Python script directory. It is now separate from the
-  'wbemcli' module within the 'pywbem' package. In 0.7.0, the module
+  'wbemcli' module within the 'pywbem' package. In pywbem 0.7.0, the module
   was at the same time the script.  (Andreas Maier)
 
-* In 0.7.0, most symbols defined in the sub-modules of the 'pywbem' package
-  were folded into the 'pywbem' package namespace, cluttering it
+* In pywbem 0.7.0, most symbols defined in the sub-modules of the 'pywbem'
+  package were folded into the 'pywbem' package namespace, cluttering it
   significantly. The symbols in the 'pywbem' package namespace have been
   reduced to a well-defined set that is now declared the external API of
   the WBEM client library, and is supposed to be sufficient. If you find
@@ -1962,11 +1936,10 @@ Changes
   whether that makes sense to be part of the external PyWBEM API, and if
   so, let us know by opening an issue.
 
-* Since 0.7.0, some exceptions that can be raised at the external API of
+* Since pywbem 0.7.0, some exceptions that can be raised at the external API of
   the WBEM client library have been cleaned up.
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Verify certificates against platform provided CA trust store in
   /etc/pki/tls/certs. Linux only.  (Peter Hatina)
@@ -2059,8 +2032,7 @@ Enhancements
 * Added support for Python 3.  Issue #3 on GitHub.
   (Ross Peoples, Andreas Maier)
 
-Bug Fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fix syntax error in CIM DTDVERSION error path.  Allow KEYVALUE
   VALUETYPE attribute to be optional as specified in the DTD.
@@ -2251,8 +2223,7 @@ Bug Fixes
 * Fixed errors in the description of the qualifier operations in
   `WBEMConnection`.  Issue #91 on GitHub.  (Andreas Maier)
 
-Testing
-^^^^^^^
+**Testing:**
 
 * Added support for running the unit test cases without having to be in the
   testsuite directory. This was done by setting up the DTD_FILE path
@@ -2337,8 +2308,7 @@ Testing
   it established that the timeouts apparently now really do work in both
   python 2 and python 3 with both http and https. (see issue #363)
 
-Clean Code
-^^^^^^^^^^
+**Clean Code:**
 
 * Removed dangerous default parameter `{}` from `CIMProperty` and
   `CIMInstanceName`, and replaced it with `None`. To support that, added
@@ -2366,8 +2336,7 @@ Clean Code
   - Replaced all real tab characters with spaces.
   - Many more PyLint issues
 
-Packaging / Build
-^^^^^^^^^^^^^^^^^
+**Packaging / Build:**
 
 * Fixed grammatical funkiness in the license text.  No change to actual
   license - still LGPLv2.  (Tim Potter)
@@ -2404,13 +2373,12 @@ Packaging / Build
   (Andreas Maier)
 
 
-pywbem v0.7.0
--------------
+pywbem 0.7.0
+------------
 
 Released: 2008-12-12
 
-Bug Fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fixed enumInstances and references in cim_provider to do a deep
   copy of the model before filtering instances so provider writers
@@ -2451,8 +2419,7 @@ Bug Fixes
 
 * Fix deprecation warnings with Python 2.6.  (Bart Whiteley)
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Added support for generating Pegasus provider registration MOF in
   `cim_provider.codegen()`. (Bart Whiteley)
@@ -2499,18 +2466,16 @@ Enhancements
   `WBEMConnection()`.  (Tim Potter)
 
 
-pywbem v0.6
------------
+pywbem 0.6
+----------
 
-Released: 2007-10-26
+Released: 2007-10-26 (not on Pypi)
 
-Licensing
-^^^^^^^^^
+**Licensing:**
 
 * Relicensed from the GNU GPLv2 to the GNU LGPLv2.
 
-API Changes
-^^^^^^^^^^^
+**API Changes:**
 
 * Add a type keyword arg and attribute to `CIMQualifier`, similar to
   the `CIMProperty` object, to allow the creation of null qualifiers.
@@ -2529,8 +2494,7 @@ API Changes
   in the instance.  This is useful for honoring PropertyList within
   python providers.
 
-Bug Fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Explicitly specify charset="utf-8" in HTTP Content-type header
   as this is required now by the Pegasus cimserver.  (Tim Potter)
@@ -2569,8 +2533,7 @@ Bug Fixes
 * `EnumerateClassNames()` now returns an empty list instead of None
   if there are no classes. (Bart Whiteley)
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Support for OpenWBEM password-less local authentication.
   (Bart Whiteley)
@@ -2586,13 +2549,12 @@ Enhancements
   Potter)
 
 
-pywbem v0.5
------------
+pywbem 0.5
+----------
 
-Released: 2006-11-21
+Released: 2006-11-21 (not on Pypi)
 
-API Changes
-^^^^^^^^^^^
+**API Changes:**
 
 * Many API changes were made to simplify the function and object
   interface of PyWBEM.  Aspects of just about every CIM operation
@@ -2620,8 +2582,7 @@ API Changes
   to create and manipulate objects without modifying them by
   accident.
 
-Bug Fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Fix parse bug when a `CIMInstanceName` is passed as the
   localobject parameter to `WBEMConnection.InvokeMethod()`.
@@ -2642,8 +2603,7 @@ Bug Fixes
 * `InvokeMethod` did not provide for `None` in output parameters.
   (Norm Paxton)
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * More parts of the class provider interface have been
   implemented.  (Tim Potter, Bart Whiteley)
@@ -2681,21 +2641,19 @@ Enhancements
   Whitely)
 
 
-pywbem v0.4
------------
+pywbem 0.4
+----------
 
-Released: 2005-11-15
+Released: 2005-11-15 (not on Pypi)
 
-Bug Fixes
-^^^^^^^^^
+**Bug fixes:**
 
 * Correctly calculate value of Content-Length HTTP header to include
   opening XML stanza. (Szalai Ferenc)
 
 * Fix syntax error when re-raising socket errors. (Pat Knight)
 
-Enhancements
-^^^^^^^^^^^^
+**Enhancements:**
 
 * Support for marshaling and unmarshaling CIM dates object into
   Python datetime objects. (Szalai Ferenc)
@@ -2710,8 +2668,7 @@ Enhancements
   the SSL certificate and key files as per the httplib.HTTPSConnection()
   class constructor. (Pat Knight)
 
-API Changes
-^^^^^^^^^^^
+**API Changes:**
 
 * Change association provider API functions to take a fixed
   parameter for the named object instead of a keyword argument.
@@ -2720,14 +2677,12 @@ API Changes
 * Remove the `CIMLocalNamespacePath` class and replaced by a Python
   string. (Tim Potter)
 
-Portability
-^^^^^^^^^^^
+**Portability:**
 
 * Don't use `UserDict.DictMixin` base class as it only exists in
   Python 2.3 and higher. (Tim Potter)
 
-Tests
-^^^^^
+**Tests:**
 
 * Add tests for parameter type checking for object location
   classes. (Tim Potter)
