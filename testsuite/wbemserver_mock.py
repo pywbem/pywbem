@@ -37,6 +37,10 @@ TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 DEFAULT_WBEM_SERVER_MOCK_DICT = {
     'dmtf_schema': {'version': DMTF_TEST_SCHEMA_VER,
                     'dir': TESTSUITE_SCHEMA_DIR},
+    'pg_schema': {
+        'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'OpenPegasus'),
+        'files': ['PG_Namespace.mof']
+    },
     'system_name': 'Mock_Test_WBEMServerTest',
     'object_manager': {'Name': 'MyFakeObjectManager',
                        'ElementName': 'Pegasus',
@@ -68,6 +72,7 @@ class WbemServerMock(object):
     from user defined input or from standard data predefined for pywbem
     tests
     """
+
     def __init__(self, interop_ns=None, server_mock_data=None):
         """
         Build the class repository for with the classes defined for
@@ -93,29 +98,31 @@ class WbemServerMock(object):
 
         self.dmtf_schema_ver = self.server_mock_data['dmtf_schema']['version']
         self.schema_dir = self.server_mock_data['dmtf_schema']['dir']
+        self.pg_schema_dir = self.server_mock_data['pg_schema']['dir']
+        self.pg_schema_files = self.server_mock_data['pg_schema']['files']
         self.registered_profiles = self.server_mock_data['registered_profiles']
         self.wbem_server = self.build_mock()
 
     def __str__(self):
-        print('object_manager_name=%r, interop_ns=%r, system_name=%r, '
-              'dmtf_schema_ver=%r, schema_dir=%r, wbem_server=%s' %
-              (self.object_manager_name,
-               self.interop_ns, self.system_name,
-               self.dmtf_schema_ver,
-               self.schema_dir, self.wbem_server))
+        ret_str = 'object_manager_name=%r, interop_ns=%r, system_name=%r, ' \
+            'dmtf_schema_ver=%r, schema_dir=%r, wbem_server=%s' % \
+            (self.object_manager_name, self.interop_ns, self.system_name,
+             self.dmtf_schema_ver, self.schema_dir,
+             getattr(self, 'wbem_server', None))
+        return ret_str
 
     def __repr__(self):
         """
         Return a representation of the class object
         with all attributes, that is suitable for debugging.
         """
-        print('WBEMServerMock: object_manager_name=%r, interop_ns=%r, '
-              'system_name=%r, dmtf_schema_ver=%r, schema_dir=%r, '
-              'wbem_server=%r, registered_profiles=%r' %
-              (self.object_manager_name,
-               self.interop_ns, self.system_name,
-               self.dmtf_schema_ver, self.schema_dir, self.wbem_server,
-               self.registered_profiles))
+        ret_str = 'WBEMServerMock(object_manager_name=%r, interop_ns=%r, ' \
+            'system_name=%r, dmtf_schema_ver=%r, schema_dir=%r, ' \
+            'wbem_server=%r, registered_profiles=%r)' % \
+            (self.object_manager_name, self.interop_ns, self.system_name,
+             self.dmtf_schema_ver, self.schema_dir,
+             getattr(self, 'wbem_server', None), self.registered_profiles)
+        return ret_str
 
     def build_class_repo(self, default_namespace):
         """
@@ -129,15 +136,22 @@ class WbemServerMock(object):
             Instance of FakedWBEMConnection object.
         """
         # pylint: disable=protected-access
+
         FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection(default_namespace=default_namespace)
+
         classnames = ['CIM_Namespace',
                       'CIM_ObjectManager',
                       'CIM_RegisteredProfile',
                       'CIM_ElementConformsToProfile']
-
         conn.compile_dmtf_schema(self.dmtf_schema_ver, self.schema_dir,
                                  class_names=classnames, verbose=False)
+
+        for fn in self.pg_schema_files:
+            pg_file = os.path.join(self.pg_schema_dir, fn)
+            conn.compile_mof_file(pg_file, namespace=default_namespace,
+                                  search_paths=[self.pg_schema_dir],
+                                  verbose=False)
 
         return conn
 
@@ -183,8 +197,11 @@ class WbemServerMock(object):
 
         conn.add_cimobjects(ominst, namespace=self.interop_ns)
 
-        assert(len(conn.EnumerateInstances(
-            "CIM_ObjectManager", namespace=self.interop_ns)) == 1)
+        rtn_ominsts = conn.EnumerateInstances("CIM_ObjectManager",
+                                              namespace=self.interop_ns)
+        assert len(rtn_ominsts) == 1, \
+            "Expected 1 ObjetManager instance, got %r" % rtn_ominsts
+
         return ominst
 
     def build_cimnamespace_insts(self, conn, namespaces=None):
@@ -196,20 +213,21 @@ class WbemServerMock(object):
             nsdict = {"SystemName": self.system_name,
                       "ObjectManagerName": self.object_manager_name,
                       'Name': ns,
-                      'CreationClassName': 'CIM_Namespace',
+                      'CreationClassName': 'PG_Namespace',
                       'ObjectManagerCreationClassName': 'CIM_ObjectManager',
                       'SystemCreationClassName': 'CIM_ComputerSystem'}
 
-            ominst = self.inst_from_classname(conn, "CIM_Namespace",
+            nsinst = self.inst_from_classname(conn, "PG_Namespace",
                                               namespace=self.interop_ns,
                                               property_values=nsdict,
                                               include_missing_properties=False,
                                               include_path=True)
-            conn.add_cimobjects(ominst, namespace=self.interop_ns)
+            conn.add_cimobjects(nsinst, namespace=self.interop_ns)
 
         rtn_namespaces = conn.EnumerateInstances("CIM_Namespace",
                                                  namespace=self.interop_ns)
-        assert len(rtn_namespaces) == len(namespaces)
+        assert len(rtn_namespaces) == len(namespaces), \
+            "Expected namespaces: %r, got %s" % (namespaces, rtn_namespaces)
 
     def build_reg_profile_insts(self, conn, profiles):
         """
@@ -246,8 +264,10 @@ class WbemServerMock(object):
 
             conn.add_cimobjects(rpinst, namespace=self.interop_ns)
 
-        assert(conn.EnumerateInstances("CIM_RegisteredProfile",
-                                       namespace=self.interop_ns))
+        rtn_rpinsts = conn.EnumerateInstances("CIM_RegisteredProfile",
+                                              namespace=self.interop_ns)
+        assert rtn_rpinsts, \
+            "Expected 1 or more RegisteredProfile instances, got none"
 
     def build_elementconformstoprofile_inst(self, conn, profile_inst,
                                             element_inst):

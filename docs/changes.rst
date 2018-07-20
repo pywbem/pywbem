@@ -265,6 +265,9 @@ This version contains all fixes up to pywbem 0.12.4.
   Extended the testcases for CreateInstance accordingly.
   See issue #1319.
 
+* Added support for CIM namespace creation via a new
+  `WBEMServer.create_namespace()` method. See issue #29.
+
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a

@@ -1,0 +1,7 @@
+// Minimalistic PG_Namespace class for mocking purposes
+
+class PG_Namespace : CIM_Namespace {
+   boolean SchemaUpdatesAllowed = TRUE;
+   boolean IsShareable = FALSE;
+   string ParentNamespace = NULL;
+};
