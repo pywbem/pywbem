@@ -34,30 +34,30 @@ class Error(Exception):
         """
         Parameters:
 
-          conn (:class:`~pywbem.WBEMConnection`): Must be a keyword argument.
-            Connection in whose context the error happened. Omitted or `None`
-            if the error did not happen in context of any connection, or if the
-            connection context was not known.
+          conn_id (:term:`connection id`): Must be a keyword argument.
+            Connection ID of the connection in whose context the error
+            happened. Omitted or `None` if the error did not happen in context
+            of any connection, or if the connection context was not known.
 
           Any other positional arguments or keyword arguments are passed to
           :exc:`py:Exception`.
         """
-        if 'conn' in kwargs:
-            conn = kwargs['conn']
-            del kwargs['conn']
+        if 'conn_id' in kwargs:
+            conn_id = kwargs['conn_id']
+            del kwargs['conn_id']
         else:
-            conn = None
+            conn_id = None
         super(Error, self).__init__(*args, **kwargs)
-        self._conn = conn
+        self._conn_id = conn_id
 
     @property
-    def conn(self):
+    def conn_id(self):
         """
-        :class:`~pywbem.WBEMConnection`: Connection in whose context
+        :term:`connection id`: Connection ID of the connection in whose context
         the error happened. `None` if the error did not happen in context
         of any connection, or if the connection context was not known.
         """
-        return self._conn
+        return self._conn_id
 
     @property
     def conn_str(self):
@@ -65,8 +65,7 @@ class Error(Exception):
         :term:`unicode string`: String that identifies the connection in
         exception messages.
         """
-        conn_id = self.conn.conn_id if self.conn else None
-        ret_str = "Connection id: %s" % conn_id
+        ret_str = "Connection id: %s" % self.conn_id
         return ret_str
 
     def __str__(self):
@@ -102,7 +101,7 @@ class HTTPError(Error):
 
     # pylint: disable=super-init-not-called
     def __init__(self, status, reason, cimerror=None, cimdetails=None,
-                 conn=None):
+                 conn_id=None):
         """
         Parameters:
 
@@ -123,9 +122,10 @@ class HTTPError(Error):
 
             Passing `None` will result in an empty dictionary.
 
-          conn (:class:`~pywbem.WBEMConnection`): Connection in whose context
-            the error happened. `None` if the error did not happen in context
-            of any connection, or if the connection context was not known.
+          conn_id (:term:`connection id`): Connection ID of the connection in
+            whose context the error happened. `None` if the error did not
+            happen in context of any connection, or if the connection context
+            was not known.
 
         :ivar args: A tuple (status, reason, cimerror, cimdetails) set from the
             corresponding init arguments.
@@ -133,7 +133,7 @@ class HTTPError(Error):
         if cimdetails is None:
             cimdetails = {}
         super(HTTPError, self).__init__(
-            status, reason, cimerror, cimdetails, conn=conn)
+            status, reason, cimerror, cimdetails, conn_id=conn_id)
 
     @property
     def status(self):
@@ -237,7 +237,7 @@ class CIMError(Error):
     """
 
     # pylint: disable=super-init-not-called
-    def __init__(self, status_code, status_description=None, conn=None):
+    def __init__(self, status_code, status_description=None, conn_id=None):
         """
         Parameters:
 
@@ -248,15 +248,16 @@ class CIMError(Error):
             describing the error. `None`, if the server did not return
             a description text.
 
-          conn (:class:`~pywbem.WBEMConnection`): Connection in whose context
-            the error happened. `None` if the error did not happen in context
-            of any connection, or if the connection context was not known.
+          conn_id (:term:`connection id`): Connection ID of the connection in
+            whose context the error happened. `None` if the error did not
+            happen in context of any connection, or if the connection context
+            was not known.
 
         :ivar args: A tuple (status_code, status_description) set from the
             corresponding init arguments.
         """
         super(CIMError, self).__init__(
-            status_code, status_description, conn=conn)
+            status_code, status_description, conn_id=conn_id)
 
     @property
     def status_code(self):
