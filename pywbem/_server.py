@@ -98,12 +98,13 @@ import re
 
 from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED
 from .exceptions import CIMError
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstanceName
+from .cim_obj import CIMInstanceName, CIMInstance
 from .cim_operations import WBEMConnection
 from ._valuemapping import ValueMapping
+from ._utils import _ensure_unicode
 
 __all__ = ['WBEMServer']
 
@@ -160,6 +161,7 @@ class WBEMServer(object):
         self._namespace_classname = None
         self._brand = None
         self._version = None
+        self._cimom_inst = None
         self._profiles = None
 
     def __repr__(self):
@@ -283,6 +285,24 @@ class WBEMServer(object):
         return self._version
 
     @property
+    def cimom_inst(self):
+        """
+        :class:`~pywbem.CIMInstance`: CIM instance of class `CIM_ObjectManager`
+        that represents the WBEM server.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
+              determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
+              `CIM_ObjectManager` instances.
+        """
+        if self._cimom_inst is None:
+            self._determine_brand()
+        return self._cimom_inst
+
+    @property
     def profiles(self):
         """
         :class:`py:list` of :class:`~pywbem.CIMInstance`: The
@@ -298,6 +318,148 @@ class WBEMServer(object):
         if self._profiles is None:
             self._determine_profiles()
         return self._profiles
+
+    def create_namespace(self, namespace):
+        """
+        Create the specified CIM namespace in the WBEM server and
+        update this WBEMServer object to reflect the new namespace
+        there.
+
+        This method attempts the following approaches for creating the
+        namespace, in order, until an approach succeeds:
+
+        1. Namespace creation as described in the WBEM Server profile
+           (:term:`DSP1092`) via CIM method
+           `CIM_WBEMServer.CreateWBEMServerNamespace()`.
+
+           This is a new standard approach that is not likely to be
+           widely implemented yet.
+
+        2. Issuing the `CreateInstance` operation using the CIM class
+           representing namespaces ('PG_Namespace' for OpenPegasus,
+           and 'CIM_Namespace' otherwise), against the Interop namespace.
+
+           This approach is typicxally supported in WBEM servers that
+           support the creation of CIM namespaces. This approach is
+           similar to the approach described in :term:`DSP0200`.
+
+        Creating namespaces using the `__Namespace` pseudo-class has been
+        deprecated already in DSP0200 1.1.0 (released in 01/2003), and pywbem
+        does not implement that approach.
+
+        Parameters:
+
+            namespace (:term:`string`): CIM namespace name. Must not be `None`.
+              The namespace may contain leading and a trailing slash, both of
+              which will be ignored.
+
+        Returns:
+
+          :term:`unicode string`: The specified CIM namespace name in its
+          standard format (i.e. without leading or trailing slash characters).
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_ALREADY_EXISTS, Specified namespace already
+              exists in the WBEM server.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
+              determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
+              `CIM_ObjectManager` instances.
+            CIMError: CIM_ERR_FAILED, Unexpected number of
+              central instances of WBEM Server profile.
+        """
+
+        std_namespace = _ensure_unicode(namespace.strip('/'))
+
+        ws_profiles = self.get_selected_profiles('DMTF', 'WBEM Server')
+        if ws_profiles:
+
+            # Use approach 1: Method defined in WBEM Server profile
+
+            ws_profiles_sorted = sorted(
+                ws_profiles, key=lambda prof: prof['RegisteredVersion'])
+            ws_profile_inst = ws_profiles_sorted[-1]  # latest version
+            ws_insts = self.get_central_instances(ws_profile_inst.path)
+            if len(ws_insts) != 1:
+                raise CIMError(CIM_ERR_FAILED,
+                               "Unexpected number of central instances of "
+                               "WBEM Server profile: %s " %
+                               [i.path for i in ws_insts])
+            ws_inst = ws_insts[0]
+
+            ns_inst = CIMInstance('CIM_WBEMServerNamespace')
+            ns_inst['Name'] = std_namespace
+
+            try:
+                (ret_val, out_params) = self._conn.InvokeMethod(
+                    MethodName="CreateWBEMServerNamespace",
+                    ObjectName=ws_inst.path,
+                    Params=[('NamespaceTemplate', ns_inst)])
+            except CIMError as exc:
+                if exc.status_code in (CIM_ERR_METHOD_NOT_FOUND,
+                                       CIM_ERR_METHOD_NOT_AVAILABLE,
+                                       CIM_ERR_NOT_SUPPORTED):
+                    # Method is not implemented.
+                    # CIM_ERR_NOT_SUPPORTED is not an official status code for
+                    # this situation, but is used by some implementations.
+                    pass  # try next approach
+                else:
+                    raise
+            else:
+                if ret_val != 0:
+                    raise CIMError(
+                        CIM_ERR_FAILED,
+                        "The CreateWBEMServerNamespace() method is "
+                        "implemented but failed: %s" % out_params['Errors'])
+
+        else:
+
+            # Use approach 2: CreateInstance of CIM class for namespaces
+
+            # For OpenPegasus, use 'PG_Namespace' class to account for issue
+            # when using 'CIM_Namespace'. See OpenPegasus bug 10112:
+            # http://bugzilla.openpegasus.org/show_bug.cgi?id=10112
+            if self.brand == "OpenPegasus":
+                ns_classname = 'PG_Namespace'
+            else:
+                ns_classname = 'CIM_Namespace'
+
+            ns_inst = CIMInstance(ns_classname)
+
+            # OpenPegasus requires this property to be True, in order to
+            # allow schema updates in the namespace.
+            if self.brand == "OpenPegasus":
+                ns_inst['SchemaUpdatesAllowed'] = True
+
+            ns_inst['Name'] = std_namespace
+
+            # DSP0200 is not clear as to whether just "Name" or all key
+            # properties need to be provided. For now, we provide all key
+            # properties.
+            # OpenPegasus requires all key properties, and it re-creates the
+            # 5 key properties besides "Name" so that the returned instance
+            # path may differ from the key properties provided.
+
+            ns_inst['CreationClassName'] = ns_classname
+            ns_inst['ObjectManagerName'] = self.cimom_inst['Name']
+            ns_inst['ObjectManagerCreationClassName'] = \
+                self.cimom_inst['CreationClassName']
+            ns_inst['SystemName'] = self.cimom_inst['SystemName']
+            ns_inst['SystemCreationClassName'] = \
+                self.cimom_inst['SystemCreationClassName']
+
+            self.conn.CreateInstance(ns_inst, namespace=self.interop_ns)
+
+        # Refresh the list of namespaces in this object to include the one
+        # we just created.
+        # Namespace creation is such a rare operation that we can afford
+        # the extra namespace determination operations, to make sure we
+        # really have the new namespace.
+        self._determine_namespaces()
+
+        return std_namespace
 
     def get_selected_profiles(self, registered_org=None, registered_name=None,
                               registered_version=None):
@@ -744,6 +906,7 @@ class WBEMServer(object):
             version = None
         self._brand = brand
         self._version = version
+        self._cimom_inst = cimom_inst
 
     def _determine_profiles(self):
         """

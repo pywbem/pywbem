@@ -1496,8 +1496,8 @@ class FakedWBEMConnection(WBEMConnection):
                                'The class %r defined by "ClassName" parameter '
                                'does not exist in namespace %r' %
                                (classname, namespace))
-        cns = self._get_subclass_names(classname, namespace,
-                                       params['DeepInheritance'])
+        clns = self._get_subclass_names(classname, namespace,
+                                        params['DeepInheritance'])
 
         # Note: _get_class will return NOT_FOUND if the class not in the
         # repo but it was just found by _get_subclass_names so that would
@@ -1507,7 +1507,7 @@ class FakedWBEMConnection(WBEMConnection):
                             local_only=params['LocalOnly'],
                             include_qualifiers=params['IncludeQualifiers'],
                             include_classorigin=params['IncludeClassOrigin'])
-            for cn in cns]
+            for cn in clns]
 
         return self._make_tuple(classes)
 
@@ -1948,6 +1948,17 @@ class FakedWBEMConnection(WBEMConnection):
             else:
                 raise
 
+        # Handle special classes, currently hard coded.
+        # TODO AM 8/18 Generalize the hard coded handling into provider concept
+        if new_instance.classname.lower() == 'pg_namespace':
+            # These values must match those in testsuite/wbemserver_mock.py
+            new_instance['CreationClassName'] = 'PG_Namespace'
+            new_instance['ObjectManagerName'] = 'MyFakeObjectManager'
+            new_instance['ObjectManagerCreationClassName'] = \
+                'CIM_ObjectManager'
+            new_instance['SystemName'] = 'Mock_Test_WBEMServerTest'
+            new_instance['SystemCreationClassName'] = 'CIM_ComputerSystem'
+
         # Test all key properties in instance. This is our repository limit
         # since the repository cannot add values for key properties. We do
         # no allow creating key properties from class defaults.
@@ -2243,6 +2254,7 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_INVALID_NAMESPACE
         """
+
         inst_repo = self._get_instance_repo(namespace)
 
         cname = params['ClassName']
