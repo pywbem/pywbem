@@ -2029,6 +2029,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         self.conn = conn
+        self.conn_id = conn.conn_id if conn is not None else None
         self.class_names = {}
         self.qualifiers = {}
         self.instances = {}
@@ -2091,7 +2092,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         called, and is therefore not implemented.
         """
 
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def ModifyInstance(self, *args, **kwargs):
         """This method is used by the MOF compiler only in the course of
@@ -2100,7 +2103,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         method is never called, and is therefore not implemented.
         """
 
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def CreateInstance(self, *args, **kwargs):
         """Create a CIM instance in the local repository of this class.
@@ -2121,7 +2126,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         repository), and never by the MOF compiler, and is therefore not
         implemented."""
 
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def GetClass(self, *args, **kwargs):
         """Retrieve a CIM class from the local repository of this class.
@@ -2167,7 +2174,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         is never called, and is therefore not implemented.
         """
 
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def CreateClass(self, *args, **kwargs):
         """Create a CIM class in the local repository of this class.
@@ -2209,12 +2218,13 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                   IncludeQualifiers=True)
                 except CIMError as ce:
                     if ce.status_code == CIM_ERR_NOT_FOUND:
-                        raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                                       'Class %r referenced by element '
-                                       '%r of class %r in namespace '
-                                       '%r does not exist' %
-                                       (obj.reference_class, obj.name,
-                                        cc.classname, self.getns()))
+                        raise CIMError(
+                            CIM_ERR_INVALID_PARAMETER,
+                            "Class %r referenced by element %r of class %r in "
+                            "namespace %r does not exist" %
+                            (obj.reference_class, obj.name, cc.classname,
+                             self.getns()),
+                            conn_id=self.conn_id)
                     raise
 
             elif obj.type == 'string':
@@ -2231,7 +2241,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                 'qualifier on element %r of class %r in '
                                 'namespace %r does not exist' %
                                 (eiqualifier.value, obj.name,
-                                 cc.classname, self.getns()))
+                                 cc.classname, self.getns()),
+                                conn_id=self.conn_id)
                         raise
 
         # TODO #991: CreateClass should reject if the class already exists
@@ -2245,7 +2256,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         repository), and never by the MOF compiler, and is therefore not
         implemented."""
 
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def EnumerateQualifiers(self, *args, **kwargs):
         """Enumerate the qualifier types in the local repository of this class.
@@ -2276,7 +2289,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             qual = self.qualifiers[self.default_namespace][qualname]
         except KeyError:
             if self.conn is None:
-                raise CIMError(CIM_ERR_NOT_FOUND, qualname)
+                raise CIMError(
+                    CIM_ERR_NOT_FOUND, qualname, conn_id=self.conn_id)
             qual = self.conn.GetQualifier(*args, **kwargs)
         return qual
 
@@ -2300,7 +2314,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         repository), and never by the MOF compiler, and is therefore not
         implemented."""
 
-        raise CIMError(CIM_ERR_FAILED, 'This should not happen!')
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def rollback(self, verbose=False):
         """

@@ -1634,25 +1634,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
-            raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
+            raise ParseError(
+                'Expecting CIM element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
-            raise ParseError('Expecting MESSAGE element, got %s' % tup_tree[0])
+            raise ParseError(
+                'Expecting MESSAGE element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLERSP':
-            raise ParseError('Expecting SIMPLERSP element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                'Expecting SIMPLERSP element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'IMETHODRESPONSE':
-            raise ParseError('Expecting IMETHODRESPONSE element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                'Expecting IMETHODRESPONSE element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
 
         if tup_tree[1]['NAME'] != methodname:
-            raise ParseError('Expecting attribute NAME=%s, got %s' %
-                             (methodname, tup_tree[1]['NAME']))
+            raise ParseError(
+                'Expecting attribute NAME=%s, got %s' %
+                (methodname, tup_tree[1]['NAME']),
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         # At this point we either have a IRETURNVALUE, ERROR element
@@ -1667,14 +1675,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             err = tup_tree[0]
             code = int(err[1]['CODE'])
             if 'DESCRIPTION' in err[1]:
-                raise CIMError(code, err[1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % err[1]['CODE'])
+                raise CIMError(
+                    code, err[1]['DESCRIPTION'],
+                    conn_id=self.conn_id)
+            raise CIMError(
+                code, 'Error code %s' % err[1]['CODE'],
+                conn_id=self.conn_id)
         if response_params_rqd is None:
             # expect either ERROR | IRETURNVALUE*
             err = tup_tree[0]
             if err[0] != 'IRETURNVALUE':
-                raise ParseError('Expecting IRETURNVALUE element, got %s'
-                                 % err[0])
+                raise ParseError(
+                    'Expecting IRETURNVALUE element, got %s' % err[0],
+                    conn_id=self.conn_id)
             return tup_tree
 
         # At this point should have optional RETURNVALUE and at maybe one
@@ -1880,25 +1893,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
-            raise ParseError('Expecting CIM element, got %s' % tup_tree[0])
+            raise ParseError(
+                'Expecting CIM element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
-            raise ParseError('Expecting MESSAGE element, got %s' % tup_tree[0])
+            raise ParseError(
+                'Expecting MESSAGE element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLERSP':
-            raise ParseError('Expecting SIMPLERSP element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                'Expecting SIMPLERSP element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'METHODRESPONSE':
-            raise ParseError('Expecting METHODRESPONSE element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                'Expecting METHODRESPONSE element, got %s' % tup_tree[0],
+                conn_id=self.conn_id)
 
         if tup_tree[1]['NAME'] != methodname:
-            raise ParseError('Expecting attribute NAME=%s, got %s' %
-                             (methodname, tup_tree[1]['NAME']))
+            raise ParseError(
+                'Expecting attribute NAME=%s, got %s' %
+                (methodname, tup_tree[1]['NAME']),
+                conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         # At this point we have an optional RETURNVALUE and zero or
@@ -1907,8 +1928,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if tup_tree and tup_tree[0][0] == 'ERROR':
             code = int(tup_tree[0][1]['CODE'])
             if 'DESCRIPTION' in tup_tree[0][1]:
-                raise CIMError(code, tup_tree[0][1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % tup_tree[0][1]['CODE'])
+                raise CIMError(
+                    code, tup_tree[0][1]['DESCRIPTION'],
+                    conn_id=self.conn_id)
+            raise CIMError(
+                code, 'Error code %s' % tup_tree[0][1]['CODE'],
+                conn_id=self.conn_id)
 
         # #  Original code return tup_tree
 
@@ -2028,8 +2053,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                             'got: %s' % type(instancename))
         return instancename
 
-    @staticmethod
-    def _get_rslt_params(result, namespace):
+    def _get_rslt_params(self, result, namespace):
         """Common processing for pull results to separate
            end-of-sequence, enum-context, and entities in IRETURNVALUE.
            Returns tuple of entities in IRETURNVALUE, end_of_sequence,
@@ -2048,8 +2072,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                             else False
                         end_of_sequence_found = True
                     else:
-                        raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Invalid '
-                                       'value %s on EndOfSequence' % p[2])
+                        raise CIMError(
+                            CIM_ERR_INVALID_PARAMETER,
+                            'Invalid value %s on EndOfSequence' % p[2],
+                            conn_id=self.conn_id)
 
             elif p[0] == 'EnumerationContext':
                 enumeration_context_found = True
@@ -2060,11 +2086,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 rtn_objects = p[2]
 
         if not end_of_sequence_found and not enumeration_context_found:
-            raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence "
-                           "or EnumerationContext required in response.")
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                "EndOfSequence or EnumerationContext required in response.",
+                conn_id=self.conn_id)
         if not end_of_sequence and enumeration_context is None:
-            raise CIMError(CIM_ERR_INVALID_PARAMETER, "EndOfSequence False"
-                           "and EnumerationContext Null value or missing.")
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                "EndOfSequence False and EnumerationContext Null value or "
+                "missing.",
+                conn_id=self.conn_id)
 
         # Drop enumeration_context if eos True
         # Returns tuple of enumeration context and namespace
@@ -7608,8 +7639,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for p in result:
                 if p[0] == 'QueryResultClass' and isinstance(p[2], CIMClass):
                     return p[2]
-            raise CIMError(CIM_ERR_INVALID_PARAMETER,
-                           "ReturnQueryResultClass invalid or missing.")
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                "ReturnQueryResultClass invalid or missing.",
+                conn_id=self.conn_id)
 
         exc = None
         result_tuple = None

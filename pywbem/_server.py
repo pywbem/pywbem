@@ -605,9 +605,11 @@ class WBEMServer(object):
                 break
         if interop_ns is None:
             # Exhausted the possible namespaces
-            raise CIMError(CIM_ERR_NOT_FOUND,
-                           "Interop namespace could not be determined "
-                           "(tried %s)" % self.INTEROP_NAMESPACES)
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                "Interop namespace could not be determined (tried %s)" %
+                self.INTEROP_NAMESPACES,
+                conn_id=self.conn.conn_id)
         self._interop_ns = interop_ns
 
     def _validate_interop_ns(self, interop_ns):
@@ -685,9 +687,11 @@ class WBEMServer(object):
                 break
         if ns_insts is None:
             # Exhausted the possible class names
-            raise CIMError(CIM_ERR_NOT_FOUND,
-                           "Namespace class could not be determined "
-                           "(tried %s)" % self.NAMESPACE_CLASSNAMES)
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                "Namespace class could not be determined (tried %s)" %
+                self.NAMESPACE_CLASSNAMES,
+                conn_id=self.conn.conn_id)
         self._namespace_classname = ns_classname
         self._namespaces = [inst['Name'] for inst in ns_insts]
 
@@ -712,10 +716,11 @@ class WBEMServer(object):
         cimom_insts = self._conn.EnumerateInstances(
             "CIM_ObjectManager", namespace=self.interop_ns)
         if len(cimom_insts) != 1:
-            raise CIMError(CIM_ERR_NOT_FOUND,
-                           "Unexpected number of CIM_ObjectManager "
-                           "instances: %s " %
-                           [i['ElementName'] for i in cimom_insts])
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                "Unexpected number of CIM_ObjectManager instances: %s " %
+                [i['ElementName'] for i in cimom_insts],
+                conn_id=self.conn.conn_id)
         cimom_inst = cimom_insts[0]
         element_name = cimom_inst['ElementName']
         if element_name is not None:

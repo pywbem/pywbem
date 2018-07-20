@@ -624,6 +624,7 @@ class WBEMSubscriptionManager(object):
 
         # Validate server_id
         server = self._get_server(server_id)
+        conn_id = server.conn.conn_id if server.conn is not None else None
 
         # If list, recursively call this function with each list item.
         if isinstance(destination_paths, list):
@@ -640,9 +641,10 @@ class WBEMSubscriptionManager(object):
         if ref_paths:
             # DSP1054 1.2 defines that this CIM error is raised by the server
             # in that case, so we simulate that behavior on the client side.
-            raise CIMError(CIM_ERR_FAILED,
-                           "The listener destination is referenced by "
-                           "subscriptions.")
+            raise CIMError(
+                CIM_ERR_FAILED,
+                "The listener destination is referenced by subscriptions.",
+                conn_id=conn_id)
 
         server.conn.DeleteInstance(dest_path)
 
@@ -867,6 +869,7 @@ class WBEMSubscriptionManager(object):
 
         # Validate server_id
         server = self._get_server(server_id)
+        conn_id = server.conn.conn_id if server.conn is not None else None
 
         # Verify referencing subscriptions.
         ref_paths = server.conn.ReferenceNames(
@@ -874,9 +877,10 @@ class WBEMSubscriptionManager(object):
         if ref_paths:
             # DSP1054 1.2 defines that this CIM error is raised by the server
             # in that case, so we simulate that behavior on the client side.
-            raise CIMError(CIM_ERR_FAILED,
-                           "The indication filter is referenced by "
-                           "subscriptions.")
+            raise CIMError(
+                CIM_ERR_FAILED,
+                "The indication filter is referenced by subscriptions.",
+                conn_id=conn_id)
 
         server.conn.DeleteInstance(filter_path)
 

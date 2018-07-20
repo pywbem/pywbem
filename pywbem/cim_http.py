@@ -152,7 +152,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
 
       ::
 
-        with HTTPTimeout(timeout, http_conn):
+        with HTTPTimeout(timeout, http_conn, conn_id):
             ... operations using http_conn ...
 
     If the timeout expires, the socket of the HTTP connection is shut down.
@@ -161,7 +161,7 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
     exception in the thread that executed the ``with`` statement.
     """
 
-    def __init__(self, timeout, http_conn):
+    def __init__(self, timeout, http_conn, conn_id=None):
         """Initialize the HTTPTimeout object.
 
         :Parameters:
@@ -171,10 +171,17 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
 
           http_conn (`httplib.HTTPBaseConnection` or subclass):
             The connection that is to be stopped when the timeout expires.
+
+          conn_id (:term:`connection id`): Connection ID of the WBEM connection
+            in whose context the error happened. `None` if the error did not
+            happen in context of any connection, or if the connection context
+            was not known.
         """
 
         self._timeout = timeout
         self._http_conn = http_conn
+        self._conn_id = conn_id
+
         # time in seconds after which a retry of socket shutdown is scheduled
         # if the socket is not yet connected when timeout expires
         self._retrytime = 5
@@ -205,7 +212,8 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
                 duration_sec = (float(duration.microseconds) / 1000000) + \
                     duration.seconds + (duration.days * 24 * 3600)
                 raise TimeoutError("The client timed out and closed the "
-                                   "socket after %.0fs." % duration_sec)
+                                   "socket after %.0fs." % duration_sec,
+                                   conn_id=self._conn_id)
         return False  # re-raise any other exceptions
 
     def timer_expired(self):
@@ -585,13 +593,15 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                         if check is not None:
                             if not check(self.sock.get_peer_cert(), self.host):
                                 raise ConnectionError(
-                                    'SSL error: post connection check failed')
+                                    'SSL error: post connection check failed',
+                                    conn_id=conn_id)
                     return ret
 
                 except (SSLError, SSL.SSLError,
                         SSL.Checker.SSLVerificationError) as arg:
                     raise ConnectionError(
-                        "SSL error %s: %s" % (arg.__class__, arg))
+                        "SSL error %s: %s" % (arg.__class__, arg),
+                        conn_id=conn_id)
 
             # Connect using Python SSL module
             else:
@@ -633,10 +643,12 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
                 except SSLError as arg:
                     raise ConnectionError(
-                        "SSL error %s: %s" % (arg.__class__, arg))
+                        "SSL error %s: %s" % (arg.__class__, arg),
+                        conn_id=conn_id)
                 except CertificateError as arg:
                     raise ConnectionError(
-                        "SSL certificate error %s: %s" % (arg.__class__, arg))
+                        "SSL certificate error %s: %s" % (arg.__class__, arg),
+                        conn_id=conn_id)
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """Execute client connection based on a unix domain socket. """
@@ -651,7 +663,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
             except AttributeError:
                 raise ConnectionError(
                     'file URLs not supported on %s platform due '
-                    'to missing AF_UNIX support' % platform.system())
+                    'to missing AF_UNIX support' % platform.system(),
+                    conn_id=conn_id)
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
 
@@ -708,9 +721,13 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     client = FileHTTPConnection(url_)
                     local = True
                 else:
-                    raise ConnectionError('File URL is not a socket: %s' % url)
+                    raise ConnectionError(
+                        'File URL is not a socket: %s' % url,
+                        conn_id=conn_id)
             except OSError as exc:
-                raise ConnectionError('Error with file URL %s: %s' % (url, exc))
+                raise ConnectionError(
+                    'Error with file URL %s: %s' % (url, exc),
+                    conn_id=conn_id)
 
     locallogin = None
     if host in ('localhost', 'localhost6', '127.0.0.1', '::1'):
@@ -734,7 +751,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
             recorder.stage_http_response1(conn_id, None, None, None, None)
             recorder.stage_http_response2(None)
 
-    with HTTPTimeout(timeout, client):
+    with HTTPTimeout(timeout, client, conn_id):
 
         try_limit = 5  # Number of tries with authentication challenges.
 
@@ -830,7 +847,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 if response.status != 200:
                     if response.status == 401:
                         if not local:
-                            raise AuthError(response.reason)
+                            raise AuthError(response.reason, conn_id=conn_id)
                         auth_chal = response.getheader('WWW-Authenticate', '')
                         if 'openwbem' in response.getheader('Server', ''):
                             if 'OWLocal' not in auth_chal:
@@ -841,7 +858,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                         "OWLocal authorization for OpenWbem "
                                         "server not supported on %s platform "
                                         "due to missing os.getuid()" %
-                                        platform.system())
+                                        platform.system(), conn_id=conn_id)
                                 local_auth_header = ('Authorization',
                                                      'OWLocal uid="%d"' % uid)
                                 continue  # with next retry
@@ -894,7 +911,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                     continue  # with next retry
                             except ValueError:
                                 pass
-                        raise AuthError(response.reason)
+                        raise AuthError(response.reason, conn_id=conn_id)
 
                     cimerror_hdr = response.getheader('CIMError', None)
                     if cimerror_hdr is not None:
@@ -906,9 +923,11 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                             cimdetails['PGErrorDetail'] = \
                                 urllib.parse.unquote(pgdetails_hdr)
                         raise HTTPError(response.status, response.reason,
-                                        cimerror_hdr, cimdetails)
+                                        cimerror_hdr, cimdetails,
+                                        conn_id=conn_id)
 
-                    raise HTTPError(response.status, response.reason)
+                    raise HTTPError(response.status, response.reason,
+                                    conn_id=conn_id)
 
                 body = response.read()
 
@@ -942,21 +961,32 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                       UserWarning, stacklevel=2)
                         continue  # with next retry
                     else:
-                        raise ConnectionError("The server closed the "
-                                              "connection without returning "
-                                              "any response")
+                        raise ConnectionError(
+                            "The server closed the connection without "
+                            "returning any response",
+                            conn_id=conn_id)
                 else:
-                    raise ConnectionError("The server returned a bad HTTP "
-                                          "status line: %r" % exc.line)
+                    raise ConnectionError(
+                        "The server returned a bad HTTP status line: "
+                        "%r" % exc.line,
+                        conn_id=conn_id)
             except httplib.IncompleteRead as exc:
-                raise ConnectionError("HTTP incomplete read: %s" % exc)
+                raise ConnectionError(
+                    "HTTP incomplete read: %s" % exc,
+                    conn_id=conn_id)
             except httplib.NotConnected as exc:
-                raise ConnectionError("HTTP not connected: %s" % exc)
+                raise ConnectionError(
+                    "HTTP not connected: %s" % exc,
+                    conn_id=conn_id)
             except httplib.HTTPException as exc:
                 # Base class for all httplib exceptions
-                raise ConnectionError("HTTP error: %s" % exc)
+                raise ConnectionError(
+                    "HTTP error: %s" % exc,
+                    conn_id=conn_id)
             except SocketErrors as exc:
-                raise ConnectionError("Socket error: %s" % exc)
+                raise ConnectionError(
+                    "Socket error: %s" % exc,
+                    conn_id=conn_id)
 
             # Operation was successful
             break
