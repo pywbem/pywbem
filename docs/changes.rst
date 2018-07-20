@@ -123,6 +123,13 @@ Released: not yet
   variables. They are no longer imported into the `pywbem` namespace.
   See issue #1302.
 
+* Fixed issue where the `tomof()` methods of `CIMProperty`, `CIMQualifier`,
+  and `CIMQualifierDeclaration` raised `IndexError` when the value was
+  an empty array. This issue perculated up to higher level CIM objects
+  that are using these objects, i.e. `CIMInstance` or `CIMClass`.
+  Added according testcases.
+  See issue #1312.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
