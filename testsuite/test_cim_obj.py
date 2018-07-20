@@ -12063,6 +12063,19 @@ class Test_CIMProperty_tomof(object):
             None, True
         ),
         (
+            "instance uint32 array property, empty array",
+            CIMProperty(
+                name='P1',
+                value=list(),
+                type='uint32',
+                is_array=True,
+            ),
+            True, 12,
+            u"""\
+            P1 = { };\n""",
+            None, CHECK_0_12_0
+        ),
+        (
             "instance uint32 array property, single-line",
             CIMProperty(
                 name='P1',
@@ -15462,6 +15475,17 @@ class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
             if CHECK_0_12_0 else \
             u"""Q1 ("vt=\\f,cr=\\r")""",
             None, True
+        ),
+        (
+            "string array that is empty",
+            CIMQualifier(
+                name='Q1',
+                value=[],
+                type='string',
+            ),
+            12,
+            u"""Q1 { }""",
+            None, CHECK_0_12_0
         ),
         (
             "string array with a value of two items",
@@ -29155,6 +29179,21 @@ Qualifier Q1 : datetime = "20140924193040.654321+120",
 Qualifier Q1 : datetime = 20140924193040.654321+120,
     Scope();""",
             None, True
+        ),
+        (
+            "string array of variable size that has an empty array value",
+            CIMQualifierDeclaration(
+                name='Q1',
+                type='string',
+                is_array=True,
+                array_size=None,
+                value=[],
+            ),
+            u"""\
+Qualifier Q1 : string[] = {  },
+    Scope();
+""",
+            None, CHECK_0_12_0
         ),
         (
             "string array of variable size",

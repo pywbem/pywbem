@@ -4782,7 +4782,8 @@ class CIMProperty(_CIMComparisonMixin):
                 val_str, line_pos = _value_tomof(
                     self.value, self.type, indent + MOF_INDENT, maxline,
                     line_pos + 1, 1, True)
-                if val_str[0] != '\n':
+                # Empty arrays are represented as val_str=''
+                if val_str and val_str[0] != '\n':
                     # The extra space was actually needed
                     mof.append(u' ')
                 else:
@@ -4798,6 +4799,7 @@ class CIMProperty(_CIMComparisonMixin):
                 val_str, line_pos = _value_tomof(
                     self.value, self.type, indent + MOF_INDENT, maxline,
                     line_pos + 1, 1, True)
+                # Scalars cannot be represented as val_str=''
                 if val_str[0] != '\n':
                     # The extra space was actually needed
                     mof.append(u' ')
@@ -6602,7 +6604,8 @@ class CIMQualifier(_CIMComparisonMixin):
         # Assume in line_pos that the extra space would be needed
         val_str, line_pos = _value_tomof(
             self.value, self.type, indent, maxline, line_pos + 1, 3, True)
-        if val_str[0] != '\n':
+        # Empty arrays are represented as val_str=''
+        if val_str and val_str[0] != '\n':
             # The extra space was actually needed
             mof.append(u' ')
         else:
