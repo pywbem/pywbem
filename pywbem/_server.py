@@ -98,12 +98,13 @@ import re
 
 from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED
 from .exceptions import CIMError
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstanceName
+from .cim_obj import CIMInstanceName, CIMInstance
 from .cim_operations import WBEMConnection
 from ._valuemapping import ValueMapping
+from ._utils import _ensure_unicode
 
 __all__ = ['WBEMServer']
 
@@ -160,6 +161,7 @@ class WBEMServer(object):
         self._namespace_classname = None
         self._brand = None
         self._version = None
+        self._cimom_inst = None
         self._profiles = None
 
     def __repr__(self):
@@ -283,6 +285,24 @@ class WBEMServer(object):
         return self._version
 
     @property
+    def cimom_inst(self):
+        """
+        :class:`~pywbem.CIMInstance`: CIM instance of class `CIM_ObjectManager`
+        that represents the WBEM server.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
+              determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
+              `CIM_ObjectManager` instances.
+        """
+        if self._cimom_inst is None:
+            self._determine_brand()
+        return self._cimom_inst
+
+    @property
     def profiles(self):
         """
         :class:`py:list` of :class:`~pywbem.CIMInstance`: The
@@ -298,6 +318,115 @@ class WBEMServer(object):
         if self._profiles is None:
             self._determine_profiles()
         return self._profiles
+
+    def create_namespace(self, namespace):
+        """
+        Create the specified CIM namespace in the WBEM server.
+
+        This method attempts the following approaches for creating the
+        namespace, in order, until an approach succeeds:
+
+        1. Namespace creation as described in the WBEM Server profile
+           (:term:`DSP1092`) via CIM method
+           `CIM_WBEMServer.CreateWBEMServerNamespace()`.
+
+        2. Issuing the `CreateInstance` operation on the `CIM_Namespace` class
+           against the Interop namespace. This is the approach described in
+           :term:`DSP0200`, except that pywbem targets the Interop namespace
+           instead of the namespace named "root".
+
+        Creating namespaces using the `__Namespace` pseudo-class has been
+        deprecated already in DSP0200 1.1.0 (released in 01/2003), and pywbem
+        does not implement that approach.
+
+        Parameters:
+
+            namespace (:term:`string`): CIM namespace name. Must not be `None`.
+              The namespace may contain leading and a trailing slash, both of
+              which will be ignored.
+
+        Returns:
+
+          :term:`unicode string`: The specified CIM namespace name in its
+          standard format (i.e. without leading or trailing slash characters).
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_ALREADY_EXISTS, Specified namespace already
+              exists in the WBEM server.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
+              determined.
+            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
+              `CIM_ObjectManager` instances.
+            CIMError: CIM_ERR_FAILED, Unexpected number of
+              central instances of WBEM Server profile.
+        """
+
+        std_namespace = _ensure_unicode(namespace.strip('/'))
+
+        # Try approach 1: Method defined in WBEM Server profile
+
+        ws_profiles = self.get_selected_profiles('DMTF', 'WBEM Server')
+        if ws_profiles:
+            ws_profiles_sorted = sorted(
+                ws_profiles, key=lambda prof: prof['RegisteredVersion'])
+            ws_profile_inst = ws_profiles_sorted[-1]  # latest version
+            ws_insts = self.get_central_instances(ws_profile_inst.path)
+            if len(ws_insts) != 1:
+                raise CIMError(CIM_ERR_FAILED,
+                               "Unexpected number of central instances of "
+                               "WBEM Server profile: %s " %
+                               [i.path for i in ws_insts])
+            ws_inst = ws_insts[0]
+
+            ns_inst = CIMInstance('CIM_WBEMServerNamespace')
+            ns_inst['Name'] = std_namespace
+
+            try:
+                (ret_val, out_params) = self._conn.InvokeMethod(
+                    MethodName="CreateWBEMServerNamespace",
+                    ObjectName=ws_inst.path,
+                    Params=[('NamespaceTemplate', ns_inst)])
+            except CIMError as exc:
+                if exc.status_code in (CIM_ERR_METHOD_NOT_FOUND,
+                                       CIM_ERR_METHOD_NOT_AVAILABLE,
+                                       CIM_ERR_NOT_SUPPORTED):
+                    # Method is not implemented.
+                    # CIM_ERR_NOT_SUPPORTED is not an official status code for
+                    # this situation, but is used by some implementations.
+                    pass  # try next approach
+                else:
+                    raise
+            else:
+                if ret_val != 0:
+                    raise CIMError(
+                        CIM_ERR_FAILED,
+                        "The CreateWBEMServerNamespace() method is "
+                        "implemented but failed: %s" % out_params['Errors'])
+                return std_namespace
+
+        # Try approach 2: CreateInstance of CIM_Namespace
+
+        ns_inst = CIMInstance('CIM_Namespace')
+
+        # Propagated key properties from CIM_ObjectManager
+        ns_inst['SystemCreationClassName'] = \
+            self.cimom_inst['SystemCreationClassName']
+        ns_inst['SystemName'] = \
+            self.cimom_inst['SystemName']
+        ns_inst['ObjectManagerCreationClassName'] = \
+            self.cimom_inst['CreationClassName']
+        ns_inst['ObjectManagerName'] = \
+            self.cimom_inst['Name']
+
+        # Additional key properties of CIM_Namespace
+        ns_inst['CreationClassName'] = 'CIM_Namespace'
+        ns_inst['Name'] = std_namespace
+
+        self.conn.CreateInstance(ns_inst, namespace=self.interop_ns)
+
+        return std_namespace
 
     def get_selected_profiles(self, registered_org=None, registered_name=None,
                               registered_version=None):
@@ -744,6 +873,7 @@ class WBEMServer(object):
             version = None
         self._brand = brand
         self._version = version
+        self._cimom_inst = cimom_inst
 
     def _determine_profiles(self):
         """
