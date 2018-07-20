@@ -175,8 +175,8 @@ Pywbem includes two command line tools:
 .. _mof_compiler: http://pywbem.readthedocs.io/en/stable/utilities.html#mof-compiler
 
 
-QuickStart
-----------
+Quick Start
+-----------
 
 The following simple example script lists the namespaces and the Interop
 namespace in a particular WBEM server:
@@ -191,8 +191,7 @@ namespace in a particular WBEM server:
     user = 'fred'
     password = 'blah'
 
-    conn = pywbem.WBEMConnection(server_uri, (user, password),
-                                 default_namespace=namespace)
+    conn = pywbem.WBEMConnection(server_uri, (user, password))
 
     server = pywbem.WBEMServer(conn)
 
