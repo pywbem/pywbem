@@ -10,14 +10,14 @@ import six
 import pytest
 
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, VersionError, CIMError, WBEMConnection
+    ParseError, VersionError, CIMError
 
-# Test connection object used for showing connection information in exception
+# Test connection ID used for showing connection information in exception
 # messages
-TEST_CONN = WBEMConnection(url='http://blah')
+TEST_CONN_ID = 'fake-conn-id'
 
 # The expected connection information in exception messages
-TEST_CONN_STR = 'Connection id: %s' % TEST_CONN.conn_id
+TEST_CONN_STR = 'Connection id: %s' % TEST_CONN_ID
 TEST_CONN_STR_NONE = 'Connection id: None'
 
 
@@ -49,13 +49,13 @@ def _assert_subscription(exc):
                 assert False, "Access by index did not fail in Python 3"
 
 
-def _assert_connection(exc, conn_kwarg, exp_conn_str):
+def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     """
     Test the exception defined by exc for connection related information.
     """
-    exp_conn = conn_kwarg.get('conn', None)
+    exp_conn_id = conn_id_kwarg.get('conn_id', None)
     exc_str = str(exc)
-    assert exc.conn is exp_conn
+    assert exc.conn_id is exp_conn_id
     assert exc.conn_str == exp_conn_str
     assert exp_conn_str in exc_str
 
@@ -97,18 +97,18 @@ def simple_args(request):
 
 
 @pytest.fixture(params=[
-    # Tuple of (conn_kwarg, exp_conn_str)
+    # Tuple of (conn_id_kwarg, exp_conn_str)
     (dict(), TEST_CONN_STR_NONE),
-    (dict(conn=None), TEST_CONN_STR_NONE),
-    (dict(conn=TEST_CONN), TEST_CONN_STR),
+    (dict(conn_id=None), TEST_CONN_STR_NONE),
+    (dict(conn_id=TEST_CONN_ID), TEST_CONN_STR),
 ], scope='module')
 def conn_info(request):
     """
-    Fixture representing variations for the conn keyword argument for all
+    Fixture representing variations for the conn_id keyword argument for all
     exception classes, and the corresponding expected connection info string.
 
     Returns a tuple of:
-    * conn_kwarg: dict with the 'conn' keyword argument. May be empty.
+    * conn_id_kwarg: dict with the 'conn_id' keyword argument. May be empty.
     * exp_conn_str: Expected connection info string.
     """
     return request.param
@@ -120,9 +120,9 @@ def test_simple(simple_class, simple_args, conn_info):
     Test the simple exception classes.
     """
 
-    conn_kwarg, exp_conn_str = conn_info
+    conn_id_kwarg, exp_conn_str = conn_info
 
-    exc = simple_class(*simple_args, **conn_kwarg)
+    exc = simple_class(*simple_args, **conn_id_kwarg)
 
     # exc has no len()
     assert len(exc.args) == len(simple_args)
@@ -132,7 +132,7 @@ def test_simple(simple_class, simple_args, conn_info):
         assert exc.args[0:i] == simple_args[0:i]
         assert exc.args[:] == simple_args[:]
 
-    _assert_connection(exc, conn_kwarg, exp_conn_str)
+    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)
 
 
@@ -161,9 +161,9 @@ def test_httperror(httperror_args, conn_info):
     Test HTTPError exception class.
     """
 
-    conn_kwarg, exp_conn_str = conn_info
+    conn_id_kwarg, exp_conn_str = conn_info
 
-    exc = HTTPError(*httperror_args, **conn_kwarg)
+    exc = HTTPError(*httperror_args, **conn_id_kwarg)
 
     assert exc.status == httperror_args[0]
     assert exc.reason == httperror_args[1]
@@ -182,7 +182,7 @@ def test_httperror(httperror_args, conn_info):
     assert exc.args[3] == exc.cimdetails
     assert len(exc.args) == 4
 
-    _assert_connection(exc, conn_kwarg, exp_conn_str)
+    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)
 
 
@@ -241,12 +241,12 @@ def test_cimerror_1(status_tuple, conn_info):
     """
 
     status_code, status_code_name = status_tuple
-    conn_kwarg, exp_conn_str = conn_info
+    conn_id_kwarg, exp_conn_str = conn_info
 
     invalid_code_name = 'Invalid status code %s' % status_code
     invalid_code_desc = 'Invalid status code %s' % status_code
 
-    exc = CIMError(status_code, **conn_kwarg)
+    exc = CIMError(status_code, **conn_id_kwarg)
 
     assert exc.status_code == status_code
     if status_code_name is None:
@@ -260,7 +260,7 @@ def test_cimerror_1(status_tuple, conn_info):
     assert exc.args[1] is None
     assert len(exc.args) == 2
 
-    _assert_connection(exc, conn_kwarg, exp_conn_str)
+    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)
 
 
@@ -271,12 +271,12 @@ def test_cimerror_2(status_tuple, conn_info):
     """
 
     status_code, status_code_name = status_tuple
-    conn_kwarg, exp_conn_str = conn_info
+    conn_id_kwarg, exp_conn_str = conn_info
 
     invalid_code_name = 'Invalid status code %s' % status_code
     input_desc = 'foo'
 
-    exc = CIMError(status_code, input_desc, **conn_kwarg)
+    exc = CIMError(status_code, input_desc, **conn_id_kwarg)
 
     assert exc.status_code == status_code
     assert exc.status_description == input_desc
@@ -289,5 +289,5 @@ def test_cimerror_2(status_tuple, conn_info):
     assert exc.args[1] == input_desc
     assert len(exc.args) == 2
 
-    _assert_connection(exc, conn_kwarg, exp_conn_str)
+    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)
