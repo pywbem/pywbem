@@ -143,12 +143,11 @@ import logging
 import six
 from . import cim_xml
 from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
-from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_SUPPORTED
+from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
-    CIMParameter, tocimxml, cimvalue
+    CIMParameter, CIMQualifierDeclaration, tocimxml, cimvalue
 from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
@@ -1541,7 +1540,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         cls._activate_logging = False
         cls._log_detail_levels = {}
 
-    def imethodcall(self, methodname, namespace, response_params_rqd=None,
+    def imethodcall(self, methodname, namespace, response_params_rqd=False,
                     **params):
         """
         This is a low-level method that is used by the operation-specific
@@ -1550,20 +1549,53 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Deprecated: Calling this function directly has been deprecated and
         will issue a :term:`DeprecationWarning`.
-        Users should call the operation-specific methods instead of this
-        method.
+        Users should call the operation-specific methods (e.g. GetInstance)
+        instead of this method.
+        This method will be removed in the next pywbem release after 0.12.
         """
         warnings.warn(
-            "Calling imethodcall() directly is deprecated",
+            "Calling imethodcall() directly is deprecated; it will be removed "
+            "in the next pywbem release after 0.12",
             DeprecationWarning, 2)
         return self._imethodcall(methodname, namespace,
-                                 response_params_rqd=response_params_rqd,
+                                 has_out_params=response_params_rqd,
                                  **params)
 
-    def _imethodcall(self, methodname, namespace, response_params_rqd=None,
-                     **params):
+    def _imethodcall(self, methodname, namespace, has_return_value=True,
+                     has_out_params=False, **params):
         """
         Perform an intrinsic CIM-XML operation.
+
+        Parameters:
+
+          methodname (string): Name of the CIM operation (e.g. 'GetInstance').
+
+          namespace (string): Namespace name, or None. In case of None, the
+            default connection namespace will be used.
+
+          has_return_value (bool): Indicates that the operation is defined with
+            a non-void return value.
+
+          has_out_params (bool): Indicates that the operation is defined with
+            one or more output parameters.
+
+          **in_params (dict): Input parameters for the operation.
+
+        For failed operations and invalid responses, raises an exception.
+
+        For successful operations, returns:
+
+        * `None`, for operations with a void return type and no output params.
+
+        * Otherwise, the list of child elements of IMETHODRESPONSE, containing
+          these items:
+
+          - zero or one IRETURNVALUE (as tupletree node) for the operation
+            return value. Only operations with output parameters will return
+            no IRETURNVALUE element for representing an empty result list.
+
+          - zero or more PARAMVALUE (unpacked) for the operation output
+            parameters.
         """
 
         # Create HTTP extension headers for CIM-XML.
@@ -1668,15 +1700,34 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
-        # At this point we either have a IRETURNVALUE, ERROR element
-        # or None if there was no child nodes of the IMETHODRESPONSE
-        # element.
+        # At this point tup_tree is a list of the child elements of
+        # IMETHODRESPONSE:
+        #   (ERROR | (IRETURNVALUE?, PARAMVALUE*)
+        # or an empty list if there were no child elements.
+        #
+        # More specifically, the following cases are possible for tup_tree:
+        # - operation failed: List with one ERROR node
+        # - operation succeeded:
+        #   - operation has void return type and no output parms
+        #     (e.g. DeleteInstance): Empty list.
+        #   - operation has non-void return type and no output parms
+        #     (e.g. CreateInstance): List with (zero or?) one IRETURNVALUE
+        #     node.
+        #   - operation has non-void return type and output parms
+        #     (e.g. OpenEnumerateInstances): List with (zero or?) one
+        #     IRETURNVALUE node and one unpacked PARAMVALUE node for each
+        #     output parameter.
+        #
+        # Note: DSP0200 is not entirely clear as to whether an empty result
+        # list must be represented as an empty IRETURNVALUE node vs.
+        # omitting it. Pywbem tolerates a missing IRETURNVALUE node.
+        #
+        # Note that there are no operations defined with a void return type but
+        # with output parameters.
 
-        if not tup_tree:
-            return None
-
-        # ERROR | ...
-        if tup_tree[0][0] == 'ERROR':
+        # Check for failed operation
+        if tup_tree and tup_tree[0][0] == 'ERROR':
+            # The operation failed
             err = tup_tree[0]
             code = int(err[1]['CODE'])
             err_insts = err[2] or None  # List of CIMInstance objects
@@ -1687,23 +1738,39 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             raise CIMError(
                 code, desc, instances=err_insts, conn_id=self.conn_id)
 
-        if response_params_rqd is None:
-            # expect either ERROR | IRETURNVALUE*
-            err = tup_tree[0]
-            if err[0] != 'IRETURNVALUE':
-                raise ParseError(
-                    'Expecting IRETURNVALUE element, got %s' % err[0],
-                    conn_id=self.conn_id)
-            return tup_tree
+        # At this point, we know the operation was successful.
 
-        # At this point should have optional RETURNVALUE and at maybe one
-        # paramvalue element representing the pull return parameters
-        # of end_of_sequence/enumeration_context
-        # (IRETURNVALUE*, PARAMVALUE?)
-        else:
-            # TODO #919: Further tests on this IRETURN or PARAMVALUE
-            # Could be IRETURNVALUE or a PARAMVALUE
-            return tup_tree
+        return_value = False
+        out_param_names = []
+        for child_node in tup_tree:
+            if child_node[0] == 'IRETURNVALUE':
+                return_value = True
+            else:
+                # The PARAMVALUE nodes are already unpacked
+                out_param_names.append(child_node[0])
+
+        # Convert empty list to None
+        if not tup_tree:
+            tup_tree = None
+
+        # Check unexpected return value and output parameters
+        if not has_return_value and return_value:
+            raise ParseError(
+                "Unexpected IRETURNVALUE child element of "
+                "IMETHODRESPONSE for operation %s which is defined as "
+                "void" % methodname,
+                conn_id=self.conn_id)
+        if not has_out_params and out_param_names:
+            raise ParseError(
+                "Unexpected PARAMVALUE child element(s) of "
+                "IMETHODRESPONSE for operation %s which has no output "
+                "parameters defined: %s" %
+                (methodname, out_param_names),
+                conn_id=self.conn_id)
+
+        # Missing return value and output parameters are checked by caller
+
+        return tup_tree
 
     def methodcall(self, methodname, localobject, Params=None, **params):
         """
@@ -1714,9 +1781,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         will issue a :term:`DeprecationWarning`.
         Users should call :meth:`~pywbem.WBEMConnection.InvokeMethod` instead
         of this method.
+        This method will be removed in the next pywbem release after 0.12.
         """
         warnings.warn(
-            "Calling methodcall() directly is deprecated",
+            "Calling methodcall() directly is deprecated; it will be removed "
+            "in the next pywbem release after 0.12",
             DeprecationWarning, 2)
         return self._methodcall(methodname, localobject, Params, **params)
 
@@ -1933,6 +2002,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # more PARAMVALUE elements representing output parameters.
 
         if tup_tree and tup_tree[0][0] == 'ERROR':
+            # Operation failed
             err = tup_tree[0]
             code = int(err[1]['CODE'])
             err_insts = err[2] or None  # List of CIMInstance objects
@@ -2080,9 +2150,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                             else False
                         end_of_sequence_found = True
                     else:
-                        raise CIMError(
-                            CIM_ERR_INVALID_PARAMETER,
-                            'Invalid value %s on EndOfSequence' % p[2],
+                        raise ParseError(
+                            "EndOfSequence output parameter has an invalid "
+                            "value: %r" % p[2],
                             conn_id=self.conn_id)
 
             elif p[0] == 'EnumerationContext':
@@ -2094,15 +2164,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 rtn_objects = p[2]
 
         if not end_of_sequence_found and not enumeration_context_found:
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                "EndOfSequence or EnumerationContext required in response.",
+            raise ParseError(
+                "Expected EndOfSequence or EnumerationContext output "
+                "parameter in open/pull response, but none received",
                 conn_id=self.conn_id)
+
         if not end_of_sequence and enumeration_context is None:
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                "EndOfSequence False and EnumerationContext Null value or "
-                "missing.",
+            raise ParseError(
+                "Expected EnumerationContext output parameter because "
+                "EndOfSequence=False, but did not receive it.",
                 conn_id=self.conn_id)
 
         # Drop enumeration_context if eos True
@@ -2282,11 +2352,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 instances = result[0][2]
 
-            # EnumerateInstances returns instance paths as INSTANCE elements,
-            # which do not contain namespace or host. We want to return
-            # instance paths with namespace, so we set it to the target
-            # namespace.
             for instance in instances:
+
+                if not isinstance(instance, CIMInstance):
+                    raise ParseError(
+                        "Expecting CIMInstance object in result list, "
+                        "got %s object" %
+                        instance.__class__.__name__, conn_id=self.conn_id)
+
+                # The EnumerateInstances CIM-XML operation returns instances as
+                # VALUE.NAMEDINSTANCE elements which represent the instance
+                # paths as INSTANCENAME elements which do not contain namespace
+                # or host. We want to return instance paths with namespace, so
+                # we set it to the effective target namespace.
                 instance.path.namespace = namespace
 
             return instances
@@ -2380,12 +2458,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ClassName=classname,
                 **extra)
 
-            instancenames = []
-            if result is not None:
+            if result is None:
+                instancenames = []
+            else:
                 instancenames = result[0][2]
 
-            for instancename in instancenames:
-                instancename.namespace = namespace
+            for instancepath in instancenames:
+
+                if not isinstance(instancepath, CIMInstanceName):
+                    raise ParseError(
+                        "Expecting CIMInstanceName object in result list, "
+                        "got %s object" %
+                        instancepath.__class__.__name__, conn_id=self.conn_id)
+
+                # The EnumerateInstanceNames CIM-XML operation returns instance
+                # paths as INSTANCENAME elements, which do not contain
+                # namespace or host. We want to return instance paths with
+                # namespace, so we set it to the effective target namespace.
+                instancepath.namespace = namespace
+
             return instancenames
 
         except Exception as exce:
@@ -2528,9 +2619,32 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 PropertyList=PropertyList,
                 **extra)
 
-            instance = result[0][2][0]
-            instance.path = instancename
+            if result is None:
+                raise ParseError(
+                    "Expecting a child element below IMETHODRESPONSE, "
+                    "got no child elements", conn_id=self.conn_id)
+            result = result[0][2]  # List of children of IRETURNVALUE
+
+            if not result:
+                raise ParseError(
+                    "Expecting a child element below IRETURNVALUE, "
+                    "got no child elements", conn_id=self.conn_id)
+            instance = result[0]  # CIMInstance object
+
+            if not isinstance(instance, CIMInstance):
+                raise ParseError(
+                    "Expecting CIMInstance object in result, got %s object" %
+                    instance.__class__.__name__, conn_id=self.conn_id)
+
+            # The GetInstance CIM-XML operation returns the instance as an
+            # INSTANCE element, which does not contain an instance path. We
+            # want to return the instance with a path, so we set it to the
+            # input path. Because the namespace in the input path is optional,
+            # we set it to the effective target namespace (on a copy of the
+            # input path).
+            instance.path = instancename.copy()
             instance.path.namespace = namespace
+
             return instance
 
         except Exception as exce:
@@ -2719,6 +2833,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ModifiedInstance=instance,
                 IncludeQualifiers=IncludeQualifiers,
                 PropertyList=PropertyList,
+                has_return_value=False,
                 **extra)
             return
 
@@ -2835,17 +2950,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 NewInstance=instance,
                 **extra)
 
-            if not result:
+            if result is None:
                 raise ParseError(
                     "Expecting a child element below IMETHODRESPONSE, "
                     "got no child elements", conn_id=self.conn_id)
-            result = result[0]  # Tuple for first child of IMETHODRESPONSE
-
-            if result[0] != 'IRETURNVALUE':
-                raise ParseError(
-                    'Expecting IRETURNVALUE element, got %s' % result[0],
-                    conn_id=self.conn_id)
-            result = result[2]  # List of children of IRETURNVALUE
+            result = result[0][2]  # List of children of IRETURNVALUE
 
             if not result:
                 raise ParseError(
@@ -2855,8 +2964,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             if not isinstance(instancename, CIMInstanceName):
                 raise ParseError(
-                    'Expecting CIMInstanceName object, got %s object' %
-                    type(instancename), conn_id=self.conn_id)
+                    "Expecting CIMInstanceName object in result, "
+                    "got %s object" %
+                    instancename.__class__.__name__, conn_id=self.conn_id)
 
             # The CreateInstance CIM-XML operation returns an INSTANCENAME
             # element, so the resulting CIMInstanceName object does not have
@@ -2929,6 +3039,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 InstanceName=instancename,
+                has_return_value=False,
                 **extra)
             return
 
@@ -3137,13 +3248,35 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 PropertyList=PropertyList,
                 **extra)
 
+            # instance-level invocation: list of CIMInstance
+            # class-level invocation: list of CIMClass
             if result is None:
                 objects = []
             else:
                 objects = [x[2] for x in result[0][2]]
-            if not isinstance(objectname, CIMInstanceName):
+
+            if isinstance(objectname, CIMInstanceName):
+                # instance-level invocation
+                for instance in objects:
+                    if not isinstance(instance, CIMInstance):
+                        raise ParseError(
+                            "Expecting CIMInstance object in result list, "
+                            "got %s object" %
+                            instance.__class__.__name__, conn_id=self.conn_id)
+                    # path and namespace are already set
+            else:
+                # class-level invocation
                 for classpath, klass in objects:
-                    klass.path = classpath
+                    if not isinstance(classpath, CIMClassName) or \
+                            not isinstance(klass, CIMClass):
+                        raise ParseError(
+                            "Expecting tuple (CIMClassName, CIMClass) in "
+                            "result list, got tuple (%s, %s)" %
+                            (classpath.__class__.__name__,
+                             klass.__class__.__name__),
+                            conn_id=self.conn_id)
+                    # path and namespace are already set
+
             return objects
 
         except Exception as exce:
@@ -3298,6 +3431,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = []
             else:
                 objects = [x[2] for x in result[0][2]]
+
+            if isinstance(objectname, CIMInstanceName):
+                # instance-level invocation
+                for instancepath in objects:
+                    if not isinstance(instancepath, CIMInstanceName):
+                        raise ParseError(
+                            "Expecting CIMInstanceName object in result list, "
+                            "got %s object" %
+                            instancepath.__class__.__name__,
+                            conn_id=self.conn_id)
+                    # namespace is already set
+            else:
+                # class-level invocation
+                for classpath in objects:
+                    if not isinstance(classpath, CIMClassName):
+                        raise ParseError(
+                            "Expecting CIMClassName object in result list, "
+                            "got %s object" %
+                            classpath.__class__.__name__, conn_id=self.conn_id)
+                    # namespace is already set
+
             return objects
 
         except Exception as exce:
@@ -3492,9 +3646,29 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = []
             else:
                 objects = [x[2] for x in result[0][2]]
-            if not isinstance(objectname, CIMInstanceName):
+
+            if isinstance(objectname, CIMInstanceName):
+                # instance-level invocation
+                for instance in objects:
+                    if not isinstance(instance, CIMInstance):
+                        raise ParseError(
+                            "Expecting CIMInstance object in result list, "
+                            "got %s object" %
+                            instance.__class__.__name__, conn_id=self.conn_id)
+                    # path and namespace are already set
+            else:
+                # class-level invocation
                 for classpath, klass in objects:
-                    klass.path = classpath
+                    if not isinstance(classpath, CIMClassName) or \
+                            not isinstance(klass, CIMClass):
+                        raise ParseError(
+                            "Expecting tuple (CIMClassName, CIMClass) in "
+                            "result list, got tuple (%s, %s)" %
+                            (classpath.__class__.__name__,
+                             klass.__class__.__name__),
+                            conn_id=self.conn_id)
+                    # path and namespace are already set
+
             return objects
 
         except Exception as exce:
@@ -3631,6 +3805,28 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 objects = []
             else:
                 objects = [x[2] for x in result[0][2]]
+
+            if isinstance(objectname, CIMInstanceName):
+                # instance-level invocation
+                for instancepath in objects:
+                    if not isinstance(instancepath, CIMInstanceName):
+                        raise ParseError(
+                            "Expecting CIMInstanceName object in result list, "
+                            "got %s object" %
+                            instancepath.__class__.__name__,
+                            conn_id=self.conn_id)
+                    # namespace is already set
+            else:
+                # class-level invocation
+                for classpath in objects:
+                    if not isinstance(classpath, CIMClassName):
+                        raise ParseError(
+                            "Expecting CIMClassName object in result list, "
+                            "got %s object" %
+                            classpath.__class__.__name__,
+                            conn_id=self.conn_id)
+                    # namespace is already set
+
             return objects
 
         except Exception as exce:
@@ -3844,13 +4040,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Query=Query,
                 **extra)
 
-            instances = []
-
-            if result is not None:
-                instances = [tt[2] for tt in result[0][2]]
+            if result is None:
+                instances = []
+            else:
+                instances = [x[2] for x in result[0][2]]
 
             for instance in instances:
+
+                # The ExecQuery CIM-XML operation returns instances as any of
+                # (VALUE.OBJECT | VALUE.OBJECTWITHLOCALPATH |
+                # VALUE.OBJECTWITHPATH), i.e. classes or instances with or
+                # without path which may or may not contain a namespace.
+
+                # TODO: Fix current impl. that assumes instance with path.
                 instance.path.namespace = namespace
+
             return instances
 
         except Exception as exce:
@@ -6250,7 +6454,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_inst_result_tuple(
@@ -6477,7 +6681,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_path_result_tuple(
@@ -6760,7 +6964,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_inst_result_tuple(
@@ -6999,7 +7203,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_path_result_tuple(
@@ -7264,7 +7468,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_inst_result_tuple(
@@ -7486,7 +7690,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_path_result_tuple(
@@ -7668,11 +7872,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             """
 
             for p in result:
-                if p[0] == 'QueryResultClass' and isinstance(p[2], CIMClass):
-                    return p[2]
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                "ReturnQueryResultClass invalid or missing.",
+                if p[0] == 'QueryResultClass':
+                    class_obj = p[2]
+                    if not isinstance(class_obj, CIMClass):
+                        raise ParseError(
+                            "Expecting CIMClass object in QueryResultClass "
+                            "output parameter, got %s object" %
+                            class_obj.__class__.__name__,
+                            conn_id=self.conn_id)
+                    return class_obj
+            raise ParseError(
+                "QueryResultClass output parameter is missing",
                 conn_id=self.conn_id)
 
         exc = None
@@ -7706,7 +7916,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
@@ -7865,7 +8075,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_inst_result_tuple(
@@ -8016,7 +8226,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_path_result_tuple(
@@ -8160,7 +8370,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
-                response_params_rqd=True,
+                has_out_params=True,
                 **extra)
 
             result_tuple = pull_inst_result_tuple(
@@ -8248,6 +8458,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace=context[1],
                 EnumerationContext=context[0],
+                has_return_value=False,
                 **extra)
             return
 
@@ -8403,10 +8614,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 classes = []
             else:
                 classes = result[0][2]
+
             for klass in classes:
+
+                if not isinstance(klass, CIMClass):
+                    raise ParseError(
+                        "Expecting CIMClass object in result list, "
+                        "got %s object" %
+                        klass.__class__.__name__, conn_id=self.conn_id)
+
+                # The EnumerateClasses CIM-XML operation returns classes
+                # as CLASS elements, which do not contain a class path.
+                # We want to return classes with a path (that has a namespace),
+                # so we create the class path and set its namespace to the
+                # effective target namespace.
                 klass.path = CIMClassName(
                     classname=klass.classname, host=self.host,
                     namespace=namespace)
+
             return classes
 
         except Exception as exce:
@@ -8519,9 +8744,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             if result is None:
-                classnames = []
+                classpaths = []
             else:
-                classnames = [x.classname for x in result[0][2]]
+                classpaths = result[0][2]
+
+            classnames = []
+            for classpath in classpaths:
+
+                if not isinstance(classpath, CIMClassName):
+                    raise ParseError(
+                        "Expecting CIMClassName object in result list, "
+                        "got %s object" %
+                        classpath.__class__.__name__, conn_id=self.conn_id)
+
+                # The EnumerateClassNames CIM-XML operation returns class
+                # paths as CLASSNAME elements.
+                # We want to return class names as strings.
+                classnames.append(classpath.classname)
+
             return classnames
 
         except Exception as exce:
@@ -8658,10 +8898,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 PropertyList=PropertyList,
                 **extra)
 
-            klass = result[0][2][0]
+            if result is None:
+                raise ParseError(
+                    "Expecting a child element below IMETHODRESPONSE, "
+                    "got no child elements", conn_id=self.conn_id)
+            result = result[0][2]  # List of children of IRETURNVALUE
+
+            if not result:
+                raise ParseError(
+                    "Expecting a child element below IRETURNVALUE, "
+                    "got no child elements", conn_id=self.conn_id)
+            klass = result[0]  # CIMClass object
+
+            if not isinstance(klass, CIMClass):
+                raise ParseError(
+                    "Expecting CIMClass object, got %s object" %
+                    klass.__class__.__name__, conn_id=self.conn_id)
+
+            # The GetClass CIM-XML operation returns the class as a CLASS
+            # element, which does not contain a class path.
+            # We want to return classes with a path (that has a namespace),
+            # so we create the class path and set its namespace to the
+            # effective target namespace.
             klass.path = CIMClassName(
                 classname=klass.classname, host=self.host, namespace=namespace)
+
             return klass
+
         except Exception as exce:
             exc = exce
             raise
@@ -8741,7 +9004,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 ModifiedClass=klass,
+                has_return_value=False,
                 **extra)
+            return
 
         except Exception as exce:
             exc = exce
@@ -8820,6 +9085,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 NewClass=klass,
+                has_return_value=False,
                 **extra)
             return
 
@@ -8899,6 +9165,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 ClassName=classname,
+                has_return_value=False,
                 **extra)
             return
 
@@ -8975,11 +9242,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace,
                 **extra)
 
-            if result is not None:
-                qualifiers = result[0][2]
+            if result is None:
+                qualifierdecls = []
             else:
-                qualifiers = []
-            return qualifiers
+                qualifierdecls = result[0][2]
+
+            for qualifierdecl in qualifierdecls:
+                if not isinstance(qualifierdecl, CIMQualifierDeclaration):
+                    raise ParseError(
+                        "Expecting CIMQualifierDeclaration object in result "
+                        "list, got %s object" %
+                        qualifierdecl.__class__.__name__, conn_id=self.conn_id)
+
+            return qualifierdecls
 
         except Exception as exce:
             exc = exce
@@ -9060,9 +9335,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 QualifierName=QualifierName,
                 **extra)
 
-            # Must be present, if no exception was raised:
-            qualifiername = result[0][2][0]
-            return qualifiername
+            if result is None:
+                raise ParseError(
+                    "Expecting a child element below IMETHODRESPONSE, "
+                    "got no child elements", conn_id=self.conn_id)
+            result = result[0][2]  # List of children of IRETURNVALUE
+
+            if not result:
+                raise ParseError(
+                    "Expecting a child element below IRETURNVALUE, "
+                    "got no child elements", conn_id=self.conn_id)
+            qualifierdecl = result[0]  # CIMQualifierDeclaration object
+
+            if not isinstance(qualifierdecl, CIMQualifierDeclaration):
+                raise ParseError(
+                    "Expecting CIMQualifierDeclaration object, got %s object" %
+                    qualifierdecl.__class__.__name__, conn_id=self.conn_id)
+
+            return qualifierdecl
 
         except Exception as exce:
             exc = exce
@@ -9135,6 +9425,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 QualifierDeclaration=QualifierDeclaration,
+                has_return_value=False,
                 **extra)
             return
 
@@ -9208,6 +9499,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 QualifierName=QualifierName,
+                has_return_value=False,
                 **extra)
             return
 

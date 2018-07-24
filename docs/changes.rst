@@ -60,11 +60,19 @@ This version contains all fixes up to pywbem 0.12.4.
   to switch to using `pip`. If you cannot do that for some reason, you will
   now need to install `easy_setup` by some other means.
 
+* Changed `CIMError` exceptions raised to indicate incorrect CIM-XML responses
+  to open/pull operations, to raise `ParseError` instead, consistent with
+  other response checking (Issue #1320).
+
 **Deprecations:**
 
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
   in favor of the `cimvalue()` function introduced in pywbem 0.12.0. Changed
   all internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
+
+* The deprecated internal methods `imethodcall()` and `methodcall()` of the
+  `WBEMConnection` class will be removed in the next pywbem version after
+  0.13.
 
 **Finalizations:**
 
@@ -358,6 +366,8 @@ This version contains all fixes up to pywbem 0.12.4.
 * Removed one level of superflous copies of dictionaries in the `copy()`
   methods of the CIM object classes. These dictionaries are already copied
   in the setter methods for the respective attributes (Issue #1251).
+
+* Added and improved CIM-XML response checks at operation level (Issue #919).
 
 **Build, test, quality:**
 

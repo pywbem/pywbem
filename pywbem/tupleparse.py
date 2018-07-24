@@ -522,6 +522,9 @@ class TupleParser(object):
           ::
 
             <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
+
+        Returns:
+            CIMInstance object with path set (without host or namespace).
         """
 
         self.check_node(tup_tree, 'VALUE.NAMEDINSTANCE')
@@ -602,6 +605,13 @@ class TupleParser(object):
 
             <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
                                                 (LOCALINSTANCEPATH, INSTANCE))>
+
+        Returns:
+            tupletree with child item that is:
+            - for class-level use: a tuple(CIMClassName, CIMClass) where the
+              path of the CIMClass object is set (with namespace).
+            - for class-level use: a CIMInstance object with its path set
+              (with namespace).
         """
 
         self.check_node(tup_tree, 'VALUE.OBJECTWITHLOCALPATH')
@@ -618,12 +628,15 @@ class TupleParser(object):
 
         if name(k[0]) == 'LOCALCLASSPATH':
             # Note: Before pywbem 0.12, CIMClass did not have a path, therefore
-            # classpath and class are returned as a tuple.
-            _object = (self.parse_localclasspath(k[0]),
-                       self.parse_class(k[1]))
-        else:
+            # classpath and class were returned as a tuple. In pywbem 0.12,
+            # CIMClass got a path, but they are still returned as a tuple.
+            class_path = self.parse_localclasspath(k[0])
+            klass = self.parse_class(k[1])
+            klass.path = class_path
+            _object = (class_path, klass)
+        else:  # LOCALINSTANCEPATH
+            # convert tuple to CIMInstance object with path set
             inst_path = self.parse_localinstancepath(k[0])
-            # redefines _object from tuple to CIMInstance with path
             _object = self.parse_instance(k[1])
             _object.path = inst_path
 
@@ -635,6 +648,13 @@ class TupleParser(object):
 
             <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
                                             (INSTANCEPATH, INSTANCE))>
+
+        Returns:
+            tupletree with child item that is:
+            - for class-level use: a tuple(CIMClassName, CIMClass) where the
+              path of the CIMClass object is set (with namespace and host).
+            - for class-level use: a CIMInstance object with its path set
+              (with namespace and host).
         """
 
         self.check_node(tup_tree, 'VALUE.OBJECTWITHPATH')
@@ -651,12 +671,15 @@ class TupleParser(object):
 
         if name(k[0]) == 'CLASSPATH':
             # Note: Before pywbem 0.12, CIMClass did not have a path, therefore
-            # classpath and class are returned as a tuple.
-            _object = (self.parse_classpath(k[0]),
-                       self.parse_class(k[1]))
-        else:
+            # classpath and class were returned as a tuple. In pywbem 0.12,
+            # CIMClass got a path, but they are still returned as a tuple.
+            class_path = self.parse_classpath(k[0])
+            klass = self.parse_class(k[1])
+            klass.path = class_path
+            _object = (class_path, klass)
+        else:  # INSTANCEPATH
+            # convert tuple to CIMInstance object with path set
             inst_path = self.parse_instancepath(k[0])
-            # redefines _object from tuple to CIMInstance with path
             _object = self.parse_instance(k[1])
             _object.path = inst_path
 
@@ -828,6 +851,9 @@ class TupleParser(object):
             <!ELEMENT CLASSNAME EMPTY>
             <!ATTLIST CLASSNAME
                 %CIMName;>
+
+        Returns:
+            CIMClassName object (without namespace or host)
         """
 
         self.check_node(tup_tree, 'CLASSNAME', ['NAME'], [], [])
@@ -948,6 +974,10 @@ class TupleParser(object):
           ::
 
             <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
+
+        Returns:
+            tupletree with child item that is a single CIMInstanceName or
+            CIMClassName object (with host and namespace).
         """
 
         self.check_node(tup_tree, 'OBJECTPATH')
