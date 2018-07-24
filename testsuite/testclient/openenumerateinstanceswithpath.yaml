@@ -549,6 +549,7 @@
                 <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
                     <SIMPLERSP>
                         <IMETHODRESPONSE NAME="OpenEnumerateInstances">
+                            <IRETURNVALUE/>
                             <PARAMVALUE NAME="EndOfSequence">
                                 <VALUE>TRUE</VALUE>
                             </PARAMVALUE>

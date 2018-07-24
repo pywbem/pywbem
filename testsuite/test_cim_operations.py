@@ -10,7 +10,7 @@ from __future__ import print_function, absolute_import
 import os
 import pytest
 
-from pywbem import WBEMConnection, CIMError, DEFAULT_NAMESPACE
+from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE
 
 from pywbem._recorder import LogOperationRecorder
 from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
@@ -169,19 +169,19 @@ class TestGetRsltParams(object):
     @pytest.mark.parametrize(
         'irval', [None, 'bla', [], {}])
     @pytest.mark.parametrize(
-        # enumctxt input, eos input, expected_eos, exception_expected
-        'ec, eos, eos_exp, exc_exp', [
+        # enumctxt input, eos input, expected eos, expected exception type
+        'ec, eos, eos_exp, exctype_exp', [
             # following are successul returns
-            [u'contextblah', u'False', False, False],   # normal enumctxt rtn
-            ["", u'True', True, False],              # eos true, enmctxt empty
-            [None, u'True', True, False],              # eos true, enmctxt None
-            [u'contextblah', u'True', True, False],    # eos tru, cts with value
+            [u'contextblah', u'False', False, None],  # normal enumctxt rtn
+            ["", u'True', True, None],                # eos true, enmctxt empty
+            [None, u'True', True, None],              # eos true, enmctxt None
+            [u'contextblah', u'True', True, None],    # eos tru, cts with value
             # following are exceptions
-            [None, None, None, True],       # fail,no values in eos or enumctxt
-            [None, u'False', None, True],   # fail,no value in ec and eos False
+            [None, None, None, ParseError],      # no values in eos or enumctxt
+            [None, u'False', None, ParseError],  # no value in ec and eos False
         ]
     )
-    def test_with_params(self, irval, ec, eos, eos_exp, exc_exp):
+    def test_with_params(self, irval, ec, eos, eos_exp, exctype_exp):
         # pylint: disable=no-self-use,protected-access
         """
         Test combminations of IRETURNVALUE, EOS and EnumerationContext for
@@ -194,14 +194,15 @@ class TestGetRsltParams(object):
             (u'EndOfSequence', None, eos)
         ]
 
-        if exc_exp:
-            with pytest.raises(CIMError) as exec_info:
+        if exctype_exp:
+            with pytest.raises(exctype_exp):
+
+                # pylint: disable=protected-access
                 result = conn._get_rslt_params(result, 'root/blah')
 
-            exc = exec_info.value
-            assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
-
         else:
+
+            # pylint: disable=protected-access
             result = conn._get_rslt_params(result, 'root/blah')
 
             # the _get_rslt_params method sets context to None if eos True
@@ -218,9 +219,8 @@ class TestGetRsltParams(object):
         result = [
             (u'IRETURNVALUE', {}, {})
         ]
-        with pytest.raises(CIMError) as exec_info:
+
+        with pytest.raises(ParseError):
+
             # pylint: disable=protected-access
             result = conn._get_rslt_params(result, 'namespace')
-
-        exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'

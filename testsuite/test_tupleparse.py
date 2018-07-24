@@ -3240,6 +3240,10 @@ TESTCASES_TUPLEPARSE_XML = [
                     ),
                     CIMClass(
                         'CIM_Foo',
+                        path=CIMClassName(
+                            'CIM_Foo',
+                            namespace='foo',
+                        ),
                     ),
                 ),
             ),
@@ -3491,6 +3495,11 @@ TESTCASES_TUPLEPARSE_XML = [
                     ),
                     CIMClass(
                         'CIM_Foo',
+                        path=CIMClassName(
+                            'CIM_Foo',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
                     ),
                 ),
             ),

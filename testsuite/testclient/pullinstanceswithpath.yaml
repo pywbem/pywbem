@@ -1,5 +1,4 @@
--
-  name: PullInstancesWithPath1
+- name: PullInstancesWithPath1
   description: Pull request and returns 2 instances with eos=false and a context
   pywbem_request:
     url: http://acme.com:80
@@ -184,8 +183,8 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
--
-  name: PullInstancesWithPath2
+
+- name: PullInstancesWithPath2
   description: Pull request and returns two instances with eos=true and no context
   pywbem_request:
     url: http://acme.com:80
@@ -510,7 +509,8 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
-- name: PullInstancesWithPath4
+
+- name: PullInstancesWithPath4b
   description: Pull request and returns zero instances with eos=false and valid context. Test statistics
   pywbem_request:
     url: http://acme.com:80
@@ -584,6 +584,7 @@
                     </SIMPLERSP>
                 </MESSAGE>
             </CIM>
+
 - name: PullInstancesWithPathF1
   description: PullInstancesWithPath request fails. Invalid Context
   pywbem_request:
@@ -628,7 +629,6 @@
       </SIMPLEREQ>
       </MESSAGE>
       </CIM>'
-
   http_response:
     status: 200
     headers:
@@ -644,8 +644,8 @@
             </SIMPLERSP>
           </MESSAGE>
         </CIM>
--
-  name: PullInstancesWithPathF2
+
+- name: PullInstancesWithPathF2
   description: Pull request with MaxObjectCount invalid raises ValueError
   pywbem_request:
     url: http://acme.com:80
@@ -663,8 +663,8 @@
       - root/cimv2
   pywbem_response:
         exception: ValueError
--
-  name: PullInstancesWithPathF3
+
+- name: PullInstancesWithPathF3
   description: Pull request with context None raises ValueError
   pywbem_request:
     url: http://acme.com:80
@@ -680,8 +680,8 @@
       context: null
   pywbem_response:
         exception: ValueError
--
-  name: PullInstancesWithPathF4
+
+- name: PullInstancesWithPathF4
   description: Pull request with Invalid Input Parameter (no MaxObjectCount)
   pywbem_request:
     url: http://acme.com:80
@@ -697,8 +697,7 @@
   pywbem_response:
         exception: TypeError
 
--
-  name: PullInstancesWithPathF5
+- name: PullInstancesWithPathF5
   description: Pull request with MaxObjectCount invalid raises ValueError
   pywbem_request:
     url: http://acme.com:80
@@ -716,3 +715,128 @@
       - root/cimv2
   pywbem_response:
         exception: ValueError
+
+- name: PullInstancesWithPathF6
+  description: Pull request fails. eos and context missing
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: PullInstancesWithPath
+      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        exception: ParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancesWithPath
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancesWithPath">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500001</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>1</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancesWithPath">
+                            <IRETURNVALUE>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
+- name: PullInstancesWithPathF7
+  description: Pull request fails. indicates no eos but context missing
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: PullInstancesWithPath
+      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
+  pywbem_response:
+        exception: ParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: PullInstancesWithPath
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="PullInstancesWithPath">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500001</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>1</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="PullInstancesWithPath">
+                            <IRETURNVALUE>
+                            </IRETURNVALUE>
+                            <PARAMVALUE NAME="EndOfSequence">
+                                <VALUE>FALSE</VALUE>
+                            </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
