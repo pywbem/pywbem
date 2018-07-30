@@ -229,6 +229,15 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Add support for ExecQuery (shortcut eqy) to wbemcli. See issue # 1332.
 
+* Added support for a new WBEM URI format "canonical" to the `to_wbem_uri()`
+  methods of `CIMInstanceName` and `CIMClassName`. The new format behaves
+  like the existing format "standard", except that case insensitive
+  components are translated to lower case, and the order of keybindings
+  is the lexical order of the lower-cased key names. The new format
+  guarantees that two instance paths or class paths that are equal
+  according to DSP0004, return equal WBEM URI strings.
+  See issue #1323.
+
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a

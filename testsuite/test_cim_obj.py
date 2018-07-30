@@ -3469,8 +3469,8 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
         # * desc: Short testcase description.
         # * attrs: Dict of input attributes for the CIMInstanceName object
         #     to be tested.
-        # * format_: Format for to_wbem_uri(): one of 'standard', 'cimobject',
-        #     'historical'.
+        # * format_: Format for to_wbem_uri(): one of 'standard', 'canonical',
+        #     'cimobject', 'historical'.
         # * exp_result: Expected WBEM URI string, if expected to succeed.
         #     Exception type, if expected to fail.
         # * exp_warn_type: Expected warning type.
@@ -3485,6 +3485,17 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 host=u'10.11.12.13:5989'),
             'standard',
             '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "all components, canonical format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(K1=u'V1'),
+                namespace=u'root/CIMv2',
+                host=u'MyHost:5989'),
+            'canonical',
+            '//myhost:5989/root/cimv2:cim_foo.k1="V1"',
             None, CHECK_0_12_0
         ),
         (
@@ -3518,6 +3529,17 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 host=None),
             'standard',
             '/root/cimv2:CIM_Foo.k1="v1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "no authority, canonical format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(K1=u'V1'),
+                namespace=u'root/CIMv2',
+                host=None),
+            'canonical',
+            '/root/cimv2:cim_foo.k1="V1"',
             None, CHECK_0_12_0
         ),
         (
@@ -3620,6 +3642,17 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
+            "local WBEM URI with only class name, canonical format",
+            dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(K1=u'V1'),
+                namespace=None,
+                host=None),
+            'canonical',
+            '/:cim_foo.k1="V1"',
+            None, CHECK_0_12_0
+        ),
+        (
             "local WBEM URI with only class name, cimobject format",
             dict(
                 classname=u'CIM_Foo',
@@ -3664,7 +3697,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple keys (bool) - created in alphabetical order",
+            "multiple keys (bool) in alphabetical order, standard format",
             dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k1', False), ('k2', True)]),
@@ -3675,7 +3708,19 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "multiple keys (bool) - created in non-alphabetical order",
+            "multiple keys (bool) in alphabetical order (lower-cased), "
+            "canonical format",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('j1', False), ('K2', True)]),
+                namespace=u'N',
+                host=None),
+            'canonical',
+            '/n:c.j1=FALSE,k2=TRUE',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple keys (bool) in non-alphabetical order, standard format",
             dict(
                 classname=u'C',
                 keybindings=NocaseDict([('k2', True), ('k1', False)]),
@@ -3683,6 +3728,18 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 host=None),
             'standard',
             '/n:C.k2=TRUE,k1=FALSE',
+            None, CHECK_0_12_0
+        ),
+        (
+            "multiple keys (bool) in non-alphabetical order (lower-cased), "
+            "canonical format",
+            dict(
+                classname=u'C',
+                keybindings=NocaseDict([('K2', True), ('j1', False)]),
+                namespace=u'N',
+                host=None),
+            'canonical',
+            '/n:c.j1=FALSE,k2=TRUE',
             None, CHECK_0_12_0
         ),
         (
@@ -3824,7 +3881,8 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "reference key that has an int key (normal association)",
+            "reference key that has an int key (normal association), "
+            "standard format",
             dict(
                 classname=u'C1',
                 keybindings=[
@@ -3839,6 +3897,25 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
                 host=None),
             'standard',
             '/n1:C1.k1="/n2:C2.k2=1"',
+            None, CHECK_0_12_0
+        ),
+        (
+            "reference key that has an int key (normal association), "
+            "canonical format",
+            dict(
+                classname=u'C1',
+                keybindings=[
+                    ('K1', CIMInstanceName(
+                        classname='C2',
+                        keybindings=[
+                            ('K2', 1),
+                        ],
+                        namespace='N2')),
+                ],
+                namespace=u'N1',
+                host=None),
+            'canonical',
+            '/n1:c1.k1="/n2:c2.k2=1"',
             None, CHECK_0_12_0
         ),
         (
