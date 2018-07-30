@@ -283,13 +283,13 @@ MAX_MOF_LINE = 80
 # by DSP0207 is optional for pywbem.
 WBEM_URI_CLASSPATH_REGEXP = re.compile(
     r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
-    r'(?://([\w.:@\[\]]*))?'  # authority
+    r'(?://([\w.:@\[\]]*))?'  # authority (host)
     r'(?:/|^/?)(\w+(?:/\w+)*)?'  # namespace name (leading slash optional)
     r'(?::|^:?)(\w+)$',  # class name (leading colon optional)
     flags=re.UNICODE)
 WBEM_URI_INSTANCEPATH_REGEXP = re.compile(
     r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
-    r'(?://([\w.:@\[\]]*))?'  # authority
+    r'(?://([\w.:@\[\]]*))?'  # authority (host)
     r'(?:/|^/?)(\w+(?:/\w+)*)?'  # namespace name (leading slash optional)
     r'(?::|^:?)(\w+)'  # class name (leading colon optional)
     r'\.(.+)$',  # key bindings
@@ -1387,15 +1387,15 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         Examples (for the historical format):
 
-        * With authority and namespace::
+        * With host and namespace::
 
             //acme.com/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
 
-        * Without authority but with namespace::
+        * Without host but with namespace::
 
             cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
 
-        * Without authority and without namespace::
+        * Without host and without namespace::
 
             CIM_RegisteredProfile.InstanceID="acme.1"
         """
@@ -1928,29 +1928,40 @@ class CIMInstanceName(_CIMComparisonMixin):
         The returned WBEM URI contains its components as follows:
 
         * it does not contain a namespace type (URI scheme).
-        * it contains an authority component according to the
+        * it contains an authority (host) component according to the
           :attr:`~pywbem.CIMInstanceName.host` attribute, if that is not
-          `None`. Othwerise, it does not contain the authority component.
+          `None`. Otherwise, it does not contain the authority component.
         * it contains a namespace component according to the
           :attr:`~pywbem.CIMInstanceName.namespace` attribute, if that is not
-          `None`. Othwerise, it does not contain the namespace component.
+          `None`. Otherwise, it does not contain the namespace component.
         * it contains a class name component according to the
           :attr:`~pywbem.CIMInstanceName.classname` attribute.
         * it contains keybindings according to the
           :attr:`~pywbem.CIMInstanceName.keybindings` attribute, with the
           order of keybindings preserved, and the lexical case of keybinding
-          names preserved.
+          names preserved (except when using the format "canonical").
 
-        :term:`DSP0004` defines instance paths without a concept of order in
-        their keybindings, and that keybinding names in instance paths match
-        case-insensitively. Because the WBEM URI string returned by this method
-        preserves the order of keybindings (relative to how the keybindings
-        were first added to this object) and because the lexical case of the
-        keybinding names is also preserved, equality of WBEM URIs should *not*
-        be determined by comparing the returned WBEM URI strings. Instead,
-        compare :class:`~pywbem.CIMInstanceName` objects using the ``==``
-        operator, which performs the comparison at the logical level required
-        by :term:`DSP0004`. If you have WBEM URI strings without the
+        Note that when you do not want some of these components to show up
+        in the resulting WBEM URI string, you can set them to `None` before
+        calling this method.
+
+        Except when using the format "canonical", this method should not be
+        used to compare instance paths for equality: :term:`DSP0004` defines
+        defines several components of an instance path to be compared case
+        insensitively, including the names of keybindings. In addition, it
+        defines that the order of keybindings in instance paths does not matter
+        for the comparison. All WBEM URI formats returned by this method except
+        for the format "canonical" return a WBEM URI string that preserves the
+        order of keybindings (relative to how the keybindings were first added
+        to the :class:`~pywbem.CIMInstanceName` object) and that preserves the
+        lexical case of any components. Therefore, two instance paths that are
+        considered equal according to :term:`DSP0004` may not have equal WBEM
+        URI strings as returned by this method.
+
+        Instead, equality of instance paths represented by
+        :class:`~pywbem.CIMInstanceName` objects should be determined by using
+        the ``==`` operator, which performs the comparison conformant to
+        :term:`DSP0004`. If you have WBEM URI strings without the
         corresponding :class:`~pywbem.CIMInstanceName` object, such an object
         can be created by using the static method
         :meth:`~pywbem.CIMInstanceName.from_wbem_uri`.
@@ -1963,6 +1974,16 @@ class CIMInstanceName(_CIMComparisonMixin):
             * ``"standard"`` - Standard format that is conformant to untyped
               WBEM URIs for instance paths defined in :term:`DSP0207`.
 
+            * ``"canonical"`` - Like ``"standard"``, except that the following
+              items have been converted to lower case: host, namespace,
+              classname, and the names of any keybindings, and except that the
+              order of keybindings is in lexical order of the (lower-cased)
+              keybinding names.
+              This format guarantees that two instance paths that are
+              considered equal according to :term:`DSP0004` result in equal
+              WBEM URI strings. Therefore, the returned WBEM URI is suitable to
+              be used as a key in dictionaries of CIM instances.
+
             * ``"cimobject"`` - Format for the `CIMObject` header field in
               CIM-XML messages for representing instance paths (used
               internally, see :term:`DSP0200`).
@@ -1972,27 +1993,38 @@ class CIMInstanceName(_CIMComparisonMixin):
               new code). The historical format has the following differences to
               the standard format:
 
-              - If the authority component is not present, the slash after the
-                authority is also omitted. In the standard format, that slash
+              - If the host component is not present, the slash after the
+                host is also omitted. In the standard format, that slash
                 is always present.
 
               - If the namespace component is not present, the colon after the
                 namespace is also omitted. In the standard format, that colon
                 is always present.
 
-        Examples for the standard format:
+            Keybindings that are references use the specified format
+            recursively.
 
-        * With authority and namespace::
+        Examples:
 
-            //acme.com/cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+        * With host and namespace, standard format::
 
-        * Without authority but with namespace::
+            //ACME.com/cimv2/Test:CIM_RegisteredProfile.InstanceID="Acme.1"
 
-            /cimv2/test:CIM_RegisteredProfile.InstanceID="acme.1"
+        * With host and namespace, canonical format::
 
-        * Without authority and without namespace::
+            //acme.com/cimv2/test:cim_registeredprofile.instanceid="Acme.1"
 
-            /:CIM_RegisteredProfile.InstanceID="acme.1"
+        * Without host but with namespace, standard format::
+
+            /cimv2/Test:CIM_RegisteredProfile.InstanceID="Acme.1"
+
+        * Without host but with namespace, canonical format::
+
+            /cimv2/test:cim_registeredprofile.instanceid="Acme.1"
+
+        * Without host and without namespace, standard format::
+
+            /:CIM_RegisteredProfile.InstanceID="Acme.1"
 
         Returns:
 
@@ -2006,23 +2038,39 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         ret = []
 
+        def case(s):
+            if format == 'canonical':
+                return s.lower()
+            else:
+                return s
+
+        def case_sorted(keys):
+            if format == 'canonical':
+                case_keys = [case(k) for k in keys]
+                return sorted(case_keys)
+            else:
+                return keys
+
         if self.host is not None:
             ret.append('//')
-            ret.append(self.host)
+            ret.append(case(self.host))
 
-        if self.host is not None or format == 'standard':
+        if self.host is not None or format in ('standard', 'canonical'):
             ret.append('/')
 
         if self.namespace is not None:
-            ret.append(self.namespace)
+            ret.append(case(self.namespace))
 
-        if self.namespace is not None or format in ('standard', 'cimobject'):
+        if self.namespace is not None or format in ('standard', 'canonical',
+                                                    'cimobject'):
             ret.append(':')
 
-        ret.append(self.classname)
+        ret.append(case(self.classname))
 
         ret.append('.')
-        for key, value in self.keybindings.iteritems():
+
+        for key in case_sorted(self.keybindings.iterkeys()):
+            value = self.keybindings[key]
 
             ret.append(key)
             ret.append('=')
@@ -2046,7 +2094,7 @@ class CIMInstanceName(_CIMComparisonMixin):
             elif isinstance(value, CIMInstanceName):
                 # reference
                 ret.append('"')
-                ret.append(value.to_wbem_uri().
+                ret.append(value.to_wbem_uri(format=format).
                            replace('\\', '\\\\').
                            replace('"', '\\"'))
                 ret.append('"')
@@ -2837,7 +2885,7 @@ class CIMInstance(_CIMComparisonMixin):
 
           indent (:term:`integer`): This parameter has been deprecated in
             pywbem 0.12. A value other than 0 causes a deprecation warning to
-            be issued. Othwerise, the parameter is ignored and the returned MOF
+            be issued. Otherwise, the parameter is ignored and the returned MOF
             instance specification is not indented.
 
         Returns:
@@ -2936,7 +2984,7 @@ class CIMInstance(_CIMComparisonMixin):
             values or the path creation fails with a ValueError exception.
 
             If `None` or `False` no path element is created and the new
-            instance is returned with the path element ``None`.
+            instance is returned with the path element `None`.
 
         Returns:
 
@@ -3224,19 +3272,19 @@ class CIMClassName(_CIMComparisonMixin):
         If you want to access the class name, use the
         :attr:`~pywbem.CIMClassName.classname` attribute, instead of relying
         on the coincidence that the historical format of a WBEM URI without
-        authority and namespace happens to be the class name.
+        host and namespace happens to be the class name.
 
         Examples (for the historical format):
 
-        * With authority and namespace::
+        * With host and namespace::
 
             //acme.com/cimv2/test:CIM_RegisteredProfile
 
-        * Without authority but with namespace::
+        * Without host but with namespace::
 
             cimv2/test:CIM_RegisteredProfile
 
-        * Without authority and without namespace::
+        * Without host and without namespace::
 
             CIM_RegisteredProfile
         """
@@ -3419,14 +3467,35 @@ class CIMClassName(_CIMComparisonMixin):
         The returned WBEM URI contains its components as follows:
 
         * it does not contain a namespace type (URI scheme).
-        * it contains an authority component according to the
+        * it contains an authority (host) component according to the
           :attr:`~pywbem.CIMClassName.host` attribute, if that is not
-          `None`. Othwerise, it does not contain the authority component.
+          `None`. Otherwise, it does not contain the authority component.
         * it contains a namespace component according to the
           :attr:`~pywbem.CIMClassName.namespace` attribute, if that is not
-          `None`. Othwerise, it does not contain the namespace component.
+          `None`. Otherwise, it does not contain the namespace component.
         * it contains a class name component according to the
           :attr:`~pywbem.CIMClassName.classname` attribute.
+
+        Note that when you do not want some of these components to show up
+        in the resulting WBEM URI string, you can set them to `None` before
+        calling this method.
+
+        Except when using the format "canonical", this method should not be
+        used to compare class paths for equality: :term:`DSP0004` defines
+        several components of a class path to be compared case insensitively.
+        All WBEM URI formats returned by this method except for the format
+        "canonical" return a WBEM URI string that preserves the lexical case of
+        any components. Therefore, two class paths that are considered equal
+        according to :term:`DSP0004` may not have equal WBEM URI strings as
+        as returned by this method.
+
+        Instead, equality of class paths represented by
+        :class:`~pywbem.CIMClassName` objects should be determined by using
+        the ``==`` operator, which performs the comparison conformant to
+        :term:`DSP0004`. If you have WBEM URI strings without the
+        corresponding :class:`~pywbem.CIMClassName` object, such an object
+        can be created by using the static method
+        :meth:`~pywbem.CIMClassName.from_wbem_uri`.
 
         Parameters:
 
@@ -3435,6 +3504,14 @@ class CIMClassName(_CIMComparisonMixin):
 
             * ``"standard"`` - Standard format that is conformant to untyped
               WBEM URIs for class paths defined in :term:`DSP0207`.
+
+            * ``"canonical"`` - Like ``"standard"``, except that the following
+              items have been converted to lower case: host, namespace, and
+              classname.
+              This format guarantees that two class paths that are
+              considered equal according to :term:`DSP0004` result in equal
+              WBEM URI strings. Therefore, the returned WBEM URI is suitable to
+              be used as a key in dictionaries of CIM classes.
 
             * ``"cimobject"`` - Format for the `CIMObject` header field in
               CIM-XML messages for representing class paths (used
@@ -3445,25 +3522,33 @@ class CIMClassName(_CIMComparisonMixin):
               new code). The historical format has the following differences to
               the standard format:
 
-              - If the authority component is not present, the slash after the
-                authority is also omitted. In the standard format, that slash
+              - If the host component is not present, the slash after the
+                host is also omitted. In the standard format, that slash
                 is always present.
 
               - If the namespace component is not present, the colon after the
                 namespace is also omitted. In the standard format, that colon
                 is always present.
 
-        Examples for the standard format:
+        Examples:
 
-        * With authority and namespace::
+        * With host and namespace, standard format::
 
-            //acme.com/cimv2/test:CIM_RegisteredProfile
+            //ACME.com/cimv2/Test:CIM_RegisteredProfile
 
-        * Without authority but with namespace::
+        * With host and namespace, canonical format::
 
-            /cimv2/test:CIM_RegisteredProfile
+            //acme.com/cimv2/test:cim_registeredprofile
 
-        * Without authority and without namespace::
+        * Without host but with namespace, standard format::
+
+            /cimv2/Test:CIM_RegisteredProfile
+
+        * Without host but with namespace, canonical format::
+
+            /cimv2/test:cim_registeredprofile
+
+        * Without host and without namespace, standard format::
 
             /:CIM_RegisteredProfile
 
@@ -3473,22 +3558,26 @@ class CIMClassName(_CIMComparisonMixin):
           in the specified format.
         """
 
+        def case(s):
+            return s.lower() if format == 'canonical' else s
+
         ret = []
 
         if self.host is not None:
             ret.append('//')
-            ret.append(self.host)
+            ret.append(case(self.host))
 
-        if self.host is not None or format == 'standard':
+        if self.host is not None or format in ('standard', 'canonical'):
             ret.append('/')
 
         if self.namespace is not None:
-            ret.append(self.namespace)
+            ret.append(case(self.namespace))
 
-        if self.namespace is not None or format in ('standard', 'cimobject'):
+        if self.namespace is not None or format in ('standard', 'canonical',
+                                                    'cimobject'):
             ret.append(':')
 
-        ret.append(self.classname)
+        ret.append(case(self.classname))
 
         return _ensure_unicode(''.join(ret))
 
