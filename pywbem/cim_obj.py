@@ -2055,10 +2055,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
             raise ValueError("Invalid format argument: %s" % format)
 
-        # TODO: Ignore host for CIMObject format
-        # if self.host is not None and format not in ('cimobject'):
-        #     # The CIMObject format assumes there is no host component
-        if self.host is not None:
+        if self.host is not None and format != 'cimobject':
+            # The CIMObject format assumes there is no host component
             ret.append('//')
             ret.append(case(self.host))
 
@@ -3579,10 +3577,8 @@ class CIMClassName(_CIMComparisonMixin):
 
         ret = []
 
-        # TODO: Ignore host for CIMObject format
-        # if self.host is not None and format not in ('cimobject'):
-        #     # The CIMObject format assumes there is no host component
-        if self.host is not None:
+        if self.host is not None and format != 'cimobject':
+            # The CIMObject format assumes there is no host component
             ret.append('//')
             ret.append(case(self.host))
 
