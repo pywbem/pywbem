@@ -3499,14 +3499,14 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "all components, cimobject format",
+            "all components, cimobject format (host is ignored)",
             dict(
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict(k1=u'v1'),
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
             'cimobject',
-            '//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
+            '/root/cimv2:CIM_Foo.k1="v1"',
             None, CHECK_0_12_0
         ),
         (
@@ -17018,13 +17018,13 @@ class Test_CIMClassName_to_wbem_uri_str(object):
             None, CHECK_0_12_0
         ),
         (
-            "all components, cimobject format",
+            "all components, cimobject format (host is ignored)",
             dict(
                 classname=u'CIM_Foo',
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
             'cimobject',
-            '//10.11.12.13:5989/root/cimv2:CIM_Foo',
+            '/root/cimv2:CIM_Foo',
             None, CHECK_0_12_0
         ),
         (
