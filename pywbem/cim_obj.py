@@ -2034,6 +2034,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         Raises:
 
           TypeError: Invalid type in keybindings
+          ValueError: Invalid format
         """
 
         ret = []
@@ -2051,18 +2052,23 @@ class CIMInstanceName(_CIMComparisonMixin):
             else:
                 return keys
 
+        if format not in ('standard', 'canonical', 'cimobject', 'historical'):
+            raise ValueError("Invalid format argument: %s" % format)
+
+        # TODO: Ignore host for CIMObject format
+        # if self.host is not None and format not in ('cimobject'):
+        #     # The CIMObject format assumes there is no host component
         if self.host is not None:
             ret.append('//')
             ret.append(case(self.host))
 
-        if self.host is not None or format in ('standard', 'canonical'):
+        if self.host is not None or format not in ('cimobject', 'historical'):
             ret.append('/')
 
         if self.namespace is not None:
             ret.append(case(self.namespace))
 
-        if self.namespace is not None or format in ('standard', 'canonical',
-                                                    'cimobject'):
+        if self.namespace is not None or format != 'historical':
             ret.append(':')
 
         ret.append(case(self.classname))
@@ -3556,25 +3562,34 @@ class CIMClassName(_CIMComparisonMixin):
 
           :term:`unicode string`: Untyped WBEM URI of the CIM class path,
           in the specified format.
+
+        Raises:
+
+          ValueError: Invalid format
         """
 
         def case(s):
             return s.lower() if format == 'canonical' else s
 
+        if format not in ('standard', 'canonical', 'cimobject', 'historical'):
+            raise ValueError("Invalid format argument: %s" % format)
+
         ret = []
 
+        # TODO: Ignore host for CIMObject format
+        # if self.host is not None and format not in ('cimobject'):
+        #     # The CIMObject format assumes there is no host component
         if self.host is not None:
             ret.append('//')
             ret.append(case(self.host))
 
-        if self.host is not None or format in ('standard', 'canonical'):
+        if self.host is not None or format not in ('cimobject', 'historical'):
             ret.append('/')
 
         if self.namespace is not None:
             ret.append(case(self.namespace))
 
-        if self.namespace is not None or format in ('standard', 'canonical',
-                                                    'cimobject'):
+        if self.namespace is not None or format != 'historical':
             ret.append(':')
 
         ret.append(case(self.classname))
