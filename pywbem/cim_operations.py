@@ -142,7 +142,7 @@ import logging
 
 import six
 from . import cim_xml
-from .config import DEFAULT_ITER_MAXOBJECTCOUNT
+from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
 from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
@@ -1739,6 +1739,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             ('CIMMethod', methodname),
             ('CIMObject', get_cimobject_header(localobject)),
         ]
+
+        # Add a special HTTP header for SFCB's special password expiration
+        # update mechanism. For details, see the documentation of the
+        # pywbem config variable AUTO_GENERATE_SFCB_UEP_HEADER.
+        if AUTO_GENERATE_SFCB_UEP_HEADER and \
+                methodname == 'UpdateExpiredPassword' and \
+                objectname.classname == 'SFCB_Account':
+            cimxml_headers.append(('Pragma', 'UpdateExpiredPassword'))
 
         # Create parameter list
 

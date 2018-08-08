@@ -34,7 +34,8 @@ modify the configuration variables.
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT',
-           'SEND_VALUE_NULL', 'IGNORE_NULL_KEY_VALUE']
+           'SEND_VALUE_NULL', 'IGNORE_NULL_KEY_VALUE',
+           'AUTO_GENERATE_SFCB_UEP_HEADER']
 
 #: Enforce the allowable value range for CIM integer types (e.g.
 #: :class:`~pywbem.Uint8`). For details, see the :class:`~pywbem.CIMInt` base
@@ -91,10 +92,10 @@ SEND_VALUE_NULL = True
 
 #: Backward compatibility option that controls creating
 #: :class:`~pywbem.CIMInstanceName` objects with NULL values for keybindings.
-
+#:
 #: :term:`DSP0004`, section 7.9 specifically forbids key properties with
 #: values that are NULL but because pywbem has always allowed this, adding the
-#:  code to disallow `None` as a keybinding value is an incompatible change.
+#: code to disallow `None` as a keybinding value is an incompatible change.
 #:
 #: * `True`: Pywbem tolerates `None` as a value when keybindings are defined.
 #: * `False` (default): Pywbem raises ValueError when keybindings are created
@@ -102,3 +103,17 @@ SEND_VALUE_NULL = True
 #:
 #: *New in pywbem 0.12.*
 IGNORE_NULL_KEY_VALUE = False
+
+#: Option that enables or disables the automatic creation of a special HTTP
+#: header field that the Small Footprint CIM Broker (SFCB) requires when
+#: invoking its special "UpdateExpiredPassword()" method.
+#: See http://sblim.sourceforge.net/wiki/index.php/SfcbExpiredPasswordUpdate
+#: for details.
+#:
+#: * `True`: (default): Automatic creation is enabled, and pywbem will create
+#:   the HTTP header field ``Pragma: UpdateExpiredPassword`` in all CIM-XML
+#:   requests that invoke a CIM method named "UpdateExpiredPassword()".
+#: * `False`: Automatic creation is disabled.
+#:
+#: *New in pywbem 0.13.*
+AUTO_GENERATE_SFCB_UEP_HEADER = True
