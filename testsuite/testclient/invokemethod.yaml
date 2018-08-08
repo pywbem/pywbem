@@ -308,5 +308,74 @@
       </MESSAGE>
       </CIM>
 
+- name: InvokeMethod_SFCB_UEP
+  description: Verify that UpdateExpiredPassword causes the corresponding Pragma header to be added
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: UpdateExpiredPassword
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: SFCB_Account
+        host: null
+        namespace: root/interop
+      UserPassword: foo
+  pywbem_response:
+    result:
+    - 0
+    - {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: UpdateExpiredPassword
+      CIMObject: root/interop%3ASFCB_Account
+      Pragma: UpdateExpiredPassword
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="UpdateExpiredPassword">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="interop"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="SFCB_Account"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="UserPassword" PARAMTYPE="string">
+      <VALUE>foo</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="UpdateExpiredPassword">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
 # TODO 01/18 AM: Add testcases for namespaces with leading/trailing slashes
 

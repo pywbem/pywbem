@@ -213,6 +213,16 @@ This version contains all fixes up to pywbem 0.12.4.
   Also, test cases were added for tupleparse for the `PARAMVALUE` element.
   See issue #1241.
 
+* Added support for automatically creating the `Pragma: UpdateExpiredPassword`
+  HTTP header in the CIM-XML request if pywbem detects that the special SFCB
+  method "UpdateExpiredPassword()" is invoked on class "SFCB_Account". SFCB
+  requires this HTTP header for that method.
+  See http://sblim.sourceforge.net/wiki/index.php/SfcbExpiredPasswordUpdate for
+  details about this SFCB functionality.
+  The automatic creation of the header field is enabled by default and can be
+  disabled with a new pywbem config variable `AUTO_GENERATE_SFCB_UEP_HEADER`.
+  See issue #1326.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
