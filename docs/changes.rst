@@ -132,6 +132,9 @@ This version contains all fixes up to pywbem 0.12.4.
   Added according testcases.
   See issue #1312.
 
+* Fix issue in IterQueryInstances where the QueryLanguage and Query parameters
+  were reveresed in the fallback call to ExecQuery method. See issue # 1334.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
