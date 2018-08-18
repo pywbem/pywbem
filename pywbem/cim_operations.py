@@ -5915,8 +5915,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 raise ValueError('ExecQuery does not support '
                                  'ContinueOnError.')
 
-            _instances = self.ExecQuery(FilterQuery,
-                                        FilterQueryLanguage,
+            # The parameters are QueryLanguage and Query for ExecQuery
+            _instances = self.ExecQuery(FilterQueryLanguage,
+                                        FilterQuery,
                                         namespace=namespace, **extra)
 
             rtn = IterQueryInstancesReturn(_instances)
