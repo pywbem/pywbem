@@ -1447,20 +1447,13 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         "ns", [None, 'test/testnamespace']
     )
     @pytest.mark.parametrize(
-        "ql,query", [(None, None), ('CQL', 'SELECT from *')]
+        "ql, query", [(None, None), ('CQL', 'SELECT from *')]
     )
     def test_orig_operation_success(self, use_pull_param, tst_insts, ns,
                                     ql, query):
         # pylint: disable=no-self-use
         """
-            Test Use of IterAssociatorInstances from IterAssociatorInstances.
-            This forces the enumerate by mocking NOT_Supported on the
-            OpenAssociatorInstancess.
-            It is parameterized to test variations on all parameters. Note
-            that it only tests legal parameters.
-
-            It confirms that AssociatorInstances receives the correct parameter
-            for all parameters.
+            Test Use IterQueryInstances using the original ExecQuery op
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1476,7 +1469,7 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         q_result = conn.IterQueryInstances(ql, query, namespace=ns)
         result_insts = [inst for inst in q_result.generator]
 
-        conn.ExecQuery.assert_called_with(query, ql, namespace=ns)
+        conn.ExecQuery.assert_called_with(ql, query, namespace=ns)
 
         assert(q_result.query_result_class is None)
         assert(conn._use_query_pull_operations is False)
