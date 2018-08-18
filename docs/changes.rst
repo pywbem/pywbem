@@ -25,6 +25,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fix issue in IterQueryInstances where the QueryLanguage and Query parameters
+  were reveresed in the fallback call to ExecQuery method. See issue #1334.
+
 **Enhancements:**
 
 **Known issues:**
@@ -94,7 +97,7 @@ Released: 2018-05-18
   objects that states that `copy.copy()` and `copy.deepcopy()` can be used
   to create completely shallow or completely deep copies (Issue #1251).
 
-** Cleanup:**
+**Cleanup:**
 
 * Removed one level of superflous copies of dictionaries in the `copy()`
   methods of the CIM object classes. These dictionaries are already copied
