@@ -1,5 +1,5 @@
 - name: CreateInstance1
-  description: Create instance of PyWBEM_Person successful
+  description: CreateInstance with simple class PyWBEM_Person
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -109,7 +109,7 @@
       </CIM>'
 
 - name: CreateInstance2
-  description: Create instance of PyWBEM_Person successful test sizes
+  description: CreateInstance with simple class PyWBEM_Person, testing payload sizes
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -222,7 +222,7 @@
       </CIM>'
 
 -   name: CreateInstance3
-    description: Created from test_pywbem_AllTypes() and manually adjusted, Creates PyWBEM_AllTypes instance successfully
+    description: CreateInstance with PyWBEM_AllTypes, testing all CIM types
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -590,8 +590,9 @@
             </CIM>'
 
 # TODO needs much more completed instance to create
+
 - name: CreateInstanceE1
-  description: CreateInstance Fails, Access Denied
+  description: CreateInstance fails with CIM status 2 (Access Denied)
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -686,8 +687,278 @@
               </MESSAGE>
             </CIM>
 
+- name: CreateInstanceE2
+  description: CreateInstance fails with missing IRETURNVALUE element in response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateInstance
+      NewInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties:
+          creationclassname:
+            pywbem_object: CIMProperty
+            name: CreationClassName
+            value: PyWBEM_Person
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+      namespace: null
+  pywbem_response:
+    exception: ParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateInstance
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewInstance">
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      <PROPERTY NAME="CreationClassName" TYPE="string">
+      <VALUE>PyWBEM_Person</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name" TYPE="string">
+      <VALUE>run_cimoperations_test</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateInstance">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: CreateInstanceE3
+  description: CreateInstance fails with missing INSTANCENAME element in response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateInstance
+      NewInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties:
+          creationclassname:
+            pywbem_object: CIMProperty
+            name: CreationClassName
+            value: PyWBEM_Person
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+      namespace: null
+  pywbem_response:
+    exception: ParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateInstance
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewInstance">
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      <PROPERTY NAME="CreationClassName" TYPE="string">
+      <VALUE>PyWBEM_Person</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name" TYPE="string">
+      <VALUE>run_cimoperations_test</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateInstance">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: CreateInstanceE4
+  description: CreateInstance fails with incorrect CLASSNAME element in response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: false
+    operation:
+      pywbem_method: CreateInstance
+      NewInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties:
+          creationclassname:
+            pywbem_object: CIMProperty
+            name: CreationClassName
+            value: PyWBEM_Person
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+      namespace: null
+  pywbem_response:
+    exception: ParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CreateInstance
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CreateInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="NewInstance">
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      <PROPERTY NAME="CreationClassName" TYPE="string">
+      <VALUE>PyWBEM_Person</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name" TYPE="string">
+      <VALUE>run_cimoperations_test</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateInstance">
+      <IRETURNVALUE>
+      <CLASSNAME NAME="PyWBEM_Person">
+      </CLASSNAME>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
 - name: CreateInstanceNS1
-  description: CreateInstance, with leading/trailing slashes in default namespace
+  description: CreateInstance with leading/trailing slashes in namespace, using default namespace of connection
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -782,7 +1053,7 @@
       </CIM>'
 
 - name: CreateInstanceNS2
-  description: Create instance, with leading/trailing slashes in operation namespace
+  description: CreateInstance with leading/trailing slashes in namespace, using target namespace of operation
   pywbem_request:
     url: http://acme.com:80
     creds:
