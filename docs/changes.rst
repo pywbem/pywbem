@@ -12,6 +12,27 @@ Change log
    .. git_changelog::
       :revisions: 1
 
+Version 0.12.5
+^^^^^^^^^^^^^^
+
+This version is currently in development and is shown as |version|.
+
+Released: not yet
+
+**Incompatible changes:**
+
+**Deprecations:**
+
+**Bug fixes:**
+
+**Enhancements:**
+
+**Known issues:**
+
+* See `list of open issues`_.
+
+.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+
 Version 0.12.4
 ^^^^^^^^^^^^^^
 
