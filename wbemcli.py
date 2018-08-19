@@ -38,6 +38,7 @@ Function               WBEM operation
 :func:`~wbemcli.r`     References
 :func:`~wbemcli.rn`    ReferenceNames
 :func:`~wbemcli.im`    InvokeMethod
+:func:`~wbemcli.eqy`   ExecQuery
 ---------------------  --------------------------------------------------------
 :func:`~wbemcli.iei`   IterEnumerateInstances (pywbem only)
 :func:`~wbemcli.ieip`  IterEnumerateInstancePaths (pywbem only)
@@ -934,6 +935,45 @@ def im(mn, op, params, **kwparams):
     return CONN.InvokeMethod(mn, op, params, **kwparams)
 
 
+def eqy(ql, qs, ns=None,):
+    """
+    *New in pywbem 0.12*
+
+    This function is a wrapper for :meth:`~pywbem.WBEMConnection.ExecQuery`.
+
+    Execute a query in a namespace.
+
+    Parameters:
+
+      ql (:term:`string`):
+          Name of the query language used in the `qs` parameter, e.g.
+          "DMTF:CQL" for CIM Query Language, and "WQL" for WBEM Query
+          Language. Because this is not a filter query, "DMTF:FQL" is not a
+          valid query language for this request.
+
+      qs (:term:`string`):
+          Query string in the query language specified in the `ql` parameter.
+
+      ns (:term:`string`):
+          Name of the CIM namespace to be used (case independent).
+
+          If `None`, defaults to the default namespace of the connection.
+
+    Returns:
+
+        A list of :class:`~pywbem.CIMInstance` objects that represents
+        the query result.
+
+        These instances have their `path` attribute set to identify
+        their creation class and the target namespace of the query, but
+        they are not addressable instances.
+    """  # noqa: E501
+
+    return CONN.ExecQuery(QueryLanguage=ql,
+                          Query=qs,
+                          namespace=ns)
+
+
 def iei(cn, ns=None, lo=None, di=None, iq=None, ico=None, pl=None, fl=None,
         fs=None, ot=None, coe=None, moc=DEFAULT_ITER_MAXOBJECTCOUNT,):
     # pylint: disable=too-many-arguments, redefined-outer-name
@@ -1603,7 +1643,7 @@ def iqi(ql, qs, ns=None, rc=None, ot=None, coe=None,
     Parameters:
 
       ql (:term:`string`):
-          Name of the query language used in the `q` parameter, e.g.
+          Name of the query language used in the `qs` parameter, e.g.
           "DMTF:CQL" for CIM Query Language, and "WQL" for WBEM Query
           Language. Because this is not a filter query, "DMTF:FQL" is not a
           valid query language for this request.
@@ -2948,6 +2988,7 @@ Global functions for WBEM operations:
   r                References
   rn               ReferenceNames
   im               InvokeMethod
+  eqy              ExecQuery
 
   iei              IterEnumerateInstances
   ieip             IterEnumerateInstancePaths

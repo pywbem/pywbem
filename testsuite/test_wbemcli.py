@@ -25,6 +25,9 @@
     where each test is a call to execute wbemcli with a particular set of
     arguments and options. It then tests the stdout, stderr, and exitcode
     against the TEST_MAP.
+
+    This test does not test the individual operations that can be executed,
+    just the initialization components for wbemcli
 """
 
 from __future__ import print_function, absolute_import

@@ -224,6 +224,8 @@ This version contains all fixes up to pywbem 0.12.4.
   disabled with a new pywbem config variable `AUTO_GENERATE_SFCB_UEP_HEADER`.
   See issue #1326.
 
+* Add support for ExecQuery (shortcut eqy) to wbemcli. See issue # 1332.
+
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a
