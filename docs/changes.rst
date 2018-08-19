@@ -252,6 +252,10 @@ This version contains all fixes up to pywbem 0.12.4.
   CIM_Namespace, CIM_ObjectManager existing in the mocked server. See issue
   #1250
 
+* Needed to upgrade PyYAML version from >=3.12 to >=3.13 due to an issue
+  in PyYAML on Python 3.7, that was fixed in PyYAML 3.13.
+  See issue #1337.
+
 **Known issues:**
 
 * See `list of open issues`_.
