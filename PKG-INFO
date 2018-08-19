@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: pywbem
-Version: 0.12.1.dev59
+Version: 0.12.1.dev70
 Summary: pywbem - A WBEM client
 Home-page: http://pywbem.github.io/pywbem/
 Author: Tim Potter
@@ -44,5 +44,6 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.4
 Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: System :: Systems Administration

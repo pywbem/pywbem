@@ -186,9 +186,9 @@ class NocaseDict(object):
                 "%s (1 allowed)" % len(args))
 
         # Step 2: Add any keyword arguments
-        if len(kwargs) > 1 and sys.version_info[0:2] <= (3, 6):
+        if len(kwargs) > 1 and sys.version_info[0:2] < (3, 7):
             warnings.warn("Initializing a pywbem.NocaseDict object from "
-                          "keyword arguments before Python 3.6 will not "
+                          "keyword arguments before Python 3.7 will not "
                           "preserve order of items",
                           UserWarning,
                           stacklevel=_stacklevel_above_module(__name__))
