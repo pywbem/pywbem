@@ -186,7 +186,8 @@ This version contains all fixes up to pywbem 0.12.4.
   `pywbem_os_setup.bat` script. As part of that, the latest `M2Crypto` version
   0.30.1 is now used on Windows, and no longer the somewhat aged versions in
   the `M2CryptoWin32/64` packages. For details, see the installation section
-  in the documentation.
+  in the documentation. That script also downloads and installs Win32 OpenSSL
+  from https://slproweb.com/products/Win32OpenSSL.html.
 
 * Made exception messages more explicit in the ValueMapping and WBEMServer
   classes. Issue #1281.

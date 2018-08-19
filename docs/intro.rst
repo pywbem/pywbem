@@ -293,6 +293,9 @@ environment (i.e. without using a UNIX-like environment; for that, see
   This script will also install the ``M2Crypto`` Python package into the active
   Python environment.
 
+  This script will also install Win32 OpenSSL from
+  https://slproweb.com/products/Win32OpenSSL.html.
+
 * Install pywbem (and its other prerequisite Python packages) into the active
   Python environment:
 
