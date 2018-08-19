@@ -2829,11 +2829,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 NewInstance=instance,
                 **extra)
 
-            instancename = result[0][2][0]
+            if not result:
+                raise ParseError(
+                    "Expecting a child element below IMETHODRESPONSE, "
+                    "got no child elements", conn_id=self.conn_id)
+            result = result[0]  # Tuple for first child of IMETHODRESPONSE
 
-            # CreateInstance returns an INSTANCENAME, which does not have
-            # namespace or host. We want to return a path with namespace,
-            # so we set it to the target namespace.
+            if result[0] != 'IRETURNVALUE':
+                raise ParseError(
+                    'Expecting IRETURNVALUE element, got %s' % result[0],
+                    conn_id=self.conn_id)
+            result = result[2]  # List of children of IRETURNVALUE
+
+            if not result:
+                raise ParseError(
+                    "Expecting a child element below IRETURNVALUE, "
+                    "got no child elements", conn_id=self.conn_id)
+            instancename = result[0]  # CIMInstanceName object
+
+            if not isinstance(instancename, CIMInstanceName):
+                raise ParseError(
+                    'Expecting CIMInstanceName object, got %s object' %
+                    type(instancename), conn_id=self.conn_id)
+
+            # The CreateInstance CIM-XML operation returns an INSTANCENAME
+            # element, so the resulting CIMInstanceName object does not have
+            # namespace or host. We want to return an instance path with
+            # namespace, so we set it to the effective target namespace.
             instancename.namespace = namespace
 
             return instancename

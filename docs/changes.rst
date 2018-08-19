@@ -251,6 +251,20 @@ This version contains all fixes up to pywbem 0.12.4.
   is used for example when showing the exception in a Python traceback.
   See issue #1350.
 
+* Added checking for the returned instance name to the CreateInstance
+  operation. This changes the exception that is raised from `TypeError` or
+  `IndexError` indicating an internal issue, to several `pywbem.ParseError`
+  exceptions that have reasonable error messages.
+  Note that there is an uncertainty as to whether DSP0200 would allow
+  CreateInstance to not return an instance name. Because this would already
+  have caused an exception to be raised in the current pywbem code, it is
+  assumed that all WBEM server implementations so far always return the
+  instance name, and therefore, pywbem has just improved the quality of the
+  exception that is raised, and continues not to tolerate a missing instance
+  name.
+  Extended the testcases for CreateInstance accordingly.
+  See issue #1319.
+
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a
