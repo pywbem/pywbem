@@ -49,17 +49,17 @@ matrix:
       env:
         - PACKAGE_LEVEL=minimum
 
-#    - os: linux
-#      language: python
-#      python: "2.7"
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "2.7"
+      env:
+        - PACKAGE_LEVEL=latest
 
-#    - os: linux
-#      language: python
-#      python: "3.4"
-#      env:
-#        - PACKAGE_LEVEL=minimum
+    - os: linux
+      language: python
+      python: "3.4"
+      env:
+        - PACKAGE_LEVEL=minimum
 
     - os: linux
       language: python
@@ -67,41 +67,41 @@ matrix:
       env:
         - PACKAGE_LEVEL=latest
 
-#    - os: linux
-#      language: python
-#      python: "3.5"
-#      env:
-#        - PACKAGE_LEVEL=minimum
+    - os: linux
+      language: python
+      python: "3.5"
+      env:
+        - PACKAGE_LEVEL=minimum
 
-#    - os: linux
-#      language: python
-#      python: "3.5"
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "3.5"
+      env:
+        - PACKAGE_LEVEL=latest
 
-#    - os: linux
-#      language: python
-#      python: "3.6"
-#      env:
-#        - PACKAGE_LEVEL=minimum
+    - os: linux
+      language: python
+      python: "3.6"
+      env:
+        - PACKAGE_LEVEL=minimum
 
-#    - os: linux
-#      language: python
-#      python: "3.6"
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "3.6"
+      env:
+        - PACKAGE_LEVEL=latest
 
-#    - os: linux
-#      language: python
-#      python: "3.7"
-#      env:
-#        - PACKAGE_LEVEL=minimum
+    - os: linux
+      language: python
+      python: "3.7"
+      env:
+        - PACKAGE_LEVEL=minimum
 
-#    - os: linux
-#      language: python
-#      python: "3.7"
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "3.7"
+      env:
+        - PACKAGE_LEVEL=latest
 
     - os: linux
       language: python
@@ -139,37 +139,37 @@ matrix:
 #      env:
 #        - PACKAGE_LEVEL=latest
 
-#    - os: osx
-#      osx_image: xcode9.4  # macOS 10.13.6 with python2 @ 2.7.17
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=2
-#        - PACKAGE_LEVEL=minimum
+    - os: osx
+      osx_image: xcode9.4  # macOS 10.13.6 with python2 @ 2.7.17
+      language: generic
+      python:
+      env:
+        - PYTHON=2
+        - PACKAGE_LEVEL=minimum
 
-#    - os: osx
-#      osx_image: xcode9.4  # macOS 10.13.6 with python2 @ 2.7.17
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=2
-#        - PACKAGE_LEVEL=latest
+    - os: osx
+      osx_image: xcode9.4  # macOS 10.13.6 with python2 @ 2.7.17
+      language: generic
+      python:
+      env:
+        - PYTHON=2
+        - PACKAGE_LEVEL=latest
 
-#    - os: osx
-#      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=3
-#        - PACKAGE_LEVEL=minimum
+    - os: osx
+      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
+      language: generic
+      python:
+      env:
+        - PYTHON=3
+        - PACKAGE_LEVEL=minimum
 
-#    - os: osx
-#      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=3
-#        - PACKAGE_LEVEL=latest
+    - os: osx
+      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
+      language: generic
+      python:
+      env:
+        - PYTHON=3
+        - PACKAGE_LEVEL=latest
 
 before_install:
 
