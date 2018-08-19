@@ -64,10 +64,10 @@ echo Done installing Swig
 
 :: The bit size of Win32/64OpenSSL must match the bit size of the Python env.
 set _WINOPENSSL_BITSIZE=%PYTHON_ARCH%
-set _WINOPENSSL_BASENAME=Win%_WINOPENSSL_BITSIZE%OpenSSL-1_1_0h
-set _WINOPENSSL_INSTALL_DIR=C:\OpenSSL-1-1-0h-Win%_WINOPENSSL_BITSIZE%
+set _WINOPENSSL_BASENAME=Win%_WINOPENSSL_BITSIZE%OpenSSL-1_1_0i
+set _WINOPENSSL_INSTALL_DIR=C:\OpenSSL-1-1-0i-Win%_WINOPENSSL_BITSIZE%
 if exist %_WINOPENSSL_INSTALL_DIR% (
-    echo %_WINOPENSSL_BASENAME% is already installed ... skipping
+    echo %_WINOPENSSL_BASENAME% is already installed in %_WINOPENSSL_INSTALL_DIR% ... skipping
     goto done_winopenssl
 )
 
@@ -78,6 +78,19 @@ echo %_CMD%
 %_CMD%
 set _RC=%errorlevel%
 if not "%_RC%"=="0" goto error1
+
+:: If the web site does not know the file, it returns a HTML page showing an error, and curl succeeds downloading that
+set _CMD=grep "^<html>" %_WINOPENSSL_BASENAME%.exe
+echo %_CMD%
+%_CMD%
+set _RC=%errorlevel%
+if "%_RC%"=="0" (
+    echo Error: The %_WINOPENSSL_BASENAME%.exe file does not exist on https://slproweb.com:
+    cat %_WINOPENSSL_BASENAME%.exe
+    rm %_WINOPENSSL_BASENAME%.exe
+    set _RC=1
+    goto error1
+)
 
 :: Downloaded files may not have the execution right.
 set _CMD=chmod 755 %_WINOPENSSL_BASENAME%.exe
