@@ -1943,6 +1943,7 @@ class TupleParser(object):
         values = self.list_of_same(tup_tree,
                                    ['CLASSNAME', 'INSTANCENAME', 'VALUE',
                                     'VALUE.OBJECTWITHPATH',
+                                    'VALUE.OBJECTWITHLOCALPATH',
                                     'VALUE.OBJECT', 'OBJECTPATH',
                                     'QUALIFIER.DECLARATION', 'VALUE.ARRAY',
                                     'VALUE.REFERENCE', 'CLASS', 'INSTANCE',
