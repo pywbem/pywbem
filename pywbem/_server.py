@@ -408,7 +408,11 @@ class WBEMServer(object):
 
         # Try approach 2: CreateInstance of CIM_Namespace
 
-        ns_inst = CIMInstance('CIM_Namespace')
+        if self.brand == "OpenPegasus":
+            ns_inst = CIMInstance('PG_Namespace')
+            ns_inst['SchemaUpdatesAllowed'] = True
+        else:
+            ns_inst = CIMInstance('CIM_Namespace')
 
         # Propagated key properties from CIM_ObjectManager
         ns_inst['SystemCreationClassName'] = \
@@ -424,7 +428,7 @@ class WBEMServer(object):
         ns_inst['CreationClassName'] = 'CIM_Namespace'
         ns_inst['Name'] = std_namespace
 
-        self.conn.CreateInstance(ns_inst, namespace=self.interop_ns)
+        path = self.conn.CreateInstance(ns_inst, namespace=self.interop_ns)
 
         return std_namespace
 

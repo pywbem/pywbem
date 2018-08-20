@@ -147,7 +147,7 @@ class ClientTest(unittest.TestCase):
         # if log set, enable the logger.
         if self.output_log:
             configure_logger(
-                'http', log_dest='file', log_filename='run_cimoperations.log',
+                'all', log_dest='file', log_filename='run_cimoperations.log',
                 connection=self.conn)
 
         # enable saving of xml for display
@@ -3973,7 +3973,7 @@ class PegasusServerTestBase(ClientTest):
                 namespaces.append(name)
 
             if self.verbose:
-                print('Namespaces:')
+                print('get_namespaces: Namespaces:')
                 for n in namespaces:
                     print('  %s' % (n))
 
@@ -4502,6 +4502,43 @@ class PyWBEMServerClass(PegasusServerTestBase, RegexpMixin):
         # test getting nothing
         self.assertEqual(len(server.get_selected_profiles('blah', 'blah')), 0)
         self.assertEqual(len(server.get_selected_profiles('blah')), 0)
+
+    def test_create_namespace(self):
+        """Test the creat_namespace method."""
+
+        server = WBEMServer(self.conn)
+        namespaces = server.namespaces
+        interop = server.interop_ns
+        test_ns = "root/runcimoperationstestns"
+
+        assert test_ns not in namespaces
+
+        server.create_namespace(test_ns)
+
+        # Create second WBEMServer to get updated namespace list
+        server2 = WBEMServer(self.conn)
+        ns2 = server2.namespaces
+
+        assert test_ns in ns2
+
+
+        # delete the new namespace
+        class_name = 'CIM_Namespace'
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 class_name,
+                                 namespace=interop,
+                                 LocalOnly=True)
+        for instance in instances:
+            if test_ns == instance.properties['Name'].value:
+                ns_path = instance.path
+                try:
+                    self.cimcall(self.conn.DeleteInstance, instance.path)
+                    return
+                except Exception as ex:
+                    self.fail("Delete of created namespace failed %s " % ex)
+
+        self.fail("new ns %s not found in namespace instances %r ns-%s" %
+                  (test_ns, instances, peg_namespaces))
 
 
 ##################################################################
