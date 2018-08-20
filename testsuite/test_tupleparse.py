@@ -541,8 +541,10 @@ def test_tupleparse_roundtrip(testcase, obj):
     xml_str = obj.tocimxml().toxml()
     tt = tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
 
+    tp = tupleparse.TupleParser()
+
     # The code to be tested
-    parsed_obj = tupleparse.parse_any(tt)
+    parsed_obj = tp.parse_any(tt)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -9880,8 +9882,10 @@ def test_tupleparse_xml(testcase, xml_str, exp_result):
     # This way to create a tuple tree is also used in _imethodcall() etc.
     tt = tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
 
+    tp = tupleparse.TupleParser()
+
     # The code to be tested
-    result = tupleparse.parse_any(tt)
+    result = tp.parse_any(tt)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
