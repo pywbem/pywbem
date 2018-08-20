@@ -135,6 +135,11 @@ This version contains all fixes up to pywbem 0.12.4.
 * Fix issue in IterQueryInstances where the QueryLanguage and Query parameters
   were reveresed in the fallback call to ExecQuery method. See issue # 1334.
 
+* Fixed the issue that the VALUE.OBJECTWITHLOCALPATH element was not allowed
+  as a child element under IRETURNVALUE. This element is used as one
+  possibility for the result of the ExecQuery operation.
+  See issue #1347.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
