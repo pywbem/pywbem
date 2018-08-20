@@ -142,7 +142,7 @@ from ._version import __version__
 from .cim_obj import CIMInstance
 from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
     _statuscode2name
-from .tupleparse import parse_cim
+from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError, VersionError
 
@@ -495,7 +495,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Parse the XML into a tuple tree (may raise ParseError):
 
         tt_ = xml_to_tupletree_sax(request_str, "CIM-XML export request")
-        tup_tree = parse_cim(tt_)
+        tp = TupleParser()
+        tup_tree = tp.parse_cim(tt_)
 
         # Check the tuple tree
 

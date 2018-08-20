@@ -123,7 +123,7 @@ class CIMContentHandler(xml.sax.ContentHandler):
         self.element[2].append(content)
 
 
-def xml_to_tupletree_sax(xml_string, meaning):
+def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
     """
     Parse an XML string into tupletree with SAX parser.
 
@@ -142,6 +142,9 @@ def xml_to_tupletree_sax(xml_string, meaning):
 
       meaning (:term:`string`):
         Short text with meaning of the XML string, for messages in exceptions.
+
+      conn_id (:term:`connection id`): Connection ID to be used in any
+        exceptions that may be raised.
 
     Returns:
 
@@ -179,13 +182,14 @@ def xml_to_tupletree_sax(xml_string, meaning):
         # Improve quality of exception info (the check...() functions may
         # raise ParseError):
         if isinstance(xml_string, six.binary_type):
-            xml_string = check_invalid_utf8_sequences(xml_string, meaning)
-        check_invalid_xml_chars(xml_string, meaning)
+            xml_string = check_invalid_utf8_sequences(xml_string, meaning,
+                                                      conn_id)
+        check_invalid_xml_chars(xml_string, meaning, conn_id)
 
         # If the checks above pass, re-raise the SAX exception info, with its
         # original traceback info:
         pe = ParseError("SAXParseException raised when parsing %s: %s" %
-                        (meaning, exc))
+                        (meaning, exc), conn_id=conn_id)
         six.reraise(type(pe), pe, org_tb)  # ignore this call in traceback!
 
     return handler.root
@@ -196,7 +200,7 @@ _ILL_FORMED_UTF8_RE = re.compile(
     b'(\xED[\xA0-\xBF][\x80-\xBF])')    # U+D800...U+DFFF
 
 
-def check_invalid_utf8_sequences(utf8_string, meaning):
+def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     """
     Examine a UTF-8 encoded string and raise a `pywbem.ParseError` exception if
     the string contains invalid UTF-8 sequences (incorrectly encoded or
@@ -217,6 +221,9 @@ def check_invalid_utf8_sequences(utf8_string, meaning):
 
       meaning (:term:`string`):
         Short text with meaning of the XML string, for messages in exceptions.
+
+      conn_id (:term:`connection id`): Connection ID to be used in any
+        exceptions that may be raised.
 
     Returns:
 
@@ -305,7 +312,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning):
             cpos1 = max(ifs_pos - context_before, 0)
             cpos2 = min(ifs_pos + context_after, len(utf8_string))
             exc_txt += ", CIM-XML snippet: %r" % utf8_string[cpos1:cpos2]
-        raise ParseError(exc_txt)
+        raise ParseError(exc_txt, conn_id=conn_id)
 
     # Check for incorrectly encoded UTF-8 sequences.
     # @ibm.13@ Simplified logic (removed loop).
@@ -331,7 +338,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning):
         cpos1 = max(_p1 - context_before, 0)
         cpos2 = min(_p2 + context_after, len(utf8_string))
         exc_txt += ", CIM-XML snippet: %r" % utf8_string[cpos1:cpos2]
-        raise ParseError(exc_txt)
+        raise ParseError(exc_txt, conn_id=conn_id)
 
     return utf8_string_u
 
@@ -347,7 +354,7 @@ else:
         u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF])')
 
 
-def check_invalid_xml_chars(xml_string, meaning):
+def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
     """
     Examine an XML string and raise a `pywbem.ParseError` exception if the
     string contains characters that cannot legally be represented as XML
@@ -365,6 +372,9 @@ def check_invalid_xml_chars(xml_string, meaning):
 
       meaning (:term:`string`):
         Short text with meaning of the XML string, for messages in exceptions.
+
+      conn_id (:term:`connection id`): Connection ID to be used in any
+        exceptions that may be raised.
 
     Raises:
 
@@ -409,4 +419,4 @@ def check_invalid_xml_chars(xml_string, meaning):
             cpos2 = min(ixc_pos + context_after, len(xml_string))
             exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
                 (ixc_pos, ord(ixc_char), xml_string[cpos1:cpos2])
-        raise ParseError(exc_txt)
+        raise ParseError(exc_txt, conn_id=conn_id)

@@ -150,7 +150,7 @@ from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, tocimxml, cimvalue
 from .cim_http import get_cimobject_header, wbem_request
-from .tupleparse import parse_cim
+from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
 from .exceptions import ParseError, CIMError
@@ -1625,7 +1625,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Parse the XML into a tuple tree (may raise ParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
-        tup_tree = parse_cim(tt_)
+        tp = TupleParser(self.conn_id)
+        tup_tree = tp.parse_cim(tt_)
 
         # Set the pretty response after parsing (it could fail otherwise)
         if self.debug:
@@ -1884,7 +1885,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Parse the XML into a tuple tree (may raise ParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
-        tup_tree = parse_cim(tt_)
+        tp = TupleParser(self.conn_id)
+        tup_tree = tp.parse_cim(tt_)
 
         # Set the pretty response after parsing (it could fail otherwise)
         if self.debug:
