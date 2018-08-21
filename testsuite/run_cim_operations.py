@@ -34,7 +34,8 @@ from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_INVALID_QUERY, \
     CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
-    CIM_ERR_METHOD_NOT_FOUND, DEFAULT_NAMESPACE, MinutesFromUTC
+    CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, DEFAULT_NAMESPACE, \
+    MinutesFromUTC
 
 from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
@@ -147,7 +148,7 @@ class ClientTest(unittest.TestCase):
         # if log set, enable the logger.
         if self.output_log:
             configure_logger(
-                'http', log_dest='file', log_filename='run_cimoperations.log',
+                'all', log_dest='file', log_filename='run_cimoperations.log',
                 connection=self.conn)
 
         # enable saving of xml for display
@@ -244,7 +245,7 @@ class ClientTest(unittest.TestCase):
             self.cimcall(self.conn.GetClass, PYWBEM_PERSON_CLASS)
             return True
         except CIMError as ce:
-            if ce.status_code == 'CIM_ERROR_NOT_FOUND':
+            if ce.status_code == CIM_ERR_NOT_FOUND:
                 mofcomp = MOFCompiler(handle=self.conn)
                 try:
                     mofcomp.compile_file(PYWBEM_TEST_MOF, self.namespace)
@@ -3973,7 +3974,7 @@ class PegasusServerTestBase(ClientTest):
                 namespaces.append(name)
 
             if self.verbose:
-                print('Namespaces:')
+                print('get_namespaces: Namespaces:')
                 for n in namespaces:
                     print('  %s' % (n))
 
@@ -4503,10 +4504,86 @@ class PyWBEMServerClass(PegasusServerTestBase, RegexpMixin):
         self.assertEqual(len(server.get_selected_profiles('blah', 'blah')), 0)
         self.assertEqual(len(server.get_selected_profiles('blah')), 0)
 
+    def test_create_namespace(self):
+        """Test the creat_namespace method."""
+
+        def delete_namespace(conn, ns_name, interop):
+            """Delete the namespace defined by ns_name"""
+            class_name = 'CIM_Namespace'
+            instances = self.cimcall(self.conn.EnumerateInstances,
+                                     class_name,
+                                     namespace=interop,
+                                     LocalOnly=True)
+            for instance in instances:
+                if test_ns == instance.properties['Name'].value:
+                    try:
+                        self.cimcall(self.conn.DeleteInstance, instance.path)
+                        return
+                    except Exception as ex:
+                        self.fail("Delete of created namespace failed %s " % ex)
+
+            self.fail("new ns %s not found in namespace instances %r" %
+                      (test_ns, instances))
+
+        server = WBEMServer(self.conn)
+        namespaces = server.namespaces
+        interop = server.interop_ns
+        for test_ns in ['root/runcimoperationstestns', 'runcimoperationns']:
+
+            if test_ns in namespaces:
+                self.fail("Test Create Namespace %s already in namespaces %s" %
+                          (test_ns, namespaces))
+
+            server.create_namespace(test_ns)
+
+            # Create second WBEMServer to get updated namespace list
+            server2 = WBEMServer(self.conn)
+            ns2 = server2.namespaces
+
+            assert test_ns in ns2
+
+            # test adding a qualifier decl
+            qd = CIMQualifierDeclaration(u'FooQualDecl', 'string',
+                                         is_array=False,
+                                         value='Some string',
+                                         scopes={'CLASS': True},
+                                         overridable=False, tosubclass=False,
+                                         translatable=False, toinstance=False)
+
+            # Create the qualifier declaration in the server
+
+            try:
+                self.cimcall(self.conn.SetQualifier, qd, namespace=test_ns)
+            except CIMError as ce:
+                if ce.args[0] == CIM_ERR_NOT_SUPPORTED:
+                    print('NOTE: This server/namespace does not support '
+                          'SetQualifier since it returned NOT SUPPORTED')
+                    return
+
+            # get the qd and compare with original
+            rtn_qd = self.cimcall(self.conn.GetQualifier, qd.name,
+                                  namespace=test_ns)
+            self.assertEqual(qd, rtn_qd, 'Returned qualifier declaration '
+                             'did not match created')
+
+            self.cimcall(self.conn.DeleteQualifier, qd.name, namespace=test_ns)
+
+            delete_namespace(self.conn, test_ns, interop)
+
+    def test_create_namespace_er(self):
+        """Test error response, namespace exists"""
+        server = WBEMServer(self.conn)
+        interop = server.interop_ns
+        try:
+            server.create_namespace(interop)
+            self.fail("Exception expected")
+        except CIMError as ce:
+            self.assertEqual(ce.status_code, CIM_ERR_ALREADY_EXISTS)
 
 ##################################################################
 # Iter method tests
 ##################################################################
+
 
 MAX_OBJECT_COUNT = 100
 

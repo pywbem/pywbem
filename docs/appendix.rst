@@ -476,6 +476,9 @@ References
    DSP1054
       `DMTF DSP1054, Indications Profile, Version 1.2 <http://www.dmtf.org/standards/published_documents/DSP1054_1.2.pdf>`_
 
+   DSP1092
+      `DMTF DSP1092, WBEM Server Profile, Version 1.0 <http://www.dmtf.org/standards/published_documents/DSP1092_1.0.pdf>`_
+
    X.509
       `ITU-T X.509, Information technology - Open Systems Interconnection - The Directory: Public-key and attribute certificate frameworks <http://www.itu.int/rec/T-REC-X.509/en>`_
 

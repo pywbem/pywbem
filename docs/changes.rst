@@ -238,6 +238,9 @@ This version contains all fixes up to pywbem 0.12.4.
   according to DSP0004, return equal WBEM URI strings.
   See issue #1323.
 
+* Added support for CIM namespace creation via a new
+  `WBEMServer.create_namespace()` method. See issue #29.
+
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a

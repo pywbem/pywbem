@@ -28,9 +28,10 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
-from pywbem import ValueMapping, CIMInstanceName
+from pywbem import ValueMapping, CIMInstanceName, CIMError
 from pywbem._nocasedict import NocaseDict
 from wbemserver_mock import WbemServerMock
+import pytest_extensions
 
 VERBOSE = True
 
@@ -128,6 +129,85 @@ class TestServerClass(BaseMethodsForTests):
         assert insts[0] == CIMInstanceName('CIM_ObjectManager', keybindings=kb,
                                            namespace=tst_namespace,
                                            host=server.conn.host)
+
+
+TESTCASES_CREATE_NAMESPACE = [
+
+    # Testcases for WBEMServer.create_namespace()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * new_namespace: Name of the namespace to be created.
+    #   * exp_namespace: Expected returned namespace name.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "New top level namespace",
+        dict(
+            new_namespace='abc',
+            exp_namespace=u'abc',
+        ),
+        None, None, True
+    ),
+    (
+        "New top level namespace with leading and trailing slash",
+        dict(
+            new_namespace='/abc/',
+            exp_namespace=u'abc',
+        ),
+        None, None, True
+    ),
+    (
+        "New two-segment namespace with leading and trailing slash",
+        dict(
+            new_namespace='/abc/def/',
+            exp_namespace=u'abc/def',
+        ),
+        None, None, True
+    ),
+    (
+        "New two-segment namespace where first segment already exists",
+        dict(
+            new_namespace='interop/def',
+            exp_namespace=u'interop/def',
+        ),
+        None, None, True
+    ),
+    (
+        "Existing top level namespace",
+        dict(
+            new_namespace='interop',
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CREATE_NAMESPACE)
+@pytest_extensions.simplified_test_function
+def test_create_namespace_2(testcase,
+                            new_namespace, exp_namespace):
+    """
+    Test creation of a namespace using approach 2.
+    """
+
+    mock_wbemserver = WbemServerMock(interop_ns='interop')
+    server = mock_wbemserver.wbem_server
+
+    act_namespace = server.create_namespace(new_namespace)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert act_namespace == exp_namespace
 
 
 # TODO Break up tests to do individual tests for each group of methds so we can
