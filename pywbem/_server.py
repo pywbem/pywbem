@@ -408,6 +408,8 @@ class WBEMServer(object):
 
         # Try approach 2: CreateInstance of CIM_Namespace
 
+        # Use specific OpenPegasus namespace class to account for issue
+        # in OpenPegasus. See OpenPegasus bug report
         if self.brand == "OpenPegasus":
             ns_inst = CIMInstance('PG_Namespace')
             ns_inst['SchemaUpdatesAllowed'] = True
