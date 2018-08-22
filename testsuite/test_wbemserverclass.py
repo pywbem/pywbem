@@ -21,7 +21,7 @@
 """
 Test for the WBEMServer class  in pywbem._server.py that uses the pywbem_mock
 support package the methods of the class. Mock is required since, testing
-WBEMServe requires access to a WBEMServer.
+WBEMServer requires access to a WBEM server.
 """
 from __future__ import absolute_import, print_function
 
@@ -42,20 +42,21 @@ TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 
 class BaseMethodsForTests(object):
     """
-    Common methods for test of server class.  This includes methods to
+    Common methods for test of WBEMServer class.  This includes methods to
     build the DMTF schema and to build individual instances.
     """
 
 
 class TestServerClass(BaseMethodsForTests):
     """
-    Conduct tests on the server class
+    Conduct tests on the WBEMServer class.
     """
+
     @pytest.mark.parametrize(
         "tst_namespace",
         ['interop', 'root/interop', 'root/PG_Interop'])
-    @staticmethod
-    def test_wbemserver_basic(tst_namespace):
+    def test_wbemserver_basic(self, tst_namespace):
+        # pylint: disable=no-self-use
         """
         Test the basic functions that access server information. This test
         creates the mock repository and adds classes and instances for
@@ -65,6 +66,7 @@ class TestServerClass(BaseMethodsForTests):
         for easily getting classes and instances into the repo and to provide
         a basic test of functionality.
         """
+
         # Build the wbem server mock using the  WbemServerMock default test
         # data except that we define the interop namespace
         mock_wbemserver = WbemServerMock(interop_ns=tst_namespace)
@@ -131,7 +133,7 @@ class TestServerClass(BaseMethodsForTests):
 
 
 # TODO Break up tests to do individual tests for each group of methds so we can
-#      test for errors, variations on what is in the repowith each method.
+#      test for errors, variations on what is in the repo with each method.
 #      Right now we build it all in a single test.  Thus, for example we
 #      need to create a test group for find_central_instances since the
 #      definition of the repo is different for each method of getting the
