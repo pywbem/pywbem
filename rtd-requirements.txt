@@ -6,7 +6,7 @@
 pbr>=1.10.0
 six>=1.10.0
 ply>=3.8
-PyYAML>=3.12
+PyYAML>=3.13
 # M2Crypto>=0.30.1  # we cannot install M2Crypto because RTD does not have Swig
 Sphinx>=1.4.9
 sphinx-git>=10.0.0

@@ -626,6 +626,16 @@ class CIMInt(CIMType, _Longint):
     maxvalue = None
 
     def __new__(cls, *args, **kwargs):
+
+        # Python 3.7 removed support for passing the value for int() as a
+        # keyword argument named 'x'. It now needs to be passed as a positional
+        # argument. The testclient test case definitions rely on a keyword
+        # argument, so we now transform the keyword arg into a positional
+        # arg.
+        if 'x' in kwargs:
+            args = list(*args)  # args is passed as a tuple
+            args.append(kwargs.pop('x'))
+
         value = _Longint(*args, **kwargs)
         if ENFORCE_INTEGER_RANGE:
             if value > cls.maxvalue or value < cls.minvalue:

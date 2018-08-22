@@ -4,6 +4,7 @@ Test the _nocasedict module.
 
 from __future__ import absolute_import
 
+import sys
 import re
 import six
 try:
@@ -149,7 +150,7 @@ TESTCASES_NOCASEDICT_INIT = [
             exp_dict=OrderedDict([('Dog', 'Cat'), ('Budgie', 'Fish')]),
             verify_order=False,
         ),
-        None, UserWarning, True
+        None, UserWarning if sys.version_info[0:2] < (3, 7) else None, True
     ),
     (
         "Dict from list as positional arg and keyword args",

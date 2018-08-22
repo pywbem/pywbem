@@ -238,6 +238,10 @@ This version contains all fixes up to pywbem 0.12.4.
   according to DSP0004, return equal WBEM URI strings.
   See issue #1323.
 
+* Added support for Python 3.7, which was released 2018-06-27.
+
+**Cleanup:**
+
 * Added connection information to all pywbem exceptions. This is done via a
   new optional `conn_id` keyword argument that was added to all pywbem
   exception classes. The exception message now has a connection information
@@ -265,6 +269,10 @@ This version contains all fixes up to pywbem 0.12.4.
   that creates the pywbem_mock for any tests that depend on classes like
   CIM_Namespace, CIM_ObjectManager existing in the mocked server. See issue
   #1250
+
+* Needed to upgrade PyYAML version from >=3.12 to >=3.13 due to an issue
+  in PyYAML on Python 3.7, that was fixed in PyYAML 3.13.
+  See issue #1337.
 
 **Known issues:**
 
