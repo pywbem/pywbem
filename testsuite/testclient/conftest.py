@@ -157,7 +157,6 @@ class ExcThread(threading.Thread):
         except Exception:  # pylint: disable=broad-except
             import sys
             self.exc = sys.exc_info()
-        # pylint: enable=attribute-defined-outside-init
 
     def join(self, timeout=None):
         threading.Thread.join(self, timeout)
@@ -196,7 +195,6 @@ def patched_makefile(self, mode='r', bufsize=-1):
             raise socket.timeout
 
     return self.fd
-    # pylint: enable=protected-access
 
 
 # Monkey-patching httpretty to pass exception raised in callbacks
@@ -213,6 +211,7 @@ def pytest_collect_file(parent, path):
     """
     if path.ext == ".yaml":
         return YamlFile(path, parent)
+    return None  # to avoid pylint inconsistent-return-statements
 
 
 class YamlFile(pytest.File):
@@ -646,11 +645,11 @@ def assertXMLEqual(s_act, s_exp, entity=None):
                 parent = elems[0].getparent()
                 first = None
                 after = None
-                for i in range(0, len(parent)):
+                for i, p in enumerate(parent):
                     # TODO 6/18 AM: Loop above should probably be on elems
-                    if parent[i].tag == tag and first is None:
+                    if p.tag == tag and first is None:
                         first = i
-                    if parent[i].tag != tag and first is not None:
+                    if p.tag != tag and first is not None:
                         after = i
                 # The following changes the original XML tree:
                 # The following pylint warning can safely be disabled, see

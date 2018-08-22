@@ -79,13 +79,11 @@ OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 # should/could ignore them. We need to document our behavior in relation to the
 # spec.
 
-# pylint: disable=invalid-name
 STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
 if not STDOUT_ENCODING:
     STDOUT_ENCODING = locale.getpreferredencoding()
 if not STDOUT_ENCODING:
     STDOUT_ENCODING = 'utf-8'
-# pylint: enable=invalid-name
 
 
 def _uprint(dest, text):

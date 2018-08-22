@@ -168,8 +168,8 @@ class TestGetRsltParams(object):
             [None, u'False', None, True],   # fail,no value in ec and eos False
         ]
     )
-    # pylint: disable=no-self-use
     def test_with_params(self, irval, ec, eos, eos_exp, exc_exp):
+        # pylint: disable=no-self-use,protected-access
         """
         Test combminations of IRETURNVALUE, EOS and EnumerationContext for
         both good and fail responses.
@@ -183,21 +183,20 @@ class TestGetRsltParams(object):
 
         if exc_exp:
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 result = conn._get_rslt_params(result, 'root/blah')
 
             exc = exec_info.value
             assert exc.status_code_name == 'CIM_ERR_INVALID_PARAMETER'
 
         else:
-            # pylint: disable=protected-access
             result = conn._get_rslt_params(result, 'root/blah')
+
             # the _get_rslt_params method sets context to None if eos True
             ecs = None if eos_exp is True else (ec, 'root/blah')
             assert result == (irval, eos_exp, ecs)
 
-    # pylint: disable=no-self-use
     def test_missing(self):
+        # pylint: disable=no-self-use
         """
         Test both Enum context and EndOfSequence completely missing.
         Generates exception

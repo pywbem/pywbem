@@ -625,6 +625,7 @@ def conn():
     """
     Create the FakedWBEMConnection and return it
     """
+    # pylint: disable=protected-access
     FakedWBEMConnection._reset_logging_config()
     return FakedWBEMConnection()
 
@@ -1485,7 +1486,7 @@ class TestRepoMethods(object):
     )
     def test_compile_dmtf_schema_method(self, conn, description, classnames,
                                         extra_rtnd_classnames, run_test):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test Compiling DMTF CIM schema using the compile_dmtf_schema method
         introduced in pywbem 0.13.0
@@ -1990,7 +1991,7 @@ class TestClassOperations(object):
     )
     def test_createclass(self, conn, pre_tst_classes, tcl, tst_qualifiers_mof,
                          tst_classes, ns, exp_rtn_cl, exp_err):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,protected-access
         """
             Test create class. Tests for namespace variable,
             correctly adding, and invalid add where class has superclass
@@ -2078,7 +2079,6 @@ class TestClassOperations(object):
             if new_class.superclass is None:
                 superclasses = []
             else:
-                # pylint: disable=protected-access
                 superclasses = conn._get_superclassnames(new_class.classname,
                                                          ns)
 
@@ -2569,7 +2569,7 @@ class TestInstanceOperations(object):
     )
     def test_enumerateinstances_di2(self, conn, tst_classes, tst_instances, ns,
                                     di, pl, exp_p, exp_inst):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test EnumerateInstances with DeepInheritance and propertylist opetions.
         """
@@ -3089,7 +3089,7 @@ class TestPullOperations(object):
     )
     def test_openenumeratepaths3(self, conn_lite, tst_instances, ns, omoc, pmoc,
                                  exp_ortn, exp_ooc_eos):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test openenumeratepaths where we only test for totals at the end
         of the sequence

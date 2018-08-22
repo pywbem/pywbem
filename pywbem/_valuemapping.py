@@ -500,6 +500,7 @@ class ValueMapping(object):
             ValueError: Invalid `ValueMap` entry.
             TypeError: The CIM element is not integer-typed.
         """  # noqa: E501
+        # pylint: enable=line-too-long
 
         # pylint: disable=protected-access
 
@@ -562,7 +563,6 @@ class ValueMapping(object):
                         vm._b2v_range_tuple_list.append((lo, hi, values_str))
                         vm._v2b_dict[values_str] = (lo, hi)
 
-        # pylint: enable=protected-access
         return vm
 
     def _element_str(self):
