@@ -243,9 +243,11 @@ This version contains all fixes up to pywbem 0.12.4.
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a
-  new optional `conn` keyword argument that was added to all pywbem exception
-  classes. The exception message now has a connection information string at
-  its end. See issue #1155.
+  new optional `conn_id` keyword argument that was added to all pywbem
+  exception classes. The exception message now has a connection information
+  string at its end. See issue #1155.
+
+**Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
 
