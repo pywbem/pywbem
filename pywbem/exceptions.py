@@ -298,6 +298,7 @@ class CIMError(Error):
         return self.args[1] or _statuscode2string(self.status_code)
 
     def __str__(self):
-        ret_str = "%s: %s, %s" % (self.status_code, self.status_description,
-                                  self.conn_str)
+        ret_str = "%s (%s): %s, %s" % \
+            (self.status_code, self.status_code_name, self.status_description,
+             self.conn_str)
         return ret_str

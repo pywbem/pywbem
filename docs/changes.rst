@@ -240,6 +240,12 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Added support for Python 3.7, which was released 2018-06-27.
 
+* Enhanced the output of the string representation of the `CIMError`
+  exception by adding the status code name (e.g. the string
+  "CIM_ERR_NOT_SUPPORTED" for status code 7). The string representation
+  is used for example when showing the exception in a Python traceback.
+  See issue #1350.
+
 **Cleanup:**
 
 * Added connection information to all pywbem exceptions. This is done via a
