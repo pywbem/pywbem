@@ -371,7 +371,7 @@ def configure_logger(simple_name, log_dest=None,
         from . import WBEMConnection
         _CONN = WBEMConnection
 
-    _CONN._configure_logger(
+    _CONN._configure_logger(  # pylint: disable=protected-access
         simple_name,
         log_dest=log_dest,
         detail_level=detail_level,

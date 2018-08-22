@@ -420,6 +420,8 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
     """Test output from logging"""
 
     def test_log_output(self, log_capture):
+        # pylint: disable=redefined-outer-name
+
         test_input = 'all=file'
 
         configure_loggers_from_string(

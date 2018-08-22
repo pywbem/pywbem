@@ -30,7 +30,7 @@ import re
 from socket import getfqdn
 
 from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
-    CIMInstanceName
+    CIMInstance
 
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME
@@ -76,6 +76,7 @@ class BaseMethodsForTests(object):
                             property_values=None,
                             include_missing_properties=True,
                             include_path=True):
+        # TODO AM 8/18 The inst_from_classname() method is not used.
         """
         Build instance from class using class_name property to get class
         from a repository.
@@ -84,7 +85,7 @@ class BaseMethodsForTests(object):
                             IncludeQualifiers=True, include_class_origin=True,
                             property_list=property_list)
 
-        return CIMInstanceName.from_class(
+        return CIMInstance.from_class(
             cls, namespace=namespace, property_values=property_values,
             include_missing_properties=include_missing_properties,
             include_path=include_path)
@@ -111,7 +112,7 @@ class BaseMethodsForTests(object):
                                      owned=owned)
         return filter_.path
 
-    def get_objects_from_server(self, sub_mgr_id=None):
+    def get_objects_from_server(self):
         """
         Using Server class, get count of Filters, Subscriptions, Destinations
         from server as confirmation outside of SubscriptionManagerCode.

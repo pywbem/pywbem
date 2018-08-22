@@ -4521,7 +4521,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                       OperationTimeout=None, ContinueOnError=None,
                       MaxObjectCount=None, ignore_value_diff=False,
                       expected_response_count=None, pull_disabled=False):
-        # pylint: disable=invalid-name,
+        # pylint: disable=invalid-name
         """
         Run test by executing interEnumInstances, open/pull instance,
         and EnumerateInstance and compare the results.

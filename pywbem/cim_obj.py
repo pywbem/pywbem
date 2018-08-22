@@ -2039,18 +2039,18 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         ret = []
 
-        def case(s):
+        def case(str_):
+            """Return the string in the correct lexical case for the format."""
             if format == 'canonical':
-                return s.lower()
-            else:
-                return s
+                str_ = str_.lower()
+            return str_
 
         def case_sorted(keys):
+            """Return the keys in the correct order for the format."""
             if format == 'canonical':
                 case_keys = [case(k) for k in keys]
-                return sorted(case_keys)
-            else:
-                return keys
+                keys = sorted(case_keys)
+            return keys
 
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
             raise ValueError("Invalid format argument: %s" % format)
@@ -3568,8 +3568,11 @@ class CIMClassName(_CIMComparisonMixin):
           ValueError: Invalid format
         """
 
-        def case(s):
-            return s.lower() if format == 'canonical' else s
+        def case(str_):
+            """Return the string in the correct lexical case for the format."""
+            if format == 'canonical':
+                str_ = str_.lower()
+            return str_
 
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
             raise ValueError("Invalid format argument: %s" % format)

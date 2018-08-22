@@ -280,8 +280,6 @@ class Test_ValueMapping(object):
         exp_element_obj = '_element_obj=%r' % vm._element_obj
         assert exp_element_obj in r
 
-        # pylint: enable=protected-access
-
         # We don't check the internal data attributes.
 
     def test_invalid_valuemap_format(self, element_kind, server_arg,

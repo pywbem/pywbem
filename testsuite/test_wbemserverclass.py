@@ -48,6 +48,7 @@ class BaseMethodsForTests(object):
 
 
 class TestServerClass(BaseMethodsForTests):
+    # pylint: disable=too-few-public-methods
     """
     Conduct tests on the WBEMServer class.
     """

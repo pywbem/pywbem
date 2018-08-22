@@ -6957,10 +6957,12 @@ def test_instance_from_class(testcase, cls_props, inst_prop_vals, kwargs,
         assert act_inst.path is None
 
     for prop in act_inst.properties.values():
+        assert isinstance(prop, CIMProperty)
+        class_origin = prop.class_origin  # pylint: disable=no-member
         if include_class_origin:
-            assert prop.class_origin
+            assert class_origin is not None
         else:
-            assert prop.class_origin is None
+            assert class_origin is None
 
     assert exp_inst == act_inst
 
@@ -12999,7 +13001,7 @@ TESTCASES_CIMQUALIFIER_STR_REPR = [
     ),
     (
         CIMQualifier('RevisionList',
-                     [Uint16(x) for x in [1, 2, 3]],
+                     [Uint16(1), Uint16(2), Uint16(3)],
                      propagated=False)
     ),
 ]
