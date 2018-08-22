@@ -15,26 +15,12 @@ Change log
 Version 0.12.5
 ^^^^^^^^^^^^^^
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2018-08-22
 
 **Bug fixes:**
 
 * Fix issue in IterQueryInstances where the QueryLanguage and Query parameters
   were reveresed in the fallback call to ExecQuery method. See issue #1334.
-
-**Enhancements:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 Version 0.12.4
 ^^^^^^^^^^^^^^
