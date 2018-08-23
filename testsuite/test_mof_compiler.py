@@ -24,6 +24,7 @@ from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
 from pywbem import mof_compiler
 from pywbem._nocasedict import NocaseDict
+from pywbem_mock import FakedWBEMConnection
 
 from unittest_extensions import CIMObjectMixin
 
@@ -82,6 +83,37 @@ class MOFTest(unittest.TestCase):
         if self.partial_schema_file:
             if os.path.exists(self.partial_schema_file):
                 os.remove(self.partial_schema_file)
+
+
+class Test_MOFCompiler_init(unittest.TestCase):
+    """Test the MOFCompiler initialization"""
+
+    def test_handle_repo_connection(self):
+        """Test init with a handle that is a MOFWBEMConnection"""
+
+        handle = MOFWBEMConnection()
+
+        mofcomp = MOFCompiler(handle)
+
+        self.assertIs(mofcomp.handle, handle)
+
+    def test_handle_wbem_connection(self):
+        """Test init with a handle that is a WBEMConnection"""
+
+        conn = FakedWBEMConnection()
+
+        mofcomp = MOFCompiler(conn)
+
+        self.assertIsInstance(mofcomp.handle, MOFWBEMConnection)
+        self.assertIs(mofcomp.handle.conn, conn)
+
+    def test_handle_invalid(self):
+        """Test init with a handle that is an invalid type"""
+
+        invalid = "boo"
+
+        with self.assertRaises(TypeError):
+            MOFCompiler(invalid)
 
 
 class TestInstancesUnicode(MOFTest):
