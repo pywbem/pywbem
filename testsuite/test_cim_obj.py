@@ -6752,8 +6752,6 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         ),
         None, None, OK
     ),
-    # TODO This test passes because of issue #1188 that does not test for
-    # Null key values.
     (
         "Verify instance with missing id property in instance flags: inc path, "
         "include_missing_properties=False fails.",
@@ -6767,7 +6765,6 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         ),
         ValueError, None, OK
     ),
-    # TODO test marked FAIL because of issue #1188,
     (
         "Instance with missing id property in instance flags: inc path, "
         " Test fails, key propety value None",
@@ -6778,9 +6775,8 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
             exp_props={u'ID': u'inst_id', u'STR': u'str_val',
                        u'U32': Uint32(99999)},
         ),
-        ValueError, None, FAIL
+        ValueError, None, OK
     ),
-
     (
         "Instance with property in instance but not in class fails",
         dict(
