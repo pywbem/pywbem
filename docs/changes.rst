@@ -268,12 +268,15 @@ This version contains all fixes up to pywbem 0.12.4.
 * Added support for CIM namespace creation via a new
   `WBEMServer.create_namespace()` method. See issue #29.
 
-**Cleanup:**
-
 * Added connection information to all pywbem exceptions. This is done via a
   new optional `conn_id` keyword argument that was added to all pywbem
   exception classes. The exception message now has a connection information
   string at its end. See issue #1155.
+
+* Added support for passing a `WBEMConnection` object for the handle
+  parameter of the `MOFCompiler` creation. This allows a user to pass
+  the WBEM connection directly as a CIM repository, without first having
+  to create a MOFWBEMConnection object.
 
 **Cleanup:**
 

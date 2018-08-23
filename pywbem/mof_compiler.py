@@ -2379,9 +2379,21 @@ class MOFCompiler(object):
         """
         Parameters:
 
-          handle (BaseRepositoryConnection):
-            A connection to the CIM repository that will be associated with the
-            MOF compiler.
+          handle (BaseRepositoryConnection or :class:`~pywbem.WBEMConnection`):
+            A handle identifying the CIM repository that will be associated
+            with the MOF compiler.
+
+            If the provided object is a repository connection (i.e. derived
+            from :class:`BaseRepositoryConnection`, typically that would be a
+            :class:`~pywbem.MOFWBEMConnection` object), it is directly used
+            by the MOF compiler to interface with the repository.
+
+            If the provided object is a WBEM connection (i.e.
+            :class:`~pywbem.WBEMConnection` or
+            :class:`~pywbem_mock.FakedWBEMConnection`), a
+            :class:`~pywbem.MOFWBEMConnection` object is created from the
+            provided object, and used by the MOF compiler to interface with
+            the repository.
 
             `None` means that no CIM repository will be associated. In this
             case, the MOF compiler can only process standalone MOF that does
@@ -2421,12 +2433,23 @@ class MOFCompiler(object):
             The default logger function prints to stdout.
         """
 
-        self.parser = _yacc(verbose)
+        if isinstance(handle, WBEMConnection):
+            handle = MOFWBEMConnection(handle)
+        elif handle is None:
+            pass
+        elif not isinstance(handle, BaseRepositoryConnection):
+            raise TypeError("The handle parameter must be either a CIM "
+                            "repository connection (derived from "
+                            "BaseRepositoryConnection) or a WBEM connection "
+                            "(WBEMConnection), but is: %s" % type(handle))
+
         if search_paths is None:
             search_paths = []
         if not isinstance(search_paths, (list, tuple)):
             raise TypeError("search_paths parameter must be list or tuple, "
                             "but is: %s" % type(search_paths))
+
+        self.parser = _yacc(verbose)
         self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle

@@ -511,3 +511,6 @@ class TestLoggerPropagate(object):
             assert re.match(r'.*-pywbem.*-Connection:', pkg_line)
         else:
             assert pkg_line == ''
+
+        # Clean up the Python logging configuration
+        configure_logger(short_name, connection=False)
