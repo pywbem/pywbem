@@ -93,6 +93,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
     CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
     cimvalue
 from .cim_operations import WBEMConnection
+from ._server import WBEMServer
 from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
@@ -481,67 +482,6 @@ def p_mofProduction(p):
                      """
 
 
-def _create_ns(p, handle, ns):
-    """Create a namespace in the target connection based on the `handle`
-       and `ns` parameters.
-    """
-
-    # Figure out the flavor of cim server
-    cimom_type = None
-    ns = ns.strip('/')
-    try:
-        inames = handle.EnumerateInstanceNames('__Namespace', namespace='root')
-        inames = [x['name'] for x in inames]
-        if 'PG_InterOp' in inames:
-            cimom_type = 'pegasus'
-    except CIMError as ce:
-        if ce.status_code != CIM_ERR_NOT_FOUND:
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise
-    if not cimom_type:
-        try:
-            inames = handle.EnumerateInstanceNames('CIM_Namespace',
-                                                   namespace='Interop')
-            inames = [x['name'] for x in inames]
-            cimom_type = 'proper'
-        except CIMError as ce:
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise
-
-    if not cimom_type:
-        ce = CIMError(CIM_ERR_FAILED,
-                      'Unable to determine CIMOM type')
-        ce.file_line = (p.parser.file, p.lexer.lineno)
-        raise ce
-    if cimom_type == 'pegasus':
-        # To create a namespace in Pegasus, create an instance of
-        # __Namespace with  __Namespace.Name = '', and create it in
-        # the target namespace to be created.
-        inst = CIMInstance(
-            '__Namespace',
-            properties={'Name': ''},
-            path=CIMInstanceName(
-                '__Namespace',
-                keybindings={'Name': ''},
-                namespace=ns))
-        try:
-            handle.CreateInstance(inst)
-        except CIMError as ce:
-            if ce.status_code != CIM_ERR_ALREADY_EXISTS:
-                ce.file_line = (p.parser.file, p.lexer.lineno)
-                raise
-
-    elif cimom_type == 'proper':
-        inst = CIMInstance(
-            'CIM_Namespace',
-            properties={'Name': ns},
-            path=CIMInstanceName(
-                'CIM_Namespace',
-                namespace='root',
-                keybindings={'Name': ns}))
-        handle.CreateInstance(inst)
-
-
 def p_mp_createClass(p):
     """mp_createClass : classDeclaration
                       | assocDeclaration
@@ -570,7 +510,7 @@ def p_mp_createClass(p):
                         raise
                     if p.parser.verbose:
                         p.parser.log('Creating namespace ' + ns)
-                    _create_ns(p, p.parser.handle, ns)
+                    p.parser.server.create_namespace(ns)
                     fixedNS = True
                     continue
                 if not p.parser.search_paths:
@@ -707,7 +647,7 @@ def p_mp_setQualifier(p):
         if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
                 p.parser.log('Creating namespace ' + ns)
-            _create_ns(p, p.parser.handle, ns)
+            p.parser.server.create_namespace(ns)
             if p.parser.verbose:
                 p.parser.log('Setting qualifier %s' % qualdecl.name)
             p.parser.handle.SetQualifier(qualdecl)
@@ -966,7 +906,9 @@ def p_qualifier(p):
             if ce.status_code != CIM_ERR_INVALID_NAMESPACE:
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
-            _create_ns(p, p.parser.handle, ns)
+            if p.parser.verbose:
+                p.parser.log('Creating namespace ' + ns)
+            p.parser.server.create_namespace(ns)
             quals = None
 
         if quals:
@@ -2434,14 +2376,27 @@ class MOFCompiler(object):
         """
 
         if isinstance(handle, WBEMConnection):
-            handle = MOFWBEMConnection(handle)
+            conn = handle
+            handle = MOFWBEMConnection(conn)
         elif handle is None:
-            pass
-        elif not isinstance(handle, BaseRepositoryConnection):
+            conn = None
+        elif isinstance(handle, BaseRepositoryConnection):
+            conn = getattr(handle, 'conn', None)
+            if conn and not isinstance(conn, WBEMConnection):
+                raise TypeError("If the handle parameter is a CIM repository "
+                                "connection its conn attribute must be None "
+                                "or WBEMConnection, but it is: %s" %
+                                type(conn))
+        else:
             raise TypeError("The handle parameter must be either a CIM "
                             "repository connection (derived from "
                             "BaseRepositoryConnection) or a WBEM connection "
                             "(WBEMConnection), but is: %s" % type(handle))
+
+        if conn:
+            server = WBEMServer(conn)
+        else:
+            server = None
 
         if search_paths is None:
             search_paths = []
@@ -2453,6 +2408,8 @@ class MOFCompiler(object):
         self.parser.search_paths = search_paths
         self.handle = handle
         self.parser.handle = handle
+        self.server = server
+        self.parser.server = server
         self.lexer = _lex(verbose)
         self.lexer.parser = self.parser
         self.lexer.last_msg = None
