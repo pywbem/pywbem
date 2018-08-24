@@ -193,9 +193,9 @@ test_log_file := test_$(python_mn_version).log
 test_tmp_file := test_$(python_mn_version).tmp.log
 
 ifdef TESTCASES
-pytest_opts := -k $(TESTCASES)
+pytest_opts := $(TESTOPTS) -k $(TESTCASES)
 else
-pytest_opts :=
+pytest_opts := $(TESTOPTS)
 endif
 
 # Files to be put into distribution archive.
@@ -253,6 +253,7 @@ help:
 	@echo "  TESTCASES - When set, 'test' target runs only the specified test cases. The"
 	@echo "      value is used for the -k option of pytest (see 'pytest --help')."
 	@echo "      Optional, defaults to running all tests."
+	@echo "  TESTOPTS - Optional: Additional options for py.tests (see 'pytest --help')."
 	@echo "  TEST_SCHEMA_DOWNLOAD - When set, enables test cases in test_wbemconnection_mock"
 	@echo "      to test downloading of DMTF schema from the DMTF web site."
 	@echo "      Optional, defaults to disabling these test cases."
@@ -373,10 +374,6 @@ check: flake8.log
 
 .PHONY: pylint
 pylint: pylint.log
-	@echo "makefile: Target $@ done."
-
-.PHONY: test
-test: $(test_log_file)
 	@echo "makefile: Target $@ done."
 
 .PHONY: all
@@ -550,7 +547,8 @@ else
 	@echo "makefile: Done running Flake8; Log file: $@"
 endif
 
-$(test_log_file): makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/*.py testsuite/test_uprint.* testsuite/testclient/*.py testsuite/testclient/*.yaml coveragerc
+.PHONY: test
+test: makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/*.py testsuite/test_uprint.* testsuite/testclient/*.py testsuite/testclient/*.yaml coveragerc
 	@echo "makefile: Running tests"
 	rm -f $(test_log_file)
 ifeq ($(PLATFORM),Windows)
@@ -558,9 +556,9 @@ ifeq ($(PLATFORM),Windows)
 else
 	testsuite/test_uprint.sh
 endif
-	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
-	@echo "makefile: Done running tests; Log file: $@"
+	@echo "makefile: Done running tests; Log file: $(test_log_file)"
 
 $(doc_conf_dir)/wbemcli.help.txt: wbemcli wbemcli.py
 	@echo "makefile: Creating wbemcli script help message file"
