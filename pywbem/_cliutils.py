@@ -26,7 +26,7 @@ import argparse
 class SmartFormatter(argparse.HelpFormatter):
     """Formatter class for `argparse`, that respects newlines in help strings.
 
-    Idea and code from: http://stackoverflow.com/a/22157136
+    Idea and code from: https://stackoverflow.com/a/22157136
 
     Usage:
         If an argparse argument help text starts with 'R|', it will be treated

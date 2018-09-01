@@ -65,7 +65,7 @@ OS-X should work as well, but Windows requires a number of manual setup steps.
    displays a list of valid Make targets and a short description of what each
    target does.
 
-.. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
+.. _virtual Python environment: https://docs.python-guide.org/en/latest/dev/virtualenvs/
 
 
 .. _`Manual setup on Windows`:
@@ -132,7 +132,7 @@ Building the documentation
 --------------------------
 
 The ReadTheDocs (RTD) site is used to publish the documentation for the
-pywbem package at http://pywbem.readthedocs.io/
+pywbem package at https://pywbem.readthedocs.io/
 
 This page is automatically updated whenever the Git repo for this package
 changes the branch from which this documentation is built.
@@ -294,4 +294,3 @@ https://pywbem.slack.com.
 The web conference and the Slack workspace are by invitation, and if you want
 to participate in the core team, please
 `open an issue <https://github.com/pywbem/pywbem/issues>`_ to let us know.
-

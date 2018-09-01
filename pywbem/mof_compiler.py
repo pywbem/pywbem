@@ -133,7 +133,7 @@ _tabdir = os.path.dirname(os.path.abspath(__file__))
 #
 # The LEX token functions and strings are all named "t_*".
 # Note the order of LEX token processing, described in:
-# http://www.dabeaz.com/ply/ply.html#ply_nn6
+# https://www.dabeaz.com/ply/ply.html#ply_nn6
 #
 # The YACC parser functions are all named "p_*".
 #

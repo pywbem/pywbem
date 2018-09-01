@@ -1,4 +1,4 @@
-# Control file for Travis CI (http://travis-ci.org)
+# Control file for Travis CI (https://travis-ci.org)
 # Must be located in the root directory of the Git repository.
 
 # Pywbemn uses pbr to determine its version, which uses the newest tag

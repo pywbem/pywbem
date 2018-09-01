@@ -107,7 +107,7 @@ IGNORE_NULL_KEY_VALUE = False
 #: Option that enables or disables the automatic creation of a special HTTP
 #: header field that the Small Footprint CIM Broker (SFCB) requires when
 #: invoking its special "UpdateExpiredPassword()" method.
-#: See http://sblim.sourceforge.net/wiki/index.php/SfcbExpiredPasswordUpdate
+#: See https://sblim.sourceforge.net/wiki/index.php/SfcbExpiredPasswordUpdate
 #: for details.
 #:
 #: * `True`: (default): Automatic creation is enabled, and pywbem will create

@@ -420,7 +420,7 @@ class WBEMServer(object):
 
             # For OpenPegasus, use 'PG_Namespace' class to account for issue
             # when using 'CIM_Namespace'. See OpenPegasus bug 10112:
-            # http://bugzilla.openpegasus.org/show_bug.cgi?id=10112
+            # https://bugzilla.openpegasus.org/show_bug.cgi?id=10112
             if self.brand == "OpenPegasus":
                 ns_classname = 'PG_Namespace'
             else:

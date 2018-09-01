@@ -17,7 +17,7 @@ and not necessarily require a large amount of programming knowledge. It is
 suitable for a large range of tasks from simply poking around to writing web
 and GUI applications.
 
-The general pywbem web site is: http://pywbem.github.io/pywbem/index.html.
+The general pywbem web site is: https://pywbem.github.io/pywbem/index.html.
 
 .. toctree::
    :maxdepth: 2
@@ -35,4 +35,3 @@ The general pywbem web site is: http://pywbem.github.io/pywbem/index.html.
    development.rst
    appendix.rst
    changes.rst
-

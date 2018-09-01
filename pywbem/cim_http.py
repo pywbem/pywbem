@@ -940,7 +940,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 # However, httplib currently raises BadStatusLine also
                 # independent of strict when a keep-alive connection times out
                 # (e.g. because the server went down).
-                # See http://bugs.python.org/issue8450.
+                # See https://bugs.python.org/issue8450.
                 # In Python 3.5, this case is raised as a new
                 # httplib.RemoteDisconnected exception, which is also still
                 # a BadStatusLine exception with an empty line.

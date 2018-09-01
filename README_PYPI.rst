@@ -16,6 +16,5 @@ For more information on pywbem, see the `pywbem readme`_, and the
 `pywbem documentation`_.
 
 .. _pywbem readme: https://github.com/pywbem/pywbem/blob/stable_0.12/README.rst
-.. _pywbem documentation: http://pywbem.readthedocs.io/en/stable_0.12/
-.. _CIM/WBEM standards: http://www.dmtf.org/standards/wbem/
-
+.. _pywbem documentation: https://pywbem.readthedocs.io/en/stable_0.12/
+.. _CIM/WBEM standards: https://www.dmtf.org/standards/wbem/

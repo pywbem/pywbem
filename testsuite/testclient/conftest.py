@@ -653,7 +653,7 @@ def assertXMLEqual(s_act, s_exp, entity=None):
                         after = i
                 # The following changes the original XML tree:
                 # The following pylint warning can safely be disabled, see
-                # http://stackoverflow.com/a/25314665
+                # https://stackoverflow.com/a/25314665
                 # pylint: disable=cell-var-from-loop
                 parent[first:after] = sorted(elems,
                                              key=lambda e: e.attrib[attr])

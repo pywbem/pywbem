@@ -21,8 +21,8 @@ translate the package names to the actual system, and to establish the
 prerequisites. This approach is compatible with PyPI because `pip install`
 invokes `setup.py install` but not the new commands. It is also compatible
 with packaging PyWBEM into OS-level Python packages, for the same reason.
-This approach is also compatible with 
-[virtual Python environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+This approach is also compatible with
+[virtual Python environments](https://docs.python-guide.org/en/latest/dev/virtualenvs/)
 because `sudo` is invoked under the covers for installing the OS-level
 packages, so you can still invoke setup.py without sudo for targeting the
 current virtual Python environment.
@@ -110,4 +110,3 @@ sucessfully installed and its Python dependencies are available.
 If you have installed in development mode, you can run the test suite:
 
     make test
-

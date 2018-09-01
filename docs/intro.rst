@@ -369,7 +369,7 @@ is probably the right choice for you. If your intention is to write code
 against the pywbem APIs, installation into a `virtual Python environment`_ is
 recommended.
 
-.. _virtual Python environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
+.. _virtual Python environment: https://docs.python-guide.org/en/latest/dev/virtualenvs/
 
 An additional dimension is Python 2 vs. Python 3:
 
@@ -558,7 +558,7 @@ follows:
 2. Download the source archive of Swig version 2.0 or higher, and unpack it.
    For example, using Swig version 2.0.12::
 
-       $ wget -q -O swig-2.0.12.tar.gz http://sourceforge.net/projects/swig/files/swig/swig-2.0.12/swig-2.0.12.tar.gz/download
+       $ wget -q -O swig-2.0.12.tar.gz https://sourceforge.net/projects/swig/files/swig/swig-2.0.12/swig-2.0.12.tar.gz/download
        $ tar -xf swig-2.0.12.tar.gz
 
 3. Configure and build Swig::
@@ -717,7 +717,7 @@ the semantic versioning rules and specificically to its compatibility rules are
 the various pywbem APIs described in this documentation, and the command line
 interface of the pywbem utility commands.
 
-.. _Semantic Versioning 2.0.0: http://semver.org/spec/v2.0.0.html
+.. _Semantic Versioning 2.0.0: https://semver.org/spec/v2.0.0.html
 
 Occasionally functionality needs to be retired, because it is flawed and a
 better but incompatible replacement has emerged. In pywbem, such changes are
