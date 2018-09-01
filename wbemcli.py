@@ -3134,11 +3134,11 @@ class _WbemcliCustomFormatter(_SmartFormatter,
     formatter customization and actually recommends this in a discussion
     in one of the issues:
 
-        http://bugs.python.org/issue13023
+        https://bugs.python.org/issue13023
 
     Also recommended in a StackOverflow discussion:
 
-    http://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
+    https://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
     """
     pass
 

@@ -1,7 +1,7 @@
 # Config file for Python "coverage" package.
 #
 # For documentation, see:
-# http://coverage.readthedocs.org/en/latest/config.html
+# https://coverage.readthedocs.org/en/latest/config.html
 
 [run]
 
@@ -26,4 +26,3 @@ show_missing = False
 # Location for html report. Must be in sync with the corresponding variable in
 # the makefile.
 directory = coverage_html
-

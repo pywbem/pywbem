@@ -181,12 +181,12 @@ viewcode_import = True
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.
-# See http://www.sphinx-doc.org/en/stable/theming.html for built-in themes.
+# See https://www.sphinx-doc.org/en/stable/theming.html for built-in themes.
 html_theme = "classic"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.
-# See http://www.sphinx-doc.org/en/stable/theming.html for the options
+# See https://www.sphinx-doc.org/en/stable/theming.html for the options
 # available for built-in themes.
 html_theme_options = {
 }
@@ -360,7 +360,7 @@ texinfo_documents = [
 
 # -- Options for autodoc extension ----------------------------------------
 # For documentation, see
-# http://www.sphinx-doc.org/en/stable/ext/autodoc.html
+# https://www.sphinx-doc.org/en/stable/ext/autodoc.html
 
 # Note on the :special-members: option:
 # In Sphinx releases azt least up to 1.6.5, this option does not behave
@@ -426,7 +426,7 @@ autodoc_mock_imports = []
 
 # -- Options for intersphinx extension ------------------------------------
 # For documentation, see
-# http://www.sphinx-doc.org/en/stable/ext/intersphinx.html
+# https://www.sphinx-doc.org/en/stable/ext/intersphinx.html
 
 # Defines the prefixes for intersphinx links, and the targets they resolve to.
 # Example RST source for 'py2' prefix:
@@ -452,7 +452,7 @@ intersphinx_cache_limit = 5
 
 # -- Options for extlinks extension ---------------------------------------
 # For documentation, see
-# http://www.sphinx-doc.org/en/stable/ext/extlinks.html
+# https://www.sphinx-doc.org/en/stable/ext/extlinks.html
 #
 # Defines aliases for external links that can be used as role names.
 #
@@ -490,7 +490,6 @@ intersphinx_cache_limit = 5
 # results in the link caption "this issue".
 
 extlinks = {
-  'nbview': ('http://nbviewer.jupyter.org/github/pywbem/pywbem/blob/master/docs/notebooks/%s', ''),
+  'nbview': ('https://nbviewer.jupyter.org/github/pywbem/pywbem/blob/master/docs/notebooks/%s', ''),
   'nbdown': ('https://github.com/pywbem/pywbem/raw/master/docs/notebooks/%s', '')
 }
-

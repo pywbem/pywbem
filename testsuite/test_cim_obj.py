@@ -1357,7 +1357,7 @@ class CIMInstanceNameEquality(unittest.TestCase):
         same slot in the hash table (i.e. they produce a hash collision).
         In such a case, the iteration order depends on the order in which the
         items were added to the dictionary. For details, read
-        http://stackoverflow.com/a/15479974/1424462.
+        https://stackoverflow.com/a/15479974/1424462.
         """
 
         key1 = 'bar'

@@ -492,7 +492,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             and for each of the certificates in its chain of trust.
 
             See `M2Crypto.SSL.Context.set_verify` for details, as well as
-            http://blog.san-ss.com.ar/2012/05/validating-ssl-certificate-in-python.html):
+            https://blog.san-ss.com.ar/2012/05/validating-ssl-certificate-in-python.html):
 
             The callback function must take five parameters:
 

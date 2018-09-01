@@ -103,7 +103,7 @@ Their upstream repos are assumed to have the remote name `origin`.
     * Update the pywbem version in the two links near the bottom of the file::
 
         .. _README file: https://github.com/pywbem/pywbem/blob/stable_{M.N}/README.rst
-        .. _Documentation: http://pywbem.readthedocs.io/en/stable_{M.N}/
+        .. _Documentation: https://pywbem.readthedocs.io/en/stable_{M.N}/
 
       Where the items in curly braces are replaced with their actual values.
 
@@ -249,7 +249,7 @@ Their upstream repos are assumed to have the remote name `origin`.
     - `git push`
 
 25. Announce the new version on the
-    [pywbem-devel mailing list](http://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
+    [pywbem-devel mailing list](https://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
 
 Starting a new version
 ----------------------

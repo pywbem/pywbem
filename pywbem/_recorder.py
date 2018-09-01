@@ -63,7 +63,7 @@ def _represent_ordereddict(dump, tag, mapping, flow_style=None):
     This is needed for yaml.safe_dump() to support OrderedDict.
 
     Courtesy:
-    http://blog.elsdoerfer.name/2012/07/26/make-pyyaml-output-an-ordereddict/
+    https://blog.elsdoerfer.name/2012/07/26/make-pyyaml-output-an-ordereddict/
     """
     value = []
     node = yaml.MappingNode(tag, value, flow_style=flow_style)

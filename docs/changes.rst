@@ -226,7 +226,7 @@ This version contains all fixes up to pywbem 0.12.4.
   HTTP header in the CIM-XML request if pywbem detects that the special SFCB
   method "UpdateExpiredPassword()" is invoked on class "SFCB_Account". SFCB
   requires this HTTP header for that method.
-  See http://sblim.sourceforge.net/wiki/index.php/SfcbExpiredPasswordUpdate for
+  See https://sblim.sourceforge.net/wiki/index.php/SfcbExpiredPasswordUpdate for
   details about this SFCB functionality.
   The automatic creation of the header field is enabled by default and can be
   disabled with a new pywbem config variable `AUTO_GENERATE_SFCB_UEP_HEADER`.
@@ -2518,7 +2518,7 @@ Released: 2008-12-12
 
 * Added cim_provider2.py: A new provider interface.  Python providers
   using this interface can use the cmpi-bindings project within OMC
-  (http://omc-project.org/) to run under any CIMOM supporting the
+  (https://omc-project.org/) to run under any CIMOM supporting the
   CMPI interface.  This is prefered to the old cim_provider.py interface
   that was used with the Python Provider Managers for OpenWBEM and Pegasus.
 

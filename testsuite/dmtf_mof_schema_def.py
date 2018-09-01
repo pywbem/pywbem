@@ -40,7 +40,7 @@ from pywbem_mock import DMTFCIMSchema
 # and remove the SCHEMA_DIR directory
 # This defines the version and the location of the schema zip file on the
 # DMTF web site.
-# See the page http://www.dmtf.org/standards/cim if there are issues
+# See the page https://www.dmtf.org/standards/cim if there are issues
 # downloading a particular version.
 
 # Location of the schema for use by test_mof_compiler.

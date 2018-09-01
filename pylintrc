@@ -81,7 +81,7 @@ disable=I0011,
 #       breaking compatibility. We could move the message control statements
 #       into the source code, though.
 
-# Note: messages are described here: http://pylint-messages.wikidot.com/all-messages
+# Note: messages are described here: https://pylint-messages.wikidot.com/all-messages
 
 
 [REPORTS]
@@ -108,7 +108,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 
 # Template used to display messages. This is a python new-style format string
 # used to format the message information. See doc for all details:
-# http://docs.pylint.org/output.html#reports-section
+# https://docs.pylint.org/output.html#reports-section
 # Note: This format only affects output format text, but not html.
 # Note: The vim quickfix support by default recognizes the following format:
 #   {path}:{line}: ...
