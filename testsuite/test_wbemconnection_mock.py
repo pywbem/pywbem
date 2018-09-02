@@ -42,7 +42,10 @@ from testfixtures import OutputCapture
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
-    CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS
+    CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS, \
+    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_NOT_SUPPORTED, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_INVALID_ENUMERATION_CONTEXT, CIM_ERR_METHOD_NOT_FOUND
 
 from pywbem._nocasedict import NocaseDict
 
@@ -620,6 +623,13 @@ def tst_assoc_mof():
     """
 
 
+# Counts of instances for tests.
+TST_PERSON_INST_COUNT = 4                                 # num TST_PERSON
+TST_PERSON_SUB_INST_COUNT = 4                             # num SUB
+TST_PERSONWITH_SUB_INST_COUNT = TST_PERSON_INST_COUNT + \
+    TST_PERSON_SUB_INST_COUNT                             # num both
+
+
 @pytest.fixture
 def conn():
     """
@@ -684,8 +694,7 @@ class TestFakedWBEMConnection(object):
         else:
             assert exec_time < 0.1
 
-    def test_repr(self):
-        # pylint: disable=no-self-use
+    def test_repr(self):  # pylint: disable=no-self-use
         """ Test output of repr"""
         # pylint: disable=protected-access
         FakedWBEMConnection._reset_logging_config()
@@ -693,8 +702,7 @@ class TestFakedWBEMConnection(object):
         repr_ = '%r' % conn
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
 
-    def test_attr(self):
-        # pylint: disable=no-self-use
+    def test_attr(self):  # pylint: disable=no-self-use
         """
         Test other FadedWBEMConnection attributes
         """
@@ -746,6 +754,8 @@ class TestRepoMethods(object):
             [None, False, ['CIM_Foo', 'CIM_Foo_nokey']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
+            ['cim_foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
+                               'CIM_Foo_sub_sub']],  # test case insensitivity
             ['CIM_Foo', False, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             ['CIM_Foo_sub', True, ['CIM_Foo_sub_sub']],
             ['CIM_Foo_sub', False, ['CIM_Foo_sub_sub']],
@@ -755,7 +765,7 @@ class TestRepoMethods(object):
                                cln, mof, di, exp_clns):
         # pylint: disable=no-self-use
         """
-        Test the _internal _get_subclasses method. Tests against both
+        Test the _internal _get_subclass_names method. Tests against both
         add_cimobjects and compiled objects
         """
         if mof:
@@ -773,6 +783,7 @@ class TestRepoMethods(object):
         "cln, exp_cln", [
             ['CIM_Foo', []],
             ['CIM_Foo_sub', ['CIM_Foo']],
+            ['cim_foo_sub', ['CIM_Foo']],      # test case independence
             ['CIM_Foo_sub_sub', ['CIM_Foo', 'CIM_Foo_sub']],
         ]
     )
@@ -812,6 +823,7 @@ class TestRepoMethods(object):
             ['CIM_Foo_sub', True, True, False, None, ['cimfoo_sub']],
             ['CIM_Foo_sub', True, True, False, ['InstanceID'], []],
             ['CIM_Foo_sub', True, True, False, ['cimfoo_sub'], ['cimfoo_sub']],
+            ['cim_foo_sub', True, True, False, ['cimfoo_sub'], ['cimfoo_sub']],
         ]
     )
     def test_get_class(self, conn, tst_classes, tst_classes_mof, ns, mof, cln,
@@ -880,6 +892,7 @@ class TestRepoMethods(object):
         [
             #  cln         key      iq     ico   pl      exp_props   exp_err
             ['CIM_Foo', 'CIM_Foo1', None, None, None, ['InstanceID'], None],
+            ['cim_foo', 'CIM_Foo1', None, None, None, ['InstanceID'], None],
             ['CIM_Foo', 'CIM_Foo1', None, None, ['InstanceID'], ['InstanceID'],
              None],
             ['CIM_Foo', 'CIM_Foo1', None, None, ['Instx'], [], None],
@@ -892,7 +905,7 @@ class TestRepoMethods(object):
              None],
 
             ['CIM_Foo_sub', 'CIM_Foo_sub99', None, None, None, None,
-             'CIM_ERR_NOT_FOUND'],
+             CIMError(CIM_ERR_NOT_FOUND)],
         ]
     )
     def test_get_instance(self, conn, tst_classes, tst_instances,
@@ -910,8 +923,8 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classes, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        lo = False   # TODO expand test to use lo parameterized.  Note that
-        # since lo is deprecated we might just drop in and always
+        lo = False   # TODO expand test to use lo parameterized.
+        # since lo is deprecated we might just drop it and always
         # go false.
 
         iname = CIMInstanceName(cln,
@@ -921,9 +934,9 @@ class TestRepoMethods(object):
             # pylint: disable=protected-access
             inst = conn._get_instance(iname, ns, pl, lo, ico, iq)
             assert isinstance(inst, CIMInstance)
-            assert inst.path.classname == cln
+            assert inst.path.classname.lower() == cln.lower()
             assert iname == inst.path
-            assert inst.classname == cln
+            assert inst.classname.lower() == cln.lower()
 
             if pl == "":
                 assert not inst.properties
@@ -931,11 +944,12 @@ class TestRepoMethods(object):
                 assert set(inst.keys()) == set(exp_props)
 
         else:
+            assert isinstance(exp_err, CIMError)
             with pytest.raises(CIMError) as exec_info:
                 # pylint: disable=protected-access
                 conn._get_instance(iname, ns, pl, lo, ico, iq)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err.status_code
 
     @pytest.mark.parametrize(
         "ns", [DEFAULT_NAMESPACE, 'root/blah'])
@@ -946,6 +960,7 @@ class TestRepoMethods(object):
         [
             ['CIM_Foo', 'CIM_Foo1', True],
             ['CIM_Foo', 'CIM_Foo2', True],
+            ['cim_foo', 'CIM_Foo2', True],
             ['CIM_Foo_sub', 'CIM_Foo_sub4', True],
             ['CIM_Foo_sub', 'CIM_Foo_sub99', False],
         ]
@@ -1130,7 +1145,7 @@ class TestRepoMethods(object):
         assert 'Qualifier Abstract : boolean = false,' in data
         os.remove(tst_file)
 
-    # TODO: Add test of format of the repo outut with a very simple schema
+    # TODO: Add test of format of the repo outPut with a very simple schema
     #       to keep the comparison small.
 
     @pytest.mark.parametrize(
@@ -1282,6 +1297,7 @@ class TestRepoMethods(object):
         instance of CIM_Foo as $foo3 { InstanceID = "CIM_Foo3"; };
         """
         # TODO: Remove alias once inst without alias properly generates path
+        # IN MOF compiler
         i4 = """
         instance of CIM_Foo as $foo4 { InstanceID = "CIM_Foo4"; };
         """
@@ -1411,9 +1427,9 @@ class TestRepoMethods(object):
         assert len(clns) == 5
 
         inst_names = conn.EnumerateInstanceNames('TST_Person', namespace=ns)
-        assert len(inst_names) == 4
+        assert len(inst_names) == TST_PERSONWITH_SUB_INST_COUNT
         insts = conn.EnumerateInstances('TST_Person', namespace=ns)
-        assert len(inst_names) == 4
+        assert len(inst_names) == 8
 
         # Test for particular instances in the enum response
         for name in tst_person_instance_names:
@@ -1545,9 +1561,10 @@ class TestClassOperations(object):
     @pytest.mark.parametrize(
         "ns, cln, tst_ns, exp_er", [
             [None, 'CIM_Foo', None, None],
-            [None, 'CIM_Foo', 'root/blah', 'CIM_ERR_INVALID_NAMESPACE'],
+            [None, 'cim_foo', None, None],
+            [None, 'CIM_Foo', 'root/blah', CIM_ERR_INVALID_NAMESPACE],
             ['root/blah', 'CIM_Foo', 'root/blah', None],
-            [None, 'CIM_Foox', None, 'CIM_ERR_NOT_FOUND'],
+            [None, 'CIM_Foox', None, CIM_ERR_NOT_FOUND],
         ]
     )
     def test_getclass_ns_er(self, conn, tst_class, ns, cln, tst_ns, exp_er):
@@ -1567,7 +1584,7 @@ class TestClassOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.GetClass(cln, namespace=tst_ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_er
+            assert exc.status_code == exp_er
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -1575,6 +1592,7 @@ class TestClassOperations(object):
         "cn, iq, ico",
         [
             ['CIM_Foo', False, False],
+            ['cim_foo', False, False],
             ['CIM_Foo', True, False],
             ['CIM_Foo', True, True],
             ['CIM_Foo_sub', False, False],
@@ -1588,9 +1606,12 @@ class TestClassOperations(object):
         Test mocking wbemconnection getClass
         test using Mock directly and returning a class.
         """
-        for cl_ in tst_classes:
-            if cl_.classname == cn:
-                tst_class = cl_
+
+        # Verify test valid in that cn exists in repo
+
+        for cls in tst_classes:
+            if cls.classname.lower() == cn.lower():
+                tst_class = cls
         assert tst_class is not None
 
         conn.add_cimobjects(tst_classes, namespace=ns)
@@ -1601,8 +1622,6 @@ class TestClassOperations(object):
         # test with LocalOnly True to get just the local properties
         cl = conn.GetClass(cn, namespace=ns, IncludeQualifiers=iq,
                            LocalOnly=True, IncludeClassOrigin=ico)
-        # TODO ks confirm whether following needed
-        # cl.path = None
 
         # remove all qualifiers and class_origins and test for equality
         if not iq:
@@ -1642,6 +1661,7 @@ class TestClassOperations(object):
         "cn, lo, pl_exp", [
             ['CIM_Foo_sub', None, ['cimfoo_sub', 'InstanceID']],
             ['CIM_Foo_sub', True, ['cimfoo_sub']],
+            ['cim_foo_sub', True, ['cimfoo_sub']],
             ['CIM_Foo_sub', False, ['cimfoo_sub', 'InstanceID']],
             ['CIM_Foo_sub_sub', None, ['cimfoo_sub_sub', 'cimfoo_sub',
                                        'InstanceID']],
@@ -1661,7 +1681,7 @@ class TestClassOperations(object):
                            IncludeQualifiers=True,
                            IncludeClassOrigin=True)
 
-        assert cl.classname == cn
+        assert cl.classname.lower() == cn.lower()
         assert len(cl.properties) == len(pl_exp)
         rtn_props = cl.properties.keys()
         assert set(rtn_props) == set(pl_exp)
@@ -1717,6 +1737,7 @@ class TestClassOperations(object):
             [None, True, ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2',
                           'CIM_Foo_sub_sub', 'CIM_Foo_nokey']],
             ['CIM_Foo', None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
+            ['cim_foo', None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             [CIMClassName('CIM_Foo'), None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
@@ -1975,15 +1996,15 @@ class TestClassOperations(object):
                             class_origin='CIM_Foo_sub_sub', propagated=False)
                     }
                 ),
-                None, 'CIM_ERR_INVALID_PARAMETER'
+                None, CIM_ERR_INVALID_PARAMETER
             ],
 
             # Fail because superclass does not exist in namespace
-            [None, 'CIM_Foo_sub', None, 'CIM_ERR_INVALID_SUPERCLASS'],
+            [None, 'CIM_Foo_sub', None, CIM_ERR_INVALID_SUPERCLASS],
 
             # Fails because trying to create incorrect type
             [None, CIMQualifierDeclaration('blah', 'string'), None,
-             'CIM_ERR_INVALID_PARAMETER'],
+             CIM_ERR_INVALID_PARAMETER],
 
             # No invalid namespace test defined because createclass creates
             # namespace
@@ -2019,7 +2040,7 @@ class TestClassOperations(object):
                 conn.CreateClass(new_class, namespace=ns)
 
             exc = exec_info.value
-            assert(exc.status_code_name == exp_err)
+            assert(exc.status_code == exp_err)
 
         else:
             conn.CreateClass(new_class, namespace=ns)
@@ -2109,8 +2130,8 @@ class TestClassOperations(object):
         "cn, exp_exc", [
             ['CIM_Foo', None],
             ['CIM_Foo', None],
-            ['CIM_Foox', 'CIM_ERR_NOT_FOUND'],
-            ['CIM_Foox', 'CIM_ERR_NOT_FOUND'],
+            ['CIM_Foox', CIM_ERR_NOT_FOUND],
+            ['CIM_Foox', CIM_ERR_NOT_FOUND],
         ]
     )
     def test_deleteclass(self, conn, tst_classes, cn, ns, exp_exc):
@@ -2125,12 +2146,12 @@ class TestClassOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.GetClass(cn, namespace=ns)
                 exc = exec_info.value
-                assert exc.status_code_name == 'CIM_ERR_NOT_FOUND'
+                assert exc.status_code == CIM_ERR_NOT_FOUND
         else:
             with pytest.raises(CIMError) as exec_info:
                 conn.DeleteClass(cn, namespace=ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_exc
+            assert exc.status_code == exp_exc
 
 
 class TestInstanceOperations(object):
@@ -2143,10 +2164,10 @@ class TestInstanceOperations(object):
         "ns, cln, inst_id, tst_ns, exp_er", [
             [None, 'CIM_Foo', 'CIM_Foo1', None, None],
             ['root/blah', 'CIM_Foo', 'CIM_Foo1', 'root/blah', None],
-            ['blah', 'CIM_Foo', 'badid', 'blah', 'CIM_ERR_NOT_FOUND'],
+            ['blah', 'CIM_Foo', 'badid', 'blah', CIM_ERR_NOT_FOUND],
             ['blah', 'CIM_Foo', 'CIM_Foo1', 'whoop',
-             'CIM_ERR_INVALID_NAMESPACE'],
-            ['blah', 'CIM_Foox', 'CIM_Foo1', 'blah', 'CIM_ERR_INVALID_CLASS'],
+             CIM_ERR_INVALID_NAMESPACE],
+            ['blah', 'CIM_Foox', 'CIM_Foo1', 'blah', CIM_ERR_INVALID_CLASS],
         ]
     )
     def test_getinstance(self, conn, ns, cln, inst_id, tst_ns, exp_er,
@@ -2171,7 +2192,7 @@ class TestInstanceOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.GetInstance(req_inst_path)
             exc = exec_info.value
-            assert(exc.status_code_name == exp_er)
+            assert(exc.status_code == exp_er)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah']
@@ -2280,7 +2301,9 @@ class TestInstanceOperations(object):
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    def test_enumerateinstnames_lite(self, conn_lite, ns, tst_instances):
+    @pytest.mark.parametrize(
+        "cln", ['cim_foo', 'CIM_Foo'])
+    def test_enumerateinstnames_lite(self, conn_lite, ns, cln, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
@@ -2288,8 +2311,6 @@ class TestInstanceOperations(object):
         conn_lite.
         """
         conn_lite.add_cimobjects(tst_instances, namespace=ns)
-
-        cln = 'CIM_Foo'
 
         # since we do not have classes in the repository, we get back only
         # instances of the defined class
@@ -2299,18 +2320,23 @@ class TestInstanceOperations(object):
 
         # pylint: disable=protected-access
         request_inst_names = [i.path for i in conn_lite._get_instance_repo(nsx)
-                              if i.classname == cln]
+                              if i.classname.lower() == cln.lower()]
 
         assert len(rtn_inst_names) == len(request_inst_names)
 
         for inst_name in rtn_inst_names:
             assert isinstance(inst_name, CIMInstanceName)
             assert inst_name in request_inst_names
-            assert inst_name.classname == cln
+            assert inst_name.classname.lower() == cln.lower()
 
+    # TODO KS add error test to this group. cln, exp_cond  and test for
+    # bad class, no class should pull in at least test below.
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    def test_enumerateinstancenames(self, conn, ns, tst_classes, tst_instances):
+    @pytest.mark.parametrize(
+        "cln", ['cim_foo', 'CIM_Foo'])
+    def test_enumerateinstnames(self, conn, ns, cln, tst_classes,
+                                tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
@@ -2320,8 +2346,6 @@ class TestInstanceOperations(object):
         conn.add_cimobjects(tst_classes, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
 
-        cln = 'CIM_Foo'
-
         rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
 
         nsx = conn.default_namespace if ns is None else ns
@@ -2329,16 +2353,19 @@ class TestInstanceOperations(object):
         # pylint: disable=protected-access
         exp_subclasses = conn._get_subclass_names(cln, nsx, True)
         exp_subclasses.append(cln)
+        sub_class_dict = NocaseDict()
+        for name in exp_subclasses:
+            sub_class_dict[name] = name
 
         request_inst_names = [i.path for i in conn._get_instance_repo(nsx)
-                              if i.classname in exp_subclasses]
+                              if i.classname in sub_class_dict]
 
         assert len(rtn_inst_names) == len(request_inst_names)
 
         for inst_name in rtn_inst_names:
             assert isinstance(inst_name, CIMInstanceName)
             assert inst_name in request_inst_names
-            assert inst_name.classname in exp_subclasses
+            assert inst_name.classname in sub_class_dict
 
     @pytest.mark.parametrize(
         "ns, cln, tst_ns, exp_er", [  # TODO integrate this into normal test
@@ -2348,8 +2375,8 @@ class TestInstanceOperations(object):
             # exp_er: None or expected error code
             ['root/blah', None, 'root/blah', None],
             [None, None, None, None],
-            ['blah', 'CIM_Foo', 'whoop', 'CIM_ERR_INVALID_NAMESPACE'],
-            ['blah', 'CIM_Foox', 'blah', 'CIM_ERR_INVALID_CLASS'],
+            ['blah', 'CIM_Foo', 'whoop', CIMError(CIM_ERR_INVALID_NAMESPACE)],
+            ['blah', 'CIM_Foox', 'blah', CIMError(CIM_ERR_INVALID_CLASS)],
         ]
     )
     def test_enumerateinstnames_ns_er(self, conn, tst_classes,
@@ -2380,15 +2407,16 @@ class TestInstanceOperations(object):
             for inst_name in rtn_inst_names:
                 assert isinstance(inst_name, CIMInstanceName)
                 assert inst_name in request_inst_names
-                # TODO change to use algorithm to get list of possible
+                # TODO: use algorithm to get list of possible
                 # classes. Right now just fixed list
                 assert inst_name.classname in exp_clns
 
         else:
+            assert isinstance(exp_er, CIMError)
             with pytest.raises(CIMError) as exec_info:
                 conn.EnumerateInstanceNames(cln, tst_ns)
             exc = exec_info.value
-            assert(exc.status_code_name == exp_er)
+            assert(exc.status_code == exp_er.status_code)
 
     def test_enumerateinstances_lite(self, conn_lite, tst_instances):
         # pylint: disable=no-self-use
@@ -2447,7 +2475,7 @@ class TestInstanceOperations(object):
         for inst in tst_instances:
             tst_inst_dict[str(model_path(inst.path))] = inst
 
-        # TODO compute number should be returned. Right now fixed number
+        # TODO: Future compute number should be returned. Right now fixed number
         assert len(rtn_insts) == 8
         rtn_cln = []
         for inst in rtn_insts:
@@ -2617,8 +2645,8 @@ class TestInstanceOperations(object):
     @pytest.mark.parametrize(
         "ns, cln, tst_ns, exp_er", [  # TODO integrate this into normal test
             # ['blah', None, 'blah', None],
-            ['blah', 'CIM_Foo', 'whoop', 'CIM_ERR_INVALID_NAMESPACE'],
-            # ['blah', 'CIM_Foox', 'blah', 'CIM_ERR_INVALID_CLASS'],
+            ['blah', 'CIM_Foo', 'whoop', CIM_ERR_INVALID_NAMESPACE],
+            # ['blah', 'CIM_Foox', 'blah', CIM_ERR_INVALID_CLASS],
         ]
     )
     def test_enumerateinstances_er(self, conn, ns, cln, tst_ns,
@@ -2652,7 +2680,7 @@ class TestInstanceOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.EnumerateInstances(cln, tst_ns)
             exc = exec_info.value
-            assert(exc.status_code_name == exp_er)
+            assert(exc.status_code == exp_er)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -2674,39 +2702,39 @@ class TestInstanceOperations(object):
             [1, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': 'data1'}),
-             'CIM_ERR_INVALID_NAMESPACE'],
+             CIM_ERR_INVALID_NAMESPACE],
 
             # No key property in new instance
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'cimfoo_sub': 'data2'}),
-             'CIM_ERR_INVALID_PARAMETER'],
+             CIM_ERR_INVALID_PARAMETER],
 
             # Test instance class not in repository
             [0, CIMInstance('CIM_Foo_subx',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': 'data3'}),
-             'CIM_ERR_INVALID_CLASS'],
+             CIM_ERR_INVALID_CLASS],
 
             # Test invalid property. Property not in class
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_subx': 'wrong prop name'}),
-             'CIM_ERR_INVALID_PARAMETER'],
+             CIM_ERR_INVALID_PARAMETER],
 
             # Test invalid property in new instance, type not same as class
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': Uint32(6)}),
-             'CIM_ERR_INVALID_PARAMETER'],
+             CIM_ERR_INVALID_PARAMETER],
 
             # test array type mismatch
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': ['blah', 'blah']}),
-             'CIM_ERR_INVALID_PARAMETER'],
+             CIM_ERR_INVALID_PARAMETER],
 
             # NewInstance is not an instance
-            [0, CIMClass('CIM_Foo_sub'), 'CIM_ERR_INVALID_PARAMETER'],
+            [0, CIMClass('CIM_Foo_sub'), CIM_ERR_INVALID_PARAMETER],
         ]
     )
     def test_createinstance(self, conn, ns, tst, new_inst, exp_err, tst_classes,
@@ -2746,7 +2774,7 @@ class TestInstanceOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.CreateInstance(new_insts[0], ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -2770,7 +2798,7 @@ class TestInstanceOperations(object):
         with pytest.raises(CIMError) as exec_info:
             conn.CreateInstance(new_inst)
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_ALREADY_EXISTS')
+        assert(exc.status_code == CIM_ERR_ALREADY_EXISTS)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -2780,7 +2808,7 @@ class TestInstanceOperations(object):
         with pytest.raises(CIMError) as exec_info:
             conn_lite.CreateInstance(tst_instances[0], ns)
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == CIM_ERR_NOT_SUPPORTED
 
     @pytest.mark.parametrize(
         "ns", ['None, root/blah'])
@@ -2793,7 +2821,7 @@ class TestInstanceOperations(object):
             # pl: property list for ModifyInstanceor None. May be empty
             #   property list
             # exp_resp: True if change expected. False if none expected.
-            #   If exp_change is a string,it is error code expected.
+            #   CIMError status code if expected
 
             # change any property that is different
             [0, ['cimfoo_sub', 'newval'], None, True],
@@ -2815,24 +2843,28 @@ class TestInstanceOperations(object):
             [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub'], False],
             # Prop name not in class but in Property list
             [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'not_in_class'],
-             'CIM_ERR_INVALID_PARAMETER'],
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
             # change any property that is different, no prop list
             [0, [('cimfoo_sub', 'newval'),
                  ('cimfoo_sub_sub', 'newval2'), ], None, True],
             # Invalid change, Key property
             # change any property that is different, no prop list
-            [0, ['InstanceID', 'newval'], None, 'CIM_ERR_NOT_FOUND'],
+            [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND)],
             # Invalid change, Key property
             # change any property that is different, no prop list
-            [0, ['InstanceID', 'newval'], None, 'CIM_ERR_NOT_FOUND'],
+            [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND)],
             # Bad namespace. Depends on special code in path
-            [2, ['cimfoo_sub', 'newval'], None, 'CIM_ERR_INVALID_NAMESPACE'],
+            [2, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_NAMESPACE)],
             # Path and instance classnames differ. Changes inst classname
-            [1, ['cimfoo_sub', 'newval'], None, 'CIM_ERR_INVALID_PARAMETER'],
+            [1, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
             # Do one where path has bad classname
-            [3, ['cimfoo_sub', 'newval'], None, 'CIM_ERR_INVALID_PARAMETER'],
+            [3, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
             # 4 path and inst classnames same but not in repo
-            [4, ['cimfoo_sub', 'newval'], None, 'CIM_ERR_INVALID_CLASS'],
+            [4, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_CLASS)],
             # 5, no properties in modified instance
             [5, [], None, False],
 
@@ -2877,7 +2909,12 @@ class TestInstanceOperations(object):
         elif sp == 5:
             modify_instance.properties = NocaseDict()
 
-        if not isinstance(exp_resp, six.string_types):
+        if isinstance(exp_resp, CIMError):
+            with pytest.raises(CIMError) as exec_info:
+                conn.ModifyInstance(modify_instance, PropertyList=pl)
+            exc = exec_info.value
+            assert exc.status_code == exp_resp.status_code
+        else:
             conn.ModifyInstance(modify_instance, PropertyList=pl)
 
             rtn_instance = conn.GetInstance(modify_instance.path)
@@ -2887,11 +2924,6 @@ class TestInstanceOperations(object):
             else:
                 for p in rtn_instance:
                     assert rtn_instance[p] == orig_instance[p]
-        else:
-            with pytest.raises(CIMError) as exec_info:
-                conn.ModifyInstance(modify_instance, PropertyList=pl)
-            exc = exec_info.value
-            assert exc.status_code_name == exp_resp
 
     def test_modifyinstance_lite(self, conn_lite, tst_instances):
         # pylint: disable=no-self-use
@@ -2899,11 +2931,13 @@ class TestInstanceOperations(object):
         with pytest.raises(CIMError) as exec_info:
             conn_lite.ModifyInstance(tst_instances[0])
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == CIM_ERR_NOT_SUPPORTED
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    def test_deleteinstance_lite(self, conn_lite, tst_instances, ns):
+    @pytest.mark.parametrize(
+        "cln", ['cim_foo', 'CIM_Foo'])
+    def test_deleteinstance_lite(self, conn_lite, tst_instances, ns, cln):
         # pylint: disable=no-self-use
         """
         Test delete instance by inserting instances into the repository
@@ -2912,7 +2946,7 @@ class TestInstanceOperations(object):
         """
         conn_lite.add_cimobjects(tst_instances, namespace=ns)
 
-        inst_name_list = conn_lite.EnumerateInstanceNames('CIM_Foo', ns)
+        inst_name_list = conn_lite.EnumerateInstanceNames(cln, ns)
 
         for inst_name in inst_name_list:
             conn_lite.DeleteInstance(inst_name)
@@ -2921,7 +2955,7 @@ class TestInstanceOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn_lite.DeleteInstance(inst_name)
             exc = exec_info.value
-            assert(exc.status_code_name == 'CIM_ERR_NOT_FOUND')
+            assert(exc.status_code == CIM_ERR_NOT_FOUND)
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -2933,9 +2967,9 @@ class TestInstanceOperations(object):
 
             ['CIM_Foo', None, None],                   # valid class
             ['CIM_Foo_sub', None, None],               # valid subclass
-            ['CIM_Foo', 'xxx', 'CIM_ERR_NOT_FOUND'],   # instance not found
-            ['CIM_DoesNotExist', 'blah', 'CIM_ERR_INVALID_CLASS'],  # cl not fnd
-            ['CIM_Foo', 'blah', 'CIM_ERR_INVALID_NAMESPACE'],  # ns not fnd
+            ['CIM_Foo', 'xxx', CIM_ERR_NOT_FOUND],   # instance not found
+            ['CIM_DoesNotExist', 'blah', CIM_ERR_INVALID_CLASS],  # cl not fnd
+            ['CIM_Foo', 'blah', CIM_ERR_INVALID_NAMESPACE],  # ns not fnd
         ]
     )
     def test_deleteinstance(self, conn, tst_classes, tst_instances, ns,
@@ -2961,11 +2995,11 @@ class TestInstanceOperations(object):
                 with pytest.raises(CIMError) as exec_info:
                     conn.DeleteInstance(iname)
                 exc = exec_info.value
-                assert exc.status_code_name == 'CIM_ERR_NOT_FOUND'
+                assert exc.status_code == CIM_ERR_NOT_FOUND
         else:
             tst_ns = DEFAULT_NAMESPACE if ns is None else ns
 
-            if exp_err == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_err == CIM_ERR_INVALID_NAMESPACE:
                 tst_ns = 'BadNamespaceName'
 
             iname = CIMInstanceName(cln, keybindings={'InstanceID': key},
@@ -2973,7 +3007,7 @@ class TestInstanceOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.DeleteInstance(iname)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
 
 
 class TestPullOperations(object):
@@ -3150,7 +3184,7 @@ class TestPullOperations(object):
              [('TST_Lineage', 'SaaraSofi'), ]],
 
             [('TST_Person', 'Saara'), None, 'TST_Lineage',
-             'CIM_ERR_INVALID_NAMESPACE'],
+             CIM_ERR_INVALID_NAMESPACE],
         ]
     )
     def test_openreferenceinstancepaths(self, conn, ns, src_inst, ro, rc,
@@ -3189,7 +3223,7 @@ class TestPullOperations(object):
 
             assert equal_ciminstname_lists(rslt_paths, exp_paths)
         else:
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt == CIM_ERR_INVALID_NAMESPACE:
                 source_inst_name.namespace = 'BadNamespaceName'
 
             with pytest.raises(CIMError) as exec_info:
@@ -3197,7 +3231,7 @@ class TestPullOperations(object):
                                                 ResultClass=rc,
                                                 Role=ro)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -3230,7 +3264,7 @@ class TestPullOperations(object):
              'child', [('TST_Person', 'Sofi'), ]],
 
             [('TST_Person', 'Saara'), 'parent', 'TST_Lineage', 'TST_Person',
-             'child', 'CIM_ERR_INVALID_NAMESPACE'],
+             'child', CIM_ERR_INVALID_NAMESPACE],
         ]
     )
     def test_openassociatorinstancepaths(self, conn, ns, src_inst, ro, ac,
@@ -3272,7 +3306,7 @@ class TestPullOperations(object):
             assert equal_ciminstname_lists(rslt_paths, exp_paths)
 
         else:
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt == CIM_ERR_INVALID_NAMESPACE:
                 source_inst_name.namespace = 'BadNamespaceName'
 
             with pytest.raises(CIMError) as exec_info:
@@ -3282,7 +3316,7 @@ class TestPullOperations(object):
                                                  ResultClass=rc,
                                                  ResultRole=rr)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -3315,7 +3349,7 @@ class TestPullOperations(object):
              'child', [('TST_Person', 'Sofi'), ]],
 
             [('TST_Person', 'Saara'), 'parent', 'TST_Lineage', 'TST_Person',
-             'child', 'CIM_ERR_INVALID_NAMESPACE'],
+             'child', CIM_ERR_INVALID_NAMESPACE],
         ]
     )
     def test_openassociatorinstances(self, conn, ns, src_inst, ro, ac,
@@ -3358,7 +3392,7 @@ class TestPullOperations(object):
             # test for propertylist specifically
 
         else:
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt == CIM_ERR_INVALID_NAMESPACE:
                 source_inst_name.namespace = 'BadNamespaceName'
 
             with pytest.raises(CIMError) as exec_info:
@@ -3368,7 +3402,7 @@ class TestPullOperations(object):
                                              ResultClass=rc,
                                              ResultRole=rr)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -3382,7 +3416,7 @@ class TestPullOperations(object):
             [1, 'CIM_Foo', 100, 100, 'Value Not Used'],
 
             # Execute close with valid context but after sequence complete
-            [2, 'CIM_Foo', 0, 100, 'CIM_ERR_INVALID_ENUMERATION_CONTEXT'],
+            [2, 'CIM_Foo', 0, 100, CIM_ERR_INVALID_ENUMERATION_CONTEXT],
             # TODO FUTURE: test with timer
         ]
     )
@@ -3426,7 +3460,7 @@ class TestPullOperations(object):
                 assert save_result_tuple.context is not None
                 conn.CloseEnumeration(save_result_tuple.context)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
         else:
             assert False, 'Invalid test code %s' % test
 
@@ -3453,8 +3487,9 @@ class TestQualifierOperations(object):
     @pytest.mark.parametrize(
         "qname, exp_err", [
             ['FooQualDecl1', None],
-            ['badqualname', 'CIM_ERR_NOT_FOUND'],
-            ['whatever', 'CIM_ERR_INVALID_NAMESPACE'],
+            ['fooqualdecl1', None],
+            ['badqualname', CIM_ERR_NOT_FOUND],
+            ['whatever', CIM_ERR_INVALID_NAMESPACE],
         ]
     )
     def test_getqualifier(self, conn, ns, qname, exp_err):
@@ -3467,21 +3502,21 @@ class TestQualifierOperations(object):
 
         if not exp_err:
             rtn_q1 = conn.GetQualifier(qname, namespace=ns)
-            assert rtn_q1.name == qname
+            assert rtn_q1.name.lower() == qname.lower()
 
         else:
-            if exp_err == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_err == CIM_ERR_INVALID_NAMESPACE:
                 ns = 'badnamespace'
 
             with pytest.raises(CIMError) as exec_info:
                 conn.GetQualifier(qname, namespace=ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "exp_err", [None, 'CIM_ERR_INVALID_NAMESPACE'])
+        "exp_err", [None, CIM_ERR_INVALID_NAMESPACE])
     def test_enumeratequalifiers(self, conn, ns, exp_err):
         """
         Test adding a qualifierdecl to the repository and doing a
@@ -3501,13 +3536,13 @@ class TestQualifierOperations(object):
             assert(q_list == q_rtn)
 
         else:
-            if exp_err == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_err == CIM_ERR_INVALID_NAMESPACE:
                 ns = 'badnamespace'
 
             with pytest.raises(CIMError) as exec_info:
                 conn.EnumerateQualifiers(namespace=ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -3516,7 +3551,7 @@ class TestQualifierOperations(object):
             [CIMQualifierDeclaration('FooQualDecl3', 'string',
                                      value='my string'), None],
             # Invalid definition for qualifierdeclaration
-            [CIMClass('FooQualDecl3'), 'CIM_ERR_INVALID_PARAMETER'],
+            [CIMClass('FooQualDecl3'), CIM_ERR_INVALID_PARAMETER],
         ]
     )
     def test_setqualifier(self, conn, ns, qual, exp_err):
@@ -3537,24 +3572,24 @@ class TestQualifierOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.SetQualifier(qual, namespace=ns)
             exc = exec_info.value
-            assert(exc.status_code_name == 'CIM_ERR_ALREADY_EXISTS')
+            assert(exc.status_code == CIM_ERR_ALREADY_EXISTS)
 
         else:
-            if exp_err == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_err == CIM_ERR_INVALID_NAMESPACE:
                 ns = 'badnamespace'
 
             with pytest.raises(CIMError) as exec_info:
                 conn.SetQualifier(qual, namespace=ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
         "qname, exp_err", [
             ['FooQualDecl1', None],
-            ['badqualname', 'CIM_ERR_NOT_FOUND'],
-            ['whatever', 'CIM_ERR_INVALID_NAMESPACE'],
+            ['badqualname', CIM_ERR_NOT_FOUND],
+            ['whatever', CIM_ERR_INVALID_NAMESPACE],
         ]
     )
     def test_deletequalifier(self, conn, ns, qname, exp_err):
@@ -3572,15 +3607,37 @@ class TestQualifierOperations(object):
             with pytest.raises(CIMError) as exec_info:
                 conn.DeleteQualifier('QualDoesNotExist', namespace=ns)
             exc = exec_info.value
-            assert(exc.status_code_name == 'CIM_ERR_NOT_FOUND')
+            assert(exc.status_code == CIM_ERR_NOT_FOUND)
         else:
-            if exp_err == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_err == CIM_ERR_INVALID_NAMESPACE:
                 ns = 'badnamespace'
 
             with pytest.raises(CIMError) as exec_info:
                 conn.GetQualifier(qname, namespace=ns)
             exc = exec_info.value
-            assert exc.status_code_name == exp_err
+            assert exc.status_code == exp_err
+
+
+PERSON_MIKE_NME = CIMInstanceName('TST_Person', keybindings=(('name',
+                                                              'Mike'),))
+PERSONS_MIKE_NME = CIMInstanceName('tst_person', keybindings=(('name',
+                                                               'Mike'),))
+PERSON_SOFI_NME = CIMInstanceName('TST_Person', keybindings=(('name',
+                                                              'Sofi'),))
+PERSON_GABI_NME = CIMInstanceName('TST_Person', keybindings=(('name',
+                                                              'Gabi'),))
+LINEAGE_MIKESOFI_NME = CIMInstanceName('TST_Lineage',
+                                       keybindings=(('InstanceID',
+                                                     'MikeSofi'),))
+LINEAGE_MIKEGABI_NME = CIMInstanceName('TST_Lineage',
+                                       keybindings=(('InstanceID',
+                                                     'MikeGabi'),))
+FAM_COLL_FAM2_NME = CIMInstanceName('TST_FamilyCollection',
+                                    keybindings=(('name', 'Family2'),))
+MEMBER_FAM2MIKE_NME = CIMInstanceName(
+    'TST_MemberOfFamilyCollection',
+    keybindings=(('family', FAM_COLL_FAM2_NME),
+                 ('member', PERSON_MIKE_NME)))
 
 
 class TestReferenceOperations(object):
@@ -3589,25 +3646,34 @@ class TestReferenceOperations(object):
     """
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    def test_association_classes(self, conn, ns, tst_assoc_mof):
+    def test_compile_assoc_mof(self, conn, ns, tst_assoc_mof):
         # pylint: disable=no-self-use
         """
-        Test the method that filters classes to association classes
+        Test the tst_assoc_mof compilation and verify number of instances
+        created.
         """
         if ns is None:
             ns = conn.default_namespace
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         # pylint: disable=protected-access
-        clns = [cl.classname for cl in conn._get_association_classes(ns)]
+        assocclns = [cl.classname for cl in conn._get_association_classes(ns)]
 
-        assert set(clns) == set([u'TST_Lineage',
-                                 u'TST_MemberOfFamilyCollection'])
+        assert set(assocclns) == set([u'TST_Lineage',
+                                      u'TST_MemberOfFamilyCollection'])
+
+        classes = [u'TST_Lineage', u'TST_MemberOfFamilyCollection',
+                   u'TST_Person', u'TST_Personsub', u'TST_FamilyCollection']
+        assert set(classes) == set(conn.EnumerateClassNames(namespace=ns,
+                                   DeepInheritance=True))
+
+        assert len(conn.EnumerateInstanceNames("TST_Person", namespace=ns)) == 8
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "cln", ['TST_Person', CIMClassName('TST_Person')])
+        "cln", ['TST_Person', 'tst_person', CIMClassName('TST_Person'),
+                CIMClassName('tst_person')])
     @pytest.mark.parametrize(
         # rc: ResultClass
         # ro: Role
@@ -3617,6 +3683,7 @@ class TestReferenceOperations(object):
         "rc, ro, exp_rslt", [
             [None, None, ['TST_Lineage', 'TST_MemberOfFamilyCollection']],
             ['TST_Lineage', None, ['TST_Lineage']],
+            ['tst_lineage', None, ['TST_Lineage']],
             ['TST_Lineage', 'parent', ['TST_Lineage']],
             ['TST_Lineage', 'child', ['TST_Lineage']],
             ['TST_Lineage', 'CHILD', ['TST_Lineage']],
@@ -3632,7 +3699,7 @@ class TestReferenceOperations(object):
             [None, 'member', ['TST_MemberOfFamilyCollection']],
             [None, 'family', ['TST_MemberOfFamilyCollection']],
             ['TST_BLAH', None, []],
-            [None, None, 'CIM_ERR_INVALID_NAMESPACE'],
+            [None, None, CIMError(CIM_ERR_INVALID_NAMESPACE)],
         ]
     )
     def test_reference_classnames(self, conn, ns, cln, tst_assoc_mof, rc, ro,
@@ -3671,18 +3738,18 @@ class TestReferenceOperations(object):
 
             assert clns == exp_clns
         else:  # exp_rslt is a CIMError code in str format
-
+            assert isinstance(exp_rslt, CIMError)
             # we have to fix the targetclassname for some of the tests
             if isinstance(cim_cln, six.string_types):
                 cim_cln = CIMInstanceName(classname=cln)
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
                 cim_cln.namespace = 'non_existent_namespace'
 
             with pytest.raises(CIMError) as exec_info:
                 # pylint: disable=protected-access
                 conn.ReferenceNames(cim_cln, ResultClass=rc, Role=ro)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt.status_code
 
     def test_reference_instnames_min(self, conn, tst_assoc_mof):
         # pylint: disable=no-self-use
@@ -3692,7 +3759,7 @@ class TestReferenceOperations(object):
         conn.compile_mof_string(tst_assoc_mof)
 
         inst_name = CIMInstanceName('TST_Person',
-                                    keybindings=dict(name='Mike'))
+                                    keybindings={'name': 'Mike'})
         inames = conn.ReferenceNames(inst_name)
         assert isinstance(inames, list)
         assert len(inames) == 3
@@ -3700,12 +3767,11 @@ class TestReferenceOperations(object):
         assert inames[0].classname == 'TST_Lineage'
 
     @pytest.mark.parametrize(
-        "ns", [None, 'root/blah'])
+        "ns", ['None', 'root/cimv2'])
     @pytest.mark.parametrize(  # Don't really need this since rslts tied to cl.
-        # target instance classname and key
-        "tcln, key", [
-            ['TST_Person', 'Mike'],
-        ]
+        # target instance name
+        "targ_iname", [PERSON_MIKE_NME,
+                       PERSONS_MIKE_NME, ]
     )
     @pytest.mark.parametrize(
         # rc: ResultClass
@@ -3714,75 +3780,87 @@ class TestReferenceOperations(object):
         #    if good result expected.  String containing CIMError code if error
         #   return expected.  Currently we do not have any errors tested.
         "rc, ro, exp_rslt", [
-            # [None, None, ('TST_Lineage')],
-            ['TST_Lineage', None, (('TST_Lineage', 'MikeSofi'),
-                                   ('TST_Lineage', 'MikeGabi'),)],
-            ['TST_Lineage', 'parent', (('TST_Lineage', 'MikeSofi'),
-                                       ('TST_Lineage', 'MikeGabi'),)],
-            ['TST_Lineage', 'child', (('TST_Lineage', 'MikeSofi'),
-                                      ('TST_Lineage', 'MikeGabi'),)],
-            ['TST_Lineage', 'CHILD', (('TST_Lineage', 'MikeSofi'),
-                                      ('TST_Lineage', 'MikeGabi'),)],
-            # TODO expand test exp_rslt definition. Need to be able to
-            # express keys for TST_Memberof FamilyCollection since it has
-            # 2 keys. Did in another test and need to copy
-            # [None, 'parent', (('TST_Lineage', 'MikeSofi'),
-            #                          ('TST_Lineage', 'MikeGabi'),
-            #                         ('TST_MemberOfFamilyCollection', TODO ))],
-            # [None, 'child', ['TST_Lineage']],
-            # [None, 'blah', []],
-            # ['TST_MemberOfFamilyCollection', None,
-            #  [('TST_MemberOfFamilyCollection', 'blah'), None]],
-            # ['TST_MemberOfFamilyCollection', 'member',
-            #  ['TST_MemberOfFamilyCollection']],
-            # ['TST_MemberOfFamilyCollection', 'family',
-            # ['TST_MemberOfFamilyCollection']],
-            # [None, 'member', ['TST_MemberOfFamilyCollection']],
-            # [None, 'family', ['TST_MemberOfFamilyCollection']],
+            [None, None, (LINEAGE_MIKESOFI_NME,
+                          LINEAGE_MIKEGABI_NME, MEMBER_FAM2MIKE_NME)],
+            ['TST_Lineage', None, (LINEAGE_MIKESOFI_NME,
+                                   LINEAGE_MIKEGABI_NME)],
+            ['tst_lineage', None, (LINEAGE_MIKESOFI_NME,
+                                   LINEAGE_MIKEGABI_NME)],
+            ['TST_Lineage', 'parent', (LINEAGE_MIKESOFI_NME,
+                                       LINEAGE_MIKEGABI_NME)],
+            ['TST_Lineage', 'child', ()],
+            ['TST_Lineage', 'CHILD', ()],
+            [None, 'parent', (LINEAGE_MIKESOFI_NME,
+                              LINEAGE_MIKEGABI_NME)],
+            [None, 'child', ()],
+            ['TST_MemberOfFamilyCollection', None, (MEMBER_FAM2MIKE_NME,)],
+            ['TST_MemberOfFamilyCollection', 'member', (MEMBER_FAM2MIKE_NME,)],
+            ['TST_MemberOfFamilyCollection', 'family', ()],
+            [None, 'member', (MEMBER_FAM2MIKE_NME,)],
+            [None, 'family', ()],
+            # Verify role name not in class return nothing
+            ['TST_Lineage', 'blah', []],
+            # Verify ResultClass not in environment returns nothing
             ['TST_BLAH', None, []],
-            [None, None, 'CIM_ERR_INVALID_NAMESPACE'],
-            # TODO enable the above tests
+            # Specific test that generates error
+            ['TST_Lineage', None, CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")]
         ]
     )
-    def test_reference_instnames_ns(self, conn, ns, tcln, key, rc, ro, exp_rslt,
-                                    tst_assoc_mof):
+    def test_reference_instnames(self, conn, ns, targ_iname, rc, ro, exp_rslt,
+                                 tst_assoc_mof):
         # pylint: disable=no-self-use
         """
         Test getting reference classnames
         """
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+        targ_iname.namespace = ns
 
-        targ_iname = CIMInstanceName(tcln, keybindings=dict(name=key),
-                                     namespace=ns)
-
-        if isinstance(exp_rslt, (list, tuple)):
+        # Fixup exp_rslt by completing at least namespace
+        if isinstance(exp_rslt, (tuple, list)):
             exp_inames = []
-            for itup in exp_rslt:
-                kb = dict(InstanceID=itup[1])
-                exp_ns = ns if ns else conn.default_namespace
-                exp_inames.append(CIMInstanceName(itup[0], kb, namespace=exp_ns,
-                                                  host=conn.host))
 
-            inames = conn.ReferenceNames(targ_iname, ResultClass=rc, role=ro)
+            # set namespace in target instance name if a namespace is specified
+            if ns is None:
+                ns = conn.default_namespace
+                local_targ_iname = targ_iname
+            else:
+                local_targ_iname = targ_iname.copy()
+                local_targ_iname.namespace = ns
+
+            for iname in exp_rslt:
+                local_iname = iname.copy()
+                local_iname.namespace = ns
+                for kb in local_iname.keybindings:
+                    if isinstance(local_iname.keybindings[kb], CIMInstanceName):
+                        local_iname.keybindings[kb].namespace = ns
+
+                exp_inames.append(local_iname.to_wbem_uri('canonical'))
+
+            inames = conn.ReferenceNames(targ_iname, ResultClass=rc, Role=ro)
 
             assert isinstance(inames, list)
 
-            # TODO redo this as a clean compare test
             assert len(inames) == len(exp_rslt)
+
+            # test if inames returned in exp_inames.
+            # We remove host because the return is scheme + url and when we
+            # expand exp_inames it expands only to url (i.e. the htp:// missing)
             for iname in inames:
                 assert isinstance(iname, CIMInstanceName)
-                assert iname in exp_inames
+                iname.host = None
+                assert iname.to_wbem_uri('canonical') in exp_inames
 
         else:  # exp_rslt is a CIMError code in str format
+            assert(isinstance(exp_rslt, CIMError))
 
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
                 targ_iname.namespace = 'non_existent_namespace'
 
             with pytest.raises(CIMError) as exec_info:
                 # pylint: disable=protected-access
                 conn.ReferenceNames(targ_iname, ResultClass=rc, Role=ro)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt.status_code
 
     # TODO not sure we really need this testcase? Combine with next case
     # The only thing special about this test is it sets all parameters to
@@ -3825,7 +3903,12 @@ class TestReferenceOperations(object):
             ['TST_Lineage', None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
                                    ('TST_Lineage',
                                     ('InstanceID', 'MikeSofi')))],
+            ['tst_lineage', None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+                                   ('TST_Lineage',
+                                    ('InstanceID', 'MikeSofi')))],
             [None, 'parent', (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+                              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+            [None, 'PARENT', (('TST_Lineage', ('InstanceID', 'MikeGabi')),
                               ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
             ['TST_Lineage', 'parent', (('TST_Lineage',
                                         ('InstanceID', 'MikeGabi')),
@@ -3888,7 +3971,7 @@ class TestAssociationOperations(object):
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "target_cln", ['TST_Person'])
+        "target_cln", ['TST_Person', 'tst_person'])
     @pytest.mark.parametrize(
         "role, ac, rr, rc, exp_rslt", [
             # role: role attribute
@@ -3903,12 +3986,14 @@ class TestAssociationOperations(object):
             [None, 'TST_Lineage', None, None, ['TST_Person']],
             ['Parent', 'TST_Lineage', None, None, ['TST_Person']],
             ['parent', 'TST_Lineage', None, None, ['TST_Person']],
+            ['parent', 'tst_lineage', None, None, ['TST_Person']],
+            ['parent', 'TST_Lineage', None, None, ['tst_person']],
             ['Parent', 'TST_Lineage', 'child', 'TST_Person', ['TST_Person']],
             ['parent', 'TST_Lineage', 'Child', 'TST_Person', ['TST_Person']],
             ['PARENT', 'TST_Lineage', 'CHILD', 'TST_Person', ['TST_Person']],
             [None, None, 'child', 'TST_Person', ['TST_Person']],
             ['Parent', 'TST_Lineage', 'child', 'TST_Person',
-             'CIM_ERR_INVALID_NAMESPACE'],
+             CIMError(CIM_ERR_INVALID_NAMESPACE)],
         ]
     )
     def test_associator_classnames(self, conn, ns, target_cln, role, rr, ac, rc,
@@ -3933,11 +4018,18 @@ class TestAssociationOperations(object):
             for cln in rtn_clns:
                 assert isinstance(cln, CIMClassName)
 
-            assert set([cln.classname for cln in rtn_clns]) == set(exp_rslt)
+            exp_ns = ns if ns else conn.default_namespace
+            exp_clns = [CIMClassName(classname=n, namespace=exp_ns,
+                                     host=conn.host)
+                        for n in exp_rslt]
+
+            # sort the expected and result by classname
+            exp_clns.sort(key=operator.attrgetter('classname'))
+            rtn_clns.sort(key=operator.attrgetter('classname'))
 
         else:
             # Set up test for invalid namespace exception
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
                 if isinstance(target_cln, six.string_types):
                     target_cln = CIMClassName(target_cln,
                                               namespace='badnamespacename')
@@ -3949,13 +4041,14 @@ class TestAssociationOperations(object):
                 conn.AssociatorNames(target_cln, AssocClass=ac, Role=role,
                                      ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt.status_code
 
     @pytest.mark.parametrize(
-        "ns", [None, 'root/blah'])
+        "ns", [None, 'root/cimv2'])
     @pytest.mark.parametrize(
-        "cln, inst_id", [
-            ['TST_Person', 'Mike'],
+        "targ_iname", [
+            PERSON_MIKE_NME,
+            PERSONS_MIKE_NME,
         ]
     )
     @pytest.mark.parametrize(
@@ -3968,18 +4061,30 @@ class TestAssociationOperations(object):
             #           If string, expected error code
 
             # Test for assigned role and assoc class
-            ['parent', 'TST_Lineage', None, None, (('TST_person', 'Sofi'),
-                                                   ('TST_person', 'Gabi'),)],
+            ['parent', 'TST_Lineage', None, None, (PERSON_SOFI_NME,
+                                                   PERSON_GABI_NME,)],
             # Test for assigned role, asoc class, result role, resultclass
             ['parent', 'TST_Lineage', 'child', 'TST_Person',
-             (('TST_person', 'Sofi'), ('TST_person', 'Gabi'),)],
+             (PERSON_SOFI_NME, PERSON_GABI_NME,)],
+            # test for case independence for role, assocclass, result role,
+            # and resultclass
+            ['PARENT', 'TST_Lineage', 'child', 'TST_Person',
+             (PERSON_SOFI_NME, PERSON_GABI_NME,)],
+            ['parent', 'tst_lineage', 'child', 'TST_Person',
+             (PERSON_SOFI_NME, PERSON_GABI_NME,)],
+            ['parent', 'TST_Lineage', 'CHILD', 'TST_Person',
+             (PERSON_SOFI_NME, PERSON_GABI_NME,)],
+            ['parent', 'TST_Lineage', 'child', 'tst_person',
+             (PERSON_SOFI_NME, PERSON_GABI_NME,)],
+            ['PARENT', 'tst_lineage', 'CHILD', 'tst_person',
+             (PERSON_SOFI_NME, PERSON_GABI_NME,)],
             # Execute invalid namespace test
-            ['parent', 'TST_Lineage', 'child', 'TST_Person',
-             'CIM_ERR_INVALID_NAMESPACE'],
+            ['Parent', 'TST_Lineage', 'child', 'TST_Person',
+             CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")],
             # TODO add more tests
         ]
     )
-    def test_associator_instnames(self, conn, ns, cln, inst_id, role, rr, ac,
+    def test_associator_instnames(self, conn, ns, targ_iname, role, rr, ac,
                                   rc, exp_rslt, tst_assoc_mof):
         # pylint: disable=no-self-use
         """
@@ -3990,38 +4095,40 @@ class TestAssociationOperations(object):
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         exp_ns = conn.default_namespace if ns is None else ns
-
-        inst_name = CIMInstanceName(cln, namespace=exp_ns,
-                                    keybindings=dict(name=inst_id))
+        targ_iname.namespace = ns
 
         if isinstance(exp_rslt, (tuple, list)):
-            rpaths = conn.AssociatorNames(inst_name, AssocClass=ac, Role=role,
+            exp_inames = []
+            for iname in exp_rslt:
+                local_iname = iname.copy()
+                local_iname.namespace = exp_ns
+                for kb in local_iname.keybindings:
+                    if isinstance(local_iname.keybindings[kb], CIMInstanceName):
+                        local_iname.keybindings[kb].namespace = exp_ns
+                exp_inames.append(local_iname.to_wbem_uri('canonical'))
+
+            rpaths = conn.AssociatorNames(targ_iname, AssocClass=ac, Role=role,
                                           ResultRole=rr, ResultClass=rc)
 
             assert isinstance(rpaths, list)
             assert len(rpaths) == len(exp_rslt)
             for path in rpaths:
                 assert isinstance(path, CIMInstanceName)
-
-            if isinstance(exp_rslt, (list, tuple)):
-
-                exp_paths = [CIMInstanceName(p[0], keybindings={'name': p[1]},
-                                             namespace=exp_ns, host=conn.host)
-                             for p in exp_rslt]
-                assert equal_ciminstname_lists(rpaths, exp_paths)
+                path.host = None
+                assert path.to_wbem_uri('canonical') in exp_inames
 
         else:
-            assert isinstance(exp_rslt, six.string_types)
+            assert isinstance(exp_rslt, CIMError)
 
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
-                inst_name.namespace = 'BadNameSpaceName'
+            if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
+                targ_iname.namespace = 'BadNameSpaceName'
 
             with pytest.raises(CIMError) as exec_info:
                 # pylint: disable=protected-access
-                conn.AssociatorNames(inst_name, AssocClass=ac, Role=role,
+                conn.AssociatorNames(targ_iname, AssocClass=ac, Role=role,
                                      ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt.status_code
 
         # TODO expand associator instance names tests
 
@@ -4030,6 +4137,7 @@ class TestAssociationOperations(object):
     @pytest.mark.parametrize(
         "cln, inst_id", [
             ['TST_Person', 'Mike'],
+            ['tst_person', 'Mike'],
         ]
     )
     @pytest.mark.parametrize(
@@ -4039,7 +4147,7 @@ class TestAssociationOperations(object):
             # rr: associator operation ResultRole parameter
             # rc: associator operation ResultClass parameter
             # exp_rslt: Expected result.  If list, list of instances in response
-            #           If string, expected error code
+            #           If string, CIMError with expected status_code
 
             # Test for assigned role and assoc class
             ['parent', 'TST_Lineage', None, None, (('TST_person', 'Sofi'),
@@ -4049,7 +4157,7 @@ class TestAssociationOperations(object):
              (('TST_person', 'Sofi'), ('TST_person', 'Gabi'),)],
             # Execute invalid namespace test
             ['parent', 'TST_Lineage', 'child', 'TST_Person',
-             'CIM_ERR_INVALID_NAMESPACE'],
+             CIMError(CIM_ERR_INVALID_NAMESPACE)],
             # TODO add more tests
         ]
     )
@@ -4087,9 +4195,9 @@ class TestAssociationOperations(object):
                 assert equal_ciminstname_lists(rtn_paths, exp_paths)
 
         else:
-            assert isinstance(exp_rslt, six.string_types)
+            assert isinstance(exp_rslt, CIMError)
 
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
                 inst_name.namespace = 'BadNameSpaceName'
 
             with pytest.raises(CIMError) as exec_info:
@@ -4097,7 +4205,7 @@ class TestAssociationOperations(object):
                 conn.Associators(inst_name, AssocClass=ac, Role=role,
                                  ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt.status_code
 
         # TODO expand associator instance tests
 
@@ -4124,7 +4232,7 @@ class TestAssociationOperations(object):
             ['PARENT', 'TST_Lineage', 'CHILD', 'TST_Person', ['TST_Person']],
             [None, None, 'child', 'TST_Person', ['TST_Person']],
             ['Parent', 'TST_Lineage', 'child', 'TST_Person',
-             'CIM_ERR_INVALID_NAMESPACE'],
+             CIMError(CIM_ERR_INVALID_NAMESPACE)],
         ]
     )
     def test_associator_classes(self, conn, ns, cln, role, rr, ac, rc,
@@ -4156,8 +4264,8 @@ class TestAssociationOperations(object):
             assert set(clns) == set(exp_rslt)
 
         else:
-            assert isinstance(exp_rslt, six.string_types)
-            if exp_rslt == 'CIM_ERR_INVALID_NAMESPACE':
+            assert isinstance(exp_rslt, CIMError)
+            if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
                 if isinstance(cln, six.string_types):
                     cln = CIMClassName(cln, namespace='badnamespacename')
                 else:
@@ -4167,7 +4275,7 @@ class TestAssociationOperations(object):
                 conn.Associators(cln, AssocClass=ac, Role=role,
                                  ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
-            assert exc.status_code_name == exp_rslt
+            assert exc.status_code == exp_rslt.status_code
 
         # TODO expand associator classes test to test for correct properties
         # in response
@@ -4200,11 +4308,11 @@ class TestInvokeMethod(object):
         # tested in _fake_invokemethod
         if isinstance(object_name, CIMClassName):
             cc = conn.GetClass(object_name)
-            assert cc.classname == object_name.classname
+            assert cc.classname.lower() == object_name.classname.lower()
 
         elif isinstance(object_name, CIMInstanceName):
             inst = conn.GetInstance(object_name)
-            assert inst.classname == object_name.classname
+            assert inst.classname.lower() == object_name.classname.lower()
         else:
             raise CIMError(CIM_ERR_FAILED,
                            'Callback Method1 failed because input object_name '
@@ -4237,7 +4345,7 @@ class TestInvokeMethod(object):
         for param in params:
             if param == 'TestCIMErrorException':
                 # TODO extend so generates whatever exception defined
-                if params[param].value == 'CIM_ERR_FAILED':
+                if params[param].value == "CIM_ERR_FAILED":
                     raise CIMError(CIM_ERR_FAILED,
                                    'Test of exception in callback')
 
@@ -4272,9 +4380,20 @@ class TestInvokeMethod(object):
         # exp_except_type: None or expected exception type.
         # cim_err_code_name: None or expected CIMError status code if
         #               exp_exception is CIMError as string.
-        "desc, inputs, exp_output, exp_exception_type, cim_err_code_name", [
+
+        "desc, inputs, exp_output, exp_exception_type, cim_err_code", [
+
             ['Execution of Method1 method with single input param',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'Params': [('InputParam1', 'FirstData')], },
+             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
+                                                   value='SomeString')]},
+             None, None],
+
+            ['Execution of Method1 method with single input param. Tests '
+             'object name case insensitivity',
+             {'object_name': CIMClassName('cim_foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [('InputParam1', 'FirstData')], },
              {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
@@ -4334,14 +4453,14 @@ class TestInvokeMethod(object):
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_INVALID_NAMESPACE'],
+             CIMError, CIM_ERR_INVALID_NAMESPACE],
 
             ['Execute Method2 with invalid namespace',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method2',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_INVALID_NAMESPACE'],
+             CIMError, CIM_ERR_INVALID_NAMESPACE],
 
             ['Execute method name with valid instancename',
              {'object_name':
@@ -4359,21 +4478,21 @@ class TestInvokeMethod(object):
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_NOT_FOUND'],
+             CIMError, CIM_ERR_NOT_FOUND],
 
             ['Execute with methodname that is not in repository',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Methodx',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_METHOD_NOT_FOUND'],
+             CIMError, CIM_ERR_METHOD_NOT_FOUND],
 
             ['Execute method name with invalid classname',
              {'object_name': CIMClassName('CIM_Foo_sub_subx'),
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_NOT_FOUND'],
+             CIMError, CIM_ERR_NOT_FOUND],
 
             ['Execute objectname invalid type',
              {'object_name': CIMQualifierDeclaration('Key', 'string'),
@@ -4387,7 +4506,7 @@ class TestInvokeMethod(object):
               'methodname': 'Method2',
               'Params': [('TestCIMErrorException', 'CIM_ERR_FAILED')], },
              {'return': 0, 'params': []},
-             CIMError, 'CIM_ERR_FAILED'],
+             CIMError, CIM_ERR_FAILED],
 
             ['Execute Fuzzy method with simple input params',
              {'object_name': CIMClassName('CIM_Foo'),
@@ -4431,10 +4550,26 @@ class TestInvokeMethod(object):
                              value=CIMInstanceName(
                                  'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
              None, None],
+
+            ['Execute Fuzzy method with CIMInstanceName in input params',
+             {'object_name': CIMClassName('CIM_Foo'),
+              'methodname': 'Fuzzy',
+              'Params': [('fuzzyparameter', 'Some data'),
+                         ('foo',
+                          CIMInstanceName('CIM_Foo',
+                                          {'InstanceID': 'CIM_F001'}, ), )], },
+             {'return': 32,
+              'params': [CIMParameter('OutputParam', 'string',
+                                      value='Some data'),
+                         CIMParameter(
+                             'foo', 'reference',
+                             value=CIMInstanceName(
+                                 'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
+             None, None],
         ]
     )
     def test_invokemethod(self, conn, ns, desc, inputs, exp_output,
-                          exp_exception_type, cim_err_code_name,
+                          exp_exception_type, cim_err_code,
                           tst_instances_mof):
         # pylint: disable=unused-argument
         """
@@ -4523,8 +4658,8 @@ class TestInvokeMethod(object):
             assert self.executed_method == inputs['methodname']
 
         else:
-            if cim_err_code_name and cim_err_code_name == \
-                    'CIM_ERR_INVALID_NAMESPACE':
+            if cim_err_code and cim_err_code == \
+                    CIM_ERR_INVALID_NAMESPACE:
                 object_name.namespace = 'Reallybadnamespace'
 
             with pytest.raises(exp_exception_type) as exec_info:
@@ -4533,8 +4668,8 @@ class TestInvokeMethod(object):
                                   inputs['Params'], )
 
             exc = exec_info.value
-            if cim_err_code_name:
-                assert exc.status_code_name == cim_err_code_name
+            if cim_err_code:
+                assert exc.status_code == cim_err_code
 
 
 @pytest.fixture()
