@@ -47,6 +47,7 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
+    CIM_ERR_NAMESPACE_NOT_EMPTY, \
     DEFAULT_NAMESPACE, MOFCompiler, MOFWBEMConnection
 from pywbem._nocasedict import NocaseDict
 from ._dmtf_cim_schema import DMTFCIMSchema
@@ -288,6 +289,14 @@ class FakedWBEMConnection(WBEMConnection):
             use_pull_operations=use_pull_operations,
             stats_enabled=stats_enabled, timeout=timeout)
 
+        # The namespaces that may exist in the mock repository. This is a
+        # dictionary where the key is the namespace name, and the value does
+        # not matter (this approach is used to ensure namespace names are
+        # treated case insensitively). This set of namespaces is used to
+        # control into which namespaces of the mock repository classes,
+        # qualifier types and instances may be added.
+        self.namespaces = NocaseDict({default_namespace: True})
+
         # The CIM classes in the mock repository.
         # This is a dictionary of dictionaries where the top level key is the
         # CIM namespace name and the keys for each sub-dictionary in a
@@ -295,11 +304,15 @@ class FakedWBEMConnection(WBEMConnection):
         # the CIM classes in that namespace, represented as CIMClass objects.
         # The dictionaries are NocaseDict since namespaces should be case
         # insensitive.
+        # The namespaces are added to the outer dictionary as needed (if
+        # permitted as per self.namesaces).
         self.classes = NocaseDict()
 
         # The CIM qualifier types in the mock repository.
         # Same format as for classes above, except that the values in each
         # sub-dictionary are CIMQualifierDeclaration objects.
+        # The namespaces are added to the outer dictionary as needed (if
+        # permitted as per self.namesaces).
         self.qualifiers = NocaseDict()
 
         # The CIM instances in the mock repository.
@@ -307,10 +320,19 @@ class FakedWBEMConnection(WBEMConnection):
         # different: This is a dictionary of lists where the top level key is
         # the CIM namespace name and the value is a list of CIM instances in
         # that namespace, represented as CIMInstance objects.
+        # The namespaces are added to the outer dictionary as needed (if
+        # permitted as per self.namesaces).
         # TODO: ks. FUTURE maybe we should really have a subdict per class but
         #           it is not important for initial release.
         self.instances = NocaseDict()
 
+        # The CIM methods with callback in the mock repository.
+        # This is a dictionary of dictionaries of dictionaries, where the top
+        # level key is the CIM namespace name, the second level key is the
+        # CIM class name, and the third level key is the CIM method name.
+        # The values at the last level are (TBD: method callbacks?).
+        # The namespaces are added to the outer dictionary as needed (if
+        # permitted as per self.namesaces).
         self.methods = NocaseDict()
 
         self._repo_lite = repo_lite
@@ -356,14 +378,100 @@ class FakedWBEMConnection(WBEMConnection):
     #
     ################################################################
 
+    def add_namespace(self, namespace):
+        """
+        Add a CIM namespace to the mock repository.
+
+        The namespace must not yet exist in the mock repository.
+
+        Note that the default connection namespace is automatically added to
+        the mock repository upon creation of this object.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the mock repository. Must not be
+            `None`. Any leading and trailing slash characters are split off
+            from the provided string.
+
+        Raises:
+
+          ValueError: Namespace argument must not be None
+          CIMError: CIM_ERR_ALREADY_EXISTS if the namespace already exists in
+            the mock repository.
+        """
+
+        if namespace is None:
+            raise ValueError("Namespace argument must not be None")
+
+        # Normalize the namespace name
+        namespace = namespace.strip('/')
+
+        if namespace in self.namespaces:
+            raise CIMError(CIM_ERR_ALREADY_EXISTS,
+                           "Namespace %r already exists in the mock "
+                           "repository" % namespace)
+
+        self.namespaces[namespace] = True
+
+    def _remove_namespace(self, namespace):
+        """
+        Remove a CIM namespace from the mock repository.
+
+        The namespace must exist in the mock repository and must be empty.
+
+        The default connection namespace cannot be removed.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the mock repository. Must not be
+            `None`. Any leading and trailing slash characters are split off
+            from the provided string.
+
+        Raises:
+
+          ValueError: Namespace argument must not be None
+          CIMError: CIM_ERR_NOT_FOUND if the namespace does not exist in
+            the mock repository.
+          CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY if the namespace is not empty.
+          CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY if the default connection
+            namespace was attempted to be deleted.
+        """
+
+        if namespace is None:
+            raise ValueError("Namespace argument must not be None")
+
+        # Normalize the namespace name
+        namespace = namespace.strip('/')
+
+        if namespace not in self.namespaces:
+            raise CIMError(CIM_ERR_NOT_FOUND,
+                           "Namespace %r does not exist in the mock "
+                           "repository" % namespace)
+
+        if not self._class_repo_empty(namespace) or \
+                not self._instance_repo_empty(namespace) or \
+                not self._qualifier_repo_empty(namespace):
+            raise CIMError(CIM_ERR_NAMESPACE_NOT_EMPTY,
+                           "Namespace %r is not empty" % namespace)
+
+        if namespace == self.default_namespace:
+            raise CIMError(CIM_ERR_NAMESPACE_NOT_EMPTY,
+                           "Connection default namespace %r cannot be "
+                           "deleted from mock repository" % namespace)
+
+        del self.namespaces[namespace]
+
     def compile_mof_file(self, mof_file, namespace=None, search_paths=None,
                          verbose=None):
         """
         Compile the MOF definitions in the specified file (and its included
-        files) and add the resulting CIM objects to the specified namespace
+        files) and add the resulting CIM objects to the specified CIM namespace
         of the mock repository.
 
-        If the CIM namespace does not exist, it is created.
+        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
+        CIM_ERR_INVALID_NAMESPACE is raised.
 
         This method supports all MOF pragmas, and specifically the include
         pragma.
@@ -403,15 +511,16 @@ class FakedWBEMConnection(WBEMConnection):
         Raises:
 
           IOError: MOF file not found.
-
           :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
             mock repository.
         """
 
         if namespace is None:
             namespace = self.default_namespace
+        self._validate_namespace(namespace)
 
         mofcomp = MOFCompiler(MOFWBEMConnection(),
                               search_paths=search_paths,
@@ -427,10 +536,11 @@ class FakedWBEMConnection(WBEMConnection):
                            verbose=None):
         """
         Compile the MOF definitions in the specified string and add the
-        resulting CIM objects to the specified namespace of the mock
+        resulting CIM objects to the specified CIM namespace of the mock
         repository.
 
-        If the CIM namespace does not exist, it is created.
+        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
+        CIM_ERR_INVALID_NAMESPACE is raised.
 
         This method supports all MOF pragmas, and specifically the include
         pragma.
@@ -470,15 +580,16 @@ class FakedWBEMConnection(WBEMConnection):
         Raises:
 
           IOError: MOF file not found.
-
           :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
             mock repository.
         """
 
         if namespace is None:
             namespace = self.default_namespace
+        self._validate_namespace(namespace)
 
         # TODO:ks Future we might be able to use our own MOFWBEMRepository to
         # directly insert into our repository instead of copying them
@@ -511,6 +622,12 @@ class FakedWBEMConnection(WBEMConnection):
 
         It automatically compiles all of the DMTF qualifier declarations that
         are in the files `qualifiers.mof` and `qualifiers_optional.mof`.
+
+        The result of the compilation is added to the specified CIM namespace
+        of the mock repository.
+
+        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
+        CIM_ERR_INVALID_NAMESPACE is raised.
 
         Parameters:
 
@@ -564,12 +681,19 @@ class FakedWBEMConnection(WBEMConnection):
             If `True`, progress messages are output to stdout
 
         Raises:
-            ValueError: The schema cannot be retrieved from the DMTF web
-              site, the schema_version is invalid, or a class name cannot
-              be found in the defined DMTF CIM schema.
-            TypeError: The 'schema_version' is not a valid tuple with 3
-              integer components
+
+          ValueError: The schema cannot be retrieved from the DMTF web
+            site, the schema_version is invalid, or a class name cannot
+            be found in the defined DMTF CIM schema.
+          TypeError: The 'schema_version' is not a valid tuple with 3
+            integer components
+          :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
+          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
+            mock repository.
         """
+
         schema = DMTFCIMSchema(schema_version, schema_root_dir,
                                use_experimental=use_experimental,
                                verbose=verbose)
@@ -588,7 +712,8 @@ class FakedWBEMConnection(WBEMConnection):
         This method adds a copy of the objects presented so that the user may
         modify the objects without impacting the repository.
 
-        If the CIM namespace does not exist, it is created.
+        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
+        CIM_ERR_INVALID_NAMESPACE is raised.
 
         The method imposes very few limits on the objects added. It does
         require that the superclass exist for any class added and that
@@ -617,13 +742,17 @@ class FakedWBEMConnection(WBEMConnection):
         Raises:
 
           ValueError: Invalid input CIM object in `objects` parameter.
-
           TypeError: Invalid type in `objects` parameter.
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
+          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
+            mock repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
         if namespace is None:
             namespace = self.default_namespace
+        self._validate_namespace(namespace)
 
         if isinstance(objects, list):
             for obj in objects:
@@ -639,11 +768,8 @@ class FakedWBEMConnection(WBEMConnection):
                                          'the superclass does not exist in the '
                                          'repository.' % (cc.classname,
                                                           cc.superclass))
-                try:
-                    # The following generates an exception for each new ns
-                    self.classes[namespace][cc.classname] = cc
-                except KeyError:
-                    self.classes[namespace] = NocaseDict({cc.classname: cc})
+                class_repo = self._get_class_repo(namespace)
+                class_repo[cc.classname] = cc
 
             elif isinstance(obj, CIMInstance):
                 inst = deepcopy(obj)
@@ -655,26 +781,23 @@ class FakedWBEMConnection(WBEMConnection):
                     inst.path.namespace = namespace
                 if inst.path.host is not None:
                     inst.path.host = None
+                instance_repo = self._get_instance_repo(namespace)
                 try:
-                    inst_repo = self._get_instance_repo(namespace)
-                    if self._find_instance(inst.path, inst_repo)[1] is not None:
+                    if self._find_instance(inst.path, instance_repo)[1] \
+                            is not None:
                         raise ValueError('The instance %s already exists in '
                                          'namespace %s' % (inst, namespace))
-                    self.instances[namespace].append(inst)
                 except CIMError as ce:
-                    if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
-                        self.instances[namespace] = [inst]
-                    else:
-                        raise CIMError(CIM_ERR_FAILED, 'Internal failure of '
-                                       'add_cimobject operation. Rcvd '
-                                       ' CIMError %s' % ce)
+                    raise CIMError(CIM_ERR_FAILED, 'Internal failure of '
+                                   'add_cimobject operation. Rcvd '
+                                   ' CIMError %s' % ce)
+                instance_repo.append(inst)
 
             elif isinstance(obj, CIMQualifierDeclaration):
                 qual = deepcopy(obj)
-                try:
-                    self.qualifiers[namespace][qual.name] = qual
-                except KeyError:
-                    self.qualifiers[namespace] = NocaseDict({qual.name: qual})
+                qualifier_repo = self._get_qualifier_repo(namespace)
+                qualifier_repo[qual.name] = qual
+
             else:
                 assert False, 'Object to add_cimobjects. %s invalid type' \
                               % type(obj)
@@ -684,6 +807,9 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Register a callback function for a CIM method that will be called when
         the CIM method is invoked via `InvokeMethod`.
+
+        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
+        CIM_ERR_INVALID_NAMESPACE is raised.
 
         Parameters:
 
@@ -716,20 +842,26 @@ class FakedWBEMConnection(WBEMConnection):
 
             The faked `InvokeMethod` implementation uses this information to
             look up the callback function from its parameters.
+
+        Raises:
+
+          ValueError: Duplicate method specification.
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
         """
 
         if namespace is None:
             namespace = self.default_namespace
 
-        if namespace not in self.methods:
-            self.methods[namespace] = NocaseDict()
+        # Validate namespace
+        method_repo = self._get_method_repo(namespace)
 
-        if classname not in self.methods[namespace]:
-            self.methods[namespace][classname] = NocaseDict()
-
-        if methodname in self.methods[namespace][classname]:
+        if classname not in method_repo:
+            method_repo[classname] = NocaseDict()
+        if methodname in method_repo[classname]:
             raise ValueError("Duplicate method specification")
-        self.methods[namespace][classname][methodname] = method_callback
+
+        method_repo[classname][methodname] = method_callback
 
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
@@ -775,25 +907,16 @@ class FakedWBEMConnection(WBEMConnection):
                  ('all' if namespaces is None else namespaces), cmt_end))
 
         # get all namespaces
-        repo_ns = []
-        if self.classes:
-            repo_ns.extend([ns for ns in self.classes])
-        if self.instances:
-            repo_ns.extend([ns for ns in self.instances])
-        if self.qualifiers:
-            repo_ns.extend([ns for ns in self.qualifiers])
-        if self.methods:
-            repo_ns.extend([ns for ns in self.methods])
-        repo_nss = set(repo_ns)
+        repo_ns_set = set(self.namespaces.keys())
 
         if namespaces:
             if isinstance(namespaces, six.string_types):
                 namespaces = [namespaces]
 
-            repo_nss = repo_nss.intersection(set(namespaces))
-        repo_nss = sorted(repo_nss)
+            repo_ns_set = repo_ns_set.intersection(set(namespaces))
+        repo_ns_list = sorted(list(repo_ns_set))
 
-        for ns in repo_nss:
+        for ns in repo_ns_list:
             _uprint(dest, u'\n%sNAMESPACE %s%s\n' % (cmt_begin, ns, cmt_end))
             self._display_objects('Qualifier Declarations', self.qualifiers,
                                   ns, cmt_begin, cmt_end, dest=dest,
@@ -811,31 +934,33 @@ class FakedWBEMConnection(WBEMConnection):
         _uprint(dest, u'============End Repository=================')
 
     @staticmethod
-    def _display_objects(obj_type, objects_repo, namespace, cmt_begin, cmt_end,
+    def _display_objects(obj_type, object_repo, namespace, cmt_begin, cmt_end,
                          dest=None, summary=None, output_format=None):
         """
         Display a set of objects of obj_type from the dictionary defined
-        by the parameter objects_dict. obj_type is a string that defines the
-        type of object (instance, class, qualifier declaration).
-
+        by the parameter object_repo. obj_type is a string that defines the
+        type of object ('Classes', 'Instances', 'Qualifier Declarations',
+        'Methods').
         """
+
         # TODO:ks FUTURE Consider sorting to perserve order of compile/add.
-        if namespace in objects_repo:
+        if namespace in object_repo:
             if obj_type == 'Methods':
                 _uprint(dest, u'%sNamespace %s: contains %s %s:%s\n' %
                         (cmt_begin, namespace,
-                         len(objects_repo[namespace]),
+                         len(object_repo[namespace]),
                          obj_type, cmt_end))
             else:
                 _uprint(dest, u'%sNamespace %s: contains %s %s %s\n' %
                         (cmt_begin, namespace,
-                         len(objects_repo[namespace]), obj_type, cmt_end))
+                         len(object_repo[namespace]), obj_type, cmt_end))
             if summary:
                 return
+
             # instances are special because the inner struct is a list
             if obj_type == 'Instances':
                 try:
-                    insts = objects_repo[namespace]
+                    insts = object_repo[namespace]
                 except KeyError:
                     return
 
@@ -855,8 +980,7 @@ class FakedWBEMConnection(WBEMConnection):
 
             elif obj_type == 'Methods':
                 try:
-                    methods = objects_repo[namespace]
-
+                    methods = object_repo[namespace]
                 except KeyError:
                     return
 
@@ -866,10 +990,12 @@ class FakedWBEMConnection(WBEMConnection):
                                       'callback: %s %s' %
                                 (cmt_begin, cln, method,
                                  methods[cln][method].__name__, cmt_end))
+
             else:
-                # Covers QualifierDeclarations and Classes
+                assert obj_type == 'Classes' or \
+                    obj_type == 'Qualifier Declarations'
                 try:
-                    objs = objects_repo[namespace]
+                    objs = object_repo[namespace]
                 except KeyError:
                     return
                 for key in sorted(objs):
@@ -1006,7 +1132,7 @@ class FakedWBEMConnection(WBEMConnection):
         Exception if the namespace does not exist
         """
         class_repo = self._get_class_repo(namespace)
-        return True if classname in class_repo else False
+        return classname in class_repo
 
     @staticmethod
     def _make_tuple(rtn_value):
@@ -1051,106 +1177,198 @@ class FakedWBEMConnection(WBEMConnection):
             for method in obj.methods:
                 obj.methods[method].class_origin = None
 
-    @staticmethod
-    def _validate_repo(namespace, repo_dict, repo_type):
+    def _validate_namespace(self, namespace):
         """
-        Common method to validate existence of namespace for defined
-        repo_dict.
+        Validate whether a CIM namespace exists in the mock repository.
 
-        Returns the dictionary for this namespace if valid
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the mock repository. Must not be
+            `None`.
+
+        Raises:
+
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
         """
-        if namespace not in repo_dict:
+        if namespace not in self.namespaces:
             raise CIMError(CIM_ERR_INVALID_NAMESPACE,
-                           'Namespace %r not found for %r' % (namespace,
-                                                              repo_type))
-        return repo_dict[namespace]
+                           "Namespace does not exist in mock repository: %r" %
+                           namespace)
 
     def _get_class_repo(self, namespace):
         """
-        Validates that the class repository for the input namespaces exists
-        and if it does, returns the handle to that repository. If the
-        repo for namespace does not exist, it generates a CIM_Error
+        Returns the class repository for the specified CIM namespace
+        within the mock repository. This is the original instance variable,
+        so any modifications will change the mock repository.
 
-        The class repository is a NocaseDict with class as key and
-        the CIMClass as value.
+        Validates that the namespace exists in the mock repository.
+
+        If the class repository does not contain the namespace yet, it is
+        added.
 
         Parameters:
 
-          namespace(:term:`string`):
-              String containing the name of the namespace to get
+          namespace(:term:`string`): Namespace name. Must not be `None`.
 
         Returns:
-          Dictionary containing classes that have been inserted
-          into the repository
+
+          dict of CIMClass: Class repository.
 
         Raises:
-          CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
-          does not exist in the  classrepository
+
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
         """
-        return self._validate_repo(namespace, self.classes, 'classes')
+        self._validate_namespace(namespace)
+        if namespace not in self.classes:
+            self.classes[namespace] = NocaseDict()
+        return self.classes[namespace]
 
     def _get_instance_repo(self, namespace):
         """
-        Validates that the instance repository for the input namespaces exists
-        and if it does, returns the handle to that repository. If the
-        repo for namespace does not exist, it generates a CIM_Error
+        Returns the instance repository for the specified CIM namespace
+        within the mock repository. This is the original instance variable,
+        so any modifications will change the mock repository.
 
-        The instance repository is a list if instances within the
-        defined namespace
+        Validates that the namespace exists in the mock repository.
+
+        If the instance repository does not contain the namespace yet, it is
+        added.
 
         Parameters:
 
-          namespace(:term:`string`):
-            String containing the name of the namespace to get
+          namespace(:term:`string`): Namespace name. Must not be `None`.
 
-        Returns: List of instances
+        Returns:
+
+          list of CIMInstance: Instance repository.
 
         Raises:
-           CIM_Error, CIM_ERR_INVALID_NAMESPACE if this namespace
-          does not exist in the  classrepository
-        """
-        if namespace not in self.instances:
-            # create empty instance repo if there is a class repo for the
-            # namespace. Existence of the class repo should imply existence
-            # of instance repo
-            if self._get_class_repo(namespace):
-                self.instances[namespace] = []
-                if namespace not in self.methods:
-                    self.methods[namespace] = NocaseDict()
 
-        return self._validate_repo(namespace, self.instances, 'instances')
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
+        """
+        self._validate_namespace(namespace)
+        if namespace not in self.instances:
+            self.instances[namespace] = []
+        return self.instances[namespace]
 
     def _get_qualifier_repo(self, namespace):
         """
-        Validates that the qualifier repository for the input namespaces exists
-        and if it does, returns the handle to that repository. If the
-        repo for namespace does not exist, it generates a CIM_Error
+        Returns the qualifier repository for the specified CIM namespace
+        within the mock repository. This is the original instance variable,
+        so any modifications will change the mock repository.
 
-        The instance repository is a list if instances within the
-        defined namespace
+        Validates that the namespace exists in the mock repository.
+
+        If the qualifier repository does not contain the namespace yet, it is
+        added.
 
         Parameters:
 
-          namespace(:term:`string`):
-              String containing the name of the namespace to get
+          namespace(:term:`string`): Namespace name. Must not be `None`.
 
         Returns:
-           Dictionary of QualifierDeclaration objects in the repo
+
+          dict of CIMQualifierDeclaration: Qualifier repository.
 
         Raises:
-          CIM_Error: CIM_ERR_INVALID_NAMESPACE if this namespace
-          does not exist in the  classrepository
-        """
-        return self._validate_repo(namespace, self.qualifiers, 'qualifiers')
 
-    def _get_methods_repo(self, namespace=None):
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
         """
-        Validate that the table of methods exists for this namespace and if
-        it does, return the handle to the dictionary that represents the
-        methods defined for this namespce.  If that repo does not exist,
-        generate a CIM_Error.
+        self._validate_namespace(namespace)
+        if namespace not in self.qualifiers:
+            self.qualifiers[namespace] = NocaseDict()
+        return self.qualifiers[namespace]
+
+    def _get_method_repo(self, namespace=None):
         """
-        return self._validate_repo(namespace, self.methods, 'methods')
+        Returns the method repository for the specified CIM namespace
+        within the mock repository. This is the original instance variable,
+        so any modifications will change the mock repository.
+
+        Validates that the namespace exists in the mock repository.
+
+        If the method repository does not contain the namespace yet, it is
+        added.
+
+        Parameters:
+
+          namespace(:term:`string`): Namespace name. Must not be `None`.
+
+        Returns:
+
+          dict of dict of method callback function: Method repository.
+
+        Raises:
+
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
+        """
+        self._validate_namespace(namespace)
+        if namespace not in self.methods:
+            self.methods[namespace] = NocaseDict()
+        return self.methods[namespace]
+
+    def _class_repo_empty(self, namespace):
+        """
+        Returns a bool indicating whether the class repository for the
+        specified CIM namespace within the mock repository is empty.
+
+        The class repository is considered empty if it does not exist for
+        the namespace, or if it exists and is empty.
+
+        Parameters:
+
+          namespace(:term:`string`): Namespace name. Must not be `None`.
+
+        Returns:
+
+          bool: Class repository is empty (or does not exist for the namespace)
+        """
+        return namespace not in self.classes or not self.classes[namespace]
+
+    def _instance_repo_empty(self, namespace):
+        """
+        Returns a bool indicating whether the instance repository for the
+        specified CIM namespace within the mock repository is empty.
+
+        The instance repository is considered empty if it does not exist for
+        the namespace, or if it exists and is empty.
+
+        Parameters:
+
+          namespace(:term:`string`): Namespace name. Must not be `None`.
+
+        Returns:
+
+          bool: Instance repository is empty (or does not exist for the
+            namespace)
+        """
+        return namespace not in self.instances or not self.instances[namespace]
+
+    def _qualifier_repo_empty(self, namespace):
+        """
+        Returns a bool indicating whether the qualifier repository for the
+        specified CIM namespace within the mock repository is empty.
+
+        The qualifier repository is considered empty if it does not exist for
+        the namespace, or if it exists and is empty.
+
+        Parameters:
+
+          namespace(:term:`string`): Namespace name. Must not be `None`.
+
+        Returns:
+
+          bool: Qualifier repository is empty (or does not exist for the
+            namespace)
+        """
+        return namespace not in self.qualifiers or \
+            not self.qualifiers[namespace]
 
     def _get_superclassnames(self, cn, namespace):
         """
@@ -1195,13 +1413,17 @@ class FakedWBEMConnection(WBEMConnection):
             classname = classname.classname
 
         # retrieve first level of subclasses for which classname is superclass
+        try:
+            classes = self.classes[namespace]
+        except KeyError:
+            classes = NocaseDict()
         if classname is None:
             rtn_classnames = [
-                cl.classname for cl in six.itervalues(self.classes[namespace])
+                cl.classname for cl in six.itervalues(classes)
                 if cl.superclass is None]
         else:
             rtn_classnames = [
-                cl.classname for cl in six.itervalues(self.classes[namespace])
+                cl.classname for cl in six.itervalues(classes)
                 if cl.superclass and cl.superclass.lower() == classname.lower()]
 
         # recurse for next level of class hiearchy
@@ -1260,27 +1482,29 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: (CIM_ERR_NOT_FOUND) if class Not found in repository or
             CIMError: (CIM_ERR_INVALID_NAMESPACE) if namespace does not exist
         """
-        classes_repo = self._get_class_repo(namespace)
+
+        class_repo = self._get_class_repo(namespace)
 
         # try to get the target class and create a copy for response
         try:
-            cc = deepcopy(classes_repo[classname])
-            # local properties and methods are marked not propagated.
-            for prop in cc.properties.values():
-                prop.propagated = False
-            for method in cc.properties.values():
-                method.propagated = False
+            c = class_repo[classname]
         except KeyError:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Class %r not found in '
                                               'namespace %r.' %
                            (classname, namespace))
+        cc = deepcopy(c)
+        # local properties and methods are marked not propagated.
+        for prop in cc.properties.values():
+            prop.propagated = False
+        for method in cc.properties.values():
+            method.propagated = False
 
         if not local_only and cc.superclass:
             sc_name = cc.superclass
             super_class = None
             while sc_name:
                 try:
-                    super_class = classes_repo[sc_name]
+                    super_class = class_repo[sc_name]
                 except KeyError:
                     cx = cc if super_class is None else super_class
                     raise CIMError(CIM_ERR_INVALID_SUPERCLASS,
@@ -1318,6 +1542,7 @@ class FakedWBEMConnection(WBEMConnection):
         Returns: Returns generator where each yield returns a singe
                  association class
         """
+
         class_repo = self._get_class_repo(namespace)
         # associator_classes = []
         for cl in six.itervalues(class_repo):
@@ -1326,7 +1551,7 @@ class FakedWBEMConnection(WBEMConnection):
         return
 
     @staticmethod
-    def _find_instance(iname, inst_repo):
+    def _find_instance(iname, instance_repo):
         """
         Find an instance in the instance repo by iname and return the
         index of that instance.
@@ -1335,7 +1560,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           iname: CIMInstancename to find
 
-          inst_repo: the instance repo to search
+          instance_repo: the instance repo to search
 
         Return (None, None if not found. Otherwise return tuple of
                index, instance
@@ -1344,9 +1569,10 @@ class FakedWBEMConnection(WBEMConnection):
 
           CIMError: Failed if repo invalid.
         """
+
         rtn_inst = None
         rtn_index = None
-        for index, inst in enumerate(inst_repo):
+        for index, inst in enumerate(instance_repo):
             if iname == inst.path:
                 if rtn_inst is not None:
                     # TODO:ks Future Remove dup test since we should be
@@ -1370,14 +1596,15 @@ class FakedWBEMConnection(WBEMConnection):
         propertylist.
 
         Returns:
+
           CIMInstance copy from the repository with property_list filtered,
           and qualifers removed if include_qualifiers=False and
           class origin removed if include_class_origin False
-
         """
-        inst_repo = self._get_instance_repo(namespace)
 
-        rtn_tup = self._find_instance(iname, inst_repo)
+        instance_repo = self._get_instance_repo(namespace)
+
+        rtn_tup = self._find_instance(iname, instance_repo)
         inst = rtn_tup[1]
 
         if inst is None:
@@ -1500,7 +1727,8 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_INVALID_CLASS: class defined by the classname
             parameter does not exist.
         """
-        self._get_class_repo(namespace)
+
+        self._validate_namespace(namespace)
 
         classname = params.get('ClassName', None)
         if classname:
@@ -1544,7 +1772,8 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_INVALID_CLASS: class defined by the classname
             parameter does not exist
         """
-        self._get_class_repo(namespace)
+
+        self._validate_namespace(namespace)
 
         classname = params.get('ClassName', None)
         if classname:
@@ -1573,7 +1802,9 @@ class FakedWBEMConnection(WBEMConnection):
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetClass`.
         """
-        self._get_class_repo(namespace)
+
+        self._validate_namespace(namespace)
+
         cname = params['ClassName'].classname
 
         cc = self._get_class(cname, namespace, local_only=params['LocalOnly'],
@@ -1584,14 +1815,14 @@ class FakedWBEMConnection(WBEMConnection):
         return self._make_tuple([cc])
 
     @staticmethod
-    def _test_qualifier_decl(qualifier, qual_repo, namespace):
+    def _test_qualifier_decl(qualifier, qualifier_repo, namespace):
         """
         Test that qualifier is in repo and valid.
         For for conn_lite, ignore this test
         """
-        if qual_repo is None:
+        if qualifier_repo is None:
             return
-        if qualifier.name not in qual_repo:
+        if qualifier.name not in qualifier_repo:
             raise CIMError(CIM_ERR_INVALID_PARAMETER, 'Qualifier '
                            ' declaration %r required by CreateClass not '
                            'found in namespace %r.'
@@ -1622,19 +1853,18 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_ALREADY_EXISTS if class already exists
         """
-        new_class = params['NewClass']
 
+        # Validate parameters
+        new_class = params['NewClass']
         if not isinstance(new_class, CIMClass):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'NewClass not valid CIMClass. Rcvd type=%s' %
                            type(new_class))
 
-        if namespace not in self.classes:
-            self.classes[namespace] = NocaseDict({})
-            if namespace not in self.methods:
-                self.methods[namespace] = NocaseDict()
+        # Validate namespace
+        class_repo = self._get_class_repo(namespace)
 
-        if new_class.classname in self.classes[namespace]:
+        if new_class.classname in class_repo:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
                            'Class %r already exists in namespace %r.' %
                            (new_class.classname, namespace))
@@ -1702,14 +1932,14 @@ class FakedWBEMConnection(WBEMConnection):
 
         # Set class_origin and propagated in the new class and its elements.
         if self._repo_lite:
-            qual_repo = None
+            qualifier_repo = None
         else:
             association_class = 'Association' in new_class.qualifiers
 
-            qual_repo = self._get_qualifier_repo(namespace)
+            qualifier_repo = self._get_qualifier_repo(namespace)
             for qual in six.itervalues(new_class.qualifiers):
                 qual.propagated = False
-                self._test_qualifier_decl(qual, qual_repo, namespace)
+                self._test_qualifier_decl(qual, qualifier_repo, namespace)
 
             for prop in six.itervalues(new_class.properties):
                 if not association_class and prop.type == 'reference':
@@ -1720,21 +1950,22 @@ class FakedWBEMConnection(WBEMConnection):
                 prop.class_origin = new_class.classname
                 prop.propagated = False
                 for qual in six.itervalues(prop.qualifiers):
-                    self._test_qualifier_decl(qual, qual_repo, namespace)
+                    self._test_qualifier_decl(qual, qualifier_repo, namespace)
                     qual.propagated = False
 
             for method in six.itervalues(new_class.methods):
                 method.class_origin = new_class.classname
                 method.propagated = False
                 for qual in six.itervalues(method.qualifiers):
-                    self._test_qualifier_decl(qual, qual_repo, namespace)
+                    self._test_qualifier_decl(qual, qualifier_repo, namespace)
                     qual.propagated = False
                 for param in six.itervalues(method.parameters):
                     for qual in six.itervalues(param.qualifiers):
-                        self._test_qualifier_decl(qual, qual_repo, namespace)
+                        self._test_qualifier_decl(qual, qualifier_repo,
+                                                  namespace)
                         param.qualifiers.propagated = False
 
-        self.classes[namespace][new_class.classname] = new_class
+        class_repo[new_class.classname] = new_class
 
     def _fake_modifyclass(self, namespace, **params):
         # pylint: disable=unused-argument
@@ -1753,7 +1984,9 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_NOT_SUPPORTED
         """
-        self._get_class_repo(namespace)
+
+        self._validate_namespace(namespace)
+
         raise CIMError(CIM_ERR_NOT_SUPPORTED, 'Currently ModifyClass not '
                                               'supported in '
                                               'Fake_WBEMConnection')
@@ -1776,6 +2009,8 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_NOT_FOUND if ClassName defines class not in
                 repository
         """
+
+        # Validate namespace
         class_repo = self._get_class_repo(namespace)
 
         cname = params['ClassName'].classname
@@ -1814,6 +2049,8 @@ class FakedWBEMConnection(WBEMConnection):
         Enumerates the qualifier declarations in the local repository of this
         namespace.
         """
+
+        # Validate namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qualifiers = list(qualifier_repo.values())
@@ -1838,18 +2075,21 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_NOT_FOUND
         """
+
+        # Validate namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qname = params['QualifierName']
 
         try:
             qualifier = qualifier_repo[qname]
-            return self._make_tuple([qualifier])
         except KeyError:
             ce = CIMError(CIM_ERR_NOT_FOUND,
                           'Qualifier declaration %r not found in namespace '
                           '%r.' % (qname, namespace))
             raise ce
+
+        return self._make_tuple([qualifier])
 
     def _fake_setqualifier(self, namespace, **params):
         """
@@ -1865,28 +2105,27 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_INVALID_PARAMETER
             CIMError: CIM_ERR_ALREADY_EXISTS
         """
-        qual = params['QualifierDeclaration']
 
         # TODO:ks FUTURE implement set... method for instance, qualifier, class
         # as general means to put new data into the repo.
-        if namespace not in self.qualifiers:
-            self.qualifiers[namespace] = NocaseDict({})
 
+        # Validate namespace
+        qualifier_repo = self._get_qualifier_repo(namespace)
+
+        qual = params['QualifierDeclaration']
         if not isinstance(qual, CIMQualifierDeclaration):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'QualifierDeclaration parameter is not a '
                            'valid CIMQualifierDeclaration. Rcvd type=%s' %
                            type(qual))
 
-        if qual.name in self.qualifiers[namespace]:
+        if qual.name in qualifier_repo:
             raise CIMError(CIM_ERR_ALREADY_EXISTS,
                            'Qualifier declaration %r already exists in '
                            'namespace %r.'
                            % (qual.name, namespace))
-        try:
-            self.qualifiers[namespace][qual.name] = qual
-        except KeyError:
-            self.qualifiers[namespace] = NocaseDict({qual.name: qual})
+
+        qualifier_repo[qual.name] = qual
 
     def _fake_deletequalifier(self, namespace, **params):
         """
@@ -1900,6 +2139,8 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
         """
+
+        # Validate namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qname = params['QualifierName']
@@ -1935,17 +2176,20 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_INVALID_CLASS
         """
 
-        new_instance = params['NewInstance']
-
         if self._repo_lite:
             raise CIMError(CIM_ERR_NOT_SUPPORTED, 'CreateInstance not '
                            ' supported when repo_lite set.')
 
+        # Validate parameters
+        new_instance = params['NewInstance']
         if not isinstance(new_instance, CIMInstance):
             raise CIMError(CIM_ERR_INVALID_PARAMETER,
                            'NewInstance parameter is not a '
                            'valid CIMInstance. Rcvd type=%s' %
                            type(new_instance))
+
+        # Validate namespace
+        instance_repo = self._get_instance_repo(namespace)
 
         # Requires corresponding class to build path to be returned
         try:
@@ -1957,17 +2201,38 @@ class FakedWBEMConnection(WBEMConnection):
         except CIMError as ce:
             if ce.status_code == CIM_ERR_NOT_FOUND:
                 raise CIMError(CIM_ERR_INVALID_CLASS,
-                               'Cannot modify instance because its creation '
-                               ' class %r does not exist in namespace %r.' %
+                               'Cannot create instance because its creation '
+                               'class %r does not exist in namespace %r.' %
                                (new_instance.classname, namespace))
             else:
                 raise
 
-        # Handle special classes, currently hard coded.
+        # Handle namespace creation, currently hard coded.
         # TODO AM 8/18 Generalize the hard coded handling into provider concept
-        if new_instance.classname.lower() == 'pg_namespace':
+        classname_lower = new_instance.classname.lower()
+        if classname_lower == 'pg_namespace':
+            ns_classname = 'PG_Namespace'
+        elif classname_lower == 'cim_namespace':
+            ns_classname = 'CIM_Namespace'
+        else:
+            ns_classname = None
+        if ns_classname:
+            try:
+                new_namespace = new_instance['Name']
+            except KeyError:
+                raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                               "Namespace creation via CreateInstance: "
+                               "Missing 'Name' property in the %r instance " %
+                               new_instance.classname)
+
+            # Normalize the namespace name
+            new_namespace = new_namespace.strip('/')
+
+            # Write it back to the instance in casde it was changed
+            new_instance['Name'] = new_namespace
+
             # These values must match those in testsuite/wbemserver_mock.py
-            new_instance['CreationClassName'] = 'PG_Namespace'
+            new_instance['CreationClassName'] = ns_classname
             new_instance['ObjectManagerName'] = 'MyFakeObjectManager'
             new_instance['ObjectManagerCreationClassName'] = \
                 'CIM_ObjectManager'
@@ -2014,20 +2279,21 @@ class FakedWBEMConnection(WBEMConnection):
             target_class,
             new_instance,
             namespace=namespace)
-        try:
-            # TODO:ks Future use internal function of repo to create namespace
-            #         for this repo. ex. _set_instance
-            for inst in self.instances[namespace]:
-                if inst.path == new_instance.path:
-                    raise CIMError(CIM_ERR_ALREADY_EXISTS,
-                                   'NewInstance %r already exists in '
-                                   'namespace %r.' %
-                                   (new_instance.path, namespace))
-            self.instances[namespace].append(new_instance)
-        except KeyError:
-            self.instances[namespace] = [new_instance]
-            if namespace not in self.methods:
-                self.methods[namespace] = NocaseDict()
+
+        # Check for duplicate instances
+        for inst in instance_repo:
+            if inst.path == new_instance.path:
+                raise CIMError(CIM_ERR_ALREADY_EXISTS,
+                               'NewInstance %r already exists in '
+                               'namespace %r.' %
+                               (new_instance.path, namespace))
+
+        # Reflect the new namespace in the mock repository
+        if ns_classname:
+            self.add_namespace(new_namespace)
+
+        # Store the new instance in the mock repository
+        instance_repo.append(new_instance)
 
         # Create instance returns model path, path relative to namespace
         return self._make_tuple([deepcopy(new_instance.path)])
@@ -2043,11 +2309,14 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS
         """
+
         if self._repo_lite:
             raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ModifyInstance not '
                            ' supported when repo_lite set.')
 
-        inst_repo = self._get_instance_repo(namespace)
+        # Validate namespace
+        instance_repo = self._get_instance_repo(namespace)
+
         modified_instance = deepcopy(params['ModifiedInstance'])
         property_list = params['PropertyList']
 
@@ -2098,7 +2367,7 @@ class FakedWBEMConnection(WBEMConnection):
         if modified_instance.path.namespace is None:
             mod_inst_path.namespace = namespace
 
-        orig_instance_tup = self._find_instance(mod_inst_path, inst_repo)
+        orig_instance_tup = self._find_instance(mod_inst_path, instance_repo)
         if orig_instance_tup[0] is None:
             raise CIMError(CIM_ERR_NOT_FOUND,
                            'Original Instance %r not found in namespace %r'
@@ -2175,7 +2444,7 @@ class FakedWBEMConnection(WBEMConnection):
         # Modify the value of properties in the repo with those from
         # modified instance
         index = orig_instance_tup[0]
-        inst_repo[index].update(modified_instance.properties)
+        instance_repo[index].update(modified_instance.properties)
         return
 
     def _fake_getinstance(self, namespace, **params):
@@ -2194,9 +2463,12 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError:  CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER
               CIM_ERR_NOT_FOUND
         """
+
         iname = params['InstanceName']
         if iname.namespace is None:
             iname.namespace = namespace
+
+        self._validate_namespace(namespace)
 
         # If not repo lite, corresponding class must exist.
         if not self._repo_lite:
@@ -2223,11 +2495,19 @@ class FakedWBEMConnection(WBEMConnection):
 
         It does not attempt to delete referenceing instances (associations,
         etc. that reference this instance.)
+
+        If the creation class of the instance to be deleted is PG_Namespace or
+        CIM_Namespace, then the namespace identified by the 'Name' property
+        of the instance is being deleted in the mock repository in addition to
+        the CIM instance. The default connection namespace of this faked
+        commection cannot be deleted.
         """
+
         iname = params['InstanceName']
         iname.namespace = namespace
 
-        insts_repo = self._get_instance_repo(namespace)
+        # Validate namespace
+        instance_repo = self._get_instance_repo(namespace)
 
         # if not repo_lite, Corresponding class must exist
         if not self._repo_lite:
@@ -2237,24 +2517,39 @@ class FakedWBEMConnection(WBEMConnection):
                                ' Cannot delete instance %r' %
                                (iname.classname, namespace, iname))
 
-        del_inst = None
-        for enum_tup in enumerate(insts_repo):
-            index = enum_tup[0]
-            inst = enum_tup[1]
+        del_index = None
+        for i, inst in enumerate(instance_repo):
             if iname == inst.path:
-                if del_inst is not None:
+                if del_index is not None:
                     raise CIMError(CIM_ERR_FAILED, 'Internal Error: Invalid '
                                    ' Repository. Multiple instances with same '
                                    ' path %r' % inst.path)
                 # TODO:ks Future remove this test for duplicate inst paths since
                 #       we test for dups on insertion
-                else:
-                    del insts_repo[index]
-                    del_inst = iname
+                del_index = i
 
-        if not del_inst:
+        if del_index is None:
             raise CIMError(CIM_ERR_NOT_FOUND, 'Instance %r not found in '
                            'repository namespace %r' % (iname, namespace))
+
+        # Handle namespace deletion, currently hard coded.
+        # TODO AM 8/18 Generalize the hard coded handling into provider concept
+        classname_lower = iname.classname.lower()
+        if classname_lower == 'pg_namespace':
+            ns_classname = 'PG_Namespace'
+        elif classname_lower == 'cim_namespace':
+            ns_classname = 'CIM_Namespace'
+        else:
+            ns_classname = None
+        if ns_classname:
+            namespace = iname.keybindings['Name']
+
+            # Reflect the namespace deletion in the mock repository
+            # This will check the namespace for being empty.
+            self._remove_namespace(namespace)
+
+        # Reflect the instance deletion in the mock repository
+        del instance_repo[del_index]
 
     def _fake_enumerateinstances(self, namespace, **params):
         """
@@ -2270,7 +2565,8 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_INVALID_NAMESPACE
         """
 
-        inst_repo = self._get_instance_repo(namespace)
+        # Validate namespace
+        instance_repo = self._get_instance_repo(namespace)
 
         cname = params['ClassName']
         assert isinstance(cname, CIMClassName)
@@ -2313,7 +2609,7 @@ class FakedWBEMConnection(WBEMConnection):
                                     None,  # LocalOnly never gets passed
                                     params['IncludeClassOrigin'],
                                     params['IncludeQualifiers'])
-                 for inst in inst_repo if inst.path.classname in clns_dict]
+                 for inst in instance_repo if inst.path.classname in clns_dict]
 
         return self._make_tuple(insts)
 
@@ -2329,10 +2625,12 @@ class FakedWBEMConnection(WBEMConnection):
         assert isinstance(cname, CIMClassName)
         cname = cname.classname
 
-        inst_repo = self._get_instance_repo(namespace)
+        # Validate namespace
+        instance_repo = self._get_instance_repo(namespace)
 
         clns = self._get_subclass_list_for_enums(cname, namespace)
-        inst_paths = [inst.path for inst in inst_repo
+
+        inst_paths = [inst.path for inst in instance_repo
                       if inst.path.classname in clns]
 
         rtn_paths = [deepcopy(path) for path in inst_paths]
@@ -2348,7 +2646,9 @@ class FakedWBEMConnection(WBEMConnection):
         Executes the equilavent of the WBEMConnection ExecQuery for
         the querylanguage and query defined
         """
-        self._get_instance_repo(namespace)
+
+        self._validate_namespace(namespace)
+
         raise CIMError(CIM_ERR_NOT_SUPPORTED, 'ExecQuery not implemented!')
 
     #####################################################################
@@ -2479,11 +2779,11 @@ class FakedWBEMConnection(WBEMConnection):
         This is a common method used by all of the other reference and
         associator methods to create a list of reference classnames
 
-
         Returns:
             list of classnames that satisfy the criteria.
         """
-        self._get_class_repo(namespace)
+
+        self._validate_namespace(namespace)
 
         result_classes = self._classnamedict(resultclass_name, namespace)
 
@@ -2509,7 +2809,7 @@ class FakedWBEMConnection(WBEMConnection):
         Returns a list of the reference instance names. The returned list is
         the original, not a copy so the user must copy them
         """
-        insts_repo = self._get_instance_repo(namespace)
+        instance_repo = self._get_instance_repo(namespace)
 
         if resultclass_name:
             # if there is a class repository get subclasses
@@ -2525,8 +2825,9 @@ class FakedWBEMConnection(WBEMConnection):
         rtn_instpaths = []
         role = role.lower() if role else role
         # TODO:ks FUTURE: Make list from _get_reference_classnames if classes
-        #       exist. Otherwise set list to insts_repo to search every instance
-        for inst in insts_repo:
+        #       exist. Otherwise set list to instance_repo to search every
+        #       instance.
+        for inst in instance_repo:
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     # does this prop instance name match target inst name
@@ -2701,7 +3002,8 @@ class FakedWBEMConnection(WBEMConnection):
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.AssociatorNames`
         """
-        self._get_instance_repo(namespace)
+
+        self._validate_namespace(namespace)
 
         rc = None if params['ResultClass'] is None else \
             params['ResultClass'].classname
@@ -2741,9 +3043,9 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Implements a mock WBEM server responder for
             :meth:`~pywbem.WBEMConnection.Associators`
-
         """
-        self._get_instance_repo(namespace)
+
+        self._validate_namespace(namespace)
 
         rc = None if params['ResultClass'] is None else \
             params['ResultClass'].classname
@@ -2858,7 +3160,9 @@ class FakedWBEMConnection(WBEMConnection):
 
             CIMError: CIM_ERR_INVALID_ENUMERATION_CONTEXT
         """
-        self._get_instance_repo(namespace)
+
+        self._validate_namespace(namespace)
+
         context_id = params['EnumerationContext']
 
         try:
@@ -2920,9 +3224,9 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.OpenEnumerationInstancePaths`
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
-
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
+
         result_t = self._fake_enumerateinstancenames(namespace, **params)
 
         return self._open_response(result_t[0][2], namespace,
@@ -2934,7 +3238,7 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances`
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
 
         result_t = self._fake_enumerateinstances(namespace, **params)
@@ -2949,7 +3253,7 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
@@ -2967,7 +3271,7 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
@@ -2986,7 +3290,7 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
@@ -3004,7 +3308,7 @@ class FakedWBEMConnection(WBEMConnection):
         WBEMConnection.OpenAssociatorInstances
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
@@ -3023,7 +3327,7 @@ class FakedWBEMConnection(WBEMConnection):
         :meth:`~pywbem.WBEMConnection.OpenQueryInstances`
         with data from the instance repository.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
         self._validate_open_params(**params)
 
         result = self._fake_execquery(namespace, **params)
@@ -3067,23 +3371,25 @@ class FakedWBEMConnection(WBEMConnection):
             If the EnumerationContext is valid it removes it from the
             context repository. Otherwise it returns an exception.
         """
-        self._get_instance_repo(namespace)
+        self._validate_namespace(namespace)
 
         context_id = params['EnumerationContext']
 
         try:
             context_data = self.enumeration_contexts[context_id]
-            # This is probably relatively useless because pywbem handles
-            # namespace internally but it could catch an error if user plays
-            # with the context.
-            if context_data['namespace'] != namespace:
-                raise CIMError(CIM_ERR_INVALID_NAMESPACE,
-                               'Invalid namespace %r for CloseEnumeration '
-                               '%r' % (namespace, context_id))
         except KeyError:
             raise CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT,
                            'EnumerationContext %r not found in mock server '
                            'enumeration contexts. ' % context_id)
+
+        # This is probably relatively useless because pywbem handles
+        # namespace internally but it could catch an error if user plays
+        # with the context.
+        if context_data['namespace'] != namespace:
+            raise CIMError(CIM_ERR_INVALID_NAMESPACE,
+                           'Invalid namespace %r for CloseEnumeration '
+                           '%r' % (namespace, context_id))
+
         del self.enumeration_contexts[context_id]
 
     #####################################################################
@@ -3123,19 +3429,9 @@ class FakedWBEMConnection(WBEMConnection):
                             'objectname: %r' % type(objectname))
 
         namespace = localobject.namespace
-        try:
-            methodsrepo = self._get_methods_repo(namespace)
-        except CIMError as ce:
-            # If invoke indicates method repo not built, create it.
-            if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
-                if namespace in self.classes or \
-                        namespace in self.instances:
-                    raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
-                                   'Method %r in namespace %r not '
-                                   'registered in repository' %
-                                   (methodname, namespace))
-                else:
-                    raise
+
+        # Validate namespace
+        method_repo = self._get_method_repo(namespace)
 
         # Find the methods entry corresponding to classname. It must be in
         # the class defined by classname or one of its superclasses that
@@ -3172,7 +3468,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         # Test for target class in methods repo
         try:
-            methods = methodsrepo[target_cln]
+            methods = method_repo[target_cln]
         except KeyError:
             raise CIMError(CIM_ERR_METHOD_NOT_FOUND,
                            'Class %r for method %r in namespace %r not '

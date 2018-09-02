@@ -287,6 +287,20 @@ This version contains all fixes up to pywbem 0.12.4.
   the WBEM connection directly as a CIM repository, without first having
   to create a MOFWBEMConnection object.
 
+* Made the namespace handling in the pywbem mock support explicit. It is now
+  required to add any namespaces to the mock registry in a `FakedWBEMConnection`
+  object. A method `add_namespace()` has been added for easy setup of the
+  mock repository w.r.t. namespaces. The default namespace of the connection is
+  added automatically when creating a `FakedWBEMConnection` object.
+
+  Extended the support for handling namespace creation in the faked
+  CreateInstance operation to support `CIM_Namespace` in addition to
+  `PG_Namespace`, and improved it to properly reflect the created namespace
+  in the mock repository.
+
+  Added support for handling namespace deletion in the faked DeleteInstance
+  operation for creation classes `CIM_Namespace` and `PG_Namespace`.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
