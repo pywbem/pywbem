@@ -144,6 +144,11 @@ This version contains all fixes up to pywbem 0.12.4.
   EnumerateInstances. It was reporting confused result so we created a simpler
   test. See issue #477.
 
+* Fixed issues in pywbem_mock where classnames on the operation requests were
+  not treated as case insensitive for some operations, in particular the
+  enumerate operations, reference operations, and associator operations. This
+  also adds a number of tests to validate that classnames. See issue #1355.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:

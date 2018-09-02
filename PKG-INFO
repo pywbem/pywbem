@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: pywbem
-Version: 0.12.1.dev89
+Version: 0.12.1.dev94
 Summary: pywbem - A WBEM client
 Home-page: https://pywbem.github.io/pywbem/
 Author: Tim Potter
@@ -8,6 +8,9 @@ Author-email: tpot@hp.com
 Maintainer: Andreas Maier, Karl Schopmeyer
 Maintainer-email: maiera@de.ibm.com, k.schopmeyer@swbell.net
 License: LGPL version 2.1, or (at your option) any later version
+Project-URL: Bug Tracker, https://github.com/pywbem/pywbem/issues
+Project-URL: Documentation, https://pywbem.readthedocs.io/en/latest/
+Project-URL: Source Code, https://github.com/pywbem/pywbem
 Description: .. # README file for Pypi
         
         Pywbem is a WBEM client, written in pure Python. It supports Python 2 and
