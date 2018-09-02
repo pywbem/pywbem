@@ -98,7 +98,8 @@ import re
 
 from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
+    CIM_ERR_NAMESPACE_NOT_EMPTY
 from .exceptions import CIMError
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
@@ -158,6 +159,7 @@ class WBEMServer(object):
         self._conn = conn
         self._interop_ns = None
         self._namespaces = None
+        self._namespace_paths = None
         self._namespace_classname = None
         self._brand = None
         self._version = None
@@ -170,10 +172,11 @@ class WBEMServer(object):
         with all attributes, that is suitable for debugging.
         """
         return "%s(url=%r, conn=%r, interop_ns=%s, namespaces=%s, " \
-               "namespace_classname=%r, brand=%r, version=%r, " \
-               "profiles=[... %s instances])" % \
+               "namespace_paths=%s, namespace_classname=%r, brand=%r, " \
+               "version=%r, profiles=[... %s instances])" % \
                (self.__class__.__name__, self.url, self.conn, self.interop_ns,
-                self.namespaces, self.namespace_classname, self.brand,
+                self.namespaces, self.namespace_paths,
+                self.namespace_classname, self.brand,
                 self.version, len(self.profiles))
 
     @property
@@ -240,6 +243,24 @@ class WBEMServer(object):
         if self._namespaces is None:
             self._determine_namespaces()
         return self._namespaces
+
+    @property
+    def namespace_paths(self):
+        """
+        :class:`py:list` of :class:`~pywbem.CIMInstanceName`: Instance paths
+        of all namespaces of the WBEM server.
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
+              determined.
+            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
+              determined.
+        """
+        if self._namespace_paths is None:
+            self._determine_namespaces()
+        return self._namespace_paths
 
     @property
     def brand(self):
@@ -339,7 +360,7 @@ class WBEMServer(object):
            representing namespaces ('PG_Namespace' for OpenPegasus,
            and 'CIM_Namespace' otherwise), against the Interop namespace.
 
-           This approach is typicxally supported in WBEM servers that
+           This approach is typically supported in WBEM servers that
            support the creation of CIM namespaces. This approach is
            similar to the approach described in :term:`DSP0200`.
 
@@ -457,6 +478,100 @@ class WBEMServer(object):
         # Namespace creation is such a rare operation that we can afford
         # the extra namespace determination operations, to make sure we
         # really have the new namespace.
+        self._determine_namespaces()
+
+        return std_namespace
+
+    def delete_namespace(self, namespace):
+        """
+        Delete the specified CIM namespace in the WBEM server and
+        update this WBEMServer object to reflect the removed namespace
+        there.
+
+        The specified namespace must be empty (i.e. must not contain any
+        classes, instances, or qualifier types.
+
+        This method attempts the following approaches for deleting the
+        namespace, in order, until an approach succeeds:
+
+        1. Issuing the `DeleteInstance` operation using the CIM class
+           representing namespaces ('PG_Namespace' for OpenPegasus,
+           and 'CIM_Namespace' otherwise), against the Interop namespace.
+
+           This approach is typically supported in WBEM servers that
+           support the creation of CIM namespaces. This approach is
+           similar to the approach described in :term:`DSP0200`.
+
+        The approach described in the WBEM Server profile (:term:`DSP1092`) via
+        deleting the `CIM_WBEMServerNamespace` instance is not implemented
+        because that would also delete any classes, instances, and
+        qualifier types in the namespace.
+
+        Deleting namespaces using the `__Namespace` pseudo-class has been
+        deprecated already in DSP0200 1.1.0 (released in 01/2003), and pywbem
+        does not implement that approach.
+
+        Parameters:
+
+            namespace (:term:`string`): CIM namespace name. Must not be `None`.
+              The namespace may contain leading and a trailing slash, both of
+              which will be ignored.
+
+        Returns:
+
+          :term:`unicode string`: The specified CIM namespace name in its
+          standard format (i.e. without leading or trailing slash characters).
+
+        Raises:
+
+            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError: CIM_ERR_NOT_FOUND, Specified namespace does not exist.
+            CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY, Specified namespace is not
+              empty.
+            Additional CIM errors.
+        """
+
+        std_namespace = _ensure_unicode(namespace.strip('/'))
+
+        # Use approach 1: DeleteInstance of CIM class for namespaces
+
+        # Refresh the list of namespaces in this object to make sure
+        # it is up to date.
+        self._determine_namespaces()
+
+        if std_namespace not in self.namespaces:
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                "Specified namespace does not exist: %s" %
+                std_namespace,
+                conn_id=self.conn.conn_id)
+
+        ns_path = None
+        for p in self.namespace_paths:
+            if p.keybindings['Name'] == std_namespace:
+                ns_path = p
+        assert ns_path is not None
+
+        # Ensure the namespace is empty. We do not check for instances, because
+        # classes are a prerequisite for instances, so if no classes exist,
+        # no instances will exist.
+        # WBEM servers that do not support class operations (e.g. SFCB) will
+        # raise a CIMError with status CIM_ERR_NOT_SUPPORTED.
+        class_paths = self.conn.EnumerateClassNames(
+            namespace=std_namespace, ClassName=None, DeepInheritance=False)
+        quals = self.conn.EnumerateQualifiers(namespace=std_namespace)
+        if class_paths or quals:
+            raise CIMError(
+                CIM_ERR_NAMESPACE_NOT_EMPTY,
+                "Specified namespace %s is not empty; it contains %s "
+                "top-level classes and %s qualifier types" %
+                (std_namespace, len(class_paths), len(quals)),
+                conn_id=self.conn.conn_id)
+
+        self.conn.DeleteInstance(ns_path)
+
+        # Refresh the list of namespaces in this object to remove the one
+        # we just deleted.
         self._determine_namespaces()
 
         return std_namespace
@@ -856,6 +971,7 @@ class WBEMServer(object):
                 conn_id=self.conn.conn_id)
         self._namespace_classname = ns_classname
         self._namespaces = [inst['Name'] for inst in ns_insts]
+        self._namespace_paths = [inst.path for inst in ns_insts]
 
     def _determine_brand(self):
         """

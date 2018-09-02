@@ -28,7 +28,8 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
-from pywbem import ValueMapping, CIMInstanceName, CIMError
+from pywbem import ValueMapping, CIMInstanceName, CIMError, \
+    CIMQualifierDeclaration, CIMClass
 from pywbem._nocasedict import NocaseDict
 from wbemserver_mock import WbemServerMock
 import pytest_extensions
@@ -205,6 +206,127 @@ def test_create_namespace_2(testcase,
     server = mock_wbemserver.wbem_server
 
     act_namespace = server.create_namespace(new_namespace)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert act_namespace == exp_namespace
+
+
+TESTCASES_DELETE_NAMESPACE = [
+
+    # Testcases for WBEMServer.delete_namespace()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * namespace: Name of the namespace to be deleted.
+    #   * namespace_content: Content of initial namespace, as a dict with
+    #     the namespace name as a key and a list of CIMClass, CIMInstance and
+    #     CIMQualifierDeclaration objects as the value.
+    #   * exp_namespace: Expected returned namespace name.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty top level namespace",
+        dict(
+            namespace='abc',
+            namespace_content={'abc': []},
+            exp_namespace=u'abc',
+        ),
+        None, None, True
+    ),
+    (
+        "Empty top level namespace with leading and trailing slash",
+        dict(
+            namespace='/abc/',
+            namespace_content={'abc': []},
+            exp_namespace=u'abc',
+        ),
+        None, None, True
+    ),
+    (
+        "Empty two-segment namespace with leading and trailing slash",
+        dict(
+            namespace='/abc/def/',
+            namespace_content={'abc/def': []},
+            exp_namespace=u'abc/def',
+        ),
+        None, None, True
+    ),
+    (
+        "Empty two-segment namespace where first segment already exists",
+        dict(
+            namespace='interop/def',
+            namespace_content={'interop/def': []},
+            exp_namespace=u'interop/def',
+        ),
+        None, None, True
+    ),
+    (
+        "Non-existing top level namespace",
+        dict(
+            namespace='abc',
+            namespace_content={},
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+    (
+        "Non-empty top level namespace containing a class",
+        dict(
+            namespace='abc',
+            namespace_content={'abc': [
+                CIMClass('Foo')
+            ]},
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+    (
+        "Non-empty top level namespace containing a qualifier type",
+        dict(
+            namespace='abc',
+            namespace_content={'abc': [
+                CIMQualifierDeclaration('Foo', 'string')
+            ]},
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_DELETE_NAMESPACE)
+@pytest_extensions.simplified_test_function
+def test_delete_namespace(testcase,
+                          namespace, namespace_content, exp_namespace):
+    """
+    Test deletion of a namespace.
+    """
+
+    mock_wbemserver = WbemServerMock(interop_ns='interop')
+    server = mock_wbemserver.wbem_server
+
+    # Ensure that the namespace is set up as specified in the testcase
+    for ns in namespace_content:
+        server.create_namespace(ns)
+        for obj in namespace_content[ns]:
+            if isinstance(obj, CIMClass):
+                server.conn.CreateClass(NewClass=obj, namespace=ns)
+            else:
+                assert isinstance(obj, CIMQualifierDeclaration)
+                server.conn.SetQualifier(QualifierDeclaration=obj,
+                                         namespace=ns)
+
+    # The code to be tested
+    act_namespace = server.delete_namespace(namespace)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
