@@ -1839,7 +1839,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             #pragma include ("Interop/CIM_ObjectManager.mof")
             """
 
-        conn = FakedWBEMConnection('http://blah')
+        conn = FakedWBEMConnection(default_namespace=namespace)
         conn.compile_mof_string(partial_schema, namespace=namespace,
                                 search_paths=[schema.schema_mof_dir])
         return conn
@@ -1854,7 +1854,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         """
         # setup schema in test because we configure before we create the
         # connection in this test.
-        namespace = 'interop'
+        namespace = 'root/blah'
         schema = install_test_dmtf_schema()
         partial_schema = """
             #pragma locale ("en_US")
@@ -1864,7 +1864,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
                          detail_level='summary',
                          log_filename=TEST_OUTPUT_LOG,
                          connection=True, propagate=True)
-        conn = FakedWBEMConnection('http://blah')
+        conn = FakedWBEMConnection(default_namespace=namespace)
         conn.compile_mof_string(partial_schema, namespace=namespace,
                                 search_paths=[schema.schema_mof_dir])
 
@@ -1875,11 +1875,12 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         api_exp_log_id = 'pywbem.api.%s' % conn_id
         # pylint: disable=line-too-long
         con = "Connection:%s FakedWBEMConnection(url=u'http://FakedUrl'," \
-              " creds=None, default_namespace=u'http://blah')" % (conn_id)
+              " creds=None, default_namespace=u'%s')" % (conn_id, namespace)
 
         req = "Request:%s GetClass(ClassName='CIM_ObjectManager', " \
               "IncludeClassOrigin=None, IncludeQualifiers=None, LocalOnly=" \
-              "None, PropertyList=None, namespace='interop')" % conn_id
+              "None, PropertyList=None, namespace='%s')" % \
+              (conn_id, namespace)
 
         resp = "Return:%s GetClass(CIMClass CIM_ObjectManager)" % conn_id
 
@@ -1901,7 +1902,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         Differs from example in that we set detail_level to limit output for
         test
         """
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
         configure_logger('all', log_dest='file',
                          log_filename=TEST_OUTPUT_LOG,
@@ -1940,7 +1941,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         pywbem_mock, no http is generated.
         """
         logging.basicConfig(filename='example.log', level=logging.DEBUG)
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -1980,7 +1981,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         test
         """
         logging.basicConfig(filename='basicconfig.log', level=logging.DEBUG)
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -2021,7 +2022,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         NULLHandler at the pywbem level.
         """
         logging.basicConfig(filename='basicconfig.log', level=logging.DEBUG)
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -2063,7 +2064,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         activated.
         """
         logging.basicConfig(filename='example.log', level=logging.DEBUG)
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -2080,12 +2081,12 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
               'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
-              'creds=None, conn_id=%s, default_namespace=' \
-              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'creds=None, conn_id=%s, default_namespace=u\'%s\', ' \
+              'x509=None, verify_callback=None, ' \
               'ca_certs=None, no_verification=False, timeout=None, ' \
               "use_pull_operations=False, " \
               "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
-              ')"))' % (conn_id, conn_id)
+              ')"))' % (conn_id, conn_id, namespace)
 
         if six.PY3:
             con = con.replace("u\'", "'")
@@ -2105,7 +2106,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         activated.
         """
         logging.basicConfig(filename='example.log', level=logging.DEBUG)
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -2121,12 +2122,12 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
               'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
-              'creds=None, conn_id=%s, default_namespace=' \
-              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'creds=None, conn_id=%s, default_namespace=u\'%s\', ' \
+              'x509=None, verify_callback=None, ' \
               'ca_certs=None, no_verification=False, timeout=None, ' \
               "use_pull_operations=False, " \
               "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
-              ')"))' % (conn_id, conn_id)
+              ')"))' % (conn_id, conn_id, namespace)
 
         if six.PY3:
             con = con.replace("u\'", "'")
@@ -2152,7 +2153,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         logger.setLevel(logging.DEBUG)
         logger.addHandler(handler)
 
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -2168,12 +2169,12 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
               'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
-              'creds=None, conn_id=%s, default_namespace=' \
-              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'creds=None, conn_id=%s, default_namespace=u\'%s\', ' \
+              'x509=None, verify_callback=None, ' \
               'ca_certs=None, no_verification=False, timeout=None, ' \
               "use_pull_operations=False, " \
               "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
-              ')"))' % (conn_id, conn_id)
+              ')"))' % (conn_id, conn_id, namespace)
 
         if six.PY3:
             con = con.replace("u\'", "'")
@@ -2193,7 +2194,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         activated.
         """
 
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
@@ -2209,12 +2210,12 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
               'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
-              'creds=None, conn_id=%s, default_namespace=' \
-              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'creds=None, conn_id=%s, default_namespace=u\'%s\', ' \
+              'x509=None, verify_callback=None, ' \
               'ca_certs=None, no_verification=False, timeout=None, ' \
               "use_pull_operations=False, " \
               "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
-              ')"))' % (conn_id, conn_id)
+              ')"))' % (conn_id, conn_id, namespace)
 
         if six.PY3:
             con = con.replace("u\'", "'")
@@ -2234,7 +2235,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         activated.
         """
 
-        namespace = 'interop'
+        namespace = 'root/blah'
         # Define the detail_level and WBEMConnection object to activate.
         configure_logger('http', detail_level='all',
                          connection=True, propagate=True)
@@ -2249,12 +2250,12 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         con = 'Connection:%s FakedWBEMConnection(response_delay=None, ' \
               'WBEMConnection("FakedWBEMConnection(url=u\'http://FakedUrl\', ' \
-              'creds=None, conn_id=%s, default_namespace=' \
-              'u\'http://blah\', x509=None, verify_callback=None, ' \
+              'creds=None, conn_id=%s, default_namespace=u\'%s\', ' \
+              'x509=None, verify_callback=None, ' \
               'ca_certs=None, no_verification=False, timeout=None, ' \
               "use_pull_operations=False, " \
               "stats_enabled=False, recorders=[\'LogOperationRecorder\']" \
-              ')"))' % (conn_id, conn_id)
+              ')"))' % (conn_id, conn_id, namespace)
 
         if six.PY3:
             con = con.replace("u\'", "'")
@@ -2268,7 +2269,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         """
         Test configure_logger exception
         """
-        namespace = 'interop'
+        namespace = 'root/blah'
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
