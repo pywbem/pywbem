@@ -140,6 +140,10 @@ This version contains all fixes up to pywbem 0.12.4.
   possibility for the result of the ExecQuery operation.
   See issue #1347.
 
+* Fixed issue in run_cimoperations.py with test for deep inheritance on
+  EnumerateInstances. It was reporting confused result so we created a simpler
+  test. See issue #477.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
