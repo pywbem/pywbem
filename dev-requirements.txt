@@ -30,7 +30,15 @@ funcsigs>=1.0.2; python_version == '2'
 python-coveralls>=2.8.0; python_version == '2.7'
 
 # Unit test (no imports, invoked via py.test script):
-pytest-cov>=2.4.0
+
+# TODO: Remove the pinning of the pytest-cov version again once issue
+#       https://github.com/z4r/python-coveralls/issues/66
+#       is resolved.
+#       Background: pytest-cov 2.6.0 has increased the version
+#       requirement for the coverage package from >=3.7.1 to
+#       >=4.4, which is in conflict with the version requirement
+#       defined by the python-coveralls package for coverage==4.0.3.
+pytest-cov>=2.4.0,<2.6
 
 # Sphinx (no imports, invoked via sphinx-build script, issues on py26):
 Sphinx>=1.5.1; python_version >= '2.7'
