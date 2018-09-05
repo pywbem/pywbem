@@ -821,61 +821,40 @@ class EnumerateInstances(ClientTest):
             self.assertTrue(len(inst.properties) == 1)
 
     def test_deepinheritance(self):
-        """Test with deep inheritance set true and then false."""
+        """
+        Test with deep inheritance set false and then True. In this test we use
+        CIM_ManagedElement so we get instances from multiple subclasses.
+        Without deep inheritance, no instance should have number of properties
+        gt number of properties in CIM_ManagedElement. If deep inheritance set,
+        there should be instances with property count gt the number of
+        properties in CIM_ManagedElement.
+        """
 
-        cls = self.cimcall(self.conn.GetClass, TEST_CLASS, LocalOnly=True)
+        tst_class = 'CIM_ManagedElement'
+        cls = self.cimcall(self.conn.GetClass, tst_class, LocalOnly=True)
         cls_property_count = len(cls.properties)
 
-        if self.verbose:
-            for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
-
         instances = self.cimcall(self.conn.EnumerateInstances,
-                                 TEST_CLASS,
+                                 tst_class,
+                                 DeepInheritance=False,
+                                 LocalOnly=True)
+        self.assertInstancesValid(instances)
+
+        for instance in instances:
+            self.assertTrue(len(instance.properties) <= cls_property_count)
+
+        # retest with DeepInheritance True
+        instances = self.cimcall(self.conn.EnumerateInstances,
+                                 tst_class,
                                  DeepInheritance=True,
                                  LocalOnly=True)
 
         self.assertInstancesValid(instances)
 
-        # This is probably not correct in general because we cannot really
-        # determine how many properties have been implemented for the
-        # instance.
-        for inst in instances:
-            self.assertTrue(len(inst.properties) >= cls_property_count)
-
-        instances = self.cimcall(self.conn.EnumerateInstances,
-                                 TEST_CLASS,
-                                 DeepInheritance=False,
-                                 LocalOnly=True)
-        self.assertInstancesValid(instances)
-
-        inst_property_count = None
-
-        for inst in instances:
-            # confirm same number of properties in all instances
-            if inst_property_count is None:
-                inst_property_count = len(inst.properties)
-                if self.verbose:
-                    for p in inst.properties.values():
-                        print('ClassPropertyName=%s' % p.name)
-            else:
-                self.assertTrue(inst_property_count == len(inst.properties))
-
-        # For Pegasus today this appears to reflect an error in that
-        # we are getting properties back from the superclass in the
-        # tests.
-        cls_props = set([p.name for p in cls.properties.values()])
-        inst_props = set([p.name for p in instances[0].properties.values()])
-        if cls_property_count != inst_property_count:
-            print('\nWARN: cls property_count %s != inst_property_count %s'
-                  '\ndiff %s' %
-                  (cls_property_count, inst_property_count,
-                   inst_props.symmetric_difference(cls_props)))
-
-            for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
-            for p in instances[0].properties.values():
-                print('InstancePropertyName=%s' % p.name)
+        max_prop_count = 0
+        for instance in instances:
+            max_prop_count = max(len(instance.properties), max_prop_count)
+        self.assertTrue(max_prop_count > cls_property_count)
 
     def test_includequalifiers_true(self):
         """Test Include qualifiers. No detailed added test because
