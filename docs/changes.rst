@@ -31,6 +31,13 @@ Released: not yet
   pbr importing when running certain make targets in a freshly created
   Python environment. Issue #1288.
 
+* Pinned the version of the pytest-cov package to <2.6 due to the fact that
+  pytest-cov 2.6.0 has increased its version requirement for the coverage
+  package from coverage>=3.7.1 to coverage>=4.4. That is in conflict with
+  the version requirement of python-coveralls for coverage==4.0.3.
+  This is only a workaround; An issue against python-coveralls has been
+  opened: https://github.com/z4r/python-coveralls/issues/66
+
 **Known issues:**
 
 * See `list of open issues`_.
