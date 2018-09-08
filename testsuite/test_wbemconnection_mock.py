@@ -772,6 +772,8 @@ class TestRepoMethods(object):
             [None, False, ['CIM_Foo', 'CIM_Foo_nokey']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
+            ['cim_foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
+                               'CIM_Foo_sub_sub']],  # test case insensitivity
             ['CIM_Foo', False, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             ['CIM_Foo_sub', True, ['CIM_Foo_sub_sub']],
             ['CIM_Foo_sub', False, ['CIM_Foo_sub_sub']],
@@ -799,6 +801,7 @@ class TestRepoMethods(object):
         "cln, exp_cln", [
             ['CIM_Foo', []],
             ['CIM_Foo_sub', ['CIM_Foo']],
+            ['cim_foo_sub', ['CIM_Foo']],      # test case independence
             ['CIM_Foo_sub_sub', ['CIM_Foo', 'CIM_Foo_sub']],
         ]
     )
@@ -838,6 +841,7 @@ class TestRepoMethods(object):
             ['CIM_Foo_sub', True, True, False, None, ['cimfoo_sub']],
             ['CIM_Foo_sub', True, True, False, ['InstanceID'], []],
             ['CIM_Foo_sub', True, True, False, ['cimfoo_sub'], ['cimfoo_sub']],
+            ['cim_foo_sub', True, True, False, ['cimfoo_sub'], ['cimfoo_sub']],
         ]
     )
     def test_get_class(self, conn, tst_classes, tst_classes_mof, ns, mof, cln,
@@ -906,6 +910,7 @@ class TestRepoMethods(object):
         [
             #  cln         key      iq     ico   pl      exp_props   exp_err
             ['CIM_Foo', 'CIM_Foo1', None, None, None, ['InstanceID'], None],
+            ['cim_foo', 'CIM_Foo1', None, None, None, ['InstanceID'], None],
             ['CIM_Foo', 'CIM_Foo1', None, None, ['InstanceID'], ['InstanceID'],
              None],
             ['CIM_Foo', 'CIM_Foo1', None, None, ['Instx'], [], None],
@@ -947,9 +952,9 @@ class TestRepoMethods(object):
             # pylint: disable=protected-access
             inst = conn._get_instance(iname, ns, pl, lo, ico, iq)
             assert isinstance(inst, CIMInstance)
-            assert inst.path.classname == cln
+            assert inst.path.classname.lower() == cln.lower()
             assert iname == inst.path
-            assert inst.classname == cln
+            assert inst.classname.lower() == cln.lower()
 
             if pl == "":
                 assert not inst.properties
@@ -972,6 +977,7 @@ class TestRepoMethods(object):
         [
             ['CIM_Foo', 'CIM_Foo1', True],
             ['CIM_Foo', 'CIM_Foo2', True],
+            ['cim_foo', 'CIM_Foo2', True],
             ['CIM_Foo_sub', 'CIM_Foo_sub4', True],
             ['CIM_Foo_sub', 'CIM_Foo_sub99', False],
         ]
@@ -1354,9 +1360,9 @@ class TestRepoMethods(object):
         assert len(clns) == 5
 
         inst_names = conn.EnumerateInstanceNames('TST_Person', namespace=ns)
-        assert len(inst_names) == 4
+        assert len(inst_names) == 8
         insts = conn.EnumerateInstances('TST_Person', namespace=ns)
-        assert len(inst_names) == 4
+        assert len(insts) == 8
 
         # Test for particular instances in the enum response
         for name in tst_person_instance_names:
@@ -1436,6 +1442,7 @@ class TestClassOperations(object):
     @pytest.mark.parametrize(
         "ns, cln, tst_ns, exp_er", [
             [None, 'CIM_Foo', None, None],
+            [None, 'cim_foo', None, None],
             [None, 'CIM_Foo', 'root/blah', 'CIM_ERR_INVALID_NAMESPACE'],
             ['root/blah', 'CIM_Foo', 'root/blah', None],
             [None, 'CIM_Foox', None, 'CIM_ERR_NOT_FOUND'],
@@ -1466,6 +1473,7 @@ class TestClassOperations(object):
         "cn, iq, ico",
         [
             ['CIM_Foo', False, False],
+            ['cim_foo', False, False],
             ['CIM_Foo', True, False],
             ['CIM_Foo', True, True],
             ['CIM_Foo_sub', False, False],
@@ -1479,9 +1487,12 @@ class TestClassOperations(object):
         Test mocking wbemconnection getClass
         test using Mock directly and returning a class.
         """
-        for cl_ in tst_classes:
-            if cl_.classname == cn:
-                tst_class = cl_
+
+        # Verify test valid in that cn exists in repo
+
+        for cls in tst_classes:
+            if cls.classname.lower() == cn.lower():
+                tst_class = cls
         assert tst_class is not None
 
         conn.add_cimobjects(tst_classes, namespace=ns)
@@ -1520,6 +1531,7 @@ class TestClassOperations(object):
         "cn, lo, pl_exp", [
             ['CIM_Foo_sub', None, ['cimfoo_sub', 'InstanceID']],
             ['CIM_Foo_sub', True, ['cimfoo_sub']],
+            ['cim_foo_sub', True, ['cimfoo_sub']],
             ['CIM_Foo_sub', False, ['cimfoo_sub', 'InstanceID']],
             ['CIM_Foo_sub_sub', None, ['cimfoo_sub_sub', 'cimfoo_sub',
                                        'InstanceID']],
@@ -1542,7 +1554,7 @@ class TestClassOperations(object):
             cl = conn.GetClass(cn, namespace=ns, LocalOnly=lo,
                                IncludeQualifiers=True)
 
-        assert cl.classname == cn
+        assert cl.classname.lower() == cn.lower()
         assert len(cl.properties) == len(pl_exp)
         rtn_props = cl.properties.keys()
         assert set(rtn_props) == set(pl_exp)
@@ -1580,11 +1592,13 @@ class TestClassOperations(object):
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
         "cn, di, cn_exp,", [
-            [None, None, ['CIM_Foo', 'CIM_Foo_nokey']],
+            # [None, None, ['CIM_Foo', 'CIM_Foo_nokey']],
             [None, False, ['CIM_Foo', 'CIM_Foo_nokey']],
             [None, True, ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2',
                           'CIM_Foo_sub_sub', 'CIM_Foo_nokey']],
             ['CIM_Foo', None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
+            ['cim_foo', None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
+            [CIMClassName('CIM_Foo'), None, ['CIM_Foo_sub', 'CIM_Foo_sub2']],
             ['CIM_Foo', True, ['CIM_Foo_sub', 'CIM_Foo_sub2',
                                'CIM_Foo_sub_sub']],
             ['CIM_Foo_sub_sub', None, []],
@@ -1603,7 +1617,7 @@ class TestClassOperations(object):
                                                 DeepInheritance=di,
                                                 IncludeQualifiers=True)
         else:
-            rtn_clns = conn.EnumerateClassNames(classname=cn,
+            rtn_clns = conn.EnumerateClassNames(ClassName=cn,
                                                 namespace=ns,
                                                 DeepInheritance=di,
                                                 IncludeQualifiers=True)
@@ -1677,7 +1691,7 @@ class TestClassOperations(object):
                                                 IncludeQualifiers=iq,
                                                 IncludeClassOrigin=ico)
         else:
-            rtn_classes = conn.EnumerateClasses(classname=cn_param,
+            rtn_classes = conn.EnumerateClasses(ClassName=cn_param,
                                                 namespace=ns,
                                                 DeepInheritance=di,
                                                 LocalOnly=lo,
@@ -2122,7 +2136,9 @@ class TestInstanceOperations(object):
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    def test_enumerateinstnames_lite(self, conn_lite, ns, tst_instances):
+    @pytest.mark.parametrize(
+        "cln", ['cim_foo', 'CIM_Foo'])
+    def test_enumerateinstnames_lite(self, conn_lite, ns, cln, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
@@ -2130,8 +2146,6 @@ class TestInstanceOperations(object):
         conn_lite.
         """
         conn_lite.add_cimobjects(tst_instances, namespace=ns)
-
-        cln = 'CIM_Foo'
 
         # since we do not have classes in the repository, we get back only
         # instances of the defined class
@@ -2141,18 +2155,21 @@ class TestInstanceOperations(object):
 
         # pylint: disable=protected-access
         request_inst_names = [i.path for i in conn_lite._get_instance_repo(nsx)
-                              if i.classname == cln]
+                              if i.classname.lower() == cln.lower()]
 
         assert len(rtn_inst_names) == len(request_inst_names)
 
         for inst_name in rtn_inst_names:
             assert isinstance(inst_name, CIMInstanceName)
             assert inst_name in request_inst_names
-            assert inst_name.classname == cln
+            assert inst_name.classname.lower() == cln.lower()
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
-    def test_enumerateinstancenames(self, conn, ns, tst_classes, tst_instances):
+    @pytest.mark.parametrize(
+        "cln", ['cim_foo', 'CIM_Foo'])
+    def test_enumerateinstnames(self, conn, ns, cln, tst_classes,
+                                tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
@@ -2162,8 +2179,6 @@ class TestInstanceOperations(object):
         conn.add_cimobjects(tst_classes, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
 
-        cln = 'CIM_Foo'
-
         rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
 
         nsx = conn.default_namespace if ns is None else ns
@@ -2171,16 +2186,19 @@ class TestInstanceOperations(object):
         # pylint: disable=protected-access
         exp_subclasses = conn._get_subclass_names(cln, nsx, True)
         exp_subclasses.append(cln)
+        sub_class_dict = NocaseDict()
+        for name in exp_subclasses:
+            sub_class_dict[name] = name
 
         request_inst_names = [i.path for i in conn._get_instance_repo(nsx)
-                              if i.classname in exp_subclasses]
+                              if i.classname in sub_class_dict]
 
         assert len(rtn_inst_names) == len(request_inst_names)
 
         for inst_name in rtn_inst_names:
             assert isinstance(inst_name, CIMInstanceName)
             assert inst_name in request_inst_names
-            assert inst_name.classname in exp_subclasses
+            assert inst_name.classname in sub_class_dict
 
     @pytest.mark.parametrize(
         "ns, cln, tst_ns, exp_er", [  # TODO integrate this into normal test
@@ -2625,7 +2643,7 @@ class TestInstanceOperations(object):
         assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
     @pytest.mark.parametrize(
-        "ns", ['None, root/blah'])
+        "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
         "sp, nv, pl, exp_resp", [
             # sp: Special test. integer. 0 means No special test.
@@ -3295,6 +3313,7 @@ class TestQualifierOperations(object):
     @pytest.mark.parametrize(
         "qname, exp_err", [
             ['FooQualDecl1', None],
+            ['fooqualdecl1', None],
             ['badqualname', 'CIM_ERR_NOT_FOUND'],
             ['whatever', 'CIM_ERR_INVALID_NAMESPACE'],
         ]
@@ -3309,7 +3328,7 @@ class TestQualifierOperations(object):
 
         if not exp_err:
             rtn_q1 = conn.GetQualifier(qname, namespace=ns)
-            assert rtn_q1.name == qname
+            assert rtn_q1.name.lower() == qname.lower()
 
         else:
             if exp_err == 'CIM_ERR_INVALID_NAMESPACE':
@@ -3459,6 +3478,7 @@ class TestReferenceOperations(object):
         "rc, ro, exp_rslt", [
             [None, None, ['TST_Lineage', 'TST_MemberOfFamilyCollection']],
             ['TST_Lineage', None, ['TST_Lineage']],
+            ['tst_lineage', None, ['TST_Lineage']],
             ['TST_Lineage', 'parent', ['TST_Lineage']],
             ['TST_Lineage', 'child', ['TST_Lineage']],
             ['TST_Lineage', 'CHILD', ['TST_Lineage']],
@@ -3667,7 +3687,12 @@ class TestReferenceOperations(object):
             ['TST_Lineage', None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
                                    ('TST_Lineage',
                                     ('InstanceID', 'MikeSofi')))],
+            ['tst_lineage', None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+                                   ('TST_Lineage',
+                                    ('InstanceID', 'MikeSofi')))],
             [None, 'parent', (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+                              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+            [None, 'PARENT', (('TST_Lineage', ('InstanceID', 'MikeGabi')),
                               ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
             ['TST_Lineage', 'parent', (('TST_Lineage',
                                         ('InstanceID', 'MikeGabi')),
@@ -3730,7 +3755,7 @@ class TestAssociationOperations(object):
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
-        "target_cln", ['TST_Person'])
+        "target_cln", ['TST_Person', 'tst_person'])
     @pytest.mark.parametrize(
         "role, ac, rr, rc, exp_rslt", [
             # role: role attribute
@@ -3745,6 +3770,8 @@ class TestAssociationOperations(object):
             [None, 'TST_Lineage', None, None, ['TST_Person']],
             ['Parent', 'TST_Lineage', None, None, ['TST_Person']],
             ['parent', 'TST_Lineage', None, None, ['TST_Person']],
+            ['parent', 'tst_lineage', None, None, ['TST_Person']],
+            ['parent', 'TST_Lineage', None, None, ['tst_person']],
             ['Parent', 'TST_Lineage', 'child', 'TST_Person', ['TST_Person']],
             ['parent', 'TST_Lineage', 'Child', 'TST_Person', ['TST_Person']],
             ['PARENT', 'TST_Lineage', 'CHILD', 'TST_Person', ['TST_Person']],
@@ -3775,7 +3802,8 @@ class TestAssociationOperations(object):
             for cln in rtn_clns:
                 assert isinstance(cln, CIMClassName)
 
-            assert set([cln.classname for cln in rtn_clns]) == set(exp_rslt)
+            assert set([cln.classname.lower() for cln in rtn_clns]) ==  \
+                set(cln.lower() for cln in exp_rslt)
 
         else:
             # Set up test for invalid namespace exception
@@ -4042,11 +4070,11 @@ class TestInvokeMethod(object):
         # tested in _fake_invokemethod
         if isinstance(object_name, CIMClassName):
             cc = conn.GetClass(object_name)
-            assert cc.classname == object_name.classname
+            assert cc.classname.lower() == object_name.classname.lower()
 
         elif isinstance(object_name, CIMInstanceName):
             inst = conn.GetInstance(object_name)
-            assert inst.classname == object_name.classname
+            assert inst.classname.lower() == object_name.classname.lower()
         else:
             raise CIMError(CIM_ERR_FAILED,
                            'Callback Method1 failed because input object_name '
@@ -4117,6 +4145,15 @@ class TestInvokeMethod(object):
         "desc, inputs, exp_output, exp_exception_type, cim_err_code_name", [
             ['Execution of Method1 method with single input param',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
+              'methodname': 'Method1',
+              'Params': [('InputParam1', 'FirstData')], },
+             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
+                                                   value='SomeString')]},
+             None, None],
+
+            ['Execution of Method1 method with single input param. Tests '
+             'object name case insensitivity',
+             {'object_name': CIMClassName('cim_foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [('InputParam1', 'FirstData')], },
              {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
@@ -4262,6 +4299,22 @@ class TestInvokeMethod(object):
              {'object_name': CIMClassName('CIM_Foo'),
               'methodname': 'Fuzzy',
               'Params': [('FuzzyParameter', 'Some data'),
+                         ('foo',
+                          CIMInstanceName('CIM_Foo',
+                                          {'InstanceID': 'CIM_F001'}, ), )], },
+             {'return': 32,
+              'params': [CIMParameter('OutputParam', 'string',
+                                      value='Some data'),
+                         CIMParameter(
+                             'foo', 'reference',
+                             value=CIMInstanceName(
+                                 'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
+             None, None],
+
+            ['Execute Fuzzy method with CIMInstanceName in input params',
+             {'object_name': CIMClassName('CIM_Foo'),
+              'methodname': 'Fuzzy',
+              'Params': [('fuzzyparameter', 'Some data'),
                          ('foo',
                           CIMInstanceName('CIM_Foo',
                                           {'InstanceID': 'CIM_F001'}, ), )], },

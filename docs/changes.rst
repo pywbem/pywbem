@@ -105,6 +105,11 @@ Released: 2018-05-18
   class repository there is also an instance repository even if it
   is empty. See issue #1253
 
+* Fixed issues in pywbem_mock where classnames on the operation requests were
+  not treated as case insensitive for some operations, in particular the
+  enumerate operations, reference operations, and associator operations. This
+  also adds a number of tests to validate that classnames. See issue #1355.
+
 **Enhancements:**
 
 * Docs: Clarified that the `copy()` methods of `NocaseDict` and of the CIM object
