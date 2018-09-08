@@ -1089,12 +1089,18 @@ class FakedWBEMConnection(WBEMConnection):
             list of strings defining the subclass names.
 
         """
-        assert classname is None or isinstance(classname, six.string_types)
+        if isinstance(classname, CIMClassName):
+            classname = classname.classname
 
         # retrieve first level of subclasses for which classname is superclass
-        rtn_classnames = [
-            cl.classname for cl in six.itervalues(self.classes[namespace])
-            if cl.superclass == classname]
+        if classname is None:
+            rtn_classnames = [
+                cl.classname for cl in six.itervalues(self.classes[namespace])
+                if cl.superclass is None]
+        else:
+            rtn_classnames = [
+                cl.classname for cl in six.itervalues(self.classes[namespace])
+                if cl.superclass and cl.superclass.lower() == classname.lower()]
 
         # recurse for futher levels of class hiearchy
         if deep_inheritance:
@@ -1313,21 +1319,30 @@ class FakedWBEMConnection(WBEMConnection):
             self._remove_classorigin(rtn_inst)
         return rtn_inst
 
-    def _get_class_list_enums(self, classname, namespace):
-        """ Get class list for the enumerateinstance methods. If conn.lite
-            returns only classname but no subclasses.
-        """
-        if not self._repo_lite:
-            if not self._class_exists(classname, namespace):
-                raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %s not found '
-                               'in namespace %s' % (classname, namespace))
-            clns = self._get_subclass_names(classname, namespace, True) \
-                if self.classes else []
-        else:
-            clns = []
+    def _get_subclass_list_for_enums(self, classname, namespace):
+        """ Get class list (i.e names of subclasses for classname for the
+            enumerateinstance methods. If conn.lite returns only classname but
+            no subclasses.
 
-        clns.append(classname)
-        return clns
+            Returns NocaseDict where only the keys are important, This allows
+            case insensitive matches of the names with Python "for cln in clns".
+        """
+        if self._repo_lite:
+            return NocaseDict({classname: classname})
+        if not self._class_exists(classname, namespace):
+            raise CIMError(CIM_ERR_INVALID_CLASS, 'Class %r not found '
+                           'in namespace %r.' % (classname, namespace))
+
+        if not self.classes:
+            return NocaseDict()
+
+        clnslist = self._get_subclass_names(classname, namespace, True)
+        clnsdict = NocaseDict()
+        for cln in clnslist:
+            clnsdict[cln] = cln
+
+        clnsdict[classname] = classname
+        return clnsdict
 
     @staticmethod
     def _filter_properties(obj, property_list):
@@ -1372,17 +1387,27 @@ class FakedWBEMConnection(WBEMConnection):
         """
         self._get_class_repo(namespace)
 
-        cns = self._get_subclass_names(
-            params.get('classname', None),
-            namespace,
-            params['DeepInheritance'])
+        classname = params.get('ClassName', None)
+        if classname:
+            assert(isinstance(classname, CIMClassName))
+            if not self._class_exists(classname.classname, namespace):
+                raise CIMError(CIM_ERR_INVALID_CLASS,
+                               'The class %r defined by "ClassName" parameter '
+                               'does not exist in namespace %r' %
+                               (classname, namespace))
 
+        clns = self._get_subclass_names(classname, namespace,
+                                        params['DeepInheritance'])
+
+        # Note: _get_class will return NOT_FOUND if the class not in the
+        # repo but it was just found by _get_subclass_names so that would
+        # probably be some form of repo corruption.
         classes = [
             self._get_class(cn, namespace,
                             local_only=params['LocalOnly'],
                             include_qualifiers=params['IncludeQualifiers'],
                             include_classorigin=params['IncludeClassOrigin'])
-            for cn in cns]
+            for cn in clns]
 
         return self._make_tuple(classes)
 
@@ -1403,10 +1428,9 @@ class FakedWBEMConnection(WBEMConnection):
             CIMError: CIM_ERR_INVALID_NAMESPACE if invalid namespace,
             CIMError: CIM_ERR_NOT_FOUND if Classname not found
         """
-        clns = self._get_subclass_names(params.get('classname', None),
+        clns = self._get_subclass_names(params.get('ClassName', None),
                                         namespace,
                                         params['DeepInheritance'])
-
         rtn_clns = [
             CIMClassName(cn, namespace=namespace, host=self.host)
             for cn in clns]
@@ -2112,8 +2136,6 @@ class FakedWBEMConnection(WBEMConnection):
         assert isinstance(cname, CIMClassName)
         cname = cname.classname
 
-        clns = self._get_class_list_enums(cname, namespace)
-
         # If di False we use only properties from the original class. Modify
         # property list to limit properties to those from this class.  This
         # only works if class exists.
@@ -2144,12 +2166,14 @@ class FakedWBEMConnection(WBEMConnection):
                     pl = class_pl
                 else:      # reduce pl to properties in class_properties
                     pl = [pc for pc in class_pl if pc in pl]
+
+        clns_dict = self._get_subclass_list_for_enums(cname, namespace)
         insts = [self._get_instance(inst.path, namespace,
                                     pl,
                                     None,  # LocalOnly never gets passed
                                     params['IncludeClassOrigin'],
                                     params['IncludeQualifiers'])
-                 for inst in inst_repo if inst.path.classname in clns]
+                 for inst in inst_repo if inst.path.classname in clns_dict]
 
         return self._make_tuple(insts)
 
@@ -2166,10 +2190,9 @@ class FakedWBEMConnection(WBEMConnection):
         assert isinstance(cname, CIMClassName)
         cname = cname.classname
 
-        clns = self._get_class_list_enums(cname, namespace)
-
         inst_repo = self._get_instance_repo(namespace)
 
+        clns = self._get_subclass_list_for_enums(cname, namespace)
         inst_paths = [inst.path for inst in inst_repo
                       if inst.path.classname in clns]
 
@@ -2253,9 +2276,17 @@ class FakedWBEMConnection(WBEMConnection):
             return result
         return []
 
+    def _classnamedict(self, classname, namespace):
+        """Get from _classnamelist and cvt to NocaseDict"""
+        clns = self._classnamelist(classname, namespace)
+        rtn_dict = NocaseDict()
+        for cln in clns:
+            rtn_dict[cln] = cln
+        return rtn_dict
+
     @staticmethod
     def _ref_prop_matches(prop, target_classname, ref_classname,
-                          result_classes, role):
+                          resultclass_names, role):
         """
         Test filters for a reference property
         Returns true if matches the criteria. Returns False if it does not
@@ -2267,8 +2298,8 @@ class FakedWBEMConnection(WBEMConnection):
           - If role is not None, prop name matches role
         """
         assert prop.type == 'reference'
-        if prop.reference_class == target_classname:
-            if result_classes and ref_classname not in result_classes:
+        if prop.reference_class.lower() == target_classname.lower():
+            if resultclass_names and ref_classname not in resultclass_names:
                 return False
             if role and prop.name.lower() != role:
                 return False
@@ -2297,7 +2328,7 @@ class FakedWBEMConnection(WBEMConnection):
         return True
 
     def _get_reference_classnames(self, classname, namespace,
-                                  result_class, role):
+                                  resultclass_name, role):
         """
         Get list of classnames that are references for which this classname
         is a target filtered by the result_class and role parameters if they
@@ -2311,7 +2342,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         self._get_class_repo(namespace)
 
-        result_classes = self._classnamelist(result_class, namespace)
+        result_classes = self._classnamedict(resultclass_name, namespace)
 
         rtn_classnames_set = set()
         role = role.lower() if role else role
@@ -2326,7 +2357,8 @@ class FakedWBEMConnection(WBEMConnection):
                     rtn_classnames_set.add(cl.classname)
         return list(rtn_classnames_set)
 
-    def _get_reference_instnames(self, instname, namespace, result_class, role):
+    def _get_reference_instnames(self, instname, namespace, resultclass_name,
+                                 role):
         """
         Get the reference instances from the repository for the target
         instname and filtered by the result_class and role parameters.
@@ -2336,14 +2368,15 @@ class FakedWBEMConnection(WBEMConnection):
         """
         insts_repo = self._get_instance_repo(namespace)
 
-        if result_class:
+        if resultclass_name:
             # if there is a class repository get subclasses
             if self._get_class_repo(namespace):
-                result_classes = self._classnamelist(result_class, namespace)
+                resultclass_dict = self._classnamedict(resultclass_name,
+                                                       namespace)
             else:
-                result_classes = [result_class.classname]
+                resultclass_dict = NocaseDict(resultclass_name=resultclass_name)
         else:
-            result_classes = []
+            resultclass_dict = NocaseDict()
 
         instname.namespace = namespace
         rtn_instpaths = []
@@ -2355,8 +2388,8 @@ class FakedWBEMConnection(WBEMConnection):
                 if prop.type == 'reference':
                     # does this prop instance name match target inst name
                     if prop.value == instname:
-                        if result_class:
-                            if inst.classname not in result_classes:
+                        if resultclass_name:
+                            if inst.classname not in resultclass_dict:
                                 continue
                         if role and prop.name.lower() != role:
                             continue
@@ -2380,8 +2413,8 @@ class FakedWBEMConnection(WBEMConnection):
         """
         class_repo = self._get_class_repo(namespace)
 
-        result_classes = self._classnamelist(result_class, namespace)
-        assoc_classes = self._classnamelist(assoc_class, namespace)
+        result_classes = self._classnamedict(result_class, namespace)
+        assoc_classes = self._classnamedict(assoc_class, namespace)
 
         rtn_classnames_set = set()
 
@@ -2415,8 +2448,8 @@ class FakedWBEMConnection(WBEMConnection):
         the original, not a copy so the user must copy them
         """
         instance_repo = self._get_instance_repo(namespace)
-        result_classes = self._classnamelist(result_class, namespace)
-        assoc_classes = self._classnamelist(assoc_class, namespace)
+        result_classes = self._classnamedict(result_class, namespace)
+        assoc_classes = self._classnamedict(assoc_class, namespace)
 
         inst_name.namespace = namespace
         rtn_instpaths = []
