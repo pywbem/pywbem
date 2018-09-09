@@ -2491,7 +2491,6 @@ class FakedWBEMConnection(WBEMConnection):
         role = role.lower() if role else role
 
         for cl in self._get_association_classes(namespace):
-            # print('CLINASSOCCLASSES %s' % cl)
             for prop in six.itervalues(cl.properties):
                 if prop.type == 'reference' and \
                         self._ref_prop_matches(prop, classname,
@@ -2499,7 +2498,6 @@ class FakedWBEMConnection(WBEMConnection):
                                                result_classes,
                                                role):
                     rtn_classnames_set.add(cl.classname)
-        # print('GET_REF_CLASSNAMES %s' % rtn_classnames_set)
         return list(rtn_classnames_set)
 
     def _get_reference_instnames(self, instname, namespace, resultclass_name,
