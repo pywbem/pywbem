@@ -30,7 +30,6 @@ import sys
 import os
 import shutil
 from datetime import datetime
-import operator
 try:
     from collections import OrderedDict
 except ImportError:
@@ -1145,7 +1144,7 @@ class TestRepoMethods(object):
         assert 'Qualifier Abstract : boolean = false,' in data
         os.remove(tst_file)
 
-    # TODO: Add test of format of the repo outPut with a very simple schema
+    # TODO: Add test of format of the repo output with a very simple schema
     #       to keep the comparison small.
 
     @pytest.mark.parametrize(
@@ -1429,7 +1428,7 @@ class TestRepoMethods(object):
         inst_names = conn.EnumerateInstanceNames('TST_Person', namespace=ns)
         assert len(inst_names) == TST_PERSONWITH_SUB_INST_COUNT
         insts = conn.EnumerateInstances('TST_Person', namespace=ns)
-        assert len(inst_names) == 8
+        assert len(inst_names) == TST_PERSONWITH_SUB_INST_COUNT
 
         # Test for particular instances in the enum response
         for name in tst_person_instance_names:
@@ -1789,7 +1788,7 @@ class TestClassOperations(object):
         # di: deepinheritance input parameter
         # pl_exp: Properties expected in response
         # len_exp: number of classes expected in response
-        # exp_rslt: If integer, expected number of class in respons. If
+        # exp_rslt: If integer, expected number of class in response. If
         # CIMError, expected error code
         "cn_param, lo, di, pl_exp, exp_rslt", [
             [None, None, None, ['InstanceID', 'cimfoo'], 2],
@@ -2811,7 +2810,7 @@ class TestInstanceOperations(object):
         assert exc.status_code == CIM_ERR_NOT_SUPPORTED
 
     @pytest.mark.parametrize(
-        "ns", ['None, root/blah'])
+        "ns", [None, 'root/blah'])
     @pytest.mark.parametrize(
         "sp, nv, pl, exp_resp", [
             # sp: Special test. integer. 0 means No special test.
@@ -3664,10 +3663,11 @@ class TestReferenceOperations(object):
 
         classes = [u'TST_Lineage', u'TST_MemberOfFamilyCollection',
                    u'TST_Person', u'TST_Personsub', u'TST_FamilyCollection']
-        assert set(classes) == set(conn.EnumerateClassNames(namespace=ns,
-                                   DeepInheritance=True))
+        assert set(classes) == set(
+            conn.EnumerateClassNames(namespace=ns, DeepInheritance=True))
 
-        assert len(conn.EnumerateInstanceNames("TST_Person", namespace=ns)) == 8
+        assert len(conn.EnumerateInstanceNames("TST_Person", namespace=ns)) == \
+            TST_PERSONWITH_SUB_INST_COUNT
 
     @pytest.mark.parametrize(
         "ns", [None, 'root/blah'])
@@ -3725,22 +3725,25 @@ class TestReferenceOperations(object):
         if isinstance(exp_rslt, list):    # if list exp OK result
             clns = conn.ReferenceNames(cim_cln, ResultClass=rc, Role=ro)
 
+            exp_ns = ns if ns else conn.default_namespace
             assert isinstance(clns, list)
             assert len(clns) == len(exp_rslt)
-            exp_ns = ns if ns else conn.default_namespace
+            for cln in clns:
+                assert isinstance(cln, CIMClassName)
+                assert cln.host == conn.host
+                assert cln.namespace == exp_ns
             exp_clns = [CIMClassName(classname=n, namespace=exp_ns,
                                      host=conn.host)
                         for n in exp_rslt]
 
-            # sort the expected and result by classname
-            exp_clns.sort(key=operator.attrgetter('classname'))
-            clns.sort(key=operator.attrgetter('classname'))
+            assert set(cln.classname.lower() for cln in exp_clns) == \
+                set(cln.classname.lower() for cln in clns)
 
-            assert clns == exp_clns
         else:  # exp_rslt is a CIMError code in str format
             assert isinstance(exp_rslt, CIMError)
             # we have to fix the targetclassname for some of the tests
             if isinstance(cim_cln, six.string_types):
+                # pylint: disable=redefined-variable-type
                 cim_cln = CIMInstanceName(classname=cln)
             if exp_rslt.status_code == CIM_ERR_INVALID_NAMESPACE:
                 cim_cln.namespace = 'non_existent_namespace'
@@ -3767,7 +3770,7 @@ class TestReferenceOperations(object):
         assert inames[0].classname == 'TST_Lineage'
 
     @pytest.mark.parametrize(
-        "ns", ['None', 'root/cimv2'])
+        "ns", [None, 'root/cimv2'])
     @pytest.mark.parametrize(  # Don't really need this since rslts tied to cl.
         # target instance name
         "targ_iname", [PERSON_MIKE_NME,
@@ -4013,19 +4016,20 @@ class TestAssociationOperations(object):
             rtn_clns = conn.AssociatorNames(target_cln, AssocClass=ac,
                                             Role=role,
                                             ResultRole=rr, ResultClass=rc)
+            exp_ns = ns if ns else conn.default_namespace
             assert isinstance(rtn_clns, list)
             assert len(rtn_clns) == len(exp_rslt)
             for cln in rtn_clns:
                 assert isinstance(cln, CIMClassName)
+                assert cln.host == conn.host
+                assert cln.namespace == exp_ns
 
-            exp_ns = ns if ns else conn.default_namespace
             exp_clns = [CIMClassName(classname=n, namespace=exp_ns,
                                      host=conn.host)
                         for n in exp_rslt]
 
-            # sort the expected and result by classname
-            exp_clns.sort(key=operator.attrgetter('classname'))
-            rtn_clns.sort(key=operator.attrgetter('classname'))
+            assert set(cln.classname.lower() for cln in exp_clns) == \
+                set(cln.classname.lower() for cln in rtn_clns)
 
         else:
             # Set up test for invalid namespace exception
@@ -4242,8 +4246,6 @@ class TestAssociationOperations(object):
         Test getting reference classnames with no options on call and default
         namespace. Tests for both string and CIMClassName input
         """
-
-        # TODO test error.  Failed if rc was TST_PERSON
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         if ns is not None:
