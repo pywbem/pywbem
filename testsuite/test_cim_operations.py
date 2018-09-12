@@ -10,7 +10,7 @@ from __future__ import print_function, absolute_import
 import os
 import pytest
 
-from pywbem import WBEMConnection, CIMError
+from pywbem import WBEMConnection, CIMError, DEFAULT_NAMESPACE
 
 from pywbem._recorder import LogOperationRecorder
 from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
@@ -100,6 +100,19 @@ class TestCreateConnection(object):
         assert conn.x509 == x509
         assert conn.stats_enabled is True
         assert conn.use_pull_operations is True
+
+    @pytest.mark.parametrize(
+        'kwargs, exp_default_namespace', [
+            (dict(), DEFAULT_NAMESPACE),
+            (dict(default_namespace=None), DEFAULT_NAMESPACE),
+            (dict(default_namespace=DEFAULT_NAMESPACE), DEFAULT_NAMESPACE),
+            (dict(default_namespace='blah'), 'blah'),
+        ])
+    def test_init_default_namespace(self, kwargs, exp_default_namespace):
+        # pylint: disable=no-self-use
+        """Test creation of wbem connection with default_namespace values"""
+        conn = WBEMConnection('http://localhost', ('name', 'pw'), **kwargs)
+        assert conn.default_namespace == exp_default_namespace
 
     def test_namespace_slashes_init(self):  # pylint: disable=no-self-use
         """Test stripping of leading and trailing slashes in default namespace

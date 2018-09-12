@@ -320,6 +320,12 @@ This version contains all fixes up to pywbem 0.12.4.
   be used to represent a list of error instances returned by the WBEM server
   in error responses. See issue #1380.
 
+* Pywbem now ensures that when specifying the `default_namespace` argument
+  of `WBEMConnection()` as `None`, or when setting the `default_namespace`
+  attribute of an already existing `WBEMConnection` object to `None`, that it
+  is set to the built-in default namespace "root/cimv2", instead. Previously,
+  that was done only when not specifying the `default_namespace` argument.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

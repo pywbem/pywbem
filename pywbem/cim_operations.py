@@ -369,7 +369,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     # objects.
     _activate_logging = False
 
-    def __init__(self, url, creds=None, default_namespace=DEFAULT_NAMESPACE,
+    def __init__(self, url, creds=None, default_namespace=None,
                  x509=None, verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=False,
                  stats_enabled=False):
@@ -436,14 +436,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             See :ref:`Authentication types` for an overview.
 
           default_namespace (:term:`string`):
-            Name of the CIM namespace to be used by default (if no namespace
-            is specified for an operation).
+            Default CIM namespace for this connection.
 
             Leading and trailing slash characters will be stripped. The lexical
             case will be preserved.
 
-            `None` will cause the following namespace to be used as a default
-            namespace: :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`.
+            If `None`, the default namespace of the connection will be set to
+            the built-in default namespace |DEFAULT_NAMESPACE|.
+
+            The default namespace of the connection is used if no namespace
+            or a namespace of `None` is specified for an operation.
 
           x509 (:class:`py:dict`):
             :term:`X.509` client certificate and key file to be presented
@@ -738,6 +740,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """Internal setter function."""
         if default_namespace is not None:
             default_namespace = default_namespace.strip('/')
+        else:
+            default_namespace = DEFAULT_NAMESPACE
         self._default_namespace = _ensure_unicode(default_namespace)
 
     @property
