@@ -1805,19 +1805,25 @@ def parse_imethodresponse(tup_tree):
 
 
 def parse_error(tup_tree):
-    """Parse ERROR element to get CODE and DESCRIPTION.
+    """
+    Parse the tuple for an ERROR element:
 
       ::
 
-        <!ELEMENT ERROR EMPTY>
+        <!ELEMENT ERROR (INSTANCE*)>
         <!ATTLIST ERROR
             CODE CDATA #REQUIRED
             DESCRIPTION CDATA #IMPLIED>
     """
 
-    check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'], [])
+    check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'], ['INSTANCE'])
 
-    return (name(tup_tree), attrs(tup_tree), None)
+    # list_of_various() has the same effect as list_of_same()
+    # when used with a single allowed child element, but is a little
+    # faster.
+    instance_list = list_of_various(tup_tree, ['INSTANCE'])
+
+    return (name(tup_tree), attrs(tup_tree), instance_list)
 
 
 def parse_returnvalue(tup_tree):

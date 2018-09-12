@@ -184,7 +184,7 @@ class CIMError(Error):
     """
 
     # pylint: disable=super-init-not-called
-    def __init__(self, status_code, status_description=None):
+    def __init__(self, status_code, status_description=None, instances=None):
         """
         Parameters:
 
@@ -195,10 +195,16 @@ class CIMError(Error):
             describing the error. `None`, if the server did not return
             a description text.
 
+          instances (list of :class:`~pywbem.CIMInstance`): List of CIM
+            instances returned by the WBEM server in the error response, that
+            provide more details on the error. `None` if there are no such
+            instances.
+
         :ivar args: A tuple (status_code, status_description) set from the
               corresponding init arguments.
         """
-        self.args = (status_code, status_description)
+        super(CIMError, self).__init__(
+            status_code, status_description, instances)
 
     @property
     def status_code(self):
@@ -238,5 +244,20 @@ class CIMError(Error):
         """
         return self.args[1] or _statuscode2string(self.status_code)
 
+    @property
+    def instances(self):
+        """
+        *New in pywbem 0.13.*
+
+        List of :class:`~pywbem.CIMInstance`: List of CIM instances returned by
+        the WBEM server in the error response, that provide more details on the
+        error. `None` if there are no such instances.
+        """
+        return self.args[2]
+
     def __str__(self):
-        return "%s: %s" % (self.status_code, self.status_description)
+        inst_str = " (%d instances)" % len(self.instances) if self.instances \
+            else ""
+        ret_str = "%s: %s%s" % \
+            (self.status_code, self.status_description, inst_str)
+        return ret_str
