@@ -38,6 +38,13 @@ Released: not yet
   This is only a workaround; An issue against python-coveralls has been
   opened: https://github.com/z4r/python-coveralls/issues/66
 
+* Added support for asterisks in CIM datetime values to the `pywbem.CIMDateTime`
+  class, as defined in DSP0004 for representing insignificant digits. Changed
+  the format returned by its `__repr()__` method so that it now shows its
+  internal attributes and no longer the string representation of the value.
+  Added a `__repr__()` method to the `pywbem.MinutesFromUTC` class that shows
+  its internal attributes. See issue #1379.
+
 **Known issues:**
 
 * See `list of open issues`_.

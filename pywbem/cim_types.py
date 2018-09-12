@@ -246,6 +246,9 @@ class MinutesFromUTC(tzinfo):
         """
         self.__offset = timedelta(minutes=offset)
 
+    def __repr__(self):
+        return '%s(offset=%r)' % (self.__class__.__name__, self.__offset)
+
     def utcoffset(self, dt):  # pylint: disable=unused-argument
         """
         An implementation of the corresponding base class method
@@ -308,6 +311,15 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
     cimtype = 'datetime'
 
+    _timestamp_pattern = re.compile(
+        r'^([\d\*]{4})([\d\*]{2})([\d\*]{2})'
+        r'([\d\*]{2})([\d\*]{2})([\d\*]{2})\.([\d\*]{6})'
+        r'([+|-])(\d{3})')
+
+    _interval_pattern = re.compile(
+        r'^([\d\*]{8})([\d\*]{2})([\d\*]{2})([\d\*]{2})\.([\d\*]{6})'
+        r'(:)(000)')
+
     def __init__(self, dtarg):
         """
         Parameters:
@@ -318,7 +330,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
 
             * A :term:`string` object will be
               interpreted as CIM datetime format (see :term:`DSP0004`) and
-              will result in a point in time or a time interval.
+              will result in a point in time or a time interval. The use
+              of asterisk characters in the value is supported according to
+              the rules defined in :term:`DSP0004` (e.g.
+              "20180911124613.128***:000").
             * A :class:`py:datetime.datetime` object will result in a point
               in time. If the :class:`py:datetime.datetime` object is
               timezone-aware (see :class:`~pywbem.MinutesFromUTC`), the
@@ -329,45 +344,91 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             * Another :class:`~pywbem.CIMDateTime` object will be copied.
         """
         from .cim_obj import _ensure_unicode  # defer due to cyclic deps.
-        self.__timedelta = None
-        self.__datetime = None
+
+        self.__timedelta = None  # timedelta value, if interval
+        self.__datetime = None  # datetime value, if timestamp
+        self.__precision = None  # 0-based index of first asterisk, or None
+
         dtarg = _ensure_unicode(dtarg)
+
         if isinstance(dtarg, six.text_type):
-            date_pattern = re.compile(
-                r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.'
-                r'(\d{6})([+|-])(\d{3})')
-            srch_result = date_pattern.search(dtarg)
-            if srch_result is not None:
-                parts = srch_result.groups()
+            m = self._timestamp_pattern.search(dtarg)
+            if m is not None:
+                # timestamp format
+                parts = m.groups()
                 offset = int(parts[8])
                 if parts[7] == '-':
                     offset = -offset
+
+                if '*' in dtarg:
+                    first = dtarg.index('*')
+                    after = dtarg.rindex('*') + 1
+                    if not re.match(r'^[\*\.]+$', dtarg[first:after]):
+                        raise ValueError(
+                            'Asterisks in CIM datetime timestamp value are '
+                            'not consecutive: "%s"' % dtarg)
+                    if after != 21:  # end of microseconds field
+                        raise ValueError(
+                            'Asterisks in CIM datetime timestamp value do not '
+                            'include least significant field: "%s"' % dtarg)
+                    self.__precision = first
+
+                year = self._to_int(parts[0], 0, None, 'year', dtarg)
+                month = self._to_int(parts[1], 1, None, 'month', dtarg)
+                day = self._to_int(parts[2], 1, None, 'day', dtarg)
+                hour = self._to_int(parts[3], 0, None, 'hour', dtarg)
+                minute = self._to_int(parts[4], 0, None, 'minute', dtarg)
+                second = self._to_int(parts[5], 0, None, 'second', dtarg)
+                microsec = self._to_int(parts[6], 0, '0', 'microsecond', dtarg)
+
                 try:
-                    self.__datetime = datetime(int(parts[0]), int(parts[1]),
-                                               int(parts[2]), int(parts[3]),
-                                               int(parts[4]), int(parts[5]),
-                                               int(parts[6]),
-                                               MinutesFromUTC(offset))
+                    # Possible errors are e.g. field out of range
+                    self.__datetime = datetime(
+                        year, month, day, hour, minute, second, microsec,
+                        MinutesFromUTC(offset))
                 except ValueError as exc:
-                    raise ValueError('dtarg argument "%s" has invalid field '
-                                     'values for CIM datetime timestamp '
-                                     'format: %s' % (dtarg, exc))
+                    raise ValueError(
+                        'Invalid datetime() input from CIM datetime timestamp '
+                        'value "%s": %s' % (dtarg, exc))
+
             else:
-                tv_pattern = re.compile(
-                    r'^(\d{8})(\d{2})(\d{2})(\d{2})\.(\d{6})(:)(000)')
-                srch_result = tv_pattern.search(dtarg)
-                if srch_result is not None:
-                    parts = srch_result.groups()
-                    # Because the input values are limited by the matched
-                    # pattern, timedelta() never throws any exception.
-                    self.__timedelta = timedelta(days=int(parts[0]),
-                                                 hours=int(parts[1]),
-                                                 minutes=int(parts[2]),
-                                                 seconds=int(parts[3]),
-                                                 microseconds=int(parts[4]))
+                m = self._interval_pattern.search(dtarg)
+                if m is not None:
+                    # interval format
+                    parts = m.groups()
+                    if '*' in dtarg:
+                        first = dtarg.index('*')
+                        after = dtarg.rindex('*') + 1
+                        if not re.match(r'^[\*\.]+$', dtarg[first:after]):
+                            raise ValueError(
+                                'Asterisks in CIM datetime interval value are '
+                                'not consecutive: "%s"' % dtarg)
+                        if after != 21:  # end of microseconds field
+                            raise ValueError(
+                                'Asterisks in CIM datetime interval value do '
+                                'not include least significant field: "%s"' %
+                                dtarg)
+                        self.__precision = first
+                    days = self._to_int(parts[0], 0, None, 'days', dtarg)
+                    hours = self._to_int(parts[1], 0, None, 'hours', dtarg)
+                    minutes = self._to_int(parts[2], 0, None, 'minutes', dtarg)
+                    seconds = self._to_int(parts[3], 0, None, 'seconds', dtarg)
+                    microsecs = self._to_int(parts[4], 0, '0', 'microseconds',
+                                             dtarg)
+
+                    try:
+                        # Possible errors are e.g. field out of range
+                        self.__timedelta = timedelta(
+                            days=days, hours=hours, minutes=minutes,
+                            seconds=seconds, microseconds=microsecs)
+                    except ValueError as exc:
+                        raise ValueError(
+                            'Invalid timedelta() input from CIM datetime '
+                            'interval value "%s": %s' % (dtarg, exc))
+
                 else:
-                    raise ValueError('dtarg argument "%s" has an invalid CIM '
-                                     'datetime format' % dtarg)
+                    raise ValueError(
+                        'Invalid format of CIM datetime value: "%s"' % dtarg)
         elif isinstance(dtarg, datetime):
             if dtarg.tzinfo is None:
                 self.__datetime = dtarg.replace(tzinfo=MinutesFromUTC(0))
@@ -382,6 +443,57 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             raise TypeError('dtarg argument "%s" has an invalid type: %s '
                             '(expected datetime, timedelta, string, or '
                             'CIMDateTime)' % (dtarg, type(dtarg)))
+
+    @staticmethod
+    def _to_int(value_str, min_value, rep_digit, field_name, dtarg):
+        """
+        Convert value_str into an integer, replacing right-consecutive
+        asterisks with rep_digit, and an all-asterisk value with min_value.
+
+        field_name and dtarg are passed only for informational purposes.
+        """
+        if '*' in value_str:
+            first = value_str.index('*')
+            after = value_str.rindex('*') + 1
+            if value_str[first:after] != '*' * (after - first):
+                raise ValueError(
+                    'Asterisks in %s field of CIM datetime value "%s" '
+                    'are not consecutive: %r' %
+                    (field_name, dtarg, value_str))
+            if after != len(value_str):
+                raise ValueError(
+                    'Asterisks in %s field of CIM datetime value "%s" '
+                    'do not end at end of field: %r' %
+                    (field_name, dtarg, value_str))
+            if rep_digit is None:
+                # Must be an all-asterisk field
+                if first != 0:
+                    raise ValueError(
+                        'Asterisks in %s field of CIM datetime value "%s" '
+                        'do not start at begin of field: %r' %
+                        (field_name, dtarg, value_str))
+                return min_value
+            else:
+                value_str = value_str.replace('*', rep_digit)
+        # Because the pattern and the asterisk replacement mechanism already
+        # ensure only decimal digits, we expect the integer conversion to
+        # always succeed.
+        value = int(value_str)
+        return value
+
+    def _to_str(self, value, field_begin, field_len):
+        """
+        Convert value (int) to a field string, considering precision.
+        """
+        value_str = '{0:0{1}d}'.format(value, field_len)
+        if self.precision is not None and \
+                self.precision < field_begin + field_len:
+            # field is partly or completely affected by precision
+            # -> replace insignificant digits with asterisks
+            precision_index = max(0, self.precision - field_begin)
+            value_str = value_str[:precision_index] + \
+                '*' * (field_len - precision_index)
+        return value_str
 
     @property
     def minutes_from_utc(self):
@@ -421,6 +533,19 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         `None` if this object represents a point in time.
         """
         return self.__timedelta
+
+    @property
+    def precision(self):
+        """
+        Precision of the time interval or point in time represented by this
+        object, if the datetime input string contained asterisk characters.
+
+        The precision is the 0-based index of the first asterisk character in
+        the datetime input string, or `None` if there were no asterisk
+        characters. For example, the precision of the timestamp value
+        "201809121230**.******+000" is 12.
+        """
+        return self.__precision
 
     @property
     def is_interval(self):
@@ -512,29 +637,58 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         Return a string representing the object in CIM datetime format.
         """
         if self.is_interval:
-            hour = self.timedelta.seconds // 3600
-            minute = (self.timedelta.seconds - hour * 3600) // 60
-            second = self.timedelta.seconds - hour * 3600 - minute * 60
-            return '%08d%02d%02d%02d.%06d:000' % \
-                (self.timedelta.days, hour, minute, second,
-                 self.timedelta.microseconds)
-        else:
+            days = self.timedelta.days
+            hours = self.timedelta.seconds // 3600
+            sec_in_hour = self.timedelta.seconds - hours * 3600
+            minutes = sec_in_hour // 60
+            seconds = sec_in_hour - minutes * 60
+            microsecs = self.timedelta.microseconds
+
+            days_str = self._to_str(days, 0, 8)
+            hours_str = self._to_str(hours, 8, 2)
+            minutes_str = self._to_str(minutes, 10, 2)
+            seconds_str = self._to_str(seconds, 12, 2)
+            microsecs_str = self._to_str(microsecs, 15, 6)
+
+            ret_str = '%s%s%s%s.%s:000' % \
+                (days_str, hours_str, minutes_str, seconds_str,
+                 microsecs_str)
+            return ret_str
+
+        else:  # timestamp
             offset = self.minutes_from_utc
             sign = '+'
             if offset < 0:
                 sign = '-'
                 offset = -offset
-            return '%d%02d%02d%02d%02d%02d.%06d%s%03d' % \
-                (self.datetime.year, self.datetime.month,
-                 self.datetime.day, self.datetime.hour,
-                 self.datetime.minute, self.datetime.second,
-                 self.datetime.microsecond, sign, offset)
+
+            year = self.datetime.year
+            month = self.datetime.month
+            day = self.datetime.day
+            hour = self.datetime.hour
+            minute = self.datetime.minute
+            second = self.datetime.second
+            microsec = self.datetime.microsecond
+
+            year_str = self._to_str(year, 0, 4)
+            month_str = self._to_str(month, 4, 2)
+            day_str = self._to_str(day, 6, 2)
+            hour_str = self._to_str(hour, 8, 2)
+            minute_str = self._to_str(minute, 10, 2)
+            second_str = self._to_str(second, 12, 2)
+            microsec_str = self._to_str(microsec, 15, 6)
+
+            ret_str = '%s%s%s%s%s%s.%s%s%03d' % \
+                (year_str, month_str, day_str, hour_str, minute_str,
+                 second_str, microsec_str, sign, offset)
+            return ret_str
 
     def __repr__(self):
         """Return a string representation suitable for debugging."""
 
-        return '%s(cimtype=%r, %r)' % \
-               (self.__class__.__name__, self.cimtype, str(self))
+        return '%s(cimtype=%r, datetime=%r, timedelta=%r, precision=%r)' % \
+               (self.__class__.__name__, self.cimtype, self.datetime,
+                self.timedelta, self.precision)
 
     def __getstate__(self):
         return str(self)
