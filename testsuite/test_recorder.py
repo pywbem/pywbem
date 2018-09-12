@@ -10,7 +10,6 @@ from __future__ import absolute_import, print_function
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
-from datetime import timedelta, datetime, tzinfo
 import os
 import os.path
 import logging
@@ -28,7 +27,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from pywbem import CIMInstanceName, CIMInstance, MinutesFromUTC, \
+from pywbem import CIMInstanceName, CIMInstance, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
     HTTPError, WBEMConnection, LogOperationRecorder, configure_logger
@@ -61,15 +60,7 @@ class BaseRecorderTests(unittest.TestCase):
         Create a sample instance with multiple properties and
         property types.
         """
-        class TZ(tzinfo):
-            """'Simplistic tsinfo subclass for this test"""
-            def utcoffset(self, dt):  # pylint: disable=unused-argument
-                return timedelta(minutes=-399)
 
-        dt = datetime(year=2016, month=3, day=31, hour=19, minute=30,
-                      second=40, microsecond=654321,
-                      tzinfo=MinutesFromUTC(120))
-        cim_dt = CIMDateTime(dt)
         props_input = OrderedDict([
             ('S1', b'Ham'),
             ('Bool', True),
@@ -83,10 +74,10 @@ class BaseRecorderTests(unittest.TestCase):
             ('SI64', Sint64(-4264)),
             ('R32', Real32(42.0)),
             ('R64', Real64(42.64)),
-            ('DTI', CIMDateTime(timedelta(10, 49, 20))),
-            ('DTF', cim_dt),
-            ('DTP', CIMDateTime(datetime(2014, 9, 22, 10, 49, 20, 524789,
-                                         tzinfo=TZ()))),
+            # CIMDateTime.__repr__() output changes between Python versions,
+            # so we omit that from these properties. After all, this is not a
+            # test for a correct repr() of all CIM datatypes, but a test of
+            # the recorder with a long string.
         ])
         # TODO python 2.7 will not write the following unicode character
         # For the moment, only add this property in python 3 test
@@ -122,13 +113,7 @@ class BaseRecorderTests(unittest.TestCase):
 
     def create_method_params(self):
         """Create a set of method params to be used in InvokeMethodTests."""
-        dt_now = CIMDateTime.now()
         obj_name = self.create_ciminstancename()
-
-        dt = datetime(year=2016, month=3, day=31, hour=19, minute=30,
-                      second=40, microsecond=654321,
-                      tzinfo=MinutesFromUTC(120))
-        cim_dt = CIMDateTime(dt)
 
         params = [('StringParam', 'Spotty'),
                   ('Uint8', Uint8(1)),
@@ -142,10 +127,11 @@ class BaseRecorderTests(unittest.TestCase):
                   ('Real32', Real32(8)),
                   ('Real64', Real64(9)),
                   ('Bool', True),
-                  ('DTN', dt_now),
-                  ('DTF', cim_dt),
-                  ('DTI', CIMDateTime(timedelta(60))),
                   ('Ref', obj_name)]
+        # CIMDateTime.__repr__() output changes between Python
+        # versions, so we omit any datetime parameters. After all,
+        # this is not a test for a correct repr() of all CIM
+        # datatypes, but a test of the recorder with a long string.
         return params
 
 
@@ -227,22 +213,12 @@ class ToYaml(ClientRecorderTests):
         self.assertEqual(si64['type'], 'sint64')
         self.assertEqual(si64['value'], -4264)
 
-        dtp = properties['DTP']
-        self.assertEqual(dtp['name'], 'DTP')
-        self.assertEqual(dtp['type'], 'datetime')
-        self.assertEqual(dtp['value'], '20140922104920.524789-399')
-        dti = properties['DTI']
-        self.assertEqual(dti['name'], 'DTI')
-        self.assertEqual(dti['type'], 'datetime')
-        self.assertEqual(dti['value'], '00000010000049.000020:000')
-
         # TODO add test for reference properties
         # TODO add test for embedded object property
 
     def test_inst_to_yaml_array_props(self):
         """Test  property with array toyaml"""
         str_data = "The pink fox jumped over the big blue dog"
-        dt = datetime(2014, 9, 22, 10, 49, 20, 524789)
         array_props = [
             ('MyString', str_data),
             ('MyUint8Array', [Uint8(1), Uint8(2)]),
@@ -251,7 +227,6 @@ class ToYaml(ClientRecorderTests):
                                Uint64(123456789),
                                Uint64(123456789)]),
             ('MyUint32Array', [Uint32(9999), Uint32(9999)]),
-            ('MyDateTimeArray', [dt, dt, dt]),
             ('MyStrLongArray', [str_data, str_data, str_data]),
         ]
         inst = CIMInstance('CIM_FooArray', array_props)
@@ -281,12 +256,6 @@ class ToYaml(ClientRecorderTests):
         self.assertEqual(my_sint64array['value'], [Uint64(123456789),
                                                    Uint64(123456789),
                                                    Uint64(123456789)])
-
-        my_datetimearray = properties['MyDateTimeArray']
-        self.assertEqual(my_datetimearray['name'], 'MyDateTimeArray')
-        self.assertEqual(my_datetimearray['type'], 'datetime')
-        cim_dt = str(CIMDateTime(dt))
-        self.assertEqual(my_datetimearray['value'], [cim_dt, cim_dt, cim_dt])
 
     def test_instname_to_yaml(self):
         """Test  instname toyaml"""
@@ -341,7 +310,6 @@ class ClientOperationStageTests(ClientRecorderTests):
         params = self.create_method_params()
         in_params_dict = OrderedDict(params)
         obj_name = in_params_dict['Ref']
-        dt_now = str(in_params_dict['DTN'])
 
         self.test_recorder.stage_pywbem_args(method='InvokeMethod',
                                              MethodName='Blah',
@@ -379,9 +347,6 @@ class ClientOperationStageTests(ClientRecorderTests):
         self.assertEqual(out_params_dict['Real32'], 8)
         self.assertEqual(out_params_dict['Real64'], 9)
         self.assertEqual(out_params_dict['Bool'], True)
-        self.assertEqual(out_params_dict['DTN'], dt_now)
-        self.assertEqual(out_params_dict['DTI'],
-                         str(CIMDateTime(timedelta(60))))
         # TODO fix the following. Currently it fails with:
         # AssertionError: CIMIn[16 chars]name={'classname': 'CIM_Foo',
         # 'keybindings': {[132 chars]None) != CIMIn[16 chars]name=u'CIM_Foo',
@@ -624,18 +589,6 @@ get_inst_return_all_log = (
     u"type='real64', reference_class=None, embedded_object=None, "
     u"is_array=False, array_size=None, class_origin=None, propagated=None, "
     u"qualifiers=NocaseDict([]))), "
-    u"('DTI', CIMProperty(name='DTI', value=CIMDateTime(cimtype='datetime', "
-    u"'00000010000049.000020:000'), type='datetime', reference_class=None, "
-    u"embedded_object=None, is_array=False, array_size=None, "
-    u"class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
-    u"('DTF', CIMProperty(name='DTF', value=CIMDateTime(cimtype='datetime', "
-    u"'20160331193040.654321+120'), type='datetime', reference_class=None, "
-    u"embedded_object=None, is_array=False, array_size=None, "
-    u"class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
-    u"('DTP', CIMProperty(name='DTP', value=CIMDateTime(cimtype='datetime', "
-    u"'20140922104920.524789-399'), type='datetime', reference_class=None, "
-    u"embedded_object=None, is_array=False, array_size=None, "
-    u"class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
     u"('S2', CIMProperty(name='S2', value='H\u00E4m', type='string', "
     u"reference_class=None, embedded_object=None, is_array=False, "
     u"array_size=None, class_origin=None, propagated=None, "
@@ -698,19 +651,7 @@ get_inst_return_all_log_PY2 = (
     "('R64', CIMProperty(name=u'R64', value=Real64(cimtype='real64', 42.64), "
     "type=u'real64', reference_class=None, embedded_object=None, "
     "is_array=False, array_size=None, class_origin=None, propagated=None, "
-    "qualifiers=NocaseDict([]))), "
-    "('DTI', CIMProperty(name=u'DTI', value=CIMDateTime(cimtype='datetime', "
-    "'00000010000049.000020:000'), type=u'datetime', reference_class=None, "
-    "embedded_object=None, is_array=False, array_size=None, class_origin=None,"
-    " propagated=None, qualifiers=NocaseDict([]))), "
-    "('DTF', CIMProperty(name=u'DTF', value=CIMDateTime("
-    "cimtype='datetime', '20160331193040.654321+120'), type=u'datetime', "
-    "reference_class=None, embedded_object=None, is_array=False, array_size="
-    "None, class_origin=None, propagated=None, qualifiers=NocaseDict([]))), "
-    "('DTP', CIMProperty(name=u'DTP', value=CIMDateTime(cimtype='datetime', "
-    "'20140922104920.524789-399'), type=u'datetime', reference_class=None, "
-    "embedded_object=None, is_array=False, array_size=None, "
-    "class_origin=None, propagated=None, qualifiers=NocaseDict([])))"
+    "qualifiers=NocaseDict([])))"
     "]), property_list=None, qualifiers=NocaseDict([])))")
 
 
@@ -1038,25 +979,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                  "cimtype='real64', 42.64), type=u'real64', "
                  "reference_class=None, embedded_object=None, "
                  "is_array=False, array_size=None, class_origin=None, "
-                 "propagated=None, qualifiers=NocaseDict([]))), "
-                 "('DTI', CIMProperty(name=u'DTI', value=CIMDateTime("
-                 "cimtype='datetime', '00000010000049.000020:000'), "
-                 "type=u'datetime', reference_class=None, "
-                 "embedded_object=None, is_array=False, array_size=None, "
-                 "class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict([]))), "
-                 "('DTF', CIMProperty(name=u'DTF', value=CIMDateTime("
-                 "cimtype='datetime', '20160331193040.654321+120'), "
-                 "type=u'datetime', reference_class=None, "
-                 "embedded_object=None, is_array=False, array_size=None, "
-                 "class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict([]))), "
-                 "('DTP', CIMProperty(name=u'DTP', value=CIMDateTime("
-                 "cimtype='datetime', '20140922104920.524789-399'), "
-                 "type=u'datetime', reference_class=None, "
-                 "embedded_object=None, is_array=False, array_size=None, "
-                 "class_origin=None, propagated=None, "
-                 "qualifiers=NocaseDict([])))"
+                 "propagated=None, qualifiers=NocaseDict([])))"
                  "]), property_list=None, qualifiers=NocaseDict([])))"),)
         else:
             none_result_all = get_inst_return_all_log.replace('GetInstance',

@@ -232,6 +232,7 @@ def test_real_init_str(real_tuple):
     #             exception type if initialization failed.
     #   exp_datetime: Expected value for datetime property.
     #   exp_timedelta: Expected value for timedelta property.
+    #   exp_precision: Expected value for precision property.
     #   exp_minutesfromutc: Expected value for minutes_from_utc property.
     #   exp_str: Expected string value of the CIMDateTime object.
     # )
@@ -242,6 +243,7 @@ def test_real_init_str(real_tuple):
         None,
         timedelta(days=12345678, hours=22, minutes=44, seconds=55,
                   microseconds=654321),
+        None,
         0,
         '12345678224455.654321:000'
     ),
@@ -251,6 +253,7 @@ def test_real_init_str(real_tuple):
         None,
         timedelta(days=12345678, hours=22, minutes=44, seconds=55,
                   microseconds=654321),
+        None,
         0,
         '12345678224455.654321:000'
     ),
@@ -260,16 +263,157 @@ def test_real_init_str(real_tuple):
         None,
         timedelta(days=12345678, hours=22, minutes=44, seconds=55,
                   microseconds=654321),
+        None,
         0,
         '12345678224455.654321:000'
     ),
     (
+        '12345678224455.65432*:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                  microseconds=654320),
+        20,
+        0,
+        '12345678224455.65432*:000'
+    ),
+    (
+        '12345678224455.6543**:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                  microseconds=654300),
+        19,
+        0,
+        '12345678224455.6543**:000'
+    ),
+    (
+        '12345678224455.654***:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                  microseconds=654000),
+        18,
+        0,
+        '12345678224455.654***:000'
+    ),
+    (
+        '12345678224455.65****:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                  microseconds=650000),
+        17,
+        0,
+        '12345678224455.65****:000'
+    ),
+    (
+        '12345678224455.6*****:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                  microseconds=600000),
+        16,
+        0,
+        '12345678224455.6*****:000'
+    ),
+    (
+        '12345678224455.******:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                  microseconds=0),
+        15,
+        0,
+        '12345678224455.******:000'
+    ),
+    (
+        '1234567822445*.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '123456782244**.******:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=44, seconds=0,
+                  microseconds=0),
+        12,
+        0,
+        '123456782244**.******:000'
+    ),
+    (
+        '12345678224***.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '1234567822****.******:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=22, minutes=0, seconds=0,
+                  microseconds=0),
+        10,
+        0,
+        '1234567822****.******:000'
+    ),
+    (
+        '123456782*****.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '12345678******.******:000',
+        'interval',
+        None,
+        timedelta(days=12345678, hours=0, minutes=0, seconds=0,
+                  microseconds=0),
+        8,
+        0,
+        '12345678******.******:000'
+    ),
+    (
+        '1234567*******.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '123456********.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '12345*********.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '1234**********.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '123***********.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '12************.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '1*************.******:000',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '**************.******:000',
+        'interval',
+        None,
+        timedelta(days=0, hours=0, minutes=0, seconds=0,
+                  microseconds=0),
+        0,
+        0,
+        '**************.******:000'
+    ),
+    (
         '12345678224455.654321:777',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '12345678224455,654321:000',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
@@ -277,6 +421,7 @@ def test_real_init_str(real_tuple):
         'timestamp',
         datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
                  microsecond=654321, tzinfo=MinutesFromUTC(120)),
+        None,
         None,
         120,
         '20140924193040.654321+120'
@@ -287,6 +432,7 @@ def test_real_init_str(real_tuple):
         'timestamp',
         datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
                  microsecond=654321, tzinfo=MinutesFromUTC(0)),
+        None,
         None,
         0,
         '20140924193040.654321+000'
@@ -298,6 +444,7 @@ def test_real_init_str(real_tuple):
         datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
                  microsecond=654321, tzinfo=MinutesFromUTC(0)),
         None,
+        None,
         0,
         '20140924193040.654321+000'
     ),
@@ -307,49 +454,197 @@ def test_real_init_str(real_tuple):
         datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
                  microsecond=654321, tzinfo=MinutesFromUTC(120)),
         None,
-        120,
-        '20140924193040.654321+120'
-    ),
-    (
-        CIMDateTime('20140924193040.654321+120'),
-        'timestamp',
-        datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
-                 microsecond=654321, tzinfo=MinutesFromUTC(120)),
         None,
         120,
         '20140924193040.654321+120'
     ),
     (
+        '20140924193040.654321+120',
+        'timestamp',
+        datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
+                 microsecond=654321, tzinfo=MinutesFromUTC(120)),
+        None,
+        None,
+        120,
+        '20140924193040.654321+120'
+    ),
+    (
+        '20180912123040.65432*+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=40,
+                 microsecond=654320, tzinfo=MinutesFromUTC(120)),
+        None,
+        20,
+        120,
+        '20180912123040.65432*+120'
+    ),
+    (
+        '20180912123040.6543**+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=40,
+                 microsecond=654300, tzinfo=MinutesFromUTC(120)),
+        None,
+        19,
+        120,
+        '20180912123040.6543**+120'
+    ),
+    (
+        '20180912123040.654***+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=40,
+                 microsecond=654000, tzinfo=MinutesFromUTC(120)),
+        None,
+        18,
+        120,
+        '20180912123040.654***+120'
+    ),
+    (
+        '20180912123040.65****+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=40,
+                 microsecond=650000, tzinfo=MinutesFromUTC(120)),
+        None,
+        17,
+        120,
+        '20180912123040.65****+120'
+    ),
+    (
+        '20180912123040.6*****+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=40,
+                 microsecond=600000, tzinfo=MinutesFromUTC(120)),
+        None,
+        16,
+        120,
+        '20180912123040.6*****+120'
+    ),
+    (
+        '20180912123040.******+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=40,
+                 microsecond=0, tzinfo=MinutesFromUTC(120)),
+        None,
+        15,
+        120,
+        '20180912123040.******+120'
+    ),
+    (
+        '2018091212304*.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '201809121230**.******+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=30, second=0,
+                 microsecond=0, tzinfo=MinutesFromUTC(120)),
+        None,
+        12,
+        120,
+        '201809121230**.******+120'
+    ),
+    (
+        '20180912123***.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '2018091212****.******+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=12, minute=0, second=0,
+                 microsecond=0, tzinfo=MinutesFromUTC(120)),
+        None,
+        10,
+        120,
+        '2018091212****.******+120'
+    ),
+    (
+        '201809121*****.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '20180912******.******+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=12, hour=0, minute=0, second=0,
+                 microsecond=0, tzinfo=MinutesFromUTC(120)),
+        None,
+        8,
+        120,
+        '20180912******.******+120'
+    ),
+    (
+        '2018091*******.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '201809********.******+120',
+        'timestamp',
+        datetime(year=2018, month=9, day=1, hour=0, minute=0, second=0,
+                 microsecond=0, tzinfo=MinutesFromUTC(120)),
+        None,
+        6,
+        120,
+        '201809********.******+120'
+    ),
+    (
+        '20180*********.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '2018**********.******+120',
+        'timestamp',
+        datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0,
+                 microsecond=0, tzinfo=MinutesFromUTC(120)),
+        None,
+        4,
+        120,
+        '2018**********.******+120'
+    ),
+    (
+        '201***********.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '20************.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
+        '2*************.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (    # year out of range for timestamp()
+        '**************.******+120',
+        ValueError, None, None, None, None, None
+    ),
+    (
         '20140924193040.654321*120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '20140924193040,654321+120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '20141324193040.654321+120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '20140932193040.654321+120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '20140924253040.654321+120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '20140924196140.654321+120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         '20140924193061.654321+120',
-        ValueError, None, None, None, None
+        ValueError, None, None, None, None, None
     ),
     (
         42,
-        TypeError, None, None, None, None
+        TypeError, None, None, None, None, None
     ),
 ], scope='module')
 def datetime_init_tuple(request):
@@ -382,8 +677,8 @@ def test_datetime_init(datetime_init_tuple):
        datetime_init_tuple pytest.fixture.
     """
     # pylint: disable=redefined-outer-name
-    (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_minutesfromutc,
-     exp_str) = datetime_init_tuple
+    (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_precision,
+     exp_minutesfromutc, exp_str) = datetime_init_tuple
     try:
         obj = CIMDateTime(dtarg)
     except Exception as exc:  # pylint: disable=broad-except
@@ -398,6 +693,7 @@ def test_datetime_init(datetime_init_tuple):
         assert obj.timedelta == exp_timedelta
         if obj.timedelta is not None:
             assert isinstance(obj.timedelta, timedelta)
+        assert obj.precision == exp_precision
         assert obj.minutes_from_utc == exp_minutesfromutc
         assert str(obj) == exp_str
 

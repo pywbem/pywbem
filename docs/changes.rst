@@ -304,6 +304,13 @@ This version contains all fixes up to pywbem 0.12.4.
   Added support for handling namespace deletion in the faked DeleteInstance
   operation for creation classes `CIM_Namespace` and `PG_Namespace`.
 
+* Added support for asterisks in CIM datetime values to the `pywbem.CIMDateTime`
+  class, as defined in DSP0004 for representing insignificant digits. Changed
+  the format returned by its `__repr()__` method so that it now shows its
+  internal attributes and no longer the string representation of the value.
+  Added a `__repr__()` method to the `pywbem.MinutesFromUTC` class that shows
+  its internal attributes. See issue #1379.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
