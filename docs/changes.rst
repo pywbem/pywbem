@@ -149,6 +149,11 @@ This version contains all fixes up to pywbem 0.12.4.
   enumerate operations, reference operations, and associator operations. This
   also adds a number of tests to validate that classnames. See issue #1355.
 
+* Fixed the issue that INSTANCE child elements on a returned ERROR element
+  were not allowed. INSTANCE child elements are now allowed and will appear
+  to the user as a list of `CIMInstance` objects in a new `instances` property
+  of the `CIMError` exception that is raised. See issue #1380.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
@@ -310,6 +315,10 @@ This version contains all fixes up to pywbem 0.12.4.
   internal attributes and no longer the string representation of the value.
   Added a `__repr__()` method to the `pywbem.MinutesFromUTC` class that shows
   its internal attributes. See issue #1379.
+
+* Added an `instances` property to the `CIMError` exception class that can
+  be used to represent a list of error instances returned by the WBEM server
+  in error responses. See issue #1380.
 
 **Cleanup:**
 

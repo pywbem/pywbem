@@ -237,7 +237,8 @@ class CIMError(Error):
     """
 
     # pylint: disable=super-init-not-called
-    def __init__(self, status_code, status_description=None, conn_id=None):
+    def __init__(self, status_code, status_description=None, instances=None,
+                 conn_id=None):
         """
         Parameters:
 
@@ -248,6 +249,11 @@ class CIMError(Error):
             describing the error. `None`, if the server did not return
             a description text.
 
+          instances (list of :class:`~pywbem.CIMInstance`): List of CIM
+            instances returned by the WBEM server in the error response, that
+            provide more details on the error. `None` if there are no such
+            instances.
+
           conn_id (:term:`connection id`): Connection ID of the connection in
             whose context the error happened. `None` if the error did not
             happen in context of any connection, or if the connection context
@@ -257,7 +263,7 @@ class CIMError(Error):
             corresponding init arguments.
         """
         super(CIMError, self).__init__(
-            status_code, status_description, conn_id=conn_id)
+            status_code, status_description, instances, conn_id=conn_id)
 
     @property
     def status_code(self):
@@ -297,8 +303,21 @@ class CIMError(Error):
         """
         return self.args[1] or _statuscode2string(self.status_code)
 
+    @property
+    def instances(self):
+        """
+        *New in pywbem 0.13.*
+
+        List of :class:`~pywbem.CIMInstance`: List of CIM instances returned by
+        the WBEM server in the error response, that provide more details on the
+        error. `None` if there are no such instances.
+        """
+        return self.args[2]
+
     def __str__(self):
-        ret_str = "%s (%s): %s, %s" % \
+        inst_str = " (%d instances)" % len(self.instances) if self.instances \
+            else ""
+        ret_str = "%s (%s): %s%s, %s" % \
             (self.status_code, self.status_code_name, self.status_description,
-             self.conn_str)
+             inst_str, self.conn_str)
         return ret_str

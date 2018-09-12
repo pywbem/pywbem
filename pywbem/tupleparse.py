@@ -215,13 +215,20 @@ class TupleParser(object):
                              conn_id=self.conn_id)
 
         if allowed_children is not None:
+            if not allowed_children:
+                allow_txt = "no child elements are allowed"
+            else:
+                allow_txt = "allowed are child elements %r" % allowed_children
+            invalid_children = set()
             for child in kids(tup_tree):
                 if name(child) not in allowed_children:
-                    raise ParseError("Element %r has invalid child element %r "
-                                     "(allowed are child elements %r)" %
-                                     (name(tup_tree), name(child),
-                                      allowed_children),
-                                     conn_id=self.conn_id)
+                    invalid_children.add(name(child))
+            if invalid_children:
+                raise ParseError("Element %r has invalid child element(s) "
+                                 "%r (%s)" %
+                                 (name(tup_tree), list(invalid_children),
+                                  allow_txt),
+                                 conn_id=self.conn_id)
 
         if not allow_pcdata:
             for child in tup_tree[2]:
@@ -1872,19 +1879,25 @@ class TupleParser(object):
 
     def parse_error(self, tup_tree):
         """
-        Parse ERROR element to get CODE and DESCRIPTION.
+        Parse the tuple for an ERROR element:
 
           ::
 
-            <!ELEMENT ERROR EMPTY>
+            <!ELEMENT ERROR (INSTANCE*)>
             <!ATTLIST ERROR
                 CODE CDATA #REQUIRED
                 DESCRIPTION CDATA #IMPLIED>
         """
 
-        self.check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'], [])
+        self.check_node(tup_tree, 'ERROR', ['CODE'], ['DESCRIPTION'],
+                        ['INSTANCE'])
 
-        return (name(tup_tree), attrs(tup_tree), None)
+        # self.list_of_various() has the same effect as self.list_of_same()
+        # when used with a single allowed child element, but is a little
+        # faster.
+        instance_list = self.list_of_various(tup_tree, ['INSTANCE'])
+
+        return (name(tup_tree), attrs(tup_tree), instance_list)
 
     def parse_returnvalue(self, tup_tree):
         """

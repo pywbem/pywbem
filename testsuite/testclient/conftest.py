@@ -53,6 +53,7 @@ using comment lines for informally stated conditions::
         pullresult: {pull_op_method_return}
 # if operation is expected to fail with CIM status code (CIMError exception):
         cim_status: {op_cim_status}
+        error_istances: {error_instances}  # optional
 # if operation is expected to fail with an arbitrary exception:
         exception: {op_exc_type}
 # optional:
@@ -96,6 +97,8 @@ Syntax elements:
   raised by the operation method.
 * {op_cim_status}: Numeric CIM status code. This implies an expected exception
   class CIMError.
+* {error_instances}: List of CIM instances that should be returned as
+  instances in an error response.
 * {request_len}: Numeric length of HTTP request body
 * {reply_len}: Numeric length of HTTP response body
 * {op_method_return}: Expected return value of the operation method,
@@ -791,6 +794,8 @@ def runtestcase(testcase):
                                "exception", None)
     exp_cim_status = tc_getattr(tc_name, exp_pywbem_response,
                                 "cim_status", 0)
+    exp_error_instances = tc_getattr_list(tc_name, exp_pywbem_response,
+                                          "error_instances", None)
 
     # get the optional expected request and reply sizes if specified. The
     # default is None if not specified
@@ -895,12 +900,21 @@ def runtestcase(testcase):
 
     if isinstance(raised_exception, pywbem.CIMError):
         cim_status = raised_exception.status_code  # pylint: disable=no-member
+        error_instances = raised_exception.instances
     else:
         cim_status = 0
+        error_instances = None
+
     assert cim_status == exp_cim_status, \
         "Error in WBEMConnection operation CIM status code. " \
         "Expected %s; received %s" % \
         (exp_cim_status, cim_status)
+
+    exp_error_inst_objs = obj(exp_error_instances, tc_name)
+    assert error_instances == exp_error_inst_objs, \
+        "Error in WBEMConnection operation error instances.\n" \
+        "Expected: %s\nReceived: %s" % \
+        (exp_error_inst_objs, error_instances)
 
     # Returns either exp_result or exp_pull_result
     if exp_result is not None:
