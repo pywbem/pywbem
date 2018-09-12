@@ -10,7 +10,7 @@ import six
 import pytest
 
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, VersionError, CIMError
+    ParseError, VersionError, CIMError, CIMInstance
 
 
 def _assert_subscription(exc):
@@ -163,6 +163,22 @@ def status_tuple(request):
     return request.param
 
 
+@pytest.fixture(params=[
+    None,
+    [],
+    [CIMInstance('CIM_Err')],
+    [CIMInstance('CIM_Err1'), CIMInstance('CIM_Err2')],
+], scope='module')
+def error_instances(request):
+    """
+    Fixture representing variations of the list of instances that can be
+    set on a CIMError exception.
+
+    Returns a list of CIMInstance objects, or None.
+    """
+    return request.param
+
+
 def test_cimerror_1(status_tuple):  # pylint: disable=redefined-outer-name
     """Test cimerror"""
     status_code = status_tuple[0]
@@ -183,7 +199,8 @@ def test_cimerror_1(status_tuple):  # pylint: disable=redefined-outer-name
 
     assert exc.args[0] == exc.status_code
     assert exc.args[1] is None
-    assert len(exc.args) == 2
+    assert exc.args[2] is None
+    assert len(exc.args) == 3
 
     _assert_subscription(exc)
 
@@ -209,6 +226,23 @@ def test_cimerror_2(status_tuple):  # pylint: disable=redefined-outer-name
 
     assert exc.args[0] == exc.status_code
     assert exc.args[1] == input_desc
-    assert len(exc.args) == 2
+    assert exc.args[2] is None
+    assert len(exc.args) == 3
+
+    _assert_subscription(exc)
+
+
+def test_cimerror_3(status_tuple, error_instances):
+    # pylint: disable=redefined-outer-name
+    """
+    Test CIMError exception class with status_code and instances as input.
+    """
+
+    status_code, status_code_name = status_tuple
+
+    exc = CIMError(status_code, instances=error_instances)
+
+    assert exc.args[2] == error_instances
+    assert len(exc.args) == 3
 
     _assert_subscription(exc)

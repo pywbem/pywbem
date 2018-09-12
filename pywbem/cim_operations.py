@@ -1664,9 +1664,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if tup_tree[0][0] == 'ERROR':
             err = tup_tree[0]
             code = int(err[1]['CODE'])
+            err_insts = err[2] or None  # List of CIMInstance objects
             if 'DESCRIPTION' in err[1]:
-                raise CIMError(code, err[1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % err[1]['CODE'])
+                desc = err[1]['DESCRIPTION']
+            else:
+                desc = 'Error code %s' % err[1]['CODE']
+            raise CIMError(code, desc, instances=err_insts)
+
         if response_params_rqd is None:
             # expect either ERROR | IRETURNVALUE*
             err = tup_tree[0]
@@ -1895,10 +1899,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # more PARAMVALUE elements representing output parameters.
 
         if tup_tree and tup_tree[0][0] == 'ERROR':
-            code = int(tup_tree[0][1]['CODE'])
-            if 'DESCRIPTION' in tup_tree[0][1]:
-                raise CIMError(code, tup_tree[0][1]['DESCRIPTION'])
-            raise CIMError(code, 'Error code %s' % tup_tree[0][1]['CODE'])
+            err = tup_tree[0]
+            code = int(err[1]['CODE'])
+            err_insts = err[2] or None  # List of CIMInstance objects
+            if 'DESCRIPTION' in err[1]:
+                desc = err[1]['DESCRIPTION']
+            else:
+                desc = 'Error code %s' % err[1]['CODE']
+            raise CIMError(code, desc, instances=err_insts)
 
         # #  Original code return tup_tree
 
