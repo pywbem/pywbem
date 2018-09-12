@@ -17,6 +17,12 @@ import os
 import re
 
 from pbr.version import VersionInfo
+from pywbem.cim_constants import DEFAULT_NAMESPACE
+
+# RST variable substitutions
+rst_prolog = """
+.. |DEFAULT_NAMESPACE| replace:: ``"%s"``
+""" % DEFAULT_NAMESPACE
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
