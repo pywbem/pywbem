@@ -53,6 +53,13 @@ This version contains all fixes up to pywbem 0.12.4.
   successfully, you have done that through the `pywbem.config` namespace
   already.
 
+* Removed the `ez_setup.py` script from the repository. That script is the
+  well-known tool that bootstraps `easy_setup` which was used for installing
+  Python packages in times before `pip` became ubiquitous. If anyone still
+  uses `easy_setup` these days for installing Python packages, it is time
+  to switch to using `pip`. If you cannot do that for some reason, you will
+  now need to install `easy_setup` by some other means.
+
 **Deprecations:**
 
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
