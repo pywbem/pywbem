@@ -15,13 +15,7 @@ Change log
 Version 0.12.6
 ^^^^^^^^^^^^^^
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2018-09-13
 
 **Bug fixes:**
 
@@ -53,12 +47,6 @@ Released: not yet
 * Added an `instances` property to the `CIMError` exception class that can
   be used to represent a list of error instances returned by the WBEM server
   in error responses. See issue #1380.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 Version 0.12.5
 ^^^^^^^^^^^^^^
