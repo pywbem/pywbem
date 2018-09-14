@@ -66,6 +66,12 @@ This version contains all fixes up to pywbem 0.12.4.
   in favor of the `cimvalue()` function introduced in pywbem 0.12.0. Changed
   all internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
 
+**Finalizations:**
+
+* Finalized the logging support. The logging support was introduced in
+  pywbem 0.11 and was redesigned in pywbem 0.12. For details, see the
+  "WBEM operation logging" section in the pywbem documentation.
+
 **Bug fixes:**
 
 * Fixed the issue where wbemcli-help-txt was not being updated when wbemcli.py

@@ -16,8 +16,7 @@
 
 # pylint: disable=line-too-long
 """
-**Experimental:** *New in pywbem 0.11 and redesigned in pywbem 0.12 as
-experimental.*
+*New in pywbem 0.11 and redesigned in pywbem 0.12. Finalized in pywbem 0.13.*
 
 
 .. _`Pywbem logging overview`:
