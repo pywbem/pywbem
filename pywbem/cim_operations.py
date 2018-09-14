@@ -581,7 +581,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             exception.
 
           use_pull_operations (:class:`py:bool`):
-            **Experimental** *New in pywbem 0.11 as experimental.*
+            *New in pywbem 0.11 as experimental and finalized in 0.13.*
 
             Controls the use of pull operations in any `Iter...()` methods.
 
@@ -1038,7 +1038,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def use_pull_operations(self):
         """
-        **Experimental** *New in pywbem 0.11 as experimental.*
+        *New in pywbem 0.11 as experimental and finalized in 0.13.*
 
         :class:`py:bool`: Indicates whether the client should attempt the use
         of pull operations in any `Iter...()` methods.

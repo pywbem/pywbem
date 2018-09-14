@@ -66,6 +66,12 @@ This version contains all fixes up to pywbem 0.12.4.
   in favor of the `cimvalue()` function introduced in pywbem 0.12.0. Changed
   all internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
 
+**Finalizations:**
+
+* Finalized the `use_pull_operations` property and init argument of the
+  `WBEMConnections` class that allows controlling whether the `Iter...()`
+  methods use pull operations or traditional operations.
+
 **Bug fixes:**
 
 * Fixed the issue where wbemcli-help-txt was not being updated when wbemcli.py
