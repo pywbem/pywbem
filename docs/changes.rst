@@ -68,6 +68,10 @@ This version contains all fixes up to pywbem 0.12.4.
 
 **Finalizations:**
 
+* Finalized the `use_pull_operations` property and init argument of the
+  `WBEMConnections` class that allows controlling whether the `Iter...()`
+  methods use pull operations or traditional operations.
+
 * Finalized the logging support. The logging support was introduced in
   pywbem 0.11 and was redesigned in pywbem 0.12. For details, see the
   "WBEM operation logging" section in the pywbem documentation.
