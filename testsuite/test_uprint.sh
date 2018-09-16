@@ -6,6 +6,8 @@
 function run_test {
   cmd="$@"
 
+  echo "Running: $cmd"
+
   sh -c "$cmd" 2>$err_log
   rc=$?
 
@@ -16,9 +18,12 @@ function run_test {
     echo "=== end of stderr ==="
     exit $rc
   else
-    echo "Success for: $cmd"
-    # In this case, stderr may contain debug messages
-    cat $err_log
+    echo "Success."
+    if [ -s $err_log ]; then
+        # In this case, stderr may contain debug messages
+        echo "Debug messages in this run:"
+        cat $err_log
+    fi
   fi
 }
 
@@ -30,11 +35,8 @@ run_test "python $mydir/run_uprint.py small"
 run_test "python $mydir/run_uprint.py small >/dev/null"
 run_test "python $mydir/run_uprint.py small >$out_log"
 
-#run_test "python $mydir/run_uprint.py ucs2"
 run_test "python $mydir/run_uprint.py ucs2 >/dev/null"
 run_test "python $mydir/run_uprint.py ucs2 >$out_log"
 
-#run_test "python $mydir/run_uprint.py all"
 run_test "python $mydir/run_uprint.py all >/dev/null"
 run_test "python $mydir/run_uprint.py all >$out_log"
-

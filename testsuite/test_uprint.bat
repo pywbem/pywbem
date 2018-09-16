@@ -11,11 +11,9 @@ call :run_test -         python %mydir%run_uprint.py small
 call :run_test nul       python %mydir%run_uprint.py small
 call :run_test %out_log% python %mydir%run_uprint.py small
 
-rem call :run_test -         python %mydir%run_uprint.py ucs2
 call :run_test nul       python %mydir%run_uprint.py ucs2
 call :run_test %out_log% python %mydir%run_uprint.py ucs2
 
-rem call :run_test -         python %mydir%run_uprint.py all
 call :run_test nul       python %mydir%run_uprint.py all
 call :run_test %out_log% python %mydir%run_uprint.py all
 
@@ -30,6 +28,7 @@ if "%out%"=="-" (
 ) else (
   set cmd_out=%cmd% ^>%out%
 )
+echo Running: %cmd%    %out%
 call %cmd_out% 2>%err_log%
 set rc=%errorlevel%
 if errorlevel 1 (
@@ -39,7 +38,8 @@ if errorlevel 1 (
   echo === end of stderr ===
   exit /b %rc%
 ) else (
-  echo Success for: %cmd%    %out%
+  echo Success.
+  echo Debug messages in this run:
   type %err_log%
 )
 exit /b 0
