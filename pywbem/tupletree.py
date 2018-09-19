@@ -61,6 +61,7 @@ import sys
 import six
 
 from .exceptions import ParseError
+from ._utils import _format
 
 __all__ = []
 
@@ -119,7 +120,7 @@ class CIMContentHandler(xml.sax.ContentHandler):
                 pass
             else:
                 ws = self.element[2].pop()
-                content = '%s%s' % (ws, content)
+                content = '{0}{1}'.format(ws, content)
         self.element[2].append(content)
 
 
@@ -188,8 +189,10 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
 
         # If the checks above pass, re-raise the SAX exception info, with its
         # original traceback info:
-        pe = ParseError("SAXParseException raised when parsing %s: %s" %
-                        (meaning, exc), conn_id=conn_id)
+        pe = ParseError(
+            _format("SAXParseException raised when parsing {0}: {1}",
+                    meaning, exc),
+            conn_id=conn_id)
         six.reraise(type(pe), pe, org_tb)  # ignore this call in traceback!
 
     return handler.root
@@ -290,8 +293,9 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     context_after = 16     # number of chars to print after any bad chars
 
     if not isinstance(utf8_string, six.binary_type):
-        raise TypeError("utf8_string parameter is not a byte string, "
-                        "but has type %s" % type(utf8_string))
+        raise TypeError(
+            _format("utf8_string parameter is not a byte string, but has "
+                    "type {0}", type(utf8_string)))
 
     # Check for ill-formed UTF-8 sequences. This needs to be done
     # before the str type gets decoded to unicode, because afterwards
@@ -303,15 +307,16 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
         ifs_seq = m.group(1)
         ifs_list.append((ifs_pos, ifs_seq))
     if ifs_list:
-        exc_txt = "Ill-formed (surrogate) UTF-8 Byte sequences found in %s:" %\
-                  meaning
+        exc_txt = _format("Ill-formed (surrogate) UTF-8 Byte sequences found "
+                          "in {0}:", meaning)
         for (ifs_pos, ifs_seq) in ifs_list:
-            exc_txt += "\n  At offset %d:" % ifs_pos
+            exc_txt += "\n  At offset {0}:".format(ifs_pos)
             for ifs_ord in six.iterbytes(ifs_seq):
-                exc_txt += " 0x%02X" % ifs_ord
+                exc_txt += " 0x{0:02X}".format(ifs_ord)
             cpos1 = max(ifs_pos - context_before, 0)
             cpos2 = min(ifs_pos + context_after, len(utf8_string))
-            exc_txt += ", CIM-XML snippet: %r" % utf8_string[cpos1:cpos2]
+            exc_txt += _format(", CIM-XML snippet: {0!A}",
+                               utf8_string[cpos1:cpos2])
         raise ParseError(exc_txt, conn_id=conn_id)
 
     # Check for incorrectly encoded UTF-8 sequences.
@@ -329,15 +334,16 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
         # pylint: disable=unbalanced-tuple-unpacking
         unused_codec, unused_str, _p1, _p2, unused_msg = exc.args
 
-        exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in %s" %\
-                  meaning
-        exc_txt += "\n  At offset %d:" % _p1
+        exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in {0}". \
+            format(meaning)
+        exc_txt += "\n  At offset {0}:".format(_p1)
         ies_seq = utf8_string[_p1:_p2 + 1]
         for ies_ord in six.iterbytes(ies_seq):
-            exc_txt += " 0x%02X" % ies_ord
+            exc_txt += " 0x{0:02X}".format(ies_ord)
         cpos1 = max(_p1 - context_before, 0)
         cpos2 = min(_p2 + context_after, len(utf8_string))
-        exc_txt += ", CIM-XML snippet: %r" % utf8_string[cpos1:cpos2]
+        exc_txt += _format(", CIM-XML snippet: {0!A}",
+                           utf8_string[cpos1:cpos2])
         raise ParseError(exc_txt, conn_id=conn_id)
 
     return utf8_string_u
@@ -399,8 +405,9 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
     context_after = 16     # number of chars to print after any bad chars
 
     if not isinstance(xml_string, six.text_type):
-        raise TypeError("xml_string parameter is not a unicode string, "
-                        "but has type %s" % type(xml_string))
+        raise TypeError(
+            _format("xml_string parameter is not a unicode string, but has "
+                    "type {0}", type(xml_string)))
 
     # Check for Unicode characters that cannot legally be represented as XML
     # characters.
@@ -413,10 +420,11 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
             ixc_list.append((ixc_pos, ixc_char))
         last_ixc_pos = ixc_pos
     if ixc_list:
-        exc_txt = "Invalid XML characters found in %s:" % meaning
+        exc_txt = "Invalid XML characters found in {0}:".format(meaning)
         for (ixc_pos, ixc_char) in ixc_list:
             cpos1 = max(ixc_pos - context_before, 0)
             cpos2 = min(ixc_pos + context_after, len(xml_string))
-            exc_txt += "\n  At offset %d: U+%04X, CIM-XML snippet: %r" % \
-                (ixc_pos, ord(ixc_char), xml_string[cpos1:cpos2])
+            exc_txt += _format("\n  At offset {0}: U+{1:04X}, "
+                               "CIM-XML snippet: {2!A}",
+                               ixc_pos, ord(ixc_char), xml_string[cpos1:cpos2])
         raise ParseError(exc_txt, conn_id=conn_id)

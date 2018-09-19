@@ -355,6 +355,13 @@ This version contains all fixes up to pywbem 0.12.4.
   is set to the built-in default namespace "root/cimv2", instead. Previously,
   that was done only when not specifying the `default_namespace` argument.
 
+* All exception and warning messages produced by pywbem now are guaranteed to
+  contain only ASCII characters. Unicode characters in the messages are
+  represented using an escape syntax such as `\\uXXXX` or `\\U00XXXXXX`.
+  That was also done for the result of any `__repr__()` methods of pywbem.
+  This is important in order to avoid secondary Unicode encoding exceptions
+  while a first exception or warning is processed. See issue #1072.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

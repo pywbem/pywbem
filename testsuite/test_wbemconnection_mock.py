@@ -48,7 +48,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
 
 from pywbem._nocasedict import NocaseDict
-
+from pywbem._utils import _format
 from pywbem.cim_operations import pull_path_result_tuple
 
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema
@@ -1116,14 +1116,17 @@ class TestRepoMethods(object):
             result = captured.out
             assert result.startswith(
                 "# ========Mock Repo Display fmt=mof namespaces=all")
-            assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in result
-            assert 'instance of CIM_Foo {' in result
+            assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
+            assert "instance of CIM_Foo {" in result
             for ns in namespaces:
-                assert '# Namespace %s: contains 9 Qualifier Declarations' % \
-                       ns in result
-                assert '# Namespace %s: contains 5 Classes' % ns in result
-                assert '# Namespace %s: contains 9 Instances' % ns in result
-            assert 'Qualifier Abstract : boolean = false,' in result
+                assert _format("# Namespace {0!A}: contains 9 Qualifier "
+                               "Declarations", ns) \
+                    in result
+                assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
+                    in result
+                assert _format("# Namespace {0!A}: contains 9 Instances", ns) \
+                    in result
+            assert "Qualifier Abstract : boolean = false," in result
 
         # Confirm that the display formats work
         for param in ('xml', 'mof', 'repr'):

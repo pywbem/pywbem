@@ -260,7 +260,7 @@ from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     CIMFloat, _Longint
 from ._nocasedict import NocaseDict
 from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
-    _hash_name, _hash_item, _hash_dict
+    _hash_name, _hash_item, _hash_dict, _format
 
 if six.PY2:
     # pylint: disable=wrong-import-order
@@ -301,17 +301,17 @@ WBEM_URI_INSTANCEPATH_REGEXP = re.compile(
 _KB_NOT_QUOTED = r'[^,"\'\\]+'
 _KB_SINGLE_QUOTED = r"'(?:[^'\\]|\\.)*'"
 _KB_DOUBLE_QUOTED = r'"(?:[^"\\]|\\.)*"'
-_KB_VAL = r'(?:%s|%s|%s)' % \
-    (_KB_NOT_QUOTED, _KB_SINGLE_QUOTED, _KB_DOUBLE_QUOTED)
+_KB_VAL = r'(?:{0}|{1}|{2})'.format(
+    _KB_NOT_QUOTED, _KB_SINGLE_QUOTED, _KB_DOUBLE_QUOTED)
 
 # To get all repetitions, capture a repeated group instead of repeating a
 # capturing group: https://www.regular-expressions.info/captureall.html
 WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
-    r'^(\w+=%s)((?:,\w+=%s)*)$' % (_KB_VAL, _KB_VAL),
+    r'^(\w+={0})((?:,\w+={1})*)$'.format(_KB_VAL, _KB_VAL),
     flags=(re.UNICODE | re.IGNORECASE))
 
 WBEM_URI_KB_FINDALL_REGEXP = re.compile(
-    r',\w+=%s' % _KB_VAL,
+    r',\w+={0}'.format(_KB_VAL),
     flags=(re.UNICODE | re.IGNORECASE))
 
 # Pattern for DSP0004 binaryValue; group(1) is value without trailing B
@@ -567,7 +567,7 @@ def _mof_escaped(strvalue):
     # The generic code would be (not skipping already handled chars):
     #     for cp in range(1, 32):
     #         c = six.unichr(cp)
-    #         esc = '\\x%04X' % cp
+    #         esc = '\\x{0:04X}'.format(cp)
     #         escaped_str = escaped_str.replace(c, esc)
     escaped_str = escaped_str.\
         replace(u'\u0001', '\\x0001').\
@@ -720,9 +720,10 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
 
         # A safety check for endless loops
         assert value != saved_value, \
-            "Endless loop in mofstr() with state: " \
-            "mof_str=%r, value=%r, avl_len=%s, end_space=%s, split_pos=%s" % \
-            (u''.join(mof), value, avl_len, end_space, split_pos)
+            _format("Endless loop in mofstr() with state: "
+                    "mof_str={0!A}, value={1!A}, avl_len={2}, end_space={3}, "
+                    "split_pos={4}",
+                    u''.join(mof), value, avl_len, end_space, split_pos)
 
     mof_str = u''.join(mof)
     return mof_str, line_pos
@@ -781,8 +782,9 @@ def mofval(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
         line_pos = indent + len(value)
         return mof_str, line_pos
 
-    raise ValueError("Cannot fit value %r onto new MOF line, missing %s "
-                     "characters" % (value, len(value) - avl_len))
+    raise ValueError(
+        _format("Cannot fit value {0!A} onto new MOF line, missing {1} "
+                "characters", value, len(value) - avl_len))
 
 
 def moftype(cim_type, refclass):
@@ -844,9 +846,10 @@ def _scalar_value_tomof(
             return mofstr(value.tomof(), indent, maxline, line_pos, end_space,
                           avoid_splits)
         else:
-            raise TypeError("Scalar value of CIM type %r has invalid Python "
-                            "type %s for conversion to a MOF string" %
-                            (type, builtin_type(value)))
+            raise TypeError(
+                _format("Scalar value of CIM type {0} has invalid Python type "
+                        "type {1} for conversion to a MOF string",
+                        type, builtin_type(value)))
     elif type == 'char16':
         return mofstr(value, indent, maxline, line_pos, end_space, avoid_splits,
                       quote_char=u"'")
@@ -864,8 +867,9 @@ def _scalar_value_tomof(
         return mofval(val, indent, maxline, line_pos, end_space)
     else:
         assert isinstance(value, float), \
-            "Scalar value of CIM type %r has invalid Python type %s for " \
-            "conversion to a MOF string" % (type, builtin_type(value))
+            _format("Scalar value of CIM type {0} has invalid Python type {1} "
+                    "for conversion to a MOF string",
+                    type, builtin_type(value))
         val = repr(value)
         return mofval(val, indent, maxline, line_pos, end_space)
 
@@ -951,9 +955,10 @@ def _cim_keybinding(key, value):
 
     if key is not None and isinstance(value, CIMProperty):
         if value.name.lower() != key.lower():
-            raise ValueError("Invalid keybinding name: CIMProperty.name must "
-                             "be dictionary key %s, but is %s" %
-                             (key, value.name))
+            raise ValueError(
+                _format("Invalid keybinding name: CIMProperty.name must be "
+                        "dictionary key {0!A}, but is {1!A}",
+                        key, value.name))
         return copy_.copy(value.value)
 
     if value is None:
@@ -982,14 +987,17 @@ def _cim_keybinding(key, value):
         return value
 
     if isinstance(value, (CIMClass, CIMInstance)):
-        raise TypeError("Value of keybinding %r cannot be an "
-                        "embedded object: %s" % (key, type(value)))
+        raise TypeError(
+            _format("Value of keybinding {0!A} cannot be an embedded object: "
+                    "{1}", key, type(value)))
 
     if isinstance(value, list):
-        raise TypeError("Value of keybinding %r cannot be a list" % key)
+        raise TypeError(
+            _format("Value of keybinding {0!A} cannot be a list", key))
 
-    raise TypeError("Value of keybinding %r has an invalid type: %s" %
-                    (key, type(value)))
+    raise TypeError(
+        _format("Value of keybinding {0!A} has an invalid type: {1}",
+                key, type(value)))
 
 
 def _cim_property_value(key, value):
@@ -1008,8 +1016,9 @@ def _cim_property_value(key, value):
 
     if isinstance(value, CIMProperty):
         if value.name.lower() != key.lower():
-            raise ValueError("CIMProperty.name must be dictionary key "
-                             "%s, but is %s" % (key, value.name))
+            raise ValueError(
+                _format("CIMProperty.name must be dictionary key {0!A}, but is"
+                        "{1!A}", key, value.name))
         prop = value
     else:
         # We no longer check for the common error to set CIM numeric values as
@@ -1032,12 +1041,14 @@ def _cim_property_decl(key, value):
         raise ValueError("Property name must not be None")
 
     if not isinstance(value, CIMProperty):
-        raise TypeError("Property must be a CIMProperty object, but is: %s" %
-                        type(value))
+        raise TypeError(
+            _format("Property must be a CIMProperty object, but is: {0}",
+                    type(value)))
 
     if value.name.lower() != key.lower():
-        raise ValueError("CIMProperty.name must be dictionary key %s, but is "
-                         "%s" % (key, value.name))
+        raise ValueError(
+            _format("CIMProperty.name must be dictionary key {0!A}, but is "
+                    "{1!A}", key, value.name))
 
     return value
 
@@ -1054,12 +1065,14 @@ def _cim_method(key, value):
         raise ValueError("Method name must not be None")
 
     if not isinstance(value, CIMMethod):
-        raise TypeError("Method must be a CIMMethod object, but is: %s" %
-                        type(value))
+        raise TypeError(
+            _format("Method must be a CIMMethod object, but is: {0}",
+                    type(value)))
 
     if value.name.lower() != key.lower():
-        raise ValueError("CIMMethod.name must be dictionary key %s, but is "
-                         "%s" % (key, value.name))
+        raise ValueError(
+            _format("CIMMethod.name must be dictionary key {0!A}, but is ",
+                    "{1!A}", key, value.name))
 
     return value
 
@@ -1080,8 +1093,9 @@ def _cim_qualifier(key, value):
 
     if isinstance(value, CIMQualifier):
         if value.name.lower() != key.lower():
-            raise ValueError("CIMQualifier.name must be dictionary key "
-                             "%s, but is %s" % (key, value.name))
+            raise ValueError(
+                _format("CIMQualifier.name must be dictionary key {0!A}, but "
+                        "is {1!A}", key, value.name))
         qual = value
     else:
         # We no longer check for the common error to set CIM numeric values as
@@ -1274,15 +1288,16 @@ class CIMInstanceName(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for keybindings has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for keybindings has invalid "
+                                "item in iterable: {0!A}", item))
                 if value is None and \
                         config.IGNORE_NULL_KEY_VALUE is False:
-                    raise ValueError('CIMInstance keybinding %s key %s '
-                                     'value is "None" which is not allowed '
-                                     'unless "IGNORE_NULL_KEY_VALUE" is '
-                                     'True.' %
-                                     (keybindings, key))
+                    raise ValueError(
+                        _format("CIMInstance keybinding {0!A} key {1!A} value "
+                                "value is 'None' which is not allowed unless "
+                                "unless 'IGNORE_NULL_KEY_VALUE' is True.",
+                                keybindings, key))
                 self.keybindings[key] = _cim_keybinding(key, value)
 
     @property
@@ -1352,8 +1367,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMInstanceName):
-            raise TypeError("other must be CIMInstanceName, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMInstanceName, but is: {0}",
+                        type(other)))
         return (cmpname(self.host, other.host) or
                 cmpname(self.namespace, other.namespace) or
                 cmpname(self.classname, other.classname) or
@@ -1410,10 +1426,13 @@ class CIMInstanceName(_CIMComparisonMixin):
         The key bindings will be ordered by their names in the result.
         """
 
-        return '%s(classname=%r, keybindings=%r, ' \
-               'namespace=%r, host=%r)' % \
-               (self.__class__.__name__, self.classname, self.keybindings,
-                self.namespace, self.host)
+        return _format(
+            "CIMInstanceName("
+            "classname={s.classname!A}, "
+            "keybindings={s.keybindings!A}, "
+            "namespace={s.namespace!A}, "
+            "host={s.host!A})",
+            s=self)
 
     def __contains__(self, key):
         return key in self.keybindings
@@ -1595,8 +1614,9 @@ class CIMInstanceName(_CIMComparisonMixin):
             else:
                 # Double check the type of the keybindings, because they can be
                 # set individually.
-                raise TypeError('Keybinding %s has invalid type: %s' %
-                                (key, builtin_type(value)))
+                raise TypeError(
+                    _format("Keybinding {0!A} has invalid type: {1}",
+                            key, builtin_type(value)))
 
             kbs.append(cim_xml.KEYBINDING(
                 key, cim_xml.KEYVALUE(value, type_)))
@@ -1709,8 +1729,9 @@ class CIMInstanceName(_CIMComparisonMixin):
             cimval = re.sub(r'\\(.)', r'\1', cimval)
             cimval = _ensure_unicode(cimval)
             if len(cimval) != 1:
-                raise ValueError("WBEM URI has a char16 keybinding with an "
-                                 "incorrect length: %s=%r" % (key, val))
+                raise ValueError(
+                    _format("WBEM URI has a char16 keybinding with an "
+                            "incorrect length: {0!A}={1!A}", key, val))
             return cimval
 
         if val.lower() in ('true', 'false'):
@@ -1780,12 +1801,14 @@ class CIMInstanceName(_CIMComparisonMixin):
         try:
             cimval = CIMDateTime(val)
         except ValueError:
-            raise ValueError("WBEM URI has invalid value format in a "
-                             "keybinding: %s=%r" % (key, val))
+            raise ValueError(
+                _format("WBEM URI has invalid value format in a keybinding: "
+                        "{0!A}={1!A}", key, val))
 
-        warnings.warn("Tolerating datetime value without surrounding double "
-                      "quotes in WBEM URI keybinding: %s=%r" % (key, val),
-                      UserWarning)
+        warnings.warn(
+            _format("Tolerating datetime value without surrounding double "
+                    "quotes in WBEM URI keybinding: {0!A}={1!A}", key, val),
+            UserWarning)
         return cimval
 
     @staticmethod
@@ -1874,13 +1897,16 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         m = WBEM_URI_INSTANCEPATH_REGEXP.match(wbem_uri)
         if m is None:
-            raise ValueError("Invalid format for an instance path in "
-                             "WBEM URI: %r" % wbem_uri)
+            raise ValueError(
+                _format("Invalid format for an instance path in WBEM URI: "
+                        "{0!A}", wbem_uri))
 
         ns_type = m.group(1) or None
         if ns_type and ns_type.lower() not in WBEM_URI_NAMESPACE_TYPES:
-            warnings.warn("Tolerating unknown namespace type in WBEM URI: %r" %
-                          wbem_uri, UserWarning)
+            warnings.warn(
+                _format("Tolerating unknown namespace type in WBEM URI: {0!A}",
+                        wbem_uri),
+                UserWarning)
 
         host = m.group(2) or None
         namespace = m.group(3) or None
@@ -1890,8 +1916,9 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         m = WBEM_URI_KEYBINDINGS_REGEXP.match(keybindings_str)
         if m is None:
-            raise ValueError("WBEM URI has an invalid format for its "
-                             "keybindings: %r" % keybindings_str)
+            raise ValueError(
+                _format("WBEM URI has an invalid format for its keybindings: "
+                        "{0!A}", keybindings_str))
 
         if m.group(1):
             kb_assigns = [m.group(1)]
@@ -1907,7 +1934,8 @@ class CIMInstanceName(_CIMComparisonMixin):
             key, sep, val = _partition(kb_assign, '=')
 
             # the regexp ensures that it's there:
-            assert sep, "kb_assign=%r" % kb_assign
+            assert sep, \
+                _format("separator missing in kb_assign: {0!A}", kb_assign)
 
             keybindings[key] = CIMInstanceName._kbstr_to_cimval(key, val)
 
@@ -2053,7 +2081,8 @@ class CIMInstanceName(_CIMComparisonMixin):
             return keys
 
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
-            raise ValueError("Invalid format argument: %s" % format)
+            raise ValueError(
+                _format("Invalid format argument: {0}", format))
 
         if self.host is not None and format != 'cimobject':
             # The CIMObject format assumes there is no host component
@@ -2115,8 +2144,9 @@ class CIMInstanceName(_CIMComparisonMixin):
                            replace('"', '\\"'))
                 ret.append('"')
             else:
-                raise TypeError("Invalid type %s in keybinding value: %s=%r" %
-                                (type(value), key, value))
+                raise TypeError(
+                    _format("Invalid type {0} in keybinding value: {1!A}={2!A}",
+                            type(value), key, value))
             ret.append(',')
 
         del ret[-1]
@@ -2197,9 +2227,9 @@ class CIMInstanceName(_CIMComparisonMixin):
                     keybindings[pname] = instance[prop]
                 else:
                     if strict:
-                        raise ValueError('Key property %r of class %r '
-                                         'missing in instance.' %
-                                         (pname, class_.classname))
+                        raise ValueError(
+                            _format("Key property {0!A} of class {1!A} missing "
+                                    "in instance.", pname, class_.classname))
 
         return CIMInstanceName(class_.classname,
                                keybindings,
@@ -2389,8 +2419,9 @@ class CIMInstance(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for properties has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for properties has invalid item "
+                                "in iterable: {0!A}", item))
                 self.__setitem__(key, value)
 
     @property
@@ -2442,8 +2473,9 @@ class CIMInstance(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for qualifiers has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for qualifiers has invalid item "
+                                "in iterable: {0!A}", item))
                 self.qualifiers[key] = _cim_qualifier(key, value)
 
     @property
@@ -2529,8 +2561,9 @@ class CIMInstance(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMInstance):
-            raise TypeError("other must be CIMInstance, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMInstance, but is: {0}",
+                        type(other)))
         return (cmpname(self.classname, other.classname) or
                 cmpitem(self.path, other.path) or
                 cmpdict(self.properties, other.properties) or
@@ -2556,9 +2589,11 @@ class CIMInstance(_CIMComparisonMixin):
         Return a short string representation of the
         :class:`~pywbem.CIMInstance` object for human consumption.
         """
-
-        return '%s(classname=%r, path=%r, ...)' % \
-               (self.__class__.__name__, self.classname, self.path)
+        return _format(
+            "CIMInstance("
+            "classname={s.classname!A}, "
+            "path={s.path!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
@@ -2568,13 +2603,14 @@ class CIMInstance(_CIMComparisonMixin):
         The properties and qualifiers will be ordered by their names in the
         result.
         """
-
-        return '%s(classname=%r, path=%r, ' \
-               'properties=%r, property_list=%r, ' \
-               'qualifiers=%r)' % \
-               (self.__class__.__name__, self.classname, self.path,
-                self.properties, self.property_list,
-                self.qualifiers)
+        return _format(
+            "CIMInstance("
+            "classname={s.classname!A}, "
+            "path={s.path!A}, "
+            "properties={s.properties!A}, "
+            "property_list={s.property_list!A}, "
+            "qualifiers={s.qualifiers!A})",
+            s=self)
 
     def __contains__(self, key):
         return key in self.properties
@@ -2808,9 +2844,9 @@ class CIMInstance(_CIMComparisonMixin):
         # implemented, we still check that the items are CIMProperty objects.
         for key, value in self.properties.items():
             if not isinstance(value, CIMProperty):
-                raise TypeError("Property %s has invalid type: %s "
-                                "(must be CIMProperty)" %
-                                (key, builtin_type(value)))
+                raise TypeError(
+                    _format("Property {0!A} has invalid type: {1} (must be "
+                            "CIMProperty)", key, builtin_type(value)))
 
         instance_xml = cim_xml.INSTANCE(
             self.classname,
@@ -3027,12 +3063,14 @@ class CIMInstance(_CIMComparisonMixin):
                 ncd.update(property_values)
                 property_values = ncd
             else:
-                raise TypeError('property_values param must be a dictionary. '
-                                'Type is %s' % type(property_values))
+                raise TypeError(
+                    _format("property_values param must be a dictionary. "
+                            "Type is {0}", type(property_values)))
         for pname in property_values:
             if pname not in klass.properties:
-                raise ValueError('Property name %r in property_values param '
-                                 'but not in class %r' % (pname, class_name))
+                raise ValueError(
+                    _format("Property name {0!A} in property_values param but "
+                            "not in class {1!A}", pname, class_name))
         for cp in klass.properties.values():
             co = cp.class_origin if include_class_origin else None
 
@@ -3242,8 +3280,9 @@ class CIMClassName(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMClassName):
-            raise TypeError("other must be CIMClassName, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMClassName, but is: {0}",
+                        type(other)))
         return (cmpname(self.host, other.host) or
                 cmpname(self.namespace, other.namespace) or
                 cmpname(self.classname, other.classname))
@@ -3299,10 +3338,12 @@ class CIMClassName(_CIMComparisonMixin):
         Return a string representation of the :class:`~pywbem.CIMClassName`
         object that is suitable for debugging.
         """
-        return '%s(classname=%r, namespace=%r, ' \
-               'host=%r)' % \
-               (self.__class__.__name__, self.classname, self.namespace,
-                self.host)
+        return _format(
+            "CIMClassName("
+            "classname={s.classname!A}, "
+            "namespace={s.namespace!A}, "
+            "host={s.host!A})",
+            s=self)
 
     def tocimxml(self, ignore_host=False, ignore_namespace=False):
         """
@@ -3442,13 +3483,16 @@ class CIMClassName(_CIMComparisonMixin):
 
         m = WBEM_URI_CLASSPATH_REGEXP.match(wbem_uri)
         if m is None:
-            raise ValueError("Invalid format for a class path in "
-                             "WBEM URI: %r" % wbem_uri)
+            raise ValueError(
+                _format("Invalid format for a class path in WBEM URI: {0!A}",
+                        wbem_uri))
 
         ns_type = m.group(1) or None
         if ns_type and ns_type.lower() not in WBEM_URI_NAMESPACE_TYPES:
-            warnings.warn("Tolerating unknown namespace type in WBEM URI: %r" %
-                          wbem_uri, UserWarning)
+            warnings.warn(
+                _format("Tolerating unknown namespace type in WBEM URI: {0!A}",
+                        wbem_uri),
+                UserWarning)
 
         host = m.group(2) or None
         namespace = m.group(3) or None
@@ -3573,7 +3617,8 @@ class CIMClassName(_CIMComparisonMixin):
             return str_
 
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
-            raise ValueError("Invalid format argument: %s" % format)
+            raise ValueError(
+                _format("Invalid format argument: {0}", format))
 
         ret = []
 
@@ -3774,8 +3819,9 @@ class CIMClass(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for properties has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for properties has invalid item "
+                                "in iterable: {0!A}", item))
                 self.properties[key] = _cim_property_decl(key, value)
 
     @property
@@ -3832,8 +3878,9 @@ class CIMClass(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for methods has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for methods has invalid item in "
+                                "iterable: {0!A}", item))
                 self.methods[key] = _cim_method(key, value)
 
     @property
@@ -3891,8 +3938,9 @@ class CIMClass(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for qualifiers has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for qualifiers has invalid item "
+                                "in iterable: {0!A}", item))
                 self.qualifiers[key] = _cim_qualifier(key, value)
 
     @property
@@ -3951,8 +3999,8 @@ class CIMClass(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMClass):
-            raise TypeError("other must be CIMClass, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMClass, but is: {0}", type(other)))
         return (cmpname(self.classname, other.classname) or
                 cmpname(self.superclass, other.superclass) or
                 cmpdict(self.qualifiers, other.qualifiers) or
@@ -3980,10 +4028,11 @@ class CIMClass(_CIMComparisonMixin):
         """
         Return a short string representation of the
         :class:`~pywbem.CIMClass` object for human consumption.
-    """
-
-        return '%s(classname=%r, ...)' % \
-               (self.__class__.__name__, self.classname)
+        """
+        return _format(
+            "CIMClass("
+            "classname={s.classname!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
@@ -3993,13 +4042,15 @@ class CIMClass(_CIMComparisonMixin):
         The order of properties, method and qualifiers will be preserved in
         the result.
         """
-
-        return '%s(classname=%r, superclass=%r, ' \
-               'properties=%r, methods=%r, qualifiers=%r, ' \
-               'path=%r)' % \
-               (self.__class__.__name__, self.classname, self.superclass,
-                self.properties, self.methods, self.qualifiers,
-                self.path)
+        return _format(
+            "CIMClass("
+            "classname={s.classname!A}, "
+            "superclass={s.superclass!A}, "
+            "properties={s.properties!A}, "
+            "methods={s.methods!A}, "
+            "qualifiers={s.qualifiers!A}, "
+            "path={s.path!A})",
+            s=self)
 
     def copy(self):
         """
@@ -4338,7 +4389,7 @@ class CIMProperty(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = "property %r" % name
+        element_txt = _format("property {0!A}", name)
 
         if type is None:
             type = _infer_type(value, element_txt)
@@ -4356,9 +4407,10 @@ class CIMProperty(_CIMComparisonMixin):
 
         if reference_class is not None:
             if is_array:
-                raise ValueError("Property %r specifies reference_class "
-                                 "%r but is an array property" %
-                                 (name, reference_class))
+                raise ValueError(
+                    _format("Property {0!A} specifies reference_class {1!A} "
+                            "but is an array property",
+                            name, reference_class))
             # The check for valid types of the input value will be performed
             # in the value setter.
 
@@ -4440,7 +4492,8 @@ class CIMProperty(_CIMComparisonMixin):
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
         if type not in ALL_CIMTYPES:
-            raise ValueError("Invalid CIM type: %s" % type)
+            raise ValueError(
+                _format("Invalid CIM type: {0}", type))
 
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -4641,8 +4694,9 @@ class CIMProperty(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for qualifiers has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for qualifiers has invalid item "
+                                "in iterable: {0!A}", item))
                 self.qualifiers[key] = _cim_qualifier(key, value)
 
     def copy(self):
@@ -4679,12 +4733,15 @@ class CIMProperty(_CIMComparisonMixin):
         Return a short string representation of the
         :class:`~pywbem.CIMProperty` object for human consumption.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
-               'reference_class=%r, embedded_object=%r, ' \
-               'is_array=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
-                self.reference_class, self.embedded_object,
-                self.is_array)
+        return _format(
+            "CIMProperty("
+            "name={s.name!A}, "
+            "value={s.value!A}, "
+            "type={s.type!A}, "
+            "reference_class={s.reference_class!A}, "
+            "embedded_object={s.embedded_object!A}, "
+            "is_array={s.is_array!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
@@ -4693,16 +4750,19 @@ class CIMProperty(_CIMComparisonMixin):
 
         The order of qualifiers will be preserved in the result.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
-               'reference_class=%r, embedded_object=%r, ' \
-               'is_array=%r, array_size=%r, ' \
-               'class_origin=%r, propagated=%r, ' \
-               'qualifiers=%r)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
-                self.reference_class, self.embedded_object,
-                self.is_array, self.array_size,
-                self.class_origin, self.propagated,
-                self.qualifiers)
+        return _format(
+            "CIMProperty("
+            "name={s.name!A}, "
+            "value={s.value!A}, "
+            "type={s.type!A}, "
+            "reference_class={s.reference_class!A}, "
+            "embedded_object={s.embedded_object!A}, "
+            "is_array={s.is_array!A}, "
+            "array_size={s.array_size!A}, "
+            "class_origin={s.class_origin!A}, "
+            "propagated={s.propagated!A}, "
+            "qualifiers={s.qualifiers!A})",
+            s=self)
 
     def tocimxml(self):
         """
@@ -4942,8 +5002,8 @@ class CIMProperty(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMProperty):
-            raise TypeError("other must be CIMProperty, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMProperty, but is: {0}", type(other)))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.value, other.value) or
                 cmpitem(self.type, other.type) or
@@ -5131,7 +5191,8 @@ class CIMMethod(_CIMComparisonMixin):
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
         if return_type not in ALL_CIMTYPES:
-            raise ValueError("Invalid CIM type: %s" % return_type)
+            raise ValueError(
+                _format("Invalid CIM type: {0}", return_type))
         if return_type == 'reference':
             raise ValueError("Method cannot have a reference return type")
 
@@ -5229,8 +5290,9 @@ class CIMMethod(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for parameters has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for parameters has invalid item "
+                                "in iterable: {0!A}", item))
                 self.parameters[key] = value
 
     @property
@@ -5288,8 +5350,9 @@ class CIMMethod(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for qualifiers has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for qualifiers has invalid item "
+                                "in iterable: {0!A}", item))
                 self.qualifiers[key] = _cim_qualifier(key, value)
 
     def _cmp(self, other):
@@ -5312,8 +5375,8 @@ class CIMMethod(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMMethod):
-            raise TypeError("other must be CIMMethod, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMMethod, but is: {0}", type(other)))
         return (cmpname(self.name, other.name) or
                 cmpdict(self.qualifiers, other.qualifiers) or
                 cmpdict(self.parameters, other.parameters) or
@@ -5342,8 +5405,11 @@ class CIMMethod(_CIMComparisonMixin):
         Return a short string representation of the
         :class:`~pywbem.CIMMethod` object for human consumption.
         """
-        return '%s(name=%r, return_type=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.return_type)
+        return _format(
+            "CIMMethod("
+            "name={s.name!A}, "
+            "return_type={s.return_type!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
@@ -5353,12 +5419,15 @@ class CIMMethod(_CIMComparisonMixin):
         The order of parameters and qualifiers will be preserved in the
         result.
         """
-        return '%s(name=%r, return_type=%r, ' \
-               'class_origin=%r, propagated=%r, ' \
-               'parameters=%r, qualifiers=%r)' % \
-               (self.__class__.__name__, self.name, self.return_type,
-                self.class_origin, self.propagated,
-                self.parameters, self.qualifiers)
+        return _format(
+            "CIMMethod("
+            "name={s.name!A}, "
+            "return_type={s.return_type!A}, "
+            "class_origin={s.class_origin!A}, "
+            "propagated={s.propagated!A}, "
+            "parameters={s.parameters!A}, "
+            "qualifiers={s.qualifiers!A})",
+            s=self)
 
     def copy(self):
         """
@@ -5595,7 +5664,7 @@ class CIMParameter(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = "parameter %r" % name
+        element_txt = _format("parameter {0!A}", name)
 
         if is_array is None:
             is_array = _infer_is_array(value)
@@ -5663,7 +5732,8 @@ class CIMParameter(_CIMComparisonMixin):
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
         if type not in ALL_CIMTYPES:
-            raise ValueError("Invalid CIM type: %s" % type)
+            raise ValueError(
+                _format("Invalid CIM type: {0}", type))
 
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -5784,8 +5854,9 @@ class CIMParameter(_CIMComparisonMixin):
                 elif isinstance(item, tuple):
                     key, value = item
                 else:
-                    raise TypeError("Input object for qualifiers has "
-                                    "invalid item in iterable: %r" % item)
+                    raise TypeError(
+                        _format("Input object for qualifiers has invalid item "
+                                "in iterable: {0!A}", item))
                 self.qualifiers[key] = _cim_qualifier(key, value)
 
     @property
@@ -5865,8 +5936,9 @@ class CIMParameter(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMParameter):
-            raise TypeError("other must be CIMParameter, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMParameter, but is: {0}",
+                        type(other)))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.type, other.type) or
                 cmpname(self.reference_class, other.reference_class) or
@@ -5899,12 +5971,13 @@ class CIMParameter(_CIMComparisonMixin):
         Return a short string representation of the
         :class:`~pywbem.CIMParameter` object for human consumption.
         """
-        return '%s(name=%r, type=%r, ' \
-               'reference_class=%r, ' \
-               'is_array=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.type,
-                self.reference_class,
-                self.is_array)
+        return _format(
+            "CIMParameter("
+            "name={s.name!A}, "
+            "type={s.type!A}, "
+            "reference_class={s.reference_class!A}, "
+            "is_array={s.is_array!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
@@ -5913,16 +5986,17 @@ class CIMParameter(_CIMComparisonMixin):
 
         The order of qualifiers will be preserved in the result.
         """
-        return '%s(name=%r, type=%r, ' \
-               'reference_class=%r, ' \
-               'is_array=%r, array_size=%r, ' \
-               'qualifiers=%r, value=%r, ' \
-               'embedded_object=%r)' % \
-               (self.__class__.__name__, self.name, self.type,
-                self.reference_class,
-                self.is_array, self.array_size,
-                self.qualifiers, self.value,
-                self.embedded_object)
+        return _format(
+            "CIMParameter("
+            "name={s.name!A}, "
+            "type={s.type!A}, "
+            "reference_class={s.reference_class!A}, "
+            "is_array={s.is_array!A}, "
+            "array_size={s.array_size!A}, "
+            "qualifiers={s.qualifiers!A}, "
+            "value={s.value!A}, "
+            "embedded_object={s.embedded_object!A})",
+            s=self)
 
     def copy(self):
         """
@@ -6305,7 +6379,7 @@ class CIMQualifier(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = "qualifier %r" % name
+        element_txt = _format("qualifier {0!A}", name)
 
         if type is None:
             type = _infer_type(value, element_txt)
@@ -6366,7 +6440,8 @@ class CIMQualifier(_CIMComparisonMixin):
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
         if type not in ALL_CIMTYPES:
-            raise ValueError("Invalid CIM type: %s" % type)
+            raise ValueError(
+                _format("Invalid CIM type: {0}", type))
 
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -6531,8 +6606,9 @@ class CIMQualifier(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMQualifier):
-            raise TypeError("other must be CIMQualifier, but is: %s" %
-                            type(other))
+            raise TypeError(
+                _format("other must be CIMQualifier, but is: {0}",
+                        type(other)))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.type, other.type) or
                 cmpitem(self.value, other.value) or
@@ -6565,20 +6641,29 @@ class CIMQualifier(_CIMComparisonMixin):
         Return a short string representation of the
         :class:`~pywbem.CIMQualifier` object for human consumption.
         """
-        return "%s(name=%r, value=%r, type=%r, ...)" % \
-               (self.__class__.__name__, self.name, self.value, self.type)
+        return _format(
+            "CIMQualifier("
+            "name={s.name!A}, "
+            "value={s.value!A}, "
+            "type={s.type!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
         Return a string representation of the :class:`~pywbem.CIMQualifier`
         object that is suitable for debugging.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
-               'tosubclass=%r, overridable=%r, translatable=%r, ' \
-               'toinstance=%r, propagated=%r)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
-                self.tosubclass, self.overridable, self.translatable,
-                self.toinstance, self.propagated)
+        return _format(
+            "CIMQualifier("
+            "name={s.name!A}, "
+            "value={s.value!A}, "
+            "type={s.type!A}, "
+            "tosubclass={s.tosubclass!A}, "
+            "overridable={s.overridable!A}, "
+            "translatable={s.translatable!A}, "
+            "toinstance={s.toinstance!A}, "
+            "propagated={s.propagated!A})",
+            s=self)
 
     def copy(self):
         """
@@ -6894,7 +6979,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = "qualifier declaration %r" % name
+        element_txt = _format("qualifier declaration {0!A}", name)
 
         if is_array is None:
             is_array = _infer_is_array(value)
@@ -6960,7 +7045,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
         if type not in ALL_CIMTYPES:
-            raise ValueError("Invalid CIM type: %s" % type)
+            raise ValueError(
+                _format("Invalid CIM type: {0}", type))
 
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -7167,8 +7253,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         if self is other:
             return 0
         if not isinstance(other, CIMQualifierDeclaration):
-            raise TypeError("other must be CIMQualifierDeclaration, "
-                            "but is: %s" % type(other))
+            raise TypeError(
+                _format("other must be CIMQualifierDeclaration, but is: {0}",
+                        type(other)))
         return (cmpname(self.name, other.name) or
                 cmpitem(self.type, other.type) or
                 cmpitem(self.value, other.value) or
@@ -7206,10 +7293,13 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         :class:`~pywbem.CIMQualifierDeclaration` object for human
         consumption.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
-               'is_array=%r, ...)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
-                self.is_array)
+        return _format(
+            "CIMQualifierDeclaration("
+            "name={s.name!A}, "
+            "value={s.value!A}, "
+            "type={s.type!A}, "
+            "is_array={s.is_array!A}, ...)",
+            s=self)
 
     def __repr__(self):
         """
@@ -7219,14 +7309,19 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
         The scopes will be ordered by their names in the result.
         """
-        return '%s(name=%r, value=%r, type=%r, ' \
-               'is_array=%r, array_size=%r, ' \
-               'scopes=%r, tosubclass=%r, overridable=%r, ' \
-               'translatable=%r, toinstance=%r)' % \
-               (self.__class__.__name__, self.name, self.value, self.type,
-                self.is_array, self.array_size,
-                self.scopes, self.tosubclass, self.overridable,
-                self.translatable, self.toinstance)
+        return _format(
+            "CIMQualifierDeclaration("
+            "name={s.name!A}, "
+            "value={s.value!A}, "
+            "type={s.type!A}, "
+            "is_array={s.is_array!A}, "
+            "array_size={s.array_size!A}, "
+            "scopes={s.scopes!A}, "
+            "tosubclass={s.tosubclass!A}, "
+            "overridable={s.overridable!A}, "
+            "translatable={s.translatable!A}, "
+            "toinstance={s.toinstance!A})",
+            s=self)
 
     def copy(self):
         """
@@ -7497,8 +7592,9 @@ def tocimxmlstr(value, indent=None):
         elif isinstance(indent, six.integer_types):
             indent = ' ' * indent
         else:
-            raise TypeError("Type of indent must be string or integer, "
-                            "but is: %s" % type(indent))
+            raise TypeError(
+                _format("Type of indent must be string or integer, but is: {0}",
+                        type(indent)))
         xml_str = xml_elem.toprettyxml(indent=indent)
     # xml_str is a unicode string if required based upon its content.
     return _ensure_unicode(xml_str)
@@ -7580,7 +7676,8 @@ def tocimobj(type_, value):
                 return True
             elif value.lower() == 'false':
                 return False
-        raise ValueError('Invalid boolean value: "%s"' % value)
+        raise ValueError(
+            _format("Invalid boolean value: {0!A}", value))
 
     # String type
 
@@ -7666,7 +7763,7 @@ def tocimobj(type_, value):
                 head, sep, tail = _partition(tail, ',')
                 if head.count('"') == 1:  # quoted string contains comma
                     tmp, sep, tail = _partition(tail, '"')
-                    head = '%s,%s' % (head, tmp)
+                    head = '{0},{1}'.format(head, tmp)
                     tail = _partition(tail, ',')[2]
                 head = head.strip()
                 key, sep, val = _partition(head, '=')
@@ -7674,8 +7771,8 @@ def tocimobj(type_, value):
                     cl_name, s, k = _partition(key, '.')
                     if s:
                         if cl_name != classname:
-                            raise ValueError('Invalid object path: "%s"' %
-                                             value)
+                            raise ValueError(
+                                _format("Invalid object path: {0!A}", value))
                         key = k
                     val = val.strip()
                     if val[0] == '"' and val[-1] == '"':
@@ -7692,16 +7789,19 @@ def tocimobj(type_, value):
                                 try:
                                     val = CIMDateTime(val)
                                 except ValueError:
-                                    raise ValueError('Invalid key binding: %s'
-                                                     % val)
+                                    raise ValueError(
+                                        _format("Invalid key binding: {0!A}",
+                                                val))
 
                     key_bindings[key] = val
             return CIMInstanceName(classname, host=host, namespace=nm_space,
                                    keybindings=key_bindings)
         else:
-            raise ValueError('Invalid reference value: "%s"' % value)
+            raise ValueError(
+                _format("Invalid reference value: {0!A}", value))
 
-    raise ValueError('Invalid CIM data type name: "%s"' % type_)
+    raise ValueError(
+        _format("Invalid CIM data type name: {0!A}", type_))
 
 
 def cimvalue(value, type):
@@ -7819,8 +7919,9 @@ def cimvalue(value, type):
             return value
         if isinstance(value, six.string_types):
             return CIMInstanceName.from_wbem_uri(value)
-        raise TypeError("Input value has invalid type for a CIM reference: "
-                        "%r" % value)
+        raise TypeError(
+            _format("Input value has invalid type for a CIM reference: {0!A}",
+                    value))
 
     # Other types (integers, floats, datetime)
     type_obj = type_from_name(type)  # Raises ValueError if invalid type
@@ -7854,14 +7955,16 @@ def _infer_type(value, element_txt):
     """
 
     if value is None:
-        raise ValueError("Cannot infer CIM type of %s from its value when "
-                         "the value is None" % element_txt)
+        raise ValueError(
+            _format("Cannot infer CIM type of {0} from its value when the "
+                    "value is None", element_txt))
 
     try:
         return cimtype(value)
     except TypeError as exc:
-        raise ValueError("Cannot infer CIM type of %s from its value: %s" %
-                         (element_txt, exc))
+        raise ValueError(
+            _format("Cannot infer CIM type of {0} from its value: {1!A}",
+                    element_txt, exc))
 
 
 def _infer_is_array(value):
@@ -7886,20 +7989,20 @@ def _check_array_parms(is_array, array_size, value, element_txt):
     # _infer_is_array() ensures that, and is supposed to be called
 
     if array_size and not is_array:
-        raise ValueError("The array_size parameter of %s is %r but "
-                         "the is_array parameter is False." %
-                         (element_txt, array_size))
+        raise ValueError(
+            _format("The array_size parameter of {0} is {1!A} but the "
+                    "is_array parameter is False.", element_txt, array_size))
 
     if value is not None:
         value_is_array = isinstance(value, (list, tuple))
         if not is_array and value_is_array:
-            raise ValueError("The is_array parameter of %s is False but "
-                             "value %r is an array." %
-                             (element_txt, value))
+            raise ValueError(
+                _format("The is_array parameter of {0} is False but value "
+                        "{1!A} is an array.", element_txt, value))
         if is_array and not value_is_array:
-            raise ValueError("The is_array parameter of %s is True but "
-                             "value %r is not an array." %
-                             (element_txt, value))
+            raise ValueError(
+                _format("The is_array parameter of {0} is True but value "
+                        "{1!A} is not an array.", element_txt, value))
 
 
 def _infer_embedded_object(value):
@@ -7939,14 +8042,16 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
     """
 
     if embedded_object not in ('instance', 'object'):
-        raise ValueError("%s specifies an invalid value for embedded_object: "
-                         "%r (must be 'instance' or 'object')" %
-                         (element_txt, embedded_object))
+        raise ValueError(
+            _format("{0} specifies an invalid value for embedded_object: "
+                    "{1!A} (must be 'instance' or 'object')",
+                    element_txt, embedded_object))
 
     if type != 'string':
-        raise ValueError("%s specifies embedded_object %r but its CIM type is "
-                         "invalid: %r (must be 'string')" %
-                         (element_txt, embedded_object, type))
+        raise ValueError(
+            _format("{0} specifies embedded_object {1!A} but its CIM type is "
+                    "invalid: {2!A} (must be 'string')",
+                    element_txt, embedded_object, type))
 
     if value is not None:
         if isinstance(value, list):
@@ -7954,19 +8059,20 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
                 v0 = value[0]  # Check the first array element
                 if v0 is not None and \
                         not isinstance(v0, (CIMInstance, CIMClass)):
-                    raise ValueError("Array %s specifies embedded_object %r "
-                                     "but the Python type of its first array "
-                                     "value is invalid: %s (must be "
-                                     "CIMInstance or CIMClass)" %
-                                     (element_txt, embedded_object,
-                                      builtin_type(v0)))
+                    raise ValueError(
+                        _format("Array {0} specifies embedded_object {1!A} but "
+                                "the Python type of its first array value is "
+                                "invalid: {2} (must be CIMInstance or "
+                                "CIMClass)",
+                                element_txt, embedded_object,
+                                builtin_type(v0)))
         else:
             if not isinstance(value, (CIMInstance, CIMClass)):
-                raise ValueError("%s specifies embedded_object %r but the "
-                                 "Python type of its value is invalid: %s "
-                                 "(must be CIMInstance or CIMClass)" %
-                                 (element_txt, embedded_object,
-                                  builtin_type(value)))
+                raise ValueError(
+                    _format("{0} specifies embedded_object {1!A} but the "
+                            "Python type of its value is invalid: {2} "
+                            "(must be CIMInstance or CIMClass)",
+                            element_txt, embedded_object, builtin_type(value)))
 
 
 def byname(nlist):
