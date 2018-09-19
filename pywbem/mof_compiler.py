@@ -99,6 +99,7 @@ from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, _statuscode2string
 from .exceptions import Error, CIMError
+from ._utils import _format
 
 __all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler',
            'BaseRepositoryConnection']
@@ -217,9 +218,9 @@ utf8_4_1 = r'\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_2 = r'[\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_3 = r'\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF]'
 
-utf8Char = r'(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)|(%s)' % \
-           (utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1,
-            utf8_4_2, utf8_4_3)
+utf8Char = r'({0})|({1})|({2})|({3})|({4})|({5})|({6})|({7})'.format(
+    utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1, utf8_4_2,
+    utf8_4_3)
 
 
 # pylint: disable=unused-argument
@@ -255,7 +256,7 @@ def t_binaryValue(t):
     # If we match [0-1], the invalid binary number "2b" would match
     # 'decimalValue' 2 and 'IDENTIFIER 'b'.
     if re.search(r'[2-9]', t.value) is not None:
-        msg = "Invalid binary number %r" % t.value
+        msg = _format("Invalid binary number {0!A}", t.value)
         t.lexer.last_msg = msg
         t.type = 'error'
         # Setting error causes the value to be automatically skipped
@@ -270,7 +271,7 @@ def t_octalValue(t):
     # If we match [0-7], the invalid octal number "08" would match
     # 'decimalValue' 0 and 'decimalValue' 8.
     if re.search(r'[8-9]', t.value) is not None:
-        msg = "Invalid octal number %r" % t.value
+        msg = _format("Invalid octal number {0!A}", t.value)
         t.lexer.last_msg = msg
         t.type = 'error'
         # Setting error causes the value to be automatically skipped
@@ -289,11 +290,11 @@ def t_decimalValue(t):
 
 simpleEscape = r"""[bfnrt'"\\]"""
 hexEscape = r'[xX][0-9a-fA-F]{1,4}'
-escapeSequence = r'[\\]((%s)|(%s))' % (simpleEscape, hexEscape)
-cChar = r"[^'\\\n\r]|(%s)" % escapeSequence
-sChar = r'[^"\\\n\r]|(%s)' % escapeSequence
+escapeSequence = r'[\\](({0})|({1}))'.format(simpleEscape, hexEscape)
+cChar = r"[^'\\\n\r]|({0})".format(escapeSequence)
+sChar = r'[^"\\\n\r]|({0})'.format(escapeSequence)
 
-charvalue_re = r"'(%s)'" % cChar
+charvalue_re = r"'({0})'".format(cChar)
 
 
 @lex.TOKEN(charvalue_re)
@@ -301,7 +302,7 @@ def t_charValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-stringvalue_re = r'"(%s)*"' % sChar
+stringvalue_re = r'"({0})*"'.format(sChar)
 
 
 @lex.TOKEN(stringvalue_re)
@@ -309,7 +310,8 @@ def t_stringValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-identifier_re = r'([a-zA-Z_]|(%s))([0-9a-zA-Z_]|(%s))*' % (utf8Char, utf8Char)
+identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({1}))*'.format(
+    utf8Char, utf8Char)
 
 
 @lex.TOKEN(identifier_re)
@@ -331,7 +333,7 @@ t_ignore = ' \r\t'
 def t_error(t):
     """ Lexer error callback from PLY Lexer with token in error.
     """
-    msg = "Illegal character %r" % t.value[0]
+    msg = _format("Illegal character {0!A}", t.value[0])
     t.lexer.last_msg = msg
     t.lexer.skip(1)
     return t  # Return the error token for the YACC parser to handle
@@ -412,10 +414,11 @@ class MOFParseError(Error):
     def __str__(self):
         ret_str = 'MOFParseError:\n'
         if self.lineno is not None:
-            ret_str += '%s:%s:%s msg=%s\n%s' % \
-                (self.file, self.lineno, self.column, self.msg, self.context)
+            ret_str += _format('{0}:{1}:{2} msg={3}\n{4}',
+                               self.file, self.lineno, self.column,
+                               self.msg, self.context)
         else:
-            ret_str += '%s' % self.msg
+            ret_str += _format("{0}", self.msg)
         return ret_str
 
     def get_err_msg(self):
@@ -437,9 +440,10 @@ class MOFParseError(Error):
         ret_str = 'Syntax error:'
         disp_file = 'NoFile' if self.file is None else self.file
         if self.lineno is not None:
-            ret_str += '%s:%s:%s' % (disp_file, self.lineno, self.column)
+            ret_str += _format("{0}:{1}:{2}",
+                               disp_file, self.lineno, self.column)
         if self.msg:
-            ret_str += " %s" % self.msg
+            ret_str += _format(" {0}", self.msg)
         if self.context is not None:
             ret_str += '\n'
             ret_str += '\n'.join(self.context)
@@ -496,10 +500,12 @@ def p_mp_createClass(p):
         while not fixedNS or not fixedRefs or not fixedSuper:
             try:
                 if p.parser.verbose:
-                    p.parser.log('Creating class %s:%s' % (ns, cc.classname))
+                    p.parser.log(
+                        _format("Creating class {0!A}:{1!A}", ns, cc.classname))
                 p.parser.handle.CreateClass(cc)
                 if p.parser.verbose:
-                    p.parser.log('Created class %s:%s' % (ns, cc.classname))
+                    p.parser.log(
+                        _format("Created class {0!A}:{1!A}", ns, cc.classname))
                 p.parser.classnames[ns].append(cc.classname.lower())
                 break
             except CIMError as ce:
@@ -509,7 +515,8 @@ def p_mp_createClass(p):
                     if fixedNS:
                         raise
                     if p.parser.verbose:
-                        p.parser.log('Creating namespace ' + ns)
+                        p.parser.log(
+                            _format("Creating namespace {0!A}", ns))
                     p.parser.server.create_namespace(ns)
                     fixedNS = True
                     continue
@@ -577,10 +584,11 @@ def p_mp_createClass(p):
                                 raise err
                             try:
                                 if p.parser.verbose:
-                                    p.parser.log('Class %s namespace %s '
-                                                 'depends on class %s which is '
-                                                 'not in repository.' %
-                                                 (cc.classname, ns, cln))
+                                    p.parser.log(
+                                        _format("Class {0!A} namespace {1!A} "
+                                                "depends on class {2!A} which "
+                                                "is not in repository.",
+                                                cc.classname, ns, cln))
                                 p.parser.mofcomp.compile_file(moffile, ns)
                             except CIMError as ce:
                                 if ce.status_code == CIM_ERR_NOT_FOUND:
@@ -597,38 +605,45 @@ def p_mp_createClass(p):
         if ce.status_code != CIM_ERR_ALREADY_EXISTS:
             raise
         if p.parser.verbose:
-            p.parser.log('Class %s already exist.  Modifying...' % cc.classname)
+            p.parser.log(
+                _format("Class {0!A} already exist. Modifying...",
+                        cc.classname))
         try:
             p.parser.handle.ModifyClass(cc, ns)
         except CIMError as ce:
-            p.parser.log('Error Modifying class %s: %s, %s' %
-                         (cc.classname, ce.status_code, ce.status_description))
+            p.parser.log(
+                _format("Error modifying class {0!A}: {1}, {2}",
+                        cc.classname, ce.status_code, ce.status_description))
 
 
 def p_mp_createInstance(p):
     """mp_createInstance : instanceDeclaration"""
     inst = p[1]
     if p.parser.verbose:
-        p.parser.log('Creating instance of %s.' % inst.classname)
+        p.parser.log(
+            _format("Creating instance of {0!A}.", inst.classname))
     try:
         p.parser.handle.CreateInstance(inst)
     except CIMError as ce:
         if ce.status_code == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
-                p.parser.log('Instance of class %s already exist.  '
-                             'Modifying...' % inst.classname)
+                p.parser.log(
+                    _format("Instance of class {0!A} already exist. "
+                            "Modifying...", inst.classname))
             try:
                 p.parser.handle.ModifyInstance(inst)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_SUPPORTED:
                     if p.parser.verbose:
-                        p.parser.log('ModifyInstance not supported.  '
-                                     'Deleting instance of %s: %s' %
-                                     (inst.classname, inst.path))
+                        p.parser.log(
+                            _format("ModifyInstance not supported. "
+                                    "Deleting instance of {0!A}: {1}",
+                                    inst.classname, inst.path))
                     p.parser.handle.DeleteInstance(inst.path)
                     if p.parser.verbose:
-                        p.parser.log('Creating instance of %s.' %
-                                     inst.classname)
+                        p.parser.log(
+                            _format("Creating instance of {0!A}.",
+                                    inst.classname))
                     p.parser.handle.CreateInstance(inst)
         else:
             ce.file_line = (p.parser.file, p.lexer.lineno)
@@ -640,24 +655,29 @@ def p_mp_setQualifier(p):
     qualdecl = p[1]
     ns = p.parser.handle.default_namespace
     if p.parser.verbose:
-        p.parser.log('Setting qualifier %s' % qualdecl.name)
+        p.parser.log(
+            _format("Setting qualifier {0!A}", qualdecl.name))
     try:
         p.parser.handle.SetQualifier(qualdecl)
     except CIMError as ce:
         if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
-                p.parser.log('Creating namespace ' + ns)
+                p.parser.log(
+                    _format("Creating namespace {0!A}", ns))
             p.parser.server.create_namespace(ns)
             if p.parser.verbose:
-                p.parser.log('Setting qualifier %s' % qualdecl.name)
+                p.parser.log(
+                    _format("Setting qualifier {0!A}", qualdecl.name))
             p.parser.handle.SetQualifier(qualdecl)
         elif ce.status_code == CIM_ERR_NOT_SUPPORTED:
             if p.parser.verbose:
-                p.parser.log('Qualifier %s already exists.  Deleting...' %
-                             qualdecl.name)
+                p.parser.log(
+                    _format("Qualifier {0!A} already exists. Deleting...",
+                            qualdecl.name))
             p.parser.handle.DeleteQualifier(qualdecl.name)
             if p.parser.verbose:
-                p.parser.log('Setting qualifier %s' % qualdecl.name)
+                p.parser.log(
+                    _format("Setting qualifier {0!A}", qualdecl.name))
             p.parser.handle.SetQualifier(qualdecl)
         else:
             ce.file_line = (p.parser.file, p.lexer.lineno)
@@ -673,7 +693,8 @@ def p_compilerDirective(p):
         fname = param
         if p.parser.file:
             if os.path.dirname(p.parser.file):
-                fname = os.path.dirname(p.parser.file) + '/' + fname
+                fname = os.path.join(os.path.dirname(p.parser.file),
+                                     fname)
         p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
     elif directive == 'namespace':
         p.parser.handle.default_namespace = param
@@ -852,7 +873,7 @@ def p_alias(p):
 
 def p_aliasIdentifier(p):
     """aliasIdentifier : '$' identifier"""
-    p[0] = '$%s' % p[2]
+    p[0] = '${0}'.format(p[2])
 
 
 def p_superClass(p):
@@ -907,7 +928,8 @@ def p_qualifier(p):
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise
             if p.parser.verbose:
-                p.parser.log('Creating namespace ' + ns)
+                p.parser.log(
+                    _format("Creating namespace {0!A}", ns))
             p.parser.server.create_namespace(ns)
             quals = None
 
@@ -922,7 +944,9 @@ def p_qualifier(p):
     try:
         qualdecl = p.parser.qualcache[ns][qname]
     except KeyError:
-        ce = CIMError(CIM_ERR_FAILED, 'Unknown Qualifier: %s' % qname)
+        ce = CIMError(
+            CIM_ERR_FAILED,
+            _format("Unknown Qualifier: {0!A}", qname))
         ce.file_line = (p.parser.file, p.lexer.lineno)
         raise ce
 
@@ -1348,8 +1372,9 @@ def p_referenceInitializer(p):
         try:
             p[0] = p.parser.aliases[p[1]]
         except KeyError:
-            ce = CIMError(CIM_ERR_FAILED,
-                          'Unknown alias: ' + p[1])
+            ce = CIMError(
+                CIM_ERR_FAILED,
+                _format("Unknown alias: {0!A}", p[1]))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
     else:
@@ -1572,7 +1597,8 @@ def p_instanceDeclaration(p):
         if ce.status_code == CIM_ERR_NOT_FOUND:
             file_ = p.parser.mofcomp.find_mof(cname)
             if p.parser.verbose:
-                p.parser.log('Class %s does not exist' % cname)
+                p.parser.log(
+                    _format("Class {0!A} does not exist", cname))
             if file_:
                 p.parser.mofcomp.compile_file(file_, ns)
                 cc = p.parser.handle.GetClass(cname, LocalOnly=False,
@@ -1595,15 +1621,17 @@ def p_instanceDeclaration(p):
         try:
             cprop = cc.properties[pname]
         except KeyError:
-            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid property. Not in class: %s' % pname)
+            ce = CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Invalid property. Not in class: {0!A}", pname))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
 
         # confirm property name not duplicated.
         if pname in inst.properties:
-            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Duplicate property: %s' % pname)
+            ce = CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Duplicate property: {0!A}", pname))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
 
@@ -1619,9 +1647,9 @@ def p_instanceDeclaration(p):
                 keybindings[pname] = pprop.value
 
         except ValueError as ve:
-            ce = CIMError(CIM_ERR_INVALID_PARAMETER,
-                          'Invalid value for property %r: %s' %
-                          (pname, ve))
+            ce = CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Invalid value for property {0!A}: {1}", pname, ve))
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise ce
 
@@ -2162,10 +2190,11 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     if ce.status_code == CIM_ERR_NOT_FOUND:
                         raise CIMError(
                             CIM_ERR_INVALID_PARAMETER,
-                            "Class %r referenced by element %r of class %r in "
-                            "namespace %r does not exist" %
-                            (obj.reference_class, obj.name, cc.classname,
-                             self.getns()),
+                            _format("Class {0!A} referenced by element {1!A} "
+                                    "of class {2!A} in namespace {3!A} does "
+                                    "not exist",
+                                    obj.reference_class, obj.name,
+                                    cc.classname, self.getns()),
                             conn_id=self.conn_id)
                     raise
 
@@ -2179,11 +2208,12 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         if ce.status_code == CIM_ERR_NOT_FOUND:
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
-                                'Class %r specified by EmbeddInstance '
-                                'qualifier on element %r of class %r in '
-                                'namespace %r does not exist' %
-                                (eiqualifier.value, obj.name,
-                                 cc.classname, self.getns()),
+                                _format("Class {0!A} specified by "
+                                        "EmbeddInstance qualifier on element "
+                                        "{1!A} of class {2!A} in namespace "
+                                        "{3!A} does not exist",
+                                        eiqualifier.value, obj.name,
+                                        cc.classname, self.getns()),
                                 conn_id=self.conn_id)
                         raise
 
@@ -2273,24 +2303,26 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             for inst in insts:
                 try:
                     if verbose:
-                        print('Deleting instance %s' % inst.path)
+                        print(_format("Deleting instance {0}", inst.path))
                     self.conn.DeleteInstance(inst.path)
                 except CIMError as ce:
-                    print('Error deleting instance %s' % inst.path)
-                    print('     %s %s' % (ce.status_code,
-                                          ce.status_description))
+                    print(_format("Error deleting instance {0}", inst.path))
+                    print(_format("     {0} {1}",
+                                  ce.status_code, ce.status_description))
         for ns, cnames in self.class_names.items():
             self.default_namespace = ns
             cnames.reverse()
             for cname in cnames:
                 try:
                     if verbose:
-                        print('Deleting class %s:%s' % (ns, cname))
+                        print(_format("Deleting class {0!A}:{1!A}",
+                                      ns, cname))
                     self.conn.DeleteClass(cname)
                 except CIMError as ce:
-                    print('Error deleting class %s:%s' % (ns, cname))
-                    print('     %s %s' % (ce.status_code,
-                                          ce.status_description))
+                    print(_format("Error deleting class {0!A}:{1!A}",
+                                  ns, cname))
+                    print(_format("     {0} {1}",
+                                  ce.status_code, ce.status_description))
         # TODO #990: Also roll back changes to qualifier declarations
 
 
@@ -2383,15 +2415,16 @@ class MOFCompiler(object):
         elif isinstance(handle, BaseRepositoryConnection):
             conn = getattr(handle, 'conn', None)
             if conn and not isinstance(conn, WBEMConnection):
-                raise TypeError("If the handle parameter is a CIM repository "
-                                "connection its conn attribute must be None "
-                                "or WBEMConnection, but it is: %s" %
-                                type(conn))
+                raise TypeError(
+                    _format("If the handle parameter is a CIM repository "
+                            "connection its conn attribute must be None "
+                            "or WBEMConnection, but it is: {0}", type(conn)))
         else:
-            raise TypeError("The handle parameter must be either a CIM "
-                            "repository connection (derived from "
-                            "BaseRepositoryConnection) or a WBEM connection "
-                            "(WBEMConnection), but is: %s" % type(handle))
+            raise TypeError(
+                _format("The handle parameter must be either a CIM repository "
+                        "connection (derived from BaseRepositoryConnection) "
+                        "or a WBEM connection (WBEMConnection), but is: {0}",
+                        type(handle)))
 
         server = WBEMServer(conn) if conn else None
 
@@ -2400,8 +2433,9 @@ class MOFCompiler(object):
         elif isinstance(search_paths, six.string_types):
             search_paths = [search_paths]
         elif not isinstance(search_paths, (list, tuple)):
-            raise TypeError("search_paths parameter must be list or tuple, "
-                            "but is: %s" % type(search_paths))
+            raise TypeError(
+                _format("search_paths parameter must be list or tuple, but "
+                        "is: {0}", type(search_paths)))
 
         self.parser = _yacc(verbose)
 
@@ -2484,15 +2518,17 @@ class MOFCompiler(object):
 
         except CIMError as ce:
             if hasattr(ce, 'file_line'):
-                self.parser.log('Fatal Error: %s:%s' % (ce.file_line[0],
-                                                        ce.file_line[1]))
+                self.parser.log(
+                    _format("Fatal Error: {0}:{1}",
+                            ce.file_line[0], ce.file_line[1]))
             else:
-                self.parser.log('Fatal Error:')
+                self.parser.log("Fatal Error:")
 
-            description = ':%s' % ce.status_description if \
+            description = _format(":{0}", ce.status_description) if \
                 ce.status_description else ""
-            self.parser.log('%s%s' % (_statuscode2string(ce.status_code),
-                                      description))
+            self.parser.log(
+                _format("{0}{1}",
+                        _statuscode2string(ce.status_code), description))
 
             raise
 
@@ -2520,13 +2556,15 @@ class MOFCompiler(object):
           : Any exceptions that are raised by the repository connection class.
         """
         if self.parser.verbose:
-            self.parser.log('Compiling file ' + filename)
+            self.parser.log(
+                _format("Compiling file {0!A}", filename))
 
         if not os.path.exists(filename):
             # try to find in search path
             rfilename = self.find_mof(os.path.basename(filename[:-4]).lower())
             if rfilename is None:
-                raise IOError('No such file: %s' % filename)
+                raise IOError(
+                    _format("No such file: {0!A}", filename))
             filename = rfilename
         with open(filename, "r") as f:
             mof = f.read()
@@ -2561,7 +2599,7 @@ class MOFCompiler(object):
                 for file_ in files:
                     if file_.endswith('.mof') and \
                             file_[:-4].lower() == classname:
-                        return root + '/' + file_
+                        return os.path.join(root, file_)
         return None
 
     def rollback(self, verbose=False):
@@ -2581,7 +2619,9 @@ def _build(verbose=False):
     """
 
     if verbose:
-        print("Building LEX/YACC modules for MOF compiler in: %s" % _tabdir)
+        print(
+            _format("Building LEX/YACC modules for MOF compiler in: {0}",
+                    _tabdir))
 
     _yacc(verbose)
     _lex(verbose)

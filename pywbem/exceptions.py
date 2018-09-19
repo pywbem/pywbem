@@ -65,12 +65,12 @@ class Error(Exception):
         :term:`unicode string`: String that identifies the connection in
         exception messages.
         """
-        ret_str = "Connection id: %s" % self.conn_id
+        ret_str = "Connection id: {0}".format(self.conn_id)
         return ret_str
 
     def __str__(self):
         error_str = super(Error, self).__str__()
-        ret_str = "%s, %s" % (error_str, self.conn_str)
+        ret_str = "{0}, {1}".format(error_str, self.conn_str)
         return ret_str
 
 
@@ -175,12 +175,12 @@ class HTTPError(Error):
         return self.args[3]
 
     def __str__(self):
-        ret_str = "%s (%s)" % (self.status, self.reason)
+        ret_str = "{0} ({1})".format(self.status, self.reason)
         if self.cimerror is not None:
-            ret_str += ", CIMError: %s" % self.cimerror
+            ret_str += ", CIMError: {0}".format(self.cimerror)
         for key in self.cimdetails:
-            ret_str += ", %s: %s" % (key, self.cimdetails[key])
-        ret_str += ", %s" % self.conn_str
+            ret_str += ", {0}: {1}".format(key, self.cimdetails[key])
+        ret_str += ", {0}".format(self.conn_str)
         return ret_str
 
 
@@ -315,9 +315,9 @@ class CIMError(Error):
         return self.args[2]
 
     def __str__(self):
-        inst_str = " (%d instances)" % len(self.instances) if self.instances \
-            else ""
-        ret_str = "%s (%s): %s%s, %s" % \
-            (self.status_code, self.status_code_name, self.status_description,
-             inst_str, self.conn_str)
+        inst_str = " ({0} instances)".format(len(self.instances)) \
+            if self.instances else ""
+        ret_str = "{0} ({1}): {2}{3}, {4}".format(
+            self.status_code, self.status_code_name, self.status_description,
+            inst_str, self.conn_str)
         return ret_str

@@ -145,6 +145,7 @@ from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import ParseError, VersionError
+from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
 # These are returned in export message responses.
@@ -252,10 +253,10 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Accept header check described in DSP0200
         accept = self.headers.get('Accept', 'text/xml')
         if accept not in ('text/xml', 'application/xml', '*/*'):
-            self.send_http_error(406, 'header-mismatch',
-                                 'Invalid Accept header value: %s '
-                                 '(need text/xml, application/xml or */*)' %
-                                 accept)
+            self.send_http_error(
+                406, 'header-mismatch',
+                _format("Invalid Accept header value: {0} (need text/xml, "
+                        "application/xml or */*)", accept))
             return
 
         # Accept-Charset header check described in DSP0200
@@ -268,10 +269,10 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     found = True
                     break
         if not found:
-            self.send_http_error(406, 'header-mismatch',
-                                 'Invalid Accept-Charset header value: %s '
-                                 '(need UTF-8 or *)' %
-                                 accept_charset)
+            self.send_http_error(
+                406, 'header-mismatch',
+                _format("Invalid Accept-Charset header value: {0} "
+                        "(need UTF-8 or *)", accept_charset))
             return
 
         # Accept-Encoding header check described in DSP0200
@@ -294,10 +295,10 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         identity_acceptable = True
                         break
         if not identity_acceptable:
-            self.send_http_error(406, 'header-mismatch',
-                                 'Invalid Accept-Encoding header value: %s '
-                                 '(need Identity to be acceptable)' %
-                                 accept_encoding)
+            self.send_http_error(
+                406, 'header-mismatch',
+                _format("Invalid Accept-Encoding header value: {0} "
+                        "(need Identity to be acceptable)", accept_encoding))
             return
 
         # Accept-Language header check described in DSP0200.
@@ -307,16 +308,18 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Accept-Range header check described in DSP0200
         accept_range = self.headers.get('Accept-Range', None)
         if accept_range is not None:
-            self.send_http_error(406, 'header-mismatch',
-                                 'Accept-Range header is not permitted %s' %
-                                 accept_range)
+            self.send_http_error(
+                406, 'header-mismatch',
+                _format("Accept-Range header is not permitted {0}",
+                        accept_range))
             return
 
         # Content-Type header check described in DSP0200
         content_type = self.headers.get('Content-Type', None)
         if content_type is None:
-            self.send_http_error(406, 'header-mismatch',
-                                 'Content-Type header is required')
+            self.send_http_error(
+                406, 'header-mismatch',
+                "Content-Type header is required")
             return
         tc_list = re.findall(TOKEN_CHARSET_FINDALL_PATTERN, content_type)
         found = False
@@ -327,20 +330,22 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     found = True
                     break
         if not found:
-            self.send_http_error(406, 'header-mismatch',
-                                 'Invalid Content-Type header value: %s '
-                                 '(need text/xml or application/xml with '
-                                 'charset=utf-8 or empty)' %
-                                 content_type)
+            self.send_http_error(
+                406, 'header-mismatch',
+                _format("Invalid Content-Type header value: {0} "
+                        "(need text/xml or application/xml with "
+                        "charset=utf-8 or empty)",
+                        content_type))
             return
 
         # Content-Encoding header check described in DSP0200
         content_encoding = self.headers.get('Content-Encoding', 'identity')
         if content_encoding.lower() != 'identity':
-            self.send_http_error(406, 'header-mismatch',
-                                 'Invalid Content-Encoding header value: '
-                                 '%s (listener supports only identity)' %
-                                 content_encoding)
+            self.send_http_error(
+                406, 'header-mismatch',
+                _format("Invalid Content-Encoding header value: {0}"
+                        "(listener supports only identity)",
+                        content_encoding))
             return
 
         # Content-Language header check described in DSP0200.
@@ -374,21 +379,19 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if methodname == 'ExportIndication':
 
             if len(params) != 1 or 'NewIndication' not in params:
-                self.send_error_response(msgid, methodname,
-                                         CIM_ERR_INVALID_PARAMETER,
-                                         'Expecting one parameter '
-                                         'NewIndication, got %s' %
-                                         ','.join(params.keys()))
+                self.send_error_response(
+                    msgid, methodname, CIM_ERR_INVALID_PARAMETER,
+                    _format("Expecting one parameter NewIndication, got {0!A}",
+                            params.keys()))
                 return
 
             indication_inst = params['NewIndication']
 
             if not isinstance(indication_inst, CIMInstance):
-                self.send_error_response(msgid, methodname,
-                                         CIM_ERR_INVALID_PARAMETER,
-                                         'NewIndication parameter is not '
-                                         'a CIM instance, but %r' %
-                                         indication_inst)
+                self.send_error_response(
+                    msgid, methodname, CIM_ERR_INVALID_PARAMETER,
+                    _format("NewIndication parameter is not a CIM instance, "
+                            "but {0!A}", indication_inst))
                 return
             # server.listener created in WBEMListener.start function
             self.server.listener.deliver_indication(indication_inst,
@@ -397,9 +400,9 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_success_response(msgid, methodname)
 
         else:
-            self.send_error_response(msgid, methodname,
-                                     CIM_ERR_NOT_SUPPORTED,
-                                     'Unknown export method: %s' % methodname)
+            self.send_error_response(
+                msgid, methodname, CIM_ERR_NOT_SUPPORTED,
+                _format("Unknown export method: {0!A}", methodname))
 
     def send_http_error(self, http_code, cim_error=None,
                         cim_error_details=None, headers=None):
@@ -417,8 +420,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             for header, value in headers:
                 self.send_header(header, value)
         self.end_headers()
-        self.log('%s: HTTP status %s; CIMError: %s, '
-                 'CIMErrorDetails: %s',
+        self.log('%s: HTTP status %s; CIMError: %s, CIMErrorDetails: %s',
                  (self._get_log_prefix(), http_code, cim_error,
                   cim_error_details),
                  logging.WARNING)
@@ -501,35 +503,38 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
-            raise ParseError('Expecting CIM element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                _format("Expecting CIM element, got {0}", tup_tree[0]))
         dtd_version = tup_tree[1]['DTDVERSION']
         if not re.match(SUPPORTED_DTD_VERSION_PATTERN, dtd_version):
-            raise VersionError('DTD version %s not supported. '
-                               'Supported versions are: %s' %
-                               (dtd_version, SUPPORTED_DTD_VERSION_STR))
+            raise VersionError(
+                _format("DTD version {0} not supported. Supported versions "
+                        "are: {1!A}",
+                        dtd_version, SUPPORTED_DTD_VERSION_STR))
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
-            raise ParseError('Expecting MESSAGE element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                _format("Expecting MESSAGE element, got {0}", tup_tree[0]))
         msgid = tup_tree[1]['ID']
         protocol_version = tup_tree[1]['PROTOCOLVERSION']
         if not re.match(SUPPORTED_PROTOCOL_VERSION_PATTERN, protocol_version):
-            raise VersionError('Protocol version %s not supported. '
-                               'Supported versions are: %s' %
-                               (protocol_version,
-                                SUPPORTED_PROTOCOL_VERSION_STR))
+            raise VersionError(
+                _format("Protocol version {0} not supported. "
+                        "Supported versions are: {1!A}",
+                        protocol_version, SUPPORTED_PROTOCOL_VERSION_STR))
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLEEXPREQ':
-            raise ParseError('Expecting SIMPLEEXPREQ element, got %s' %
-                             tup_tree[0])
+            raise ParseError(
+                _format("Expecting SIMPLEEXPREQ element, got {0}",
+                        tup_tree[0]))
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'EXPMETHODCALL':
-            raise ParseError('Expecting EXPMETHODCALL element, '
-                             'got %s' % tup_tree[0])
+            raise ParseError(
+                _format("Expecting EXPMETHODCALL element, got {0}",
+                        tup_tree[0]))
 
         methodname = tup_tree[1]['NAME']
         params = {}
@@ -575,15 +580,16 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def _get_log_prefix(self):
         """Return the prefix components for a log entry"""
-        return '%s %s from %s' % \
-               (self.request_version, self.command, self.client_address[0])
+        return _format("{0} {1} from {2}",
+                       self.request_version, self.command,
+                       self.client_address[0])
 
     def version_string(self):
         """
         Overrides the inherited method to add the pywbem listener version.
         """
-        return 'pywbem-listener/%s %s %s ' % \
-            (__version__, self.server_version, self.sys_version)
+        return _format("pywbem-listener/{0} {1} {2} ",
+                       __version__, self.server_version, self.sys_version)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -652,8 +658,8 @@ class WBEMListener(object):
         elif http_port is None:
             self._http_port = http_port
         else:
-            raise TypeError("Invalid type for http_port: %s" %
-                            type(http_port))
+            raise TypeError(
+                _format("Invalid type for http_port: {0}", type(http_port)))
 
         if isinstance(https_port, six.integer_types):
             self._https_port = int(https_port)  # Convert Python 2 long to int
@@ -662,8 +668,8 @@ class WBEMListener(object):
         elif https_port is None:
             self._https_port = https_port
         else:
-            raise TypeError("Invalid type for https_port: %s" %
-                            type(https_port))
+            raise TypeError(
+                _format("Invalid type for https_port: {0}", type(https_port)))
 
         if self._https_port is not None:
             if certfile is None:
@@ -677,14 +683,15 @@ class WBEMListener(object):
             self._keyfile = None
 
         if self._http_port is None and self._https_port is None:
-            ValueError('Listener requires at least one active port')
+            ValueError("Listener requires at least one active port")
 
         self._http_server = None  # ThreadedHTTPServer for HTTP
         self._http_thread = None  # Thread for HTTP
         self._https_server = None  # ThreadedHTTPServer for HTTPS
         self._https_thread = None  # Thread for HTTPS
 
-        self._logger = logging.getLogger('pywbem.listener.%s' % id(self))
+        self._logger = logging.getLogger(
+            _format("pywbem.listener.{0}", id(self)))
 
         self._callbacks = []  # Registered callback functions
 
@@ -693,11 +700,16 @@ class WBEMListener(object):
         Return a representation of the :class:`~pywbem.WBEMListener` object
         with all attributes, that is suitable for debugging.
         """
-        return "%s(host=%r, http_port=%s, https_port=%s, " \
-               "certfile=%r, keyfile=%r, logger=%r, _callbacks=%r)" % \
-               (self.__class__.__name__, self.host, self.http_port,
-                self.https_port, self.certfile, self.keyfile, self.logger,
-                self._callbacks)
+        return _format(
+            "WBEMListener("
+            "_host={s._host!A}, "
+            "_http_port={s._http_port!A}, "
+            "_https_port={s._https_port!A}, "
+            "_certfile={s._certfile!A}, "
+            "_keyfile={s._keyfile!A}, "
+            "_logger={s._logger!A}, "
+            "_callbacks={s._callbacks!A})",
+            s=self)
 
     def __enter__(self):
         """
@@ -847,8 +859,8 @@ class WBEMListener(object):
                     # Windows does not raise any exception.
                     if getattr(exc, 'errno', None) == errno.EADDRINUSE:
                         # Reraise with improved error message
-                        msg = "WBEM listener port %s already in use" % \
-                              self._http_port
+                        msg = _format("WBEM listener port {0} already in use",
+                                      self._http_port)
                         exc_type = OSError
                         six.reraise(exc_type, exc_type(errno.EADDRINUSE, msg),
                                     sys.exc_info()[2])
@@ -876,8 +888,8 @@ class WBEMListener(object):
                     # Windows does not raise any exception.
                     if getattr(exc, 'errno', None) == errno.EADDRINUSE:
                         # Reraise with improved error message
-                        msg = "WBEM listener port %s already in use" % \
-                              self._http_port
+                        msg = _format("WBEM listener port {0} already in use",
+                                      self._http_port)
                         exc_type = OSError
                         six.reraise(exc_type, exc_type(errno.EADDRINUSE, msg),
                                     sys.exc_info()[2])

@@ -81,7 +81,7 @@ import traceback
 import six
 
 from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
-from ._utils import _ensure_unicode, _hash_item
+from ._utils import _ensure_unicode, _hash_item, _format
 
 if six.PY2:
     _Longint = long  # noqa: F821
@@ -128,8 +128,8 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
 
     def __ordering_deprecated(self):
         """Deprecated warning for pywbem CIM Objects"""
-        msg = "Ordering comparisons involving %s objects are deprecated." % \
-            self.__class__.__name__
+        msg = _format("Ordering comparisons involving {0} objects are "
+                      "deprecated.", self.__class__.__name__)
         if DEBUG_WARNING_ORIGIN:
             msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
         warnings.warn(msg, DeprecationWarning, stacklevel=3)
@@ -248,7 +248,10 @@ class MinutesFromUTC(tzinfo):
         self.__offset = timedelta(minutes=offset)
 
     def __repr__(self):
-        return '%s(offset=%r)' % (self.__class__.__name__, self.__offset)
+        return _format(
+            "MinutesFromUTC("
+            "offset={s.__offset!A})",
+            s=self)
 
     def utcoffset(self, dt):  # pylint: disable=unused-argument
         """
@@ -293,9 +296,11 @@ class CIMType(object):  # pylint: disable=too-few-public-methods
 
     def __repr__(self):
         """Return a string representation suitable for debugging."""
-
-        return '%s(cimtype=%r, %s)' % \
-               (self.__class__.__name__, self.cimtype, self)
+        return _format(
+            "{s.__class__.__name__}("
+            "cimtype={s.cimtype!A}, "
+            "{s})",
+            s=self)
 
 
 class CIMDateTime(CIMType, _CIMComparisonMixin):
@@ -362,12 +367,13 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                     after = dtarg.rindex('*') + 1
                     if not re.match(r'^[\*\.]+$', dtarg[first:after]):
                         raise ValueError(
-                            'Asterisks in CIM datetime timestamp value are '
-                            'not consecutive: "%s"' % dtarg)
+                            _format("Asterisks in CIM datetime timestamp "
+                                    "value are not consecutive: {0!A}", dtarg))
                     if after != 21:  # end of microseconds field
                         raise ValueError(
-                            'Asterisks in CIM datetime timestamp value do not '
-                            'include least significant field: "%s"' % dtarg)
+                            _format("Asterisks in CIM datetime timestamp "
+                                    "value do not include least significant "
+                                    "field: {0!A}", dtarg))
                     self.__precision = first
 
                 year = self._to_int(parts[0], 0, None, 'year', dtarg)
@@ -385,8 +391,8 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                         MinutesFromUTC(offset))
                 except ValueError as exc:
                     raise ValueError(
-                        'Invalid datetime() input from CIM datetime timestamp '
-                        'value "%s": %s' % (dtarg, exc))
+                        _format("Invalid datetime() input from CIM datetime "
+                                "timestamp value {0!A}: {1}", dtarg, exc))
 
             else:
                 m = self._interval_pattern.search(dtarg)
@@ -398,13 +404,14 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                         after = dtarg.rindex('*') + 1
                         if not re.match(r'^[\*\.]+$', dtarg[first:after]):
                             raise ValueError(
-                                'Asterisks in CIM datetime interval value are '
-                                'not consecutive: "%s"' % dtarg)
+                                _format("Asterisks in CIM datetime interval "
+                                        "value are not consecutive: {0!A}",
+                                        dtarg))
                         if after != 21:  # end of microseconds field
                             raise ValueError(
-                                'Asterisks in CIM datetime interval value do '
-                                'not include least significant field: "%s"' %
-                                dtarg)
+                                _format("Asterisks in CIM datetime interval "
+                                        "value do not include least "
+                                        "significant field: {0!A}", dtarg))
                         self.__precision = first
                     days = self._to_int(parts[0], 0, None, 'days', dtarg)
                     hours = self._to_int(parts[1], 0, None, 'hours', dtarg)
@@ -420,12 +427,13 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                             seconds=seconds, microseconds=microsecs)
                     except ValueError as exc:
                         raise ValueError(
-                            'Invalid timedelta() input from CIM datetime '
-                            'interval value "%s": %s' % (dtarg, exc))
-
+                            _format("Invalid timedelta() input from CIM "
+                                    "datetime interval value {0!A}: {1}",
+                                    dtarg, exc))
                 else:
                     raise ValueError(
-                        'Invalid format of CIM datetime value: "%s"' % dtarg)
+                        _format("Invalid format of CIM datetime value: {0!A}",
+                                dtarg))
         elif isinstance(dtarg, datetime):
             if dtarg.tzinfo is None:
                 self.__datetime = dtarg.replace(tzinfo=MinutesFromUTC(0))
@@ -437,9 +445,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             self.__datetime = copy.copy(dtarg.datetime)
             self.__timedelta = copy.copy(dtarg.timedelta)
         else:
-            raise TypeError('dtarg argument "%s" has an invalid type: %s '
-                            '(expected datetime, timedelta, string, or '
-                            'CIMDateTime)' % (dtarg, type(dtarg)))
+            raise TypeError(
+                _format("dtarg argument {0!A} has an invalid type: {1} "
+                        "(expected datetime, timedelta, string, or "
+                        "CIMDateTime)", dtarg, type(dtarg)))
 
     @staticmethod
     def _to_int(value_str, min_value, rep_digit, field_name, dtarg):
@@ -454,21 +463,21 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             after = value_str.rindex('*') + 1
             if value_str[first:after] != '*' * (after - first):
                 raise ValueError(
-                    'Asterisks in %s field of CIM datetime value "%s" '
-                    'are not consecutive: %r' %
-                    (field_name, dtarg, value_str))
+                    _format("Asterisks in {0} field of CIM datetime value "
+                            "{1!A} are not consecutive: {2!A}",
+                            field_name, dtarg, value_str))
             if after != len(value_str):
                 raise ValueError(
-                    'Asterisks in %s field of CIM datetime value "%s" '
-                    'do not end at end of field: %r' %
-                    (field_name, dtarg, value_str))
+                    _format("Asterisks in {0} field of CIM datetime value "
+                            "{1!A} do not end at end of field: {2!A}",
+                            field_name, dtarg, value_str))
             if rep_digit is None:
                 # Must be an all-asterisk field
                 if first != 0:
                     raise ValueError(
-                        'Asterisks in %s field of CIM datetime value "%s" '
-                        'do not start at begin of field: %r' %
-                        (field_name, dtarg, value_str))
+                        _format("Asterisks in {0} field of CIM datetime value "
+                                "{1!A} do not start at begin of field: {2!A}",
+                                field_name, dtarg, value_str))
                 return min_value
             else:
                 value_str = value_str.replace('*', rep_digit)
@@ -509,7 +518,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             offset = self.__datetime.utcoffset().seconds / 60
             if self.__datetime.utcoffset().days == -1:
                 offset = -((60 * 24) - offset)
-        return offset
+        return int(offset)
 
     @property
     def datetime(self):
@@ -647,9 +656,9 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             seconds_str = self._to_str(seconds, 12, 2)
             microsecs_str = self._to_str(microsecs, 15, 6)
 
-            ret_str = '%s%s%s%s.%s:000' % \
-                (days_str, hours_str, minutes_str, seconds_str,
-                 microsecs_str)
+            ret_str = '{0}{1}{2}{3}.{4}:000'.format(
+                days_str, hours_str, minutes_str, seconds_str,
+                microsecs_str)
             return ret_str
 
         else:  # timestamp
@@ -675,17 +684,23 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
             second_str = self._to_str(second, 12, 2)
             microsec_str = self._to_str(microsec, 15, 6)
 
-            ret_str = '%s%s%s%s%s%s.%s%s%03d' % \
-                (year_str, month_str, day_str, hour_str, minute_str,
-                 second_str, microsec_str, sign, offset)
+            ret_str = '{0}{1}{2}{3}{4}{5}.{6}{7}{8:03d}'.format(
+                year_str, month_str, day_str, hour_str, minute_str,
+                second_str, microsec_str, sign, offset)
             return ret_str
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
-
-        return '%s(cimtype=%r, datetime=%r, timedelta=%r, precision=%r)' % \
-               (self.__class__.__name__, self.cimtype, self.datetime,
-                self.timedelta, self.precision)
+        """
+        Return a string representation suitable for debugging.
+        """
+        return _format(
+            "CIMDateTime("
+            "cimtype={s.cimtype!A}, "
+            "datetime={s.datetime!A}, "
+            "timedelta={s.timedelta!A}, "
+            "precision={s.precision!A}), "
+            "minutes_from_utc={s.minutes_from_utc!A})",
+            s=self)
 
     def __getstate__(self):
         return str(self)
@@ -790,17 +805,23 @@ class CIMInt(CIMType, _Longint):
         value = _Longint(*args, **kwargs)
         if ENFORCE_INTEGER_RANGE:
             if value > cls.maxvalue or value < cls.minvalue:
-                raise ValueError("Integer value %s is out of range for CIM "
-                                 "datatype %s" % (value, cls.cimtype))
+                raise ValueError(
+                    _format("Integer value {0} is out of range for CIM "
+                            "datatype {1}", value, cls.cimtype))
         # The value needs to be processed here, because int/long is unmutable
         return super(CIMInt, cls).__new__(cls, *args, **kwargs)
 
     def __repr__(self):
-        """Return a string representation suitable for debugging."""
-
-        return '%s(cimtype=%r, minvalue=%s, maxvalue=%s, %s)' % \
-               (self.__class__.__name__, self.cimtype, self.minvalue,
-                self.maxvalue, self)
+        """
+        Return a string representation suitable for debugging.
+        """
+        return _format(
+            "{s.__class__.__name__}("
+            "cimtype={s.cimtype!A}, "
+            "minvalue={s.minvalue}, "  # Avoid long indicator 'L' in Python 2
+            "maxvalue={s.maxvalue}, "  # Avoid long indicator 'L' in Python 2
+            "{s})",
+            s=self)
 
 
 class Uint8(CIMInt):
@@ -1015,7 +1036,8 @@ def cimtype(obj):
     if isinstance(obj, class_type):  # embedded class
         return 'string'
 
-    raise TypeError("Object does not have a valid CIM data type: %r" % obj)
+    raise TypeError(
+        _format("Object does not have a valid CIM data type: {0!A}", obj))
 
 
 _TYPE_FROM_NAME = {
@@ -1087,7 +1109,8 @@ def type_from_name(type_name):
     try:
         type_obj = _TYPE_FROM_NAME[type_name]
     except KeyError:
-        raise ValueError("Unknown CIM data type name: %r" % type_name)
+        raise ValueError(
+            _format("Unknown CIM data type name: {0!A}", type_name))
     return type_obj
 
 
@@ -1129,7 +1152,7 @@ def atomic_to_cim_xml(obj):
         # DSP0201 requirements for representing real32:
         # The significand must be represented with at least 11 digits.
         # The special values must have the case: INF, -INF, NaN.
-        s = u'%.11G' % obj
+        s = u'{0:.11G}'.format(obj)
         if s == 'NAN':
             s = u'NaN'
         elif s in ('INF', '-INF'):
@@ -1143,7 +1166,7 @@ def atomic_to_cim_xml(obj):
         # DSP0201 requirements for representing real64:
         # The significand must be represented with at least 17 digits.
         # The special values must have the case: INF, -INF, NaN.
-        s = u'%.17G' % obj
+        s = u'{0:.17G}'.format(obj)
         if s == 'NAN':
             s = u'NaN'
         elif s in ('INF', '-INF'):
@@ -1154,5 +1177,6 @@ def atomic_to_cim_xml(obj):
             s = 'E'.join(parts)
         return s
     else:
-        raise TypeError("Value %r has invalid type %s for conversion to a "
-                        "CIM-XML string" % (obj, type(obj)))
+        raise TypeError(
+            _format("Value {0!A} has invalid type {1} for conversion to a "
+                    "CIM-XML string", obj, type(obj)))

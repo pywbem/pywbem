@@ -39,6 +39,8 @@ namespace and should be used from there.
 
 # This module is meant to be safe for 'import *'.
 
+from ._utils import _format
+
 __all__ = [
     'CIM_ERR_FAILED',
     'CIM_ERR_ACCESS_DENIED',
@@ -208,7 +210,7 @@ def _statuscode2name(status_code):
     try:
         s = _STATUSCODE2NAME[status_code]
     except KeyError:
-        s = 'Invalid status code %s' % status_code
+        s = _format("Invalid status code {0}", status_code)
     return s
 
 
@@ -246,7 +248,7 @@ def _statuscode2string(status_code):
     try:
         s = _STATUSCODE2STRING[status_code]
     except KeyError:
-        s = 'Invalid status code %s' % status_code
+        s = _format("Invalid status code {0}", status_code)
     return s
 
 

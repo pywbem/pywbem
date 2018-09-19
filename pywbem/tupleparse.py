@@ -82,7 +82,7 @@ import re
 import warnings
 import six
 
-from ._utils import _stacklevel_above_module
+from ._utils import _stacklevel_above_module, _format
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
@@ -150,9 +150,11 @@ class TupleParser(object):
         """
         for inst in tup_tree[2]:
             if not isinstance(inst, six.string_types):
-                raise ParseError("Element %r has unexpected child elements: %r"
-                                 "(allowed is only text content)" %
-                                 (name(tup_tree), inst), conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has unexpected child elements: "
+                            "{1!A} (allowed is only text content)",
+                            name(tup_tree), inst),
+                    conn_id=self.conn_id)
         data = u''.join(tup_tree[2])
         assert isinstance(data, six.text_type)
         return data
@@ -185,9 +187,10 @@ class TupleParser(object):
         """
 
         if name(tup_tree) != nodename:
-            raise ParseError("Unexpected element %r (expected element %r)" %
-                             (name(tup_tree), nodename),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Unexpected element {0!A} (expected element {1!A})",
+                        name(tup_tree), nodename),
+                conn_id=self.conn_id)
 
         # Check we have all the required attributes, and no unexpected ones
         tt_attrs = {}
@@ -197,11 +200,11 @@ class TupleParser(object):
         if required_attrs:
             for attr in required_attrs:
                 if attr not in tt_attrs:
-                    raise ParseError("Element %r misses required attribute %r "
-                                     "(only has attributes %r)" %
-                                     (name(tup_tree), attr,
-                                      attrs(tup_tree).keys()),
-                                     conn_id=self.conn_id)
+                    raise ParseError(
+                        _format("Element {0!A} misses required attribute "
+                                "{1!A} (only has attributes {2!A})",
+                                name(tup_tree), attr, attrs(tup_tree).keys()),
+                        conn_id=self.conn_id)
                 del tt_attrs[attr]
 
         if optional_attrs:
@@ -210,34 +213,37 @@ class TupleParser(object):
                     del tt_attrs[attr]
 
         for k in tt_attrs.keys():
-            raise ParseError("Element %r has invalid attribute %r " %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid attribute {1!A}",
+                        name(tup_tree), k),
+                conn_id=self.conn_id)
 
         if allowed_children is not None:
             if not allowed_children:
                 allow_txt = "no child elements are allowed"
             else:
-                allow_txt = "allowed are child elements %r" % allowed_children
+                allow_txt = _format("allowed are child elements {0!A}",
+                                    allowed_children)
             invalid_children = set()
             for child in kids(tup_tree):
                 if name(child) not in allowed_children:
                     invalid_children.add(name(child))
             if invalid_children:
-                raise ParseError("Element %r has invalid child element(s) "
-                                 "%r (%s)" %
-                                 (name(tup_tree), list(invalid_children),
-                                  allow_txt),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has invalid child element(s) "
+                            "{1!A} ({2})",
+                            name(tup_tree), list(invalid_children), allow_txt),
+                    conn_id=self.conn_id)
 
         if not allow_pcdata:
             for child in tup_tree[2]:
                 if isinstance(child, six.string_types):
                     if child.lstrip(' \t\n') != '':
-                        raise ParseError("Element %r has unexpected non-blank "
-                                         "text content %r" %
-                                         (name(tup_tree), child),
-                                         conn_id=self.conn_id)
+                        raise ParseError(
+                            _format("Element {0!A} has unexpected non-blank "
+                                    "text content {1!A}",
+                                    name(tup_tree), child),
+                            conn_id=self.conn_id)
 
     def one_child(self, tup_tree, acceptable):
         """
@@ -249,23 +255,25 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if not k:
-            raise ParseError("Element %r misses required child element %r" %
-                             (name(tup_tree), acceptable),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} misses required child element {1!A}",
+                        name(tup_tree), acceptable),
+                conn_id=self.conn_id)
         if len(k) > 1:
-            raise ParseError("Element %r has too many child elements %r "
-                             "(allowed is one child element %r)" %
-                             (name(tup_tree), [name(t) for t in k],
-                              acceptable),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has too many child elements {1!A} "
+                        "(allowed is one child element {2!A})",
+                        name(tup_tree), [name(t) for t in k], acceptable),
+                conn_id=self.conn_id)
 
         child = k[0]
 
         if name(child) not in acceptable:
-            raise ParseError("Element %s has invalid child element %r "
-                             "(allowed is one child element %r)" %
-                             (name(tup_tree), name(child), acceptable),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid child element {1!A} "
+                        "(allowed is one child element {2!A})",
+                        name(tup_tree), name(child), acceptable),
+                conn_id=self.conn_id)
 
         return self.parse_any(child)
 
@@ -277,10 +285,11 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) > 1:
-            raise ParseError("Element %r has too many child elements %r "
-                             "(allowed is one optional child element %r)" %
-                             (name(tup_tree), [name(t) for t in k], allowed),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has too many child elements {1!A} "
+                        "(allowed is one optional child element {2!A})",
+                        name(tup_tree), [name(t) for t in k], allowed),
+                conn_id=self.conn_id)
         elif len(k) == 1:
             return self.one_child(tup_tree, allowed)
         else:
@@ -298,10 +307,11 @@ class TupleParser(object):
 
         for child in kids(tup_tree):
             if name(child) not in acceptable:
-                raise ParseError("Element %r has invalid child element %r "
-                                 "(allowed are child elements %r)" %
-                                 (name(tup_tree), name(child), acceptable),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has invalid child element {1!A} "
+                            "(allowed are child elements {2!A})",
+                            name(tup_tree), name(child), acceptable),
+                    conn_id=self.conn_id)
             result.append(self.parse_any(child))
 
         return result
@@ -337,17 +347,19 @@ class TupleParser(object):
 
         a_child = name(k[0])
         if a_child not in acceptable:
-            raise ParseError("Element %r has invalid child element %r "
-                             "(allowed is a sequence of like elements from "
-                             "%r)" % (name(tup_tree), a_child, acceptable),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid child element {1!A} "
+                        "(allowed is a sequence of like elements from {2!A})",
+                        name(tup_tree), a_child, acceptable),
+                conn_id=self.conn_id)
         result = []
         for child in k:
             if name(child) != a_child:
-                raise ParseError("Element %r has invalid child element %r "
-                                 "(sequence must have like elements %r)" %
-                                 (name(tup_tree), name(child), a_child),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has invalid child element {1!A} "
+                            "(sequence must have like elements {2!A})",
+                            name(tup_tree), name(child), a_child),
+                    conn_id=self.conn_id)
             result.append(self.parse_any(child))
 
         return result
@@ -356,9 +368,10 @@ class TupleParser(object):
         """
         Raise exception for not implemented function.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is "
+                    "not implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     #
     # Root element
@@ -379,9 +392,10 @@ class TupleParser(object):
         self.check_node(tup_tree, 'CIM', ['CIMVERSION', 'DTDVERSION'])
 
         if not attrs(tup_tree)['CIMVERSION'].startswith('2.'):
-            raise ParseError("CIMVERSION is %s, expected 2.x.y" %
-                             attrs(tup_tree)['CIMVERSION'],
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("CIMVERSION is {0}, expected 2.x.y",
+                        attrs(tup_tree)['CIMVERSION']),
+                conn_id=self.conn_id)
 
         child = self.one_child(tup_tree, ['MESSAGE', 'DECLARATION'])
 
@@ -531,11 +545,12 @@ class TupleParser(object):
 
         k = kids(tup_tree)
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(INSTANCENAME, INSTANCE))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(INSTANCENAME, INSTANCE))",
+                        name(tup_tree), k),
+                conn_id=self.conn_id)
 
         inst_path = self.parse_instancename(k[0])
         instance = self.parse_instance(k[1])
@@ -558,11 +573,12 @@ class TupleParser(object):
 
         k = kids(tup_tree)
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(INSTANCEPATH, INSTANCE))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(INSTANCEPATH, INSTANCE))",
+                        name(tup_tree), k),
+                conn_id=self.conn_id)
 
         inst_path = self.parse_instancepath(k[0])
         instance = self.parse_instance(k[1])
@@ -590,11 +606,12 @@ class TupleParser(object):
 
             _object.path = inst_path
         else:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting one or two child elements "
-                             "(CLASS | (INSTANCENAME, INSTANCE)))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting one or two child elements "
+                        "(CLASS | (INSTANCENAME, INSTANCE)))",
+                        name(tup_tree), k),
+                conn_id=self.conn_id)
 
         return (name(tup_tree), attrs(tup_tree), _object)
 
@@ -619,12 +636,12 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "((LOCALCLASSPATH, CLASS) | (LOCALINSTANCEPATH, "
-                             "INSTANCE)))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "((LOCALCLASSPATH, CLASS) | (LOCALINSTANCEPATH, "
+                        "INSTANCE)))", name(tup_tree), k),
+                conn_id=self.conn_id)
 
         if name(k[0]) == 'LOCALCLASSPATH':
             # Note: Before pywbem 0.12, CIMClass did not have a path, therefore
@@ -662,12 +679,12 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "((CLASSPATH, CLASS) | "
-                             "(INSTANCEPATH, INSTANCE)))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "((CLASSPATH, CLASS) | (INSTANCEPATH, INSTANCE)))",
+                        name(tup_tree), k),
+                conn_id=self.conn_id)
 
         if name(k[0]) == 'CLASSPATH':
             # Note: Before pywbem 0.12, CIMClass did not have a path, therefore
@@ -717,11 +734,11 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(HOST, LOCALNAMESPACEPATH))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(HOST, LOCALNAMESPACEPATH))", name(tup_tree), k),
+                conn_id=self.conn_id)
 
         host = self.parse_host(k[0])
         namespace = self.parse_localnamespacepath(k[1])
@@ -744,11 +761,10 @@ class TupleParser(object):
         self.check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
 
         if not kids(tup_tree):
-            raise ParseError("Element %r misses child elements "
-                             "(expecting one or more child elements "
-                             "'NAMESPACE')" %
-                             name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} misses child elements (expecting one "
+                        "or more child elements 'NAMESPACE')", name(tup_tree)),
+                conn_id=self.conn_id)
 
         # self.list_of_various() has the same effect as self.list_of_same()
         # when used with a single allowed child element, but is a little
@@ -801,11 +817,11 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(NAMESPACEPATH, CLASSNAME))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(NAMESPACEPATH, CLASSNAME))", name(tup_tree), k),
+                conn_id=self.conn_id)
 
         host, namespace = self.parse_namespacepath(k[0])
         class_path = self.parse_classname(k[1])
@@ -829,11 +845,11 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(LOCALNAMESPACEPATH, CLASSNAME))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(LOCALNAMESPACEPATH, CLASSNAME))", name(tup_tree), k),
+                conn_id=self.conn_id)
 
         namespace = self.parse_localnamespacepath(k[0])
         class_path = self.parse_classname(k[1])
@@ -878,11 +894,11 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(NAMESPACEPATH, INSTANCENAME))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(NAMESPACEPATH, INSTANCENAME))", name(tup_tree), k),
+                conn_id=self.conn_id)
 
         host, namespace = self.parse_namespacepath(k[0])
         inst_path = self.parse_instancename(k[1])
@@ -906,11 +922,12 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError("Element %r has invalid number of child elements "
-                             "%r (expecting two child elements "
-                             "(LOCALNAMESPACEPATH, INSTANCENAME))" %
-                             (name(tup_tree), k),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid number of child elements "
+                        "{1!A} (expecting two child elements "
+                        "(LOCALNAMESPACEPATH, INSTANCENAME))",
+                        name(tup_tree), k),
+                conn_id=self.conn_id)
 
         namespace = self.parse_localnamespacepath(k[0])
         inst_path = self.parse_instancename(k[1])
@@ -945,12 +962,12 @@ class TupleParser(object):
 
         if k0_name == 'KEYVALUE' or k0_name == 'VALUE.REFERENCE':
             if len(kids(tup_tree)) != 1:
-                raise ParseError("Element %r has more than one child element "
-                                 "%r (expecting child elements "
-                                 "(KEYBINDING* | KEYVALUE? | "
-                                 "VALUE.REFERENCE?))" %
-                                 (name(tup_tree), k0_name),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has more than one child element "
+                            "{1!A} (expecting child elements "
+                            "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))",
+                            name(tup_tree), k0_name),
+                    conn_id=self.conn_id)
 
             val = self.parse_any(kid0)
             return CIMInstanceName(classname, {None: val})
@@ -963,11 +980,12 @@ class TupleParser(object):
                 kbs.update(key_bind)
             return CIMInstanceName(classname, kbs)
         else:
-            raise ParseError("Element %r has invalid child elements %r "
-                             "(expecting child elements "
-                             "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))" %
-                             (name(tup_tree), kids(tup_tree)),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has invalid child elements {1!A} "
+                        "(expecting child elements "
+                        "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))",
+                        name(tup_tree), kids(tup_tree)),
+                conn_id=self.conn_id)
 
     def parse_objectpath(self, tup_tree):
         """
@@ -1052,10 +1070,10 @@ class TupleParser(object):
             elif valuetype == 'numeric':
                 pass
             else:
-                raise ParseError("Element %r has invalid 'VALUETYPE' "
-                                 "attribute value %r" %
-                                 (name(tup_tree), valuetype),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has invalid 'VALUETYPE' attribute "
+                            "value {1!A}", name(tup_tree), valuetype),
+                    conn_id=self.conn_id)
 
         return self.unpack_single_value(data, cimtype)
 
@@ -1173,10 +1191,10 @@ class TupleParser(object):
         for k, v in attrs(tup_tree).items():
             v_ = self.unpack_boolean(v)
             if v_ is None:
-                raise ParseError("Element %r has an invalid value %r for its "
-                                 "boolean attribute %r" %
-                                 (name(tup_tree), v, k),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Element {0!A} has an invalid value {1!A} for its "
+                            "boolean attribute {2!A}", name(tup_tree), v, k),
+                    conn_id=self.conn_id)
             scopes[k] = v_
         return scopes
 
@@ -1217,18 +1235,20 @@ class TupleParser(object):
         for child in kids(tup_tree):
             if name(child) == 'SCOPE':
                 if scopes is not None:
-                    raise ParseError("Element %r has more than one child "
-                                     "element %r (allowed is only one)" %
-                                     (name(tup_tree), name(child)),
-                                     conn_id=self.conn_id)
+                    raise ParseError(
+                        _format("Element {0!A} has more than one child "
+                                "element {1!A} (allowed is only one)",
+                                name(tup_tree), name(child)),
+                        conn_id=self.conn_id)
                 scopes = self.parse_any(child)
             else:
                 # name is 'VALUE' or 'VALUE.ARRAY'
                 if value is not None:
-                    raise ParseError("Element %r has more than one child "
-                                     "element %r (allowed is only one)" %
-                                     (name(tup_tree), name(child)),
-                                     conn_id=self.conn_id)
+                    raise ParseError(
+                        _format("Element {0!A} has more than one child "
+                                "element {1!A} (allowed is only one)",
+                                name(tup_tree), name(child)),
+                        conn_id=self.conn_id)
                 value = self.unpack_value(tup_tree)
 
         overridable = self.unpack_boolean(attrl.get('OVERRIDABLE', 'true'))
@@ -1314,10 +1334,11 @@ class TupleParser(object):
             val = self.unpack_value(tup_tree)
         except ValueError as exc:
             msg = str(exc)
-            raise ParseError("Cannot parse content of 'VALUE' child element "
-                             "of 'PROPERTY' element with name %r: %s" %
-                             (attrl['NAME'], msg),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Cannot parse content of 'VALUE' child element of "
+                        "'PROPERTY' element with name {0!A}: {1}",
+                        attrl['NAME'], msg),
+                conn_id=self.conn_id)
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])
 
@@ -1416,10 +1437,11 @@ class TupleParser(object):
         elif len(value) == 1:
             value = value[0]
         else:
-            raise ParseError("Element %r has more than one child element "
-                             "'VALUE.REFERENCE' (allowed are zero or one)" %
-                             name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has more than one child element "
+                        "'VALUE.REFERENCE' (allowed are zero or one)",
+                        name(tup_tree)),
+                conn_id=self.conn_id)
 
         attrl = attrs(tup_tree)
 
@@ -1464,10 +1486,11 @@ class TupleParser(object):
 
         return_type = attrl.get('TYPE', None)
         if not return_type:
-            raise ParseError("Element %r missing attribute 'TYPE' (a void "
-                             "method return type is not supported in CIM)" %
-                             name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} missing attribute 'TYPE' (a void "
+                        "method return type is not supported in CIM)",
+                        name(tup_tree)),
+                conn_id=self.conn_id)
 
         return CIMMethod(attrl['NAME'],
                          return_type=return_type,
@@ -1608,9 +1631,10 @@ class TupleParser(object):
         Not Implemented. Because this request is generally not implemented
         by platforms, It will probably never be implemented.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is not "
+                    "implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def parse_multiexpreq(self, tup_tree):
         # pylint: disable=unused-argument
@@ -1618,9 +1642,10 @@ class TupleParser(object):
         Not Implemented. Because this request is generally not implemented
         by platforms, It will probably never be implemented.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is not "
+                    "implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def parse_simpleexpreq(self, tup_tree):
         """
@@ -1661,11 +1686,11 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if not k:
-            raise ParseError("Element %r has no child elements "
-                             "(expecting child elements "
-                             "(LOCALNAMESPACEPATH, IPARAMVALUE*))" %
-                             name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has no child elements "
+                        "(expecting child elements "
+                        "(LOCALNAMESPACEPATH, IPARAMVALUE*))", name(tup_tree)),
+                conn_id=self.conn_id)
 
         namespace = self.parse_localnamespacepath(k[0])
 
@@ -1689,16 +1714,17 @@ class TupleParser(object):
         path = self.list_of_matching(tup_tree,
                                      ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
         if not path:
-            raise ParseError("Element %r misses a required child element "
-                             "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'" %
-                             name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} misses a required child element "
+                        "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'",
+                        name(tup_tree)),
+                conn_id=self.conn_id)
         if len(path) > 1:
-            raise ParseError("Element %r has too many child elements %r "
-                             "(allowed is one of 'LOCALCLASSPATH' or "
-                             "'LOCALINSTANCEPATH')" %
-                             (name(tup_tree), path),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has too many child elements {1!A} "
+                        "(allowed is one of 'LOCALCLASSPATH' or "
+                        "'LOCALINSTANCEPATH')", name(tup_tree), path),
+                conn_id=self.conn_id)
         path = path[0]
         params = self.list_of_matching(tup_tree, ['PARAMVALUE'])
         return (name(tup_tree), attrs(tup_tree), path, params)
@@ -1823,9 +1849,10 @@ class TupleParser(object):
         This function not implemented. Because this request is generally not
         implemented. It will probably never be implemented.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is not "
+                    "implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def parse_multiexprsp(self, tup_tree):
         # pylint: disable=unused-argument
@@ -1833,9 +1860,10 @@ class TupleParser(object):
         This function not implemented. Because this request is generally not
         implemented. It will probably never be implemented.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is not "
+                    "implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def parse_simplersp(self, tup_tree):
         """
@@ -1859,9 +1887,10 @@ class TupleParser(object):
         (indication senders) so it is not implemented in the pywbem
         client.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is not "
+                    "implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def parse_methodresponse(self, tup_tree):
         """
@@ -1886,9 +1915,10 @@ class TupleParser(object):
         """
         This function not implemented.
         """
-        raise ParseError("Internal Error: Parsing support for element %r is "
-                         "not implemented" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Internal Error: Parsing support for element {0!A} is not "
+                    "implemented", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def parse_imethodresponse(self, tup_tree):
         """
@@ -2017,8 +2047,9 @@ class TupleParser(object):
         try:
             func = getattr(self, funcname)
         except AttributeError:
-            raise ParseError("Invalid element %r" % name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Invalid element {0!A}", name(tup_tree)),
+                conn_id=self.conn_id)
         return func(tup_tree)  # a bound method, i.e. self is implicit
 
     def parse_embeddedObject(self, val):
@@ -2083,9 +2114,10 @@ class TupleParser(object):
         elif name(tup_tree) == 'CLASS':
             return self.parse_class(tup_tree)
 
-        raise ParseError("Invalid top-level element %r in embedded object "
-                         "value" % name(tup_tree),
-                         conn_id=self.conn_id)
+        raise ParseError(
+            _format("Invalid top-level element {0!A} in embedded object "
+                    "value", name(tup_tree)),
+            conn_id=self.conn_id)
 
     def unpack_value(self, tup_tree):
         """
@@ -2103,10 +2135,11 @@ class TupleParser(object):
         if not raw_val:
             return None
         elif len(raw_val) > 1:
-            raise ParseError("Element %r has too many child elements %r "
-                             "(allowed is one of 'VALUE' or 'VALUE.ARRAY')" %
-                             name(tup_tree),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Element {0!A} has too many child elements {1!A} "
+                        "(allowed is one of 'VALUE' or 'VALUE.ARRAY')",
+                        name(tup_tree)),
+                conn_id=self.conn_id)
 
         raw_val = raw_val[0]
 
@@ -2155,30 +2188,34 @@ class TupleParser(object):
             try:
                 value = CIMDateTime(data)
             except ValueError as exc:
-                raise ParseError("Invalid datetime value: %r (%s)" %
-                                 (data, exc),
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Invalid datetime value: {0!A} ({1})", data, exc),
+                    conn_id=self.conn_id)
         elif cimtype == 'char16':
             value = data
             if value == '':
-                raise ParseError("Char16 value is empty",
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    "Char16 value is empty",
+                    conn_id=self.conn_id)
             if len(value) > 1:
                 # More than one character, or one character from the UCS-4 set
                 # in a narrow Python build (which represents it using
                 # surrogates).
-                raise ParseError("Char16 value has more than one UCS-2 "
-                                 "character: %r" % data,
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Char16 value has more than one UCS-2 "
+                            "character: {0!A}", data),
+                    conn_id=self.conn_id)
             if len(value) == 1 and ord(value) > 0xFFFF:
                 # One character from the UCS-4 set in a wide Python build.
-                raise ParseError("Char16 value is a character outside of the "
-                                 "UCS-2 range: %r" % data,
-                                 conn_id=self.conn_id)
+                raise ParseError(
+                    _format("Char16 value is a character outside of the "
+                            "UCS-2 range: {0!A}", data),
+                    conn_id=self.conn_id)
         else:
-            raise ParseError("Invalid CIM type name %r for string: %r" %
-                             (cimtype, data),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Invalid CIM type name {0!A} for string: {1!A}",
+                        cimtype, data),
+                conn_id=self.conn_id)
         return value
 
     def unpack_boolean(self, data):
@@ -2208,8 +2245,9 @@ class TupleParser(object):
                           stacklevel=_stacklevel_above_module(__name__))
             return None
         else:
-            raise ParseError("Invalid boolean value %r" % data,
-                             conn_id=self.conn_id)
+            raise ParseError(
+                _format("Invalid boolean value {0!A}", data),
+                conn_id=self.conn_id)
 
     def unpack_numeric(self, data, cimtype):
         """
@@ -2248,8 +2286,9 @@ class TupleParser(object):
                 try:
                     value = float(data)
                 except ValueError:
-                    raise ParseError("Invalid numeric value %r" % data,
-                                     conn_id=self.conn_id)
+                    raise ParseError(
+                        _format("Invalid numeric value {0!A}", data),
+                        conn_id=self.conn_id)
 
         # Convert the Python number into a CIM data type
         if cimtype is None:
@@ -2260,7 +2299,8 @@ class TupleParser(object):
         try:
             value = CIMType(value)
         except ValueError as exc:
-            raise ParseError(str(exc),
-                             conn_id=self.conn_id)
+            raise ParseError(
+                str(exc),
+                conn_id=self.conn_id)
 
         return value

@@ -226,6 +226,8 @@ should be accessed via the ``pywbem`` namespace.
 """  # noqa: E501
 # pylint: enable=line-too-long
 
+from ._utils import _format
+
 __all__ = ['configure_logger', 'configure_loggers_from_string',
            'LOGGER_API_CALLS_NAME', 'LOGGER_HTTP_NAME', 'LOGGER_SIMPLE_NAMES',
            'LOG_DESTINATIONS', 'DEFAULT_LOG_DESTINATION', 'LOG_DETAIL_LEVELS',
@@ -466,8 +468,9 @@ def configure_loggers_from_string(log_configuration_str,
         spec_split = log_spec.strip('=').split("=")
         simple_name = spec_split[0]
         if not simple_name:
-            raise ValueError("Simple logger name missing in log spec: %r" %
-                             log_spec)
+            raise ValueError(
+                _format("Simple logger name missing in log spec: {0}",
+                        log_spec))
         if len(spec_split) == 1:
             log_dest = DEFAULT_LOG_DESTINATION
             detail_level = DEFAULT_LOG_DETAIL_LEVEL
@@ -479,11 +482,13 @@ def configure_loggers_from_string(log_configuration_str,
             elif len(val_split) == 2:
                 detail_level = val_split[1] or None
             else:  # len(val_split) > 2
-                raise ValueError("Too many components separated by : in log "
-                                 "spec: %r" % log_spec)
+                raise ValueError(
+                    _format("Too many components separated by : in log spec: "
+                            "{0}", log_spec))
         else:  # len(spec_split) > 2:
-            raise ValueError("Too many components separated by = in log spec: "
-                             "%r" % log_spec)
+            raise ValueError(
+                _format("Too many components separated by = in log spec: "
+                        "{0}", log_spec))
 
         # Convert to integer, if possible
         if detail_level:

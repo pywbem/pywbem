@@ -33,6 +33,7 @@ except ImportError:
 
 from .cim_types import CIMInt, type_from_name
 from .cim_obj import CIMProperty, CIMMethod, CIMParameter
+from ._utils import _format
 
 __all__ = ['ValueMapping']
 
@@ -92,7 +93,7 @@ class ValueMapping(object):
           print("Binary value: Values string")
           for bin_value in range(0, 12):
               values_str = myprop_vm.tovalues(bin_value)
-              print("%12s: %r" % (bin_value, values_str))
+              print("{0:12}: {1!r}".format(bin_value, values_str))
 
       Resulting output:
 
@@ -135,7 +136,7 @@ class ValueMapping(object):
           print("Values string: Binary value")
           for values_str in values_strs:
               bin_value = myprop_vm.tobinary(values_str)
-              print("%12s: %r" % (values_str, bin_value))
+              print("{0:12}: {1!r}".format(values_str, bin_value))
 
       Resulting output:
 
@@ -162,7 +163,7 @@ class ValueMapping(object):
 
           print("Values string: Binary value")
           for bin_value, values_str in myprop_vm.items():
-              print("%12s: %r" % (values_str, bin_value))
+              print("{0:12}: {1!r}".format(values_str, bin_value))
 
       Resulting output:
 
@@ -251,8 +252,9 @@ class ValueMapping(object):
         try:
             property_obj = class_obj.properties[propname]
         except KeyError:
-            raise KeyError("Class %r (in %r) does not have a property %r" %
-                           (classname, namespace, propname))
+            raise KeyError(
+                _format("Class {0!A} (in {1!A}) does not have a property "
+                        "{2!A}", classname, namespace, propname))
 
         new_vm = cls._create_for_element(property_obj, conn, namespace,
                                          classname, propname=propname)
@@ -313,8 +315,9 @@ class ValueMapping(object):
         try:
             method_obj = class_obj.methods[methodname]
         except KeyError:
-            raise KeyError("Class %r (in %r) does not have a method %r" %
-                           (classname, namespace, methodname))
+            raise KeyError(
+                _format("Class {0!A} (in {1!A}) does not have a method {2!A}",
+                        classname, namespace, methodname))
 
         new_vm = cls._create_for_element(method_obj, conn, namespace,
                                          classname, methodname=methodname)
@@ -380,14 +383,16 @@ class ValueMapping(object):
         try:
             method_obj = class_obj.methods[methodname]
         except KeyError:
-            raise KeyError("Class %r (in %r) does not have a method %r" %
-                           (classname, namespace, methodname))
+            raise KeyError(
+                _format("Class {0!A} (in {1!A}) does not have a method {2!A}",
+                        classname, namespace, methodname))
         try:
             parameter_obj = method_obj.parameters[parametername]
         except KeyError:
-            raise KeyError("Method %r.%r() (in %r) does not have a parameter "
-                           "%r" %
-                           (classname, methodname, namespace, parametername))
+            raise KeyError(
+                _format("Method {0!A} in class {1!A} (in {2!A}) does not have "
+                        "a parameter {3!A}", methodname, classname, namespace,
+                        parametername))
 
         new_vm = cls._create_for_element(parameter_obj, conn, namespace,
                                          classname, methodname=methodname,
@@ -426,9 +431,10 @@ class ValueMapping(object):
         except ValueError:
             m = re.match(r'^([+-]?[0-9]*)\.\.([+-]?[0-9]*)$', valuemap_str)
             if m is None:
-                raise ValueError("The value-mapped %s has an invalid "
-                                 "ValueMap entry: %r" %
-                                 (self._element_str(), valuemap_str))
+                raise ValueError(
+                    _format("The value-mapped {0} has an invalid "
+                            "ValueMap entry: {1!A}",
+                            self._element_str(), valuemap_str))
             lo = m.group(1)
             if lo == '':
                 if i == 0:
@@ -521,14 +527,16 @@ class ValueMapping(object):
         cimtype = type_from_name(typename)
 
         if not issubclass(cimtype, CIMInt):
-            raise TypeError("The value-mapped %s is not integer-typed, but "
-                            "has CIM type: %s" % (vm._element_str(), typename))
+            raise TypeError(
+                _format("The value-mapped {0} is not integer-typed, but "
+                        "has CIM type: {1}", vm._element_str(), typename))
 
         values_qual = element_obj.qualifiers.get('Values', None)
         if values_qual is None:
             # DSP0004 defines no default for a missing Values qualifier
-            raise ValueError("The value-mapped %s has no Values qualifier "
-                             "defined" % vm._element_str())
+            raise ValueError(
+                _format("The value-mapped {0} has no Values qualifier "
+                        "defined", vm._element_str()))
         values_list = values_qual.value
 
         valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
@@ -570,31 +578,36 @@ class ValueMapping(object):
         Return a string that identifies the value-mapped element.
         """
         if isinstance(self.element, CIMProperty):
-            return "property %r.%r (in %r)" % \
-                (self.classname, self.propname, self.namespace)
+            return _format("property {0!A} in class {1!A} (in {2!A})",
+                           self.propname, self.classname, self.namespace)
         elif isinstance(self.element, CIMMethod):
-            return "method %r.%r() (in %r)" % \
-                (self.classname, self.methodname, self.namespace)
+            return _format("method {0!A} in class {1!A} (in {2!A})",
+                           self.methodname, self.classname, self.namespace)
         assert isinstance(self.element, CIMParameter)
-        return "parameter %r.%r(%r) (in %r)" % \
-            (self.classname, self.methodname, self.parametername,
-             self.namespace)
+        return _format("parameter {0!A} of method {1!A} in class {2!A} "
+                       "(in {3!A})",
+                       self.parametername, self.methodname, self.classname,
+                       self.namespace)
 
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.ValueMapping` object
         with all attributes, that is suitable for debugging.
         """
-        return "%s(_conn=%r, _namespace=%r, " \
-               "_classname=%r, _propname=%r, _methodname=%r, " \
-               "_parametername=%r, _element_obj=%r, " \
-               "_b2v_single_dict=%r, _b2v_range_tuple_list=%r, " \
-               "_b2v_unclaimed=%r, _v2b_dict=%r)" % \
-               (self.__class__.__name__, self._conn, self._namespace,
-                self._classname, self._propname, self._methodname,
-                self._parametername, self._element_obj,
-                self._b2v_single_dict, self._b2v_range_tuple_list,
-                self._b2v_unclaimed, self._v2b_dict)
+        return _format(
+            "ValueMapping("
+            "_conn={s._conn!A}, "
+            "_namespace={s._namespace!A}, "
+            "_classname={s._classname!A}, "
+            "_propname={s._propname!A}, "
+            "_methodname={s._methodname!A}, "
+            "_parametername={s._parametername!A}, "
+            "_element_obj={s._element_obj!A}, "
+            "_b2v_single_dict={s._b2v_single_dict!A}, "
+            "_b2v_range_tuple_list={s._b2v_range_tuple_list!A}, "
+            "_b2v_unclaimed={s._b2v_unclaimed!A}, "
+            "_v2b_dict={s._v2b_dict!A})",
+            s=self)
 
     @property
     def conn(self):
@@ -676,9 +689,10 @@ class ValueMapping(object):
         """
 
         if not isinstance(element_value, (six.integer_types, CIMInt)):
-            raise TypeError("The value for value-mapped %s is not "
-                            "integer-typed, but has Python type: %s" %
-                            (self._element_str(), type(element_value)))
+            raise TypeError(
+                _format("The value for value-mapped {0} is not "
+                        "integer-typed, but has Python type: {1}",
+                        self._element_str(), type(element_value)))
 
         # try single value
         try:
@@ -696,9 +710,10 @@ class ValueMapping(object):
         if self._b2v_unclaimed is not None:
             return self._b2v_unclaimed
 
-        raise ValueError("The value for value-mapped %s is outside of the set "
-                         "defined by its ValueMap qualifier: %r" %
-                         (self._element_str(), element_value))
+        raise ValueError(
+            _format("The value for value-mapped {0} is outside of the set "
+                    "defined by its ValueMap qualifier: {1!A}",
+                    self._element_str(), element_value))
 
     def tobinary(self, values_str):
         """
@@ -737,16 +752,18 @@ class ValueMapping(object):
         """
 
         if not isinstance(values_str, six.string_types):
-            raise TypeError("The values string for value-mapped %s is not "
-                            "string-typed, but has Python type: %s" %
-                            (self._element_str(), type(values_str)))
+            raise TypeError(
+                _format("The values string for value-mapped {0} is not "
+                        "string-typed, but has Python type: {1}",
+                        self._element_str(), type(values_str)))
 
         try:
             return self._v2b_dict[values_str]
         except KeyError:
-            raise ValueError("The values string for value-mapped %s is outside "
-                             "of the set defined by its Values qualifier: %r" %
-                             (self._element_str(), values_str))
+            raise ValueError(
+                _format("The values string for value-mapped {0} is outside "
+                        "of the set defined by its Values qualifier: {1!A}",
+                        self._element_str(), values_str))
 
     def items(self):
         """

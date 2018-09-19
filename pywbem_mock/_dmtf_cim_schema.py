@@ -76,13 +76,14 @@ from zipfile import ZipFile
 import shutil
 import six
 
+from pywbem._utils import _format
+
 if six.PY2:
     # pylint: disable=wrong-import-order
     from urllib2 import urlopen
 else:
     # pylint: disable=wrong-import-order
     from urllib.request import urlopen
-
 
 __all__ = ['DMTFCIMSchema']
 
@@ -153,29 +154,32 @@ class DMTFCIMSchema(object):
 
         """
         if not isinstance(schema_version, tuple):
-            raise TypeError('schema_version %s must be tuple' %
-                            schema_version)
+            raise TypeError(
+                _format("schema_version {v!A} must be tuple",
+                        v=schema_version))
         if len(schema_version) != 3:
-            raise ValueError('DMTF Schema must have 3 integer components, '
-                             '(major, minor, update version) not %r' %
-                             (schema_version,))
+            raise ValueError(
+                _format("DMTF Schema must have 3 integer components, "
+                        "(major, minor, update version) not {v!A}",
+                        v=schema_version))  # is a tuple
         for i in schema_version:
             if not isinstance(i, six.integer_types):
-                raise TypeError('%s in schema_version %s not integer' %
-                                (i, schema_version))
+                raise TypeError(
+                    _format("{0!A} in schema_version {v!A} not integer",
+                            i, v=schema_version))  # is a tuple
         schema_type = 'Experimental' if use_experimental else 'Final'
         self._schema_version = schema_version
         self._schema_root_dir = schema_root_dir
 
-        mof_dir = 'mof%s%s' % (schema_type, self.schema_version_str)
+        mof_dir = 'mof{0}{1}'.format(schema_type, self.schema_version_str)
         self._schema_mof_dir = os.path.join(self._schema_root_dir, mof_dir)
 
-        cim_schema_version = 'cim_schema_%s' % (self.schema_version_str)
-        mof_zip_bn = '%s%s-MOFs.zip' % (cim_schema_version, schema_type)
+        cim_schema_version = 'cim_schema_{0}'.format(self.schema_version_str)
+        mof_zip_bn = '{0}{1}-MOFs.zip'.format(cim_schema_version, schema_type)
         self._schema_zip_url = \
-            'http://www.dmtf.org/standards/cim/cim_schema_v%s%s%s/%s' % \
-            (schema_version[0], schema_version[1], schema_version[2],
-             mof_zip_bn)
+            'http://www.dmtf.org/standards/cim/cim_schema_v{0}{1}{2}/{3}'. \
+            format(schema_version[0], schema_version[1], schema_version[2],
+                   mof_zip_bn)
         schema_mof_bld_name = cim_schema_version + '.mof'
 
         self._schema_zip_file = os.path.join(self._schema_root_dir, mof_zip_bn)
@@ -205,7 +209,7 @@ class DMTFCIMSchema(object):
         :term:`string`: with the DMTF CIM schema version in the form
         <major version>.<minor version>.<update version>.
         """
-        return '%s.%s.%s' % self.schema_version
+        return '{0}.{1}.{2}'.format(*self.schema_version)
 
     @property
     def schema_root_dir(self):
@@ -332,32 +336,37 @@ class DMTFCIMSchema(object):
                 print(msg)
 
         if not os.path.isdir(self.schema_root_dir):
-            print_verbose("Creating directory for CIM Schema archive: %s" %
-                          self.schema_root_dir)
+            print_verbose(
+                _format("Creating directory for CIM Schema archive: {0}",
+                        self.schema_root_dir))
             os.mkdir(self.schema_root_dir)
 
         if not os.path.isfile(self.schema_zip_file):
-            print_verbose("Downloading CIM Schema archive from: %s" %
-                          self.schema_zip_url)
+            print_verbose(
+                _format("Downloading CIM Schema archive from: {0}",
+                        self.schema_zip_url))
 
             try:
                 ufo = urlopen(self.schema_zip_url)
             except IOError as ie:
                 os.rmdir(self.schema_root_dir)
-                raise ValueError('DMTF Schema archive not found at url %s: %s' %
-                                 (self.schema_zip_url, ie))
+                raise ValueError(
+                    _format("DMTF Schema archive not found at url {0}: {1}",
+                            self.schema_zip_url, ie))
 
             with open(self.schema_zip_file, 'wb') as fp:
                 for data in ufo:
                     fp.write(data)
 
         if not os.path.isdir(self.schema_mof_dir):
-            print_verbose("Creating directory for CIM Schema MOF files: %s" %
-                          self.schema_mof_dir)
+            print_verbose(
+                _format("Creating directory for CIM Schema MOF files: {0}",
+                        self.schema_mof_dir))
             os.mkdir(self.schema_mof_dir)
         if not os.path.isfile(self._schema_mof_file):
-            print_verbose("Unpacking CIM Schema archive: %s" %
-                          self.schema_zip_file)
+            print_verbose(
+                _format("Unpacking CIM Schema archive: {0}",
+                        self.schema_zip_file))
 
             zfp = None
             try:
@@ -420,7 +429,7 @@ class DMTFCIMSchema(object):
 
         output_lines = ['#pragma locale ("en_US")\n']
         for cln in schema_classes:
-            test_cln = '/%s.mof' % cln
+            test_cln = '/{0}.mof'.format(cln)  # May contain Unicode
             found = False
             for line in schema_lines:
                 if line.find(test_cln) != -1:
@@ -428,8 +437,9 @@ class DMTFCIMSchema(object):
                     found = True
                     break
             if not found:
-                raise ValueError('Class %s not in DMTF CIM schema %s' %
-                                 (cln, self.schema_mof_file))
+                raise ValueError(
+                    _format("Class {0!A} not in DMTF CIM schema {1!A}",
+                            cln, self.schema_mof_file))
 
         return ''.join(output_lines)
 
