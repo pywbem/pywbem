@@ -52,7 +52,7 @@ from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName
 from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
-from ._utils import _ensure_unicode, _ensure_bytes
+from ._utils import _ensure_unicode, _ensure_bytes, _format
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -211,9 +211,10 @@ class HTTPTimeout(object):  # pylint: disable=too-few-public-methods
                 duration = ts2 - self._ts1
                 duration_sec = (float(duration.microseconds) / 1000000) + \
                     duration.seconds + (duration.days * 24 * 3600)
-                raise TimeoutError("The client timed out and closed the "
-                                   "socket after %.0fs." % duration_sec,
-                                   conn_id=self._conn_id)
+                raise TimeoutError(
+                    _format("The client timed out and closed the socket "
+                            "after {0:0f} s.", duration_sec),
+                    conn_id=self._conn_id)
         return False  # re-raise any other exceptions
 
     def timer_expired(self):
@@ -479,7 +480,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     # raises. Our caller will handle it.
                     raise httplib.NotConnected()
             if self.debuglevel > 0:  # pylint: disable=no-member
-                print("send: %r" % strng)
+                print(_format("send: {0!A}", strng))
             blocksize = 8192
             if hasattr(strng, 'read') and not isinstance(strng, list):
                 if self.debuglevel > 0:  # pylint: disable=no-member
@@ -599,7 +600,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 except (SSLError, SSL.SSLError,
                         SSL.Checker.SSLVerificationError) as arg:
                     raise ConnectionError(
-                        "SSL error %s: %s" % (arg.__class__, arg),
+                        _format("SSL error {0}: {1}", arg.__class__, arg),
                         conn_id=conn_id)
 
             # Connect using Python SSL module
@@ -642,11 +643,12 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
                 except SSLError as arg:
                     raise ConnectionError(
-                        "SSL error %s: %s" % (arg.__class__, arg),
+                        _format("SSL error {0}: {1}", arg.__class__, arg),
                         conn_id=conn_id)
                 except CertificateError as arg:
                     raise ConnectionError(
-                        "SSL certificate error %s: %s" % (arg.__class__, arg),
+                        _format("SSL certificate error {0}: {1}",
+                                arg.__class__, arg),
                         conn_id=conn_id)
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
@@ -661,8 +663,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 socket_af = socket.AF_UNIX
             except AttributeError:
                 raise ConnectionError(
-                    'file URLs not supported on %s platform due '
-                    'to missing AF_UNIX support' % platform.system(),
+                    _format("file URLs not supported on {0} platform due to "
+                            "missing AF_UNIX support", platform.system()),
                     conn_id=conn_id)
             self.sock = socket.socket(socket_af, socket.SOCK_STREAM)
             self.sock.connect(self.uds_path)
@@ -721,11 +723,11 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     local = True
                 else:
                     raise ConnectionError(
-                        'File URL is not a socket: %s' % url,
+                        _format("File URL is not a socket: {0!A}", url),
                         conn_id=conn_id)
             except OSError as exc:
                 raise ConnectionError(
-                    'Error with file URL %s: %s' % (url, exc),
+                    _format("Error with file URL {0!A}: {1}", url, exc),
                     conn_id=conn_id)
 
     locallogin = None
@@ -765,13 +767,14 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
             if local_auth_header:
                 standard_headers.append(local_auth_header)
             elif creds is not None:
-                auth = '%s:%s' % (creds[0], creds[1])
+                auth = _format("{0}:{1}", creds[0], creds[1])
                 auth64 = _ensure_unicode(base64.b64encode(
                     _ensure_bytes(auth))).replace('\n', '')
-                standard_headers.append(('Authorization', 'Basic %s' % auth64))
+                standard_headers.append(
+                    ('Authorization', 'Basic {0}'.format(auth64)))
             elif locallogin is not None:
-                standard_headers.append(('PegasusAuthorization',
-                                         'Local "%s"' % locallogin))
+                standard_headers.append(
+                    ('PegasusAuthorization', 'Local "{0}"'.format(locallogin)))
 
             # Note: RFC2616 does not permit the use percent-escaping for
             # the standard header fields. It allows octets (except CTL) for
@@ -854,12 +857,15 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                     uid = os.getuid()
                                 except AttributeError:
                                     raise AuthError(
-                                        "OWLocal authorization for OpenWbem "
-                                        "server not supported on %s platform "
-                                        "due to missing os.getuid()" %
-                                        platform.system(), conn_id=conn_id)
-                                local_auth_header = ('Authorization',
-                                                     'OWLocal uid="%d"' % uid)
+                                        _format(
+                                            "OWLocal authorization for "
+                                            "OpenWbem server not supported on "
+                                            "{0} platform due to missing "
+                                            "os.getuid()", platform.system()),
+                                        conn_id=conn_id)
+                                local_auth_header = (
+                                    'Authorization',
+                                    'OWLocal uid="{0}"'.format(uid))
                                 continue  # with next retry
                             else:
                                 try:
@@ -881,17 +887,19 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                     file_hndl.close()
                                     local_auth_header = (
                                         'Authorization',
-                                        'OWLocal nonce="%s", cookie="%s"' %
-                                        (nonce, cookie))
+                                        'OWLocal nonce="{0}", cookie="{1}"'.
+                                        format(nonce, cookie))
                                     continue  # with next retry
                                 # pylint: disable=broad-except
                                 except Exception as exc:
                                     local_auth_header = None
                                     warnings.warn(
-                                        "Exception in OpenWBEM auth challenge "
-                                        "processing: %s (retrying - this was "
-                                        "attempt %s of %s)" %
-                                        (exc, num_tries + 1, try_limit),
+                                        _format(
+                                            "Exception in OpenWBEM auth "
+                                            "challenge processing: {0} "
+                                            "(retrying - this was attempt "
+                                            "{1} of {2})",
+                                            exc, num_tries + 1, try_limit),
                                         UserWarning, stacklevel=2)
                                     continue  # with next retry
                         elif 'Local' in auth_chal:
@@ -905,8 +913,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                     file_hndl.close()
                                     local_auth_header = (
                                         'PegasusAuthorization',
-                                        'Local "%s:%s:%s"' %
-                                        (locallogin, _file, cookie))
+                                        'Local "{0}:{1}:{2}"'.
+                                        format(locallogin, _file, cookie))
                                     continue  # with next retry
                             except ValueError:
                                 pass
@@ -951,13 +959,12 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     #   fail. Also, retrying needs to be tested with a real
                     #   WBEM server.
                     if False:
-                        warnings.warn("The server closed the connection "
-                                      "without returning any response "
-                                      "(retrying - this was attempt %s of %s "
-                                      "at %s)" %
-                                      (num_tries + 1, try_limit,
-                                       datetime.now()),
-                                      UserWarning, stacklevel=2)
+                        warnings.warn(
+                            _format("The server closed the connection without "
+                                    "returning any response (retrying - this "
+                                    "was attempt {0} of {1} at {2})",
+                                    num_tries + 1, try_limit, datetime.now()),
+                            UserWarning, stacklevel=2)
                         continue  # with next retry
                     else:
                         raise ConnectionError(
@@ -966,25 +973,25 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                             conn_id=conn_id)
                 else:
                     raise ConnectionError(
-                        "The server returned a bad HTTP status line: "
-                        "%r" % exc.line,
+                        _format("The server returned a bad HTTP status line: "
+                                "{0!A}", exc.line),
                         conn_id=conn_id)
             except httplib.IncompleteRead as exc:
                 raise ConnectionError(
-                    "HTTP incomplete read: %s" % exc,
+                    _format("HTTP incomplete read: {0}", exc),
                     conn_id=conn_id)
             except httplib.NotConnected as exc:
                 raise ConnectionError(
-                    "HTTP not connected: %s" % exc,
+                    _format("HTTP not connected: {0}", exc),
                     conn_id=conn_id)
             except httplib.HTTPException as exc:
                 # Base class for all httplib exceptions
                 raise ConnectionError(
-                    "HTTP error: %s" % exc,
+                    _format("HTTP error: {0}", exc),
                     conn_id=conn_id)
             except SocketErrors as exc:
                 raise ConnectionError(
-                    "Socket error: %s" % exc,
+                    _format("Socket error: {0}", exc),
                     conn_id=conn_id)
 
             # Operation was successful
@@ -1024,5 +1031,6 @@ def get_cimobject_header(obj):
     if isinstance(obj, CIMInstanceName):
         return obj.to_wbem_uri(format='cimobject')
 
-    raise TypeError("Invalid object type %s to generate CIMObject header "
-                    "value from" % type(obj))
+    raise TypeError(
+        _format("Invalid object type {0} to generate CIMObject header value "
+                "from", type(obj)))

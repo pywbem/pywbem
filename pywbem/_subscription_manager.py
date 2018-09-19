@@ -150,6 +150,7 @@ from .cim_obj import CIMInstance, CIMInstanceName
 from .cim_http import parse_url
 from .cim_constants import CIM_ERR_FAILED
 from .exceptions import CIMError
+from ._utils import _format
 
 # CIM model classnames for subscription components
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
@@ -212,11 +213,13 @@ class WBEMSubscriptionManager(object):
         if subscription_manager_id is None:
             raise ValueError("Subscription manager ID must not be None")
         if not isinstance(subscription_manager_id, six.string_types):
-            raise TypeError("Invalid type for subscription manager ID: %r" %
-                            subscription_manager_id)
+            raise TypeError(
+                _format("Invalid type for subscription manager ID: {0!A}",
+                        subscription_manager_id))
         if ':' in subscription_manager_id:
-            raise ValueError("Subscription manager ID contains ':': %s" %
-                             subscription_manager_id)
+            raise ValueError(
+                _format("Subscription manager ID contains ':': {0!A}",
+                        subscription_manager_id))
         self._subscription_manager_id = subscription_manager_id
 
     def __repr__(self):
@@ -224,12 +227,14 @@ class WBEMSubscriptionManager(object):
         Return a representation of the :class:`~pywbem.WBEMSubscriptionManager`
         object with all attributes, that is suitable for debugging.
         """
-        return "%s(_subscription_manager_id=%r, _servers=%r, " \
-               "_owned_subscriptions=%r, _owned_filters=%r, " \
-               "_owned_destinations=%r)" % \
-               (self.__class__.__name__, self._subscription_manager_id,
-                self._servers, self._owned_subscriptions,
-                self._owned_filters, self._owned_destinations)
+        return _format(
+            "{s.__class__.__name__}("
+            "_subscription_manager_id={s._subscription_manager_id!A}, "
+            "_servers={s._servers!A}, "
+            "_owned_subscriptions={s._owned_subscriptions!A}, "
+            "_owned_filters={s._owned_filters!A}, "
+            "_owned_destinations={s._owned_destinations!A})",
+            s=self)
 
     def __enter__(self):
         """
@@ -273,8 +278,9 @@ class WBEMSubscriptionManager(object):
         """
 
         if server_id not in self._servers:
-            raise ValueError('WBEM server %s not known by subscription '
-                             'manager' % server_id)
+            raise ValueError(
+                _format("WBEM server {0!A} not known by subscription manager",
+                        server_id))
 
         return self._servers[server_id]
 
@@ -318,8 +324,9 @@ class WBEMSubscriptionManager(object):
                             "WBEMServer object")
         server_id = server.url
         if server_id in self._servers:
-            raise ValueError("WBEM server already known by listener: %s" %
-                             server_id)
+            raise ValueError(
+                _format("WBEM server already known by listener: {0!A}",
+                        server_id))
 
         # Create dictionary entries for this server
         self._servers[server_id] = server
@@ -333,8 +340,8 @@ class WBEMSubscriptionManager(object):
         this_host = getfqdn()
 
         dest_name_pattern = re.compile(
-            r'^pywbemdestination:owned:%s:%s:[^:]*$' %
-            (this_host, self._subscription_manager_id))
+            _format(r'^pywbemdestination:owned:{0}:{1}:[^:]*$',
+                    this_host, self._subscription_manager_id))
         dest_insts = server.conn.EnumerateInstances(
             DESTINATION_CLASSNAME, namespace=server.interop_ns)
         for inst in dest_insts:
@@ -343,8 +350,8 @@ class WBEMSubscriptionManager(object):
                 self._owned_destinations[server_id].append(inst)
 
         filter_name_pattern = re.compile(
-            r'^pywbemfilter:owned:%s:%s:[^:]*:[^:]*$' %
-            (this_host, self._subscription_manager_id))
+            _format(r'^pywbemfilter:owned:{0}:{1}:[^:]*:[^:]*$',
+                    this_host, self._subscription_manager_id))
         filter_insts = server.conn.EnumerateInstances(
             FILTER_CLASSNAME, namespace=server.interop_ns)
         for inst in filter_insts:
@@ -771,9 +778,11 @@ class WBEMSubscriptionManager(object):
                                  "specified, but only one of them must be "
                                  "specified")
             if not isinstance(filter_id, six.string_types):
-                raise TypeError("Invalid type for filter ID: %r" % filter_id)
+                raise TypeError(
+                    _format("Invalid type for filter ID: {0!A}", filter_id))
             if ':' in filter_id:
-                raise ValueError("Filter ID contains ':': %s" % filter_id)
+                raise ValueError(
+                    _format("Filter ID contains ':': {0!A}", filter_id))
 
         filter_inst = self._create_filter(server_id, source_namespace, query,
                                           query_language, owned, filter_id,
@@ -986,11 +995,13 @@ class WBEMSubscriptionManager(object):
         # filter or on an owned destination.
         if not owned:
             if filter_path in owned_filter_paths:
-                raise ValueError("Permanent subscription cannot be created on "
-                                 "owned filter: %s" % filter_path)
+                raise ValueError(
+                    _format("Permanent subscription cannot be created on "
+                            "owned filter: {0!A}", filter_path))
             if dest_path in owned_destination_paths:
-                raise ValueError("Permanent subscription cannot be created on "
-                                 "owned listener destination: %s" % dest_path)
+                raise ValueError(
+                    _format("Permanent subscription cannot be created on "
+                            "owned listener destination: {0!A}", dest_path))
 
         sub_inst = self._create_subscription(server_id, dest_path, filter_path,
                                              owned)
@@ -1157,9 +1168,9 @@ class WBEMSubscriptionManager(object):
         dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
         dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
         dest_inst['SystemName'] = this_host
-        dest_inst['Name'] = 'pywbemdestination:%s:%s:%s' % \
-                            (ownership, self._subscription_manager_id,
-                             uuid.uuid4())
+        dest_inst['Name'] = _format(
+            'pywbemdestination:{0}:{1}:{2}',
+            ownership, self._subscription_manager_id, uuid.uuid4())
         dest_inst['Destination'] = listener_url
 
         if owned:  # pylint: disable=no-else-return
@@ -1246,9 +1257,10 @@ class WBEMSubscriptionManager(object):
         filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
         filter_inst['SystemName'] = this_host
         if filter_id:
-            filter_inst['Name'] = 'pywbemfilter:%s:%s:%s:%s' % \
-                (ownership, self._subscription_manager_id, filter_id,
-                 uuid.uuid4())
+            filter_inst['Name'] = _format(
+                'pywbemfilter:{0}:{1}:{2}:{3}',
+                ownership, self._subscription_manager_id, filter_id,
+                uuid.uuid4())
         if name:
             filter_inst['Name'] = name
         filter_inst['SourceNamespace'] = source_namespace

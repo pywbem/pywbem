@@ -40,7 +40,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 from .cim_types import CIMInt, CIMFloat, CIMDateTime
 from .exceptions import CIMError
 from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
-from ._utils import _ensure_unicode
+from ._utils import _ensure_unicode, _format
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -129,11 +129,12 @@ yaml.SafeLoader.add_constructor(CIMDATETIME_TAG, _cimdatetime_constructor)
 # Some monkey-patching for better diagnostics:
 def _represent_undefined(self, data):
     """Raises flag for objects that cannot be represented"""
-    raise RepresenterError("cannot represent an object: %s of type: %s; "
-                           "yaml_representers: %r, "
-                           "yaml_multi_representers: %r" %
-                           (data, type(data), self.yaml_representers.keys(),
-                            self.yaml_multi_representers.keys()))
+    raise RepresenterError(
+        _format("Cannot represent an object: {0!A} of type: {1}; "
+                "yaml_representers: {2!A}, "
+                "yaml_multi_representers: {3!A}",
+                data, type(data), self.yaml_representers.keys(),
+                self.yaml_multi_representers.keys()))
 
 
 yaml.SafeDumper.represent_undefined = _represent_undefined
@@ -158,7 +159,11 @@ class OpArgs(OpArgsTuple):
     __slots__ = ()
 
     def __repr__(self):
-        return "OpArgs(method={s.method!r}, args={s.args!r})".format(s=self)
+        return _format(
+            "{s.__class__.__name__}("
+            "method={s.method!A}, "
+            "args={s.args!A})",
+            s=self)
 
 
 OpResultTuple = namedtuple("OpResultTuple", ["ret", "exc"])
@@ -188,7 +193,11 @@ class OpResult(OpResultTuple):
     __slots__ = ()
 
     def __repr__(self):
-        return "OpResult(ret={s.ret!r}, exc={s.exc!r})".format(s=self)
+        return _format(
+            "{s.__class__.__name__}("
+            "ret={s.ret!A}, "
+            "exc={s.exc!A})",
+            s=self)
 
 
 HttpRequestTuple = namedtuple("HttpRequestTuple",
@@ -230,10 +239,15 @@ class HttpRequest(HttpRequestTuple):
     __slots__ = ()
 
     def __repr__(self):
-        return "HttpRequest(version={s.version!r}, url={s.url!r}, " \
-               "target={s.target!r}, method={s.method!r}, " \
-               "headers={s.headers!r}, payload={s.payload!r})" \
-               .format(s=self)
+        return _format(
+            "{s.__class__.__name__}("
+            "version={s.version!A}, "
+            "url={s.url!A}, "
+            "target={s.target!A}, "
+            "method={s.method!A}, "
+            "headers={s.headers!A}, "
+            "payload={s.payload!A})",
+            s=self)
 
 
 HttpResponseTuple = namedtuple("HttpResponseTuple",
@@ -271,9 +285,14 @@ class HttpResponse(HttpResponseTuple):
     __slots__ = ()
 
     def __repr__(self):
-        return "HttpResponse(version={s.version!r}, status={s.status!r}, " \
-               "reason={s.reason!r}, headers={s.headers!r}, " \
-               "payload={s.payload!r})".format(s=self)
+        return _format(
+            "{s.__class__.__name__}("
+            "version={s.version!A}, "
+            "status={s.status!A}, "
+            "reason={s.reason!A}, "
+            "headers={s.headers!A}, "
+            "payload={s.payload!A})",
+            s=self)
 
 
 class BaseOperationRecorder(object):
@@ -568,9 +587,9 @@ class LogOperationRecorder(BaseOperationRecorder):
         # build name for logger for this connection
         if conn_id:
             self.apilogger = logging.getLogger(
-                '%s.%s' % (LOGGER_API_CALLS_NAME, conn_id))
+                _format("{0}.{1}", LOGGER_API_CALLS_NAME, conn_id))
             self.httplogger = logging.getLogger(
-                '%s.%s' % (LOGGER_HTTP_NAME, conn_id))
+                _format("{0}.{1}", LOGGER_HTTP_NAME, conn_id))
         else:
             self.apilogger = logging.getLogger(LOGGER_API_CALLS_NAME)
             self.httplogger = logging.getLogger(LOGGER_HTTP_NAME)
@@ -673,8 +692,9 @@ class LogOperationRecorder(BaseOperationRecorder):
                 if isinstance(ret, list):
                     if ret:
                         ret_type = type(ret[0]).__name__ if ret else ""
-                        return 'list of %s; count=%s' % (ret_type, len(ret))
-                    return 'Empty'
+                        return _format("list of {0}; count={1}",
+                                       ret_type, len(ret))
+                    return "Empty"
 
                 ret_type = type(ret).__name__
                 if hasattr(ret, 'classname'):
@@ -683,25 +703,26 @@ class LogOperationRecorder(BaseOperationRecorder):
                     name = ret.name
                 else:
                     name = ""
-                return '%s %s' % (ret_type, name)
+                return _format("{0} {1}", ret_type, name)
 
             elif self.api_detail_level == 'paths':
                 if isinstance(ret, list):
                     if ret:
                         if hasattr(ret[0], 'path'):
-                            result_fmt = ', '.join([str(p.path) for p in ret])
+                            result_fmt = ', '.join(
+                                [_format("{0!A}", str(p.path)) for p in ret])
                         else:
-                            result_fmt = '%s' % ret
+                            result_fmt = _format("{0!A}", ret)
                     else:
                         result_fmt = ''
                 else:
                     if hasattr(ret, 'path'):
-                        result_fmt = '%s' % ret.path
+                        result_fmt = _format("{0!A}", str(ret.path))
                     else:
-                        result_fmt = '%s' % ret
+                        result_fmt = _format("{0!A}", ret)
 
             else:
-                result_fmt = '{0!r}'.format(ret)
+                result_fmt = _format("{0!A}", ret)
 
             if max_len and (len(result_fmt) > max_len):
                 result_fmt = result_fmt[:max_len] + '...'
@@ -712,7 +733,8 @@ class LogOperationRecorder(BaseOperationRecorder):
             if exc:  # format exception
                 # exceptions are always either all or reduced length
                 result = format_result(
-                    '%s(%s)' % (exc.__class__.__name__, exc), self.api_maxlen)
+                    _format("{0}({1})", exc.__class__.__name__, exc),
+                    self.api_maxlen)
 
                 return_type = 'Exception'
 
@@ -731,24 +753,27 @@ class LogOperationRecorder(BaseOperationRecorder):
                         data_str = 'paths'
 
                     try:    # test for query_result_class
-                        qrc = ', query_result_class=%s' % \
-                            ret.query_result_class
+                        qrc = _format(
+                            ", query_result_class={0}",
+                            ret.query_result_class)
                     except AttributeError:
                         pass
 
-                    result = '{0}(context={1}, eos={2}{3}, {4}={5})' \
-                        .format(type(ret).__name__, ret.context, ret.eos, qrc,
-                                data_str, format_result(rtn_data,
-                                                        self.api_maxlen))
+                    result = _format(
+                        "{0}(context={1}, eos={2}{3}, {4}={5})",
+                        type(ret).__name__, ret.context, ret.eos, qrc,
+                        data_str, format_result(rtn_data, self.api_maxlen))
 
                 # format enumerate response except not open/pull
                 elif isinstance(ret, list):
                     try:    # test for query_result_class
-                        qrc = ', query_result_class=%s' % ret.query_result_class
+                        qrc = _format(
+                            ", query_result_class={0}",
+                            ret.query_result_class)
                     except AttributeError:
                         pass
                     ret_fmtd = format_result(ret, self.api_maxlen)
-                    result = '%s%s' % (qrc, ret_fmtd)
+                    result = _format("{0}{1}", qrc, ret_fmtd)
 
                 # format single return object
                 else:
@@ -768,7 +793,8 @@ class LogOperationRecorder(BaseOperationRecorder):
             # if Auth header, mask data
             if 'Authorization' in headers:
                 authtype, cred = headers['Authorization'].split(' ')
-                headers['Authorization'] = '%s %s' % (authtype, 'X' * len(cred))
+                headers['Authorization'] = _format(
+                    "{0} {1}", authtype, 'X' * len(cred))
 
             header_str = ' '.join('{0}:{1!r}'.format(k, v)
                                   for k, v in headers.items())
@@ -1127,5 +1153,6 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['translatable'] = self.toyaml(obj.translatable)
             return ret_dict
         else:
-            raise TypeError("Invalid type in TestClientRecorder.toyaml(): "
-                            "%s %s" % (obj.__class__.__name__, type(obj)))
+            raise TypeError(
+                _format("Invalid type in TestClientRecorder.toyaml(): {0} {1}",
+                        obj.__class__.__name__, type(obj)))

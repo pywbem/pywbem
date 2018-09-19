@@ -81,7 +81,7 @@ import traceback
 import six
 
 from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
-from ._utils import _ensure_unicode, _hash_item
+from ._utils import _ensure_unicode, _hash_item, _format
 
 if six.PY2:
     _Longint = long  # noqa: F821
@@ -128,8 +128,8 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
 
     def __ordering_deprecated(self):
         """Deprecated warning for pywbem CIM Objects"""
-        msg = "Ordering comparisons involving %s objects are deprecated." % \
-            self.__class__.__name__
+        msg = _format("Ordering comparisons involving {0} objects are "
+                      "deprecated.", self.__class__.__name__)
         if DEBUG_WARNING_ORIGIN:
             msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
         warnings.warn(msg, DeprecationWarning, stacklevel=3)
@@ -248,7 +248,10 @@ class MinutesFromUTC(tzinfo):
         self.__offset = timedelta(minutes=offset)
 
     def __repr__(self):
-        return '%s(offset=%r)' % (self.__class__.__name__, self.__offset)
+        return _format(
+            "{s.__class__.__name__}("
+            "offset={s.__offset!A})",
+            s=self)
 
     def utcoffset(self, dt):  # pylint: disable=unused-argument
         """
