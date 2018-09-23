@@ -15,6 +15,8 @@ import pytest
 import six
 
 from pywbem._utils import _ascii2, _format
+from pywbem.cim_obj import NocaseDict
+
 from run_uprint import unichr2
 import pytest_extensions
 
@@ -41,7 +43,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "integer 42",
+        "Integer",
         dict(
             value=42,
             exp_result="42",
@@ -49,15 +51,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "byte string 'bla'",
-        dict(
-            value=b'bla',
-            exp_result="'bla'",
-        ),
-        None, None, True
-    ),
-    (
-        "unicode string, empty",
+        "Unicode string, empty",
         dict(
             value=u'',
             exp_result="''",
@@ -65,7 +59,15 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string, non-empty",
+        "Byte string, empty",
+        dict(
+            value=b'',
+            exp_result="''",
+        ),
+        None, None, True
+    ),
+    (
+        "Unicode string, ASCII",
         dict(
             value=u'abc',
             exp_result="'abc'",
@@ -73,7 +75,15 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with printable UCS-2 char below U+00FF",
+        "Byte string, ASCII",
+        dict(
+            value=b'bla',
+            exp_result="'bla'",
+        ),
+        None, None, True
+    ),
+    (
+        "Unicode string, printable UCS-2 char below U+00FF",
         dict(
             value=u'\u00E0',
             exp_result="'\\u00e0'",
@@ -81,7 +91,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with printable UCS-2 char above U+00FF",
+        "Unicode string, printable UCS-2 char above U+00FF",
         dict(
             value=u'\u041F',
             exp_result="'\\u041f'",
@@ -89,7 +99,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with printable UCS-4 char",
+        "Unicode string, printable UCS-4 char",
         dict(
             value=u'\U0001D122',
             exp_result="'\\U0001d122'",
@@ -97,7 +107,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with three printable UCS-2 chars below U+00FF",
+        "Unicode string, multiple printable UCS-2 chars below U+00FF",
         dict(
             value=u'\u00E0\u00E1\u00E2',
             exp_result="'\\u00e0\\u00e1\\u00e2'",
@@ -105,7 +115,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with three printable UCS-2 chars above U+00FF",
+        "Unicode string, multiple printable UCS-2 chars above U+00FF",
         dict(
             value=u'\u041F\u0440\u6C2E',
             exp_result="'\\u041f\\u0440\\u6c2e'",
@@ -113,7 +123,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with three printable UCS-4 chars",
+        "Unicode string, multiple printable UCS-4 chars",
         dict(
             value=u'\U0001D122\U0001D11E\U0001D106',
             exp_result="'\\U0001d122\\U0001d11e\\U0001d106'",
@@ -121,7 +131,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with one backslash escape and rest of UCS-2 char",
+        "Unicode string, one backslash escape and rest of UCS-2 char",
         dict(
             value=u'\\xE0',
             exp_result="'\\\\xE0'",
@@ -129,7 +139,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with one backslash escape and UCS-2 char",
+        "Unicode string, one backslash escape and UCS-2 char",
         dict(
             value=u'\\\u00E0',
             exp_result="'\\\\\\u00e0'",
@@ -137,7 +147,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with two backslash escapes and rest of UCS-2 char",
+        "Unicode string, two backslash escapes and rest of UCS-2 char",
         dict(
             value=u'\\\\xE0',
             exp_result="'\\\\\\\\xE0'",
@@ -145,7 +155,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "unicode string with two backslash escapes and UCS-2 char",
+        "Unicode string, two backslash escapes and UCS-2 char",
         dict(
             value=u'\\\\\u00E0',
             exp_result="'\\\\\\\\\\u00e0'",
@@ -153,7 +163,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "list of strings",
+        "List of strings",
         dict(
             value=['a', 'b'],
             exp_result="['a', 'b']",
@@ -161,7 +171,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "tuple of strings",
+        "Tuple of strings",
         dict(
             value=('a', 'b'),
             exp_result="('a', 'b')",
@@ -169,7 +179,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "set of strings",
+        "Set of strings",
         dict(
             value=set(['a']),
             exp_result="{'a'}",
@@ -177,7 +187,7 @@ TESTCASES_ASCII2 = [
         None, None, True
     ),
     (
-        "dict of strings",
+        "Dict of strings",
         dict(
             value={'a': 1},
             exp_result="{'a': 1}",
@@ -188,7 +198,15 @@ TESTCASES_ASCII2 = [
         "OrderedDict of strings",
         dict(
             value=OrderedDict([('a', 1), ('b', 2)]),
-            exp_result="{'a': 1, 'b': 2}",
+            exp_result="OrderedDict({'a': 1, 'b': 2})",
+        ),
+        None, None, True
+    ),
+    (
+        "NocaseDict of strings",
+        dict(
+            value=NocaseDict([('a', 1), ('b', 2)]),
+            exp_result="NocaseDict({'a': 1, 'b': 2})",
         ),
         None, None, True
     ),
@@ -215,9 +233,9 @@ def test_ascii2(testcase, value, exp_result):
     assert act_result == exp_result
 
 
-TESTCASES_FORMAT = [
+TESTCASES_FORMAT_FIXED = [
 
-    # Testcases for _format()
+    # Testcases for _format() with fixed data
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -231,7 +249,27 @@ TESTCASES_FORMAT = [
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
     (
-        "Empty format string",
+        "Unicode format string, empty",
+        dict(
+            format_str=u"",
+            format_args=[],
+            format_kwargs=dict(),
+            exp_result="",
+        ),
+        None, None, True
+    ),
+    (
+        "Byte format string, empty",
+        dict(
+            format_str=b"",
+            format_args=[],
+            format_kwargs=dict(),
+            exp_result=b"" if six.PY2 else None,
+        ),
+        None if six.PY2 else TypeError, None, True
+    ),
+    (
+        "Format string, empty",
         dict(
             format_str="",
             format_args=[],
@@ -241,14 +279,24 @@ TESTCASES_FORMAT = [
         None, None, True
     ),
     (
-        "Format string without conversion and byte string ASCII",
+        "Unicode format string without conversion and unicode string ASCII",
         dict(
-            format_str="{0}",
-            format_args=[b"abc"],
+            format_str=u"{0}",
+            format_args=[u"abc"],
             format_kwargs=dict(),
-            exp_result="abc" if six.PY2 else "b'abc'",
+            exp_result=u"abc",
         ),
         None, None, True
+    ),
+    (
+        "Byte format string without conversion and unicode string ASCII",
+        dict(
+            format_str=b"{0}",
+            format_args=[u"abc"],
+            format_kwargs=dict(),
+            exp_result=u"abc" if six.PY2 else None,
+        ),
+        None if six.PY2 else TypeError, None, True
     ),
     (
         "Format string without conversion and unicode string ASCII",
@@ -261,9 +309,39 @@ TESTCASES_FORMAT = [
         None, None, True
     ),
     (
-        "Format string with 's' and byte string ASCII",
+        "Unicode format string without conversion and byte string ASCII",
         dict(
-            format_str="{0!s}",
+            format_str=u"{0}",
+            format_args=[b"abc"],
+            format_kwargs=dict(),
+            exp_result=b"abc" if six.PY2 else u"b'abc'",
+        ),
+        None, None, True
+    ),
+    (
+        "Byte format string without conversion and byte string ASCII",
+        dict(
+            format_str=b"{0}",
+            format_args=[b"abc"],
+            format_kwargs=dict(),
+            exp_result=b"abc" if six.PY2 else None,
+        ),
+        None if six.PY2 else TypeError, None, True
+    ),
+    (
+        "Format string without conversion and byte string ASCII",
+        dict(
+            format_str="{0}",
+            format_args=[b"abc"],
+            format_kwargs=dict(),
+            exp_result=b"abc" if six.PY2 else u"b'abc'",
+        ),
+        None, None, True
+    ),
+    (
+        "Unicode format string with 's' and byte string ASCII",
+        dict(
+            format_str=u"{0!s}",
             format_args=[b"abc"],
             format_kwargs=dict(),
             exp_result="abc" if six.PY2 else "b'abc'",
@@ -271,9 +349,9 @@ TESTCASES_FORMAT = [
         None, None, True
     ),
     (
-        "Format string with 's' and unicode string ASCII",
+        "Unicode format string with 's' and unicode string ASCII",
         dict(
-            format_str="{0!s}",
+            format_str=u"{0!s}",
             format_args=[u"abc"],
             format_kwargs=dict(),
             exp_result="abc",
@@ -416,7 +494,17 @@ TESTCASES_FORMAT = [
             format_str="{0!A}",
             format_args=[OrderedDict([('a', 1), ('b', 2)])],
             format_kwargs=dict(),
-            exp_result="{'a': 1, 'b': 2}",
+            exp_result="OrderedDict({'a': 1, 'b': 2})",
+        ),
+        None, None, True
+    ),
+    (
+        "Format string with 'A' and NocaseDict of strings",
+        dict(
+            format_str="{0!A}",
+            format_args=[NocaseDict([('a', 1), ('b', 2)])],
+            format_kwargs=dict(),
+            exp_result="NocaseDict({'a': 1, 'b': 2})",
         ),
         None, None, True
     ),
@@ -435,11 +523,12 @@ TESTCASES_FORMAT = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_FORMAT)
+    TESTCASES_FORMAT_FIXED)
 @pytest_extensions.simplified_test_function
-def test_format(testcase, format_str, format_args, format_kwargs, exp_result):
+def test_format_fixed(testcase, format_str, format_args, format_kwargs,
+                      exp_result):
     """
-    Test function for _format().
+    Test function for _format() with fixed data.
     """
 
     # The code to be tested
@@ -485,16 +574,16 @@ def test_format_random(unicode_cp):
                     (unicode_cp, cat))
 
     # The code to be tested
-    act_result = _format(u"{0!A}", unicode_char)
+    act_result = _format("{0!A}", unicode_char)
 
     # Construct the expected formatting result. Note that the result is
     # ASCII-only in all cases.
     if unicode_cp < 0x7F:
-        exp_result = "'%s'" % str(unicode_char)
+        exp_result = "'{0}'".format(unicode_char)
     elif unicode_cp < 0x10000:
-        exp_result = "'\\u%04x'" % unicode_cp
+        exp_result = "'\\u{0:04x}'".format(unicode_cp)
     else:
-        exp_result = "'\\U%08x'" % unicode_cp
+        exp_result = "'\\U{0:08x}'".format(unicode_cp)
 
     assert type(act_result) is type(exp_result)
     assert act_result == exp_result
