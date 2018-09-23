@@ -52,7 +52,7 @@ except ImportError:
     from ordereddict import OrderedDict
 import six
 
-from ._utils import _stacklevel_above_module
+from ._utils import _stacklevel_above_module, _format
 from .config import DEBUG_WARNING_ORIGIN
 
 __all__ = []
@@ -361,10 +361,14 @@ class NocaseDict(object):
 
         The order of dictionary items in the result is the preserved order of
         adding or deleting items.
+
+        The lexical case of the keys in the result is the preserved lexical
+        case.
         """
-        items = ', '.join(['(%r, %r)' % (key, value)
-                           for key, value in self.iteritems()])
-        return 'NocaseDict([%s])' % items
+        items = [_format("{0!A}: {1!A}", key, value)
+                 for key, value in self.iteritems()]
+        items_str = ', '.join(items)
+        return "{0.__class__.__name__}({{{1}}})".format(self, items_str)
 
     def update(self, *args, **kwargs):
         """

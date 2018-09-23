@@ -1781,7 +1781,7 @@ def test_CIMInstanceName_repr(obj):
     assert 'keybindings=' in r
     if obj.keybindings:
         for key in obj.keybindings.keys():
-            search_str = 'u?[\'"]%s[\'"], ' % key
+            search_str = 'u?[\'"]%s[\'"]: ' % key
             assert re.search(search_str, r), "For key %r" % key
 
     exp_namespace = 'namespace=%r' % obj.namespace
