@@ -16,6 +16,7 @@ import pytest
 import pytest_extensions
 
 from pywbem._nocasedict import NocaseDict
+from pywbem._utils import _format
 
 
 class NonComparable(object):
@@ -1467,7 +1468,7 @@ def test_NocaseDict_repr(testcase, obj):
     # Note: This only tests for existence of each item, not for excess items
     # or representing the correct order.
     for item in obj.items():
-        exp_item_result = '(%r, %r)' % item
+        exp_item_result = _format("{0!A}: {1!A}", *item)
         assert exp_item_result in result
 
 

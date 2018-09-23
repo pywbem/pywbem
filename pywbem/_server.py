@@ -42,18 +42,18 @@ The following example code displays some information about a WBEM server:
 
     def explore_server(server_url, username, password):
 
-        print("WBEM server URL:\\n  %s" % server_url)
+        print("WBEM server URL:\\n  {0}".format(server_url))
 
         conn = WBEMConnection(server_url, (username, password))
         server = WBEMServer(conn)
 
-        print("Brand:\\n  %s" % server.brand)
-        print("Version:\\n  %s" % server.version)
-        print("Interop namespace:\\n  %s" % server.interop_ns)
+        print("Brand:\\n  {0}".format(server.brand))
+        print("Version:\\n  {0}".format(server.version))
+        print("Interop namespace:\\n  {0}".format(server.interop_ns))
 
         print("All namespaces:")
         for ns in server.namespaces:
-            print("  %s" % ns)
+            print("  {0}".format(ns))
 
         print("Advertised management profiles:")
         org_vm = ValueMapping.for_property(server, server.interop_ns,
@@ -62,7 +62,7 @@ The following example code displays some information about a WBEM server:
             org = org_vm.tovalues(inst['RegisteredOrganization'])
             name = inst['RegisteredName']
             vers = inst['RegisteredVersion']
-            print("  %s %s Profile %s" % (org, name, vers))
+            print("  {0} {1} Profile {2}".format(org, name, vers))
 
 Example output:
 
@@ -105,7 +105,7 @@ from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
 from .cim_operations import WBEMConnection
 from ._valuemapping import ValueMapping
-from ._utils import _ensure_unicode
+from ._utils import _ensure_unicode, _format
 
 __all__ = ['WBEMServer']
 
@@ -153,9 +153,9 @@ class WBEMServer(object):
             Connection to the WBEM server.
         """
         if not isinstance(conn, WBEMConnection):
-            raise TypeError("conn argument of WBEMServer must be a "
-                            "WBEMConnection object, but has type: %s" %
-                            type(conn))
+            raise TypeError(
+                _format("conn argument of WBEMServer must be a WBEMConnection "
+                        "object, but has type: {0}", type(conn)))
         self._conn = conn
         self._interop_ns = None
         self._namespaces = None
@@ -171,13 +171,18 @@ class WBEMServer(object):
         Return a representation of the :class:`~pywbem.WBEMServer` object
         with all attributes, that is suitable for debugging.
         """
-        return "%s(url=%r, conn=%r, interop_ns=%s, namespaces=%s, " \
-               "namespace_paths=%s, namespace_classname=%r, brand=%r, " \
-               "version=%r, profiles=[... %s instances])" % \
-               (self.__class__.__name__, self.url, self.conn, self.interop_ns,
-                self.namespaces, self.namespace_paths,
-                self.namespace_classname, self.brand,
-                self.version, len(self.profiles))
+        return _format(
+            "{s.__class__.__name__}("
+            "conn.url={s._conn.url!A}, "
+            "interop_ns={s._interop_ns!A}, "
+            "namespaces={s._namespaces!A}, "
+            "namespace_paths={s._namespace_paths!A}, "
+            "namespace_classname={s._namespace_classname!A}, "
+            "brand={s._brand!A}, "
+            "version={s._version!A}, "
+            "profiles=[{pnum} instances])",
+            s=self,
+            pnum=len(self._profiles) if self._profiles else 0)
 
     @property
     def url(self):
@@ -404,10 +409,11 @@ class WBEMServer(object):
             ws_profile_inst = ws_profiles_sorted[-1]  # latest version
             ws_insts = self.get_central_instances(ws_profile_inst.path)
             if len(ws_insts) != 1:
-                raise CIMError(CIM_ERR_FAILED,
-                               "Unexpected number of central instances of "
-                               "WBEM Server profile: %s " %
-                               [i.path for i in ws_insts])
+                raise CIMError(
+                    CIM_ERR_FAILED,
+                    _format("Unexpected number of central instances of WBEM "
+                            "Server profile: {0!A}",
+                            [i.path for i in ws_insts]))
             ws_inst = ws_insts[0]
 
             ns_inst = CIMInstance('CIM_WBEMServerNamespace')
@@ -432,8 +438,9 @@ class WBEMServer(object):
                 if ret_val != 0:
                     raise CIMError(
                         CIM_ERR_FAILED,
-                        "The CreateWBEMServerNamespace() method is "
-                        "implemented but failed: %s" % out_params['Errors'])
+                        _format("The CreateWBEMServerNamespace() method is "
+                                "implemented but failed: {0}",
+                                out_params['Errors']))
 
         else:
 
@@ -542,8 +549,8 @@ class WBEMServer(object):
         if std_namespace not in self.namespaces:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                "Specified namespace does not exist: %s" %
-                std_namespace,
+                _format("Specified namespace does not exist: {0!A}",
+                        std_namespace),
                 conn_id=self.conn.conn_id)
 
         ns_path = None
@@ -563,9 +570,9 @@ class WBEMServer(object):
         if class_paths or quals:
             raise CIMError(
                 CIM_ERR_NAMESPACE_NOT_EMPTY,
-                "Specified namespace %s is not empty; it contains %s "
-                "top-level classes and %s qualifier types" %
-                (std_namespace, len(class_paths), len(quals)),
+                _format("Specified namespace {0!A} is not empty; it contains "
+                        "{1} top-level classes and {2} qualifier types",
+                        std_namespace, len(class_paths), len(quals)),
                 conn_id=self.conn.conn_id)
 
         self.conn.DeleteInstance(ns_path)
@@ -626,22 +633,28 @@ class WBEMServer(object):
             try:
                 inst_org_value = inst['RegisteredOrganization']
             except KeyError:
-                raise KeyError("CIM_RegisteredProfile instance in %r does not "
-                               "have a property 'RegisteredOrganization'" %
-                               self.interop_ns)
+                raise KeyError(
+                    _format("CIM_RegisteredProfile instance in namespace "
+                            "{0!A} does not have a property "
+                            "'RegisteredOrganization'",
+                            self.interop_ns))
             inst_org = org_vm.tovalues(inst_org_value)
             try:
                 inst_name = inst['RegisteredName']
             except KeyError:
-                raise KeyError("CIM_RegisteredProfile instance in %r does not "
-                               "have a property 'RegisteredName'" %
-                               self.interop_ns)
+                raise KeyError(
+                    _format("CIM_RegisteredProfile instance in namespace "
+                            "{0!A} does not have a property "
+                            "'RegisteredName'",
+                            self.interop_ns))
             try:
                 inst_version = inst['RegisteredVersion']
             except KeyError:
-                raise KeyError("CIM_RegisteredProfile instance in %r does not "
-                               "have a property 'RegisteredVersion'" %
-                               self.interop_ns)
+                raise KeyError(
+                    _format("CIM_RegisteredProfile instance in namespace "
+                            "{0!A} does not have a property "
+                            "'RegisteredVersion'",
+                            self.interop_ns))
 
             # pylint: disable=too-many-boolean-expressions
             if (registered_org is None or registered_org == inst_org) and \
@@ -736,9 +749,9 @@ class WBEMServer(object):
         """  # noqa: E501
         # pylint: enable=line-too-long
         if not isinstance(profile_path, CIMInstanceName):
-            raise TypeError("The profile_path argument must be a "
-                            "CIMInstanceName, but has type: %s" %
-                            type(profile_path))
+            raise TypeError(
+                _format("The profile_path argument must be a CIMInstanceName, "
+                        "but has type: {0}", type(profile_path)))
 
         # Try GetCentralInstances() method:
         try:
@@ -757,10 +770,10 @@ class WBEMServer(object):
                 raise
         else:
             if ret_val != 0:
-                raise ValueError("The GetCentralInstances() method is "
-                                 "implemented but failed with rc=%s, for "
-                                 "profile instance: %s" %
-                                 (ret_val, profile_path))
+                raise ValueError(
+                    _format("The GetCentralInstances() method is implemented "
+                            "but failed with rc={0}, for profile instance: "
+                            "{1!A}", ret_val, profile_path))
             return out_params['CentralInstances']
 
         # Try central methodology
@@ -775,12 +788,13 @@ class WBEMServer(object):
         if central_class is None or \
            scoping_class is None or \
            scoping_path is None:
-            raise ValueError("No central instances found after applying "
-                             "GetCentralInstances and central class "
-                             "methodologies, and parameters for scoping "
-                             "class methodology were not specified, for "
-                             "profile instance: %s" %
-                             profile_path)
+            raise ValueError(
+                _format("No central instances found after applying "
+                        "GetCentralInstances and central class "
+                        "methodologies, and parameters for scoping "
+                        "class methodology were not specified, for "
+                        "profile instance: {0!A}",
+                        profile_path))
 
         # Go up one level on the profile side
         referencing_profile_paths = self._conn.AssociatorNames(
@@ -788,13 +802,15 @@ class WBEMServer(object):
             AssocClass="CIM_ReferencedProfile",
             ResultRole="Dependent")
         if not referencing_profile_paths:
-            raise ValueError("When attempting the scoping class methodology, "
-                             "no referencing profiles were found, for "
-                             "profile instance: %s" % profile_path)
+            raise ValueError(
+                _format("When attempting the scoping class methodology, "
+                        "no referencing profiles were found, for profile "
+                        "instance: {0!A}", profile_path))
         elif len(referencing_profile_paths) > 1:
-            raise ValueError("When attempting the scoping class methodology, "
-                             "more than one referencing profiles were found, "
-                             "for profile instance: %s" % profile_path)
+            raise ValueError(
+                _format("When attempting the scoping class methodology, "
+                        "more than one referencing profiles were found, for "
+                        "profile instance: {0!A}", profile_path))
 
         # Traverse to the resource side (remember that scoping instances are
         # the central instances at the next upper level).
@@ -809,9 +825,10 @@ class WBEMServer(object):
             referencing_profile_paths[0],
             upper_central_class, scoping_class, upper_scoping_path)
         if not scoping_inst_paths:
-            raise ValueError("When attempting the scoping class methodology, "
-                             "no scoping instances were found, "
-                             "for profile instance: %s" % profile_path)
+            raise ValueError(
+                _format("When attempting the scoping class methodology, "
+                        "no scoping instances were found, for profile "
+                        "instance: {0!A}", profile_path))
 
         # Go down one level on the resource side (using the last
         # entry in the scoping path as the association to traverse)
@@ -824,12 +841,12 @@ class WBEMServer(object):
                 ResultClass=central_class)
             if not ci_paths:
                 # At least one central instance for each scoping instance
-                raise ValueError("When attempting the scoping class "
-                                 "methodology, no central instances were found "
-                                 "when traversing down across association %r "
-                                 "to central class %r, for profile instance: "
-                                 "%s" %
-                                 (assoc_class, central_class, profile_path))
+                raise ValueError(
+                    _format("When attempting the scoping class methodology, "
+                            "no central instances were found when traversing "
+                            "down across association {0!A} to central class "
+                            "{0!A}, for profile instance: {0!A}",
+                            assoc_class, central_class, profile_path))
             total_ci_paths.extend(ci_paths)
 
         return total_ci_paths
@@ -884,8 +901,8 @@ class WBEMServer(object):
             # Exhausted the possible namespaces
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                "Interop namespace could not be determined (tried %s)" %
-                self.INTEROP_NAMESPACES,
+                _format("Interop namespace could not be determined "
+                        "(tried {0!A})", self.INTEROP_NAMESPACES),
                 conn_id=self.conn.conn_id)
         self._interop_ns = interop_ns
 
@@ -966,8 +983,8 @@ class WBEMServer(object):
             # Exhausted the possible class names
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                "Namespace class could not be determined (tried %s)" %
-                self.NAMESPACE_CLASSNAMES,
+                _format("Namespace class could not be determined "
+                        "(tried {0!A})", self.NAMESPACE_CLASSNAMES),
                 conn_id=self.conn.conn_id)
         self._namespace_classname = ns_classname
         self._namespaces = [inst['Name'] for inst in ns_insts]
@@ -996,8 +1013,8 @@ class WBEMServer(object):
         if len(cimom_insts) != 1:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                "Unexpected number of CIM_ObjectManager instances: %s " %
-                [i['ElementName'] for i in cimom_insts],
+                _format("Unexpected number of CIM_ObjectManager instances: "
+                        "{0!A} ", [i['ElementName'] for i in cimom_insts]),
                 conn_id=self.conn.conn_id)
         cimom_inst = cimom_insts[0]
         element_name = cimom_inst['ElementName']

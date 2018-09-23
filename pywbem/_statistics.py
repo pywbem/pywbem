@@ -141,6 +141,8 @@ from __future__ import absolute_import
 import time
 import copy
 
+from ._utils import _format
+
 __all__ = ['Statistics', 'OperationStatistic']
 
 
@@ -427,7 +429,7 @@ class OperationStatistic(object):
         if self.container.enabled:
             if self._start_time is None:
                 raise RuntimeError('stop_timer() called without preceding '
-                                   ' start_timer()')
+                                   'start_timer()')
             dt = time.time() - self._start_time
             self._start_time = None
             self._count += 1
@@ -470,23 +472,24 @@ class OperationStatistic(object):
         Return a human readable string with the statistics values, for debug
         purposes.
         """
-        return 'OperationStatistic(' \
-               'name={s.name!r}, ' \
-               'count={s.count!r}, ' \
-               'exception_count={s.exception_count!r}, ' \
-               'avg_time={s.avg_time!r}, ' \
-               'min_time={s.min_time!r}, ' \
-               'max_time={s.max_time!r}, ' \
-               'avg_server_time={s.avg_server_time!r}, ' \
-               'min_server_time={s.min_server_time!r}, ' \
-               'max_server_time={s.max_server_time!r}, ' \
-               'avg_request_len={s.avg_request_len!r}, ' \
-               'min_request_len={s.min_request_len!r}, ' \
-               'max_request_len={s.max_request_len!r}, ' \
-               'avg_reply_len={s.avg_reply_len!r}, ' \
-               'min_reply_len={s.min_reply_len!r}, ' \
-               'max_reply_len={s.max_reply_len!r})'. \
-               format(s=self)
+        return _format(
+            "{s.__class__.__name__}("
+            "name={s.name!A}, "
+            "count={s.count!A}, "
+            "exception_count={s.exception_count!A}, "
+            "avg_time={s.avg_time!A}, "
+            "min_time={s.min_time!A}, "
+            "max_time={s.max_time!A}, "
+            "avg_server_time={s.avg_server_time!A}, "
+            "min_server_time={s.min_server_time!A}, "
+            "max_server_time={s.max_server_time!A}, "
+            "avg_request_len={s.avg_request_len!A}, "
+            "min_request_len={s.min_request_len!A}, "
+            "max_request_len={s.max_request_len!A}, "
+            "avg_reply_len={s.avg_reply_len!A}, "
+            "min_reply_len={s.min_reply_len!A}, "
+            "max_reply_len={s.max_reply_len!A})",
+            s=self)
 
     formatted_header_w_svr = \
         'Count Excep         ClientTime              ServerTime        ' \
@@ -663,7 +666,7 @@ class Statistics(object):
         """
         ret = "Statistics(\n"
         for name in self._op_stats:
-            ret += "  %r\n" % self._op_stats[name]
+            ret += _format("  {0!A}\n", self._op_stats[name])
         ret += ")"
         return ret
 

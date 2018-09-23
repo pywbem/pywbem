@@ -33,6 +33,7 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
 from pywbem.cim_obj import mofstr, MOF_INDENT, MAX_MOF_LINE
+from pywbem._utils import _format
 try:
     from pywbem import cimvalue
 except ImportError:
@@ -1775,19 +1776,19 @@ def test_CIMInstanceName_repr(obj):
 
     assert re.match(r'^CIMInstanceName\(', r)
 
-    exp_classname = 'classname=%r' % obj.classname
+    exp_classname = _format('classname={0!A}', obj.classname)
     assert exp_classname in r
 
     assert 'keybindings=' in r
     if obj.keybindings:
-        for key in obj.keybindings.keys():
-            search_str = 'u?[\'"]%s[\'"], ' % key
+        for key, value in obj.keybindings.items():
+            search_str = _format("{0!A}: {1!A}", key, value)
             assert re.search(search_str, r), "For key %r" % key
 
-    exp_namespace = 'namespace=%r' % obj.namespace
+    exp_namespace = _format('namespace={0!A}', obj.namespace)
     assert exp_namespace in r
 
-    exp_host = 'host=%r' % obj.host
+    exp_host = _format('host={0!A}', obj.host)
     assert exp_host in r
 
 
@@ -5605,10 +5606,10 @@ def test_CIMInstance_str(obj):
 
     assert re.match(r'^CIMInstance\(', s)
 
-    exp_classname = 'classname=%r' % obj.classname
+    exp_classname = _format('classname={0!A}', obj.classname)
     assert exp_classname in s
 
-    exp_path = 'path=%r' % obj.path
+    exp_path = _format('path={0!A}', obj.path)
     assert exp_path in s
 
 
@@ -5625,19 +5626,19 @@ def test_CIMInstance_repr(obj):
 
     assert re.match(r'^CIMInstance\(', r)
 
-    exp_classname = 'classname=%r' % obj.classname
+    exp_classname = _format('classname={0!A}', obj.classname)
     assert exp_classname in r
 
-    exp_path = 'path=%r' % obj.path
+    exp_path = _format('path={0!A}', obj.path)
     assert exp_path in r
 
-    exp_properties = 'properties=%r' % obj.properties
+    exp_properties = _format('properties={0!A}', obj.properties)
     assert exp_properties in r
 
-    exp_property_list = 'property_list=%r' % obj.property_list
+    exp_property_list = _format('property_list={0!A}', obj.property_list)
     assert exp_property_list in r
 
-    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    exp_qualifiers = _format('qualifiers={0!A}', obj.qualifiers)
     assert exp_qualifiers in r
 
 
@@ -9027,22 +9028,22 @@ def test_CIMProperty_str(obj):
 
     assert re.match(r'^CIMProperty\(', s)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in s
 
-    exp_value = 'value=%r' % obj.value
+    exp_value = _format('value={0!A}', obj.value)
     assert exp_value in s
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in s
 
-    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    exp_reference_class = _format('reference_class={0!A}', obj.reference_class)
     assert exp_reference_class in s
 
-    exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
+    exp_embedded_object = _format('embedded_object={0!A}', obj.embedded_object)
     assert exp_embedded_object in s
 
-    exp_is_array = 'is_array=%r' % obj.is_array
+    exp_is_array = _format('is_array={0!A}', obj.is_array)
     assert exp_is_array in s
 
 
@@ -9059,34 +9060,34 @@ def test_CIMProperty_repr(obj):
 
     assert re.match(r'^CIMProperty\(', r)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in r
 
-    exp_value = 'value=%r' % obj.value
+    exp_value = _format('value={0!A}', obj.value)
     assert exp_value in r
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in r
 
-    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    exp_reference_class = _format('reference_class={0!A}', obj.reference_class)
     assert exp_reference_class in r
 
-    exp_embedded_object = 'embedded_object=%r' % obj.embedded_object
+    exp_embedded_object = _format('embedded_object={0!A}', obj.embedded_object)
     assert exp_embedded_object in r
 
-    exp_is_array = 'is_array=%r' % obj.is_array
+    exp_is_array = _format('is_array={0!A}', obj.is_array)
     assert exp_is_array in r
 
-    exp_array_size = 'array_size=%r' % obj.array_size
+    exp_array_size = _format('array_size={0!A}', obj.array_size)
     assert exp_array_size in r
 
-    exp_class_origin = 'class_origin=%r' % obj.class_origin
+    exp_class_origin = _format('class_origin={0!A}', obj.class_origin)
     assert exp_class_origin in r
 
-    exp_propagated = 'propagated=%r' % obj.propagated
+    exp_propagated = _format('propagated={0!A}', obj.propagated)
     assert exp_propagated in r
 
-    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    exp_qualifiers = _format('qualifiers={0!A}', obj.qualifiers)
     assert exp_qualifiers in r
 
 
@@ -13016,13 +13017,13 @@ def test_CIMQualifier_str(obj):
 
     assert re.match(r'^CIMQualifier\(', s)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in s
 
-    exp_value = 'value=%r' % obj.value
+    exp_value = _format('value={0!A}', obj.value)
     assert exp_value in s
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in s
 
 
@@ -13039,28 +13040,28 @@ def test_CIMQualifier_repr(obj):
 
     assert re.match(r'^CIMQualifier\(', r)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in r
 
-    exp_value = 'value=%r' % obj.value
+    exp_value = _format('value={0!A}', obj.value)
     assert exp_value in r
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in r
 
-    exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
+    exp_tosubclass = _format('tosubclass={0!A}', obj.tosubclass)
     assert exp_tosubclass in r
 
-    exp_overridable = 'overridable=%r' % obj.overridable
+    exp_overridable = _format('overridable={0!A}', obj.overridable)
     assert exp_overridable in r
 
-    exp_translatable = 'translatable=%r' % obj.translatable
+    exp_translatable = _format('translatable={0!A}', obj.translatable)
     assert exp_translatable in r
 
-    exp_toinstance = 'toinstance=%r' % obj.toinstance
+    exp_toinstance = _format('toinstance={0!A}', obj.toinstance)
     assert exp_toinstance in r
 
-    exp_propagated = 'propagated=%r' % obj.propagated
+    exp_propagated = _format('propagated={0!A}', obj.propagated)
     assert exp_propagated in r
 
 
@@ -16365,13 +16366,13 @@ def test_CIMClassName_repr(obj):
 
     assert re.match(r'^CIMClassName\(', r)
 
-    exp_classname = 'classname=%r' % obj.classname
+    exp_classname = _format('classname={0!A}', obj.classname)
     assert exp_classname in r
 
-    exp_namespace = 'namespace=%r' % obj.namespace
+    exp_namespace = _format('namespace={0!A}', obj.namespace)
     assert exp_namespace in r
 
-    exp_host = 'host=%r' % obj.host
+    exp_host = _format('host={0!A}', obj.host)
     assert exp_host in r
 
 
@@ -18551,7 +18552,7 @@ def test_CIMClass_str(obj):
 
     assert re.match(r'^CIMClass\(', s)
 
-    exp_classname = 'classname=%r' % obj.classname
+    exp_classname = _format('classname={0!A}', obj.classname)
     assert exp_classname in s
 
 
@@ -18568,22 +18569,22 @@ def test_CIMClass_repr(obj):
 
     assert re.match(r'^CIMClass\(', r)
 
-    exp_classname = 'classname=%r' % obj.classname
+    exp_classname = _format('classname={0!A}', obj.classname)
     assert exp_classname in r
 
-    exp_superclass = 'superclass=%r' % obj.superclass
+    exp_superclass = _format('superclass={0!A}', obj.superclass)
     assert exp_superclass in r
 
-    exp_properties = 'properties=%r' % obj.properties
+    exp_properties = _format('properties={0!A}', obj.properties)
     assert exp_properties in r
 
-    exp_methods = 'methods=%r' % obj.methods
+    exp_methods = _format('methods={0!A}', obj.methods)
     assert exp_methods in r
 
-    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    exp_qualifiers = _format('qualifiers={0!A}', obj.qualifiers)
     assert exp_qualifiers in r
 
-    exp_path = 'path=%r' % obj.path
+    exp_path = _format('path={0!A}', obj.path)
     assert exp_path in r
 
 
@@ -19989,10 +19990,10 @@ def test_CIMMethod_str(obj):
 
     assert re.match(r'^CIMMethod\(', s)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in s
 
-    exp_return_type = 'return_type=%r' % obj.return_type
+    exp_return_type = _format('return_type={0!A}', obj.return_type)
     assert exp_return_type in s
 
 
@@ -20009,22 +20010,22 @@ def test_CIMMethod_repr(obj):
 
     assert re.match(r'^CIMMethod\(', r)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in r
 
-    exp_return_type = 'return_type=%r' % obj.return_type
+    exp_return_type = _format('return_type={0!A}', obj.return_type)
     assert exp_return_type in r
 
-    exp_parameters = 'parameters=%r' % obj.parameters
+    exp_parameters = _format('parameters={0!A}', obj.parameters)
     assert exp_parameters in r
 
-    exp_class_origin = 'class_origin=%r' % obj.class_origin
+    exp_class_origin = _format('class_origin={0!A}', obj.class_origin)
     assert exp_class_origin in r
 
-    exp_propagated = 'propagated=%r' % obj.propagated
+    exp_propagated = _format('propagated={0!A}', obj.propagated)
     assert exp_propagated in r
 
-    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    exp_qualifiers = _format('qualifiers={0!A}', obj.qualifiers)
     assert exp_qualifiers in r
 
 
@@ -21765,16 +21766,16 @@ def test_CIMParameter_str(obj):
 
     assert re.match(r'^CIMParameter\(', s)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in s
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in s
 
-    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    exp_reference_class = _format('reference_class={0!A}', obj.reference_class)
     assert exp_reference_class in s
 
-    exp_is_array = 'is_array=%r' % obj.is_array
+    exp_is_array = _format('is_array={0!A}', obj.is_array)
     assert exp_is_array in s
 
 
@@ -21791,22 +21792,22 @@ def test_CIMParameter_repr(obj):
 
     assert re.match(r'^CIMParameter\(', r)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in r
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in r
 
-    exp_reference_class = 'reference_class=%r' % obj.reference_class
+    exp_reference_class = _format('reference_class={0!A}', obj.reference_class)
     assert exp_reference_class in r
 
-    exp_is_array = 'is_array=%r' % obj.is_array
+    exp_is_array = _format('is_array={0!A}', obj.is_array)
     assert exp_is_array in r
 
-    exp_array_size = 'array_size=%r' % obj.array_size
+    exp_array_size = _format('array_size={0!A}', obj.array_size)
     assert exp_array_size in r
 
-    exp_qualifiers = 'qualifiers=%r' % obj.qualifiers
+    exp_qualifiers = _format('qualifiers={0!A}', obj.qualifiers)
     assert exp_qualifiers in r
 
 
@@ -26307,16 +26308,16 @@ def test_CIMQualifierDeclaration_str(obj):
 
     assert re.match(r'^CIMQualifierDeclaration\(', s)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in s
 
-    exp_value = 'value=%r' % obj.value
+    exp_value = _format('value={0!A}', obj.value)
     assert exp_value in s
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in s
 
-    exp_is_array = 'is_array=%r' % obj.is_array
+    exp_is_array = _format('is_array={0!A}', obj.is_array)
     assert exp_is_array in s
 
 
@@ -26333,34 +26334,34 @@ def test_CIMQualifierDeclaration_repr(obj):
 
     assert re.match(r'^CIMQualifierDeclaration\(', r)
 
-    exp_name = 'name=%r' % obj.name
+    exp_name = _format('name={0!A}', obj.name)
     assert exp_name in r
 
-    exp_value = 'value=%r' % obj.value
+    exp_value = _format('value={0!A}', obj.value)
     assert exp_value in r
 
-    exp_type = 'type=%r' % obj.type
+    exp_type = _format('type={0!A}', obj.type)
     assert exp_type in r
 
-    exp_is_array = 'is_array=%r' % obj.is_array
+    exp_is_array = _format('is_array={0!A}', obj.is_array)
     assert exp_is_array in r
 
-    exp_array_size = 'array_size=%r' % obj.array_size
+    exp_array_size = _format('array_size={0!A}', obj.array_size)
     assert exp_array_size in r
 
-    exp_scopes = 'scopes=%r' % obj.scopes
+    exp_scopes = _format('scopes={0!A}', obj.scopes)
     assert exp_scopes in r
 
-    exp_tosubclass = 'tosubclass=%r' % obj.tosubclass
+    exp_tosubclass = _format('tosubclass={0!A}', obj.tosubclass)
     assert exp_tosubclass in r
 
-    exp_overridable = 'overridable=%r' % obj.overridable
+    exp_overridable = _format('overridable={0!A}', obj.overridable)
     assert exp_overridable in r
 
-    exp_translatable = 'translatable=%r' % obj.translatable
+    exp_translatable = _format('translatable={0!A}', obj.translatable)
     assert exp_translatable in r
 
-    exp_toinstance = 'toinstance=%r' % obj.toinstance
+    exp_toinstance = _format('toinstance={0!A}', obj.toinstance)
     assert exp_toinstance in r
 
 

@@ -144,28 +144,50 @@ def _ascii2(value):
       U+00FF are represented as '/u00hh' instead of the confusing '/xhh'
       ('/' being a backslash, 'hh' being a 2-digit hex number).
 
-    This function correctly handles values of type list, tuple, dict, and set,
-    by invoking itself recursively.
+    This function correctly handles values of collection types such as list,
+    tuple, dict, and set, by producing the usual Python representation string
+    for them. If the type is not the standard Python type (i.e. OrderedDict
+    instead of dict), the type name is also shown in the result.
     """
-    from ._nocasedict import NocaseDict
 
-    if isinstance(value, (collections.Mapping, NocaseDict)):
-        items = [_ascii2(k) + ': ' + _ascii2(v)
+    if isinstance(value, collections.Mapping):
+        # NocaseDict in current impl. is not a collections.Mapping; it uses
+        # its own repr() implementation (via ascii(), called further down)
+        items = [_ascii2(k) + ": " + _ascii2(v)
                  for k, v in six.iteritems(value)]
-        return '{' + ', '.join(items) + '}'
+        item_str = "{" + ", ".join(items) + "}"
+        if value.__class__.__name__ == 'dict':
+            return item_str
+        else:
+            return "{0}({1})".format(value.__class__.__name__, item_str)
 
     if isinstance(value, collections.Set):
         items = [_ascii2(v) for v in value]
-        return '{' + ', '.join(items) + '}'
+        item_str = "{" + ", ".join(items) + "}"
+        if value.__class__.__name__ == 'set':
+            return item_str
+        else:
+            return "{0}({1})".format(value.__class__.__name__, item_str)
 
     if isinstance(value, collections.MutableSequence):
         items = [_ascii2(v) for v in value]
-        return '[' + ', '.join(items) + ']'
+        item_str = "[" + ", ".join(items) + "]"
+        if value.__class__.__name__ == 'list':
+            return item_str
+        else:
+            return "{0}({1})".format(value.__class__.__name__, item_str)
 
     if isinstance(value, collections.Sequence) and \
             not isinstance(value, (six.text_type, six.binary_type)):
         items = [_ascii2(v) for v in value]
-        return '(' + ', '.join(items) + ')'
+        if len(items) == 1:
+            item_str = "(" + ", ".join(items) + ",)"
+        else:
+            item_str = "(" + ", ".join(items) + ")"
+        if value.__class__.__name__ == 'tuple':
+            return item_str
+        else:
+            return "{0}({1})".format(value.__class__.__name__, item_str)
 
     ret = ascii(value)
     if isinstance(value, six.text_type):
