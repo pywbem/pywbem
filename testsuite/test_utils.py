@@ -15,6 +15,8 @@ import pytest
 import six
 
 from pywbem._utils import _ascii2, _format
+from pywbem.cim_obj import NocaseDict
+
 from run_uprint import unichr2
 import pytest_extensions
 
@@ -188,7 +190,15 @@ TESTCASES_ASCII2 = [
         "OrderedDict of strings",
         dict(
             value=OrderedDict([('a', 1), ('b', 2)]),
-            exp_result="{'a': 1, 'b': 2}",
+            exp_result="OrderedDict({'a': 1, 'b': 2})",
+        ),
+        None, None, True
+    ),
+    (
+        "NocaseDict of strings",
+        dict(
+            value=NocaseDict([('a', 1), ('b', 2)]),
+            exp_result="NocaseDict({'a': 1, 'b': 2})",
         ),
         None, None, True
     ),
@@ -416,7 +426,17 @@ TESTCASES_FORMAT = [
             format_str="{0!A}",
             format_args=[OrderedDict([('a', 1), ('b', 2)])],
             format_kwargs=dict(),
-            exp_result="{'a': 1, 'b': 2}",
+            exp_result="OrderedDict({'a': 1, 'b': 2})",
+        ),
+        None, None, True
+    ),
+    (
+        "Format string with 'A' and NocaseDict of strings",
+        dict(
+            format_str="{0!A}",
+            format_args=[NocaseDict([('a', 1), ('b', 2)])],
+            format_kwargs=dict(),
+            exp_result="NocaseDict({'a': 1, 'b': 2})",
         ),
         None, None, True
     ),
