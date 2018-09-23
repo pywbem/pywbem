@@ -566,14 +566,12 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
 
         result_con = _format(
-            "Connection:{0} WBEMConnection(url=u'http://blah', creds=None, "
-            "conn_id={0}, default_namespace=u'root/cimv2', x509=None, "
+            "Connection:{0} WBEMConnection(url='http://blah', creds=None, "
+            "conn_id={0!A}, default_namespace='root/cimv2', x509=None, "
             "verify_callback=None, ca_certs=None, no_verification=False, "
             "timeout=None, use_pull_operations=False, "
             "stats_enabled=False, recorders=['LogOperationRecorder'])",
             conn_id)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (api_exp_log_id, 'DEBUG', result_con),
@@ -600,16 +598,14 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
 
         result_con = _format(
-            "Connection:{0} WBEMConnection(url=u'http://blah', "
-            "creds=('username', ...), conn_id={0}, "
-            "default_namespace=u'root/blah', "
-            "x509='cert_file': 'Certfile.x', 'key_file': 'keyfile.x', "
+            "Connection:{0} WBEMConnection(url='http://blah', "
+            "creds=('username', ...), conn_id={0!A}, "
+            "default_namespace='root/blah', "
+            "x509={{'cert_file': 'Certfile.x', 'key_file': 'keyfile.x'}}, "
             "verify_callback=None, ca_certs=None, no_verification=True, "
             "timeout=10, use_pull_operations=True, stats_enabled=True, "
             "recorders=['LogOperationRecorder'])",
             conn_id)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (api_exp_log_id, 'DEBUG', result_con),
@@ -636,12 +632,10 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
 
         result_con = _format(
-            "Connection:{0} WBEMConnection(url=u'http://blah', "
+            "Connection:{0} WBEMConnection(url='http://blah', "
             "creds=('username', ...), "
-            "default_namespace=u'root/blah')",
+            "default_namespace='root/blah', ...)",
             conn_id)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (api_exp_log_id, 'DEBUG', result_con),
@@ -705,14 +699,12 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "IncludeClassOrigin=True, "
             "IncludeQualifiers=True, "
             "InstanceName=CIMInstanceName("
-            "classname=u'CIM_Foo', "
+            "classname='CIM_Foo', "
             "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace=u'root/cimv2', host=u'woot.com'), "
+            "namespace='root/cimv2', host='woot.com'), "
             "LocalOnly=True, "
             "PropertyList=['propertyblah'])"
         )
-        if six.PY3:
-            result_req = result_req.replace("=u'", "='")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
@@ -742,31 +734,27 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         result_ret = (
-            "Return:test_id None(CIMInstance(classname=u'CIM_Foo', "
+            "Return:test_id None(CIMInstance(classname='CIM_Foo', "
             "path=None, properties=NocaseDict({"
-            "'S1': CIMProperty(name=u'S1', value=u'Ham', type=u'string', "
+            "'S1': CIMProperty(name='S1', value='Ham', type='string', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'Bool': CIMProperty(name=u'Bool', value=True, "
-            "type=u'boolean', reference_class=None, embedded_object=None, "
+            "'Bool': CIMProperty(name='Bool', value=True, "
+            "type='boolean', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI8': CIMProperty(name=u'UI8', value=Uint8(cimtype='uint8', "
-            "minvalue=0, maxvalue=255, 42), type=u'uint8', "
+            "'UI8': CIMProperty(name='UI8', value=Uint8(cimtype='uint8', "
+            "minvalue=0, maxvalue=255, 42), type='uint8', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'UI16': CIMProperty(name=u'UI16', value=Uint16("
+            "'UI16': CIMProperty(name='UI16', value=Uint16("
             "cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
-            "type=u'uint16', reference_class=None, embedded_object=None, "
+            "type='uint16', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), ")
-        if six.PY3:
-            result_ret += "'UI32': CIMProperty(name=u'UI32',...)"
-            result_ret = result_ret.replace("=u'", "='")
-        else:
-            result_ret += "'UI32': CIMProperty(na...)"
+            "propagated=None, qualifiers=NocaseDict({})), "
+            "'UI32': CIMProperty(name='UI32',...)")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
@@ -781,77 +769,75 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         result_ret = (
-            "Return:test_id None(CIMInstance(classname=u'CIM_Foo', "
+            "Return:test_id None(CIMInstance(classname='CIM_Foo', "
             "path=None, properties=NocaseDict({"
-            "'S1': CIMProperty(name=u'S1', value=u'Ham', "
-            "type=u'string', reference_class=None, "
+            "'S1': CIMProperty(name='S1', value='Ham', "
+            "type='string', reference_class=None, "
             "embedded_object=None, is_array=False, array_size=None, "
             "class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'Bool': CIMProperty(name=u'Bool', value=True, "
-            "type=u'boolean', reference_class=None, "
+            "'Bool': CIMProperty(name='Bool', value=True, "
+            "type='boolean', reference_class=None, "
             "embedded_object=None, is_array=False, array_size=None, "
             "class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'UI8': CIMProperty(name=u'UI8', value=Uint8("
+            "'UI8': CIMProperty(name='UI8', value=Uint8("
             "cimtype='uint8', minvalue=0, maxvalue=255, 42), "
-            "type=u'uint8', reference_class=None, embedded_object=None, "
+            "type='uint8', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI16': CIMProperty(name=u'UI16', value=Uint16("
+            "'UI16': CIMProperty(name='UI16', value=Uint16("
             "cimtype='uint16', minvalue=0, maxvalue=65535, 4216), "
-            "type=u'uint16', reference_class=None, embedded_object=None, "
+            "type='uint16', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI32': CIMProperty(name=u'UI32', value=Uint32("
+            "'UI32': CIMProperty(name='UI32', value=Uint32("
             "cimtype='uint32', minvalue=0, maxvalue=4294967295, 4232), "
-            "type=u'uint32', reference_class=None, embedded_object=None, "
+            "type='uint32', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI64': CIMProperty(name=u'UI64', value=Uint64(cimtype"
+            "'UI64': CIMProperty(name='UI64', value=Uint64(cimtype"
             "='uint64', minvalue=0, maxvalue=18446744073709551615, 4264), "
-            "type=u'uint64', reference_class=None, embedded_object=None, "
+            "type='uint64', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI8': CIMProperty(name=u'SI8', value=Sint8("
+            "'SI8': CIMProperty(name='SI8', value=Sint8("
             "cimtype='sint8', minvalue=-128, maxvalue=127, -42), "
-            "type=u'sint8', reference_class=None, embedded_object=None, "
+            "type='sint8', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI16': CIMProperty(name=u'SI16', value=Sint16("
+            "'SI16': CIMProperty(name='SI16', value=Sint16("
             "cimtype='sint16', minvalue=-32768, maxvalue=32767, -4216), "
-            "type=u'sint16', reference_class=None, embedded_object=None, "
+            "type='sint16', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI32': CIMProperty(name=u'SI32', value=Sint32("
+            "'SI32': CIMProperty(name='SI32', value=Sint32("
             "cimtype='sint32', minvalue=-2147483648, "
-            "maxvalue=2147483647, -4232), type=u'sint32', "
+            "maxvalue=2147483647, -4232), type='sint32', "
             "reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI64': CIMProperty(name=u'SI64', value=Sint64("
+            "'SI64': CIMProperty(name='SI64', value=Sint64("
             "cimtype='sint64', minvalue=-9223372036854775808, "
-            "maxvalue=9223372036854775807, -4264), type=u'sint64', "
+            "maxvalue=9223372036854775807, -4264), type='sint64', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'R32': CIMProperty(name=u'R32', value=Real32("
-            "cimtype='real32', 42.0), type=u'real32', "
+            "'R32': CIMProperty(name='R32', value=Real32("
+            "cimtype='real32', 42.0), type='real32', "
             "reference_class=None, embedded_object=None, is_array=False,"
             " array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'R64': CIMProperty(name=u'R64', value=Real64("
-            "cimtype='real64', 42.64), type=u'real64', "
+            "'R64': CIMProperty(name='R64', value=Real64("
+            "cimtype='real64', 42.64), type='real64', "
             "reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'S2': CIMProperty(name=u'S2', value=u'H\\xe4m', type=u'string', "
+            "'S2': CIMProperty(name='S2', value='H\\u00e4m', type='string', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({}))"
             "}), property_list=None, qualifiers=NocaseDict({})))")
-        if six.PY3:
-            result_ret = result_ret.replace("=u'", "='")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
@@ -867,7 +853,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
         result_ret = (
             "Return:test_id None("
-            "//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\")")
+            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"')")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
@@ -883,8 +869,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
         result_ret = (
             "Return:test_id None("
-            "//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\", "
-            "//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\")")
+            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"', "
+            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"')")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
@@ -904,8 +890,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         result_ret = (
             "Return:test_id None(pull_inst_result_tuple("
             "context=('test_rtn_context', 'root/blah'), eos=False, "
-            "instances=//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\", "
-            "//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"))"
+            "instances='//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"', "
+            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"'))"
         )
 
         lc.check(
@@ -1240,11 +1226,9 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_req = (
             "Request:test_id GetInstance("
             "InstanceName=CIMInstanceName("
-            "classname=u'CIM_Foo', "
+            "classname='CIM_Foo', "
             "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace=u'root/cimv2', host=u'woot.com'))")
-        if six.PY3:
-            result_req = result_req.replace("=u'", "='")
+            "namespace='root/cimv2', host='woot.com'))")
 
         result_exc = _format(
             "Exception:test_id GetInstance('CIMError({0})')", exc)
@@ -1277,83 +1261,79 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_req = (
             'Request:test_id GetInstance(IncludeClassOrigin=True, '
             'IncludeQualifiers=True, '
-            "InstanceName=CIMInstanceName(classname=u'CIM_Foo', "
+            "InstanceName=CIMInstanceName(classname='CIM_Foo', "
             "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace=u'root/cimv2', "
-            "host=u'woot.com'), LocalOnly=True, "
+            "namespace='root/cimv2', "
+            "host='woot.com'), LocalOnly=True, "
             "PropertyList=['propertyblah'])")
-        if six.PY3:
-            result_req = result_req.replace("=u'", "='")
 
         result_ret = (
-            "Return:test_id GetInstance(CIMInstance(classname=u'CIM_Foo', "
+            "Return:test_id GetInstance(CIMInstance(classname='CIM_Foo', "
             "path=None, properties=NocaseDict({"
-            "'S1': CIMProperty(name=u'S1', value=u'Ham', type=u'string', "
+            "'S1': CIMProperty(name='S1', value='Ham', type='string', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'Bool': CIMProperty(name=u'Bool', value=True, type=u'boolean', "
+            "'Bool': CIMProperty(name='Bool', value=True, type='boolean', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'UI8': CIMProperty(name=u'UI8', value=Uint8(cimtype='uint8', "
-            "minvalue=0, maxvalue=255, 42), type=u'uint8', "
+            "'UI8': CIMProperty(name='UI8', value=Uint8(cimtype='uint8', "
+            "minvalue=0, maxvalue=255, 42), type='uint8', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'UI16': CIMProperty(name=u'UI16', value=Uint16(cimtype='uint16', "
-            "minvalue=0, maxvalue=65535, 4216), type=u'uint16', "
+            "'UI16': CIMProperty(name='UI16', value=Uint16(cimtype='uint16', "
+            "minvalue=0, maxvalue=65535, 4216), type='uint16', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'UI32': CIMProperty(name=u'UI32', value=Uint32(cimtype='uint32', "
-            "minvalue=0, maxvalue=4294967295, 4232), type=u'uint32', "
+            "'UI32': CIMProperty(name='UI32', value=Uint32(cimtype='uint32', "
+            "minvalue=0, maxvalue=4294967295, 4232), type='uint32', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'UI64': CIMProperty(name=u'UI64', value=Uint64(cimtype='uint64', "
+            "'UI64': CIMProperty(name='UI64', value=Uint64(cimtype='uint64', "
             "minvalue=0, maxvalue=18446744073709551615, 4264), "
-            "type=u'uint64', reference_class=None, embedded_object=None, "
+            "type='uint64', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI8': CIMProperty(name=u'SI8', value=Sint8(cimtype='sint8', "
-            "minvalue=-128, maxvalue=127, -42), type=u'sint8', "
+            "'SI8': CIMProperty(name='SI8', value=Sint8(cimtype='sint8', "
+            "minvalue=-128, maxvalue=127, -42), type='sint8', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'SI16': CIMProperty(name=u'SI16', value=Sint16(cimtype='sint16', "
-            "minvalue=-32768, maxvalue=32767, -4216), type=u'sint16', "
+            "'SI16': CIMProperty(name='SI16', value=Sint16(cimtype='sint16', "
+            "minvalue=-32768, maxvalue=32767, -4216), type='sint16', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'SI32': CIMProperty(name=u'SI32', value=Sint32(cimtype='sint32', "
+            "'SI32': CIMProperty(name='SI32', value=Sint32(cimtype='sint32', "
             "minvalue=-2147483648, maxvalue=2147483647, -4232), "
-            "type=u'sint32', reference_class=None, embedded_object=None, "
+            "type='sint32', reference_class=None, embedded_object=None, "
             "is_array=False, array_size=None, class_origin=None, "
             "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI64': CIMProperty(name=u'SI64', value=Sint64(cimtype='sint64', "
+            "'SI64': CIMProperty(name='SI64', value=Sint64(cimtype='sint64', "
             "minvalue=-9223372036854775808, "
-            "maxvalue=9223372036854775807, -4264), type=u'sint64', "
+            "maxvalue=9223372036854775807, -4264), type='sint64', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'R32': CIMProperty(name=u'R32', "
-            "value=Real32(cimtype='real32', 42.0), type=u'real32', "
+            "'R32': CIMProperty(name='R32', "
+            "value=Real32(cimtype='real32', 42.0), type='real32', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'R64': CIMProperty(name=u'R64', "
-            "value=Real64(cimtype='real64', 42.64), type=u'real64', "
+            "'R64': CIMProperty(name='R64', "
+            "value=Real64(cimtype='real64', 42.64), type='real64', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({})), "
-            "'S2': CIMProperty(name=u'S2', value=u'H\\xe4m', type=u'string', "
+            "'S2': CIMProperty(name='S2', value='H\\u00e4m', type='string', "
             "reference_class=None, embedded_object=None, is_array=False, "
             "array_size=None, class_origin=None, propagated=None, "
             "qualifiers=NocaseDict({}))"
             "}), property_list=None, qualifiers=NocaseDict({})))")
-        if six.PY3:
-            result_ret = result_ret.replace("=u'", "='")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
@@ -1506,15 +1486,13 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             "pull_path_result_tuple("
             "context=('test_rtn_context', 'root/blah'), eos=False, "
             "paths=["
-            "CIMInstanceName(classname=u'CIM_Foo', "
+            "CIMInstanceName(classname='CIM_Foo', "
             "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace=u'root/cimv2', host=u'woot.com'), "
-            "CIMInstanceName(classname=u'CIM_Foo', "
+            "namespace='root/cimv2', host='woot.com'), "
+            "CIMInstanceName(classname='CIM_Foo', "
             "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace=u'root/cimv2', host=u'woot.com')"
+            "namespace='root/cimv2', host='woot.com')"
             "]))")
-        if six.PY3:
-            result_ret = result_ret.replace("=u'", "='")
 
         lc.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
@@ -1621,16 +1599,14 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
             "Request:test_id InvokeMethod("
             "MethodName='Blah', "
             "ObjectName=CIMInstanceName("
-            "classname=u'CIM_Foo', "
+            "classname='CIM_Foo', "
             "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace=u'root/cimv2', host=u'woot.com'), "
+            "namespace='root/cimv2', host='woot.com'), "
             "Params=OrderedDict(["
             "('StringParam', 'Spotty'), "
             "('Uint8', Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 1)), "
             "('Sint8', Sint8(cimtype='sint8', minvalue=-128, maxvalue=127, 2))"
             "]))")
-        if six.PY3:
-            result_req = result_req.replace("=u'", "='")
 
         result_ret = "Return:test_id InvokeMethod(tuple )"
 
@@ -1720,14 +1696,12 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
 
         result_con = _format(
-            "Connection:{0} WBEMConnection(url=u'http://blah', creds=None, "
-            "conn_id={0}, default_namespace=u'root/cimv2', x509=None, "
+            "Connection:{0} WBEMConnection(url='http://blah', creds=None, "
+            "conn_id={0!A}, default_namespace='root/cimv2', x509=None, "
             "verify_callback=None, ca_certs=None, no_verification=False, "
             "timeout=1, use_pull_operations=False, stats_enabled=False, "
             "recorders=['LogOperationRecorder'])",
             conn_id, conn_id)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         result_req = _format(
             "Request:{0} GetClass("
@@ -1824,11 +1798,9 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
 
         result_con = _format(
-            "Connection:{0} FakedWBEMConnection(url=u'http://FakedUrl', "
-            "creds=None, default_namespace=u'{1}')",
+            "Connection:{0} FakedWBEMConnection(url='http://FakedUrl', "
+            "creds=None, default_namespace={1!A}, ...)",
             conn_id, namespace)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         result_req = _format(
             "Request:{0} GetClass("
@@ -2026,15 +1998,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         result_con = _format(
             "Connection:{0} FakedWBEMConnection(response_delay=None, "
-            "WBEMConnection(\"FakedWBEMConnection(url=u'http://FakedUrl', "
-            "creds=None, conn_id={0}, default_namespace=u'{1}', "
+            "WBEMConnection(\"FakedWBEMConnection(url='http://FakedUrl', "
+            "creds=None, conn_id={0!A}, default_namespace={1!A}, "
             "x509=None, verify_callback=None, ca_certs=None, "
             "no_verification=False, timeout=None, "
             "use_pull_operations=False, stats_enabled=False, "
             "recorders=['LogOperationRecorder'])\"))",
             conn_id, namespace)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -2067,15 +2037,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         result_con = _format(
             "Connection:{0} FakedWBEMConnection(response_delay=None, "
-            "WBEMConnection(\"FakedWBEMConnection(url=u'http://FakedUrl', "
-            "creds=None, conn_id={0}, default_namespace=u'{1}', "
+            "WBEMConnection(\"FakedWBEMConnection(url='http://FakedUrl', "
+            "creds=None, conn_id={0!A}, default_namespace={1!A}, "
             "x509=None, verify_callback=None, ca_certs=None, "
             "no_verification=False, timeout=None, "
             "use_pull_operations=False, stats_enabled=False, "
             "recorders=['LogOperationRecorder'])\"))",
             conn_id, namespace)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -2114,15 +2082,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         result_con = _format(
             "Connection:{0} FakedWBEMConnection(response_delay=None, "
-            "WBEMConnection(\"FakedWBEMConnection(url=u'http://FakedUrl', "
-            "creds=None, conn_id={0}, default_namespace=u'{1}', "
+            "WBEMConnection(\"FakedWBEMConnection(url='http://FakedUrl', "
+            "creds=None, conn_id={0!A}, default_namespace={1!A}, "
             "x509=None, verify_callback=None, ca_certs=None, "
             "no_verification=False, timeout=None, "
             "use_pull_operations=False, stats_enabled=False, "
             "recorders=['LogOperationRecorder'])\"))",
             conn_id, namespace)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -2155,15 +2121,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         result_con = _format(
             "Connection:{0} FakedWBEMConnection(response_delay=None, "
-            "WBEMConnection(\"FakedWBEMConnection(url=u'http://FakedUrl', "
-            "creds=None, conn_id={0}, default_namespace=u'{1}', "
+            "WBEMConnection(\"FakedWBEMConnection(url='http://FakedUrl', "
+            "creds=None, conn_id={0!A}, default_namespace={1!A}, "
             "x509=None, verify_callback=None, ca_certs=None, "
             "no_verification=False, timeout=None, "
             "use_pull_operations=False, stats_enabled=False, "
             "recorders=['LogOperationRecorder'])\"))",
             conn_id, namespace)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -2195,15 +2159,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         # pylint: disable=line-too-long
         result_con = _format(
             "Connection:{0} FakedWBEMConnection(response_delay=None, "
-            "WBEMConnection(\"FakedWBEMConnection(url=u'http://FakedUrl', "
-            "creds=None, conn_id={0}, default_namespace=u'{1}', "
+            "WBEMConnection(\"FakedWBEMConnection(url='http://FakedUrl', "
+            "creds=None, conn_id={0!A}, default_namespace={1!A}, "
             "x509=None, verify_callback=None, ca_certs=None, "
             "no_verification=False, timeout=None, "
             "use_pull_operations=False, stats_enabled=False, "
             "recorders=['LogOperationRecorder'])\"))",
             conn_id, namespace)
-        if six.PY3:
-            result_con = result_con.replace("=u'", "='")
 
         lc.check(
             (http_exp_log_id, 'DEBUG', result_con)
