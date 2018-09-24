@@ -567,6 +567,9 @@ def test_format_random(unicode_cp):
     """
 
     unicode_char = unichr2(unicode_cp)
+    if unicode_char is None:
+        pytest.skip("Random Unicode code point U+%06X is a surrogate" %
+                    unicode_cp)
 
     cat = unicodedata.category(unicode_char)
     if cat in ('Cn', 'Cc', 'Cs'):

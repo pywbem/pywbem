@@ -39,6 +39,8 @@ from pywbem_mock._wbemconnection_mock import _uprint
 
 MAX_UNICODE_CP = 0x10FFFF  # Highest defined Unicode code point
 MAX_UCS2_CP = 0xFFFF  # Highest Unicode code point in UCS-4
+SURROGATE_MIN_CP = 0xD800  # Lowest surrogate code point
+SURROGATE_MAX_CP = 0xDFFF  # Highest surrogate code point
 
 
 def unichr2(ord):
@@ -46,7 +48,11 @@ def unichr2(ord):
     Like Python's built-in unichr(), just that it works for the entire
     Unicode character set in both narrow and wide Python builds, and with
     both Python 2 and Python 3.
+
+    Returns None for surrogsate code points.
     """
+    if ord >= SURROGATE_MIN_CP and ord <= SURROGATE_MAX_CP:
+        return None
     if sys.maxunicode == MAX_UNICODE_CP:
         # wide build
         return six.unichr(ord)
@@ -147,6 +153,7 @@ def run_catch_print(text):
 
 
 def mode_small(run_func):
+    mode_small_ascii_byte(run_func)
     mode_small_ascii(run_func)
     mode_small_latin(run_func)
     mode_small_cyrillic(run_func)
@@ -155,8 +162,13 @@ def mode_small(run_func):
     mode_small_emoticons(run_func)
 
 
+def mode_small_ascii_byte(run_func):
+    test_string = b'ASCII-byte: H e l l o'
+    run_func(test_string)
+
+
 def mode_small_ascii(run_func):
-    test_string = u'ASCII: H e l l o'
+    test_string = u'ASCII-unicode: H e l l o'
     run_func(test_string)
 
 

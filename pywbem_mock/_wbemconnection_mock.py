@@ -91,29 +91,49 @@ def _uprint(dest, text):
     """
     Write text to dest, adding a newline character.
 
-    Text must be a unicode string and must not be None.
-
-    If dest is a file path, the text is encoded to a UTF-8 Byte sequence and
-    is appended to the file (opening and closing the file).
+    Text may be a unicode string, or a byte string in UTF-8 encoding.
+    It must not be None.
 
     If dest is None, the text is encoded to a codepage suitable for the current
     stdout and is written to stdout.
+
+    Otherwise, dest must be a file path, and the text is encoded to a UTF-8
+    Byte sequence and is appended to the file (opening and closing the file).
     """
-    assert isinstance(text, six.text_type)
-    if dest is None:
-        btext = text.encode(STDOUT_ENCODING, 'replace')
-        if six.PY3:
-            print(btext.decode(STDOUT_ENCODING))
-        else:
-            print(btext)
+    if isinstance(text, six.text_type):
+        text = text + u'\n'
+    elif isinstance(text, six.binary_type):
+        text = text + b'\n'
     else:
+        raise TypeError(
+            "text must be a unicode or byte string, but is {0}".
+            format(type(text)))
+    if dest is None:
         if six.PY2:
-            # Open with codecs to define text mode
-            with codecs.open(dest, mode='a', encoding='utf-8') as f:
-                print(text, file=f)
+            # On py2, stdout.write() requires byte strings
+            if isinstance(text, six.text_type):
+                text = text.encode(STDOUT_ENCODING, 'replace')
         else:
-            with open(dest, 'a', encoding='utf-8') as f:
-                print(text, file=f)
+            # On py3, stdout.write() requires unicode strings
+            if isinstance(text, six.binary_type):
+                text = text.decode('utf-8')
+        sys.stdout.write(text)
+    elif isinstance(dest, (six.text_type, six.binary_type)):
+        if isinstance(text, six.text_type):
+            open_kwargs = dict(mode='a', encoding='utf-8')
+        else:
+            open_kwargs = dict(mode='ab')
+        if six.PY2:
+            # Open with codecs to be able to set text mode
+            with codecs.open(dest, **open_kwargs) as f:
+                f.write(text)
+        else:
+            with open(dest, **open_kwargs) as f:
+                f.write(text)
+    else:
+        raise TypeError(
+            "dest must be None or a string, but is {0}".
+            format(type(text)))
 
 
 def method_callback_interface(conn, objectname, methodname, **params):
