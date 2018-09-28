@@ -509,6 +509,16 @@ This version contains all fixes up to pywbem 0.12.4.
   all profiles scoped by a top-level specification or autonomous profile
   implement the same reference direction ('snia' or 'dmtf').
 
+* Docs: The WBEMServer.get_central_instances() method had a description
+  of the profile advertisement methodologies that was hard to understand
+  without knowledge of some of the related DMTF standards. Changed that
+  to make it understandable for pywbem users without requiring knowledge
+  of these documents. Some of the text has been moved to a new section
+  "Profile advertisement methodologies" in the Appendix of the pywbem 
+  documentation. As part of that, clarified how to determine the scoping
+  class and scoping path for a component profile that does not specify
+  them in the profile description. See issue #1398.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

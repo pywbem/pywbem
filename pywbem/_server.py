@@ -121,10 +121,11 @@ class WBEMServer(object):
 
     It supports determining the Interop namespace of the server, all namespaces,
     its brand and version, the advertised management profiles and finally
-    allows to retrieve the central instances of a management profile with
-    one method invocation regardless of whether the profile implementation
-    chose the central or scoping class profile advertisement methodology
-    (see :term:`DSP1033`).
+    allows retrieving the central instances of an implementation of a
+    management profile with one method invocation regardless of whether the
+    profile implementation chose to implement the central or scoping class
+    profile advertisement methodology (see section
+    :ref:`Profile advertisement methodologies`).
 
     It also provides functions to subscribe for indications.
     """
@@ -728,49 +729,52 @@ class WBEMServer(object):
         Return the instance paths of the central instances of a management
         profile.
 
-        This method supports the following profile advertisement methodologies
-        (see :term:`DSP1033`), and attempts them in this order:
+        DMTF defines the following profile advertisement methodologies
+        in :term:`DSP1033`:
 
         * GetCentralInstances methodology (new in :term:`DSP1033` 1.1)
         * Central class methodology
         * Scoping class methodology
 
-        Use of the scoping class methodology requires specifying the central
-        class, scoping class and scoping path defined by the profile. If any
-        of them is `None`, this method will attempt only the
-        GetCentralInstances and central class methodologies, but not the
-        scoping class methodology.
-        If using these two methodologies does not result in any central
-        instances, and the scoping class methodology cannot be used,
-        :exc:`~pywbem.ModelError` is raised.
+        A brief explanation of these methodologies can be found in
+        section :ref:`Profile advertisement methodologies`.
 
-        The scoping path is a directed traversal path from the central
-        instances to the scoping instances. Its first list item is always
-        the association class name of the traversal hop starting at the
-        central instances. For each further traversal hop, the list contains
-        two more items: The class name of the near end of that hop, and
-        the class name of the traversed association.
-        As a result, the class names of the central instances and scoping
-        instances are not part of the list.
+        Pywbem attempts all three profile advertisement methodologies in the
+        order listed above.
 
-        Example for a 1-hop traversal:
+        All three methodologies start from the CIM_RegisteredProfile instance
+        referenced by the `profile_path` parameter. That instance represents
+        a management profile. In case of multiple uses of a component profile
+        in a WBEM server, one such instance is supposed to represent one such
+        profile use.
 
-        * central class: ``"CIM_Fan"``
-        * scoping path: ``["CIM_SystemDevice"]``
-        * scoping class: ``"CIM_ComputerSystem"``
+        If the profile is a component profile and its implementation does not
+        support the GetCentralInstances or central class methodologies, the
+        `central_class`, `scoping_class`, and `scoping_path` parameters are
+        required in order for the method to attempt the scoping class
+        methodology. The method will not fail if these parameters are not
+        provided, as long as the profile implementation supports the
+        GetCentralInstances or central class methodology.
 
-        Example for a 2-hop traversal:
+        Example parameters for a 1-hop scoping path:
 
-        * central class: ``"CIM_Sensor"``
-        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan",
+        * ``central_class = "CIM_Fan"``
+        * ``scoping_path = ["CIM_SystemDevice"]``
+        * ``scoping_class = "CIM_ComputerSystem"``
+
+        Example parameters for a 2-hop scoping path:
+
+        * ``central_class = "CIM_Sensor"``
+        * ``scoping_path = ["CIM_AssociatedSensor", "CIM_Fan",
           "CIM_SystemDevice"]``
-        * scoping class: ``"CIM_ComputerSystem"``
+        * ``scoping_class = "CIM_ComputerSystem"``
 
         Parameters:
 
           profile_path (:class:`~pywbem.CIMInstanceName`):
             Instance path of the `CIM_RegisteredProfile` instance representing
-            the management profile.
+            the management profile (or its use, if there are multiple uses
+            in a WBEM server).
 
           central_class (:term:`string`):
             Class name of central class defined by the management profile.
@@ -812,11 +816,13 @@ class WBEMServer(object):
             CIM_ReferencedProfile association:
 
             * The DMTF standards define in DSP1033 and DSP1001:
+
               - Antecedent = referenced profile = component profile
               - Dependent = referencing profile = autonomous profile
 
             * The SNIA SMI-S standard defines in the "Profile Registration
               Profile" (in the SMI-S "Common Profiles" book):
+
               - Antecedent = autonomous profile
               - Dependent = component (= sub) profile
 
@@ -836,7 +842,8 @@ class WBEMServer(object):
         Returns:
 
           :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
-          paths of the central instances of the management profile.
+          paths of the central instances of the implementation of the
+          management profile.
 
         Raises:
 
