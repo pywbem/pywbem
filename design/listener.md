@@ -1,3 +1,8 @@
+Design for WBEM listener
+========================
+
+Requirements
+------------
 
    * Must support an easy way for applications to subscribe for indications, and
      to get the corresponding indications.
@@ -13,9 +18,8 @@
 
    * Must support multiple WBEM servers.
 
-.. note::
-
-   Design notes:
+Design notes
+------------
 
    * An "application" is a Python process.
 
