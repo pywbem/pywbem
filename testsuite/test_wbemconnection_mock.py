@@ -724,7 +724,8 @@ class TestFakedWBEMConnection(object):
         else:
             assert exec_time < 0.1
 
-    def test_repr(self):  # pylint: disable=no-self-use
+    def test_repr(self):
+        # pylint: disable=no-self-use
         """ Test output of repr"""
         # pylint: disable=protected-access
         FakedWBEMConnection._reset_logging_config()
@@ -732,7 +733,8 @@ class TestFakedWBEMConnection(object):
         repr_ = '%r' % conn
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
 
-    def test_attr(self):  # pylint: disable=no-self-use
+    def test_attr(self):
+        # pylint: disable=no-self-use
         """
         Test initial FadedWBEMConnection attributes
         """
@@ -1187,11 +1189,11 @@ class TestRepoMethods(object):
         "ns", INITIAL_NAMESPACES + [None])
     def test_addcimobject(self, conn, ns, tst_classes, tst_instances,
                           tst_insts_big):
+        # pylint: disable=no-self-use
         """
         Test inserting all of the object definitions in the fixtures into
         the repository
         """
-        # pylint: disable=no-self-use
         conn.add_cimobjects(tst_classes, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
         conn.add_cimobjects(tst_insts_big, namespace=ns)
@@ -1208,8 +1210,8 @@ class TestRepoMethods(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_addcimobject_err(self, conn, ns, tst_classes, tst_instances):
-        """Test error if duplicate instance inserted"""
         # pylint: disable=no-self-use
+        """Test error if duplicate instance inserted"""
         conn.add_cimobjects(tst_classes, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
         with pytest.raises(ValueError):
@@ -1218,8 +1220,8 @@ class TestRepoMethods(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_addcimobject_err1(self, conn, ns, tst_class):
-        """Test error if class with no superclass"""
         # pylint: disable=no-self-use
+        """Test error if class with no superclass"""
         conn.add_cimobjects(tst_class, namespace=ns)
         c = CIMClass('CIM_BadClass', superclass='CIM_NotExist')
         with pytest.raises(ValueError):
@@ -1258,6 +1260,7 @@ class TestRepoMethods(object):
     )
     def test_add_namespace(self, default_ns, additional_ns, test_ns, exp_ns,
                            exp_exc):
+        # pylint: disable=no-self-use
         """
         Test add_namespace()
         """
@@ -1293,6 +1296,7 @@ class TestRepoMethods(object):
     )
     def test_remove_namespace(self, default_ns, additional_ns, test_ns, exp_ns,
                               exp_exc):
+        # pylint: disable=no-self-use
         """
         Test _remove_namespace()
         """
@@ -1358,7 +1362,8 @@ class TestRepoMethods(object):
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
-    def test_compile_mult(self, conn, ns):  # pylint: disable=no-self-use
+    def test_compile_mult(self, conn, ns):
+        # pylint: disable=no-self-use
         """
         Test compile of multiple separate compile units including qualifiers,
         classes and instances.
@@ -1561,8 +1566,8 @@ class TestRepoMethods(object):
 
         # TODO test returned instance for match with what was created
 
-    # pylint: disable=no-self-use
     def test_compile_dmtf_schema(self, conn):
+        # pylint: disable=no-self-use
         """
         Test Compiling DMTF CIM schema. This is a test commpiles the
         complete DMTF schema that is defined in the testsuite.
@@ -4046,13 +4051,11 @@ class TestReferenceOperations(object):
             exp_exc = exp_rslt
             # we have to fix the targetclassname for some of the tests
             if isinstance(cim_cln, six.string_types):
-                # pylint: disable=redefined-variable-type
                 cim_cln = CIMInstanceName(classname=cln)
             if exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                 cim_cln.namespace = 'non_existent_namespace'
 
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 conn.ReferenceNames(cim_cln, ResultClass=rc, Role=ro)
             exc = exec_info.value
             assert exc.status_code == exp_exc.status_code
@@ -4163,7 +4166,6 @@ class TestReferenceOperations(object):
                 targ_iname.namespace = 'non_existent_namespace'
 
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 conn.ReferenceNames(targ_iname, ResultClass=rc, Role=ro)
             exc = exec_info.value
             assert exc.status_code == exp_exc.status_code
@@ -4347,7 +4349,6 @@ class TestAssociationOperations(object):
                     target_cln.namespace = 'badnamespacename'
 
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 conn.AssociatorNames(target_cln, AssocClass=ac, Role=role,
                                      ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
@@ -4436,7 +4437,6 @@ class TestAssociationOperations(object):
                 targ_iname.namespace = 'BadNameSpaceName'
 
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 conn.AssociatorNames(targ_iname, AssocClass=ac, Role=role,
                                      ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
@@ -4515,7 +4515,6 @@ class TestAssociationOperations(object):
                 inst_name.namespace = 'BadNameSpaceName'
 
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 conn.Associators(inst_name, AssocClass=ac, Role=role,
                                  ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
@@ -4584,7 +4583,6 @@ class TestAssociationOperations(object):
                 else:
                     cln.namespace = 'badnamespacename'
             with pytest.raises(CIMError) as exec_info:
-                # pylint: disable=protected-access
                 conn.Associators(cln, AssocClass=ac, Role=role,
                                  ResultRole=rr, ResultClass=rc)
             exc = exec_info.value
@@ -5005,6 +5003,7 @@ class TestDMTFCIMSchema(object):
     be downloading the DMTF schema for CI testing, we will generally skip the
     first test.
     """
+
     def test_current_testsuite_schema(self):
         # pylint: disable=no-self-use
         """
@@ -5164,7 +5163,7 @@ class TestDMTFCIMSchema(object):
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
-        zip_path = schema.schema_zip_file  # pylint: disable=protected-access
+        zip_path = schema.schema_zip_file
         assert os.path.isfile(zip_path)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
