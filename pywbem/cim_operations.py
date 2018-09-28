@@ -2312,9 +2312,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -2437,9 +2435,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -2590,9 +2586,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -2805,9 +2799,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stating that all properties exposed by the instance are designated
             to be modified.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -2929,9 +2921,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Leading and trailing slash characters will be stripped. The lexical
             case will be preserved.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -3036,9 +3026,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             of the connection is used.
             Its `host` attribute will be ignored.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -3189,9 +3177,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -3389,9 +3375,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             `None` means that no such filtering is peformed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -3589,9 +3573,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -3768,9 +3750,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             `None` means that no such filtering is peformed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -3934,9 +3914,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 - name (:term:`string`): Parameter name (case independent)
                 - value (:term:`CIM data type`): Parameter value
 
-        Keyword Arguments:
-
-          : Each keyword parameter is an additional input parameter value for
+          **params :
+            Each keyword parameter is an additional input parameter value for
             the CIM method, with:
 
             * key (:term:`string`): Parameter name (case independent)
@@ -4026,9 +4005,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -4328,9 +4305,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             between 100 and 1000 typically do not have a significant impact on
             either memory or overall efficiency.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -4615,9 +4590,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             between 100 and 1000 typically do not have a significant impact on
             either memory or overall efficiency.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -4943,9 +4916,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -5239,9 +5210,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -5537,9 +5506,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -5811,9 +5778,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -6046,9 +6011,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -6363,9 +6326,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -6610,9 +6571,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -6891,9 +6850,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -7139,9 +7096,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
 
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -7398,9 +7354,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
 
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -7628,9 +7583,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -7839,9 +7792,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8024,9 +7975,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               be used by a client to reset the interoperation timer
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8178,9 +8127,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               be used by a client to reset the interoperation timer.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8326,9 +8273,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               be used by a client to reset the interoperation timer.
             * `None` is not allowed.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8456,9 +8401,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * namespace (:term:`string`):
               Name of the CIM namespace being used for this enumeration session.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8592,9 +8535,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8732,9 +8673,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Note, the semantics of the `DeepInheritance` parameter in
             :meth:`~pywbem.WBEMConnection.EnumerateInstances` is different.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -8881,9 +8820,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9005,9 +8942,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9087,9 +9022,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9166,9 +9099,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9240,9 +9171,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9332,9 +9261,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9431,9 +9358,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters
@@ -9505,9 +9430,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-        Keyword Arguments:
-
-          extra :
+          **extra :
             Additional keyword arguments are passed as additional operation
             parameters to the WBEM server.
             Note that :term:`DSP0200` does not define any additional parameters

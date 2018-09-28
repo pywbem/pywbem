@@ -28,7 +28,9 @@ __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
 
 
 class Error(Exception):
-    """Base class for pywbem specific exceptions."""
+    """
+    Base class for pywbem specific exceptions.
+    """
 
     def __init__(self, *args, **kwargs):
         """
@@ -39,8 +41,11 @@ class Error(Exception):
             happened. Omitted or `None` if the error did not happen in context
             of any connection, or if the connection context was not known.
 
-          Any other positional arguments or keyword arguments are passed to
-          :exc:`py:Exception`.
+          *args :
+            Any other positional arguments are passed to :exc:`py:Exception`.
+
+          **kwargs :
+            Any other keyword arguments are passed to :exc:`py:Exception`.
         """
         if 'conn_id' in kwargs:
             conn_id = kwargs['conn_id']
@@ -75,16 +80,20 @@ class Error(Exception):
 
 
 class ConnectionError(Error):
-    """This exception indicates a problem with the connection to the WBEM
-    server. A retry may or may not succeed. Derived from
-    :exc:`~pywbem.Error`."""
+    """
+    This exception indicates a problem with the connection to the WBEM
+    server. A retry may or may not succeed.
+    Derived from :exc:`~pywbem.Error`.
+    """
     pass
 
 
 class AuthError(Error):
-    """This exception indicates an authentication error with the WBEM server,
+    """
+    This exception indicates an authentication error with the WBEM server,
     either during TLS/SSL handshake, or during HTTP-level authentication.
-    Derived from :exc:`~pywbem.Error`."""
+    Derived from :exc:`~pywbem.Error`.
+    """
     pass
 
 
@@ -185,22 +194,28 @@ class HTTPError(Error):
 
 
 class TimeoutError(Error):
-    """This exception indicates that the client timed out waiting for the WBEM
-    server. Derived from :exc:`~pywbem.Error`."""
+    """
+    This exception indicates that the client timed out waiting for the WBEM
+    server. Derived from :exc:`~pywbem.Error`.
+    """
     pass
 
 
 class ParseError(Error):
-    """This exception indicates a parsing error with the CIM-XML response
+    """
+    This exception indicates a parsing error with the CIM-XML response
     returned by the WBEM server, or in the CIM-XML request sent by the WBEM
-    listener. Derived from :exc:`~pywbem.Error`."""
+    listener. Derived from :exc:`~pywbem.Error`.
+    """
     pass
 
 
 class VersionError(Error):
-    """This exception indicates an unsupported CIM, DTD or protocol version
+    """
+    This exception indicates an unsupported CIM, DTD or protocol version
     with the CIM-XML response returned by the WBEM server, or in the CIM-XML
-    request sent by the WBEM listener. Derived from :exc:`~pywbem.Error`."""
+    request sent by the WBEM listener. Derived from :exc:`~pywbem.Error`.
+    """
     pass
 
 
