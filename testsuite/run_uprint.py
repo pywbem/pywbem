@@ -33,8 +33,8 @@ That is for manually figuring out the behavior for non-ASCII test strings.
 from __future__ import absolute_import, print_function
 import sys
 import locale
-import six
 import traceback
+import six
 from pywbem_mock._wbemconnection_mock import _uprint
 
 MAX_UNICODE_CP = 0x10FFFF  # Highest defined Unicode code point
@@ -43,7 +43,7 @@ SURROGATE_MIN_CP = 0xD800  # Lowest surrogate code point
 SURROGATE_MAX_CP = 0xDFFF  # Highest surrogate code point
 
 
-def unichr2(ord):
+def unichr2(cp):
     """
     Like Python's built-in unichr(), just that it works for the entire
     Unicode character set in both narrow and wide Python builds, and with
@@ -51,36 +51,41 @@ def unichr2(ord):
 
     Returns None for surrogsate code points.
     """
-    if ord >= SURROGATE_MIN_CP and ord <= SURROGATE_MAX_CP:
+    if cp >= SURROGATE_MIN_CP and cp <= SURROGATE_MAX_CP:
         return None
+
     if sys.maxunicode == MAX_UNICODE_CP:
         # wide build
-        return six.unichr(ord)
-    elif ord <= MAX_UCS2_CP:
+        return six.unichr(cp)
+
+    if cp <= MAX_UCS2_CP:
         # narrow build, low range
-        return six.unichr(ord)
-    else:
-        # narrow build, high range.
-        # Python 2 narrow builds store unicode characters internally as
-        # UTF-16. The unichr() function however only supports the low range.
-        # Literals can be used to create characters in the high range (both
-        # with high-range literals and with surrogates).
-        # This implementation produces a unicode literal with surrogates
-        # and evaluates that to c reate the unicode character.
-        # Conversion of high range code points to UTF-16 surrogates:
-        # Subtract 0x010000 from the code point, then take the high ten bits
-        # of the result and add 0xD800 to get the first surrogate (in range
-        # 0xD800-0xDBFF). Take the low ten bits of the result and add 0xDC00
-        # to get the second surrogate (in range 0xDC00-0xDFFF).
-        offset = ord - MAX_UCS2_CP - 1
-        surr1 = (offset >> 10) + 0xD800
-        surr2 = (offset & 0b1111111111) + 0xDC00
-        lit = u'u"\\u%04X\\u%04X"' % (surr1, surr2)
-        uchr = eval(lit)
-        return uchr
+        return six.unichr(cp)
+
+    # narrow build, high range.
+    # Python 2 narrow builds store unicode characters internally as
+    # UTF-16. The unichr() function however only supports the low range.
+    # Literals can be used to create characters in the high range (both
+    # with high-range literals and with surrogates).
+    # This implementation produces a unicode literal with surrogates
+    # and evaluates that to c reate the unicode character.
+    # Conversion of high range code points to UTF-16 surrogates:
+    # Subtract 0x010000 from the code point, then take the high ten bits
+    # of the result and add 0xD800 to get the first surrogate (in range
+    # 0xD800-0xDBFF). Take the low ten bits of the result and add 0xDC00
+    # to get the second surrogate (in range 0xDC00-0xDFFF).
+    offset = cp - MAX_UCS2_CP - 1
+    surr1 = (offset >> 10) + 0xD800
+    surr2 = (offset & 0b1111111111) + 0xDC00
+    lit = u'u"\\u%04X\\u%04X"' % (surr1, surr2)
+    uchr = eval(lit)  # pylint: disable=eval-used
+    return uchr
 
 
 def print_debug_info():
+    """
+    Print debug information relevant for codepages.
+    """
     print("Debug: sys.stdout: isatty=%r, encoding=%r" %
           (sys.stdout.isatty(), getattr(sys.stdout, 'encoding', None)),
           file=sys.stderr)
@@ -93,9 +98,12 @@ def print_debug_info():
 
 
 def run_uprint(text):
+    """
+    Invoke _uprint() on the text and print any exception that may be raised.
+    """
     try:
         _uprint(None, text)
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         print("Error: %s raised by: _uprint(None, %r)" %
               (exc.__class__.__name__, text),
               file=sys.stderr)
@@ -105,9 +113,12 @@ def run_uprint(text):
 
 
 def run_print(text):
+    """
+    Invoke print() on the text and print any exception that may be raised.
+    """
     try:
         print(text)
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         print("Error: %s raised by: print(%r)" %
               (exc.__class__.__name__, text),
               file=sys.stderr)
@@ -116,17 +127,17 @@ def run_print(text):
         raise
 
 
-def run_raise(text):
-    raise ValueError(text)
-
-
 def run_catch_print_exc(text):
+    """
+    Invoke traceback.print_exc() on a caught exception and print any exception
+    that may be raised.
+    """
     try:
         raise ValueError(text)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         try:
             traceback.print_exc(file=sys.stderr)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             print("Error: %s raised when printing caught ValueError(%r)\n"
                   "       exception using traceback.print_exc()" %
                   (exc.__class__.__name__, text),
@@ -137,12 +148,16 @@ def run_catch_print_exc(text):
 
 
 def run_catch_print(text):
+    """
+    Invoke print() on a caught exception and print any exception that may be
+    raised.
+    """
     try:
         raise ValueError(text)
-    except Exception as exc1:
+    except Exception as exc1:  # pylint: disable=broad-except
         try:
             print(exc1, file=sys.stderr)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             print("Error: %s raised when printing caught ValueError(%r)\n"
                   "       exception using print(exc)" %
                   (exc.__class__.__name__, text),
@@ -153,6 +168,9 @@ def run_catch_print(text):
 
 
 def mode_small(run_func):
+    """
+    Run the specified run function with a small set of testcases.
+    """
     mode_small_ascii_byte(run_func)
     mode_small_ascii(run_func)
     mode_small_latin(run_func)
@@ -163,46 +181,70 @@ def mode_small(run_func):
 
 
 def mode_small_ascii_byte(run_func):
+    """
+    Run the specified run function with ASCII characters as byte string.
+    """
     test_string = b'ASCII-byte: H e l l o'
     run_func(test_string)
 
 
 def mode_small_ascii(run_func):
+    """
+    Run the specified run function with ASCII characters as unicode string.
+    """
     test_string = u'ASCII-unicode: H e l l o'
     run_func(test_string)
 
 
 def mode_small_latin(run_func):
+    """
+    Run the specified run function with UCS-2 Latin-1 characters.
+    """
     test_string = u'UCS-2 Latin-1: ' \
         u'\u00E0 \u00E1 \u00E2 \u00F9 \u00FA \u00FB'
     run_func(test_string)
 
 
 def mode_small_cyrillic(run_func):
+    """
+    Run the specified run function with UCS-2 Cyrillic characters.
+    """
     test_string = u'UCS-2 Cyrillic: ' \
         u'\u041F \u0440 \u0438 \u0432 \u0435 \u0442'
     run_func(test_string)
 
 
 def mode_small_chinese(run_func):
+    """
+    Run the specified run function with UCS-2 Chinese characters.
+    """
     test_string = u'UCS-2 Chinese: ' \
         u'\u6C2E \u6C22 \u94A0 \u6CB8 \u98DF \u70F9 \u6797'
     run_func(test_string)
 
 
 def mode_small_musical(run_func):
+    """
+    Run the specified run function with UCS-4 Musical characters.
+    """
     test_string = u'UCS-4 Musical: ' \
         u'\U0001D122 \U0001D11E \U0001D106 \U0001D107'
     run_func(test_string)
 
 
 def mode_small_emoticons(run_func):
+    """
+    Run the specified run function with UCS-4 Emoticon characters.
+    """
     test_string = u'UCS-4 Emoticons: ' \
         u'\U0001F600 \U0001F607 \U0001F60E \U0001F627'
     run_func(test_string)
 
 
 def mode_ucs2(run_func):
+    """
+    Run the specified run function with all UCS-2 characters.
+    """
     for cp in six.moves.xrange(0, MAX_UCS2_CP):
         cp_char = unichr2(cp)
         test_string = u'U+%06X: %s' % (cp, cp_char)
@@ -210,6 +252,9 @@ def mode_ucs2(run_func):
 
 
 def mode_all(run_func):
+    """
+    Run the specified run function with all UCS-4 characters.
+    """
     for cp in six.moves.xrange(0, MAX_UNICODE_CP):
         cp_char = unichr2(cp)
         test_string = u'U+%06X: %s' % (cp, cp_char)

@@ -322,6 +322,10 @@ def test_cimerror_3(status_tuple, error_instances, conn_info):
 
     exc = CIMError(status_code, instances=error_instances, **conn_id_kwarg)
 
+    assert exc.status_code == status_code
+    if status_code_name is not None:
+        assert exc.status_code_name == status_code_name
+
     assert exc.args[2] == error_instances
     assert len(exc.args) == 3
 

@@ -562,6 +562,7 @@ def unicode_cp(request):
 
 
 def test_format_random(unicode_cp):
+    # pylint: disable=redefined-outer-name
     """
     Test _format() with a random set of Unicode code points.
     """
@@ -588,5 +589,6 @@ def test_format_random(unicode_cp):
     else:
         exp_result = "'\\U{0:08x}'".format(unicode_cp)
 
+    # pylint: disable=unidiomatic-typecheck
     assert type(act_result) is type(exp_result)
     assert act_result == exp_result

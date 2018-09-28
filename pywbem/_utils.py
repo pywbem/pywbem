@@ -25,8 +25,8 @@ from __future__ import print_function, absolute_import
 import re
 import inspect
 import collections
-import six
 from string import Formatter
+import six
 if six.PY2:
     from future_builtins import ascii
 
@@ -161,24 +161,21 @@ def _ascii2(value):
         item_str = "{" + ", ".join(items) + "}"
         if value.__class__.__name__ == 'dict':
             return item_str
-        else:
-            return "{0}({1})".format(value.__class__.__name__, item_str)
+        return "{0}({1})".format(value.__class__.__name__, item_str)
 
     if isinstance(value, collections.Set):
         items = [_ascii2(v) for v in value]
         item_str = "{" + ", ".join(items) + "}"
         if value.__class__.__name__ == 'set':
             return item_str
-        else:
-            return "{0}({1})".format(value.__class__.__name__, item_str)
+        return "{0}({1})".format(value.__class__.__name__, item_str)
 
     if isinstance(value, collections.MutableSequence):
         items = [_ascii2(v) for v in value]
         item_str = "[" + ", ".join(items) + "]"
         if value.__class__.__name__ == 'list':
             return item_str
-        else:
-            return "{0}({1})".format(value.__class__.__name__, item_str)
+        return "{0}({1})".format(value.__class__.__name__, item_str)
 
     if isinstance(value, collections.Sequence) and \
             not isinstance(value, (six.text_type, six.binary_type)):
@@ -189,8 +186,7 @@ def _ascii2(value):
             item_str = "(" + ", ".join(items) + ")"
         if value.__class__.__name__ == 'tuple':
             return item_str
-        else:
-            return "{0}({1})".format(value.__class__.__name__, item_str)
+        return "{0}({1})".format(value.__class__.__name__, item_str)
 
     ret = ascii(value)  # returns type str in py2 and py3
 

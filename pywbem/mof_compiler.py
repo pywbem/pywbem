@@ -2350,6 +2350,7 @@ class MOFCompiler(object):
 
     def __init__(self, handle, search_paths=None, verbose=False,
                  log_func=_print_logger):
+        # pylint: disable=line-too-long
         """
         Parameters:
 
