@@ -34,7 +34,7 @@ import six
 TEST_DIR = os.path.dirname(__file__)
 
 
-def wbemcli_test(desc, args, exp_response, mock_file, condition, verbose=None):
+def wbemcli_test(desc, args, exp_response, mock_file, condition, verbose=False):
     # pylint: disable=line-too-long
     """
     Test method to execute a test on wbemcli by calling the executable wbemcli
@@ -221,7 +221,7 @@ def wbemcli_test(desc, args, exp_response, mock_file, condition, verbose=None):
                 assert 'Test %s is invalid. Skipped' % test
 
 
-def execute_wbemcli(args, verbose=None):
+def execute_wbemcli(args, verbose=False):
     """
     Invoke the 'wbemcli' command as a child process.
 

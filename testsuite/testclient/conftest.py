@@ -899,7 +899,9 @@ def runtestcase(testcase):
     # Continue with validating the result
 
     if isinstance(raised_exception, pywbem.CIMError):
-        cim_status = raised_exception.status_code  # pylint: disable=no-member
+        # pylint: disable=no-member
+        cim_status = raised_exception.status_code
+        # pylint: disable=no-member
         error_instances = raised_exception.instances
     else:
         cim_status = 0

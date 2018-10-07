@@ -38,6 +38,8 @@ from cmd_line_test_utils import wbemcli_test
 TEST_DIR = os.path.dirname(__file__)
 TEST_MOCK_MOF = os.path.join(TEST_DIR, 'simple_mock_model.mof')
 
+VERBOSE = False  # Verbose mode for the testcases
+
 
 def create_abs_path(filename):
     """
@@ -368,7 +370,6 @@ def test_command(desc, args, exp_response, mock, script, condition):
     """
     Standard test for pywbemcli commands using pytest
     """
-    verbose = True
     if not condition:
         pytest.skip("Condition for test case %s not met" % desc)
 
@@ -388,7 +389,7 @@ def test_command(desc, args, exp_response, mock, script, condition):
             args.append(script_file_name)
 
     try:
-        wbemcli_test(desc, args, exp_response, mock, condition, verbose=verbose)
+        wbemcli_test(desc, args, exp_response, mock, condition, verbose=VERBOSE)
 
     finally:
         if os.path.isfile(script_file_name):

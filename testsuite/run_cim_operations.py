@@ -4489,20 +4489,20 @@ class PyWBEMServerClass(PegasusServerTestBase, RegexpMixin):
         def delete_namespace(conn, ns_name, interop):
             """Delete the namespace defined by ns_name"""
             class_name = 'CIM_Namespace'
-            instances = self.cimcall(self.conn.EnumerateInstances,
+            instances = self.cimcall(conn.EnumerateInstances,
                                      class_name,
                                      namespace=interop,
                                      LocalOnly=True)
             for instance in instances:
-                if test_ns == instance.properties['Name'].value:
+                if ns_name == instance.properties['Name'].value:
                     try:
-                        self.cimcall(self.conn.DeleteInstance, instance.path)
+                        self.cimcall(conn.DeleteInstance, instance.path)
                         return
-                    except Exception as ex:
+                    except Exception as ex:  # pylint: disable=broad-except
                         self.fail("Delete of created namespace failed %s " % ex)
 
             self.fail("new ns %s not found in namespace instances %r" %
-                      (test_ns, instances))
+                      (ns_name, instances))
 
         server = WBEMServer(self.conn)
         namespaces = server.namespaces
