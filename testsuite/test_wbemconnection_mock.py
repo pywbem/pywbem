@@ -1306,6 +1306,7 @@ class TestRepoMethods(object):
         if not exp_exc:
 
             # The code to be tested
+            # pylint: disable=protected-access
             conn._remove_namespace(test_ns)
 
             assert exp_ns not in conn.namespaces
@@ -1313,6 +1314,7 @@ class TestRepoMethods(object):
             with pytest.raises(exp_exc.__class__) as exec_info:
 
                 # The code to be tested
+                # pylint: disable=protected-access
                 conn._remove_namespace(test_ns)
 
             exc = exec_info.value
@@ -2963,7 +2965,7 @@ class TestInstanceOperations(object):
     def test_createinstance_namespace(
             self, conn, tst_pg_namespace_class,
             desc, interop_ns, additional_ns, new_inst, exp_ns, exp_exc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test the faked CreateInstance with a namespace instance to create ns.
         """
@@ -3271,7 +3273,7 @@ class TestInstanceOperations(object):
             self, conn, tst_pg_namespace_class,
             desc, interop_ns, additional_objs, new_inst, delete, exp_ns,
             exp_exc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test the faked DeleteInstance with a namespace instance to delete ns.
         """
@@ -4035,10 +4037,10 @@ class TestReferenceOperations(object):
             exp_ns = ns or conn.default_namespace
             assert isinstance(clns, list)
             assert len(clns) == len(exp_rslt)
-            for cln in clns:
-                assert isinstance(cln, CIMClassName)
-                assert cln.host == conn.host
-                assert cln.namespace == exp_ns
+            for _cln in clns:
+                assert isinstance(_cln, CIMClassName)
+                assert _cln.host == conn.host
+                assert _cln.namespace == exp_ns
             exp_clns = [CIMClassName(classname=n, namespace=exp_ns,
                                      host=conn.host)
                         for n in exp_rslt]
