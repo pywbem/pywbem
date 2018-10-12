@@ -2217,7 +2217,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                 conn_id=self.conn_id)
                         raise
 
-        # TODO #991: CreateClass should reject if the class already exists
+        # Issue #991: CreateClass should reject if the class already exists
         try:
             self.class_names[self.default_namespace].append(cc.classname)
         except KeyError:
@@ -2323,7 +2323,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                   ns, cname))
                     print(_format("     {0} {1}",
                                   ce.status_code, ce.status_description))
-        # TODO #990: Also roll back changes to qualifier declarations
+        # Issue #990: Also roll back changes to qualifier declarations
 
 
 def _print_logger(msg):

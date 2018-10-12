@@ -1210,7 +1210,6 @@ class CIMInstanceNameEquality(unittest.TestCase):
     Test the equality comparison of `CIMInstanceName` objects.
     """
 
-    # TODO 01/18 AM Remove test_all() once PR #955 is merged (is in test hash)
     def test_CIMInstanceName_eq(self):  # XXX: Migrate to pytest
 
         # Basic equality tests
@@ -1337,7 +1336,6 @@ class CIMInstanceNameEquality(unittest.TestCase):
             # pylint: disable=expression-not-assigned
             CIMInstanceName('CIM_Foo') == CIMInstance('CIM_Foo')
 
-    # TODO 01/18 AM Reformulate these tests in test hash once PR #955 is merged
     def test_keybindings_order(self):  # XXX: Migrate to pytest
         """
         Test that two CIMInstanceName objects compare equal if their key
