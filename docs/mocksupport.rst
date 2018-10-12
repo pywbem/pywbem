@@ -856,6 +856,19 @@ FakedWBEMConnection
 .. autoclass:: pywbem_mock.FakedWBEMConnection
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
+      :attributes:
+
+   .. rubric:: Details
+
 .. _`DMTF CIM schema download support`:
 
 DMTF CIM schema download support
@@ -865,3 +878,16 @@ DMTF CIM schema download support
 
 .. autoclass:: pywbem_mock.DMTFCIMSchema
    :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
+      :attributes:
+
+   .. rubric:: Details

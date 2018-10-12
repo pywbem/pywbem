@@ -11,3 +11,16 @@ WBEMConnection
 
 .. autoclass:: pywbem.WBEMConnection
    :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.WBEMConnection
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.WBEMConnection
+      :attributes:
+
+   .. rubric:: Details

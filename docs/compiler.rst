@@ -14,6 +14,19 @@ MOFCompiler Class
 .. autoclass:: pywbem.MOFCompiler
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.MOFCompiler
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.MOFCompiler
+      :attributes:
+
+   .. rubric:: Details
+
 .. _`Repository connections`:
 
 Repository connections
@@ -22,8 +35,34 @@ Repository connections
 .. autoclass:: pywbem.BaseRepositoryConnection
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.BaseRepositoryConnection
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.BaseRepositoryConnection
+      :attributes:
+
+   .. rubric:: Details
+
 .. autoclass:: pywbem.MOFWBEMConnection
    :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.MOFWBEMConnection
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.MOFWBEMConnection
+      :attributes:
+
+   .. rubric:: Details
 
 .. _`MOF compiler exceptions`:
 
@@ -36,3 +75,16 @@ The MOF compiler API may raise the exceptions that can be raised by the
 
 .. autoclass:: pywbem.MOFParseError
    :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.MOFParseError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.MOFParseError
+      :attributes:
+
+   .. rubric:: Details

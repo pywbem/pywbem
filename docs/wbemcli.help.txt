@@ -83,7 +83,7 @@ General options:
   -V, --version         Display pywbem version and exit.
   --statistics          Enable gathering of statistics on operations.
   --mock-server [file name [file name ...]]
-                        Activate pywbem_mock in place of a live WBEMConnection and 
+                        Activate pywbem_mock in place of a live WBEMConnection and
                         compile/build the files defined (".mof" suffix or "py" suffix.
                         MOF files are compiled and python files are executed assuming
                         that they include mock_pywbem methods that add objects to the
