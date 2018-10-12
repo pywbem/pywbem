@@ -1227,7 +1227,7 @@ class TupleParser(object):
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
-            # TODO #1044: Clarify if hex support is needed.
+            # Issue #1044: Clarify if hex support is needed.
             array_size = int(array_size)
 
         scopes = None
@@ -1389,7 +1389,7 @@ class TupleParser(object):
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
-            # TODO #1044: Clarify if hex support is needed.
+            # Issue #1044: Clarify if hex support is needed.
             array_size = int(array_size)
 
         embedded_object = None
@@ -1560,7 +1560,7 @@ class TupleParser(object):
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
-            # TODO #1044: Clarify if hex support is needed
+            # Issue #1044: Clarify if hex support is needed
             array_size = int(array_size)
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])
@@ -1589,7 +1589,7 @@ class TupleParser(object):
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
-            # TODO #1044: Clarify if hex support is needed
+            # Issue #1044: Clarify if hex support is needed
             array_size = int(array_size)
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])

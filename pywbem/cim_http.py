@@ -615,7 +615,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 # Within the defined set of protocol versions, SSLv23 selects
                 # the highest protocol version that both client and server
                 # support.
-                # TODO #893: Consider the use of default_context()
+                # Issue #893: Consider the use of default_context()
                 ctx = SSL.SSLContext(SSL.PROTOCOL_SSLv23)
 
                 if self.cert_file:

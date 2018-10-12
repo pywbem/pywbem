@@ -437,7 +437,7 @@ class NocaseDict(object):
         The comparison is based on matching key/value pairs.
         The keys are looked up case-insensitively.
         """
-        # TODO #1062: Could compare hash values for better performance
+        # Issue #1062: Could compare hash values for better performance
         for key, self_value in self.iteritems():
             if key not in other:
                 return False
