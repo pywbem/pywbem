@@ -8,3 +8,16 @@ Mapping between ValueMap and Values qualifiers
 
 .. autoclass:: pywbem.ValueMapping
    :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.ValueMapping
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.ValueMapping
+      :attributes:
+
+   .. rubric:: Details

@@ -90,20 +90,67 @@ Class                                    Purpose
 .. autoclass:: pywbem.BaseOperationRecorder
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.BaseOperationRecorder
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.BaseOperationRecorder
+      :attributes:
+
+   .. rubric:: Details
+
 .. autoclass:: pywbem.OpArgs
    :members:
+
+.. # No autoautosummary on pywbem.OpArgs, because its base class is not documented.
 
 .. autoclass:: pywbem.OpResult
    :members:
 
+.. # No autoautosummary on pywbem.OpResult, because its base class is not documented.
+
 .. autoclass:: pywbem.HttpRequest
    :members:
+
+.. # No autoautosummary on pywbem.HttpRequest, because its base class is not documented.
 
 .. autoclass:: pywbem.HttpResponse
    :members:
 
+.. # No autoautosummary on pywbem.HttpResponse, because its base class is not documented.
+
 .. autoclass:: pywbem.TestClientRecorder
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.TestClientRecorder
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.TestClientRecorder
+      :attributes:
+
+   .. rubric:: Details
+
 .. autoclass:: pywbem.LogOperationRecorder
    :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.LogOperationRecorder
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.LogOperationRecorder
+      :attributes:
+
+   .. rubric:: Details

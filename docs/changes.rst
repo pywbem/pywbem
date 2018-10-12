@@ -362,6 +362,11 @@ This version contains all fixes up to pywbem 0.12.4.
   This is important in order to avoid secondary Unicode encoding exceptions
   while a first exception or warning is processed. See issue #1072.
 
+* Docs: Added summary tables for public methods and public attributes exposed
+  by classes defined by the "pywbem" and "pywbem_mock" Python packages,
+  including any methods and attributes inherited from base classes.
+  See issue #1417.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

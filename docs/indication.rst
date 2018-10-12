@@ -28,6 +28,19 @@ WBEMListener
 .. autoclass:: pywbem.WBEMListener
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.WBEMListener
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.WBEMListener
+      :attributes:
+
+   .. rubric:: Details
+
 .. autofunction:: pywbem.callback_interface
 
 
@@ -41,3 +54,15 @@ WBEMSubscriptionManager
 .. autoclass:: pywbem.WBEMSubscriptionManager
    :members:
 
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.WBEMSubscriptionManager
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.WBEMSubscriptionManager
+      :attributes:
+
+   .. rubric:: Details
