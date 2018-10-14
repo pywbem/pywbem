@@ -315,6 +315,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     hash value being based on their public attributes.
     """
 
+    #: The name of the CIM datatype ``"datetime"``
     cimtype = 'datetime'
 
     _timestamp_pattern = re.compile(
@@ -830,8 +831,11 @@ class Uint8(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'uint8'
+    #: The minimum valid value for the CIM datatype
     minvalue = 0
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2**8 - 1
 
 
@@ -841,8 +845,11 @@ class Sint8(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'sint8'
+    #: The minimum valid value for the CIM datatype
     minvalue = -2 ** (8 - 1)
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2 ** (8 - 1) - 1
 
 
@@ -852,8 +859,11 @@ class Uint16(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'uint16'
+    #: The minimum valid value for the CIM datatype
     minvalue = 0
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2**16 - 1
 
 
@@ -863,8 +873,11 @@ class Sint16(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'sint16'
+    #: The minimum valid value for the CIM datatype
     minvalue = -2 ** (16 - 1)
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2 ** (16 - 1) - 1
 
 
@@ -874,8 +887,11 @@ class Uint32(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'uint32'
+    #: The minimum valid value for the CIM datatype
     minvalue = 0
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2 ** 32 - 1
 
 
@@ -885,8 +901,11 @@ class Sint32(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'sint32'
+    #: The minimum valid value for the CIM datatype
     minvalue = -2 ** (32 - 1)
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2 ** (32 - 1) - 1
 
 
@@ -896,8 +915,11 @@ class Uint64(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'uint64'
+    #: The minimum valid value for the CIM datatype
     minvalue = 0
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2 ** 64 - 1
 
 
@@ -907,8 +929,11 @@ class Sint64(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+    #: The name of the CIM datatype
     cimtype = 'sint64'
+    #: The minimum valid value for the CIM datatype
     minvalue = -2 ** (64 - 1)
+    #: The maximum valid value for the CIM datatype
     maxvalue = 2 ** (64 - 1) - 1
 
 
@@ -945,6 +970,7 @@ class Real32(CIMFloat):
     class, or to use them as dictionary keys or as members in sets. See
     :class:`~pywbem.CIMFloat` for details.
     """
+    #: The name of the CIM datatype
     cimtype = 'real32'
 
 
@@ -956,6 +982,7 @@ class Real64(CIMFloat):
     class, or to use them as dictionary keys or as members in sets. See
     :class:`~pywbem.CIMFloat` for details.
     """
+    #: The name of the CIM datatype
     cimtype = 'real64'
 
 
