@@ -142,11 +142,10 @@ yaml.SafeDumper.represent_undefined = _represent_undefined
 
 class OpArgs(OpArgsTuple):
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
-
     A named tuple representing the name and input arguments of the invocation
-    of a :class:`~pywbem.WBEMConnection` method, with the following named fields
-    and attributes:
+    of a :class:`~pywbem.WBEMConnection` method.
+
+    **Experimental:** *New in pywbem 0.9 as experimental.*
 
     Attributes:
 
@@ -171,11 +170,10 @@ OpResultTuple = namedtuple("OpResultTuple", ["ret", "exc"])
 
 class OpResult(OpResultTuple):
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
-
     A named tuple representing the result of the invocation of a
-    :class:`~pywbem.WBEMConnection` method, with the following named fields
-    and attributes:
+    :class:`~pywbem.WBEMConnection` method.
+
+    **Experimental:** *New in pywbem 0.9 as experimental.*
 
     Attributes:
 
@@ -207,10 +205,9 @@ HttpRequestTuple = namedtuple("HttpRequestTuple",
 
 class HttpRequest(HttpRequestTuple):
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
+    A named tuple representing the HTTP request sent by the WBEM client.
 
-    A named tuple representing the HTTP request sent by the WBEM client, with
-    the following named fields and attributes:
+    **Experimental:** *New in pywbem 0.9 as experimental.*
 
     Attributes:
 
@@ -234,7 +231,6 @@ class HttpRequest(HttpRequestTuple):
 
       ~HttpRequest.payload (:term:`unicode string`):
         HTTP payload, i.e. the CIM-XML string.
-
     """
     __slots__ = ()
 
@@ -257,10 +253,9 @@ HttpResponseTuple = namedtuple("HttpResponseTuple",
 
 class HttpResponse(HttpResponseTuple):
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
+    A named tuple representing the HTTP response received by the WBEM client.
 
-    A named tuple representing the HTTP response received by the WBEM client,
-    with the following named fields and attributes:
+    **Experimental:** *New in pywbem 0.9 as experimental.*
 
     Attributes:
 
@@ -298,11 +293,11 @@ class HttpResponse(HttpResponseTuple):
 class BaseOperationRecorder(object):
     # pylint: disable=too-many-instance-attributes
     """
-    **Experimental:** *New in pywbem 0.9 as experimental.*
-
     Abstract base class defining the interface to an operation recorder,
     that records the WBEM operations executed in a connection to a WBEM
     server.
+
+    **Experimental:** *New in pywbem 0.9 as experimental.*
 
     An operation recorder can be added to a connection via the
     :meth:`~pywbem.WBEMConnection.add_operation_recorder` method. The operation
@@ -327,38 +322,39 @@ class BaseOperationRecorder(object):
 
     def enable(self):
         """
-        *New in pywbem 0.10.*
-
         Enable the recorder.
+
+        *New in pywbem 0.10.*
         """
         self._enabled = True
 
     def disable(self):
         """
-        *New in pywbem 0.10.*
-
         Disable the recorder.
+
+        *New in pywbem 0.10.*
         """
         self._enabled = False
 
     @property
     def enabled(self):
         """
-        *New in pywbem 0.10.*
-
         Indicate whether the recorder is enabled.
+
+        *New in pywbem 0.10.*
         """
         return self._enabled
 
     @staticmethod
     def open_file(filename, file_mode='w'):
         """
+        A static convenience function that performs the open of the recorder
+        file correctly for different versions of Python.
+
         *New in pywbem 0.10.*
 
-        A static convenience function that performs the open of the recorder
-        file correctly for different versions of Python.  This covers the
-        issue where the file should be opened in text mode but that is
-        done differently in Python 2 and Python 3.
+        This covers the issue where the file should be opened in text mode but
+        that is done differently in Python 2 and Python 3.
 
         The returned file-like object must be closed by the caller.
 
@@ -529,11 +525,11 @@ class BaseOperationRecorder(object):
 
 class LogOperationRecorder(BaseOperationRecorder):
     """
-    **Experimental:** *New in pywbem 0.11 and redesigned in pywbem 0.12 as
-    experimental.*
-
     A recorder that logs certain aspects of the WBEM operations driven by
     pywbem users to Python loggers.
+
+    **Experimental:** *New in pywbem 0.11 and redesigned in pywbem 0.12 as
+    experimental.*
 
     This recorder supports two Python loggers:
 
@@ -865,10 +861,12 @@ class LogOperationRecorder(BaseOperationRecorder):
 
 class TestClientRecorder(BaseOperationRecorder):
     """
+    An operation recorder that generates test cases for each recorded
+    operation.
+
     **Experimental:** *New in pywbem 0.9 as experimental.*
 
-    An operation recorder that generates test cases for each recorded
-    operation. The test cases are in the YAML format suitable for the
+    The test cases are in the YAML format suitable for the
     `test_client` unit test module of the pywbem project.
     """
 

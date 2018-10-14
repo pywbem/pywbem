@@ -59,7 +59,9 @@ class Error(Exception):
     def conn_id(self):
         """
         :term:`connection id`: Connection ID of the connection in whose context
-        the error happened. `None` if the error did not happen in context
+        the error happened.
+
+        `None` if the error did not happen in context
         of any connection, or if the connection context was not known.
         """
         return self._conn_id
@@ -147,7 +149,9 @@ class HTTPError(Error):
     @property
     def status(self):
         """
-        :term:`integer`: HTTP status code (e.g. 500).
+        :term:`integer`: HTTP status code.
+
+        Example: 500
 
         See :term:`RFC2616` for a list of HTTP status codes and reason phrases.
         """
@@ -156,7 +160,9 @@ class HTTPError(Error):
     @property
     def reason(self):
         """
-        :term:`string`: HTTP reason phrase (e.g. "Internal Server Error").
+        :term:`string`: HTTP reason phrase.
+
+        Example: "Internal Server Error"
 
         See :term:`RFC2616` for a list of HTTP status codes and reason phrases.
         """
@@ -166,7 +172,9 @@ class HTTPError(Error):
     def cimerror(self):
         """
         :term:`string`: Value of `CIMError` HTTP header field in response, if
-        present. `None`, otherwise.
+        present.
+
+        `None`, otherwise.
 
         See :term:`DSP0200` for a list of values.
         """
@@ -176,7 +184,9 @@ class HTTPError(Error):
     def cimdetails(self):
         """
         dict: CIMOM-specific details on the situation reported in the `CIMError`
-        header field, with:
+        header field.
+
+        The value is a dictionary with:
 
         * Key: header field name (e.g. `PGErrorDetail`).
         * Value: header field value.
@@ -283,9 +293,11 @@ class CIMError(Error):
     @property
     def status_code(self):
         """
+        :term:`integer`: Numeric CIM status code.
+
         *New in pywbem 0.9.*
 
-        :term:`integer`: Numeric CIM status code (e.g. 5).
+        Example: 5
 
         See :ref:`CIM status codes` for constants defining the numeric CIM
         status code values."""
@@ -294,10 +306,11 @@ class CIMError(Error):
     @property
     def status_code_name(self):
         """
-        *New in pywbem 0.9.*
+        :term:`string`: Symbolic name of the CIM status code.
 
-        :term:`string`: Symbolic name of the CIM status code (e.g.
-        "CIM_ERR_INVALID_CLASS").
+        Example: "CIM_ERR_INVALID_CLASS"
+
+        *New in pywbem 0.9.*
 
         If the CIM status code is invalid, the string
         "Invalid status code <status_code>" is returned."""
@@ -306,11 +319,12 @@ class CIMError(Error):
     @property
     def status_description(self):
         """
+        :term:`string`: CIM status description text returned by the server,
+        representing a human readable message describing the error.
+
         *New in pywbem 0.9.*
 
-        :term:`string`: CIM status description text returned by the server,
-        representing a human readable message describing the error (e.g.
-        "The specified class does not exist.").
+        Example: "The specified class does not exist."
 
         If the server did not return a description, a short default text for
         the CIM status code is returned. If the CIM status code is invalid,
@@ -321,11 +335,13 @@ class CIMError(Error):
     @property
     def instances(self):
         """
+        List of :class:`~pywbem.CIMInstance`: CIM instances returned by the
+        WBEM server in the error response, that provide more details on the
+        error.
+
         *New in pywbem 0.13.*
 
-        List of :class:`~pywbem.CIMInstance`: List of CIM instances returned by
-        the WBEM server in the error response, that provide more details on the
-        error. `None` if there are no such instances.
+        `None` if there are no such instances.
         """
         return self.args[2]
 

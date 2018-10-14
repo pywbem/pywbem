@@ -441,7 +441,7 @@ def cmpdict(dict1, dict2):
 
 def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     """
-    Return a MOF fragment with the qualifier values, including the surrounding
+    Return a MOF string with the qualifier values, including the surrounding
     square brackets. The qualifiers are ordered by their name.
 
     Return empty string if no qualifiers.
@@ -459,7 +459,7 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
 
     Returns:
 
-      :term:`unicode string`: MOF fragment.
+      :term:`unicode string`: MOF string.
     """
 
     if not qualifiers:
@@ -659,7 +659,7 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
     Returns:
 
       tuple of
-        * :term:`unicode string`: MOF fragment.
+        * :term:`unicode string`: MOF string.
         * new line_pos
     """
 
@@ -759,7 +759,7 @@ def mofval(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
     Returns:
 
       tuple of
-        * :term:`unicode string`: MOF fragment.
+        * :term:`unicode string`: MOF string.
         * new line_pos
 
     Raises:
@@ -800,7 +800,7 @@ def _scalar_value_tomof(
         avoid_splits=False):
     # pylint: disable=line-too-long,redefined-builtin
     """
-    Return a MOF fragment representing a scalar CIM-typed value.
+    Return a MOF string representing a scalar CIM-typed value.
 
     `None` is returned as 'NULL'.
 
@@ -831,7 +831,7 @@ def _scalar_value_tomof(
     Returns:
 
       tuple of
-        * :term:`unicode string`: MOF fragment.
+        * :term:`unicode string`: MOF string.
         * new line_pos
     """  # noqa: E501
 
@@ -879,7 +879,7 @@ def _value_tomof(
         avoid_splits=False):
     # pylint: disable=redefined-builtin
     """
-    Return a MOF fragment representing a CIM-typed value (scalar or array).
+    Return a MOF string representing a CIM-typed value (scalar or array).
 
     In case of an array, the array items are separated by comma, but the
     surrounding curly braces are not added.
@@ -905,7 +905,7 @@ def _value_tomof(
     Returns:
 
       tuple of
-        * :term:`unicode string`: MOF fragment.
+        * :term:`unicode string`: MOF string.
         * new line_pos
     """
 
@@ -1189,8 +1189,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Name of the creation class of the referenced
-        instance.
+        :term:`unicode string`: Class name of this CIM instance path,
+        identifying the creation class of the referenced instance.
 
         Will not be `None`.
 
@@ -1214,8 +1214,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @property
     def keybindings(self):
         """
-        `NocaseDict`_: Keybindings of the instance path (that is, the key
-        property values of the referenced instance).
+        `NocaseDict`_: Keybindings of this CIM instance path,
+        identifying the key properties of the referenced instance.
 
         Will not be `None`.
 
@@ -1303,8 +1303,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     @property
     def namespace(self):
         """
-        :term:`unicode string`: Name of the CIM namespace containing the
-        referenced instance.
+        :term:`unicode string`: Namespace name of this CIM instance path,
+        identifying the namespace of the referenced instance.
 
         `None` means that the namespace is unspecified.
 
@@ -1327,8 +1327,9 @@ class CIMInstanceName(_CIMComparisonMixin):
     @property
     def host(self):
         """
-        :term:`unicode string`: Host and optionally port of the WBEM server
-        containing the CIM namespace of the referenced instance.
+        :term:`unicode string`: Host and optionally port
+        of this CIM instance path,
+        identifying the WBEM server of the referenced instance.
 
         For details about the string format, see the same-named constructor
         parameter.
@@ -1391,8 +1392,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a WBEM URI string of the CIM instance path represented by the
-        :class:`~pywbem.CIMInstanceName` object.
+        Return the WBEM URI string of this CIM instance path.
 
         The returned WBEM URI string is in the historical format returned by
         :meth:`~pywbem.CIMInstanceName.to_wbem_uri`.
@@ -1419,9 +1419,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the
-        :class:`~pywbem.CIMInstanceName` object that is suitable for
-        debugging.
+        Return a string representation of this CIM instance path,
+        that is suitable for debugging.
 
         The key bindings will be ordered by their names in the result.
         """
@@ -1454,7 +1453,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMInstanceName` object.
+        Return a new :class:`~pywbem.CIMInstanceName` object that is a copy
+        of this CIM instance path.
 
         This is a middle-deep copy; any mutable types in attributes except the
         following are copied, so besides these exceptions, modifications of the
@@ -1478,31 +1478,69 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def update(self, *args, **kwargs):
         """
-        Add the positional arguments and keyword arguments to the keybindings,
-        updating the values of those that already exist.
+        Update the keybindings of this CIM instance path.
+
+        Existing keybindings will be updated, and new keybindings will be
+        added.
+
+        Parameters:
+
+           *args (list):
+             Keybindings for updating the keybindings of the instance path,
+             specified as positional arguments. Each positional argument must
+             be a tuple (key, value), where key and value are described for
+             setting the :attr:`~pywbem.CIMInstanceName.keybindings` property.
+
+           **kwargs (dict):
+             Keybindings for updating the keybindings of the instance path,
+             specified as keyword arguments. The name and value of the keyword
+             arguments are described as key and value for setting the
+             :attr:`~pywbem.CIMInstanceName.keybindings` property.
         """
         self.keybindings.update(*args, **kwargs)
 
     def has_key(self, key):
         """
-        Return a boolean indicating whether the instance path has a
-        keybinding with name `key`.
+        Return a boolean indicating whether this CIM instance path has a
+        particular keybinding.
+
+        Parameters:
+
+          key (:term:`string`):
+            Name of the keybinding (in any lexical case).
+
+        Returns:
+          :class:`py:bool`: Boolean indicating whether this CIM instance path
+          has the keybinding.
         """
         return key in self.keybindings
 
     def get(self, key, default=None):
         """
+        Return the value of a particular keybinding of this CIM instance path,
+        or a default value.
+
         *New in pywbem 0.8.*
 
-        Return the value of the keybinding with name `key`, or a default
-        value if a keybinding with that name does not exist.
+        Parameters:
+
+          key (:term:`string`):
+            Name of the keybinding (in any lexical case).
+
+          default (:term:`CIM data type`):
+            Default value that is returned if a keybinding with the specified
+            name does not exist in the instance path.
+
+        Returns:
+          :term:`CIM data type`: Value of the keybinding, or the default value.
         """
         return self.keybindings.get(key, default)
 
     def keys(self):
         """
-        Return a copied list of the keybinding names (in their original
-        lexical case).
+        Return a copied list of the keybinding names of this CIM instance path.
+
+        The keybinding names have their original lexical case.
 
         The order of keybindings is preserved.
         """
@@ -1510,7 +1548,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def values(self):
         """
-        Return a copied list of the keybinding values.
+        Return a copied list of the keybinding values
+        of this CIM instance path.
 
         The order of keybindings is preserved.
         """
@@ -1518,8 +1557,11 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def items(self):
         """
-        Return a copied list of the keybindings, where each item is a tuple
-        of its keybinding name (in the original lexical case) and its value.
+        Return a copied list of the keybinding names and values
+        of this CIM instance path.
+
+        Each item in the returned list is a tuple of keybinding name (in the
+        original lexical case) and keybinding value.
 
         The order of keybindings is preserved.
         """
@@ -1527,7 +1569,9 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def iterkeys(self):
         """
-        Iterate through the keybinding names (in their original lexical case).
+        Iterate through the keybinding names of this CIM instance path.
+
+        The keybinding names have their original lexical case.
 
         The order of keybindings is preserved.
         """
@@ -1535,7 +1579,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def itervalues(self):
         """
-        Iterate through the keybinding values.
+        Iterate through the keybinding values of this CIM instance path.
 
         The order of keybindings is preserved.
         """
@@ -1543,9 +1587,11 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def iteritems(self):
         """
-        Iterate through the keybindings, where each item is a tuple of the
-        keybinding name (in the original lexical case) and the keybinding
-        value.
+        Iterate through the keybinding names and values
+        of this CIM instance path.
+
+        Each iteration item is a tuple of the keybinding name (in the original
+        lexical case) and the keybinding value.
 
         The order of keybindings is preserved.
         """
@@ -1554,17 +1600,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     # pylint: disable=too-many-branches
     def tocimxml(self, ignore_host=False, ignore_namespace=False):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMInstanceName` object,
-        as an instance of an appropriate subclass of :term:`Element`.
-
-        Parameters:
-
-          ignore_host (:class:`py:bool`): Ignore the host of the
-            instance path, even if a host is specified.
-
-          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
-            the instance path, even if a namespace and/or host is specified.
+        Return the CIM-XML representation of this CIM instance path,
+        as an object of an appropriate subclass of :term:`Element`.
 
         If the instance path has no namespace specified or if
         `ignore_namespace` is `True`, the returned CIM-XML representation is an
@@ -1579,6 +1616,19 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The order of keybindings in the returned CIM-XML representation is
         preserved from the :class:`~pywbem.CIMInstanceName` object.
+
+        Parameters:
+
+          ignore_host (:class:`py:bool`): Ignore the host of the
+            instance path, even if a host is specified.
+
+          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+            the instance path, even if a namespace and/or host is specified.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         kbs = []
@@ -1640,10 +1690,10 @@ class CIMInstanceName(_CIMComparisonMixin):
     def tocimxmlstr(self, indent=None, ignore_host=False,
                     ignore_namespace=False):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM instance path,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMInstanceName` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMInstanceName.tocimxml`.
@@ -1815,10 +1865,10 @@ class CIMInstanceName(_CIMComparisonMixin):
     def from_wbem_uri(wbem_uri):
         # pylint: disable=line-too-long
         """
-        *New in pywbem 0.12.*
-
         Return a new :class:`~pywbem.CIMInstanceName` object from the specified
         WBEM URI string.
+
+        *New in pywbem 0.12.*
 
         The WBEM URI string must be a CIM instance path in untyped WBEM URI
         format, as defined in :term:`DSP0207`, with these extensions:
@@ -1950,8 +2000,7 @@ class CIMInstanceName(_CIMComparisonMixin):
     def to_wbem_uri(self, format='standard'):
         # pylint: disable=redefined-builtin
         """
-        Return the untyped WBEM URI of the CIM instance path represented
-        by the :class:`~pywbem.CIMInstanceName` object.
+        Return the (untyped) WBEM URI string of this CIM instance path.
 
         The returned WBEM URI contains its components as follows:
 
@@ -2157,9 +2206,9 @@ class CIMInstanceName(_CIMComparisonMixin):
     def from_instance(class_, instance, namespace=None, host=None,
                       strict=False):
         """
-        Given a class and corresponding instance, create and return a
-        :class:`~pywbem.CIMInstanceName` from the class key properties and
-        instance key property values.
+        Return a new :class:`~pywbem.CIMInstanceName` object from the key
+        property values in a CIM instance and the key property definitions in a
+        CIM class.
 
         If the `strict` parameter is `False`, and a property value does not
         exist in the `instance` that entry is not included in the constructed
@@ -2291,8 +2340,14 @@ class CIMInstance(_CIMComparisonMixin):
             will also be `None`.
 
           property_list (:term:`py:iterable` of :term:`string`):
-            List of property names for use as a filter by some operations on
-            the instance. The property names may have any lexical case.
+            **Deprecated:** List of property names for use as a filter by some
+            operations on the instance.
+
+            This parameter has been deprecated in pywbem 0.12.
+            Set only the desired properties on the object, instead of
+            working with this property filter.
+
+            The property names may have any lexical case.
 
             A copy of the provided iterable will be stored in the
             :class:`~pywbem.CIMInstance` object, and the property names will be
@@ -2301,10 +2356,6 @@ class CIMInstance(_CIMComparisonMixin):
             `None` means that the properties are not filtered, and the
             same-named attribute in the :class:`~pywbem.CIMInstance` object
             will also be `None`.
-
-            **Deprecated:** This parameter has been deprecated in pywbem 0.12.
-            Set only the desired properties on the object, instead of
-            working with this property filter.
 
         Raises:
 
@@ -2325,7 +2376,8 @@ class CIMInstance(_CIMComparisonMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Name of the creation class of the instance.
+        :term:`unicode string`: Name of the creation class
+        of this CIM instance.
 
         Will not be `None`.
 
@@ -2349,7 +2401,7 @@ class CIMInstance(_CIMComparisonMixin):
     @property
     def properties(self):
         """
-        `NocaseDict`_: Properties of the CIM instance.
+        `NocaseDict`_: Properties of this CIM instance.
 
         Will not be `None`.
 
@@ -2427,7 +2479,7 @@ class CIMInstance(_CIMComparisonMixin):
     @property
     def qualifiers(self):
         """
-        `NocaseDict`_: Qualifiers of the CIM instance.
+        `NocaseDict`_: Qualifiers (qualifier values) of this CIM instance.
 
         Will not be `None`.
 
@@ -2481,7 +2533,7 @@ class CIMInstance(_CIMComparisonMixin):
     @property
     def path(self):
         """
-        :class:`~pywbem.CIMInstanceName`: Instance path of the instance.
+        :class:`~pywbem.CIMInstanceName`: Instance path of this CIM instance.
 
         `None` means that the instance path is unspecified.
 
@@ -2507,18 +2559,20 @@ class CIMInstance(_CIMComparisonMixin):
     @property
     def property_list(self):
         """
-        :term:`py:list` of :term:`unicode string`: List of property names for
-        use as a filter by some operations on the instance. The property names
-        are in lower case.
+        :term:`py:list` of :term:`unicode string`: **Deprecated:** List of
+        property names for use as a filter by some operations on
+        this CIM instance.
+
+        This attribute has been deprecated in pywbem 0.12.
+        Set only the desired properties on the object, instead of working with
+        this property filter.
+
+        The property names are specified in lower case.
 
         `None` means that the properties are not filtered.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
-
-        **Deprecated:** This attribute has been deprecated in pywbem 0.12.
-        Set only the desired properties on the object, instead of working with
-        this property filter.
         """
         return self._property_list
 
@@ -2586,8 +2640,8 @@ class CIMInstance(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMInstance` object for human consumption.
+        Return a short string representation of this CIM instance,
+        for human consumption.
         """
         return _format(
             "CIMInstance("
@@ -2597,8 +2651,8 @@ class CIMInstance(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMInstance`
-        object that is suitable for debugging.
+        Return a string representation of this CIM instance,
+        that is suitable for debugging.
 
         The properties and qualifiers will be ordered by their names in the
         result.
@@ -2650,7 +2704,8 @@ class CIMInstance(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMInstance` object.
+        Return a new :class:`~pywbem.CIMInstance` object that is a copy
+        of this CIM instance.
 
         This is a middle-deep copy; any mutable types in attributes except the
         following are copied, so besides these exceptions, modifications of the
@@ -2685,8 +2740,23 @@ class CIMInstance(_CIMComparisonMixin):
 
     def update(self, *args, **kwargs):
         """
-        Add the positional arguments and keyword arguments to the properties,
-        updating the values of those that already exist.
+        Update the properties of this CIM instance.
+
+        Existing properties will be updated, and new properties will be added.
+
+        Parameters:
+
+           *args (list):
+             Properties for updating the properties of the instance, specified
+             as positional arguments. Each positional argument must be a tuple
+             (key, value), where key and value are described for setting the
+             :attr:`~pywbem.CIMInstance.properties` property.
+
+           **kwargs (dict):
+             Properties for updating the properties of the instance, specified
+             as keyword arguments. The name and value of the keyword arguments
+             are described as key and value for setting the
+             :attr:`~pywbem.CIMInstance.properties` property.
         """
 
         for mapping in args:
@@ -2701,8 +2771,24 @@ class CIMInstance(_CIMComparisonMixin):
 
     def update_existing(self, *args, **kwargs):
         """
-        Update the values of already existing properties from the positional
-        arguments and keyword arguments.
+        Update already existing properties of this CIM instance.
+
+        Existing properties will be updated, and new properties will be
+        ignored without further notice.
+
+        Parameters:
+
+           *args (list):
+             Properties for updating the properties of the instance, specified
+             as positional arguments. Each positional argument must be a tuple
+             (key, value), where key and value are described for setting the
+             :attr:`~pywbem.CIMInstance.properties` property.
+
+           **kwargs (dict):
+             Properties for updating the properties of the instance, specified
+             as keyword arguments. The name and value of the keyword arguments
+             are described as key and value for setting the
+             :attr:`~pywbem.CIMInstance.properties` property.
         """
 
         for mapping in args:
@@ -2729,25 +2815,47 @@ class CIMInstance(_CIMComparisonMixin):
 
     def has_key(self, key):
         """
-        Return a boolean indicating whether the instance has a property with
-        name `key`.
+        Return a boolean indicating whether this CIM instance has a particular
+        property.
+
+        Parameters:
+
+          key (:term:`string`):
+            Name of the property (in any lexical case).
+
+        Returns:
+          :class:`py:bool`: Boolean indicating whether the instance has the
+          property.
         """
         return key in self.properties
 
     def get(self, key, default=None):
         """
+        Return the value of a particular property of this CIM instance,
+        or a default value.
+
         *New in pywbem 0.8.*
 
-        Return the value of the property with name `key`, or a default value if
-        a property with that name does not exist.
+        Parameters:
+
+          key (:term:`string`):
+            Name of the property (in any lexical case).
+
+          default (:term:`CIM data type`):
+            Default value that is returned if a property with the specified
+            name does not exist in the instance.
+
+        Returns:
+          :term:`CIM data type`: Value of the property, or the default value.
         """
         prop = self.properties.get(key, None)
         return default if prop is None else prop.value
 
     def keys(self):
         """
-        Return a copied list of the property names (in their original lexical
-        case).
+        Return a copied list of the property names of this CIM instance.
+
+        The property names have their original lexical case.
 
         The order of properties is preserved.
         """
@@ -2755,7 +2863,7 @@ class CIMInstance(_CIMComparisonMixin):
 
     def values(self):
         """
-        Return a copied list of the property values.
+        Return a copied list of the property values of this CIM instance.
 
         The order of properties is preserved.
         """
@@ -2763,9 +2871,11 @@ class CIMInstance(_CIMComparisonMixin):
 
     def items(self):
         """
-        Return a copied list of the properties, where each item is a tuple
-        of the property name (in the original lexical case) and the property
-        value.
+        Return a copied list of the property names and values
+        of this CIM instance.
+
+        Each item in the returned list is a tuple of property name (in the
+        original lexical case) and property value.
 
         The order of properties is preserved.
         """
@@ -2773,8 +2883,9 @@ class CIMInstance(_CIMComparisonMixin):
 
     def iterkeys(self):
         """
-        Iterate through the property names (in their original lexical
-        case).
+        Iterate through the property names of this CIM instance.
+
+        The property names have their original lexical case.
 
         The order of properties is preserved.
         """
@@ -2782,7 +2893,7 @@ class CIMInstance(_CIMComparisonMixin):
 
     def itervalues(self):
         """
-        Iterate through the property values.
+        Iterate through the property values of this CIM instance.
 
         The order of properties is preserved.
         """
@@ -2791,7 +2902,10 @@ class CIMInstance(_CIMComparisonMixin):
 
     def iteritems(self):
         """
-        Iterate through the property names (in their original lexical case).
+        Iterate through the property names and values of this CIM instance.
+
+        Each iteration item is a tuple of the property name (in the original
+        lexical case) and the property value.
 
         The order of properties is preserved.
         """
@@ -2800,14 +2914,8 @@ class CIMInstance(_CIMComparisonMixin):
 
     def tocimxml(self, ignore_path=False):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMInstance` object,
-        as an instance of an appropriate subclass of :term:`Element`.
-
-        Parameters:
-
-          ignore_path (:class:`py:bool`): Ignore the path of the instance, even
-            if a path is specified.
+        Return the CIM-XML representation of this CIM instance,
+        as an object of an appropriate subclass of :term:`Element`.
 
         If the instance has no instance path specified or if `ignore_path` is
         `True`, the returned CIM-XML representation is an `INSTANCE` element
@@ -2828,6 +2936,16 @@ class CIMInstance(_CIMComparisonMixin):
         The order of properties and qualifiers in the returned CIM-XML
         representation is preserved from the :class:`~pywbem.CIMInstance`
         object.
+
+        Parameters:
+
+          ignore_path (:class:`py:bool`): Ignore the path of the instance, even
+            if a path is specified.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         # The items in the self.properties dictionary are required to be
@@ -2872,10 +2990,10 @@ class CIMInstance(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None, ignore_path=False):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM instance,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMInstance` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMInstance.tocimxml`.
@@ -2904,8 +3022,7 @@ class CIMInstance(_CIMComparisonMixin):
 
     def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
-        Return a MOF string with the instance specification represented by
-        the :class:`~pywbem.CIMInstance` object.
+        Return a MOF string with the specification of this CIM instance.
 
         The returned MOF string conforms to the ``instanceDeclaration``
         ABNF rule defined in :term:`DSP0004`, with the following limitations:
@@ -2961,16 +3078,14 @@ class CIMInstance(_CIMComparisonMixin):
                    include_missing_properties=True,
                    include_path=True, include_class_origin=False):
         """
-        Create a new CIMInstance from the input CIMClass using the
-        property_values parameter to complete properties and the other
-        parameters to filter properties, validate the properties, and
-        optionally set the path component of the CIMInstance.
-        No CIMProperty qualifiers are included in the created instance and the
-        `class_origin` attribute is transfered from the class only if the
-        `include_class_origin` parameter is `True`.
+        Return a new :class:`~pywbem.CIMInstance` object from specified key
+        property values and from the key property definitions in a class.
+
+        The properties in the returned instance do not have any qualifiers.
 
         Parameters:
-          klass (:class:`pywbem:CIMClass`)
+
+          klass (:class:`~pywbem.CIMClass`):
             CIMClass from which the instance will be constructed.  This class
             must include qualifiers and should include properties from any
             superclasses in the model insure it includes all properties that
@@ -3004,7 +3119,7 @@ class CIMInstance(_CIMComparisonMixin):
             If `False` only properties in the `property_values` parameter are
             included in the new instance.
 
-         include_class_origin  (:class:`py:bool`):
+         include_class_origin (:class:`py:bool`):
             Determines if class origin information from the class is included
             in the returned instance.
 
@@ -3174,7 +3289,8 @@ class CIMClassName(_CIMComparisonMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Class name of the referenced class.
+        :term:`unicode string`: Class name of this CIM class path,
+        identifying the referenced class.
 
         Will not be `None`.
 
@@ -3203,8 +3319,8 @@ class CIMClassName(_CIMComparisonMixin):
     @property
     def namespace(self):
         """
-        :term:`unicode string`: Name of the CIM namespace containing the
-        referenced class.
+        :term:`unicode string`: Namespace name of this CIM class path,
+        identifying the namespace of the referenced class.
 
         `None` means that the namespace is unspecified.
 
@@ -3227,8 +3343,9 @@ class CIMClassName(_CIMComparisonMixin):
     @property
     def host(self):
         """
-        :term:`unicode string`: Host and optionally port of the WBEM server
-        containing the CIM namespace of the referenced class.
+        :term:`unicode string`: Host and optionally port
+        of this CIM class path,
+        identifying the WBEM server of the referenced class.
 
         For details about the string format, see the same-named constructor
         parameter.
@@ -3248,7 +3365,8 @@ class CIMClassName(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy the :class:`~pywbem.CIMClassName` object.
+        Return a new :class:`~pywbem.CIMClassName` object that is a copy
+        of this CIM class path.
 
         Objects of this class have no mutable types in any attributes, so
         modifications of the original object will not affect the returned copy,
@@ -3302,8 +3420,7 @@ class CIMClassName(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a WBEM URI string of the CIM class path represented by the
-        :class:`~pywbem.CIMClassName` object.
+        Return a WBEM URI string of this CIM class path.
 
         The returned WBEM URI string is in the historical format returned by
         :meth:`~pywbem.CIMClassName.to_wbem_uri`.
@@ -3335,8 +3452,8 @@ class CIMClassName(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMClassName`
-        object that is suitable for debugging.
+        Return a string representation of this CIM class path,
+        that is suitable for debugging.
         """
         return _format(
             "CIMClassName("
@@ -3347,17 +3464,8 @@ class CIMClassName(_CIMComparisonMixin):
 
     def tocimxml(self, ignore_host=False, ignore_namespace=False):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMClassName` object,
-        as an instance of an appropriate subclass of :term:`Element`.
-
-        Parameters:
-
-          ignore_host (:class:`py:bool`): Ignore the host of the
-            class path, even if a host is specified.
-
-          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
-            the class path, even if a namespace and/or host is specified.
+        Return the CIM-XML representation of this CIM class path,
+        as an object of an appropriate subclass of :term:`Element`.
 
         If the class path has no namespace specified or if
         `ignore_namespace` is `True`, the returned CIM-XML representation is a
@@ -3369,6 +3477,19 @@ class CIMClassName(_CIMComparisonMixin):
 
         Otherwise, the returned CIM-XML representation is a
         `CLASSPATH` element consistent with :term:`DSP0201`.
+
+        Parameters:
+
+          ignore_host (:class:`py:bool`): Ignore the host of the
+            class path, even if a host is specified.
+
+          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+            the class path, even if a namespace and/or host is specified.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         classname_xml = cim_xml.CLASSNAME(self.classname)
@@ -3390,10 +3511,10 @@ class CIMClassName(_CIMComparisonMixin):
     def tocimxmlstr(self, indent=None, ignore_host=False,
                     ignore_namespace=False):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM class path,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMClassName` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMClassName.tocimxml`.
@@ -3426,10 +3547,10 @@ class CIMClassName(_CIMComparisonMixin):
     @staticmethod
     def from_wbem_uri(wbem_uri):
         """
-        *New in pywbem 0.12.*
-
         Return a new :class:`~pywbem.CIMClassName` object from the specified
         WBEM URI string.
+
+        *New in pywbem 0.12.*
 
         The WBEM URI string must be a CIM class path in untyped WBEM URI
         format, as defined in :term:`DSP0207`, with these extensions:
@@ -3509,8 +3630,7 @@ class CIMClassName(_CIMComparisonMixin):
     def to_wbem_uri(self, format='standard'):
         # pylint: disable=redefined-builtin
         """
-        Return the untyped WBEM URI of the CIM class path represented by the
-        :class:`~pywbem.CIMClassName` object.
+        Return the (untyped) WBEM URI string of this CIM class path.
 
         The returned WBEM URI contains its components as follows:
 
@@ -3687,9 +3807,9 @@ class CIMClass(_CIMComparisonMixin):
             The qualifiers for the class.
 
           path (:class:`~pywbem.CIMClassName`):
-            *New in pywbem 0.11.*
-
             Class path for the class.
+
+            *New in pywbem 0.11.*
 
             The provided object will be copied before being stored in the
             :class:`~pywbem.CIMClass` object.
@@ -3721,7 +3841,7 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Class name of the CIM class.
+        :term:`unicode string`: Class name of this CIM class.
 
         Will not be `None`.
 
@@ -3750,7 +3870,7 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def superclass(self):
         """
-        :term:`unicode string`: Class name of the superclass of the CIM class.
+        :term:`unicode string`: Class name of the superclass of this CIM class.
 
         `None` means that the class is a top-level class.
 
@@ -3768,7 +3888,7 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def properties(self):
         """
-        `NocaseDict`_: Properties (declarations) of the CIM class.
+        `NocaseDict`_: Properties (declarations) of this CIM class.
 
         Will not be `None`.
 
@@ -3827,7 +3947,7 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def methods(self):
         """
-        `NocaseDict`_: Methods (declarations) of the CIM class.
+        `NocaseDict`_: Methods (declarations) of this CIM class.
 
         Will not be `None`.
 
@@ -3886,7 +4006,7 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def qualifiers(self):
         """
-        `NocaseDict`_: Qualifiers (qualifier values) of the CIM class.
+        `NocaseDict`_: Qualifiers (qualifier values) of this CIM class.
 
         Will not be `None`.
 
@@ -3946,9 +4066,9 @@ class CIMClass(_CIMComparisonMixin):
     @property
     def path(self):
         """
-        *New in pywbem 0.11.*
+        :class:`~pywbem.CIMClassName`: Class path of this CIM class.
 
-        :class:`~pywbem.CIMClassName`: Class path of the CIM class.
+        *New in pywbem 0.11.*
 
         `None` means that the class path is unspecified.
 
@@ -4026,8 +4146,8 @@ class CIMClass(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMClass` object for human consumption.
+        Return a short string representation of this CIM class,
+        for human consumption.
         """
         return _format(
             "CIMClass("
@@ -4036,8 +4156,8 @@ class CIMClass(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMClass`
-        object that is suitable for debugging.
+        Return a string representation of this CIM class,
+        that is suitable for debugging.
 
         The order of properties, method and qualifiers will be preserved in
         the result.
@@ -4054,7 +4174,8 @@ class CIMClass(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMClass` object.
+        Return a new :class:`~pywbem.CIMClass` object that is a copy
+        of this CIM class.
 
         This is a middle-deep copy; any mutable types in attributes except the
         following are copied, so besides these exceptions, modifications of the
@@ -4086,9 +4207,8 @@ class CIMClass(_CIMComparisonMixin):
 
     def tocimxml(self):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMClass` object,
-        as an instance of an appropriate subclass of :term:`Element`.
+        Return the CIM-XML representation of this CIM class,
+        as an object of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is a `CLASS` element
         consistent with :term:`DSP0201`. This is the required element for
@@ -4099,6 +4219,11 @@ class CIMClass(_CIMComparisonMixin):
         The order of properties, methods, parameters, and qualifiers in the
         returned CIM-XML representation is preserved from the
         :class:`~pywbem.CIMClass` object.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
         return cim_xml.CLASS(
             self.classname,
@@ -4109,10 +4234,10 @@ class CIMClass(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM class,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMClass` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMClass.tocimxml`.
@@ -4138,8 +4263,7 @@ class CIMClass(_CIMComparisonMixin):
 
     def tomof(self, maxline=MAX_MOF_LINE):
         """
-        Return a MOF string with the class definition represented by the
-        :class:`~pywbem.CIMClass` object.
+        Return a MOF string with the declaration of this CIM class.
 
         The returned MOF string conforms to the ``classDeclaration``
         ABNF rule defined in :term:`DSP0004`.
@@ -4247,9 +4371,11 @@ class CIMProperty(_CIMComparisonMixin):
             hash value calculation are performed case-insensitively.
 
           value (:term:`CIM data type` or other suitable types):
-            Value of the property (interpreted as actual value when
-            representing a property value, and as default value for property
-            declarations).
+            Value of the property.
+
+            The property value is interpreted as an actual property value when
+            the CIM property is used in a CIM instance, and as default value
+            when the CIM property is used in a CIM class.
 
             `None` means that the property is Null, and the same-named
             attribute in the :class:`~pywbem.CIMProperty` object will also be
@@ -4289,10 +4415,9 @@ class CIMProperty(_CIMComparisonMixin):
             will also be `None`.
 
           propagated (:class:`py:bool`):
-            If not `None`, indicates whether the property declaration has been
-            propagated from a superclass to this class, or the property value
-            has been propagated from the creation class to this instance (the
-            latter is not really used).
+            If not `None`, specifies whether the property declaration has been
+            propagated from a superclass, or the property value has been
+            propagated from the creation class.
 
             `None` means that propagation information is not available, and
             the same-named attribute in the :class:`~pywbem.CIMProperty` object
@@ -4302,21 +4427,16 @@ class CIMProperty(_CIMComparisonMixin):
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
 
-            `None` means that it is unspecified whether the property is an
-            array, and the same-named attribute in the
-            :class:`~pywbem.CIMProperty` object will be inferred from the
-            `value` parameter. If the `value` parameter is `None`, a scalar is
-            assumed.
+            If `None`, the same-named attribute in this object will be inferred
+            from the `value` parameter. If the `value` parameter is `None`, a
+            scalar is assumed.
 
           reference_class (:term:`string`):
             For reference properties, the name of the class referenced by the
-            property, as declared in the class defining the property (for both,
-            property declarations in CIM classes, and property values in CIM
-            instances).
+            property, or `None` indicating that the referenced class is
+            unspecified.
 
-            `None` means that the referenced class is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMProperty` object
-            will also be `None`.
+            For non-reference properties, must be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -4428,7 +4548,7 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of the property.
+        :term:`unicode string`: Name of this CIM property.
 
         Will not be `None`.
 
@@ -4452,9 +4572,11 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def value(self):
         """
-        :term:`CIM data type`: Value of the property (interpreted as actual
-        value when representing a property value, and as default value for
-        property declarations).
+        :term:`CIM data type`: Value of this CIM property.
+
+        The property value is interpreted as an actual property value when this
+        CIM property is used in a CIM instance, and as default value when this
+        CIM property is used in a CIM class.
 
         `None` means that the value is Null.
 
@@ -4472,8 +4594,9 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of the property
-        (e.g. ``"uint8"``).
+        :term:`unicode string`: Name of the CIM data type of this CIM property.
+
+        Example: ``"uint8"``
 
         Will not be `None`.
 
@@ -4501,15 +4624,11 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def reference_class(self):
         """
-        :term:`unicode string`:
+        :term:`unicode string`: The name of the class referenced by this CIM
+        reference property.
 
-        For reference properties, the name of the class referenced by the
-        property, as declared in the class defining the property (for both,
-        property declarations in CIM classes, and property values in CIM
-        instances).
-        `None` means that the referenced class is unspecified.
-
-        For non-reference properties, will be `None`.
+        Will be `None` for non-reference properties or if the referenced class
+        is unspecified in reference properties.
 
         Note that in CIM instances returned from a WBEM server, :term:`DSP0201`
         recommends this attribute not to be set. For CIM classes returned from
@@ -4530,7 +4649,9 @@ class CIMProperty(_CIMComparisonMixin):
     def embedded_object(self):
         """
         :term:`unicode string`: A string value indicating the kind of embedded
-        object represented by the property value.
+        object represented by this CIM property value.
+
+        Has no meaning for CIM property declarations.
 
         The following values are defined for this parameter:
 
@@ -4562,8 +4683,8 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def is_array(self):
         """
-        :class:`py:bool`: A boolean indicating whether the property is an array
-        (`True`) or a scalar (`False`).
+        :class:`py:bool`: Boolean indicating that this CIM property
+        is an array (as opposed to a scalar).
 
         Will not be `None`.
 
@@ -4581,10 +4702,10 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def array_size(self):
         """
-        :term:`integer`: The size of the array property, for fixed-size arrays.
+        :term:`integer`: The size of the fixed-size array of this CIM property.
 
-        `None` means that the array property has variable size, or that it is
-        not an array.
+        `None` means that the array has variable size, or that the
+        property is a scalar.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -4600,9 +4721,9 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def class_origin(self):
         """
-        :term:`unicode string`: The CIM class origin of the property (the name
-        of the most derived class that defines or overrides the property in
-        the class hierarchy of the class owning the property).
+        :term:`unicode string`: The class origin of this CIM property,
+        identifying the most derived class that defines or overrides the
+        property in the class hierarchy of the class owning the property.
 
         `None` means that class origin information is not available.
 
@@ -4620,10 +4741,9 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def propagated(self):
         """
-        :class:`py:bool`: If not `None`, indicates whether the property
-        declaration has been propagated from a superclass to this class, or the
-        property value has been propagated from the creation class to this
-        instance (the latter is not really used).
+        :class:`py:bool`: Boolean indicating that the property declaration
+        has been propagated from a superclass, or that the property value has
+        been propagated from the creation class.
 
         `None` means that propagation information is not available.
 
@@ -4641,7 +4761,7 @@ class CIMProperty(_CIMComparisonMixin):
     @property
     def qualifiers(self):
         """
-        `NocaseDict`_: Qualifiers (qualifier values) of the property
+        `NocaseDict`_: Qualifiers (qualifier values) of this CIM property
         declaration.
 
         Will not be `None`.
@@ -4701,7 +4821,8 @@ class CIMProperty(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMProperty` object.
+        Return a new :class:`~pywbem.CIMProperty` object that is a copy
+        of this CIM property.
 
         This is a middle-deep copy; any mutable types in attributes except the
         following are copied, so besides these exceptions, modifications of the
@@ -4730,8 +4851,8 @@ class CIMProperty(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMProperty` object for human consumption.
+        Return a short string representation of this CIM property,
+        for human consumption.
         """
         return _format(
             "CIMProperty("
@@ -4745,8 +4866,8 @@ class CIMProperty(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMProperty`
-        object that is suitable for debugging.
+        Return a string representation of this CIM property,
+        that is suitable for debugging.
 
         The order of qualifiers will be preserved in the result.
         """
@@ -4766,9 +4887,8 @@ class CIMProperty(_CIMComparisonMixin):
 
     def tocimxml(self):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMProperty` object,
-        as an instance of an appropriate subclass of :term:`Element`.
+        Return the CIM-XML representation of this CIM property,
+        as an object of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is a `PROPERTY`,
         `PROPERTY.REFERENCE`, or `PROPERTY.ARRAY` element dependent on the
@@ -4777,6 +4897,11 @@ class CIMProperty(_CIMComparisonMixin):
 
         The order of qualifiers in the returned CIM-XML representation is
         preserved from the :class:`~pywbem.CIMProperty` object.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         qualifiers = [q.tocimxml() for q in self.qualifiers.values()]
@@ -4848,10 +4973,10 @@ class CIMProperty(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM property,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMProperty` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMProperty.tocimxml`.
@@ -4878,11 +5003,11 @@ class CIMProperty(_CIMComparisonMixin):
     def tomof(
             self, is_instance=True, indent=0, maxline=MAX_MOF_LINE, line_pos=0):
         """
-        *New in pywbem 0.9.*
+        Return a MOF string with the declaration of this CIM property for use
+        in a CIM class, or the specification of this CIM property for use in a
+        CIM instance.
 
-        Return a MOF fragment with the property definition (for use in a CIM
-        class) or property value (for use in a CIM instance) represented by the
-        :class:`~pywbem.CIMProperty` object.
+        *New in pywbem 0.9.*
 
         Even though pywbem supports qualifiers on :class:`~pywbem.CIMProperty`
         objects that are used as property values within an instance, the
@@ -4902,7 +5027,7 @@ class CIMProperty(_CIMComparisonMixin):
 
         Returns:
 
-          :term:`unicode string`: MOF fragment.
+          :term:`unicode string`: MOF string.
         """
 
         mof = []
@@ -5059,17 +5184,17 @@ class CIMMethod(_CIMComparisonMixin):
         Parameters:
 
           name (:term:`string`):
-            Name of the method (just the method name, without class name
-            or parenthesis).
+            **Deprecated:** Name of this CIM method (just the method name,
+            without class name or parenthesis).
+
+            This argument has been named `methodname` before pywbem 0.9.
+            Using `methodname` as a named argument still works, but has been
+            deprecated in pywbem 0.9.
 
             Must not be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
-
-            Deprecated: This argument has been named `methodname` before
-            pywbem 0.9. Using `methodname` as a named argument still works,
-            but has been deprecated in pywbem 0.9.
 
           return_type (:term:`string`):
             Name of the CIM data type of the method return type
@@ -5113,8 +5238,8 @@ class CIMMethod(_CIMComparisonMixin):
             hash value calculation are performed case-insensitively.
 
           propagated (:class:`py:bool`):
-            If not `None`, indicates whether the method has been propagated
-            from a superclass to this class.
+            If not `None`, specifies whether the method has been
+            propagated from a superclass.
 
             `None` means that propagation information is not available, and the
             same-named attribute in the :class:`~pywbem.CIMMethod` object will
@@ -5148,7 +5273,7 @@ class CIMMethod(_CIMComparisonMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of the method.
+        :term:`unicode string`: Name of this CIM method.
 
         Will not be `None`.
 
@@ -5172,8 +5297,10 @@ class CIMMethod(_CIMComparisonMixin):
     @property
     def return_type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of the method return
-        type (e.g. ``"uint32"``).
+        :term:`unicode string`: Name of the CIM data type of the return type of
+        this CIM method.
+
+        Example: ``"uint32"``
 
         Will not be `None` or ``"reference"``.
 
@@ -5202,9 +5329,9 @@ class CIMMethod(_CIMComparisonMixin):
     @property
     def class_origin(self):
         """
-        :term:`unicode string`: The CIM class origin of the method (the name
-        of the most derived class that defines or overrides the method in
-        the class hierarchy of the class owning the method).
+        :term:`unicode string`: The class origin of this CIM method,
+        identifying the most derived class that defines or overrides the
+        method in the class hierarchy of the class owning the method.
 
         `None` means that class origin information is not available.
 
@@ -5222,8 +5349,8 @@ class CIMMethod(_CIMComparisonMixin):
     @property
     def propagated(self):
         """
-        :class:`py:bool`: If not `None`, indicates whether the method has been
-        propagated from a superclass to this class.
+        :class:`py:bool`: Boolean indicating that this CIM method has been
+        propagated from a superclass.
 
         `None` means that propagation information is not available.
 
@@ -5241,7 +5368,7 @@ class CIMMethod(_CIMComparisonMixin):
     @property
     def parameters(self):
         """
-        `NocaseDict`_: Parameters of the method.
+        `NocaseDict`_: Parameters of this CIM method.
 
         Will not be `None`.
 
@@ -5298,7 +5425,7 @@ class CIMMethod(_CIMComparisonMixin):
     @property
     def qualifiers(self):
         """
-        `NocaseDict`_: Qualifiers (qualifier values) of the method.
+        `NocaseDict`_: Qualifiers (qualifier values) of this CIM method.
 
         Will not be `None`.
 
@@ -5402,8 +5529,8 @@ class CIMMethod(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMMethod` object for human consumption.
+        Return a short string representation of this CIM method,
+        for human consumption.
         """
         return _format(
             "CIMMethod("
@@ -5413,8 +5540,8 @@ class CIMMethod(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMMethod`
-        object that is suitable for debugging.
+        Return a string representation of this CIM method,
+        that is suitable for debugging.
 
         The order of parameters and qualifiers will be preserved in the
         result.
@@ -5431,7 +5558,8 @@ class CIMMethod(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMMethod` object.
+        Return a new :class:`~pywbem.CIMMethod` object that is a copy
+        of this CIM method.
 
         This is a middle-deep copy; any mutable types in attributes except the
         following are copied, so besides these exceptions, modifications of the
@@ -5460,15 +5588,19 @@ class CIMMethod(_CIMComparisonMixin):
 
     def tocimxml(self):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMMethod` object,
-        as an instance of an appropriate subclass of :term:`Element`.
+        Return the CIM-XML representation of this CIM method,
+        as an object of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is a `METHOD` element consistent
         with :term:`DSP0201`.
 
         The order of parameters and qualifiers in the returned CIM-XML
         representation is preserved from the :class:`~pywbem.CIMMethod` object.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
         return cim_xml.METHOD(
             self.name,
@@ -5480,10 +5612,10 @@ class CIMMethod(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM method,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMMethod` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMMethod.tocimxml`.
@@ -5509,8 +5641,8 @@ class CIMMethod(_CIMComparisonMixin):
 
     def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
-        Return a MOF fragment with the method definition represented by the
-        :class:`~pywbem.CIMMethod` object.
+        Return a MOF string with the declaration of this CIM method for use in
+        a CIM class declaration.
 
         The order of parameters and qualifiers is preserved.
 
@@ -5521,7 +5653,7 @@ class CIMMethod(_CIMComparisonMixin):
 
         Returns:
 
-          :term:`unicode string`: MOF fragment.
+          :term:`unicode string`: MOF string.
         """
 
         mof = []
@@ -5593,7 +5725,7 @@ class CIMParameter(_CIMComparisonMixin):
         Parameters:
 
           name (:term:`string`):
-            Name of the parameter.
+            Name of this CIM parameter.
 
             Must not be `None`.
 
@@ -5601,7 +5733,9 @@ class CIMParameter(_CIMComparisonMixin):
             hash value calculation are performed case-insensitively.
 
           type (:term:`string`):
-            Name of the CIM data type of the parameter (e.g. ``"uint8"``).
+            Name of the CIM data type of this CIM parameter.
+
+            Example: ``"uint8"``
 
             Must not be `None`.
 
@@ -5610,11 +5744,10 @@ class CIMParameter(_CIMComparisonMixin):
 
           reference_class (:term:`string`):
             For reference parameters, the name of the class referenced by the
-            parameter, as declared in the class defining the method.
+            parameter, or `None` indicating that the referenced class is
+            unspecified.
 
-            `None` means that the referenced class is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMParameter` object
-            will also be `None`.
+            For non-reference parameters, must be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -5623,11 +5756,9 @@ class CIMParameter(_CIMComparisonMixin):
             A boolean indicating whether the parameter is an array (`True`) or a
             scalar (`False`).
 
-            `None` means that it is unspecified whether the parameter is an
-            array, and the same-named attribute in the
-            :class:`~pywbem.CIMParameter` object will be inferred from the
-            `value` parameter. If the `value` parameter is `None`, a scalar is
-            assumed.
+            If `None`, the same-named attribute in this object will be inferred
+            from the `value` parameter. If the `value` parameter is `None`, a
+            scalar is assumed.
 
           array_size (:term:`integer`):
             The size of the array parameter, for fixed-size arrays.
@@ -5688,7 +5819,7 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of the parameter.
+        :term:`unicode string`: Name of this CIM parameter.
 
         Will not be `None`.
 
@@ -5712,8 +5843,10 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of the parameter
-        (e.g. ``"uint8"``).
+        :term:`unicode string`: Name of the CIM data type of this CIM
+        parameter.
+
+        Example: ``"uint8"``
 
         Will not be `None`.
 
@@ -5741,13 +5874,11 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def reference_class(self):
         """
-        :term:`unicode string`:
+        :term:`unicode string`: The name of the class referenced by this CIM
+        reference parameter.
 
-        For reference parameters, the name of the class referenced by the
-        parameter, as declared in the class defining the parameter.
-        `None` means that the referenced class is unspecified.
-
-        For non-reference parameters, will be `None`.
+        Will be `None` for non-reference parameters or if the referenced class
+        is unspecified in reference parameters.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -5763,10 +5894,10 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def is_array(self):
         """
-        :class:`py:bool`: A boolean indicating whether the parameter is an array
-        (`True`) or a scalar (`False`).
+        :class:`py:bool`: Boolean indicating that this CIM parameter
+        is an array (as opposed to a scalar).
 
-        `None` means that it is unspecified whether the parameter is an array.
+        Will not be `None`.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -5782,11 +5913,11 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def array_size(self):
         """
-        :term:`integer`: The size of the array parameter, for fixed-size
-        arrays.
+        :term:`integer`: The size of the fixed-size array of this CIM
+        parameter.
 
-        `None` means that the array parameter has variable size, or that it is
-        not an array.
+        `None` means that the array has variable size, or that the
+        parameter is a scalar.
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -5802,7 +5933,7 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def qualifiers(self):
         """
-        `NocaseDict`_: Qualifiers (qualifier values) of the parameter.
+        `NocaseDict`_: Qualifiers (qualifier values) of this CIM parameter.
 
         Will not be `None`.
 
@@ -5862,7 +5993,8 @@ class CIMParameter(_CIMComparisonMixin):
     @property
     def value(self):
         """
-        The value of the CIM method parameter for the method invocation.
+        The value of this CIM parameter for the method invocation.
+
         Has no meaning for parameter declarations.
 
         This attribute is settable. For details, see the description of the
@@ -5880,8 +6012,9 @@ class CIMParameter(_CIMComparisonMixin):
     def embedded_object(self):
         """
         :term:`unicode string`: A string value indicating the kind of embedded
-        object represented by the parameter value.
-        Has no meaning for parameter declarations.
+        object represented by this CIM parameter value.
+
+        Has no meaning for CIM parameter declarations.
 
         The following values are defined for this parameter:
 
@@ -5968,8 +6101,8 @@ class CIMParameter(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMParameter` object for human consumption.
+        Return a short string representation of this CIM parameter,
+        for human consumption.
         """
         return _format(
             "CIMParameter("
@@ -5981,8 +6114,8 @@ class CIMParameter(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMParameter`
-        object that is suitable for debugging.
+        Return a string representation of this CIM parameter,
+        that is suitable for debugging.
 
         The order of qualifiers will be preserved in the result.
         """
@@ -6000,7 +6133,8 @@ class CIMParameter(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMParameter` object.
+        Return a new :class:`~pywbem.CIMParameter` object that is a copy
+        of this CIM parameter.
 
         This is a middle-deep copy; any mutable types in attributes except the
         following are copied, so besides these exceptions, modifications of the
@@ -6028,9 +6162,12 @@ class CIMParameter(_CIMComparisonMixin):
 
     def tocimxml(self, as_value=False):
         """
-        Return the CIM-XML representation of the :class:`~pywbem.CIMParameter`
-        object, either as a parameter declaration for use in a method
-        declaration, or as a parameter value for use in a method invocation.
+        Return the CIM-XML representation of this CIM parameter,
+        as an object of an appropriate subclass of :term:`Element`.
+
+        The returned CIM-XML representation can be created
+        either as a parameter declaration for use in a method declaration,
+        or as a parameter value for use in a method invocation.
 
         If a parameter value is to be returned, the returned CIM-XML
         representation is a `PARAMVALUE` element with child elements dependent
@@ -6052,8 +6189,8 @@ class CIMParameter(_CIMComparisonMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as an appropriate
-            subclass of :term:`Element`.
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         if as_value:
@@ -6149,11 +6286,14 @@ class CIMParameter(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None, as_value=False):
         """
+        Return the CIM-XML representation of this CIM parameter,
+        as a :term:`unicode string`.
+
         *New in pywbem 0.9.*
 
-        Return the CIM-XML representation of the :class:`~pywbem.CIMParameter`
-        object, either as a parameter declaration for use in a method
-        declaration, or as a parameter value for use in a method invocation.
+        The returned CIM-XML representation can be created
+        either as a parameter declaration for use in a method declaration,
+        or as a parameter value for use in a method invocation.
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMParameter.tocimxml`.
@@ -6182,8 +6322,8 @@ class CIMParameter(_CIMComparisonMixin):
 
     def tomof(self, indent=0, maxline=MAX_MOF_LINE):
         """
-        Return a MOF fragment with the parameter definition represented by the
-        :class:`~pywbem.CIMParameter` object.
+        Return a MOF string with the declaration of this CIM parameter for use
+        in a CIM method declaration.
 
         The object is always interpreted as a parameter declaration; so the
         :attr:`~pywbem.CIMParameter.value` and
@@ -6198,7 +6338,7 @@ class CIMParameter(_CIMComparisonMixin):
 
         Returns:
 
-          :term:`unicode string`: MOF fragment.
+          :term:`unicode string`: MOF string.
         """
 
         mof = []
@@ -6313,7 +6453,7 @@ class CIMQualifier(_CIMComparisonMixin):
 
           propagated (:class:`py:bool`):
             If not `None`, specifies whether the qualifier value has been
-            propagated from a superclass to this class.
+            propagated from a superclass.
 
             `None` means that this information is not available, and the
             same-named attribute in the :class:`~pywbem.CIMQualifier` object
@@ -6396,7 +6536,7 @@ class CIMQualifier(_CIMComparisonMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of the qualifier.
+        :term:`unicode string`: Name of this CIM qualifier.
 
         Will not be `None`.
 
@@ -6420,8 +6560,10 @@ class CIMQualifier(_CIMComparisonMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of the qualifier
-        (e.g. ``"uint8"``).
+        :term:`unicode string`: Name of the CIM data type of this CIM
+        qualifier.
+
+        Example: ``"uint8"``
 
         Will not be `None`.
 
@@ -6449,7 +6591,7 @@ class CIMQualifier(_CIMComparisonMixin):
     @property
     def value(self):
         """
-        :term:`CIM data type`: Value of the qualifier.
+        :term:`CIM data type`: Value of this CIM qualifier.
 
         `None` means that the value is Null.
 
@@ -6471,8 +6613,8 @@ class CIMQualifier(_CIMComparisonMixin):
     @property
     def propagated(self):
         """
-        :class:`py:bool`: Indicates whether the qualifier value has been
-        propagated from a superclass to this class.
+        :class:`py:bool`: Boolean indicating that the qualifier value has been
+        propagated from a superclass.
 
         `None` means that propagation information is not available.
 
@@ -6638,8 +6780,8 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMQualifier` object for human consumption.
+        Return a short string representation of this CIM qualifier,
+        for human consumption.
         """
         return _format(
             "CIMQualifier("
@@ -6650,8 +6792,8 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the :class:`~pywbem.CIMQualifier`
-        object that is suitable for debugging.
+        Return a string representation of this CIM qualifier,
+        that is suitable for debugging.
         """
         return _format(
             "CIMQualifier("
@@ -6667,7 +6809,8 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy of the :class:`~pywbem.CIMQualifier` object.
+        Return a new :class:`~pywbem.CIMQualifier` object that is a copy
+        of this CIM qualifier.
 
         Objects of this class have no mutable types in any attributes, so
         modifications of the original object will not affect the returned copy,
@@ -6689,12 +6832,16 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def tocimxml(self):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMQualifier` object,
-        as an instance of an appropriate subclass of :term:`Element`.
+        Return the CIM-XML representation of this CIM qualifier,
+        as an object of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is a `QUALIFIER` element consistent
         with :term:`DSP0201`.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         if self.value is None:
@@ -6726,10 +6873,10 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM qualifier,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMQualifier` object, as a :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMQualifier.tocimxml`.
@@ -6755,8 +6902,8 @@ class CIMQualifier(_CIMComparisonMixin):
 
     def tomof(self, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0):
         """
-        Return a MOF fragment with the qualifier value represented by the
-        :class:`~pywbem.CIMQualifier` object.
+        Return a MOF string with the specification of this CIM qualifier
+        as a qualifier value.
 
         The items of array values are tried to keep on the same line. If the
         generated line would exceed the maximum MOF line length, the value is
@@ -6775,7 +6922,7 @@ class CIMQualifier(_CIMComparisonMixin):
 
         Returns:
 
-          :term:`unicode string`: MOF fragment.
+          :term:`unicode string`: MOF string.
         """
 
         mof = []
@@ -6858,9 +7005,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     """
 
     # Order of scopes when externalizing the qualifier declaration
-    ordered_scopes = ["CLASS", "ASSOCIATION", "INDICATION",
-                      "PROPERTY", "REFERENCE", "METHOD", "PARAMETER",
-                      "ANY"]
+    _ordered_scopes = ["CLASS", "ASSOCIATION", "INDICATION",
+                       "PROPERTY", "REFERENCE", "METHOD", "PARAMETER",
+                       "ANY"]
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, value=None, is_array=False,
@@ -6902,9 +7049,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             A boolean indicating whether the qualifier is an array (`True`) or
             a scalar (`False`).
 
-            `None` means that it is unspecified whether the qualifier is an
-            array, and the same-named attribute in the
-            :class:`~pywbem.CIMQualifierDeclaration` object will be inferred
+            If `None`, the same-named attribute in this object will be inferred
             from the `value` parameter. If the `value` parameter is `None`, a
             scalar is assumed.
 
@@ -7000,7 +7145,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of the qualifier.
+        :term:`unicode string`: Name of this CIM qualifier type.
 
         Will not be `None`.
 
@@ -7025,8 +7170,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of the qualifier
-        (e.g. ``"uint8"``).
+        :term:`unicode string`: Name of the CIM data type of this CIM
+        qualifier type.
+
+        Example: ``"uint8"``.
 
         Will not be `None`.
 
@@ -7054,7 +7201,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def value(self):
         """
-        :term:`CIM data type`: Default value of the qualifier.
+        :term:`CIM data type`: Default value of this CIM qualifier type.
 
         `None` means that the value is Null.
 
@@ -7076,8 +7223,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def is_array(self):
         """
-        :class:`py:bool`: A boolean indicating whether the qualifier is an
-        array (`True`) or a scalar (`False`).
+        :class:`py:bool`: Boolean indicating that this CIM qualifier type
+        is an array (as opposed to a scalar).
 
         Will not be `None`.
 
@@ -7095,11 +7242,11 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def array_size(self):
         """
-        :term:`integer`: The size of the array qualifier, for fixed-size
-        arrays.
+        :term:`integer`: The size of the fixed-size array of this CIM qualifier
+        type.
 
-        `None` means that the array qualifier has variable size, or that it is
-        not an array.
+        `None` means that the array has variable size (or that the
+        qualifier type is not an array).
 
         This attribute is settable. For details, see the description of the
         same-named constructor parameter.
@@ -7115,7 +7262,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     @property
     def scopes(self):
         """
-        `NocaseDict`_: Scopes of the qualifier.
+        `NocaseDict`_: Scopes of this CIM qualifier type.
 
         Each dictionary item specifies one scope value, with:
 
@@ -7289,9 +7436,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def __str__(self):
         """
-        Return a short string representation of the
-        :class:`~pywbem.CIMQualifierDeclaration` object for human
-        consumption.
+        Return a short string representation of this CIM qualifier type,
+        for human consumption.
         """
         return _format(
             "CIMQualifierDeclaration("
@@ -7303,9 +7449,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def __repr__(self):
         """
-        Return a string representation of the
-        :class:`~pywbem.CIMQualifierDeclaration` object that is suitable for
-        debugging.
+        Return a string representation of this CIM qualifier type,
+        that is suitable for debugging.
 
         The scopes will be ordered by their names in the result.
         """
@@ -7325,7 +7470,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def copy(self):
         """
-        Return a copy the :class:`~pywbem.CIMQualifierDeclaration` object.
+        Return a new :class:`~pywbem.CIMQualifierDeclaration` object
+        that is a copy of this CIM qualifier type.
 
         Objects of this class have no mutable types in any attributes, so
         modifications of the original object will not affect the returned copy,
@@ -7349,12 +7495,16 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def tocimxml(self):
         """
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMQualifierDeclaration` object,
-        as an instance of an appropriate subclass of :term:`Element`.
+        Return the CIM-XML representation of this CIM qualifier type,
+        as an object of an appropriate subclass of :term:`Element`.
 
         The returned CIM-XML representation is a `QUALIFIER.DECLARATION`
         element consistent with :term:`DSP0201`.
+
+        Returns:
+
+          The CIM-XML representation, as an object of an appropriate subclass
+          of :term:`Element`.
         """
 
         if self.value is None:
@@ -7388,11 +7538,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def tocimxmlstr(self, indent=None):
         """
-        *New in pywbem 0.9.*
+        Return the CIM-XML representation of this CIM qualifier type,
+        as a :term:`unicode string`.
 
-        Return the CIM-XML representation of the
-        :class:`~pywbem.CIMQualifierDeclaration` object, as a
-        :term:`unicode string`.
+        *New in pywbem 0.9.*
 
         For the returned CIM-XML representation, see
         :meth:`~pywbem.CIMQualifierDeclaration.tocimxml`.
@@ -7418,8 +7567,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     def tomof(self, maxline=MAX_MOF_LINE):
         """
-        Return a MOF string with the qualifier type declaration represented by
-        the :class:`~pywbem.CIMQualifierDeclaration` object.
+        Return a MOF string with the declaration of this CIM qualifier type.
 
         The returned MOF string conforms to the ``qualifierDeclaration``
         ABNF rule defined in :term:`DSP0004`.
@@ -7471,7 +7619,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         mof.append(_indent_str(MOF_INDENT + 1))
         mof.append(u'Scope(')
         mof_scopes = []
-        for scope in self.ordered_scopes:
+        for scope in self._ordered_scopes:
             if self.scopes.get(scope, False):
                 mof_scopes.append(scope.lower())
         mof.append(u', '.join(mof_scopes))
@@ -7508,22 +7656,22 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 def tocimxml(value):
     # pylint: disable=line-too-long
     """
-    Return the CIM-XML representation of the input value, as an
-    :term:`Element` object.
+    Return the CIM-XML representation of the input object,
+    as an object of an appropriate subclass of :term:`Element`.
 
     The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
     Parameters:
 
       value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime.datetime`, or tuple/list thereof):
-        The input value.
+        The input object.
 
         Specifying `None` has been deprecated in pywbem 0.12.
 
     Returns:
 
-      The CIM-XML representation of the specified value, as an object of an
-      appropriate subclass of :term:`Element`.
+      The CIM-XML representation, as an object of an appropriate subclass of
+      :term:`Element`.
     """  # noqa: E501
 
     if isinstance(value, (tuple, list)):
@@ -7552,10 +7700,10 @@ def tocimxml(value):
 
 def tocimxmlstr(value, indent=None):
     """
-    *New in pywbem 0.9.*
-
     Return the CIM-XML representation of the CIM object or CIM data type,
     as a :term:`unicode string`.
+
+    *New in pywbem 0.9.*
 
     The returned CIM-XML representation is consistent with :term:`DSP0201`.
 
@@ -7603,9 +7751,10 @@ def tocimxmlstr(value, indent=None):
 # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
 def tocimobj(type_, value):
     """
-    Return a CIM object representing the specified value and type.
+    **Deprecated:** Return a CIM object representing the specified value and
+    type.
 
-    **Deprecated:** This function has been deprecated in pywbem 0.13. Use
+    This function has been deprecated in pywbem 0.13. Use
     :func:`~pywbem.cimvalue` instead.
 
     Parameters:
@@ -7807,10 +7956,10 @@ def tocimobj(type_, value):
 def cimvalue(value, type):
     # pylint: disable=redefined-builtin
     """
-    *New in pywbem 0.12.*
-
     Return a :term:`CIM data type` representing the specified value in the
     specified CIM type.
+
+    *New in pywbem 0.12.*
 
     This function guarantees that the returned object is a valid
     :term:`CIM data type`. If the input parameters are not sufficient to
@@ -8077,10 +8226,10 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
 
 def byname(nlist):
     """
-    Convert a list of named objects into an ordered dictionary indexed by name.
+    **Deprecated:** Convert a list of named objects into an ordered dictionary
+    indexed by name.
 
-    Deprecated: This function is internal and has been deprecated in pywbem
-    0.12.
+    This function is internal and has been deprecated in pywbem 0.12.
     """
     warnings.warn("The internal byname() function has been deprecated, with "
                   "no replacement.", DeprecationWarning,

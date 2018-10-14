@@ -140,10 +140,10 @@ def _uprint(dest, text):
 def method_callback_interface(conn, objectname, methodname, **params):
     # pylint: disable=unused-argument, invalid-name, line-too-long
     """
-    **Experimental:** *New in pywbem 0.12 as experimental.*
-
     Interface for user-provided callback functions for CIM method invocation
     on a faked connection.
+
+    **Experimental:** *New in pywbem 0.12 as experimental.*
 
     Parameters:
 
@@ -233,11 +233,11 @@ def _pretty_xml(xml_string):
 
 class FakedWBEMConnection(WBEMConnection):
     """
-    **Experimental:** *New in pywbem 0.12 as experimental.*
-
     A subclass of :class:`pywbem.WBEMConnection` that mocks the communication
     with a WBEM server by utilizing a local in-memory *mock repository* to
     generate responses in the same way the WBEM server would.
+
+    **Experimental:** *New in pywbem 0.12 as experimental.*
 
     For a description of the operation methods on this class, see
     :ref:`Faked WBEM operations`.

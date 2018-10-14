@@ -564,12 +564,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             and should be avoided!
 
           timeout (:term:`number`):
+            Timeout in seconds, for requests sent to the server.
+
             *New in pywbem 0.8.*
 
-            Timeout in seconds, for requests sent to the server. If the server
-            did not respond within the timeout duration, the socket for the
-            connection will be closed, causing a :exc:`~pywbem.TimeoutError` to
-            be raised.
+            If the server did not respond within the timeout duration, the
+            socket for the connection will be closed, causing a
+            :exc:`~pywbem.TimeoutError` to be raised.
 
             A value of `None` means that the connection uses the standard
             timeout behavior of Python sockets, which can be between several
@@ -584,9 +585,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             exception.
 
           use_pull_operations (:class:`py:bool`):
-            *New in pywbem 0.11 as experimental and finalized in 0.13.*
-
             Controls the use of pull operations in any `Iter...()` methods.
+
+            *New in pywbem 0.11 as experimental and finalized in 0.13.*
 
             `None` means that the `Iter...()` methods will attempt a pull
             operation first, and if the WBEM server does not support it, will
@@ -605,13 +606,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             traditional operations.
 
           stats_enabled (:class:`py:bool`):
+            Initial enablement status for maintaining statistics about the
+            WBEM operations executed via this connection.
+
             *New in pywbem 0.11 as experimental, renamed from `enable_stats`
             and finalized in 0.12.*
 
-            Initial enablement status for maintaining statistics about the
-            WBEM operations executed via this connection. See the
-
-            :ref:`WBEM operation statistics` section for details.
+            See the :ref:`WBEM operation statistics` section for details.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -775,7 +776,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def verify_callback(self):
         """
-        :term:`callable`: A callback function that will be called to verify the
+        :term:`callable`: Callback function that will be called to verify the
         X.509 server certificate returned by the WBEM server during the
         TLS/SSL handshake, in addition to the validation already performed
         by the TLS/SSL support.
@@ -827,8 +828,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def no_verification(self):
         """
-        :class:`py:bool`: Indicates that verifications are disabled for this
-        connection.
+        :class:`py:bool`: Boolean indicating that verifications are disabled
+        for this connection.
 
         For details, see the description of the same-named constructor
         parameter of :class:`~pywbem.WBEMConnection`.
@@ -852,9 +853,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def timeout(self):
         """
-        *New in pywbem 0.8.*
-
         :term:`number`: Timeout in seconds, for requests sent to the server.
+
+        *New in pywbem 0.8.*
 
         For details, see the description of the same-named constructor
         parameter of :class:`~pywbem.WBEMConnection`.
@@ -878,27 +879,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorders(self):
         """
-        **Experimental** *New in pywbem 0.12 as experimental.*
-
         Tuple of :class:`BaseOperationRecorder` subclass objects:
-          The operation recorders of this connection.
+          **Experimental:** The operation recorders of this connection.
+
+        *New in pywbem 0.12 as experimental.*
         """
         return tuple(self._operation_recorders)
 
     @property
     def operation_recorder(self):
         """
-        **Experimental** *New in pywbem 0.9 as experimental.*
+        :class:`BaseOperationRecorder`: **Deprecated:** The operation recorder
+        that was last added to the connection, or `None` if the connection does
+        not currently have any recorders.
 
-        :class:`BaseOperationRecorder`: The operation recorder that was last
-        added to the connection, or `None` if the connection does not currently
-        have any recorders.
+        *New in pywbem 0.9 as experimental. Deprecated since pywbem 0.12.*
 
-        **Deprecated:** Deprecated since pywbem 0.12.
-        The method :meth:`~pywbem.WBEMConnection.add_operation_recorder` should
-        be used to add a recorder, and the
+        Instead of using this deprecated property, the
         :attr:`~pywbem.WBEMConnection.operation_recorders` property should be
-        used to retrieve the recorders of the connection.
+        used to retrieve the recorders of the connection, and the
+        :meth:`~pywbem.WBEMConnection.add_operation_recorder` method should be
+        used to add a recorder.
 
         This property is settable; setting this property will cause the
         specified operation recorder to be added to the connection as if
@@ -932,10 +933,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def host(self):
         """
-        *New in pywbem 0.11.*
-
         :term:`unicode string`: The ``{host}[:{port}]`` component of the
         WBEM server's URL, as specified in the ``url`` attribute.
+
+        *New in pywbem 0.11.*
         """
         host = self.url.split('://')[-1]
         return host
@@ -943,10 +944,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def operation_recorder_enabled(self):
         """
-        **Experimental** *New in pywbem 0.11 as experimental*
+        :class:`py:bool`: **Experimental:** Enablement status for all operation
+        recorders of the connection.
 
-        :class:`py:bool`: Enablement status for all operation recorders of the
-        connection.
+        *New in pywbem 0.11 as experimental*
 
         This is a writeable property; setting this property will change the
         operation recorder enablement status accordingly for all operation
@@ -973,9 +974,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def stats_enabled(self):
         """
-        *New in pywbem 0.11 as experimental and finalized in 0.12.*
-
         :class:`py:bool`: Statistics enablement status for this connection.
+
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
         This is a writeable property; setting this property will change the
         statistics enablement status accordingly.
@@ -997,9 +998,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def statistics(self):
         """
-        *New in pywbem 0.11 as experimental and finalized in 0.12.*
-
         :class:`~pywbem.Statistics`: Statistics for this connection.
+
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
         Statistics are disabled by default and can be enabled via the
         ``stats_enabled`` argument when creating a connection object, or
@@ -1012,10 +1013,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def last_operation_time(self):
         """
-        *New in pywbem 0.11 as experimental and finalized in 0.12.*
-
         :class:`py:float`: Elapsed time of the last operation that was executed
         via this connection in seconds or `None`.
+
+        *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
         This time is available only subsequent to the execution of an operation
         on this connection, and if the statistics are enabled on this
@@ -1026,12 +1027,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def last_server_response_time(self):
         """
+        :class:`py:float`: Server-measured response time of the last request,
+        or `None`.
+
         *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
-        :class:`py:float`: Server measured response time of the last
-        request. This is optionally returned from the server in HTTP
-        header
-
+        This time is optionally returned from the server in the HTTP header of
+        the response.
         This time is available only subsequent to the execution of an operation
         on this connection if the WBEMServerResponseTime is received from the
         WBEM server. Otherwise, the value is `None`.
@@ -1041,10 +1043,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def use_pull_operations(self):
         """
-        *New in pywbem 0.11 as experimental and finalized in 0.13.*
+        :class:`py:bool`: Boolean indicating that the client should attempt
+        the use of pull operations in any `Iter...()` methods.
 
-        :class:`py:bool`: Indicates whether the client should attempt the use
-        of pull operations in any `Iter...()` methods.
+        *New in pywbem 0.11 as experimental and finalized in 0.13.*
 
         This property reflects the intent of the user as specified in the
         same-named constructor parameter. This property is not updated with
@@ -1057,19 +1059,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def debug(self):
         """
-        :class:`py:bool`: A boolean indicating whether saving of the last
-        request and last reply to the WBEMConnection object is enabled (`True`)
-        or disabled (`False`).
+        :class:`py:bool`: Boolean indicating that saving the last request and
+        last response is enabled for this connection.
 
-        When enabled, the last request and last reply will be available in the
-        following properties of this class:
+        When enabled (value `True`), the last request and last reply will be
+        available in the following properties of this class:
 
         * :attr:`~pywbem.WBEMConnection.last_request`
         * :attr:`~pywbem.WBEMConnection.last_raw_request`
         * :attr:`~pywbem.WBEMConnection.last_reply`
         * :attr:`~pywbem.WBEMConnection.last_raw_reply`
 
-        When disabled, these properties will be `None`.
+        When disabled (value `False`), these properties will be `None`.
 
         This attribute is writeable. The initial value of this attribute is
         `False`.
@@ -1169,11 +1170,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def conn_id(self):
         """
         :term:`connection id`:
-        String that is unique for each :class:`~pywbem.WBEMConnection` object.
-        The `conn_id` is created when the :class:`~pywbem.WBEMConnection` object
-        is created and remains constant throughout the life of that connection.
+        Connection ID (a unique ID) of this connection.
 
-        `conn_id` is part of each log entry output to uniquely identify
+        The value for this property is created when the
+        :class:`~pywbem.WBEMConnection` object is created and remains constant
+        throughout the life of that object.
+
+        The connection ID is part of each log entry output to uniquely identify
         the :class:`~pywbem.WBEMConnection` object responsible for that log.
         It also part of the logger name for the "pywbem.api" and "pywbem.http"
         loggers that create log entries so that logging can be defined
@@ -1348,8 +1351,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def _configure_detail_level(cls, detail_level):
         """
-        Validate the detail_level parameter and return it.  This accepts
-        a string or integer
+        Validate the `detail_level` parameter and return it.
+
+        This accepts a string or integer for `detail_level`.
         """
         # process detail_level
         if isinstance(detail_level, six.string_types):
@@ -1375,8 +1379,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def _configure_logger_handler(cls, log_dest, log_filename):
         """
-        Return a logging handler for the specified log_dest,
-        or None if log_dest is None.
+        Return a logging handler for the specified `log_dest`, or `None` if
+        `log_dest` is `None`.
         """
 
         if log_dest is None:
@@ -1489,9 +1493,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def add_operation_recorder(self, operation_recorder):
         # pylint: disable=line-too-long
         """
-        Add an operation recorder to this connection. If the connection already
-        has a recorder with the same class, the request to add the recorder is
-        ignored.
+        **Experimental:** Add an operation recorder to this connection.
+
+        *New in pywbem 0.12 as experimental.*
+
+        If the connection already has a recorder with the same class, the
+        request to add the recorder is ignored.
 
         Parameters:
 
@@ -1520,30 +1527,40 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def operation_recorder_reset(self, pull_op=False):
         """
-        This is a low-level method that is used by the operation-specific
-        methods of this class to reset the operation processing state of all
-        recorders of this connection, to be ready for processing a new
-        operation call.
+        **Experimental:** Low-level method used by the operation-specific
+        methods of this class.
+
+        *New in pywbem 0.9 as experimental.*
+
+        It resets the operation processing state of all recorders of this
+        connection, to be ready for processing a new operation call.
         """
         for recorder in self._operation_recorders:
             recorder.reset(pull_op)
 
     def operation_recorder_stage_pywbem_args(self, method, **kwargs):
         """
-        This is a low-level method that is used by the operation-specific
-        methods of this class to forward the operation method name and
-        arguments to all recorders of this connection.
+        **Experimental:** Low-level method used by the operation-specific
+        methods of this class.
+
+        *New in pywbem 0.9 as experimental.*
+
+        It forwards the operation method name and arguments to all recorders of
+        this connection.
         """
         for recorder in self._operation_recorders:
             recorder.stage_pywbem_args(method, **kwargs)
 
     def operation_recorder_stage_result(self, ret, exc):
         """
-        This is a low-level method that is used by the operation-specific
-        methods of this class to forward the operation results including
-        exceptions that were raised, to all recorders of this connection,
-        and to cause the forwarded information to be recorded by all
-        recorders of this connection.
+        **Experimental:** Low-level method used by the operation-specific
+        methods of this class.
+
+        *New in pywbem 0.9 as experimental.*
+
+        It forwards the operation results including exceptions that were
+        raised, to all recorders of this connection, and causes the forwarded
+        information to be recorded by all recorders of this connection.
         """
         for recorder in self._operation_recorders:
             recorder.stage_pywbem_result(ret, exc)
@@ -1553,7 +1570,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def _reset_logging_config(cls):
         """
         Reset the activation of logging and the log detail levels for future
-        WBEM connections, by resetting the corresponding class variables
+        WBEM connections.
+
+        This method resets the corresponding class variables
         of :class:`~pywbem.WBEMConnection`.
         """
         cls._activate_logging = False
@@ -1562,12 +1581,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def imethodcall(self, methodname, namespace, response_params_rqd=False,
                     **params):
         """
-        This is a low-level method that is used by the operation-specific
-        methods of this class
-        (e.g. :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`).
+        **Deprecated:** Low-level method used by the operation-specific methods
+        of this class.
 
-        Deprecated: Calling this function directly has been deprecated and
-        will issue a :term:`DeprecationWarning`.
+        *Deprecated since pywbem 0.12.*
+
+        Calling this function directly has been deprecated and will issue a
+        :term:`DeprecationWarning`.
         Users should call the operation-specific methods (e.g. GetInstance)
         instead of this method.
         This method will be removed in the next pywbem release after 0.12.
@@ -1794,11 +1814,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def methodcall(self, methodname, localobject, Params=None, **params):
         """
-        This is a low-level method that is used by the
+        **Deprecated:** Low-level method used by the
         :meth:`~pywbem.WBEMConnection.InvokeMethod` method of this class.
 
-        Deprecated: Calling this function directly has been deprecated and
-        will issue a :term:`DeprecationWarning`.
+        *Deprecated since pywbem 0.12.*
+
+        Calling this function directly has been deprecated and will issue a
+        :term:`DeprecationWarning`.
         Users should call :meth:`~pywbem.WBEMConnection.InvokeMethod` instead
         of this method.
         This method will be removed in the next pywbem release after 0.12.
@@ -2060,11 +2082,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _iparam_namespace_from_namespace(self, obj):
         # pylint: disable=invalid-name,
-        """Determine the namespace from a namespace string, or `None`. The
+        """
+        Determine the namespace from a namespace string, or `None`. The
         default namespace of the connection object is used, if needed.
 
         Return the so determined namespace for use as an argument to
-        imethodcall()."""
+        imethodcall().
+        """
 
         if isinstance(obj, six.string_types):
             namespace = obj.strip('/')
@@ -2080,12 +2104,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _iparam_namespace_from_objectname(self, obj):
         # pylint: disable=invalid-name,
-        """Determine the namespace from an object name, that can be a class
+        """
+        Determine the namespace from an object name, that can be a class
         name string, a CIMClassName or CIMInstanceName object, or `None`.
         The default namespace of the connection object is used, if needed.
 
         Return the so determined namespace for use as an argument to
-        imethodcall()."""
+        imethodcall().
+        """
 
         if isinstance(obj, (CIMClassName, CIMInstanceName)):
             namespace = obj.namespace
@@ -2104,9 +2130,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def _iparam_objectname(objectname):
-        """Convert an object name (= class or instance name) specified in an
+        """
+        Convert an object name (= class or instance name) specified in an
         operation method into a CIM object that can be passed to
-        imethodcall()."""
+        imethodcall().
+        """
 
         if isinstance(objectname, (CIMClassName, CIMInstanceName)):
             objectname = objectname.copy()
@@ -2125,8 +2153,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def _iparam_classname(classname):
-        """Convert a class name specified in an operation method into a CIM
-        object that can be passed to imethodcall()."""
+        """
+        Convert a class name specified in an operation method into a CIM
+        object that can be passed to imethodcall().
+        """
 
         if isinstance(classname, CIMClassName):
             classname = classname.copy()
@@ -2144,8 +2174,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def _iparam_instancename(instancename):
-        """Convert an instance name specified in an operation method into a CIM
-        object that can be passed to imethodcall()."""
+        """
+        Convert an instance name specified in an operation method into a CIM
+        object that can be passed to imethodcall().
+        """
 
         if isinstance(instancename, CIMInstanceName):
             instancename = instancename.copy()
@@ -2160,10 +2192,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         return instancename
 
     def _get_rslt_params(self, result, namespace):
-        """Common processing for pull results to separate
-           end-of-sequence, enum-context, and entities in IRETURNVALUE.
-           Returns tuple of entities in IRETURNVALUE, end_of_sequence,
-           and enumeration_context)
+        """
+        Common processing for pull results to separate end-of-sequence,
+        enum-context, and entities in IRETURNVALUE.
+
+        Returns tuple of entities in IRETURNVALUE, end_of_sequence,
+        and enumeration_context)
         """
         rtn_objects = []
         end_of_sequence = False
@@ -2910,9 +2944,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             of this object will be ignored.
 
           namespace (:term:`string`):
-            *New in pywbem 0.9.*
-
             Name of the CIM namespace to be used (case independent).
+
+            *New in pywbem 0.9.*
 
             If `None`, defaults to the namespace in the `path` attribute of the
             `NewInstance` parameter, or to the default namespace of the
@@ -3076,10 +3110,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     IncludeClassOrigin=None, PropertyList=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Instance-level use: Retrieve the instances associated to a source
-        instance.
-
-        Class-level use: Retrieve the classes associated to a source class.
+        Retrieve the instances associated to a source instance, or the classes
+        associated to a source class.
 
         This method performs the Associators operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -3310,11 +3342,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         Role=None, ResultRole=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Instance-level use: Retrieve the instance paths of the instances
-        associated to a source instance.
-
-        Class-level use: Retrieve the class paths of the classes associated
-        to a source class.
+        Retrieve the instance paths of the instances associated to a source
+        instance, or the class paths of the classes associated to a source
+        class.
 
         This method performs the AssociatorNames operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -3485,11 +3515,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                    PropertyList=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Instance-level use: Retrieve the association instances that reference
-        a source instance.
-
-        Class-level use: Retrieve the association classes that reference a
-        source class.
+        Retrieve the association instances that reference a source instance,
+        or the association classes that reference a source class.
 
         This method performs the References operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -3699,11 +3726,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
         # pylint: disable=invalid-name, line-too-long
         """
-        Instance-level use: Retrieve the instance paths of the association
-        instances that reference a source instance.
-
-        Class-level use: Retrieve the class paths of the association classes
-        that reference a source class.
+        Retrieve the instance paths of the association instances that reference
+        a source instance, or the class paths of the association classes that
+        reference a source class.
 
         This method performs the ReferenceNames operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -4087,14 +4112,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                **extra):
         # pylint: disable=invalid-name,line-too-long
         """
+        Enumerate the instances of a class (including instances of its
+        subclasses) in a namespace, using the Python :term:`py:generator`
+        idiom to return the result.
+
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
-        Enumerate the instances of a class (including instances of its
-        subclasses) in a namespace,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
-        Python :term:`py:generator` idiom to return the result.
-
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
@@ -4434,13 +4459,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
                                    **extra):
         """
+        Enumerate the instance paths of instances of a class (including
+        instances of its subclasses) in a namespace, using the
+        Python :term:`py:generator` idiom to return the result.
+
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
-        Enumerate the instance paths of instances of a class (including
-        instances of its subclasses) in a namespace,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
-        Python :term:`py:generator` idiom to return the result.
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
 
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
@@ -4708,13 +4734,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                 **extra):
         # pylint: disable=invalid-name,line-too-long
         """
-        *New in pywbem 0.10 as experimental and finalized in 0.12.*
-
-        Retrieve the instances associated to a source instance,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
+        Retrieve the instances associated to a source instance, using the
         Python :term:`py:generator` idiom to return the result.
 
+        *New in pywbem 0.10 as experimental and finalized in 0.12.*
+
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
@@ -5040,14 +5066,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     **extra):
         # pylint: disable=invalid-name
         """
+        Retrieve the instance paths of the instances associated to a source
+        instance, using the Python :term:`py:generator` idiom to return the
+        result.
+
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
-        Retrieve the instance paths of the instances associated to a source
-        instance,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
-        Python :term:`py:generator` idiom to return the result.
-
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
@@ -5318,13 +5344,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                **extra):
         # pylint: disable=invalid-name,line-too-long
         """
+        Retrieve the association instances that reference a source instance,
+        using the Python :term:`py:generator` idiom to return the result.
+
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
-        Retrieve the association instances that reference a source instance,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
-        Python :term:`py:generator` idiom to return the result.
-
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
@@ -5622,14 +5648,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    **extra):
         # pylint: disable=invalid-name
         """
+        Retrieve the instance paths of the association instances that reference
+        a source instance, using the Python :term:`py:generator` idiom to
+        return the result.
+
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
-        Retrieve the instance paths of the association instances that reference
-        a source instance,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
-        Python :term:`py:generator` idiom to return the result.
-
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
@@ -5881,13 +5907,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            **extra):
         # pylint: disable=line-too-long
         """
+        Execute a query in a namespace, using the Python :term:`py:generator`
+        idiom to return the result.
+
         *New in pywbem 0.10 as experimental and finalized in 0.12.*
 
-        Execute a query in a namespace,
-        using the corresponding pull operations if supported by the WBEM server
-        or otherwise the corresponding traditional operation, and using the
-        Python :term:`py:generator` idiom to return the result.
-
+        This method uses the corresponding pull operations if supported by the
+        WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
         that frees the user of having to know whether the WBEM server supports
         pull operations.
@@ -6168,10 +6194,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name,line-too-long
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to enumerate the instances of a class
         (including instances of its subclasses) in a namespace.
+
+        *New in pywbem 0.9.*
 
         This method performs the OpenEnumerateInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6473,11 +6499,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
 
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to enumerate the instance paths of
         instances of a class (including instances of its subclasses) in
         a namespace.
+
+        *New in pywbem 0.9.*
 
         This method performs the OpenEnumerateInstancePaths operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6702,10 +6728,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
         # pylint: disable=invalid-name,line-too-long
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to retrieve the instances associated
         to a source instance.
+
+        *New in pywbem 0.9.*
 
         This method does not support retrieving classes.
 
@@ -6980,10 +7006,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to retrieve the instance paths of the
         instances associated to a source instance.
+
+        *New in pywbem 0.9.*
 
         This method does not support retrieving classes.
 
@@ -7219,10 +7245,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
         # pylint: disable=invalid-name,line-too-long
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to retrieve the association instances
         that reference a source instance.
+
+        *New in pywbem 0.9.*
 
         This method does not support retrieving classes.
 
@@ -7481,10 +7507,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to retrieve the instance paths of
         the association instances that reference a source instance.
+
+        *New in pywbem 0.9.*
 
         This method does not support retrieving classes.
 
@@ -7701,10 +7727,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            MaxObjectCount=None, **extra):
         # pylint: disable=invalid-name
         """
-        *New in pywbem 0.9.*
-
         Open an enumeration session to execute a query in a namespace and to
         retrieve the instances representing the query result.
+
+        *New in pywbem 0.9.*
 
         This method performs the OpenQueryInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -7928,10 +7954,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=invalid-name
 
         """
-        *New in pywbem 0.9.*
+        Retrieve the next set of instances (with instance paths) from an open
+        enumeration session.
 
-        Retrieve the next set of instances from an open enumeration session.
-        The retrieved instances include their instance paths.
+        *New in pywbem 0.9.*
 
         This operation can only be used on enumeration sessions that have been
         opened by one of the following methods:
@@ -8078,12 +8104,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def PullInstancePaths(self, context, MaxObjectCount, **extra):
         # pylint: disable=invalid-name
-
         """
-        *New in pywbem 0.9.*
-
         Retrieve the next set of instance paths from an open enumeration
         session.
+
+        *New in pywbem 0.9.*
 
         This operation can only be used on enumeration sessions that have been
         opened by one of the following methods:
@@ -8228,10 +8253,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def PullInstances(self, context, MaxObjectCount, **extra):
         # pylint: disable=invalid-name
         """
-        *New in pywbem 0.9.*
+        Retrieve the next set of instances (without instance paths) from an
+        open enumeration session.
 
-        Retrieve the next set of instances from an open enumeration session.
-        The retrieved instances do not include an instance path.
+        *New in pywbem 0.9.*
 
         This operation can only be used on enumeration sessions that have been
         opened by one of the following methods:
@@ -8370,10 +8395,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def CloseEnumeration(self, context, **extra):
         # pylint: disable=invalid-name
         """
-        *New in pywbem 0.9.*
-
         Close an open enumeration session, causing an early termination of an
         incomplete enumeration session.
+
+        *New in pywbem 0.9.*
 
         This method performs the CloseEnumeration operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -9150,7 +9175,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def EnumerateQualifiers(self, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Enumerate qualifier types (= declarations) in a namespace.
+        Enumerate the qualifier types (= qualifier declarations) in a
+        namespace.
 
         This method performs the EnumerateQualifiers operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -9236,7 +9262,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def GetQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Retrieve a qualifier type (= declaration).
+        Retrieve a qualifier type (= qualifier declaration).
 
         This method performs the GetQualifier operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -9333,7 +9359,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def SetQualifier(self, QualifierDeclaration, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Create or modify a qualifier type (= declaration) in a namespace.
+        Create or modify a qualifier type (= qualifier declaration) in a
+        namespace.
 
         This method performs the SetQualifier operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -9406,7 +9433,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def DeleteQualifier(self, QualifierName, namespace=None, **extra):
         # pylint: disable=invalid-name
         """
-        Delete a qualifier type (= declaration).
+        Delete a qualifier type (= qualifier declaration).
 
         This method performs the DeleteQualifier operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all

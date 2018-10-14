@@ -491,13 +491,13 @@ class OperationStatistic(object):
             "max_reply_len={s.max_reply_len!A})",
             s=self)
 
-    formatted_header_w_svr = \
+    _formatted_header_w_svr = \
         'Count Excep         ClientTime              ServerTime        ' \
         '     RequestLen                ReplyLen       Operation\n' \
         '        Cnt     Avg     Min     Max     Avg     Min     Max   ' \
         ' Avg    Min    Max      Avg      Min      Max\n'
 
-    formatted_header = \
+    _formatted_header = \
         'Count Excep         ClientTime        ' \
         '     RequestLen              ReplyLen       Operation\n' \
         '        Cnt     Avg     Min     Max   ' \
@@ -707,9 +707,9 @@ class Statistics(object):
                 if stats._server_time_stored:
                     include_svr = True
             if include_svr:
-                ret += OperationStatistic.formatted_header_w_svr
+                ret += OperationStatistic._formatted_header_w_svr
             else:
-                ret += OperationStatistic.formatted_header
+                ret += OperationStatistic._formatted_header
 
             for name, stats in snapshot:  # pylint: disable=unused-variable
                 ret += stats.formatted(include_svr)
