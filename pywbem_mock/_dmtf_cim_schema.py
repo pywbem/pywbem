@@ -101,7 +101,7 @@ class DMTFCIMSchema(object):
     def __init__(self, schema_version, schema_root_dir, use_experimental=False,
                  verbose=False):
         """
-        The constructor downloads the schema if the `schema_root_dir` or the
+        The init method downloads the schema if the `schema_root_dir` or the
         schema zip file do not exist into the directory defined by the
         `schema_root_dir` parameter and extracts the MOF files into
         `schema_mof_dir`.

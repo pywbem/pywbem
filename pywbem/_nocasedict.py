@@ -131,7 +131,7 @@ class NocaseDict(object):
         * Passing an OrderedDict or NocaseDict object as a single positional
           argument.
 
-        A UserWarning will be issued if the provided constructor arguments will
+        A UserWarning will be issued if the provided init parameters will
         cause the order of provided items not to be preserved when adding them
         to the new dictionary.
         """

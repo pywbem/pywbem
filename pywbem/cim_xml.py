@@ -32,8 +32,8 @@ DTD:
 
   https://www.dmtf.org/standards/wbem/CIM_DTD_V22.dtd
 
-There should be one class for each element described in the DTD.  The
-constructors take builtin Python types, or other cim_xml classes where
+There should be one class for each element described in the DTD.  Their
+init methods take builtin Python types, or other cim_xml classes where
 child elements are required.
 
 Every class is a subclass of the Element class and so shares the same
@@ -45,7 +45,6 @@ Note that converting using toprettyxml() inserts whitespace which may
 corrupt the data in the XML (!!) so you should only do this when
 displaying to humans who can ignore it, and never for computers.  XML
 always passes through all non-markup whitespace.
-
 """
 
 from __future__ import absolute_import

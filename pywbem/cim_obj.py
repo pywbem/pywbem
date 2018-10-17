@@ -123,24 +123,24 @@ class (the parent object) has a list of CIM properties, CIM methods and CIM
 qualifiers (the child objects).
 
 In pywbem, the parent CIM object allows initializing each list of child objects
-via an argument of its constructor. For example, the :class:`~pywbem.CIMClass`
-constructor has an argument named ``properties`` that allows specifying the
-properties of the class.
+via an init parameter. For example, the :class:`~pywbem.CIMClass` init method
+has a parameter named ``properties`` that allows specifying the CIM properties
+of the CIM class.
 
-Once the parent CIM object exists, each list of child elements can be modified
+Once the parent CIM object exists, each list of child objects can be modified
 via a settable attribute. For example, the :class:`~pywbem.CIMClass` class has
-a :attr:`~pywbem.CIMClass.properties` attribute for its list of properties.
+a :attr:`~pywbem.CIMClass.properties` attribute for its list of CIM properties.
 
-For such attributes and constructor arguments that specify lists of child
+For such attributes and init parameters that specify lists of child
 objects, pywbem supports a number of different ways the child objects can be
 specified.
 
 Some of these ways preserve the order of child objects and some don't.
 
-This section uses properties in classes as an example, but it applies to all
-kinds of child objects in CIM objects.
+This section uses CIM properties in CIM classes as an example, but it applies
+to all kinds of child objects in CIM objects.
 
-The possible input objects for the ``properties`` constructor argument
+The possible input objects for the ``properties`` init parameter
 and for the :attr:`~pywbem.CIMClass.properties` attribute of
 :class:`~pywbem.CIMClass` is described in the type
 :term:`properties input object`, and must be one of these objects:
@@ -1023,7 +1023,7 @@ def _cim_property_value(key, value):
     else:
         # We no longer check for the common error to set CIM numeric values as
         # Python number types, because that is done in the CIMProperty
-        # constructor.
+        # init method.
         prop = CIMProperty(key, value)
 
     return prop
@@ -1100,7 +1100,7 @@ def _cim_qualifier(key, value):
     else:
         # We no longer check for the common error to set CIM numeric values as
         # Python number types, because that is done in the CIMQualifier
-        # constructor.
+        # init method.
         qual = CIMQualifier(key, value)
 
     return qual
@@ -2422,7 +2422,7 @@ class CIMInstance(_CIMComparisonMixin):
         properties to be replaced with the new properties, and will also cause
         the values of corresponding keybindings in the instance path (if set)
         to be updated. For details, see the description of the same-named
-        constructor parameter. Note that the property value may be specified as
+        init parameter. Note that the property value may be specified as
         a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object.
 
         The CIM property values can also be accessed and manipulated one by one
@@ -4369,7 +4369,7 @@ class CIMProperty(_CIMComparisonMixin):
         # pylint: disable=redefined-builtin,too-many-arguments,too-many-branches
         # pylint: disable=too-many-statements,too-many-instance-attributes
         """
-        The constructor infers optional parameters that are not specified (for
+        The init method infers optional parameters that are not specified (for
         example, it infers `type` from the Python type of `value` and other
         information). If the specified parameters are inconsistent, an
         exception is raised. If an optional parameter is needed for some
@@ -5202,7 +5202,7 @@ class CIMMethod(_CIMComparisonMixin):
                  class_origin=None, propagated=None, qualifiers=None,
                  methodname=None):
         """
-        The constructor stores the input parameters as-is and does not infer
+        The init method stores the input parameters as-is and does not infer
         unspecified parameters from the others (like
         :class:`~pywbem.CIMProperty` does).
 
@@ -5749,7 +5749,7 @@ class CIMParameter(_CIMComparisonMixin):
                  embedded_object=None):
         # pylint: disable=redefined-builtin
         """
-        The constructor stores the input parameters as-is and does
+        The init method stores the input parameters as-is and does
         not infer unspecified parameters from the others
         (like :class:`~pywbem.CIMProperty` does).
 
@@ -6454,7 +6454,7 @@ class CIMQualifier(_CIMComparisonMixin):
                  translatable=None):
         # pylint: disable=redefined-builtin
         """
-        The constructor infers optional parameters that are not specified (for
+        The init method infers optional parameters that are not specified (for
         example, it infers `type` from the Python type of `value` and other
         information). If the specified parameters are inconsistent, an
         exception is raised. If an optional parameter is needed for some reason,
@@ -6638,8 +6638,7 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that the value is Null.
 
         For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`
-        in the constructor.
+        :term:`unicode string`, even when specified as a :term:`byte string`.
 
         This attribute is settable. For details, see the description of the
         same-named init parameter of
@@ -7257,8 +7256,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that the value is Null.
 
         For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`
-        in the constructor.
+        :term:`unicode string`, even when specified as a :term:`byte string`.
 
         This attribute is settable. For details, see the description of the
         same-named init parameter of
