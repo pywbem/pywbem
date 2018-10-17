@@ -272,13 +272,18 @@ class WBEMServer(object):
         """
         :term:`string`: Brand of the WBEM server.
 
-        The brand will be one of the following:
+        The string ``"unknown"``, if the brand cannot be determined.
+
+        The version is determined from the `CIM_ObjectManager` instance in
+        the Interop namespace, by looking at its `ElementName` property, or if
+        that is not set, at its `Description` property, and by taking the
+        string before ``"version"`` or ``"release"`` (case insensitively).
+
+        For known WBEM servers, the brand is then normalized in order to make
+        it recognizable:
 
         * ``"OpenPegasus"``, for OpenPegasus
-        * ``"SFCB"``, for SFCB
-        * First word of the value of the `ElementName` property of the
-          `CIM_ObjectManager` instance, for any other WBEM servers.
-        * ``"unknown"``, if the `ElementName` property is NULL.
+        * ``"SFCB"``, for Small Footprint CIM Broker
 
         Raises:
 
@@ -295,8 +300,14 @@ class WBEMServer(object):
     @property
     def version(self):
         """
-        :term:`string`: Version of the WBEM server. `None`, if the version
-        cannot be determined.
+        :term:`string`: Version of the WBEM server.
+
+        `None`, if the version cannot be determined.
+
+        The version is determined from the `CIM_ObjectManager` instance in
+        the Interop namespace, by looking at its `ElementName` property, or if
+        that is not set, at its `Description` property, and by taking the
+        string after ``"version"`` or ``"release"`` (case insensitively).
 
         Raises:
 
@@ -1017,26 +1028,36 @@ class WBEMServer(object):
                         "{0!A} ", [i['ElementName'] for i in cimom_insts]),
                 conn_id=self.conn.conn_id)
         cimom_inst = cimom_insts[0]
-        element_name = cimom_inst['ElementName']
-        if element_name is not None:
-            element_word = element_name.split(' ')[0]
-        else:
-            element_word = "unknown"
-        if element_word in ("Pegasus", "OpenPegasus"):
+
+        elementname = cimom_inst['ElementName']
+        description = cimom_inst['Description']
+        if elementname is not None:
+            m = re.match(r'^(.+?)(?: *(?:version|release) *(.+))?$',
+                         elementname, re.IGNORECASE)
+            if m is not None:
+                brand_elementname = m.group(1)
+                version_elementname = m.group(2)
+        if description is not None:
+            # Some examples for Description:
+            # * OpenPegasus: "Pegasus OpenPegasus Version 2.12.0"
+            m = re.match(r'^(.+?)(?: *(?:version|release) *(.+))?$',
+                         description, re.IGNORECASE)
+            if m is not None:
+                brand_description = m.group(1)
+                version_description = m.group(2)
+        brand = brand_elementname or brand_description
+        version = version_elementname or version_description
+        if brand is None:
+            brand = "unknown"
+
+        # Normalization of brand attribute for known WBEM servers
+        brand_lower = brand.lower()
+        if "pegasus" in brand_lower:
             brand = 'OpenPegasus'
-            # Description = "Pegasus OpenPegasus Version 2.12.0"
-            m = re.match(r'.+ *Version *([^ ]+)', cimom_inst['Description'])
-            if m:
-                version = m.group(1)
-            else:
-                version = None
-        elif element_word == "SFCB":
+            version = version.split(' ', 1)[0]
+        elif "sfcb" in brand_lower:
             brand = 'SFCB'
-            # TODO: Figure out how to get version of SFCB
-            version = None
-        else:
-            brand = element_word
-            version = None
+
         self._brand = brand
         self._version = version
         self._cimom_inst = cimom_inst
