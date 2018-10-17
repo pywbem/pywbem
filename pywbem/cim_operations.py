@@ -674,8 +674,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         :term:`unicode string`: URL of the WBEM server.
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -699,8 +699,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :func:`py:tuple`: Credentials for HTTP authentication with the WBEM
         server.
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -724,8 +724,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :term:`unicode string`: Name of the CIM namespace to be used by default
         (if no namespace is specified for an operation).
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -754,8 +754,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :class:`py:dict`: :term:`X.509` client certificate and key file to be
         presented to the WBEM server during the TLS/SSL handshake.
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -781,8 +781,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         TLS/SSL handshake, in addition to the validation already performed
         by the TLS/SSL support.
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -806,8 +806,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :term:`string`: Location of CA certificates (trusted certificates) for
         verifying the X.509 server certificate returned by the WBEM server.
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -831,8 +831,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :class:`py:bool`: Boolean indicating that verifications are disabled
         for this connection.
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -857,8 +857,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         *New in pywbem 0.8.*
 
-        For details, see the description of the same-named constructor
-        parameter of :class:`~pywbem.WBEMConnection`.
+        For details, see the description of the same-named init
+        parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
         """
@@ -1049,10 +1049,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         *New in pywbem 0.11 as experimental and finalized in 0.13.*
 
         This property reflects the intent of the user as specified in the
-        same-named constructor parameter. This property is not updated with
-        the status of actually using pull operations. That status is
-        maintained internally for each pull operation separately to accomodate
-        WBEM servers that support only some of the pull operations.
+        same-named init parameter of
+        :class:`this class <pywbem.WBEMConnection>`. This property is not
+        updated with the status of actually using pull operations. That status
+        is maintained internally for each pull operation separately to
+        accomodate WBEM servers that support only some of the pull operations.
         """
         return self._use_pull_operations
 
