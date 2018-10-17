@@ -367,6 +367,16 @@ This version contains all fixes up to pywbem 0.12.4.
   including any methods and attributes inherited from base classes.
   See issue #1417.
 
+* Improved the `brand` and `version` attributes of the `WBEMServer` class
+  so that they produce reasonable results for more types of WBEM servers
+  than just OpenPegasus and SFCB. The algorithm is now to use the
+  `ElementName` and `Description` properties of the `CIM_ObjectManager`
+  instance in the Interop namespace, and to take the string before
+  version/release as the brand and the string after that as the version.
+  The brand is then normalized to known values for OpenPegasus and SFCB,
+  so that the external behavior for those two remains the same.
+  See issue #1422.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
