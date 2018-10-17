@@ -188,7 +188,7 @@ class TupleParser(object):
 
         if name(tup_tree) != nodename:
             raise ParseError(
-                _format("Unexpected element {0!A} (expected element {1!A})",
+                _format("Unexpected element {0!A} (expecting element {1!A})",
                         name(tup_tree), nodename),
                 conn_id=self.conn_id)
 
@@ -201,7 +201,7 @@ class TupleParser(object):
             for attr in required_attrs:
                 if attr not in tt_attrs:
                     raise ParseError(
-                        _format("Element {0!A} misses required attribute "
+                        _format("Element {0!A} missing required attribute "
                                 "{1!A} (only has attributes {2!A})",
                                 name(tup_tree), attr, attrs(tup_tree).keys()),
                         conn_id=self.conn_id)
@@ -256,7 +256,7 @@ class TupleParser(object):
 
         if not k:
             raise ParseError(
-                _format("Element {0!A} misses required child element {1!A}",
+                _format("Element {0!A} missing required child element {1!A}",
                         name(tup_tree), acceptable),
                 conn_id=self.conn_id)
         if len(k) > 1:
@@ -762,7 +762,7 @@ class TupleParser(object):
 
         if not kids(tup_tree):
             raise ParseError(
-                _format("Element {0!A} misses child elements (expecting one "
+                _format("Element {0!A} missing child elements (expecting one "
                         "or more child elements 'NAMESPACE')", name(tup_tree)),
                 conn_id=self.conn_id)
 
@@ -1687,7 +1687,7 @@ class TupleParser(object):
 
         if not k:
             raise ParseError(
-                _format("Element {0!A} has no child elements "
+                _format("Element {0!A} missing child elements "
                         "(expecting child elements "
                         "(LOCALNAMESPACEPATH, IPARAMVALUE*))", name(tup_tree)),
                 conn_id=self.conn_id)
@@ -1715,7 +1715,7 @@ class TupleParser(object):
                                      ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
         if not path:
             raise ParseError(
-                _format("Element {0!A} misses a required child element "
+                _format("Element {0!A} missing a required child element "
                         "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'",
                         name(tup_tree)),
                 conn_id=self.conn_id)
