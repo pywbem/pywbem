@@ -377,6 +377,11 @@ This version contains all fixes up to pywbem 0.12.4.
   so that the external behavior for those two remains the same.
   See issue #1422.
 
+* Added `__str__()` methods to the `WBEMServer`, `WBEMListener`, and
+  `WBEMSubscriptionManager` classes in order to reduce the amount of
+  information. Previously, this defaulted to the result of `__repr__()`.
+  See issue #1424.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
