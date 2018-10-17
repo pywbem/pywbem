@@ -1155,8 +1155,8 @@ class CIMInstanceName(_CIMComparisonMixin):
               before the zone ID string, as an additional choice to ``%25``.
 
             `None` means that the WBEM server is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMInstanceName` object will also be
-            `None`.
+            :attr:`~pywbem.CIMInstanceName.host` attribute
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -1165,8 +1165,8 @@ class CIMInstanceName(_CIMComparisonMixin):
             Name of the CIM namespace containing the referenced instance.
 
             `None` means that the namespace is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMInstanceName` object will also be
-            `None`.
+            :attr:`~pywbem.CIMInstanceName.namespace` attribute
+            will also be `None`.
 
             Leading and trailing slash characters will be stripped.
             The lexical case of the string is preserved. Object comparison and
@@ -1195,7 +1195,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMInstanceName>`.
         """
         return self._classname
 
@@ -1240,7 +1241,8 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         keybindings to be replaced with the new keybindings. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMInstanceName>`.
 
         The keybindings can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -1309,7 +1311,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         `None` means that the namespace is unspecified.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMInstanceName>`.
         """
         return self._namespace
 
@@ -1331,13 +1334,13 @@ class CIMInstanceName(_CIMComparisonMixin):
         of this CIM instance path,
         identifying the WBEM server of the referenced instance.
 
-        For details about the string format, see the same-named constructor
-        parameter.
+        For details about the string format, see the same-named init parameter
+        of :class:`this class <pywbem.CIMInstanceName>`.
 
         `None` means that the host and port are unspecified.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter.
         """
         return self._host
 
@@ -2336,7 +2339,7 @@ class CIMInstance(_CIMComparisonMixin):
             path will be updated to match the property values.
 
             `None` means that the instance path is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMInstance` object
+            :attr:`~pywbem.CIMInstance.path` attribute
             will also be `None`.
 
           property_list (:term:`py:iterable` of :term:`string`):
@@ -2354,7 +2357,7 @@ class CIMInstance(_CIMComparisonMixin):
             converted to lower case.
 
             `None` means that the properties are not filtered, and the
-            same-named attribute in the :class:`~pywbem.CIMInstance` object
+            :attr:`~pywbem.CIMInstance.property_list` attribute
             will also be `None`.
 
         Raises:
@@ -2382,7 +2385,8 @@ class CIMInstance(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMInstance>`.
         """
         return self._classname
 
@@ -2494,7 +2498,8 @@ class CIMInstance(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMInstance>`.
 
         The qualifier values can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary.
@@ -2538,7 +2543,8 @@ class CIMInstance(_CIMComparisonMixin):
         `None` means that the instance path is unspecified.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMInstance>`.
         """
         return self._path
 
@@ -2572,7 +2578,8 @@ class CIMInstance(_CIMComparisonMixin):
         `None` means that the properties are not filtered.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMInstance>`.
         """
         return self._property_list
 
@@ -3259,7 +3266,7 @@ class CIMClassName(_CIMComparisonMixin):
               before the zone ID string, as an additional choice to ``%25``.
 
             `None` means that the WBEM server is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMClassName` object
+            :attr:`~pywbem.CIMClassName.host` attribute
             will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
@@ -3269,7 +3276,7 @@ class CIMClassName(_CIMComparisonMixin):
             Name of the CIM namespace containing the referenced class.
 
             `None` means that the namespace is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMClassName` object
+            :attr:`~pywbem.CIMClassName.namespace` attribute
             will also be `None`.
 
             Leading and trailing slash characters will be stripped.
@@ -3295,7 +3302,8 @@ class CIMClassName(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMClassName>`.
         """
         return self._classname
 
@@ -3325,7 +3333,8 @@ class CIMClassName(_CIMComparisonMixin):
         `None` means that the namespace is unspecified.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMClassName>`.
         """
         return self._namespace
 
@@ -3347,13 +3356,13 @@ class CIMClassName(_CIMComparisonMixin):
         of this CIM class path,
         identifying the WBEM server of the referenced class.
 
-        For details about the string format, see the same-named constructor
-        parameter.
+        For details about the string format, see the same-named init parameter
+        of :class:`this class <pywbem.CIMClassName>`.
 
         `None` means that the host and port are unspecified.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter.
         """
         return self._host
 
@@ -3797,8 +3806,8 @@ class CIMClass(_CIMComparisonMixin):
             Name of the superclass for the class.
 
             `None` means that the class is a top-level class, and the
-            same-named attribute in the :class:`~pywbem.CIMClass` object will
-            also be `None`.
+            :attr:`~pywbem.CIMClassName.superclass` attribute
+            will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
@@ -3815,8 +3824,8 @@ class CIMClass(_CIMComparisonMixin):
             :class:`~pywbem.CIMClass` object.
 
             `None` means that the instance path is unspecified, and the
-            same-named attribute in the :class:`~pywbem.CIMClass` object will
-            also be `None`.
+            :attr:`~pywbem.CIMClass.path` attribute
+            will also be `None`.
 
             This parameter has been added in pywbem 0.11 as a convenience
             for the user in order so that :class:`~pywbem.CIMClass` objects can
@@ -3846,7 +3855,8 @@ class CIMClass(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMClass>`.
         """
         return self._classname
 
@@ -3875,7 +3885,8 @@ class CIMClass(_CIMComparisonMixin):
         `None` means that the class is a top-level class.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMClass>`.
         """
         return self._superclass
 
@@ -3903,7 +3914,8 @@ class CIMClass(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current CIM
         properties to be replaced with the new properties. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMClass>`.
 
         The CIM properties can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -3962,7 +3974,8 @@ class CIMClass(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current CIM
         methods to be replaced with the new methods. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMClass>`.
 
         The CIM methods can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -4021,7 +4034,8 @@ class CIMClass(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMClass>`.
 
         The qualifier values can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -4081,7 +4095,8 @@ class CIMClass(_CIMComparisonMixin):
         on information in the response from the WBEM server.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMClass>`.
         """
         return self._path
 
@@ -4401,7 +4416,7 @@ class CIMProperty(_CIMComparisonMixin):
             the class hierarchy of the class owning the property).
 
             `None` means that class origin information is not available, and
-            the same-named attribute in the :class:`~pywbem.CIMProperty` object
+            :attr:`~pywbem.CIMProperty.class_origin` attribute
             will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
@@ -4411,7 +4426,7 @@ class CIMProperty(_CIMComparisonMixin):
             The size of the array property, for fixed-size arrays.
 
             `None` means that the array property has variable size, and
-            the same-named attribute in the :class:`~pywbem.CIMProperty` object
+            :attr:`~pywbem.CIMProperty.array_size` attribute
             will also be `None`.
 
           propagated (:class:`py:bool`):
@@ -4420,16 +4435,16 @@ class CIMProperty(_CIMComparisonMixin):
             propagated from the creation class.
 
             `None` means that propagation information is not available, and
-            the same-named attribute in the :class:`~pywbem.CIMProperty` object
+            :attr:`~pywbem.CIMProperty.propagated` attribute
             will also be `None`.
 
           is_array (:class:`py:bool`):
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
 
-            If `None`, the same-named attribute in this object will be inferred
-            from the `value` parameter. If the `value` parameter is `None`, a
-            scalar is assumed.
+            If `None`, the :attr:`~pywbem.CIMProperty.is_array` attribute
+            will be inferred from the `value` parameter.
+            If the `value` parameter is `None`, a scalar is assumed.
 
           reference_class (:term:`string`):
             For reference properties, the name of the class referenced by the
@@ -4553,7 +4568,8 @@ class CIMProperty(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._name
 
@@ -4581,7 +4597,8 @@ class CIMProperty(_CIMComparisonMixin):
         `None` means that the value is Null.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._value
 
@@ -4601,7 +4618,8 @@ class CIMProperty(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._type
 
@@ -4635,7 +4653,8 @@ class CIMProperty(_CIMComparisonMixin):
         a WBEM server, :term:`DSP0201` requires this attribute to be set.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._reference_class
 
@@ -4670,7 +4689,8 @@ class CIMProperty(_CIMComparisonMixin):
         * `None`, for properties not representing embedded objects.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._embedded_object
 
@@ -4689,7 +4709,8 @@ class CIMProperty(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._is_array
 
@@ -4708,7 +4729,8 @@ class CIMProperty(_CIMComparisonMixin):
         property is a scalar.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._array_size
 
@@ -4728,7 +4750,8 @@ class CIMProperty(_CIMComparisonMixin):
         `None` means that class origin information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._class_origin
 
@@ -4748,7 +4771,8 @@ class CIMProperty(_CIMComparisonMixin):
         `None` means that propagation information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
         """
         return self._propagated
 
@@ -4777,7 +4801,8 @@ class CIMProperty(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMProperty>`.
 
         The qualifier values can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -5231,7 +5256,7 @@ class CIMMethod(_CIMComparisonMixin):
             the class hierarchy of the class owning the method).
 
             `None` means that class origin information is not available, and
-            the same-named attribute in the :class:`~pywbem.CIMMethod` object
+            the :attr:`~pywbem.CIMMethod.class_origin` attribute
             will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
@@ -5242,8 +5267,8 @@ class CIMMethod(_CIMComparisonMixin):
             propagated from a superclass.
 
             `None` means that propagation information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMMethod` object will
-            also be `None`.
+            the :attr:`~pywbem.CIMMethod.propagated` attribute
+            will also be `None`.
 
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the method.
@@ -5278,7 +5303,8 @@ class CIMMethod(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMMethod>`.
         """
         return self._name
 
@@ -5305,7 +5331,8 @@ class CIMMethod(_CIMComparisonMixin):
         Will not be `None` or ``"reference"``.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMMethod>`.
         """
         return self._return_type
 
@@ -5336,7 +5363,8 @@ class CIMMethod(_CIMComparisonMixin):
         `None` means that class origin information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMMethod>`.
         """
         return self._class_origin
 
@@ -5355,7 +5383,8 @@ class CIMMethod(_CIMComparisonMixin):
         `None` means that propagation information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMMethod>`.
         """
         return self._propagated
 
@@ -5383,7 +5412,8 @@ class CIMMethod(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         parameters to be replaced with the new parameters. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMMethod>`.
 
         The parameters can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -5440,7 +5470,8 @@ class CIMMethod(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMMethod>`.
 
         The qualifier values can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -5756,15 +5787,16 @@ class CIMParameter(_CIMComparisonMixin):
             A boolean indicating whether the parameter is an array (`True`) or a
             scalar (`False`).
 
-            If `None`, the same-named attribute in this object will be inferred
-            from the `value` parameter. If the `value` parameter is `None`, a
-            scalar is assumed.
+            If `None`, the
+            :attr:`~pywbem.CIMParameter.is_array` attribute
+            will be inferred from the `value` parameter.
+            If the `value` parameter is `None`, a scalar is assumed.
 
           array_size (:term:`integer`):
             The size of the array parameter, for fixed-size arrays.
 
             `None` means that the array parameter has variable size, and the
-            same-named attribute in the :class:`~pywbem.CIMParameter` object
+            :attr:`~pywbem.CIMParameter.array_size` attribute
             will also be `None`.
 
           qualifiers (:term:`qualifiers input object`):
@@ -5824,7 +5856,8 @@ class CIMParameter(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._name
 
@@ -5851,7 +5884,8 @@ class CIMParameter(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._type
 
@@ -5881,7 +5915,8 @@ class CIMParameter(_CIMComparisonMixin):
         is unspecified in reference parameters.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._reference_class
 
@@ -5900,7 +5935,8 @@ class CIMParameter(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._is_array
 
@@ -5920,7 +5956,8 @@ class CIMParameter(_CIMComparisonMixin):
         parameter is a scalar.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._array_size
 
@@ -5948,7 +5985,8 @@ class CIMParameter(_CIMComparisonMixin):
 
         This attribute is settable; setting it will cause the current
         qualifiers to be replaced with the new qualifiers. For details, see
-        the description of the same-named constructor parameter.
+        the description of the same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
 
         The qualifier values can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -5998,7 +6036,8 @@ class CIMParameter(_CIMComparisonMixin):
         Has no meaning for parameter declarations.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._value
 
@@ -6033,7 +6072,8 @@ class CIMParameter(_CIMComparisonMixin):
         * `None`, for parameters not representing embedded objects.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMParameter>`.
         """
         return self._embedded_object
 
@@ -6456,7 +6496,7 @@ class CIMQualifier(_CIMComparisonMixin):
             propagated from a superclass.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            :attr:`~pywbem.CIMQualifier.propagated` attribute
             will also be `None`.
 
           overridable (:class:`py:bool`):
@@ -6464,7 +6504,7 @@ class CIMQualifier(_CIMComparisonMixin):
             in subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            :attr:`~pywbem.CIMQualifier.overridable` attribute
             will also be `None`.
 
           tosubclass (:class:`py:bool`):
@@ -6472,7 +6512,7 @@ class CIMQualifier(_CIMComparisonMixin):
             to subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            :attr:`~pywbem.CIMQualifier.tosubclass` attribute
             will also be `None`.
 
           toinstance (:class:`py:bool`):
@@ -6480,7 +6520,7 @@ class CIMQualifier(_CIMComparisonMixin):
             to instances.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            :attr:`~pywbem.CIMQualifier.toinstance` attribute
             will also be `None`.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
@@ -6490,7 +6530,7 @@ class CIMQualifier(_CIMComparisonMixin):
             If not `None`, specifies whether the qualifier is translatable.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifier` object
+            :attr:`~pywbem.CIMQualifier.translatable` attribute
             will also be `None`.
 
         Examples:
@@ -6541,7 +6581,8 @@ class CIMQualifier(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._name
 
@@ -6568,7 +6609,8 @@ class CIMQualifier(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._type
 
@@ -6600,7 +6642,8 @@ class CIMQualifier(_CIMComparisonMixin):
         in the constructor.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._value
 
@@ -6619,7 +6662,8 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that propagation information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._propagated
 
@@ -6642,7 +6686,8 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._tosubclass
 
@@ -6669,7 +6714,8 @@ class CIMQualifier(_CIMComparisonMixin):
         values on CIM instances.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._toinstance
 
@@ -6692,7 +6738,8 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._overridable
 
@@ -6716,7 +6763,8 @@ class CIMQualifier(_CIMComparisonMixin):
         `None` means that this information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifier>`.
         """
         return self._translatable
 
@@ -7037,9 +7085,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
           value (:term:`CIM data type` or other suitable types):
             Default value of the qualifier.
 
-            `None` means a default value of Null, and the same-named attribute
-            in the :class:`~pywbem.CIMQualifierDeclaration` object will also be
-            `None`.
+            `None` means a default value of Null, and the
+            :attr:`~pywbem.CIMQualifierDeclaration.value` attribute
+            will also be `None`.
 
             The specified value will be converted to a :term:`CIM data type`
             using the rules documented in the description of
@@ -7049,16 +7097,17 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             A boolean indicating whether the qualifier is an array (`True`) or
             a scalar (`False`).
 
-            If `None`, the same-named attribute in this object will be inferred
-            from the `value` parameter. If the `value` parameter is `None`, a
-            scalar is assumed.
+            If `None`, the
+            :attr:`~pywbem.CIMQualifierDeclaration.is_array` attribute
+            will be inferred from the `value` parameter.
+            If the `value` parameter is `None`, a scalar is assumed.
 
           array_size (:term:`integer`):
             The size of the array qualifier, for fixed-size arrays.
 
             `None` means that the array qualifier has variable size, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
-            object will also be `None`.
+            :attr:`~pywbem.CIMQualifierDeclaration.array_size` attribute
+            will also be `None`.
 
           scopes (:class:`py:dict` or `NocaseDict`_):
             Scopes of the qualifier.
@@ -7089,24 +7138,24 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             qualifier value is overridable in subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
-            object will also be `None`.
+            :attr:`~pywbem.CIMQualifierDeclaration.overridable` attribute
+            will also be `None`.
 
           tosubclass (:class:`py:bool`):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to subclasses.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
-            object will also be `None`.
+            :attr:`~pywbem.CIMQualifierDeclaration.tosubclass` attribute
+            will also be `None`.
 
           toinstance (:class:`py:bool`):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to instances.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
-            object will also be `None`.
+            :attr:`~pywbem.CIMQualifierDeclaration.toinstance` attribute
+            will also be `None`.
 
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances and this flavor is not defined in
@@ -7117,8 +7166,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             qualifier is translatable.
 
             `None` means that this information is not available, and the
-            same-named attribute in the :class:`~pywbem.CIMQualifierDeclaration`
-            object will also be `None`.
+            :attr:`~pywbem.CIMQualifierDeclaration.translatable` attribute
+            will also be `None`.
         """
 
         # We use the respective setter methods:
@@ -7150,7 +7199,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._name
 
@@ -7178,7 +7228,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._type
 
@@ -7210,7 +7261,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         in the constructor.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._value
 
@@ -7229,7 +7281,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._is_array
 
@@ -7249,7 +7302,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         qualifier type is not an array).
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._array_size
 
@@ -7278,7 +7332,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         Will not be `None`.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._scopes
 
@@ -7299,7 +7354,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that this information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._tosubclass
 
@@ -7323,7 +7379,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         values on CIM instances.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._toinstance
 
@@ -7344,7 +7401,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that this information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._overridable
 
@@ -7365,7 +7423,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         `None` means that this information is not available.
 
         This attribute is settable. For details, see the description of the
-        same-named constructor parameter.
+        same-named init parameter of
+        :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
         return self._translatable
 

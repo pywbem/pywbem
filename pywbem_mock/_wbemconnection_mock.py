@@ -375,7 +375,8 @@ class FakedWBEMConnection(WBEMConnection):
           If `None`, there is no delay.
 
           This attribute is settable. For details, see the description of the
-          same-named constructor parameter.
+          same-named init parameter of
+          :class:`this class <pywbem.FakedWBEMConnection>`.
         """
         return self._response_delay
 
