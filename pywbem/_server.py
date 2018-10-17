@@ -166,6 +166,19 @@ class WBEMServer(object):
         self._cimom_inst = None
         self._profiles = None
 
+    def __str__(self):
+        """
+        Return a representation of the :class:`~pywbem.WBEMServer` object
+        with a subset of its attributes.
+        """
+        return _format(
+            "WBEMServer("
+            "conn.url={s._conn.url!A}, "
+            "brand={s._brand!A}, "
+            "version={s._version!A}, "
+            "... )",
+            s=self)
+
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMServer` object

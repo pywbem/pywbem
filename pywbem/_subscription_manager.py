@@ -222,6 +222,18 @@ class WBEMSubscriptionManager(object):
                         subscription_manager_id))
         self._subscription_manager_id = subscription_manager_id
 
+    def __str__(self):
+        """
+        Return a representation of the :class:`~pywbem.WBEMSubscriptionManager`
+        object with a subset of its attributes.
+        """
+        return _format(
+            "WBEMSubscriptionManager("
+            "_subscription_manager_id={s._subscription_manager_id!A}, "
+            "_servers={s._servers}, "
+            "...)",
+            s=self)
+
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMSubscriptionManager`

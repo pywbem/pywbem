@@ -695,6 +695,19 @@ class WBEMListener(object):
 
         self._callbacks = []  # Registered callback functions
 
+    def __str__(self):
+        """
+        Return a representation of the :class:`~pywbem.WBEMListener` object
+        with a subset of its attributes.
+        """
+        return _format(
+            "WBEMListener("
+            "_host={s._host!A}, "
+            "_http_port={s._http_port!A}, "
+            "_https_port={s._https_port!A}, "
+            "...)",
+            s=self)
+
     def __repr__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMListener` object
