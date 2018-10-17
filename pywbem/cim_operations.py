@@ -4145,7 +4145,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).
@@ -4493,7 +4493,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).
@@ -4766,7 +4766,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).
@@ -5099,7 +5099,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).
@@ -5376,7 +5376,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).
@@ -5681,7 +5681,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).
@@ -5939,7 +5939,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in the :class:`~pywbem.WBEMConnection` object (by operation type), and
         avoids unnecessary attempts to try these pull operations on that
         connection in the future.
-        The `use_pull_operations` constructor parameter of
+        The `use_pull_operations` init parameter of
         :class:`~pywbem.WBEMConnection` can be used to control the preference
         for always using pull operations, always using traditional operations,
         or using pull operations if supported by the WBEM server (the default).

@@ -689,7 +689,7 @@ def conn_lite():
 class TestFakedWBEMConnection(object):
     """
     Test the basic characteristics of the FakedWBEMConnection including
-    constructor parameters,
+    init parameters.
     """
 
     @pytest.mark.parametrize(
@@ -699,8 +699,8 @@ class TestFakedWBEMConnection(object):
     def test_response_delay(self, tst_class, set_on_init, delay):
         # pylint: disable=no-self-use
         """
-        Test the response delay attribute set both in constructor and with
-        property
+        Test the response delay attribute set both in init parameter and with
+        attribute.
         """
         # pylint: disable=protected-access
         FakedWBEMConnection._reset_logging_config()

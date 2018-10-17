@@ -22,8 +22,8 @@ class TestCreateConnection(object):
     depend on actually creating a connection
     """
     def test_connection_defaults(self):  # pylint: disable=no-self-use
-        """Test creation of a connection with default constructor
-           parameters.
+        """
+        Test creation of a connection with default init parameters.
         """
         conn = WBEMConnection('http://localhost')
         assert conn.url == 'http://localhost'

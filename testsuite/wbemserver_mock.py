@@ -25,7 +25,7 @@ TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 #  CIM_ObjectManager class.
 #
 #  interop_namespace: The interop namespace. Note that that if the interop
-#  namespace is defined in the WbemServerMock constructor that overrides any
+#  namespace is defined in the WbemServerMock init method that overrides any
 #  value in this dictionary
 #
 #  other_namespaces: Any other namespaces that the users wants to be defined
@@ -90,7 +90,7 @@ class WbemServerMock(object):
         self.object_manager_name = \
             self.server_mock_data['object_manager']['Name']
 
-        # override dictionary interop namespace with constructor input
+        # override dictionary interop namespace with init parameter
         if interop_ns:
             self.interop_ns = interop_ns
         else:
@@ -179,7 +179,7 @@ class WbemServerMock(object):
                            object_manager_description):
         """
         Build a CIMObjectManager instance for the mock wbem server using
-        fixed data defined in this method and data from the constructor
+        fixed data defined in this method and data from the init parameter
         mock data.
         """
         omdict = {"SystemCreationClassName": "CIM_ComputerSystem",
@@ -292,7 +292,7 @@ class WbemServerMock(object):
     def build_mock(self):
         """
             Builds the classes and instances for a mock WBEMServer from data
-            in the constructor. This calls the builder for:
+            in the init parameter. This calls the builder for:
               the object manager
               the namespaces
               the profiles
@@ -313,7 +313,7 @@ class WbemServerMock(object):
             self.server_mock_data['object_manager']['ElementName'],
             self.server_mock_data['object_manager']['Description'])
 
-        # build CIM_Namespace instances based on the constructor attributes
+        # build CIM_Namespace instances based on the init parameters
         namespaces = [self.interop_ns]
         if self.server_mock_data['other_namespaces']:
             namespaces.extend(self.server_mock_data['other_namespaces'])
