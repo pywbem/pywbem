@@ -767,7 +767,8 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError: Various errors in scoping path traversal.
+            ValueError: Server implementation error: Various server errors.
+            ValueError: Various user errors.
             TypeError: `profile_path` must be a
               :class:`~pywbem.CIMInstanceName`.
         """  # noqa: E501
@@ -795,9 +796,10 @@ class WBEMServer(object):
         else:
             if ret_val != 0:
                 raise ValueError(
-                    _format("The GetCentralInstances() method is implemented "
-                            "but failed with rc={0}, for profile instance: "
-                            "{1!A}", ret_val, profile_path))
+                    _format("Server implementation error: The "
+                            "GetCentralInstances() method is implemented but "
+                            "failed with rc={0} for profile {1!A}",
+                            ret_val, profile_path.to_wbem_uri()))
             return out_params['CentralInstances']
 
         # Try central methodology
@@ -813,12 +815,10 @@ class WBEMServer(object):
            scoping_class is None or \
            scoping_path is None:
             raise ValueError(
-                _format("No central instances found after applying "
-                        "GetCentralInstances and central class "
-                        "methodologies, and parameters for scoping "
-                        "class methodology were not specified, for "
-                        "profile instance: {0!A}",
-                        profile_path))
+                _format("Parameters required for scoping class methodology not "
+                        "specified and other methodologies not implemented "
+                        "for profile {0!A}",
+                        profile_path.to_wbem_uri()))
 
         # Go up one level on the profile side
         referencing_profile_paths = self._conn.AssociatorNames(
@@ -827,14 +827,18 @@ class WBEMServer(object):
             ResultRole="Dependent")
         if not referencing_profile_paths:
             raise ValueError(
-                _format("When attempting the scoping class methodology, "
-                        "no referencing profiles were found, for profile "
-                        "instance: {0!A}", profile_path))
+                _format("Server implementation error: No referencing profile "
+                        "found for profile {0!A} when attempting the scoping "
+                        "class methodology",
+                        profile_path.to_wbem_uri()))
         elif len(referencing_profile_paths) > 1:
             raise ValueError(
-                _format("When attempting the scoping class methodology, "
-                        "more than one referencing profiles were found, for "
-                        "profile instance: {0!A}", profile_path))
+                _format("Server implementation error: More than one "
+                        "referencing profile found for profile {0!A} when "
+                        "attempting the scoping class methodology. "
+                        "Found referencing profiles {1!A}",
+                        profile_path.to_wbem_uri(),
+                        [p.to_wbem_uri() for p in referencing_profile_paths]))
 
         # Traverse to the resource side (remember that scoping instances are
         # the central instances at the next upper level).
@@ -850,9 +854,10 @@ class WBEMServer(object):
             upper_central_class, scoping_class, upper_scoping_path)
         if not scoping_inst_paths:
             raise ValueError(
-                _format("When attempting the scoping class methodology, "
-                        "no scoping instances were found, for profile "
-                        "instance: {0!A}", profile_path))
+                _format("Server implementation error: No scoping instances "
+                        "found for profile {0!A} when attempting the scoping "
+                        "class methodology",
+                        profile_path.to_wbem_uri()))
 
         # Go down one level on the resource side (using the last
         # entry in the scoping path as the association to traverse)
@@ -866,11 +871,13 @@ class WBEMServer(object):
             if not ci_paths:
                 # At least one central instance for each scoping instance
                 raise ValueError(
-                    _format("When attempting the scoping class methodology, "
-                            "no central instances were found when traversing "
-                            "down across association {0!A} to central class "
-                            "{1!A}, for profile instance: {2!A}",
-                            assoc_class, central_class, profile_path))
+                    _format("Server implementation error: No central "
+                            "instances found for profile {0!A} when "
+                            "traversing down across association class {1!A} "
+                            "to central class {2!A} while attempting the "
+                            "scoping class methodology",
+                            profile_path.to_wbem_uri(), assoc_class,
+                            central_class))
             total_ci_paths.extend(ci_paths)
 
         return total_ci_paths
