@@ -369,12 +369,15 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Improved the `brand` and `version` attributes of the `WBEMServer` class
   so that they produce reasonable results for more types of WBEM servers
-  than just OpenPegasus and SFCB. The algorithm is now to use the
-  `ElementName` and `Description` properties of the `CIM_ObjectManager`
-  instance in the Interop namespace, and to take the string before
-  version/release as the brand and the string after that as the version.
-  The brand is then normalized to known values for OpenPegasus and SFCB,
-  so that the external behavior for those two remains the same.
+  than just OpenPegasus and SFCB. The WBEM servers that are now recognized,
+  are:
+
+    * ``"OpenPegasus"``
+    * ``"SFCB"`` (Small Footprint CIM Broker)
+    * ``"WBEM Solutions J WBEM Server"``
+    * ``"EMC CIM Server"``
+    * ``"FUJITSU CIM Object Manager"``
+
   See issue #1422.
 
 * Added `__str__()` methods to the `WBEMServer`, `WBEMListener`, and
