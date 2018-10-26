@@ -105,7 +105,7 @@ from pprint import pprint as pp  # noqa: F401
 try:
     import readline as _readline
     _HAVE_READLINE = True
-except ImportError as arg:
+except ImportError:
     _HAVE_READLINE = False
 
 from pywbem import WBEMConnection

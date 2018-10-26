@@ -769,7 +769,7 @@ def runtestcase(testcase):
     try:
         op_call = getattr(conn, op_name)
 
-    except AttributeError as exc:
+    except AttributeError:
         raise ClientTestError("Unknown operation name: %s" % op_name)
 
     # Invoke the PyWBEM operation to be tested
