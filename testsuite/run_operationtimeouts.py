@@ -161,7 +161,7 @@ class ServerTimeoutTest(ClientTest):
 
         # this exception tests against expected result. It terminates the
         # test only if the timeout is not expected
-        except TimeoutError as ce:
+        except TimeoutError:
             execution_time = opttimer.elapsed_sec()
             err_flag = "TimeoutError"
             execution_time = opttimer.elapsed_sec()
