@@ -15,6 +15,10 @@ exclude =
 
 # remove the comment and it will ignore noga entries at least in files.
 #disable_noqa
-    
+
+# Globally disabled flake8 issues:    
+# * W504 (line break after binary operator) is issued since 10/2018 in situations
+#   that are ok (e.g. within brackets).
 ignore =
+    W504
 
