@@ -419,7 +419,7 @@ class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
         # test repr output
         self.assert_regexp_matches(
             stat_repr,
-            'Statistics\(')  # pylint: disable=anomalous-backslash-in-string
+            r'Statistics\(')
 
         self.assert_regexp_contains(
             stat_repr,
