@@ -707,7 +707,8 @@ class WBEMServer(object):
         return rtn
 
     def get_central_instances(self, profile_path, central_class=None,
-                              scoping_class=None, scoping_path=None):
+                              scoping_class=None, scoping_path=None,
+                              reference_direction='dmtf'):
         # pylint: disable=line-too-long
         """
         Return the instance paths of the central instances of a management
@@ -776,6 +777,36 @@ class WBEMServer(object):
             implementation supports only the scoping class methodology.
             `None` will cause the scoping class methodology not to be attempted.
 
+          reference_direction (:term:`string`):
+            Defines the navigation direction across the CIM_ReferencedProfile
+            association, i.e. navigating to the component profile in direction
+            of Antecedent (DMTF) or Dependent (SNIA) that determines the
+            relation between registered profiles.  The possible
+            values are 'dmtf' and 'snia'; the default is 'dmtf'. This parameter
+            exists because of different definitions between DMTF and SNIA for the
+            CIM_ReferencedProfile and its subclasses.
+
+            The DMTF definition documented in DSP1033 and the DMTF PRP
+            (DSP1001) is that:
+
+            * Antecedent = referenced profile = component profile
+            * Dependent = referencing profile = autonomous profile
+
+            At the same time, for historical reasons, the SNIA SMI specification
+            is different than the DMTF specifcation .
+
+            SMI-S "Profile Registration Profile" in the SMI-S specification
+            "Common Profiles" book xxx specification is that:
+
+            * Antecedent = autonomous profile
+            * Dependent = component (= sub) profile
+
+            To aid the user in defining this direction, the method
+            :meth:`~py:WBEMServer.determine_reference_direction` attempts to
+            determine whether the dmtf or snia direction has been used by a
+            server based on knowledge of what should be autonomous and/or
+            component profiles.
+
         Returns:
 
           :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
@@ -790,6 +821,15 @@ class WBEMServer(object):
               :class:`~pywbem.CIMInstanceName`.
         """  # noqa: E501
         # pylint: enable=line-too-long
+
+        if reference_direction not in ('dmtf', 'snia'):
+            ValueError(
+                _format("The reference_direction parameter must be 'dmtf' or "
+                        "'snia', but is: {0!A}", reference_direction))
+
+        scoping_result_role = "Dependent" if reference_direction == 'dmtf' \
+            else "Antecedent"
+
         if not isinstance(profile_path, CIMInstanceName):
             raise TypeError(
                 _format("The profile_path argument must be a CIMInstanceName, "
@@ -873,7 +913,7 @@ class WBEMServer(object):
         referencing_profile_paths = self._conn.AssociatorNames(
             ObjectName=profile_path,
             AssocClass="CIM_ReferencedProfile",
-            ResultRole="Dependent")
+            ResultRole=scoping_result_role)
         if not referencing_profile_paths:
             raise ValueError(
                 _format("Server implementation error: No referencing profile "
@@ -930,6 +970,114 @@ class WBEMServer(object):
             total_ci_paths.extend(ci_paths)
 
         return total_ci_paths
+
+    def determine_refrence_direction(self, possible_autonomous_profiles=None,
+                                     possible_component_profiles=None):
+        # pylint: disable=line-too-long
+        """
+        Determine the  CIM_ReferencedProfile class antecedent/dependent
+        navigation direction for this server by testing possible autonomous top level
+        profiles and/or component profiles for their direction. This method may need to be used by
+        because if the differences in the usage of the Dependent and Antecedent
+        reference properties between the DMTF and SNIA specifications. DMTF
+        profiles are defined them with:
+
+            Antecedent = referenced profile = component profile
+            Dependent = referencing profile = autonomous profile
+
+        and generally SNIA SMI-S implementations are defined them with:
+
+            Antecedent = autonomous profile
+            Dependent = component (= sub) profile
+
+        This method processes the CIM_RegisteredProfile and
+        CIM_ReferencedProfile instances with ResultRole set to `Dependent` and
+        then to `Antecedent` to find profiles that return associations for one
+        of the ResultRole settings but not the other. If such an association
+        can be found, that determines the implementation of the
+        antecedent/dependent direction by matching the returns against
+        possible_autonomous_profiles and/or possible_component_profiles.
+
+        If the test determines the direction, it returns a string defining the
+        direction (`dmtf` or `snia`). If no navigation direction can be found
+        the test returns `None` (this is often because the list of autonomous
+        or component profiles is complete with respect to the server being
+        tested).  If the test has inconsistent results it raises an exception.
+
+          Parameters:
+
+            possible_autonomous_profiles (list of :class:`~pywbem.CIMInstanceName`))
+                List of registered profile CIMInstanceName objects that are
+                autonomous profiles. This list is optional but either this list
+                or the possible_component_profiles list must exist.
+
+            possible_component_profiles (list of :class:`~pywbem.CIMInstanceName`))
+                List of registered profile CIMInstanceName objects that are
+                autonomous profiles. This list is optional but either this list
+                or the possible_autonomous_profiles list must exist.
+
+          Returns: (:term:`string` or None)
+            Where the string can be either 'dmtf' or 'snia' if the test
+            determines that the antecedent/dependent definitions match the
+            possible profiles provided.
+
+            None is returned if the test can not find any profiles in the server
+            that match the profile names in either of the lists input.
+
+          Raises:
+            ValueError: If the test finds inconsistent results. This can include
+            the possible_autonomous_profiles list generating one definition and
+            the possible_component_profiles the opposite definition, or one of
+            the lists concluding that the possible direction could be both
+            'dmtf' and 'snia'because of inconsistencies in the instances of
+            CIM_ReferencedProfile or the profiles defined in the server.
+        """  # noqa: E501
+        # pylint: enable=line-too-long
+
+        if not possible_autonomous_profiles and not possible_component_profiles:
+            raise ValueError("Either possible_autonomous_profiles or "
+                             "possible_component_profiles must have a value")
+        assoc_dict = self._count_associators()
+
+        # Returns dictionary where key is profile name and value is dict of
+        # ant: dep: with value count
+        # Reduce to dictionary where ant/dep are 0 and non-zero,
+        # i.e. top and bottom
+        new_dict = {}
+        for key, value in assoc_dict.items():
+            if (not value['dep'] and value['ant']) or (value['dep'] and
+                                                       not value['ant']):
+                new_dict[key] = (value['dep'], value['ant'])
+
+        v0_dict = {}
+        v1_dict = {}
+        for key, value in new_dict.items():
+            if value[0]:
+                v0_dict[key] = value
+            elif value[1]:
+                v1_dict[key] = value
+
+        auto_dir_type = WBEMServer._determine_nav_dir(
+            possible_autonomous_profiles, v0_dict, v1_dict, True)
+        comp_dir_type = WBEMServer._determine_nav_dir(
+            possible_component_profiles, v0_dict, v1_dict, False)
+
+        if auto_dir_type and comp_dir_type:
+            if auto_dir_type == comp_dir_type:
+                return auto_dir_type
+        else:
+            if auto_dir_type:
+                return auto_dir_type
+            elif comp_dir_type:
+                return comp_dir_type
+
+        raise ValueError(
+            _format('Server: {0|A}; Cannot determine '
+                    'CIM_ReferencedProfile direction. '
+                    'Autonomous and component tests do not match. '
+                    'auto_dir_type={1|A}, '
+                    'comp_dir_type={2|A}; ',
+                    self, auto_dir_type, comp_dir_type))
 
     def _determine_interop_ns(self):
         """
@@ -1190,3 +1338,104 @@ class WBEMServer(object):
         mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
                                                  namespace=self.interop_ns)
         self._profiles = mp_insts
+
+    def _count_associators(self):
+        """
+        Create count of associators for CIM_ReferencedProfile using the
+        antecedent and dependent reference properties as ResultRole for each
+        profile defined in server.profiles and return a dictionary of the
+        count. This code does a shortcut in executing EnumerateInstances to get
+        CIM_ReferencedProfile and processing the association locally.
+
+        Returns
+          Dictionary where the keys are the profile names and the value for
+          each key is a dictionary with two keys ('dep' and 'ant')
+          The value for each key is the count of associator paths when the key
+          value is used as the ResultRole
+
+        """
+        try:
+            ref_insts = self.conn.EnumerateInstances(
+                "CIM_ReferencedProfile", namespace=self.interop_ns)
+            # Remove host from responses since the host causes confusion
+            # with the enum of registered profile. Enums do not return host but
+            # the associator properties contain host
+            for ref_inst in ref_insts:
+                for prop in ref_inst.values():
+                    prop.host = None
+
+        except Error as er:
+            print('CIM_ReferencedProfile failed for server=%s exception=%s'
+                  % (self, er))
+            raise
+        # Create a dictionary with:
+        #   key = associator source object path
+        #   value = {'dep' : count of associations,
+        #            'ant' : count of associations}
+        #   where: an association is a reference property that does not have
+        #         same value as the source object path but for which the
+        #         source objectpath is the value of one of the properties
+        associaton_dict = {}
+
+        for profile in self.profiles:
+            profile_key = profile.path
+            # dictionaries to avoid counting multiple associations. Some
+            # servers duplicate associations in subclasses of
+            # CIM_ReferencedProfile
+            ant_dict = {}
+            dep_dict = {}
+            for ref_inst in ref_insts:
+                if profile_key not in associaton_dict:
+                    associaton_dict[profile_key] = {'dep': 0, 'ant': 0}
+                ant = ref_inst['antecedent']
+                dep = ref_inst['dependent']
+                if profile_key != ant and profile_key != dep:
+                    continue
+                if dep != profile_key:
+                    if dep not in dep_dict:
+                        dep_dict[dep] = True
+                        associaton_dict[profile_key]['dep'] += 1
+                if ant != profile_key:
+                    if ant not in ant_dict:
+                        ant_dict[ant] = True
+                        associaton_dict[profile_key]['ant'] += 1
+        return associaton_dict
+
+    @staticmethod
+    def _determine_nav_dir(profile_paths, v0_dict, v1_dict, autonomous):
+        """
+        Determine CIM_ReferencedProfile navigation direction from data in the
+        two dictionaries and profile_paths. Returns string defining navigation
+        direction ('snia' or 'dmtf') or None if the profile list is None
+        or none of the profile paths exist in either v0_dict or v1_dict.
+        The autonomous input parameter defines whether profile_paths are for
+        autonomous profiles or component profiles.
+        """
+        if not profile_paths:
+            return None
+        t = ['snia', 'dmtf']
+        if not autonomous:
+            t.reverse()
+        direction = None
+        v0_paths = []
+        v1_paths = []
+        for path in profile_paths:
+            if path in v0_dict:
+                v0_paths.append(path)
+            elif path in v1_dict:
+                v1_paths.append(path)
+        if v0_paths and not v1_paths:
+            direction = t[0]
+        elif v1_paths and not v0_paths:
+            direction = t[1]
+        else:
+            ps = 'possible %s' % ('autonomous' if autonomous else
+                                  'component')
+            # TODO this ValueError displays paths which makes it unreadable
+            # Clean it up.
+            raise ValueError(
+                _format("Cannot determine navigation direction. "
+                        "determine_refrence_direction shows "
+                        "conflicts in {0!A}. {1!A}={0!A} {2!A}={3!A}",
+                        ps, t[0], v0_paths, t[1], v1_paths))
+        return direction

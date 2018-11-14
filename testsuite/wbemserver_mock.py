@@ -39,8 +39,13 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
                     'dir': TESTSUITE_SCHEMA_DIR},
     'pg_schema': {
         'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'OpenPegasus'),
-        'files': ['PG_Namespace.mof']
-    },
+        'files': ['PG_Namespace.mof']},
+
+    'class_names': ['CIM_Namespace',
+                    'CIM_ObjectManager',
+                    'CIM_RegisteredProfile',
+                    'CIM_ElementConformsToProfile',
+                    'CIM_ReferencedProfile'],
     'system_name': 'Mock_Test_WBEMServerTest',
     'object_manager': {'Name': 'MyFakeObjectManager',
                        'ElementName': 'Pegasus',
@@ -52,8 +57,17 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
                             ('DMTF', 'Profile Registration', '1.0.0'),
                             ('SNIA', 'Server', '1.2.0'),
                             ('SNIA', 'Server', '1.1.0'),
-                            ('SNIA', 'SMI-S', '1.2.0'), ],
-    'element_conforms_to_profile': [['SNIA', 'Server', '1.1.0'], ]
+                            ('SNIA', 'SMI-S', '1.2.0'),
+                            ('SNIA', 'Array', '1.4.0'),
+                            ('SNIA', 'Component', '1.4.0'), ],
+    # TODO The following entry not used.
+    'element_conforms_to_profile': [
+        [('SNIA', 'Server', '1.1.0'), None], ],
+    'referenced_profiles': [
+        (('SNIA', 'Server', '1.2.0'), ('DMTF', 'Indications', '1.1.0')),
+        # (('SNIA', 'Server', '1.2.0'), ('SNIA', 'Array', '1.4.0')),
+        # (('SNIA', 'Array', '1.4.0'), ('DMTF', 'Component', '1.4.0')),
+    ]
 }
 
 
@@ -101,6 +115,8 @@ class WbemServerMock(object):
         self.pg_schema_dir = self.server_mock_data['pg_schema']['dir']
         self.pg_schema_files = self.server_mock_data['pg_schema']['files']
         self.registered_profiles = self.server_mock_data['registered_profiles']
+        self.class_names = self.server_mock_data['class_names']
+        self.referenced_profiles = self.server_mock_data['referenced_profiles']
         self.wbem_server = self.build_mock()
 
     def __str__(self):
@@ -140,12 +156,8 @@ class WbemServerMock(object):
         FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection(default_namespace=default_namespace)
 
-        classnames = ['CIM_Namespace',
-                      'CIM_ObjectManager',
-                      'CIM_RegisteredProfile',
-                      'CIM_ElementConformsToProfile']
         conn.compile_dmtf_schema(self.dmtf_schema_ver, self.schema_dir,
-                                 class_names=classnames, verbose=False)
+                                 class_names=self.class_names, verbose=False)
 
         for fn in self.pg_schema_files:
             pg_file = os.path.join(self.pg_schema_dir, fn)
@@ -269,15 +281,15 @@ class WbemServerMock(object):
         assert rtn_rpinsts, \
             "Expected 1 or more RegisteredProfile instances, got none"
 
-    def build_elementconformstoprofile_inst(self, conn, profile_inst,
-                                            element_inst):
+    def build_elementconformstoprofile_inst(self, conn, profile_path,
+                                            element_path):
         """
         Build an instance of CIM_ElementConformsToProfile and insert into
         repository
         """
         class_name = 'CIM_ElementConformsToProfile'
-        element_conforms_dict = {'ConformantStandard': profile_inst,
-                                 'ManagedElement': element_inst}
+        element_conforms_dict = {'ConformantStandard': profile_path,
+                                 'ManagedElement': element_path}
 
         inst = self.inst_from_classname(conn, class_name,
                                         namespace=self.interop_ns,
@@ -288,6 +300,49 @@ class WbemServerMock(object):
 
         assert conn.EnumerateInstances(class_name, namespace=self.interop_ns)
         assert conn.GetInstance(inst.path)
+
+    def build_referenced_profile_insts(self, server, referenced_profiles):
+        """
+        Build and install in repository the referemced profile instances
+        defined by the referemces parameter. A dictionary of tuples where each
+        tuple contains Antecedent and Dependent reference in terms of the
+        profile name as a tuple (org, name, version).
+
+        Parameters:
+          conn:
+          profiles (dict of tuples where each tuple defines the antecedent
+          and dependent)
+        """
+        class_name = 'CIM_ReferencedProfile'
+        for p in referenced_profiles:
+            antecedent = p[0]
+            dependent = p[1]
+            print('REF_PROF %s ant %s dep %s' % ((p,), antecedent, dependent))
+            antecedent_inst = server.get_selected_profiles(
+                registered_org=antecedent[0],
+                registered_name=antecedent[1],
+                registered_version=antecedent[2])
+            dependent_inst = server.get_selected_profiles(
+                registered_org=dependent[0],
+                registered_name=dependent[1],
+                registered_version=dependent[2])
+
+            assert len(antecedent_inst) == 1
+            assert len(dependent_inst) == 1
+
+            ref_profile_dict = {'Antecedent': antecedent_inst[0].path,
+                                'Dependent': dependent_inst[0].path}
+
+            inst = self.inst_from_classname(server.conn, class_name,
+                                            namespace=self.interop_ns,
+                                            property_values=ref_profile_dict,
+                                            include_missing_properties=False,
+                                            include_path=True)
+            server.conn.add_cimobjects(inst, namespace=self.interop_ns)
+
+            assert server.conn.EnumerateInstances(class_name,
+                                                  namespace=self.interop_ns)
+            assert server.conn.GetInstance(inst.path)
 
     def build_mock(self):
         """
@@ -306,6 +361,7 @@ class WbemServerMock(object):
 
         # Build CIM_ObjectManager instance into the interop namespace since
         # this is required to build namespace instances
+        print('MOCK %s' % self.server_mock_data)
         om_inst = self.build_obj_mgr_inst(
             conn,
             self.system_name,
@@ -322,11 +378,15 @@ class WbemServerMock(object):
 
         self.build_reg_profile_insts(conn, self.registered_profiles)
 
+        self.build_referenced_profile_insts(server, self.referenced_profiles)
+
         # Element conforms for SNIA server to object manager
         prof_inst = server.get_selected_profiles(registered_org='SNIA',
                                                  registered_name='Server',
                                                  registered_version='1.1.0')
-
+        # TODO this is simplistic form and only builds one instance
+        # conforms to.  Should expand but need better way to define instance
+        # at other end.
         self.build_elementconformstoprofile_inst(conn,
                                                  prof_inst[0].path,
                                                  om_inst.path)
