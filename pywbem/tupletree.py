@@ -138,8 +138,8 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
     Parameters:
 
       xml_string (:term:`string`): A unicode string (when called for embedded
-        objects) or byte string (when called for CIM-XML replies) containing
-        the XML to be parsed.
+        objects) or UTF-8 encoded byte string (when called for CIM-XML
+        replies) containing the XML to be parsed.
 
       meaning (:term:`string`):
         Short text with meaning of the XML string, for messages in exceptions.
@@ -158,44 +158,122 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
 
     handler = CIMContentHandler()
 
-    # The following conversion to a byte string is required because the SAX
-    # parser in Python 2.6 and 3.4 (pywbem does not support 3.1 - 3.3) does not
-    # accept unicode strings, raising:
-    #   SAXParseException: "<unknown>:1:1: not well-formed (invalid token)"
-    # or:
-    #   TypeError: 'str' does not support the buffer interface
-    if sys.version_info[0:2] in ((2, 6), (3, 4)):
-        if isinstance(xml_string, six.text_type):
-            xml_string = xml_string.encode("utf-8")
+    # The following conversion to a byte string is required for two reasons:
+    # 1. xml.sax.parseString() raises UnicodeEncodeError for unicode strings
+    #    that contain any non-ASCII characters (despite its Python 2.7
+    #    documentation which states that would be supported).
+    # 2. The SAX parser in Python 2.6 and 3.4 (pywbem does not support 3.1 -
+    #    3.3) does not accept unicode strings, raising:
+    #      SAXParseException: "<unknown>:1:1: not well-formed (invalid token)"
+    #    or:
+    #      TypeError: 'str' does not support the buffer interface
+    if isinstance(xml_string, six.text_type):
+        xml_string = xml_string.encode("utf-8")
 
     try:
         xml.sax.parseString(xml_string, handler, None)
-    except (xml.sax.SAXParseException, UnicodeEncodeError) as exc:
+    except xml.sax.SAXParseException as exc:
 
-        # xml.sax.parse() is documented to only raise SAXParseException, and
-        # xml.sax.parseString() in addition has been found to raise
-        # UnicodeEncodeError, so only those are caught. Other exception types
-        # are unexpected and will perculate upwards.
+        # xml.sax.parse() is documented to only raise SAXParseException. In
+        # earlier versions of this code, xml.sax.parseString() has been found
+        # to raise UnicodeEncodeError when unicode strings were passed, but
+        # that is no longer done, so that exception is no longer caught.
+        # Other exception types are unexpected and will perculate upwards.
 
         # Traceback of the exception that was caught
         org_tb = sys.exc_info()[2]
 
         # Improve quality of exception info (the check...() functions may
         # raise ParseError):
-        if isinstance(xml_string, six.binary_type):
-            xml_string = check_invalid_utf8_sequences(xml_string, meaning,
-                                                      conn_id)
-        check_invalid_xml_chars(xml_string, meaning, conn_id)
+        _chk_str = check_invalid_utf8_sequences(xml_string, meaning, conn_id)
+        check_invalid_xml_chars(_chk_str, meaning, conn_id)
 
         # If the checks above pass, re-raise the SAX exception info, with its
         # original traceback info:
+        lineno, colno, new_colno, line = get_failing_line(xml_string, str(exc))
+        if lineno is not None:
+            marker_line = ' ' * (new_colno - 1) + '^'
+            xml_msg = _format(
+                "Line {0} column {1} of XML string (as binary UTF-8 string):\n"
+                "{2}\n"
+                "{3}",
+                lineno, colno, line, marker_line)
+        else:
+            xml_msg = _format(
+                "XML string (as binary UTF-8 string):\n"
+                "{0}",
+                line)
+
         pe = ParseError(
-            _format("SAXParseException raised when parsing {0}: {1}",
-                    meaning, exc),
+            _format("XML parsing error encountered in {0}: {1}\n{2}\n",
+                    meaning, exc, xml_msg),
             conn_id=conn_id)
         six.reraise(type(pe), pe, org_tb)  # ignore this call in traceback!
 
     return handler.root
+
+
+def truncate_line(line, colno, max_before, max_after):
+    """
+    Truncate the line (binary string) so that left of the 1-based colno
+    poasition there are at most max_before characters, and right of the
+    colno position there are at most max_after characters.
+    If truncated, '...' is added before or after to indicate the truncation.
+    Returns a tuple (truncated line, new position)
+    """
+    line_len = len(line)
+    new_colno = colno
+    truncated_after = False
+    truncated_before = False
+    len_after = line_len - colno
+    if len_after > max_after:
+        truncated_after = True
+        line = line[:colno + max_after]
+    len_before = colno - 1
+    if len_before > max_before:
+        truncated_before = True
+        line = line[len_before - max_before:]
+        new_colno -= len_before - max_before
+    line = _format("{0!A}", line)
+    new_colno += 1  # the leading single quote
+    if truncated_before:
+        line = '...' + line
+        new_colno += 3
+    if truncated_after:
+        line = line + '...'
+    return line, new_colno
+
+
+def get_failing_line(xml_string, exc_msg):
+    """
+    Extract the failing line from the XML string, as indicated by the
+    line/column information in the exception message.
+
+    Returns a tuple (lineno, colno, new_pos, line), where lineno and colno
+    and marker_pos may be None.
+    """
+    max_before = 500  # max characters before reported position
+    max_after = 500  # max characters after reported position
+    max_unknown = 1000  # max characters when position cannot be determined
+    assert isinstance(xml_string, six.binary_type)
+    m = re.search(r':(\d+):(\d+):', exc_msg)
+    if not m:
+        xml_string, _ = truncate_line(xml_string, 1, 0, max_unknown - 1)
+        return None, None, None, xml_string
+    lineno = int(m.group(1))
+    colno = int(m.group(2))
+    if not xml_string.endswith(b'\n'):
+        xml_string += b'\n'
+    xml_lines = xml_string.splitlines()
+    if len(xml_lines) < lineno:
+        # This really should not happen; it means the line parsing went wrong
+        # or SAX reported incorrect lines. We do not particularly care for
+        # this case and simply truncate the string.
+        xml_string, _ = truncate_line(xml_string, 1, 0, max_unknown - 1)
+        return None, None, None, xml_string
+    line = xml_lines[lineno - 1]
+    line, new_pos = truncate_line(line, colno, max_before, max_after)
+    return lineno, colno, new_pos, line
 
 
 # Patterns for check_invalid_utf8_sequences()
