@@ -392,6 +392,9 @@ This version contains all fixes up to pywbem 0.12.4.
   information. Previously, this defaulted to the result of `__repr__()`.
   See issue #1424.
 
+* Improved the quality of any `ParseError` exception messages when the SAX
+  parser detects errors in CIM-XML responses. See issue #1438.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
