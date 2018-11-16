@@ -22,7 +22,7 @@ search: False
 # The list items are sub-options: update, pin
 # Unspecified sub-options are inherited from the global options
 requirements:
-  - requirements.txt:
+  - requirements.txt
 
 #      pin: False
 #  - dev-requirements.txt:
