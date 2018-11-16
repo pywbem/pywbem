@@ -161,7 +161,7 @@ terminado==0.6
 testpath==0.3
 tornado==4.4.2
 traceback2==1.4.0
-traitlets==4.3.1
+traitlets==4.3.2
 urllib3==1.22
 wcwidth==0.1.7
 widgetsnbextension==1.2.6
