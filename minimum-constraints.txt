@@ -118,7 +118,7 @@ clint==0.5.1
 coverage==4.0.3
 decorator==4.0.10
 docutils==0.13.1
-entrypoints==0.2.2
+entrypoints==0.2.3
 gitdb2==2.0.0
 html5lib==0.9999999
 idna==2.5
