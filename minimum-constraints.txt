@@ -107,7 +107,7 @@ jupyter==1.0.0
 
 # Indirect dependencies for development (must be consistent with dev-requirements.txt)
 
-alabaster==0.7.9
+alabaster==0.7.12
 appnope==0.1.0
 args==0.1.0
 astroid==1.4.9
