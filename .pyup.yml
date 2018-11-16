@@ -33,7 +33,7 @@ pin: False
 
 # Add a label to pull requests created by the pyup bot.
 # Default is no label (empty).
-#label_prs: "review needed"
+label_prs: "review needed"
 
 # Assign users to pull requests created by the pyup bot.
 # Default is no assigned user (empty).
