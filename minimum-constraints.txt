@@ -38,7 +38,7 @@
 #   pbr         1.10.0    2016-05-23
 
 pip==9.0.1
-setuptools==33.1.1
+setuptools==40.6.2
 wheel==0.29.0
 
 
