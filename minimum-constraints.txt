@@ -155,7 +155,7 @@ requests==2.12.4
 requests-toolbelt==0.7.0
 sh==1.12.14
 simplegeneric==0.8.1
-smmap2==2.0.1
+smmap2==2.0.5
 snowballstemmer==1.2.1
 terminado==0.6
 testpath==0.3
