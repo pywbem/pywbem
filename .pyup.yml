@@ -9,37 +9,37 @@ update: insecure
 # Global option for pinning unpinned dependencies
 # default: True
 # allowed: True, False
-pin: False
+#pin: False
 
 # Search for requirement files
 # default: True
 # allowed: True, False
-search: False
+#search: False
 
 # Specify requirement files by hand, default is empty
 # default: empty
 # allowed: list
 # The list items are sub-options: update, pin
 # Unspecified sub-options are inherited from the global options
-requirements:
-  - requirements.txt:
-    pin: False
-  - dev-requirements.txt:
-    pin: False
-  - rtd-requirements.txt:
-    pin: False
+#requirements:
+#  - requirements.txt:
+#    pin: False
+#  - dev-requirements.txt:
+#    pin: False
+#  - rtd-requirements.txt:
+#    pin: False
 #  - minimum-constraints.txt:
 #    pin: True
 
 # Add a label to pull requests created by the pyup bot.
 # Default is no label (empty).
-label_prs: "review needed"
+#label_prs: "review needed"
 
 # Assign users to pull requests created by the pyup bot.
 # Default is no assigned user (empty).
-assignees:
- - andy-maier
+#assignees:
+# - andy-maier
 
 # Branch prefix used for pull requests created by the pyup bot.
 # Default: pyup-
-branch_prefix: pyup/
+#branch_prefix: pyup/
