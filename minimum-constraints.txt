@@ -117,7 +117,7 @@ chardet==3.0.2
 clint==0.5.1
 coverage==4.0.3
 decorator==4.0.10
-docutils==0.13.1
+docutils==0.14
 entrypoints==0.2.2
 gitdb2==2.0.0
 html5lib==0.9999999
