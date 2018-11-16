@@ -123,7 +123,7 @@ gitdb2==2.0.0
 html5lib==0.9999999
 idna==2.5
 imagesize==0.7.1
-ipykernel==4.5.2
+ipykernel==5.1.0
 ipython==5.1.0
 ipython_genutils==0.1.0
 ipywidgets==5.2.2
