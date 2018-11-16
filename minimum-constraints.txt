@@ -134,7 +134,7 @@ jupyter_console==5.0.0
 jupyter_core==4.2.1
 linecache2==1.0.0
 MarkupSafe==0.23
-mistune==0.7.3
+mistune==0.8.4
 nbconvert==5.0.0
 nbformat==4.2.0
 notebook==4.3.1
