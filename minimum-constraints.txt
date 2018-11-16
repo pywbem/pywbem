@@ -112,7 +112,7 @@ appnope==0.1.0
 args==0.1.0
 astroid==1.4.9
 Babel==2.3.4
-bleach==1.5.0
+bleach==3.0.2
 chardet==3.0.2
 clint==0.5.1
 coverage==4.0.3
