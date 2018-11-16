@@ -122,7 +122,7 @@ entrypoints==0.2.2
 gitdb2==2.0.0
 html5lib==0.9999999
 idna==2.5
-imagesize==0.7.1
+imagesize==1.1.0
 ipykernel==4.5.2
 ipython==5.1.0
 ipython_genutils==0.1.0
