@@ -116,7 +116,7 @@ bleach==1.5.0
 chardet==3.0.2
 clint==0.5.1
 coverage==4.0.3
-decorator==4.0.10
+decorator==4.3.0
 docutils==0.13.1
 entrypoints==0.2.2
 gitdb2==2.0.0
