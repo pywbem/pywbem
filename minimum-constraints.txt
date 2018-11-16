@@ -81,7 +81,7 @@ pytest-cov==2.4.0
 # Sphinx (no imports, invoked via sphinx-build script):
 Sphinx==1.7.6
 sphinx-git==10.1.1
-GitPython==2.1.1
+GitPython==2.1.11
 
 # PyLint (no imports, invoked via pylint script) - does not support py3:
 pylint==1.6.4
