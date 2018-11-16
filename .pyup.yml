@@ -14,22 +14,22 @@ pin: False
 # Search for requirement files
 # default: True
 # allowed: True, False
-#search: False
+search: False
 
 # Specify requirement files by hand, default is empty
 # default: empty
 # allowed: list
 # The list items are sub-options: update, pin
 # Unspecified sub-options are inherited from the global options
-#requirements:
-#  - requirements.txt:
-#    pin: False
+requirements:
+  - requirements.txt:
+      pin: False
 #  - dev-requirements.txt:
-#    pin: False
+#      pin: False
 #  - rtd-requirements.txt:
-#    pin: False
+#      pin: False
 #  - minimum-constraints.txt:
-#    pin: True
+#      pin: True
 
 # Add a label to pull requests created by the pyup bot.
 # Default is no label (empty).
