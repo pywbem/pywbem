@@ -158,7 +158,7 @@ simplegeneric==0.8.1
 smmap2==2.0.1
 snowballstemmer==1.2.1
 terminado==0.6
-testpath==0.3
+testpath==0.4.2
 tornado==4.4.2
 traceback2==1.4.0
 traitlets==4.3.1
