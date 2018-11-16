@@ -18,15 +18,26 @@ search: False
 
 # Specify requirement files by hand, default is empty
 # default: empty
-# allowed: list
-# The list items are sub-options: update, pin
-# Unspecified sub-options are inherited from the global options
+# allowed: list of file paths.
+# Each file path can be a string value, or an object (=dict) specifying options
+# for the file. Other than documented, they do not inherit the global defaults,
+# but default to the following:
+# - pin: True
+# - compile: False
+# - update: all
 requirements:
-  - requirements.txt
-  - dev-requirements.txt
-  - rtd-requirements.txt
+  - requirements.txt:
+      pin: False
+      update: insecure
+  - dev-requirements.txt:
+      pin: False
+      update: insecure
+  - rtd-requirements.txt:
+      pin: False
+      update: insecure
   - minimum-constraints.txt:
       pin: True
+      update: insecure
 
 # Add a label to pull requests created by the pyup bot.
 # Default is no label (empty).
