@@ -129,7 +129,7 @@ ipython_genutils==0.1.0
 ipywidgets==5.2.2
 Jinja2==2.8
 jsonschema==2.5.1
-jupyter_client==4.4.0
+jupyter_client==5.2.3
 jupyter_console==5.0.0
 jupyter_core==4.2.1
 linecache2==1.0.0
