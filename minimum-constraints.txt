@@ -89,7 +89,7 @@ pylint==1.6.4
 # Flake8 and dependents (no imports, invoked via flake8 script):
 #
 flake8==2.6.2; python_version == '2.6'
-mccabe==0.5.3; python_version == '2.6'
+mccabe==0.6.1; python_version == '2.6'
 pycodestyle==2.0.0; python_version == '2.6'
 pyflakes==1.2.3; python_version == '2.6'
 #
