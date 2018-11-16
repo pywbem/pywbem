@@ -75,6 +75,10 @@ funcsigs==1.0.2; python_version == '2'
 python-coveralls==2.8.0
 coverage==4.0.3
 
+# Safety CI by pyup.io
+safety==1.8.4
+dparse==0.4.1
+
 # Unit test (no imports, invoked via py.test script):
 pytest-cov==2.4.0
 

@@ -369,7 +369,7 @@ builddoc: html
 	@echo "makefile: Target $@ done."
 
 .PHONY: check
-check: flake8.log
+check: flake8.log safety.log
 	@echo "makefile: Target $@ done."
 
 .PHONY: pylint
@@ -546,6 +546,13 @@ else
 	mv -f flake8.tmp.log flake8.log
 	@echo "makefile: Done running Flake8; Log file: $@"
 endif
+
+safety.log: makefile minimum-constraints.txt
+	@echo "makefile: Running pyup.io safety check"
+	rm -f $@
+	-bash -c "set -o pipefail; safety check -r minimum-constraints.txt --full-report |tee $@.tmp"
+	mv -f $@.tmp $@
+	@echo "makefile: Done running pyup.io safety check; Log file: $@"
 
 .PHONY: test
 test: makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/*.py testsuite/test_uprint.* testsuite/testclient/*.py testsuite/testclient/*.yaml coveragerc
