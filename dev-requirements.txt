@@ -49,7 +49,7 @@ GitPython>=2.1.1; python_version >= '2.7'
 pylint>=1.6.4; python_version == '2.7'
 
 # Flake8 (no imports, invoked via flake8 script):
-flake8>=2.6.2,<3.0.0; python_version == '2.6'
+flake8==3.6.0; python_version == '2.6'
 flake8>=3.2.1; python_version > '2.6'
 
 # Twine (no imports, invoked via twine script):
