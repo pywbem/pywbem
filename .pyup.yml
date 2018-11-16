@@ -26,15 +26,15 @@ search: False
 # - compile: False
 # - update: all
 requirements:
-  - requirements.txt:
-      pin: False
-      update: insecure
-  - dev-requirements.txt:
-      pin: False
-      update: insecure
-  - rtd-requirements.txt:
-      pin: False
-      update: insecure
+#  - requirements.txt:
+#      pin: False
+#      update: insecure
+#  - dev-requirements.txt:
+#      pin: False
+#      update: insecure
+#  - rtd-requirements.txt:
+#      pin: False
+#      update: insecure
   - minimum-constraints.txt:
       pin: True
       update: insecure
