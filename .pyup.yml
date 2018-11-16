@@ -23,7 +23,8 @@ search: False
 # Unspecified sub-options are inherited from the global options
 requirements:
   - requirements.txt:
-      pin: False
+
+#      pin: False
 #  - dev-requirements.txt:
 #      pin: False
 #  - rtd-requirements.txt:
