@@ -126,7 +126,7 @@ imagesize==0.7.1
 ipykernel==4.5.2
 ipython==5.1.0
 ipython_genutils==0.1.0
-ipywidgets==5.2.2
+ipywidgets==7.4.2
 Jinja2==2.8
 jsonschema==2.5.1
 jupyter_client==4.4.0
