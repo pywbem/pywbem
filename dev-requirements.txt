@@ -29,6 +29,9 @@ funcsigs>=1.0.2; python_version == '2'
 # coverage>=3.7.1 and thus would get coverage 4.5 1 if processed first.
 python-coveralls>=2.8.0; python_version == '2.7'
 
+# Safety CI by pyup.io
+safety>=1.8.4
+
 # Unit test (no imports, invoked via py.test script):
 
 # TODO: Remove the pinning of the pytest-cov version again once issue
