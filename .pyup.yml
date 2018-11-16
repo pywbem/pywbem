@@ -9,7 +9,7 @@ update: insecure
 # Global option for pinning unpinned dependencies
 # default: True
 # allowed: True, False
-#pin: False
+pin: False
 
 # Search for requirement files
 # default: True
@@ -37,9 +37,9 @@ update: insecure
 
 # Assign users to pull requests created by the pyup bot.
 # Default is no assigned user (empty).
-#assignees:
-# - andy-maier
+assignees:
+ - andy-maier
 
 # Branch prefix used for pull requests created by the pyup bot.
 # Default: pyup-
-#branch_prefix: pyup/
+branch_prefix: pyup/
