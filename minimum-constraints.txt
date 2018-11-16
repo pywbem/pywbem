@@ -72,7 +72,7 @@ yamlordereddictloader==0.4.0
 funcsigs==1.0.2; python_version == '2'
 
 # Coverage reporting (no imports, invoked via coveralls script):
-python-coveralls==2.8.0
+python-coveralls==2.9.1
 coverage==4.0.3
 
 # Unit test (no imports, invoked via py.test script):
