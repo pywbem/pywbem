@@ -157,7 +157,7 @@ sh==1.12.14
 simplegeneric==0.8.1
 smmap2==2.0.1
 snowballstemmer==1.2.1
-terminado==0.6
+terminado==0.8.1
 testpath==0.3
 tornado==4.4.2
 traceback2==1.4.0
