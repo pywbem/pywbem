@@ -152,7 +152,7 @@ pytz==2016.10
 pyzmq==16.0.4
 qtconsole==4.2.1
 requests==2.12.4
-requests-toolbelt==0.7.0
+requests-toolbelt==0.8.0
 sh==1.12.14
 simplegeneric==0.8.1
 smmap2==2.0.1
