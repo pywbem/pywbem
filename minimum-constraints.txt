@@ -143,7 +143,7 @@ pexpect==4.2.1
 pickleshare==0.7.4
 pkginfo==1.4.1
 prompt-toolkit==1.0.15
-ptyprocess==0.5.1
+ptyprocess==0.6.0
 # py version is determined by pytest:
 py==1.4.32; python_version == '2.6'
 py==1.5.1; python_version > '2.6'
