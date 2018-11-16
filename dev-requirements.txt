@@ -69,4 +69,4 @@ jupyter>=1.0.0; python_version >= '2.7'
 # The following is a circumvention of this issue that nails the tornado
 # version to below 5.0 on Python 2.
 # TODO: Follow up on resolution of this issue.
-tornado<5.0; python_version <= '2.7'
+tornado==5.1.1; python_version <= '2.7'
