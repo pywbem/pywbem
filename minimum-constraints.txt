@@ -84,7 +84,7 @@ sphinx-git==10.1.1
 GitPython==2.1.1
 
 # PyLint (no imports, invoked via pylint script) - does not support py3:
-pylint==1.6.4
+pylint==2.1.1
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 #
