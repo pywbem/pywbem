@@ -23,10 +23,13 @@ search: False
 # Unspecified sub-options are inherited from the global options
 requirements:
   - requirements.txt:
+    pin: False
   - dev-requirements.txt:
+    pin: False
   - rtd-requirements.txt:
-  - minimum-constraints.txt:
-    pin: True
+    pin: False
+#  - minimum-constraints.txt:
+#    pin: True
 
 # Add a label to pull requests created by the pyup bot.
 # Default is no label (empty).
