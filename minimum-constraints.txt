@@ -99,7 +99,7 @@ pycodestyle==2.2.0; python_version > '2.6'
 pyflakes==1.3.0; python_version > '2.6'
 
 # Twine (no imports, invoked via twine script):
-twine==1.8.1
+twine==1.12.1
 
 # Jupyter Notebook (no imports, invoked via jupyter script):
 jupyter==1.0.0
