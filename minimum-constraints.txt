@@ -79,7 +79,7 @@ coverage==4.0.3
 pytest-cov==2.4.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
-Sphinx==1.7.6
+Sphinx==1.8.2
 sphinx-git==10.1.1
 GitPython==2.1.1
 
