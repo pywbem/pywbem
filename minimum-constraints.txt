@@ -44,7 +44,7 @@ wheel==0.29.0
 
 # Direct dependencies for runtime (must be consistent with requirements.txt)
 
-pbr==1.10.0
+pbr==5.1.1
 six==1.10.0
 ply==3.10
 PyYAML==3.13
