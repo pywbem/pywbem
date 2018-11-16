@@ -159,7 +159,7 @@ smmap2==2.0.1
 snowballstemmer==1.2.1
 terminado==0.6
 testpath==0.3
-tornado==4.4.2
+tornado==5.1.1
 traceback2==1.4.0
 traitlets==4.3.1
 urllib3==1.22
