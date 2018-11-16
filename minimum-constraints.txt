@@ -46,7 +46,7 @@ wheel==0.29.0
 
 pbr==1.10.0
 six==1.10.0
-ply==3.10
+ply==3.11
 PyYAML==3.13
 M2Crypto==0.30.1
 ordereddict==1.1
