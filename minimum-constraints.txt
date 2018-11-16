@@ -124,7 +124,7 @@ html5lib==0.9999999
 idna==2.5
 imagesize==0.7.1
 ipykernel==4.5.2
-ipython==5.1.0
+ipython==7.1.1
 ipython_genutils==0.1.0
 ipywidgets==5.2.2
 Jinja2==2.8
