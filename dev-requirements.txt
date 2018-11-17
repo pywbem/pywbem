@@ -1,10 +1,10 @@
-# Additional pip requirements file for pywbem development dependencies.
+# Additional pip requirements file for pywbem develop.
 #
 # The order of packages is significant, because pip processes them in the order
 # of appearance.
 
-# Make sure that the package versions in minimum-constraints.txt are also
-# the minimum versions required in requirements.txt and dev-requirements.txt.
+# Make sure that the minimum versions required in this file are also the
+# versions defined in minimum-constraints.txt.
 
 
 # Direct dependencies:
@@ -18,10 +18,10 @@ testfixtures>=4.3.3,<6.0.0
 httpretty>=0.8.14,<0.9.1; python_version == '2.6'
 httpretty>=0.9.5; python_version > '2.6'
 lxml>=4.2.4
-requests>=2.12.4
+requests>=2.19.1
 decorator>=4.0.11
 yamlordereddictloader>=0.4.0
-funcsigs>=1.0.2; python_version == '2'
+funcsigs>=1.0.2
 
 # Coverage reporting (no imports, invoked via coveralls script, only used on py27):
 # Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore
@@ -73,3 +73,7 @@ jupyter>=1.0.0; python_version >= '2.7'
 # version to below 5.0 on Python 2.
 # TODO: Follow up on resolution of this issue.
 tornado<5.0; python_version <= '2.7'
+
+
+# Indirect dependencies are no longer specified here, but for testing with a
+# minimum version, they are listed in the minimum-constraints.txt file.

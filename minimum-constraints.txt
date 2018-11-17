@@ -1,18 +1,9 @@
-# Pip constraints file for runtime and development.
+# Pip constraints file.
 #
-# This constraints file specifies constraints that match the minimum versions
-# specified in the requirements files for runtime and development. The reason
-# for this approach is that in the CI systems, we want to be able to test with
-# the minimum package versions in order to catch any incorrect minimum versions
-# (see zhmcclient issue #199 as one example where a minimum version was
-# missing).
-
-# The versions specified in this file were the latest versions released on Pypi
-# as of zhmcclient v0.9.0 (2016-12-27, see Travis CI run #576
-# https://travis-ci.org/zhmcclient/python-zhmcclient/builds/186986898).
-
-# Make sure that the package versions in minimum-constraints.txt are also
-# the minimum versions required in requirements.txt and dev-requirements.txt.
+# This file specifies constraints that define the minimum versions of any
+# direct and indirect dependent packages for both install and develop.
+# They are used when setting up test environments with the minimum versions of
+# any dependent packages.
 
 
 # Dependencies for installation with Pip (must be installed in a separate pip call)
@@ -42,34 +33,37 @@ setuptools==33.1.1
 wheel==0.29.0
 
 
-# Direct dependencies for runtime (must be consistent with requirements.txt)
+# Direct dependencies for install (must be consistent with requirements.txt)
 
+M2Crypto==0.30.1
+mock==2.0.0
+ordereddict==1.1
 pbr==1.10.0
-six==1.10.0
 ply==3.10
 PyYAML==3.13
-M2Crypto==0.30.1
-ordereddict==1.1
-
-# Indirect dependencies for runtime (must be consistent with requirements.txt)
-# None
+six==1.10.0
 
 
-# Direct dependencies for development (must be consistent with dev-requirements.txt)
+# Indirect dependencies for install (not in requirements.txt)
+
+typing==3.6.1  # from M2Crypto
+# funcsigs; is covered in direct deps for develop, from mock
+
+
+# Direct dependencies for develop (must be consistent with dev-requirements.txt)
 
 # Unit test (imports into testcases):
 unittest2==1.1.0
 pytest==3.0.7; python_version == '2.6'
 pytest==3.3.0; python_version > '2.6'
 testfixtures==4.3.3
-mock==2.0.0
 httpretty==0.8.14; python_version == '2.6'
 httpretty==0.9.5; python_version > '2.6'
 lxml==4.2.4
-requests==2.12.4
+requests==2.19.1
 decorator==4.0.11
 yamlordereddictloader==0.4.0
-funcsigs==1.0.2; python_version == '2'
+funcsigs==1.0.2
 
 # Coverage reporting (no imports, invoked via coveralls script):
 python-coveralls==2.8.0
@@ -109,7 +103,7 @@ twine==1.8.1
 jupyter==1.0.0
 
 
-# Indirect dependencies for development (must be consistent with dev-requirements.txt)
+# Indirect dependencies for develop (not in dev-requirements.txt)
 
 alabaster==0.7.9
 appnope==0.1.0
@@ -124,7 +118,7 @@ decorator==4.0.10
 docutils==0.13.1
 entrypoints==0.2.2
 gitdb2==2.0.0
-html5lib==0.9999999
+html5lib==0.999999999
 idna==2.5
 imagesize==0.7.1
 ipykernel==4.5.2
@@ -138,7 +132,7 @@ jupyter_console==5.0.0
 jupyter_core==4.2.1
 linecache2==1.0.0
 MarkupSafe==0.23
-mistune==0.7.3
+mistune==0.8.1
 nbconvert==5.0.0
 nbformat==4.2.0
 notebook==4.3.1
@@ -155,7 +149,6 @@ Pygments==2.1.3
 pytz==2016.10
 pyzmq==16.0.4
 qtconsole==4.2.1
-requests==2.12.4
 requests-toolbelt==0.7.0
 sh==1.12.14
 simplegeneric==0.8.1

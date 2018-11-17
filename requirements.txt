@@ -1,19 +1,23 @@
-# Pip requirements file for pywbem runtime dependencies.
+# Pip requirements file for pywbem install.#
 #
 # The order of packages is significant, because pip processes them in the order
 # of appearance.
 
-# Make sure that the package versions in minimum-constraints.txt are also
-# the minimum versions required in requirements.txt and dev-requirements.txt.
+# Make sure that the minimum versions required in this file are also the
+# versions defined in minimum-constraints.txt.
 
 
 # Direct dependencies (except pip, setuptools, wheel):
 
-pbr>=1.10.0
-six>=1.10.0
-ply>=3.10
-PyYAML>=3.13  # yaml package
 # On Windows, M2Crypto must be installed via pywbem_os_setup.bat
 M2Crypto>=0.30.1; python_version < '3.0' and sys_platform != 'win32'
-ordereddict>=1.1; python_version == '2.6'
 mock>=2.0.0
+ordereddict>=1.1; python_version == '2.6'
+pbr>=1.10.0
+ply>=3.10
+PyYAML>=3.13  # yaml package
+six>=1.10.0
+
+
+# Indirect dependencies are no longer specified here, but for testing with a
+# minimum version, they are listed in the minimum-constraints.txt file.
