@@ -183,6 +183,13 @@ This version contains all fixes up to pywbem 0.12.4.
   input but since string is an interable it was allowed but misused. Extended
   code to specifically allow single string on input. See issue #1227.
 
+* Increased the minimum required versions of the following dependent Python
+  packages in order to fix security issues with these packages:
+
+  - requests from 2.12.4 to 2.19.1
+  - html5lib from 0.9999999 to 0.999999999
+  - mistune from 0.7.3 to 0.8.1
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
