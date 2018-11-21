@@ -543,7 +543,7 @@ def test_format_fixed(testcase, format_str, format_args, format_kwargs,
 
 
 UNICODE_CP_LIST = [
-    0x0020, 0x00e0, 0x0412, 0x0001d122,
+    0x0020, 0x0022, 0x0027, 0x00e0, 0x0412, 0x0001d122,
 ]
 UNICODE_CP_LIST.extend(random.sample(six.moves.range(0, 0x10ffff), 100))
 
@@ -583,7 +583,10 @@ def test_format_random(unicode_cp):
     # Construct the expected formatting result. Note that the result is
     # ASCII-only in all cases.
     if unicode_cp < 0x7F:
-        exp_result = "'{0}'".format(unicode_char)
+        if unicode_char == "'":
+            exp_result = '"\'"'
+        else:
+            exp_result = "'{0}'".format(unicode_char)
     elif unicode_cp < 0x10000:
         exp_result = "'\\u{0:04x}'".format(unicode_cp)
     else:
