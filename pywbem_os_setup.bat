@@ -64,8 +64,8 @@ echo Done installing Swig
 
 :: The bit size of Win32/64OpenSSL must match the bit size of the Python env.
 set _WINOPENSSL_BITSIZE=%PYTHON_ARCH%
-set _WINOPENSSL_BASENAME=Win%_WINOPENSSL_BITSIZE%OpenSSL-1_1_0i
-set _WINOPENSSL_INSTALL_DIR=C:\OpenSSL-1-1-0i-Win%_WINOPENSSL_BITSIZE%
+set _WINOPENSSL_BASENAME=Win%_WINOPENSSL_BITSIZE%OpenSSL-1_1_0j
+set _WINOPENSSL_INSTALL_DIR=C:\OpenSSL-1-1-0j-Win%_WINOPENSSL_BITSIZE%
 if exist %_WINOPENSSL_INSTALL_DIR% (
     echo %_WINOPENSSL_BASENAME% is already installed in %_WINOPENSSL_INSTALL_DIR% ... skipping
     goto done_winopenssl
