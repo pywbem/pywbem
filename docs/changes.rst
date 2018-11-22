@@ -439,6 +439,14 @@ This version contains all fixes up to pywbem 0.12.4.
   This is only a workaround; An issue against python-coveralls has been
   opened: https://github.com/z4r/python-coveralls/issues/66
 
+* Added the concept of end2end tests for pywbem.
+  The end2end tests execute test files named `test_*.py` within the
+  `testsuite/end2end` directory against groups of real WBEM servers defined by
+  a WBEM server definition file in YAML syntax:
+  `testsuite/end2end/server_file.yml`.
+  There is an example file `server_file_example.yml`.
+  There are some initial tests, and users can define their own tests.
+
 **Known issues:**
 
 * See `list of open issues`_.

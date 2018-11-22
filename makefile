@@ -183,6 +183,7 @@ py_src_files := \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
     $(wildcard testsuite/*.py) \
     $(wildcard testsuite/testclient/*.py) \
+		$(wildcard testsuite/end2end/*.py) \
     wbemcli \
     wbemcli.py \
     mof_compiler \
@@ -191,6 +192,8 @@ py_src_files := \
 # Test log
 test_log_file := test_$(python_mn_version).log
 test_tmp_file := test_$(python_mn_version).tmp.log
+test_end2end_log_file := test_end2end_$(python_mn_version).log
+test_end2end_tmp_file := test_end2end_$(python_mn_version).tmp.log
 
 ifdef TESTCASES
 pytest_opts := $(TESTOPTS) -k $(TESTCASES)
@@ -239,6 +242,7 @@ help:
 	@echo "  pylint     - Run PyLint on sources and save results in: pylint.log"
 	@echo "  test       - Run tests and save results in: $(test_log_file)"
 	@echo "  all        - Do all of the above"
+	@echo "  end2end    - Run end2end tests and save results in: $(test_end2end_log_file)"
 	@echo "  install_os - Install OS-level installation and runtime prereqs"
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
@@ -253,6 +257,8 @@ help:
 	@echo "  TESTCASES - When set, 'test' target runs only the specified test cases. The"
 	@echo "      value is used for the -k option of pytest (see 'pytest --help')."
 	@echo "      Optional, defaults to running all tests."
+	@echo "  TESTSERVER - Optional: Nickname of test server or server group in WBEM server"
+	@echo "      definition file for end2end tests. Default: 'default'"
 	@echo "  TESTOPTS - Optional: Additional options for py.tests (see 'pytest --help')."
 	@echo "  TEST_SCHEMA_DOWNLOAD - When set, enables test cases in test_wbemconnection_mock"
 	@echo "      to test downloading of DMTF schema from the DMTF web site."
@@ -563,9 +569,17 @@ ifeq ($(PLATFORM),Windows)
 else
 	testsuite/test_uprint.sh
 endif
-	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases --ignore=testsuite/end2end -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $(test_log_file)"
+
+.PHONY: end2end
+end2end: makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/end2end/*.py
+	@echo "makefile: Running end2end tests"
+	rm -f $(test_end2end_log_file)
+	bash -c "set -o pipefail; cd testsuite/end2end; PYTHONWARNINGS=default py.test --color=yes $(pytest_opts) -s 2>&1 |tee ../../$(test_end2end_tmp_file)"
+	mv -f $(test_end2end_tmp_file) $(test_end2end_log_file)
+	@echo "makefile: Done running end2end tests; Log file: $(test_end2end_log_file)"
 
 $(doc_conf_dir)/wbemcli.help.txt: wbemcli wbemcli.py
 	@echo "makefile: Creating wbemcli script help message file"
