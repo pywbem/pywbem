@@ -95,12 +95,14 @@ Example output:
 """
 
 import re
+import warnings
 
 from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError
+from .exceptions import CIMError, ParseError
+from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
 from .cim_operations import WBEMConnection
@@ -787,7 +789,8 @@ class WBEMServer(object):
                 MethodName="GetCentralInstances",
                 ObjectName=profile_path)
         except CIMError as exc:
-            if exc.status_code in (CIM_ERR_METHOD_NOT_FOUND,
+            if exc.status_code in (CIM_ERR_FAILED,
+                                   CIM_ERR_METHOD_NOT_FOUND,
                                    CIM_ERR_METHOD_NOT_AVAILABLE,
                                    CIM_ERR_NOT_SUPPORTED):
                 # Method is not implemented.
@@ -795,6 +798,37 @@ class WBEMServer(object):
                 # situation, but is used by some implementations.
                 pass  # try next approach
             else:
+                raise
+        except ParseError as exc:
+            # The EMC server returns ill-formed XML when invoking this
+            # CIM method. Tolerate that behavior and try next approach.
+            reply_oneline = self._conn.last_raw_reply.replace(b'\n', b'')
+            m = re.search(b'<ERROR CODE="([0-9]+)"', reply_oneline)
+            if m:
+                try:
+                    status_code = int(m.group(1))
+                except ValueError:
+                    status_code = None
+                if status_code in (CIM_ERR_FAILED,
+                                   CIM_ERR_METHOD_NOT_FOUND,
+                                   CIM_ERR_METHOD_NOT_AVAILABLE,
+                                   CIM_ERR_NOT_SUPPORTED):
+                    warnings.warn(
+                        _format("Tolerating {0} raised when parsing "
+                                "CIM-XML response of invoking CIM method "
+                                "GetCentralInstances, with a CIM status code "
+                                "{1}: {2}",
+                                exc.__class__.__name__, status_code, exc),
+                        ToleratedServerIssueWarning, 1)
+                    # try next approach
+                else:
+                    raise ParseError(
+                        "CIM-XML response has ill-formed XML with "
+                        "recognizable ERROR element indicating CIM status "
+                        "code {0}: {1}".format(status_code, exc))
+            else:
+                # In this case, the ERROR element is not recognizable, and
+                # so the original ParseError seems sufficient.
                 raise
         else:
             if ret_val != 0:

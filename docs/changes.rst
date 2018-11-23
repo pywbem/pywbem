@@ -413,6 +413,13 @@ This version contains all fixes up to pywbem 0.12.4.
 * Added a `ModelError` exception class that indicates an error with the model
   implemented by the WBEM server, that was detected by the pywbem client.
 
+* Added support for tolerating ill-formed XML in the CIM-XML response returned
+  by the server from the attempt to invoke the CIM method GetCentralInstances()
+  inside of `WBEMServer.get_central_instances()`. One server was found to
+  return such ill-formed XML. This now causes pywbem to issue a
+  `ToleratedServerIssueWarning` and to continue with the next approach for
+  determining the central instances. See issue #1438.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
