@@ -1116,6 +1116,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         CIM-XML data of the last response received from the WBEM server
         on this connection, formatted as prettified XML.
 
+        Setting this property requires XML parsing of the received CIM-XML
+        response. If the XML parsing fails, this property will be `None`, but
+        the :attr:`~pywbem.WBEMConnection.last_raw_reply` property will already
+        have been set and should be used, instead.
+
         Prior to receiving the very first response on this connection object,
         and when debug saving of requests and responses is disabled (see
         :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
