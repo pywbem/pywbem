@@ -420,6 +420,12 @@ This version contains all fixes up to pywbem 0.12.4.
   `ToleratedServerIssueWarning` and to continue with the next approach for
   determining the central instances. See issue #1438.
 
+* In the `WBEMServer` class, the Interop namespace is now added to the set
+  of namespaces in the `namespaces`  and `namespace_paths` properties, if
+  missing there. This accomodates the behavior of a particular WBEM server
+  that was found not to include the Interop namespace when enumerating the
+  namespace instances. See issue #1430.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

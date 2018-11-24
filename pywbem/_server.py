@@ -101,7 +101,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError, ParseError
+from .exceptions import CIMError, ParseError, ModelError
 from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
@@ -237,6 +237,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ModelError: An issue with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
@@ -255,6 +256,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ModelError: An issue with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
@@ -268,11 +270,13 @@ class WBEMServer(object):
     def namespace_paths(self):
         """
         :class:`py:list` of :class:`~pywbem.CIMInstanceName`: Instance paths
-        of all namespaces of the WBEM server.
+        of the CIM instances in the Interop namespace that represent the
+        namespaces of the WBEM server.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ModelError: An issue with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
@@ -416,6 +420,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ModelError: An issue with the model implemented by the WBEM server.
             CIMError: CIM_ERR_ALREADY_EXISTS, Specified namespace already
               exists in the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
@@ -561,6 +566,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ModelError: An issue with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Specified namespace does not exist.
             CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY, Specified namespace is not
               empty.
@@ -1015,15 +1021,24 @@ class WBEMServer(object):
         class names are defined in the :attr:`NAMESPACE_CLASSNAMES`
         class variable.
 
-        If the namespaces could be determined, this method sets the
-        :attr:`namespace_classname` property of this object to the class name
-        that was found to work, the :attr:`namespaces` property to these
-        namespaces, and returns.
+        If the namespaces could be determined, this method sets the following
+        properties of this object:
+
+        * :attr:`namespace_classname`
+        * :attr:`namespaces`
+        * :attr:`namespace_paths`
+
         Otherwise, it raises an exception.
+
+        This method implements a fixup for WBEM servers that do not include the
+        Interop namespace in the EnumerateInstances result, by adding the
+        determined Interop namespace to the set of namespaces, if missing
+        there.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            ModelError: An issue with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
@@ -1031,10 +1046,11 @@ class WBEMServer(object):
         """
         ns_insts = None
         ns_classname = None
+        interop_ns = self.interop_ns  # Determines the Interop namespace
         for classname in self.NAMESPACE_CLASSNAMES:
             try:
                 ns_insts = self._conn.EnumerateInstances(
-                    classname, namespace=self.interop_ns)
+                    classname, namespace=interop_ns)
             except CIMError as exc:
                 if exc.status_code in (CIM_ERR_INVALID_CLASS,
                                        CIM_ERR_NOT_FOUND):
@@ -1057,6 +1073,49 @@ class WBEMServer(object):
         self._namespace_classname = ns_classname
         self._namespaces = [inst['Name'] for inst in ns_insts]
         self._namespace_paths = [inst.path for inst in ns_insts]
+
+        # An old version of a Hitachi server does not return its Interop
+        # namespace in the set of namespace instances. Pywbem adds the
+        # interop namespace to make up for that.
+        if interop_ns not in self._namespaces:
+
+            warnings.warn(
+                _format("Server at {0} has an Interop namespace {1!A}, but "
+                        "does not return it when enumerating class {2!A} "
+                        "- adding it",
+                        self.conn.url, interop_ns, ns_classname),
+                ToleratedServerIssueWarning, stacklevel=2)
+
+            self._namespaces.append(interop_ns)
+
+            # For adding the Interop namespace to the 'namespace_paths'
+            # property, its instance path is needed. Because the different
+            # classes used to represent namespaces have different keys, it
+            # seems best to copy one of their instance paths.
+            if not self._namespace_paths:
+                raise ModelError(
+                    _format("Server at {0} does not return the Interop "
+                            "namespace {1!A} when enumerating class {2!A}, "
+                            "and adding it to the list of namespaces is not "
+                            "possible because it does not have any namespaces "
+                            "besides the Interop namespace",
+                            self.conn.url, interop_ns, ns_classname))
+            org_path = self._namespace_paths[0]
+            interop_path = org_path.copy()
+            interop_path['Name'] = interop_ns
+            assert interop_path.namespace is not None
+            try:
+                self._conn.GetInstance(interop_path)
+            except CIMError as exc:
+                raise ModelError(
+                    _format("Server at {0} does not return the Interop "
+                            "namespace {1!A} when enumerating class {2!A}, "
+                            "and adding it to the list of namespaces is not "
+                            "possible because verification of the instance "
+                            "via GetInstance on path {3!A} fails: {4}",
+                            self.conn.url, interop_ns, ns_classname,
+                            interop_path, exc))
+            self._namespace_paths.append(interop_path)
 
     def _determine_brand(self):
         """
