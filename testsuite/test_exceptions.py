@@ -10,7 +10,7 @@ import six
 import pytest
 
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, VersionError, CIMError, CIMInstance
+    ParseError, VersionError, CIMError, Warning, ServerWarning, CIMInstance
 
 # Test connection ID used for showing connection information in exception
 # messages
@@ -68,12 +68,15 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     TimeoutError,
     ParseError,
     VersionError,
+    Warning,
+    ServerWarning,
 ], scope='module')
 def simple_class(request):
     """
-    Fixture representing variations of the simple exception classes.
+    Fixture representing variations of the simple exception and warning
+    classes.
 
-    Returns the exception class.
+    Returns the exception or warning class.
     """
     return request.param
 
@@ -88,7 +91,7 @@ def simple_class(request):
 def simple_args(request):
     """
     Fixture representing variations of positional init arguments for the simple
-    exception classes.
+    exception or warning classes.
 
     Returns a tuple of positional arguments for initializing an exception
     object.
@@ -105,7 +108,8 @@ def simple_args(request):
 def conn_info(request):
     """
     Fixture representing variations for the conn_id keyword argument for all
-    exception classes, and the corresponding expected connection info string.
+    exception and warning classes, and the corresponding expected connection
+    info string.
 
     Returns a tuple of:
     * conn_id_kwarg: dict with the 'conn_id' keyword argument. May be empty.
@@ -117,7 +121,10 @@ def conn_info(request):
 def test_simple(simple_class, simple_args, conn_info):
     # pylint: disable=redefined-outer-name
     """
-    Test the simple exception classes.
+    Test the simple exception and warning classes.
+
+    Note, the Python `Warning` class is derived from the `Exception` class and
+    thus can be treated like exception classes.
     """
 
     conn_id_kwarg, exp_conn_str = conn_info

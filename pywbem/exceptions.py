@@ -19,12 +19,15 @@ The following exceptions are pywbem specific exceptions that can be raised at
 the WBEM client library API.
 """
 
+import six
+
 from .cim_constants import _statuscode2name, _statuscode2string
 
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
-           'VersionError', 'ParseError', 'CIMError']
+           'VersionError', 'ParseError', 'CIMError', 'Warning',
+           'ServerWarning']
 
 
 class Error(Exception):
@@ -352,3 +355,18 @@ class CIMError(Error):
             self.status_code, self.status_code_name, self.status_description,
             inst_str, self.conn_str)
         return ret_str
+
+
+class Warning(Error, six.moves.builtins.Warning):
+    """
+    Base class for pywbem specific warnings.
+    """
+    pass
+
+
+class ServerWarning(Warning):
+    """
+    This warning indicates an issue with the WBEM server that has been
+    tolerated by pywbem.
+    """
+    pass
