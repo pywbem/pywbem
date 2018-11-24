@@ -399,6 +399,10 @@ This version contains all fixes up to pywbem 0.12.4.
 * Improved the quality of any `ParseError` exception messages when the SAX
   parser detects errors in CIM-XML responses. See issue #1438.
 
+* Added a `ServerWarning` class and its base class `Warning`. The new
+  `ServerWarning` is raised in cases when the WBEM server exhibits some
+  incorrect behavior that is tolerated by pywbem.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
