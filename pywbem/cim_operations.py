@@ -727,7 +727,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
 
-        This attribute is settable, but setting it has been deprecated.
+        This attribute is settable.
         """
         return self._default_namespace
 
@@ -735,9 +735,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def default_namespace(self, default_namespace):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        warnings.warn(
-            "Setting the WBEMConnection.default_namespace property is "
-            "deprecated", DeprecationWarning, 2)
+        # Note: Setting it is not deprecated.
         self._set_default_namespace(default_namespace)
 
     def _set_default_namespace(self, default_namespace):
