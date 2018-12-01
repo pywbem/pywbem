@@ -74,6 +74,10 @@ This version contains all fixes up to pywbem 0.12.4.
   `WBEMConnection` class will be removed in the next pywbem version after
   0.13.
 
+* Removed the deprecation for setting the `default_namespace` attribute
+  of `WBEMConnection` that had been introduced in pywbem 0.12; setting it
+  is now fully supported again.
+
 **Finalizations:**
 
 * Finalized the `use_pull_operations` property and init argument of the
