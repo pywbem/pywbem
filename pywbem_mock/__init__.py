@@ -23,5 +23,7 @@ the implementation of the WBEMConnection calls to WBEM Servers.
 
 from __future__ import absolute_import
 
-from ._wbemconnection_mock import *       # noqa: F403,F401
-from ._dmtf_cim_schema import *           # noqa: F403,F401
+from ._wbemconnection_mock import *        # noqa: F403,F401
+from ._dmtf_cim_schema import *            # noqa: F403,F401
+from ._resolvermixin import *              # noqa: F403,F401
+from ._mockmofwbemconnection import *  # noqa: F403,F401

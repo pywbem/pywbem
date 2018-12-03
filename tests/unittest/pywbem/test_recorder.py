@@ -1783,14 +1783,14 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             #pragma locale ("en_US")
             #pragma include ("Interop/CIM_ObjectManager.mof")
             """
-        configure_logger('api', log_dest='file',
-                         detail_level='summary',
-                         log_filename=TEST_OUTPUT_LOG,
-                         connection=True, propagate=True)
         conn = FakedWBEMConnection(default_namespace=namespace)
         conn.compile_mof_string(partial_schema, namespace=namespace,
                                 search_paths=[schema.schema_mof_dir])
 
+        configure_logger('api', log_dest='file',
+                         detail_level='summary',
+                         log_filename=TEST_OUTPUT_LOG,
+                         connection=conn, propagate=True)
         conn.GetClass('CIM_ObjectManager', namespace=namespace)
 
         conn_id = conn.conn_id
