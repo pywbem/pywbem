@@ -137,7 +137,8 @@ class TestServerClass(BaseMethodsForTests):
         assert len(insts) == 1
         kb = NocaseDict([('SystemCreationClassName', 'CIM_ComputerSystem'),
                          ('SystemName', mock_wbemserver.system_name),
-                         ('CreationClassName', 'CIM_ObjectManager')])
+                         ('CreationClassName', 'CIM_ObjectManager'),
+                         ('Name', 'MyFakeObjectManager'), ])
         assert insts[0] == CIMInstanceName('CIM_ObjectManager', keybindings=kb,
                                            namespace=tst_namespace,
                                            host=server.conn.host)

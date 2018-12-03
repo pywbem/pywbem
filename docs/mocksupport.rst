@@ -15,7 +15,7 @@ support that enables usage of the pywbem library without a WBEM server.
 This subpackage is used for testing the pywbem library itself and can be used
 for the development and testing of Python programs that use the pywbem library.
 
-The pywbem mock support consists of the :class:`pywbem_mock.FakedWBEMConnection`
+The pywbem mock support contains the :class:`pywbem_mock.FakedWBEMConnection`
 class that establishes a *faked connection*. That class is a subclass of
 :class:`pywbem.WBEMConnection` and replaces its internal methods that use
 HTTP/HTTPS to communicate with a WBEM server with methods that instead operate
@@ -576,9 +576,9 @@ Building the mock repository
 
 The mock repository should contain the CIM qualifier declarations, CIM classes,
 CIM instances, and CIM methods to be used in the mock environment. The
-mock user creates a repository that contains the CIM Objects required for
+mock user creates a repository that contains the CIM objects required for
 the operations to be executed in the mock environment. Thus, if the user only
-requires CIM_Computer system, only that class and its dependent classes need
+requires CIM_ComputerSystem, only that class and its dependent classes need
 be in the repository along with instances of the classes that will satisfy
 the methods called
 
@@ -616,10 +616,10 @@ that satisfies a particular requirement including:
    and eliminates errors defining components. It also loads all qualifier
    declarations.
 
-2. Build non-DMTF classes (subclasses, etc.) by defining either MOF and
-   compiling or directly building the pywbem CIM Classes.
+2. Build non-DMTF classes (subclasses, etc.) by defining either MOF for the
+   classes and compiling or directly building the pywbem CIM classes.
 
-3. Build CIM Instances by defining MOF and compiling or directly building
+3. Build CIM instances by defining MOF and compiling or directly building
    the pywbem CIM instances. Often MOF is easier for this because it
    simplifies the definition of association instances with the instance
    alias.

@@ -248,6 +248,17 @@ This version contains all fixes up to pywbem 0.12.4.
   No such file or directory" when invoking wbemcli.bat on native Windows
   in a directory whose path name contained blanks. (See issue #1622)
 
+* Extend pywbem_mock to correctly handle resolving of classes when they are
+  inserted into the repository.  Resolving of classes configures a class
+  inserted with CreateClass or through the mocker add_cimobjects, etc. to
+  reflect the inheritance of properties, methods, etc. from the superclass.
+  The initial release did a very abbreviated resolution which left some
+  characteristics of the new class and did not properly handle things like
+  the override qualifier. (See issue # 1540). This change also simplifies
+  the mocker in that both the compiler and the mock responder methods
+  contribute to the same repository (the original version copied objects
+  from the compiler repository to the mocker repository).
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
