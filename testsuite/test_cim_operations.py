@@ -36,7 +36,6 @@ class TestCreateConnection(object):
         'attr_name, value', [
             ('url', 'http:/myserver'),
             ('creds', ('x', 'y')),
-            ('default_namespace', 'foo'),
             ('x509', dict(cert_file='c', key_file='k')),
             ('verify_callback', lambda a, b, c, d, e: True),
             ('ca_certs', 'xxx'),
@@ -126,8 +125,7 @@ class TestCreateConnection(object):
         of wbem connection when setting the attribute"""
         conn = WBEMConnection('http://localhost', None,
                               default_namespace=None)
-        with pytest.warns(DeprecationWarning):
-            conn.default_namespace = '//root/blah//'
+        conn.default_namespace = '//root/blah//'
         assert conn.default_namespace == 'root/blah'
 
     def test_add_operation_recorder(self):  # pylint: disable=no-self-use
