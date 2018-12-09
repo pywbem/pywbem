@@ -399,9 +399,9 @@ This version contains all fixes up to pywbem 0.12.4.
 * Improved the quality of any `ParseError` exception messages when the SAX
   parser detects errors in CIM-XML responses. See issue #1438.
 
-* Added a `ServerWarning` class and its base class `Warning`. The new
-  `ServerWarning` is raised in cases when the WBEM server exhibits some
-  incorrect behavior that is tolerated by pywbem.
+* Added a `ToleratedServerIssueWarning` class and its base class `Warning`.
+  The new `ToleratedServerIssueWarning` is raised in cases when the WBEM server
+  exhibits some incorrect behavior that is tolerated by pywbem.
 
 * Added a `ModelError` exception class that indicates an error with the model
   implemented by the WBEM server, that was detected by the pywbem client.
