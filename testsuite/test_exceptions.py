@@ -10,8 +10,7 @@ import six
 import pytest
 
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, VersionError, CIMError, ModelError, Warning, ServerWarning, \
-    CIMInstance
+    ParseError, VersionError, CIMError, ModelError, CIMInstance
 
 # Test connection ID used for showing connection information in exception
 # messages
@@ -70,15 +69,12 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     ParseError,
     VersionError,
     ModelError,
-    Warning,
-    ServerWarning,
 ], scope='module')
 def simple_class(request):
     """
-    Fixture representing variations of the simple exception and warning
-    classes.
+    Fixture representing variations of the simple exception classes.
 
-    Returns the exception or warning class.
+    Returns the exception class.
     """
     return request.param
 
@@ -93,7 +89,7 @@ def simple_class(request):
 def simple_args(request):
     """
     Fixture representing variations of positional init arguments for the simple
-    exception or warning classes.
+    exception classes.
 
     Returns a tuple of positional arguments for initializing an exception
     object.
@@ -110,8 +106,7 @@ def simple_args(request):
 def conn_info(request):
     """
     Fixture representing variations for the conn_id keyword argument for all
-    exception and warning classes, and the corresponding expected connection
-    info string.
+    exception classes, and the corresponding expected connection info string.
 
     Returns a tuple of:
     * conn_id_kwarg: dict with the 'conn_id' keyword argument. May be empty.
@@ -123,10 +118,7 @@ def conn_info(request):
 def test_simple(simple_class, simple_args, conn_info):
     # pylint: disable=redefined-outer-name
     """
-    Test the simple exception and warning classes.
-
-    Note, the Python `Warning` class is derived from the `Exception` class and
-    thus can be treated like exception classes.
+    Test the simple exception classes.
     """
 
     conn_id_kwarg, exp_conn_str = conn_info
