@@ -403,6 +403,9 @@ This version contains all fixes up to pywbem 0.12.4.
   `ServerWarning` is raised in cases when the WBEM server exhibits some
   incorrect behavior that is tolerated by pywbem.
 
+* Added a `ModelError` exception class that indicates an error with the model
+  implemented by the WBEM server, that was detected by the pywbem client.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

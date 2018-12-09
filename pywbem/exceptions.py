@@ -26,7 +26,7 @@ from .cim_constants import _statuscode2name, _statuscode2string
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
-           'VersionError', 'ParseError', 'CIMError', 'Warning',
+           'VersionError', 'ParseError', 'CIMError', 'ModelError', 'Warning',
            'ServerWarning']
 
 
@@ -355,6 +355,21 @@ class CIMError(Error):
             self.status_code, self.status_code_name, self.status_description,
             inst_str, self.conn_str)
         return ret_str
+
+
+class ModelError(Error):
+    """
+    This exception indicates an error with the model implemented by the WBEM
+    server, that was detected by the pywbem client.
+
+    Examples are mismatches in data types of CIM elements (properties, methods,
+    parameters) between classes and instances, CIM elements that appear in
+    instances without being declared in classes, or violations of requirements
+    defined in advertised management profiles.
+
+    Derived from :exc:`~pywbem.Error`.
+    """
+    pass
 
 
 class Warning(Error, six.moves.builtins.Warning):

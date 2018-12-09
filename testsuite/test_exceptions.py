@@ -10,7 +10,8 @@ import six
 import pytest
 
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, VersionError, CIMError, Warning, ServerWarning, CIMInstance
+    ParseError, VersionError, CIMError, ModelError, Warning, ServerWarning, \
+    CIMInstance
 
 # Test connection ID used for showing connection information in exception
 # messages
@@ -68,6 +69,7 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     TimeoutError,
     ParseError,
     VersionError,
+    ModelError,
     Warning,
     ServerWarning,
 ], scope='module')

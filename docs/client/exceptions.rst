@@ -117,3 +117,19 @@ Exceptions
       :attributes:
 
    .. rubric:: Details
+
+ .. autoclass:: pywbem.ModelError
+    :members:
+
+    .. rubric:: Methods
+
+    .. autoautosummary:: pywbem.ModelError
+       :methods:
+       :nosignatures:
+
+    .. rubric:: Attributes
+
+    .. autoautosummary:: pywbem.ModelError
+       :attributes:
+
+    .. rubric:: Details
