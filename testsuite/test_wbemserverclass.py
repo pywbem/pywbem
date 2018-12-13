@@ -42,7 +42,7 @@ TEST_DIR = os.path.dirname(__file__)
 TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 
 
-class BaseMethodsForTests(object):
+class BaseMethodsForTests(object):  # pylint: disable=too-few-publid-methods
     """
     Common methods for test of WBEMServer class.  This includes methods to
     build the DMTF schema and to build individual instances.
@@ -114,7 +114,7 @@ class TestServerClass(BaseMethodsForTests):
             assert inst['RegisteredName'] == 'Indications'
 
         sel_prof = server.get_selected_profiles(registered_org='DMTF')
-        assert len(sel_prof) == 2
+        assert len(sel_prof) == 3
         for inst in sel_prof:
             assert org_vm.tovalues(inst['RegisteredOrganization']) == 'DMTF'
 
@@ -335,7 +335,85 @@ def test_delete_namespace(testcase,
     assert act_namespace == exp_namespace
 
 
-# TODO Break up tests to do individual tests for each group of methds so we can
+TESTCASES_GET_CENTRAL_INSTANCES = [
+
+    # Testcases for WBEMServer.delete_namespace()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * profile_name: Name of the profile as tuple (org, name, version)
+    #   * central_class: Name of the namespace to be deleted.
+    #   * scoping_class: Content of initial namespace, as a dict with
+    #     the namespace name as a key and a list of CIMClass, CIMInstance and
+    #     CIMQualifierDeclaration objects as the value.
+    #   * scoping_path: None or tuple of paths to scoping element
+    #   * direction: 'snia' or 'dmtf'
+    #   * exp_paths: Expected returned instance path names as tuple of inst
+    #     name.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+    (
+        "Validate gets valid CentralClass",
+        dict(
+            profile_name=('SNIA', 'Server', '1.2.0'),
+            central_class='XXX_StorageComputerSystem',
+            scoping_class=None,
+            scoping_path=None,
+            direction='snia',
+            exp_paths=[
+                CIMInstanceName('XXX_StorageComputerSystem',
+                                keybindings={'Name': "10.1.2.3",
+                                             'CreationClassName':
+                                             'XXX_StorageComputerSystem'},
+                                host='FakedUrl',
+                                namespace='interop'), ]
+        ),
+        None, None, True
+    ),
+    # TODO add more central instance tests
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_GET_CENTRAL_INSTANCES)
+@pytest_extensions.simplified_test_function
+def test_get_central_instances(testcase, profile_name, central_class,
+                               scoping_class, scoping_path, direction,
+                               exp_paths):
+    """
+    Test the execution of get_central_instances
+    """
+    mock_wbemserver = WbemServerMock(interop_ns='interop')
+    server = mock_wbemserver.wbem_server
+    profile_insts = server.get_selected_profiles(
+        registered_org=profile_name[0],
+        registered_name=profile_name[1],
+        registered_version=profile_name[2])
+    assert len(profile_insts) == 1
+    profile_inst = profile_insts[0]
+
+    # The code to be tested.
+    # Must start from a single good profile instance
+
+    # server.conn.display_repository()
+    act_paths = server.get_central_instances(profile_inst.path,
+                                             central_class=central_class,
+                                             scoping_class=scoping_class,
+                                             scoping_path=scoping_path,
+                                             reference_direction=direction)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    print('ACTPATHS=%r\nEXPPATHS=%r' % (act_paths, exp_paths))
+    assert act_paths == exp_paths
+
+
+# TODO Break up tests to do individual tests for each group of methods so we can
 #      test for errors, variations on what is in the repo with each method.
 #      Right now we build it all in a single test.  Thus, for example we
 #      need to create a test group for find_central_instances since the

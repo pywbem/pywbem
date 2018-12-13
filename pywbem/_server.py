@@ -101,7 +101,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError, ParseError
+from .exceptions import CIMError, Error, ParseError
 from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
@@ -971,16 +971,16 @@ class WBEMServer(object):
 
         return total_ci_paths
 
-    def determine_refrence_direction(self, possible_autonomous_profiles=None,
-                                     possible_component_profiles=None):
+    def determine_reference_direction(self, possible_autonomous_profiles=None,
+                                      possible_component_profiles=None):
         # pylint: disable=line-too-long
         """
         Determine the  CIM_ReferencedProfile class antecedent/dependent
-        navigation direction for this server by testing possible autonomous top level
-        profiles and/or component profiles for their direction. This method may need to be used by
-        because if the differences in the usage of the Dependent and Antecedent
-        reference properties between the DMTF and SNIA specifications. DMTF
-        profiles are defined them with:
+        navigation direction for this server by testing possible autonomous top
+        level profiles and/or component profiles for their direction. This
+        method may need to be used by because if the differences in the usage
+        of the Dependent and Antecedent reference properties between the DMTF
+        and SNIA specifications. DMTF profiles are defined them with:
 
             Antecedent = referenced profile = component profile
             Dependent = referencing profile = autonomous profile
@@ -1354,9 +1354,10 @@ class WBEMServer(object):
           value is used as the ResultRole
 
         """
+        ref_class = "CIM_ReferencedProfile"
         try:
             ref_insts = self.conn.EnumerateInstances(
-                "CIM_ReferencedProfile", namespace=self.interop_ns)
+                ref_class, namespace=self.interop_ns)
             # Remove host from responses since the host causes confusion
             # with the enum of registered profile. Enums do not return host but
             # the associator properties contain host
@@ -1364,10 +1365,23 @@ class WBEMServer(object):
                 for prop in ref_inst.values():
                     prop.host = None
 
+        except CIMError as ce:
+            if ce.status_code in (CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS):
+                raise CIMError(
+                    CIM_ERR_NOT_SUPPORTED,
+                    _format("Operation EnumerateInstances on Class {0!A} used "
+                            "by method determine_reference direction is "
+                            "not supported. Exception %s ", ref_class, ce))
+            else:
+                raise ce
+
         except Error as er:
-            print('CIM_ReferencedProfile failed for server=%s exception=%s'
-                  % (self, er))
-            raise
+            raise CIMError(
+                CIM_ERR_NOT_SUPPORTED,
+                _format("Operation EnumerateInstances on Class {0!A} used "
+                        "by method determine_reference direction is "
+                        "fails with. Exception %s ", ref_class, er))
+
         # Create a dictionary with:
         #   key = associator source object path
         #   value = {'dep' : count of associations,
@@ -1431,11 +1445,10 @@ class WBEMServer(object):
         else:
             ps = 'possible %s' % ('autonomous' if autonomous else
                                   'component')
-            # TODO this ValueError displays paths which makes it unreadable
-            # Clean it up.
+
             raise ValueError(
                 _format("Cannot determine navigation direction. "
-                        "determine_refrence_direction shows "
+                        "determine_reference_direction has "
                         "conflicts in {0!A}. {1!A}={0!A} {2!A}={3!A}",
-                        ps, t[0], v0_paths, t[1], v1_paths))
+                        ps, t[0], len(v0_paths), t[1], len(v1_paths)))
         return direction

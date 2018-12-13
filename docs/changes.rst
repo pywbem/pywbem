@@ -426,14 +426,21 @@ This version contains all fixes up to pywbem 0.12.4.
   support the Interop namespace without representing it as a CIM instance.
   See issue #1430.
 
-* Extended `get_central_instances` in WBEMServer to account for dmtf and snia
-  specification differences with CIM_ReferencedProfile class (the navigation
-  direction of the Antecedent and Dependent reference properties differs
-  between the specifications) by 1) adding a parameter `reference_direction` to
-  the method `get_central_instances` to allow the caller to determine the
-  navigation direction and , 2) adding a method `determine_reference_direction`
-  in WBEMServer that attempts to determine the navigation direction of
-  CIM_ReferencedProfile for a particular WBEMServer.
+* Extended `WBEMServer.get_central_instances` in WBEMServer to account for dmtf
+  and snia specification differences with `CIM_ReferencedProfile` class (the
+  navigation direction of the `Antecedent` and `Dependent` reference properties
+  differs between the specifications) by:
+
+  a) adds a parameter `reference_direction` to the method
+     `WBEMServer.get_central_instances` to allow the caller to define the
+     navigation direction,
+
+  b) adds a method `WBEMServer.determine_reference_direction` that attempts
+     to determine the navigation direction of `CIM_ReferencedProfile` for a
+     particular WBEMServer by exploring the `CIM_ReferencedProfile` instances
+     given information about  possible autonomous and/or component profiles
+     in the method input parameters.
+
   See issue #1411
 
 **Cleanup:**
