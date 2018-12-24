@@ -286,7 +286,7 @@ class Test_ValueMapping(object):
                                      integer_type):
         # pylint: disable=redefined-outer-name
         """Test invalid ValueMap format"""
-        valuemap = ['0x0']
+        valuemap = ['0x']
         values = ['zero']
 
         with pytest.raises(Exception) as exc_info:
@@ -295,7 +295,8 @@ class Test_ValueMapping(object):
         exc = exc_info.value
         assert isinstance(exc, ValueError)
         exc_msg = exc.args[0]
-        assert re.match(".*has an invalid ValueMap entry.*",
+        assert re.match(".*has an invalid integer representation in a "
+                        "ValueMap entry.*",
                         exc_msg) is not None
 
     def test_invalid_element_type(self, element_kind, server_arg):
@@ -794,3 +795,97 @@ class Test_ValueMapping(object):
         for item in vm.items():
             items.append(item)
         assert items == exp_items
+
+    testcases_integer_representations = [
+        # Each testcase has these items:
+        # * desc: Short testcase description.
+        # * integer_type: CIM type name of the ValueMap element.
+        # * values_str_list: Input Values array.
+        # * valuemap_str_list: Input ValueMap array with string represent.
+        # * exp_valuemap_list: Expected valuemap array with integer values,
+        #   or None if expecting failure.
+        # * exp_exc_type: Expected exception type,
+        #   or None if expecting success.
+        # * exp_exc_msg_pattern: Expected pattern in exception message,
+        #   or None if expecting success.
+        # * condition: Condition for testcase to run.
+
+        # General good cases
+        (
+            "Decimal integer values",
+            "sint8",
+            ['a', 'b', 'c'],
+            ['0', '42', '-42'],
+            [0, 42, -42],
+            None, None,
+            True
+        ),
+        (
+            "Binary integer values",
+            "sint8",
+            ['a', 'b', 'c'],
+            ['0b', '101B', '-111b'],
+            [0, 5, -7],
+            None, None,
+            True
+        ),
+        (
+            "Octal integer values",
+            "sint8",
+            ['a', 'b', 'c'],
+            ['0', '017', '-011'],
+            [0, 15, -9],
+            None, None,
+            True
+        ),
+        (
+            "Hexadecimal integer values",
+            "sint8",
+            ['a', 'b', 'c'],
+            ['0', '0x1F', '-0X0b'],
+            [0, 31, -11],
+            None, None,
+            True
+        ),
+        (
+            "Invalid integer value",
+            "sint8",
+            ['a'],
+            ['B'],
+            None,
+            ValueError, None,
+            True
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "desc, integer_type, values_str_list, valuemap_str_list, "
+        "exp_valuemap_list, exp_exc_type, exp_exc_msg_pattern, condition",
+        testcases_integer_representations
+    )
+    def test_integer_representations(
+            self, desc, integer_type, values_str_list, valuemap_str_list,
+            exp_valuemap_list, exp_exc_type, exp_exc_msg_pattern, condition):
+        # pylint: disable=redefined-outer-name
+        """Test tobinary() in valuemap with different integer represent."""
+
+        if not condition:
+            pytest.skip("Condition for test case not met")
+
+        if exp_exc_type is None:
+            vm = self.setup_for_element('property', 'conn', integer_type,
+                                        valuemap_str_list, values_str_list)
+            for i, values_str in enumerate(values_str_list):
+                exp_valuemap = exp_valuemap_list[i]
+                valuemap = vm.tobinary(values_str)
+                assert valuemap == exp_valuemap
+        else:
+            with pytest.raises(exp_exc_type) as exec_info:
+                vm = self.setup_for_element('property', 'conn', integer_type,
+                                            valuemap_str_list, values_str_list)
+            if exp_exc_msg_pattern:
+                exc = exec_info.value
+                exc_msg = str(exc)
+                one_line_exc_msg = exc_msg.replace('\n', '\\n')
+                assert re.search(exp_exc_msg_pattern, one_line_exc_msg), \
+                    "Unexpected exception message:\n" + exc_msg

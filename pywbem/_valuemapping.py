@@ -33,7 +33,7 @@ except ImportError:
 
 from .cim_types import CIMInt, type_from_name
 from .cim_obj import CIMProperty, CIMMethod, CIMParameter
-from ._utils import _format
+from ._utils import _format, _integerValue_to_int
 
 __all__ = ['ValueMapping']
 
@@ -62,6 +62,10 @@ class ValueMapping(object):
 
     Value ranges (``"2..4"``) and the indicator for unclaimed values (``".."``)
     in the `ValueMap` qualifier are supported.
+
+    All representations of the integer values in the `ValueMap` qualifier are
+    supported (decimal, binary, octal, hexadecimal), consistent with the
+    definition of the `ValueMap` qualifier in :term:`DSP0004`.
 
     Example:
 
@@ -425,16 +429,11 @@ class ValueMapping(object):
         """
         values_str = values_list[i]
         valuemap_str = valuemap_list[i]
-        try:
-            valuemap_int = int(valuemap_str)
+        m = re.match(r'^(.*)\.\.(.*)$', valuemap_str)
+        if m is None:
+            valuemap_int = self._to_int(valuemap_str)
             return (valuemap_int, valuemap_int, values_str)
-        except ValueError:
-            m = re.match(r'^([+-]?[0-9]*)\.\.([+-]?[0-9]*)$', valuemap_str)
-            if m is None:
-                raise ValueError(
-                    _format("The value-mapped {0} has an invalid "
-                            "ValueMap entry: {1!A}",
-                            self._element_str(), valuemap_str))
+        else:
             lo = m.group(1)
             if lo == '':
                 if i == 0:
@@ -444,7 +443,7 @@ class ValueMapping(object):
                         i - 1, valuemap_list, values_list, cimtype)
                     lo = previous_hi + 1
             else:
-                lo = int(lo)
+                lo = self._to_int(lo)
             hi = m.group(2)
             if hi == '':
                 if i == len(valuemap_list) - 1:
@@ -454,8 +453,17 @@ class ValueMapping(object):
                         i + 1, valuemap_list, values_list, cimtype)
                     hi = next_lo - 1
             else:
-                hi = int(hi)
+                hi = self._to_int(hi)
             return (lo, hi, values_str)
+
+    def _to_int(self, val_str):
+        val = _integerValue_to_int(val_str)
+        if val is None:
+            raise ValueError(
+                _format("The value-mapped {0} has an invalid integer "
+                        "representation in a ValueMap entry: {1!A}",
+                        self._element_str(), val_str))
+        return val
 
     @classmethod
     def _create_for_element(cls, element_obj, conn, namespace, classname,
