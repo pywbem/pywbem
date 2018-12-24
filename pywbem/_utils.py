@@ -250,3 +250,81 @@ def _format(format_str, *args, **kwargs):
     function (see there for details).
     """
     return _ASCII2_FORMATTER.format(format_str, *args, **kwargs)
+
+
+# Pattern for DSP0004 binaryValue; group(1) is value without trailing B
+BINARY_VALUE = re.compile(
+    r'^([+\-]?(?:[0-1]+))B$',
+    flags=(re.UNICODE | re.IGNORECASE))
+
+# Pattern for DSP0004 octalValue
+OCTAL_VALUE = re.compile(
+    r'^[+\-]?0(?:[1-7]*)$',
+    flags=(re.UNICODE))
+
+# Pattern for DSP0004 decimalValue
+DECIMAL_VALUE = re.compile(
+    r'^[+\-]?(?:0|[1-9][0-9]*)$',
+    flags=(re.UNICODE))
+
+# Pattern for DSP0004 hexValue
+HEX_VALUE = re.compile(
+    r'^[+\-]?0X(?:[0-9A-F]+)$',
+    flags=(re.UNICODE | re.IGNORECASE))
+
+# Pattern for DSP0004 realValue (extended by INF, -INF, NAN)
+REAL_VALUE = re.compile(
+    r'^(?:[+\-]?[0-9]*\.[0-9]+(?:E[+\-]?[0-9]+)?|INF|-INF|NAN)$',
+    flags=(re.UNICODE | re.IGNORECASE))
+
+
+def _integerValue_to_int(value_str):
+    """
+    Convert a value string that conforms to DSP0004 `integerValue`, into
+    the corresponding integer and return it. The returned value has Python
+    type `int`, or in Python 2, type `long` if needed.
+
+    Note that DSP0207 and DSP0004 only allow US-ASCII decimal digits. However,
+    the Python `int()` function supports all Unicode decimal digits (e.g.
+    US-ASCII digits, ARABIC-INDIC digits, superscripts, subscripts) and raises
+    `ValueError` for non-decimal digits (e.g. Kharoshthi digits).
+    Therefore, the match patterns explicitly check for US-ASCII digits, and
+    the `int()` function should never raise `ValueError`.
+
+    Returns `None` if the value string does not conform to `integerValue`.
+    """
+    m = BINARY_VALUE.match(value_str)
+    if m:
+        value = int(m.group(1), 2)
+    elif OCTAL_VALUE.match(value_str):
+        value = int(value_str, 8)
+    elif DECIMAL_VALUE.match(value_str):
+        value = int(value_str)
+    elif HEX_VALUE.match(value_str):
+        value = int(value_str, 16)
+    else:
+        value = None
+    return value
+
+
+def _realValue_to_float(value_str):
+    """
+    Convert a value string that conforms to DSP0004 `realValue`, into
+    the corresponding float and return it.
+
+    The special values 'INF', '-INF', and 'NAN' are supported.
+
+    Note that the Python `float()` function supports a superset of input
+    formats compared to the `realValue` definition in DSP0004. For example,
+    "1." is allowed for `float()` but not for `realValue`. In addition, it
+    has the same support for Unicode decimal digits as `int()`.
+    Therefore, the match patterns explicitly check for US-ASCII digits, and
+    the `float()` function should never raise `ValueError`.
+
+    Returns None if the value string does not conform to `realValue`.
+    """
+    if REAL_VALUE.match(value_str):
+        value = float(value_str)
+    else:
+        value = None
+    return value

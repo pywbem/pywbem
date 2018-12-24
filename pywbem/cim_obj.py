@@ -260,7 +260,8 @@ from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     CIMFloat, _Longint
 from ._nocasedict import NocaseDict
 from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
-    _hash_name, _hash_item, _hash_dict, _format
+    _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
+    _realValue_to_float
 
 if six.PY2:
     # pylint: disable=wrong-import-order
@@ -312,31 +313,6 @@ WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
 
 WBEM_URI_KB_FINDALL_REGEXP = re.compile(
     r',\w+={0}'.format(_KB_VAL),
-    flags=(re.UNICODE | re.IGNORECASE))
-
-# Pattern for DSP0004 binaryValue; group(1) is value without trailing B
-BINARY_VALUE = re.compile(
-    r'^([+\-]?(?:[0-1]+))B$',
-    flags=(re.UNICODE | re.IGNORECASE))
-
-# Pattern for DSP0004 octalValue
-OCTAL_VALUE = re.compile(
-    r'^[+\-]?0(?:[1-9]*)$',
-    flags=(re.UNICODE))
-
-# Pattern for DSP0004 decimalValue
-DECIMAL_VALUE = re.compile(
-    r'^[+\-]?(?:0|[1-9][0-9]*)$',
-    flags=(re.UNICODE))
-
-# Pattern for DSP0004 hexValue
-HEX_VALUE = re.compile(
-    r'^[+\-]?0X(?:[0-9A-F]+)$',
-    flags=(re.UNICODE | re.IGNORECASE))
-
-# Pattern for DSP0004 realValue (extended by INF, -INF, NAN)
-REAL_VALUE = re.compile(
-    r'^(?:[+\-]?[0-9]*\.[0-9]+(?:E[+\-]?[0-9]+)?|INF|-INF|NAN)$',
     flags=(re.UNICODE | re.IGNORECASE))
 
 # Valid namespace types (URI schemes) for WBEM URI parsing
@@ -1793,64 +1769,29 @@ class CIMInstanceName(_CIMComparisonMixin):
             cimval = val.lower() == 'true'
             return cimval
 
-        # For all integer values, the following applies:
-        # * The key value must be one of the integer CIM types 'uint<NN>' or
-        #   'sint<NN>'. For integer keybindings in an untyped WBEM URI, it is
+        # Try CIM types uint<NN> or sint<NN> (see integerValue in DSP00004).
+        # * For integer keybindings in an untyped WBEM URI, it is
         #   not possible to detect the exact CIM data type. Therefore, pywbem
         #   stores the value as a Python int type (or long in Python 2,
         #   if needed).
-        # * Note that DSP0207 only allows only US-ASCII digits. However, the
-        #   Python int() function supports all Unicode digits (e.g. US-ASCII
-        #   digits, ARABIC-INDIC digits, superscripts, subscripts) and raises
-        #   ValueError for non-decimal digits (e.g. Kharoshthi digits).
-        #   Therefore, we check the string format explicitly for US-ASCII
-        #   digits, and therefore the int() function cannot fail.
-        m = BINARY_VALUE.match(val)
-        if m:
-            val = m.group(1)  # The trailing 'B' is CIM specific -> remove
-            cimval = int(val, 2)  # returns long if needed
-            return cimval
-        if OCTAL_VALUE.match(val):
-            cimval = int(val, 8)  # returns long if needed
-            return cimval
-        if DECIMAL_VALUE.match(val):
-            cimval = int(val)  # returns long if needed
-            return cimval
-        if HEX_VALUE.match(val):
-            cimval = int(val, 16)  # returns long if needed
+        cimval = _integerValue_to_int(val)
+        if cimval is not None:
             return cimval
 
-        if REAL_VALUE.match(val):
-            # The key value must be one of the real CIM types:
-            # * realNN (see realValue in DSP00004)
-
-            # For real/float keybindings in an untyped WBEM URI, it is not
-            # possible to detect the exact CIM data type. Therefore, pywbem
-            # stores the value as a Python float type.
-
-            # The float() function supports a superset of input formats
-            # compared to the realValue definition in DSP0004 (for example,
-            # "1." is allowed for float() but not for realValue), plus it
-            # has the same support for decimal Unicode digits as int().
-            # Therefore, the US-ASCII 0-9 digits have been checked explicitly,
-            # and an error in the int() function is not expected.
-
-            # Therefore, the realValue format has been checked explicitly,
-            # and an error in the float() function is not expected.
-
-            # Note that the special values 'INF', '-INF', and 'NAN' are
-            # also covered by Python float().
-
-            cimval = float(val)
+        # Try CIM types real32/64 (see realValue in DSP00004).
+        # * For real/float keybindings in an untyped WBEM URI, it is not
+        #   possible to detect the exact CIM data type. Therefore, pywbem
+        #   stores the value as a Python float type.
+        cimval = _realValue_to_float(val)
+        if cimval is not None:
             return cimval
 
+        # Try datetime types.
         # At this point, all CIM types have been processed, except:
         # * datetime, without quotes (see datetimeValue in DSP0207)
-
         # DSP0207 requires double quotes around datetime strings, but because
         # earlier versions of pywbem supported them without double quotes,
         # pywbem continues to support that, but issues a warning.
-
         try:
             cimval = CIMDateTime(val)
         except ValueError:

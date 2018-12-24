@@ -14,7 +14,7 @@ import random
 import pytest
 import six
 
-from pywbem._utils import _ascii2, _format
+from pywbem._utils import _ascii2, _format, _integerValue_to_int
 from pywbem.cim_obj import NocaseDict
 
 from run_uprint import unichr2
@@ -593,5 +593,258 @@ def test_format_random(unicode_cp):
         exp_result = "'\\U{0:08x}'".format(unicode_cp)
 
     # pylint: disable=unidiomatic-typecheck
+    assert type(act_result) is type(exp_result)
+    assert act_result == exp_result
+
+
+TESTCASES_INTEGER_VALUE_TO_INT = [
+
+    # Testcases for _integerValue_to_int()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * value_str: Input string value.
+    #   * exp_result: Expected result of _integerValue_to_int().
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Test variations of zero
+    (
+        "Binary value '0b'",
+        dict(
+            value='0b',
+            exp_result=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Binary value '0B'",
+        dict(
+            value='0B',
+            exp_result=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Decimal / octal value '0'",
+        dict(
+            value='0',
+            exp_result=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0x0'",
+        dict(
+            value='0x0',
+            exp_result=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0X0'",
+        dict(
+            value='0X0',
+            exp_result=0,
+        ),
+        None, None, True
+    ),
+
+    # Test variations of a single digit positive number
+    (
+        "Binary value '1b'",
+        dict(
+            value='1b',
+            exp_result=1,
+        ),
+        None, None, True
+    ),
+    (
+        "Binary value '1B'",
+        dict(
+            value='1B',
+            exp_result=1,
+        ),
+        None, None, True
+    ),
+    (
+        "Decimal value '1'",
+        dict(
+            value='1',
+            exp_result=1,
+        ),
+        None, None, True
+    ),
+    (
+        "Octal value '01'",
+        dict(
+            value='01',
+            exp_result=1,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0x1'",
+        dict(
+            value='0x1',
+            exp_result=1,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0X1'",
+        dict(
+            value='0X1',
+            exp_result=1,
+        ),
+        None, None, True
+    ),
+
+    # Test variations of a single digit positive number
+    (
+        "Binary value '-1b'",
+        dict(
+            value='-1b',
+            exp_result=-1,
+        ),
+        None, None, True
+    ),
+    (
+        "Binary value '-1B'",
+        dict(
+            value='-1B',
+            exp_result=-1,
+        ),
+        None, None, True
+    ),
+    (
+        "Decimal value '-1'",
+        dict(
+            value='-1',
+            exp_result=-1,
+        ),
+        None, None, True
+    ),
+    (
+        "Octal value '-01'",
+        dict(
+            value='-01',
+            exp_result=-1,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '-0x1'",
+        dict(
+            value='-0x1',
+            exp_result=-1,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '-0X1'",
+        dict(
+            value='-0X1',
+            exp_result=-1,
+        ),
+        None, None, True
+    ),
+
+    # Test correct base of conversion
+    (
+        "Binary value '1101b'",
+        dict(
+            value='1101b',
+            exp_result=13,
+        ),
+        None, None, True
+    ),
+    (
+        "Decimal value '123'",
+        dict(
+            value='123',
+            exp_result=123,
+        ),
+        None, None, True
+    ),
+    (
+        "Octal value '017'",
+        dict(
+            value='017',
+            exp_result=15,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0x1F'",
+        dict(
+            value='0x1F',
+            exp_result=31,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0X1f'",
+        dict(
+            value='0X1f',
+            exp_result=31,
+        ),
+        None, None, True
+    ),
+
+    # Test invalid digits for the representation
+    (
+        "Binary value '1102b'",
+        dict(
+            value='1102b',
+            exp_result=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Decimal value '12A'",
+        dict(
+            value='12A',
+            exp_result=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Octal value '018'",
+        dict(
+            value='018',
+            exp_result=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Hexadecimal value '0x1G'",
+        dict(
+            value='0x1G',
+            exp_result=None,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_INTEGER_VALUE_TO_INT)
+@pytest_extensions.simplified_test_function
+def test_integerValue_to_int(testcase, value, exp_result):
+    """
+    Test function for _integerValue_to_int().
+    """
+
+    # The code to be tested
+    act_result = _integerValue_to_int(value)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
     assert type(act_result) is type(exp_result)
     assert act_result == exp_result

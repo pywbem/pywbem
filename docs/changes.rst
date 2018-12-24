@@ -194,6 +194,13 @@ This version contains all fixes up to pywbem 0.12.4.
   - html5lib from 0.9999999 to 0.999999999
   - mistune from 0.7.3 to 0.8.1
 
+* The `ValueMapping` class only supported decimal representations of integer
+  values in the `ValueMap` qualifier. However, DSP0004 allows for decimal,
+  binary, octal and hexadecimal representations of integer values. Added support
+  for all these representations to the `ValueMapping` class.
+  See issue #1547.
+
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
