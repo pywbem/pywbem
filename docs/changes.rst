@@ -470,6 +470,11 @@ This version contains all fixes up to pywbem 0.12.4.
   There is an example file `server_file_example.yml`.
   There are some initial tests, and users can define their own tests.
 
+* For the end2end tests, added a file `profiles.yaml` that defines the
+  discovery-related characteristics of a number of DMTF and SNIA management
+  profiles, and that is used to drive profile discovery related tests against
+  WBEM servers.
+
 **Known issues:**
 
 * See `list of open issues`_.

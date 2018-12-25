@@ -1,0 +1,860 @@
+# This file defines discovery-related characteristics of management
+# profiles. It is used by pywbem end2end testcases.
+#
+# The format is a list of profile definition items, where each item describes
+# one profile. The order of profile definition items determines the order in
+# which the profiles are tested.
+#
+# Each profile definition item is a dictionary with the following items:
+# * registered_org: Registered organization of the profile (as a string, e.g.
+#   'SNIA').
+# * registered_name: Registered name of the profile.
+# * autonomous: Boolean indicating whether the profile is autonomous.
+# * central_class: Class name of the central class of the profile.
+# * scoping_class: Class name of the scoping class of the profile. May be
+#   null or non-null for autonomous profiles.
+# * scoping_path: Iterable of class names of the scoping path (from central to
+#   scoping, excluding central and scoping classes). Must be null for
+#   autonomous profiles.
+# * doc: Informal reference to the standards document describing the profile.
+#
+# TODO #1554: Add support for representing profile versions.
+# TODO #1552: Update profile definitions from additional input.
+
+# -
+#   # TODO 2018-12 AM: Clarify where the 'SMI-S' profile is described.
+#   registered_org: SNIA
+#   registered_name: SMI-S
+#   autonomous: TBD
+#   central_class: TBD
+#   scoping_class: TBD
+#   scoping_path: TBD
+#   doc: TBD
+-
+  registered_org: SNIA
+  registered_name: Array
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Block
+-
+  # Note: The SNIA Server profile has been deprecated in SMI-S 1.7, listing
+  #       the DMTF WBEM Server profile as a replacement. There is an intention
+  #       in the SMI-S community to change this again, allowing the SNIA
+  #       Server profile and the DMTF WBEM Server profile to be implemented.
+  #       However, as of the current SMI-S 1.8 Revision 3, the SNIA Server
+  #       profile is still listed as deprecated.
+  # TODO 2018-12 AM: The SMI-S standard defines for this autonomous profile
+  #      that its scoping class is different from its central class. Clarify
+  #      whether that is by intention or mistake.
+  registered_org: SNIA
+  registered_name: Server
+  autonomous: true
+  central_class: CIM_ObjectManager
+  scoping_class: CIM_System
+  scoping_path: null
+  doc: SMI-S Common Profiles
+-
+  registered_org: DMTF
+  registered_name: WBEM Server
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: DMTF DSP1092
+-
+  registered_org: SNIA
+  registered_name: NAS Head
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S File Systems
+-
+  registered_org: SNIA
+  registered_name: FC HBA
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Host Elements
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to show
+  #      this profile as 'SCNAS', but the SMI-S standard defines it as
+  #      'Self-contained NAS System'.
+  registered_org: SNIA
+  registered_name: Self-contained NAS System
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S File Systems
+-
+  registered_org: SNIA
+  registered_name: Switch
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Fabric
+# -
+#   # TODO 2018-12 AM: Clarify central class, scoping class, and scoping
+#   #      path. The latest version of SMI-S (1.6) that still described this
+#   #      profile is silent about that.
+#   # Note: This profile has been deprecated in SMI-S 1.6 and removed from the
+#   #       standard in SMI-S 1.7. The DMTF 'Indications' profile should be
+#   #       implemented instead.
+#   registered_org: SNIA
+#   registered_name: Indication
+#   autonomous: false
+#   central_class: TBD
+#   scoping_class: TBD
+#   scoping_path: TBD
+#   doc: SMI-S Common Profiles
+-
+  registered_org: DMTF
+  registered_name: Indications
+  autonomous: false
+  central_class: CIM_IndicationService
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_HostedService
+  doc: DMTF DSP1054
+-
+  registered_org: SNIA
+  registered_name: Job Control
+  autonomous: false
+  central_class: CIM_ConcreteJob
+  scoping_class: CIM_Service
+  scoping_path:
+    - CIM_OwningJobElement
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Software
+  autonomous: false
+  central_class: CIM_SoftwareIdentity
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_InstalledSoftwareIdentity
+  doc: SMI-S Common Profiles
+-
+  # TODO 2018-12 AM: Karl's list has this profile as a component profile.
+  #      The SMI-S description is silent about that but states that its PRP
+  #      specializes the DMTF PRP, which implies that it also must be
+  #      autonomous. Clarify whether autonomous or component.
+  registered_org: SNIA
+  registered_name: Profile Registration
+  autonomous: true
+  central_class: CIM_RegisteredProfile
+  scoping_class: CIM_RegisteredProfile
+  scoping_path: null
+  doc: SMI-S Common Profiles
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to
+  #      show this profile as 'BaseServer', but the SMI-S standard defines it
+  #      as 'Base Server', consistent with its DMTF base profile.
+  registered_org: SNIA
+  registered_name: Base Server
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Block Storage Views
+  autonomous: false
+  central_class: CIM_ViewCapabilities
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_ElementCapabilities
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Block Server Performance
+  autonomous: false
+  central_class: CIM_BlockStatisticsService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Replication Services
+  autonomous: false
+  central_class: CIM_ReplicationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Disk Drive Lite
+  autonomous: false
+  central_class: CIM_DiskDrive
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Extent Composition
+  autonomous: false
+  central_class: CIM_StorageExtent
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Multiple Computer System
+  autonomous: false
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_ComponentCS
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Generic Target Ports
+  autonomous: false
+  central_class: CIM_LogicalPort
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Thin Provisioning
+  autonomous: false
+  central_class: CIM_StoragePool
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedStoragePool
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Copy Services
+  autonomous: false
+  central_class: CIM_StorageConfigurationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: iSCSI Target Ports
+  autonomous: false
+  central_class: CIM_iSCSICapabilities
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_ElementCapabilities
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: FC Target Ports
+  autonomous: false
+  central_class: CIM_FCPort
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: FCoE Target Ports
+  autonomous: false
+  central_class: CIM_FCPort
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to
+  #      show this profile using the name 'Serial Attached SCSI Target Port'
+  #      (which is the name used in the SMI-S profile overview spreadsheet),
+  #      but the SMI-S standard defines its name as 'SAS Target Ports', since
+  #      its introduction in SMI-S 1.2.
+  registered_org: SNIA
+  registered_name: SAS Target Ports
+  autonomous: false
+  central_class: CIM_SASPort
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: N Port Virtualizer
+  autonomous: false
+  central_class: CIM_FCPort
+  scoping_class: CIM_AdminDomain
+  scoping_path:
+    - CIM_Component
+  doc: SMI-S Fabric
+-
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  # Note: This profile changed its name defined in the the SMI-S standard as
+  #       follows:
+  #       - SMI-S 1.2 to 1.6: 'FabricVirtualFabrics'
+  #       - SMI-S 1.7: 'Fabric Virtual Fabrics'
+  #       - SMI-S 1.8: 'Virtual Fabrics'
+  registered_org: SNIA
+  registered_name: FabricVirtualFabrics
+  autonomous: false
+  central_class: CIM_AdminDomain
+  scoping_class: CIM_AdminDomain
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: Fabric Views
+  autonomous: false
+  central_class: CIM_ViewCapabilities
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: Inter Fabric Routing
+  autonomous: false
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_AdminDomain
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  registered_org: SNIA
+  registered_name: Fan
+  autonomous: false
+  central_class: CIM_Fan
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: Enhanced Zoning and Enhanced Zoning Control
+  autonomous: false
+  central_class: CIM_ZoneService
+  scoping_class: CIM_AdminDomain
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  registered_org: SNIA
+  registered_name: Physical Package
+  autonomous: false
+  central_class: CIM_PhysicalPackage
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemPackaging
+  doc: SMI-S Common Profiles
+-
+  registered_org: DMTF
+  registered_name: Role Based Authorization
+  autonomous: false
+  central_class: CIM_RoleBasedAuthorizationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: DMTF DSP1039
+-
+  registered_org: SNIA
+  registered_name: Access Points
+  autonomous: false
+  central_class: CIM_RemoteServiceAccessPoint
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_HostedAccessPoint
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Storage Virtualizer
+  autonomous: true
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Power Supply
+  autonomous: false
+  central_class: CIM_PowerSupply
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  # TODO 2018-12 AM: Clarify where this profile is described
+  registered_org: SNIA
+  registered_name: LaunchInContext
+  autonomous: false
+  central_class: CIM_LaunchInContextService
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_HostedService
+  doc: null
+-
+  # Note: This profile changed its name defined in the the SMI-S standard as
+  #       follows:
+  #       - SMI-S 1.2 to 1.6: 'FabricSwitchPartitioning'
+  #       - SMI-S 1.7: 'Fabric Switch Partitioning'
+  #       - SMI-S 1.8: 'Switch Partitioning'
+  registered_org: SNIA
+  registered_name: FabricSwitchPartitioning
+  autonomous: false
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedDependency
+  doc: SMI-S Fabric
+-
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: FDMI
+  autonomous: false
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_AdminDomain
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  registered_org: SNIA
+  registered_name: Location
+  autonomous: false
+  central_class: CIM_Location
+  scoping_class: CIM_PhysicalPackage
+  scoping_path:
+    - CIM_PhysicalElementLocation
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Sensors
+  autonomous: false
+  central_class: CIM_Sensor
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Fabric
+  autonomous: true
+  central_class: CIM_AdminDomain
+  scoping_class: CIM_AdminDomain
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  registered_org: SNIA
+  registered_name: FC Initiator Ports
+  autonomous: false
+  central_class: CIM_FCPort
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: Blades
+  autonomous: false
+  central_class: CIM_PhysicalPackage
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Fabric
+-
+  registered_org: SNIA
+  registered_name: Zone Control
+  autonomous: false
+  central_class: CIM_ZoneService
+  scoping_class: CIM_AdminDomain
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Fabric
+-
+  registered_org: DMTF
+  registered_name: Job Control
+  autonomous: false
+  central_class: CIM_ConcreteJob
+  scoping_class: CIM_ManagedElement
+  scoping_path:
+    - CIM_HostedDependency
+  doc: DMTF DSP1103
+-
+  registered_org: DMTF
+  registered_name: Fan
+  autonomous: false
+  central_class: CIM_Fan
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: DMTF DSP1013
+-
+  registered_org: SNIA
+  registered_name: Storage Element Protection
+  autonomous: false
+  central_class: CIM_StorageProtectionService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Volume Composition
+  autonomous: false
+  central_class: CIM_StorageElementCompositionService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+# -
+#   # Note: This is a package, not a profile. SMI-S defines that packages are
+#   #       not registered (= advertised) by the server, which is the reason
+#   #       this package does not define a central class.
+#   # TODO 2018-12 AM: Some implementations seem to show this package as a
+#   #      registered profile. Clarify what to do about that.
+#   registered_org: SNIA
+#   registered_name: Health
+#   autonomous: false
+#   central_class: null
+#   scoping_class: CIM_ComputerSystem
+#   scoping_path: null
+#   doc: SMI-S Common Profiles
+-
+  # Note: This profile specializes DMTF 'Software Inventory' profile, DSP1023.
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: Software Inventory
+  autonomous: false
+  central_class: CIM_SoftwareIdentity
+  scoping_class: CIM_System
+  scoping_path: null
+  doc: SMI-S Common Profiles
+-
+  registered_org: SNIA
+  registered_name: Automated Storage Tiering Policy
+  autonomous: false
+  central_class: CIM_TierPolicyService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Automated Storage Tiering
+  autonomous: false
+  central_class: CIM_TierService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: DMTF
+  registered_name: Power Supply
+  autonomous: false
+  central_class: CIM_PowerSupply
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: DMTF DSP1015
+-
+  registered_org: DMTF
+  registered_name: Simple Identity Management
+  autonomous: false
+  central_class: CIM_AccountManagementService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: DMTF DSP1034
+-
+  registered_org: DMTF
+  registered_name: Indicator LED
+  autonomous: false
+  central_class: CIM_IndicatorLED
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: DMTF DSP1074
+-
+  registered_org: SNIA
+  registered_name: Block Services
+  autonomous: false
+  central_class: CIM_StoragePool
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedStoragePool
+  doc: SMI-S Block
+-
+  # Note: This profile specializes the SMI-S 'Masking and Mapping' profile.
+  #       However, its central class is not based on the central class
+  #       CIM_ControllerConfigurationService of its base profile.
+  # TODO 2018-12 AM: Clarify the scoping path of this profile.
+  registered_org: SNIA
+  registered_name: Group Masking and Mapping
+  autonomous: false
+  central_class: CIM_GroupMaskingMappingService
+  scoping_class: CIM_ComputerSystem
+  scoping_path: null
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Storage Relocation
+  autonomous: false
+  central_class: CIM_StorageRelocationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Disk Sparing
+  autonomous: false
+  central_class: CIM_StorageRedundancySet
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedCollection
+  doc: SMI-S Block
+-
+  registered_org: DMTF
+  registered_name: Certificate Management
+  autonomous: false
+  central_class: CIM_CertificateManagementService
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_HostedService
+  doc: DMTF DSP1096
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to show
+  #      this profile as 'FCoE Target Port', but the SMI-S standard defines it
+  #      as 'FCoE Target Ports' since its introduction in SMI-S 1.6.
+  registered_org: SNIA
+  registered_name: FCoE Target Ports
+  autonomous: false
+  central_class: CIM_FCPort
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  # Note: This profile specializes SMI-S 'Block Services' profile.
+  registered_org: SNIA
+  registered_name: CKD Block Services
+  autonomous: false
+  central_class: CIM_StoragePool
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedStoragePool
+  doc: SMI-S Block
+-
+  # Note: This profile changed its name defined in the the SMI-S standard
+  #       as follows:
+  #       - SMI-S 1.4 to 1.6: 'Pools from Volumes'
+  #       - SMI-S 1.7 to 1.8: 'Pools From Volumes'
+  registered_org: SNIA
+  registered_name: Pools From Volumes
+  autonomous: false
+  central_class: CIM_StorageVolume
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Block
+-
+  registered_org: SNIA
+  registered_name: Storage Server Asymmetry
+  autonomous: false
+  central_class: CIM_StorageServerAsymmetryCapabilities
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_ElementCapabilities
+  doc: SMI-S Block
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to show
+  #      this profile as 'FC Target Port', but the SMI-S standard defines it as
+  #      'FC Target Ports' since its introduction in SMI-S 1.2 or earlier.
+  registered_org: SNIA
+  registered_name: FC Target Ports
+  autonomous: false
+  central_class: CIM_FCPort
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+# -
+#   # TODO 2018-12 AM: Clarify where this profile is described. SMI-S 1.8 does
+#   #      not seem to define a 'Simple Identity Management' profile.
+#   #      The SMI-S File Systems book references the DMTF 'Simple Identity
+#   #      Management' profile, DSP1034.
+#   registered_org: SNIA
+#   registered_name: Simple Identity Management
+#   autonomous: false
+#   central_class: TBD
+#   scoping_class: TBD
+#   scoping_path: TBD
+#   doc: TBD
+-
+  registered_org: SNIA
+  registered_name: File Export Manipulation
+  autonomous: false
+  central_class: CIM_FileExportService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S File Systems
+-
+  registered_org: SNIA
+  registered_name: File Export
+  autonomous: false
+  central_class: CIM_FileShare
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedShare
+  doc: SMI-S File Systems
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to show
+  #      this profile as 'FileSystem Manipulation', but the SMI-S standard
+  #      defines it as 'Filesystem Manipulation' since its introduction in
+  #      SMI-S 1.2 or earlier.
+  registered_org: SNIA
+  registered_name: Filesystem Manipulation
+  autonomous: false
+  central_class: CIM_FileSystemConfigurationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S File Systems
+-
+  registered_org: SNIA
+  registered_name: Masking And Mapping
+  autonomous: false
+  central_class: CIM_ControllerConfigurationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S Block
+# -
+#   # TODO 2018-12 AM: Clarify existence: Some implementations seem to show
+#   #      this profile as 'SNIA' 'Indications' profile. However, the SMI-S
+#   #      Common Profiles book does not define such a profile, but instead
+#   #      references the DMTF Indications profile, DSP1054.
+#   registered_org: SNIA
+#   registered_name: Indications
+#   autonomous: false
+#   central_class: TBD
+#   scoping_class: TBD
+#   scoping_path: TBD
+#   doc: TBD
+-
+  # Note: This profile was removed from SMI-S in 1.7.
+  registered_org: SNIA
+  registered_name: SPI Target Ports
+  autonomous: false
+  central_class: CIM_SPIPort
+  scoping_class: CIM_System
+  scoping_path:
+    - CIM_SystemDevice
+  doc: SMI-S Common Profiles
+-
+  registered_org: DMTF
+  registered_name: Sensors
+  autonomous: false
+  central_class: CIM_Sensor
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_SystemDevice
+  doc: DMTF DSP1009
+-
+  # TODO 2018-12 AM: Clarify profile name: Some implementations seem to show
+  #      this profile as 'FileSystem', but the SMI-S standard defines it as
+  #      'Filesystem' since its introduction in SMI-S 1.2 or earlier.
+  registered_org: SNIA
+  registered_name: Filesystem
+  autonomous: false
+  central_class: CIM_LocalFileSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_Dependency
+  doc: SMI-S File Systems
+-
+  registered_org: SNIA
+  registered_name: NAS Network Port
+  autonomous: false
+  central_class: CIM_ProtocolEndpoint
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedAccessPoint
+  doc: SMI-S File Systems
+-
+  registered_org: DMTF
+  registered_name: Profile Registration
+  autonomous: true
+  central_class: CIM_RegisteredProfile
+  scoping_class: CIM_RegisteredProfile
+  scoping_path: null
+  doc: DMTF DSP1033
+# -
+#   # TODO 2018-12 AM: This seems to be a package, and not a profile. This can
+#   #      be concluded from the fact that it does not define a central class.
+#   #      However, the SMI-S File Systems book defines this as a profile.
+#   #      Also, implementations do seem to advertise this package.
+#   #      Clarify what to do about that.
+#   registered_org: SNIA
+#   registered_name: File Storage
+#   autonomous: false
+#   central_class: null
+#   scoping_class: CIM_ComputerSystem
+#   scoping_path: null
+#   doc: SMI-S File Systems
+-
+  registered_org: SNIA
+  registered_name: File Server Manipulation
+  autonomous: false
+  central_class: CIM_FileServerConfigurationService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S File Systems
+# -
+#   # Note: SMI-S defines that the 'Object Manager Adapter' profile is not
+#   #       advertised, and thus does not define central or scoping class.
+#   #       It has been removed from the standard in SMI-S 1.7. The DMTF 'WBEM
+#   #       Server' profile should be implemented instead.
+#   registered_org: SNIA
+#   registered_name: Object Manager Adapter
+#   autonomous: false
+#   central_class: TBD
+#   scoping_class: TBD
+#   scoping_path: TBD
+#   doc: SMI-S Common Profiles
+-
+  registered_org: DMTF
+  registered_name: Record Log
+  autonomous: true
+  central_class: CIM_RecordLog
+  scoping_class: CIM_RecordLog
+  scoping_path: null
+  doc: DMTF DSP1010
+-
+  # Note: This profile changed its name defined in the the SMI-S standard as
+  #       follows:
+  #       - SMI-S 1.2 to 1.7: 'FileSystem Quotas'
+  #       - SMI-S 1.8: 'Filesystem Quotas'
+  registered_org: SNIA
+  registered_name: Filesystem Quotas
+  autonomous: false
+  central_class: CIM_FSQuotaManagementService
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_HostedService
+  doc: SMI-S File Systems
+-
+  # Note: This profile specializes the DMTF 'Physical Asset Profile', DSP1011.
+  registered_org: SNIA
+  registered_name: Storage Enclosure
+  autonomous: false
+  central_class: CIM_Chassis
+  scoping_class: CIM_ComputerSystem
+  scoping_path:
+    - CIM_ComputerSystemPackage
+  doc: SMI-S Common Profiles
