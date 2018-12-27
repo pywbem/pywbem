@@ -421,10 +421,10 @@ This version contains all fixes up to pywbem 0.12.4.
   determining the central instances. See issue #1438.
 
 * In the `WBEMServer` class, the Interop namespace is now added to the set
-  of namespaces in the `namespaces`  and `namespace_paths` properties, if
-  missing there. This accomodates the behavior of a particular WBEM server
-  that was found not to include the Interop namespace when enumerating the
-  namespace instances. See issue #1430.
+  of namespaces in the `namespaces`  property, if missing there. This
+  accomodates the behavior of a particular WBEM server that was found to
+  support the Interop namespace without representing it as a CIM instance.
+  See issue #1430.
 
 **Cleanup:**
 

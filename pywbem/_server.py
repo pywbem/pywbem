@@ -101,7 +101,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError, ParseError, ModelError
+from .exceptions import CIMError, ParseError
 from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
@@ -272,6 +272,12 @@ class WBEMServer(object):
         :class:`py:list` of :class:`~pywbem.CIMInstanceName`: Instance paths
         of the CIM instances in the Interop namespace that represent the
         namespaces of the WBEM server.
+
+        Note: One WBEM server has been found to support an Interop namespace
+        without representing it as a CIM instance. In that case, this property
+        will not have an instance path for the Interop namespace, but the
+        :attr:`namespaces` property will have the name of the Interop
+        namespace.
 
         Raises:
 
@@ -1030,10 +1036,10 @@ class WBEMServer(object):
 
         Otherwise, it raises an exception.
 
-        This method implements a fixup for WBEM servers that do not include the
-        Interop namespace in the EnumerateInstances result, by adding the
-        determined Interop namespace to the set of namespaces, if missing
-        there.
+        Note that there is at least one WBEM server that implements an Interop
+        namespace but does not represent that with a CIM instance. In that
+        case, the :attr:`namespaces` property will include the Interop
+        namespace, but the :attr:`namespace_paths` property will not.
 
         Raises:
 
@@ -1074,48 +1080,17 @@ class WBEMServer(object):
         self._namespaces = [inst['Name'] for inst in ns_insts]
         self._namespace_paths = [inst.path for inst in ns_insts]
 
-        # An old version of a Hitachi server does not return its Interop
-        # namespace in the set of namespace instances. Pywbem adds the
-        # interop namespace to make up for that.
-        if interop_ns not in self._namespaces:
-
+        # An old version of a Hitachi server supports an Interop namespace
+        # named 'interop' but does not represent it with a CIM instance.
+        namespaces_lower = [ns.lower() for ns in self._namespaces]
+        if interop_ns.lower() not in namespaces_lower:
             warnings.warn(
                 _format("Server at {0} has an Interop namespace {1!A}, but "
                         "does not return it when enumerating class {2!A} "
-                        "- adding it",
+                        "- adding it to the 'namespaces' property",
                         self.conn.url, interop_ns, ns_classname),
                 ToleratedServerIssueWarning, stacklevel=2)
-
             self._namespaces.append(interop_ns)
-
-            # For adding the Interop namespace to the 'namespace_paths'
-            # property, its instance path is needed. Because the different
-            # classes used to represent namespaces have different keys, it
-            # seems best to copy one of their instance paths.
-            if not self._namespace_paths:
-                raise ModelError(
-                    _format("Server at {0} does not return the Interop "
-                            "namespace {1!A} when enumerating class {2!A}, "
-                            "and adding it to the list of namespaces is not "
-                            "possible because it does not have any namespaces "
-                            "besides the Interop namespace",
-                            self.conn.url, interop_ns, ns_classname))
-            org_path = self._namespace_paths[0]
-            interop_path = org_path.copy()
-            interop_path['Name'] = interop_ns
-            assert interop_path.namespace is not None
-            try:
-                self._conn.GetInstance(interop_path)
-            except CIMError as exc:
-                raise ModelError(
-                    _format("Server at {0} does not return the Interop "
-                            "namespace {1!A} when enumerating class {2!A}, "
-                            "and adding it to the list of namespaces is not "
-                            "possible because verification of the instance "
-                            "via GetInstance on path {3!A} fails: {4}",
-                            self.conn.url, interop_ns, ns_classname,
-                            interop_path, exc))
-            self._namespace_paths.append(interop_path)
 
     def _determine_brand(self):
         """
