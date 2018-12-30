@@ -81,7 +81,9 @@ def server_definition(request):
 def wbem_connection(request, server_definition):
     """
     Fixture representing the set of WBEMConnection objects to use for the
-    end2end tests.
+    end2end tests.  This fixture uses the  server_definition
+    implementation_namespace item from the server_definition as the
+    default namespace if that item exists in the server_definition.
 
     Returns the `WBEMConnection` object of each server to test against.
     """
@@ -96,11 +98,17 @@ def wbem_connection(request, server_definition):
     x509 = dict(cert_file=sd.cert_file, key_file=sd.key_file) \
         if sd.cert_file and sd.key_file else None
 
+    # Define the WBEMConnection default_namespace as the
+    # implementation_namespace if that data exists, else define it as
+    # None which invokes root/cimv2 as the default namespace.
+    # NOTE: Since WBEMConnection assigns root/cimv2 as default, there is
+    # no way to really know if a valid implementation namespace was defined.
     conn = WBEMConnectionAsserted(
         sd.url, (sd.user, sd.password),
         x509=x509,
         ca_certs=sd.ca_certs,
         no_verification=sd.no_verification,
+        default_namespace=sd.implementation_namespace,
         timeout=10)
 
     conn.server_definition = sd
