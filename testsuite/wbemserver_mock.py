@@ -3,7 +3,8 @@
     other test mocks
 """
 import os
-from pywbem import WBEMServer, ValueMapping, CIMInstance
+from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
+    CIMInstanceName
 from pywbem_mock import FakedWBEMConnection
 from dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 
@@ -34,13 +35,24 @@ TESTSUITE_SCHEMA_DIR = os.path.join(TEST_DIR, 'schema')
 #  registered_profiles: The Organization, profile name, profile version for any
 #  registered profiles
 #
+#  referenced_profiles: Definition of CIM_ReferencedProfile associations
+#  between CIM_RegisteredProfiles. This is used to test get_central_instances
+#
+#
 DEFAULT_WBEM_SERVER_MOCK_DICT = {
     'dmtf_schema': {'version': DMTF_TEST_SCHEMA_VER,
                     'dir': TESTSUITE_SCHEMA_DIR},
     'pg_schema': {
         'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'OpenPegasus'),
-        'files': ['PG_Namespace.mof']
-    },
+        'files': ['PG_Namespace.mof']},
+
+    'class_names': ['CIM_Namespace',
+                    'CIM_ObjectManager',
+                    'CIM_RegisteredProfile',
+                    'CIM_ElementConformsToProfile',
+                    'CIM_ReferencedProfile',
+                    'CIM_ComputerSystem'],
+    'class-mof': ["class XXX_StorageComputerSystem : CIM_ComputerSystem{};", ],
     'system_name': 'Mock_Test_WBEMServerTest',
     'object_manager': {'Name': 'MyFakeObjectManager',
                        'ElementName': 'Pegasus',
@@ -52,8 +64,39 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
                             ('DMTF', 'Profile Registration', '1.0.0'),
                             ('SNIA', 'Server', '1.2.0'),
                             ('SNIA', 'Server', '1.1.0'),
-                            ('SNIA', 'SMI-S', '1.2.0'), ],
-    'element_conforms_to_profile': [['SNIA', 'Server', '1.1.0'], ]
+                            ('SNIA', 'SMI-S', '1.2.0'),
+                            ('SNIA', 'Array', '1.4.0'),
+                            ('SNIA', 'Software', '1.4.0'),
+                            ('DMTF', 'Component', '1.4.0'), ],
+
+    'referenced_profiles': [
+        (('SNIA', 'Server', '1.2.0'), ('DMTF', 'Indications', '1.1.0')),
+        (('SNIA', 'Server', '1.2.0'), ('SNIA', 'Array', '1.4.0')),
+        (('SNIA', 'Array', '1.4.0'), ('DMTF', 'Component', '1.4.0')),
+        (('SNIA', 'Array', '1.4.0'), ('SNIA', 'Software', '1.4.0')),
+
+    ],
+    # define profile relation to central class instance
+    # First element is a profile, second is name and keybindings of a
+    # CIMInstanceName
+    'element_conforms_to_profile': [
+        (('SNIA', 'Server', '1.2.0'),
+         ("XXX_StorageComputerSystem", {'Name': "10.1.2.3",
+                                        'CreationClassName':
+                                            "XXX_StorageComputerSystem"})), ],
+    # List of CIMInstances. Each entry is a CIM instance with classname,
+    # and properties. All properties required to build the path must be
+    # defined. No other properties are required for this test.
+    # TODO: We may expand this for more scoping tests.
+    'central-instances': [
+        CIMInstance(
+            'XXX_StorageComputerSystem',
+            properties={
+                'Name': "10.1.2.3",
+                'CreationClassName': "XXX_StorageComputerSystem",
+                'NameFormat': "IP"}),
+    ],
+    'scoping-instances': []
 }
 
 
@@ -140,18 +183,20 @@ class WbemServerMock(object):
         FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection(default_namespace=default_namespace)
 
-        classnames = ['CIM_Namespace',
-                      'CIM_ObjectManager',
-                      'CIM_RegisteredProfile',
-                      'CIM_ElementConformsToProfile']
-        conn.compile_dmtf_schema(self.dmtf_schema_ver, self.schema_dir,
-                                 class_names=classnames, verbose=False)
+        conn.compile_dmtf_schema(
+            self.dmtf_schema_ver, self.schema_dir,
+            class_names=self.server_mock_data['class_names'], verbose=False)
 
         for fn in self.pg_schema_files:
             pg_file = os.path.join(self.pg_schema_dir, fn)
             conn.compile_mof_file(pg_file, namespace=default_namespace,
                                   search_paths=[self.pg_schema_dir],
                                   verbose=False)
+
+        # compile the mof defined in the 'class-mof definitions
+        for mof in self.server_mock_data['class-mof']:
+            conn.compile_mof_string(mof, namespace=default_namespace,
+                                    verbose=False)
 
         return conn
 
@@ -166,8 +211,8 @@ class WbemServerMock(object):
         from a repository.
         """
         cls = conn.GetClass(class_name, namespace=namespace, LocalOnly=False,
-                            IncludeQualifiers=True, include_class_origin=True,
-                            property_list=property_list)
+                            IncludeQualifiers=True, IncludeClassOrigin=True,
+                            PropertyList=property_list)
 
         return CIMInstance.from_class(
             cls, namespace=namespace, property_values=property_values,
@@ -269,25 +314,124 @@ class WbemServerMock(object):
         assert rtn_rpinsts, \
             "Expected 1 or more RegisteredProfile instances, got none"
 
-    def build_elementconformstoprofile_inst(self, conn, profile_inst,
-                                            element_inst):
+    def build_elementconformstoprofile_inst(self, conn, profile_path,
+                                            element_path):
         """
         Build an instance of CIM_ElementConformsToProfile and insert into
         repository
         """
         class_name = 'CIM_ElementConformsToProfile'
-        element_conforms_dict = {'ConformantStandard': profile_inst,
-                                 'ManagedElement': element_inst}
+        element_conforms_dict = {'ConformantStandard': profile_path,
+                                 'ManagedElement': element_path}
 
-        inst = self.inst_from_classname(conn, class_name,
-                                        namespace=self.interop_ns,
-                                        property_values=element_conforms_dict,
-                                        include_missing_properties=False,
-                                        include_path=True)
+        # TODO modify this when issue #1540  (resolve qualifiers)fixed
+        # inst = self.inst_from_classname(conn, class_name,
+        #                                namespace=self.interop_ns,
+        #                                property_values=element_conforms_dict,
+        #                                include_missing_properties=False,
+        #                                include_path=True)
+        cls = conn.GetClass(class_name, namespace=self.interop_ns,
+                            LocalOnly=False, IncludeQualifiers=True,
+                            IncludeClassOrigin=True)
+
+        for pvalue in cls.properties.values():
+            if pvalue.type == 'reference':
+                if "key" not in pvalue.qualifiers:
+                    pvalue.qualifiers['Key'] = \
+                        CIMQualifier('Key', True, propagated=True)
+
+        inst = CIMInstance.from_class(
+            cls, namespace=self.interop_ns,
+            property_values=element_conforms_dict,
+            include_missing_properties=False,
+            include_path=True)
+        # TODO end of temp code
+
         conn.add_cimobjects(inst, namespace=self.interop_ns)
 
         assert conn.EnumerateInstances(class_name, namespace=self.interop_ns)
         assert conn.GetInstance(inst.path)
+
+    def build_referenced_profile_insts(self, server, referenced_profiles):
+        """
+        Build and install in repository the referemced profile instances
+        defined by the referemces parameter. A dictionary of tuples where each
+        tuple contains Antecedent and Dependent reference in terms of the
+        profile name as a tuple (org, name, version).
+
+        Parameters:
+          conn:
+          profiles (dict of tuples where each tuple defines the antecedent
+          and dependent)
+        """
+        class_name = 'CIM_ReferencedProfile'
+        for profile_name in referenced_profiles:
+            antecedent = profile_name[0]
+            dependent = profile_name[1]
+            antecedent_inst = server.get_selected_profiles(
+                registered_org=antecedent[0],
+                registered_name=antecedent[1],
+                registered_version=antecedent[2])
+            dependent_inst = server.get_selected_profiles(
+                registered_org=dependent[0],
+                registered_name=dependent[1],
+                registered_version=dependent[2])
+
+            assert len(antecedent_inst) == 1, \
+                "Antecedent: {0}".format(antecedent)
+            assert len(dependent_inst) == 1, \
+                "Dependent: {0}".format(dependent)
+
+            ref_profile_dict = {'Antecedent': antecedent_inst[0].path,
+                                'Dependent': dependent_inst[0].path}
+
+            # TODO replace the setting of key qualifier with the commented
+            # code with #issue 1540 is fixed, i.e the key qualifier is
+            # included in the class.
+            # inst = self.inst_from_classname(server.conn, class_name,
+            #                                namespace=self.interop_ns,
+            #                                property_values=ref_profile_dict,
+            #                                include_missing_properties=False,
+            #                                include_path=True)
+
+            cls = server.conn.GetClass(class_name, namespace=self.interop_ns,
+                                       LocalOnly=False, IncludeQualifiers=True,
+                                       IncludeClassOrigin=True,
+                                       PropertyList=None)
+
+            for pvalue in cls.properties.values():
+                if pvalue.type == 'reference':
+                    if "key" not in pvalue.qualifiers:
+                        pvalue.qualifiers['Key'] = \
+                            CIMQualifier('Key', True, propagated=True)
+
+            inst = CIMInstance.from_class(
+                cls, namespace=self.interop_ns,
+                property_values=ref_profile_dict,
+                include_missing_properties=False,
+                include_path=True)
+            # TODO end of code to drop for #1540 fix
+
+            server.conn.add_cimobjects(inst, namespace=self.interop_ns)
+
+            assert server.conn.EnumerateInstances(class_name,
+                                                  namespace=self.interop_ns)
+            assert server.conn.GetInstance(inst.path)
+
+    def build_central_instances(self, conn, central_instances):
+        """
+        Build the central_instances from the definitions provided in the list
+        central_instance where each definition is a python CIMInstance object
+        and add them to the repositoryu. This method adds the path to each
+        """
+        for inst in central_instances:
+            cls = conn.GetClass(inst.classname, namespace=self.interop_ns,
+                                LocalOnly=False, IncludeQualifiers=True,
+                                IncludeClassOrigin=True)
+            inst.path = CIMInstanceName.from_instance(
+                cls, inst, namespace=self.interop_ns, strict=True)
+
+            conn.add_cimobjects(inst, namespace=self.interop_ns)
 
     def build_mock(self):
         """
@@ -322,12 +466,36 @@ class WbemServerMock(object):
 
         self.build_reg_profile_insts(conn, self.registered_profiles)
 
+        self.build_referenced_profile_insts(
+            server, self.server_mock_data['referenced_profiles'])
+
+        self.build_central_instances(
+            conn, self.server_mock_data['central-instances'])
+
         # Element conforms for SNIA server to object manager
         prof_inst = server.get_selected_profiles(registered_org='SNIA',
                                                  registered_name='Server',
                                                  registered_version='1.1.0')
-
+        # TODO this is simplistic form and only builds one instance
+        # conforms to.  Should expand but need better way to define instance
+        # at other end.
         self.build_elementconformstoprofile_inst(conn,
                                                  prof_inst[0].path,
                                                  om_inst.path)
+        for item in self.server_mock_data['element_conforms_to_profile']:
+            profile_name = item[0]
+            # TODO we are fixing the host name here.  Not good
+            central_inst_path = CIMInstanceName(item[1][0],
+                                                keybindings=item[1][1],
+                                                host='FakedUrl',
+                                                namespace=server.interop_ns)
+            prof_insts = server.get_selected_profiles(
+                registered_org=profile_name[0],
+                registered_name=profile_name[1],
+                registered_version=profile_name[2])
+            assert len(prof_insts) == 1
+
+            self.build_elementconformstoprofile_inst(conn,
+                                                     prof_insts[0].path,
+                                                     central_inst_path)
         return server

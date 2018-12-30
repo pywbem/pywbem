@@ -426,6 +426,16 @@ This version contains all fixes up to pywbem 0.12.4.
   support the Interop namespace without representing it as a CIM instance.
   See issue #1430.
 
+* Added support for specifying the reference direction in
+  `WBEMServer.get_central_instances()` by adding an optional parameter
+  `reference_direction`. This was necessary because the DMTF 'Profile
+  Registration Profile' (PRP) and the SNIA PRP use the CIM_ReferencedProfile
+  association class in opposite ways: The DMTF PRP defines that the
+  'Dependent' end of that class goes to the referencing profile which
+  is defined to be the autonomous profile, while the SNIA PRP defines that
+  the 'Antecedent' end goes to the autonomous profile.
+  See issue #1411.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

@@ -707,7 +707,8 @@ class WBEMServer(object):
         return rtn
 
     def get_central_instances(self, profile_path, central_class=None,
-                              scoping_class=None, scoping_path=None):
+                              scoping_class=None, scoping_path=None,
+                              reference_direction='dmtf'):
         # pylint: disable=line-too-long
         """
         Return the instance paths of the central instances of a management
@@ -776,6 +777,30 @@ class WBEMServer(object):
             implementation supports only the scoping class methodology.
             `None` will cause the scoping class methodology not to be attempted.
 
+          reference_direction (:term:`string`):
+            Defines the navigation direction across the CIM_ReferencedProfile
+            association when navigating from the current profile to its
+            scoping (= referencing, autonomous) profile when using the scoping
+            class methodology, as follows:
+
+            * 'dmtf' (default): Assume DMTF conformance, i.e. the 'Dependent'
+              end is followed.
+            * 'snia': Assume SNIA SMI-S conformance, i.e. the 'Antecedent'
+              end is followed.
+
+            This parameter supports the different definitions between DMTF and
+            SNIA SMI-S standards regarding the use of the two ends of the
+            CIM_ReferencedProfile association:
+
+            * The DMTF standards define in DSP1033 and DSP1001:
+              - Antecedent = referenced profile = component profile
+              - Dependent = referencing profile = autonomous profile
+
+            * The SNIA SMI-S standard defines in the "Profile Registration
+              Profile" (in the SMI-S "Common Profiles" book):
+              - Antecedent = autonomous profile
+              - Dependent = component (= sub) profile
+
         Returns:
 
           :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
@@ -790,6 +815,15 @@ class WBEMServer(object):
               :class:`~pywbem.CIMInstanceName`.
         """  # noqa: E501
         # pylint: enable=line-too-long
+
+        if reference_direction not in ('dmtf', 'snia'):
+            ValueError(
+                _format("The reference_direction parameter must be 'dmtf' or "
+                        "'snia', but is: {0!A}", reference_direction))
+
+        scoping_result_role = "Dependent" if reference_direction == 'dmtf' \
+            else "Antecedent"
+
         if not isinstance(profile_path, CIMInstanceName):
             raise TypeError(
                 _format("The profile_path argument must be a CIMInstanceName, "
@@ -873,7 +907,7 @@ class WBEMServer(object):
         referencing_profile_paths = self._conn.AssociatorNames(
             ObjectName=profile_path,
             AssocClass="CIM_ReferencedProfile",
-            ResultRole="Dependent")
+            ResultRole=scoping_result_role)
         if not referencing_profile_paths:
             raise ValueError(
                 _format("Server implementation error: No referencing profile "
