@@ -52,7 +52,8 @@ def test_get_central_instances(  # noqa: F811
         profile_inst.path,
         central_class=profile_definition['central_class'],
         scoping_class=profile_definition['scoping_class'],
-        scoping_path=profile_definition['scoping_path'])
+        scoping_path=profile_definition['scoping_path'],
+        reference_direction=profile_definition['reference_direction'])
 
     # We intentionally do not check a minimum number of central instances,
     # because it is generally valid for profile implementations not to require
