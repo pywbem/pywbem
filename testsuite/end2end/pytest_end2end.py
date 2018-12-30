@@ -132,5 +132,26 @@ def profile_definition(request):
 
     Returns the profile definition dictionary of each profile to test against.
     For dict items, see the description in profiles.yml.
+
+    Optional items in the dictionary are generated with their default values.
     """
-    return request.param
+    pd = request.param.copy()
+    if 'reference_direction' not in pd:
+        pd['reference_direction'] = None
+    if pd['reference_direction'] is None:
+        org = pd['registered_org']
+        if org == 'SNIA':
+            pd['reference_direction'] = 'snia'
+        elif org == 'DMTF':
+            pd['reference_direction'] = 'dmtf'
+        else:
+            raise ValueError(
+                "The reference_direction item of a profile definition can "
+                "only be defaulted when the registered organisation is DMTF "
+                "or SNIA, but it is {0}".format(org))
+    if 'scoping_class' not in pd:
+        pd['scoping_class'] = None
+    if 'scoping_path' not in pd:
+        pd['scoping_path'] = None
+
+    return pd

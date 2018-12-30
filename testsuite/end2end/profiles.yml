@@ -5,17 +5,20 @@
 # one profile. The order of profile definition items determines the order in
 # which the profiles are tested.
 #
-# Each profile definition item is a dictionary with the following items:
+# Each profile definition item is a dictionary with the following items.
+# Unless otherwise stated, the items are required to be specified:
 # * registered_org: Registered organization of the profile (as a string, e.g.
 #   'SNIA').
 # * registered_name: Registered name of the profile.
 # * autonomous: Boolean indicating whether the profile is autonomous.
+# * reference_direction: Scoping profile reference direction: 'dmtf' or 'snia',
+#   or null to use the registered_org. Optional, defaults to null.
 # * central_class: Class name of the central class of the profile.
 # * scoping_class: Class name of the scoping class of the profile. May be
-#   null or non-null for autonomous profiles.
+#   null or non-null for autonomous profiles. Optional, defaults to null.
 # * scoping_path: Iterable of class names of the scoping path (from central to
 #   scoping, excluding central and scoping classes). Must be null for
-#   autonomous profiles.
+#   autonomous profiles. Optional, defaults to null.
 # * doc: Informal reference to the standards document describing the profile.
 #
 # TODO #1554: Add support for representing profile versions.
