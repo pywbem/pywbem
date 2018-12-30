@@ -1,0 +1,694 @@
+{
+    "DMTF:Certificate Management": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Fan": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Indications": {
+        "autonomous": false,
+        "central_class": "CIM_IndicationService",
+        "comments": null,
+        "scoping_class": "CIM_System",
+        "scoping_path": [
+            "CIM_HostedService"
+        ]
+    },
+    "DMTF:Indicator LED": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Job Control": {
+        "autonomous": false,
+        "central_class": "CIM_ConcreteJob",
+        "comments": null,
+        "scoping_class": "CIM_ManagedElement",
+        "scoping_path": []
+    },
+    "DMTF:Power Supply": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Profile Registration": {
+        "autonomous": true,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Record Log": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Role Based Authorization": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Sensors": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:Simple Identity Management": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "DMTF:WBEM Server": {
+        "autonomous": true,
+        "central_class": "CIM_ComputerSystem",
+        "comments": null,
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": null
+    },
+    "Other:Capacity Utilization": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "Other:HP Consolidated Status": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "Other:HP Status Reason": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Access Points": {
+        "autonomous": false,
+        "central_class": "CIM_RemoteServiceAccessPoint",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_System",
+        "scoping_path": [
+            "CIM_HostedAccessPoint"
+        ]
+    },
+    "SNIA:Array": {
+        "autonomous": true,
+        "central_class": "CIM_ComputerSystem",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": null
+    },
+    "SNIA:Automated Storage Tiering": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Automated Storage Tiering Policy": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:BaseServer": {
+        "autonomous": true,
+        "central_class": "CIM_ComputerSystem",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": null
+    },
+    "SNIA:Blades": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Block Server Performance": {
+        "autonomous": false,
+        "central_class": "CIM_BlockStatisticsService",
+        "comments": "E501 book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_HostedService"
+        ]
+    },
+    "SNIA:Block Services": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Block Storage Views": {
+        "autonomous": false,
+        "central_class": "CIM_ViewCapabilities",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_ElementCapabilities"
+        ]
+    },
+    "SNIA:CKD Block Services": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Copy Services": {
+        "autonomous": false,
+        "central_class": "CIM_StorageConfigurationService",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_HostedService"
+        ]
+    },
+    "SNIA:Disk Drive Lite": {
+        "autonomous": false,
+        "central_class": "CIM_DiskDrive",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:Disk Sparing": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Enhanced Zoning and Enhanced Zoning Control": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Extent Composition": {
+        "autonomous": false,
+        "central_class": "CIM_StorageExtent",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:FC HBA": {
+        "autonomous": true,
+        "central_class": null,
+        "comments": null,
+        "scoping_class": null,
+        "scoping_path": null
+    },
+    "SNIA:FC Initiator Ports": {
+        "autonomous": false,
+        "central_class": "CIM_FCPort",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:FC Target Port": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FC Target Ports": {
+        "autonomous": false,
+        "central_class": "CIM_FCPort",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:FCoE Target Port": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FCoE Target Ports": {
+        "autonomous": false,
+        "central_class": "CIM_FCPort",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:FDMI": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Fabric": {
+        "autonomous": true,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Fabric Views": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FabricSwitchPartitioning": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FabricVirtualFabrics": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Fan": {
+        "autonomous": false,
+        "central_class": "CIM_Fan",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:File Export": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:File Export Manipulation": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:File Server Manipulation": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:File Storage": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FileSystem": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FileSystem Manipulation": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:FileSystem Quotas": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Filesystem": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Filesystem Manipulation": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Generic Target Ports": {
+        "autonomous": false,
+        "central_class": "CIM_LogicalPort",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_System",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:Group Masking and Mapping": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Health": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Indication": {
+        "autonomous": false,
+        "central_class": null,
+        "comments": "book 3, common profiles a deprecated profile",
+        "scoping_class": null,
+        "scoping_path": null
+    },
+    "SNIA:Indications": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Inter Fabric Routing": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Job Control": {
+        "autonomous": false,
+        "central_class": "CIM_ConcreteJob",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_Service",
+        "scoping_path": [
+            "CIM_OwningJobElement"
+        ]
+    },
+    "SNIA:LaunchInContext": {
+        "autonomous": false,
+        "central_class": "CIM_LaunchInContextService",
+        "comments": "DSP",
+        "scoping_class": "CIM_System",
+        "scoping_path": [
+            "CIM_HostedService"
+        ]
+    },
+    "SNIA:Location": {
+        "autonomous": false,
+        "central_class": "CIM_Location",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_PhysicalPackage",
+        "scoping_path": [
+            "CIM_PhysicalElementLocation"
+        ]
+    },
+    "SNIA:Masking And Mapping": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Masking and Mapping": {
+        "autonomous": false,
+        "central_class": "CIM_ControllerConfigurationService",
+        "comments": "E501 book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_HostedService"
+        ]
+    },
+    "SNIA:Multiple Computer System": {
+        "autonomous": false,
+        "central_class": "CIM_ComputerSystem",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_ComponentCS"
+        ]
+    },
+    "SNIA:N Port Virtualizer": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:NAS Head": {
+        "autonomous": true,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:NAS Network Port": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Object Manager Adapter": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Physical Package": {
+        "autonomous": false,
+        "central_class": "CIM_PhysicalPackage",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemPackaging"
+        ]
+    },
+    "SNIA:Pools From Volumes": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Pools from Volumes": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Power Supply": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": "book 3, common profiles",
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Profile Registration": {
+        "autonomous": false,
+        "central_class": "CIM_RegisteredProfile",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_RegisteredProfile",
+        "scoping_path": null
+    },
+    "SNIA:Replication Services": {
+        "autonomous": false,
+        "central_class": "CIM_ReplicationService",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_HostedService"
+        ]
+    },
+    "SNIA:SCNAS": {
+        "autonomous": true,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:SMI-S": {
+        "autonomous": null,
+        "central_class": null,
+        "comments": null,
+        "scoping_class": null,
+        "scoping_path": null
+    },
+    "SNIA:SPI Target Ports": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Sensors": {
+        "autonomous": false,
+        "central_class": "CIM_Sensor",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:Serial Attached SCSI Target Port": {
+        "autonomous": false,
+        "central_class": "CIM_SASPort",
+        "comments": null,
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_SystemDevice"
+        ]
+    },
+    "SNIA:Server": {
+        "autonomous": true,
+        "central_class": "CIM_ObjectManager",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_System",
+        "scoping_path": null
+    },
+    "SNIA:Simple Identity Management": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Software": {
+        "autonomous": false,
+        "central_class": "CIM_SoftwareIdentity",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_System",
+        "scoping_path": [
+            "CIM_InstalledSoftwareIdentity"
+        ]
+    },
+    "SNIA:Software Inventory": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Storage Element Protection": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Storage Enclosure": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Storage Relocation": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Storage Server Asymmetry": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Storage Virtualizer": {
+        "autonomous": true,
+        "central_class": "CIM_ComputerSystem",
+        "comments": "book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": null
+    },
+    "SNIA:Switch": {
+        "autonomous": true,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Thin Provisioning": {
+        "autonomous": false,
+        "central_class": "CIM_StoragePool",
+        "comments": "E501 book 4, Block",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_HostedStoragePool"
+        ]
+    },
+    "SNIA:Volume Composition": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:Zone Control": {
+        "autonomous": false,
+        "central_class": "",
+        "comments": null,
+        "scoping_class": "",
+        "scoping_path": null
+    },
+    "SNIA:iSCSI Target Ports": {
+        "autonomous": false,
+        "central_class": "CIM_iSCSICapabilities",
+        "comments": "book 3, common profiles",
+        "scoping_class": "CIM_ComputerSystem",
+        "scoping_path": [
+            "CIM_ElementCapabilities"
+        ]
+    }
+}
