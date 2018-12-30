@@ -191,6 +191,8 @@ class ServerDefinition(object):
         self._key_file = server_dict.get('key_file', None)
         self._ca_certs = server_dict.get('ca_certs', None)
         self._no_verification = server_dict.get('no_verification', True)
+        self._implementation_namespace = server_dict.get(
+            'implementation_namespace', None)
 
     def _required_attr(self, server_dict, attr_name, nickname):
         try:
@@ -210,7 +212,8 @@ class ServerDefinition(object):
             "cert_file={s.cert_file!r}, " \
             "key_file={s.key_file!r}, " \
             "ca_certs={s.ca_certs!r}, " \
-            "no_verification={s.no_verification!r})". \
+            "no_verification={s.no_verification!r}) " \
+            "implementation_namespace={s.implementation_namespace!r})". \
             format(s=self)
 
     @property
@@ -284,3 +287,11 @@ class ServerDefinition(object):
         verified.
         """
         return self._no_verification
+
+    @property
+    def implementation_namespace(self):
+        """
+        Boolean containing the default namespace or None if no default
+        namespace was defined..
+        """
+        return self._implementation_namespace

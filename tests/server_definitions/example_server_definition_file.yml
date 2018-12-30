@@ -32,6 +32,15 @@
 #     no_verification: BOOL      # Boolean controlling whether the returned
 #                                # server certificate is to be verified.
 #                                # Optional, default: true.
+#     implementation_namespace: NAMESPACE
+#                                # String defining the WBEM server namespace
+#                                # that contains the provider implementations,
+#                                # and in particular the implementations for
+#                                # SNIA SMI providers. For end2end tests
+#                                # this variable is defined in the created
+#                                # WBEMConnection as the default_namespace if
+#                                # it is defined.
+#                                # Optional, default: None
 #
 # server_groups:                 # Dict of WBEM server groups (optional).
 #   NICKNAME42:                  # Nickname of WBEM server group.
@@ -53,6 +62,7 @@ servers:
     key_file: ~/.ssh/key_file
     ca_certs: ~/.ssh/ca_certs/
     no_verification: false
+    implementation_namespace: root/cimv2
 
   srv2:
     description: server srv2
