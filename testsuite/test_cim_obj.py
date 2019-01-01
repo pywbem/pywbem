@@ -25282,7 +25282,7 @@ class Test_CIMQualifierDeclaration_init(object):
         translatable=None
     )
 
-    scopes1 = dict(CLASS=True)
+    scopes1 = NocaseDict(CLASS=True)
 
     testcases_succeeds = [
         # Testcases where CIMQualifierDeclaration.__init__() succeeds.
@@ -26284,7 +26284,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR = [
             value=['abc'],
             is_array=True,
             array_size=1,
-            scopes=dict(CLASS=True),
+            scopes=[('CLASS', True)],
             overridable=True,
             tosubclass=True,
             toinstance=False,
@@ -26480,7 +26480,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         dict(
             obj=CIMQualifierDeclaration(
                 'Foo', type='boolean', value=None,
-                scopes=dict(ASSOCIATION=True),
+                scopes=[('ASSOCIATION', True)],
             ),
             kwargs=dict(),
             exp_xml_str=(
@@ -26497,7 +26497,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         dict(
             obj=CIMQualifierDeclaration(
                 'Foo', type='boolean', value=None,
-                scopes=dict(ASSOCIATION=True, PROPERTY=True),
+                scopes=[('ASSOCIATION', True), ('PROPERTY', True)],
             ),
             kwargs=dict(),
             exp_xml_str=(
@@ -26514,7 +26514,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         dict(
             obj=CIMQualifierDeclaration(
                 'Foo', type='boolean', value=None,
-                scopes=dict(ANY=True),
+                scopes=[('ANY', True)],
             ),
             kwargs=dict(),
             exp_xml_str=(
@@ -29312,7 +29312,7 @@ Qualifier Q1 : string[5] = {abc, def},
             CIMQualifierDeclaration(
                 name='Q1',
                 type='string',
-                scopes=dict(CLASS=True),
+                scopes=[('CLASS', True)],
             ),
             u"""\
 Qualifier Q1 : string,
@@ -29346,7 +29346,7 @@ Qualifier Q1 : string,
             CIMQualifierDeclaration(
                 name='Q1',
                 type='string',
-                scopes=dict(ANY=True),
+                scopes=[('ANY', True)],
             ),
             u"""\
 Qualifier Q1 : string,
