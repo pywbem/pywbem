@@ -4,6 +4,8 @@ End2end tests for WBEMServer class.
 
 from __future__ import absolute_import, print_function
 
+import re
+
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
@@ -68,10 +70,14 @@ def test_brand_version(  # noqa: F811
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
     brand = server.brand
-    version = server.version
-
     assert brand is not None, msg
-    assert version is not None, msg
+
+    # Note: The version is None if it cannot be determined.
+    # We check that it begins with a digit and does not contain blanks.
+    version = server.version
+    if version is not None:
+        assert re.match(r'^[0-9][^ ]*$', version), \
+            "version={0!r}; {1}".format(version, msg)
 
 
 def test_cimom_inst(  # noqa: F811

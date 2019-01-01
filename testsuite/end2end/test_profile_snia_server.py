@@ -66,8 +66,12 @@ class Test_SNIA_Server_Profile(ProfileTest):
         for inst in far_insts:
             self.assert_mandatory_properties(inst, mandatory_property_list)
 
-        # Check that they are the namespaces determined by WBEMServer
+        # Check that they are the namespaces determined by WBEMServer.
+        # Because the Interop namespace is added if missing, we need to also
+        # do that here.
         inst_names = [inst['Name'].lower() for inst in far_insts]
+        if self.server.interop_ns.lower() not in inst_names:
+            inst_names.append(self.server.interop_ns.lower())
         determined_names = [ns.lower() for ns in self.server.namespaces]
         assert set(inst_names) == set(determined_names)
 
