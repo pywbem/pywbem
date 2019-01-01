@@ -200,6 +200,40 @@ This version contains all fixes up to pywbem 0.12.4.
   for all these representations to the `ValueMapping` class.
   See issue #1547.
 
+* Multiple fixes in `WBEMServer.get_central_instances()`:
+
+  - For a profile that implements the central class methodology but has no
+    central instances, the implementation went on to try the scoping class
+    methodology. Now, it accepts that as a valid central instance implementation
+    and returns an empty list of instances, instead.
+    Non-implementation of the central class methodology is not detected
+    from CIM_ERR_NOT_SUPPORTED being returned on the Associators operation
+    that attempts to traverse the CIM_ElementConformsToProfile association.
+
+  - For a profile that implements the scoping class methodology, the
+    traversal from the profile side to the resource side incorrectly
+    assumed that for multi-hop scoping paths, the hops above the first hop
+    could be used as the scoping path of the scoping profile. That has
+    been changed to now omit the scoping path when invoking
+    `get_central_instances()` on the scoping profile. As a result, the
+    scoping profile is now required to implement the central class
+    methodology.
+
+  - For a profile that implements the scoping class methodology, the
+    traversal from the central instances of the scoping profile down
+    to the central instances of the original profile incorrectly only
+    traversed the first hop of the reversed scoping path. This has been
+    fixed to traverse the entire reversed scoping path.
+
+  - In the recursive invocation of `get_central_instances()` for the scoping
+    profile, the newly introduced reference direction was not passed on.
+    For now, it is assumed that the scoping profile has the same
+    reference direction as the original profile.
+
+  - Because it seems that with these bugs, the `get_central_instances()`
+    method cannot have been used reasonably, some `ValueError` exceptions`
+    it returned to indicate server implementation issues, have been
+    changed to use the newly introduced `ModelError` exception.
 
 **Enhancements:**
 
