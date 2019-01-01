@@ -12,7 +12,7 @@ from pywbem import WBEMServer
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
 from pytest_end2end import profile_definition  # noqa: F401, E501
-from _utils import _latest_profile_inst
+from _utils import latest_profile_inst
 
 
 def test_get_central_instances(  # noqa: F811
@@ -37,7 +37,7 @@ def test_get_central_instances(  # noqa: F811
 
     # In case there is more than one version advertised, use only the latest
     # version.
-    profile_inst = _latest_profile_inst(profile_insts)
+    profile_inst = latest_profile_inst(profile_insts)
 
     # Check test case consistency
     assert profile_definition['central_class'] is not None, msg

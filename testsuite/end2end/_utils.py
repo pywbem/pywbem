@@ -8,7 +8,7 @@ from pywbem import CIMInstance, CIMInstanceName, \
     CIMError, CIM_ERR_INVALID_CLASS
 
 
-def _latest_profile_inst(profile_insts):
+def latest_profile_inst(profile_insts):
     """
     Determine the instance with the latest version in a list of registered
     profile instances and return that instance.
