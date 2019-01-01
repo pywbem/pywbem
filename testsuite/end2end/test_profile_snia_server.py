@@ -4,6 +4,8 @@ End2end tests for SNIA 'Server' profile.
 
 from __future__ import absolute_import, print_function
 
+import warnings
+
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
@@ -94,22 +96,34 @@ class Test_SNIA_Server_Profile(ProfileTest):
             self.assert_mandatory_properties(inst, mandatory_property_list)
             self.assert_property_one_of(
                 inst, 'CommunicationMechanism', [2, 4])
-            # TODO 2018-12 AM: The SNIA Server profile mandates that the
-            #      FunctionalProfilesSupported property is 0 (Unknown), but it
-            #      is an array property. Even after fixing this to an array
-            #      with one item 0, it does not make much sense to require that
-            #      that support is not implemented just because the profile
-            #      does not use it.
-            #      This should be brought back into the SMI-S community.
-            # self.assert_property_contains(
-            #     inst, 'FunctionalProfilesSupported', 0)
-            # TODO 2018-12 AM: The SNIA Server profile mandates that the
-            #      MultipleOperationsSupported property is False, but it does
-            #      not make much sense to require that that support is not
-            #      implemented just because the profile does not use it.
-            #      This should be brought back into the SMI-S community.
-            # self.assert_property_one_of(
-            #     inst, 'MultipleOperationsSupported', [False])
+
+            # Note: The SNIA Server profile mandates that the
+            #       FunctionalProfilesSupported property is 0 (Unknown), but it
+            #       is an array property. Even after fixing this to an array
+            #       with one item 0, it does not make much sense to require
+            #       that that support is not implemented just because the
+            #       profile does not use it.
+            # TODO 2018-12 AM: This should be brought back to SMI-S.
+            try:
+                self.assert_property_contains(
+                    inst, 'FunctionalProfilesSupported', 0)
+            except AssertionError as exc:
+                warnings.warn("A disabled check failed: {0}: {1}".
+                              format(exc.__class__.__name__, exc),
+                              RuntimeWarning)
+
+            # Note: The SNIA Server profile mandates that the
+            #       MultipleOperationsSupported property is False, but it does
+            #       not make much sense to require that that support is not
+            #       implemented just because the profile does not use it.
+            # TODO 2018-12 AM: This should be brought back to SMI-S.
+            try:
+                self.assert_property_one_of(
+                    inst, 'MultipleOperationsSupported', [False])
+            except AssertionError as exc:
+                warnings.warn("A disabled check failed: {0}: {1}".
+                              format(exc.__class__.__name__, exc),
+                              RuntimeWarning)
 
         # Check that there is at least one associated CIM_ObjectManagerComm...
         assert len(far_insts) >= 1
