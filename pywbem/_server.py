@@ -101,7 +101,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError, ParseError
+from .exceptions import CIMError, ParseError, ModelError
 from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
@@ -709,7 +709,6 @@ class WBEMServer(object):
     def get_central_instances(self, profile_path, central_class=None,
                               scoping_class=None, scoping_path=None,
                               reference_direction='dmtf'):
-        # pylint: disable=line-too-long
         """
         Return the instance paths of the central instances of a management
         profile.
@@ -723,11 +722,12 @@ class WBEMServer(object):
 
         Use of the scoping class methodology requires specifying the central
         class, scoping class and scoping path defined by the profile. If any
-        of them is `None`, this method will attempt only the GetCentralInstances
-        and central class methodologies, but not the scoping class methodology.
+        of them is `None`, this method will attempt only the
+        GetCentralInstances and central class methodologies, but not the
+        scoping class methodology.
         If using these two methodologies does not result in any central
-        instances, and the scoping class methodology cannot be used, an
-        exception is raised.
+        instances, and the scoping class methodology cannot be used,
+        :exc:`~pywbem.ModelError` is raised.
 
         The scoping path is a directed traversal path from the central
         instances to the scoping instances. Its first list item is always
@@ -747,7 +747,8 @@ class WBEMServer(object):
         Example for a 2-hop traversal:
 
         * central class: ``"CIM_Sensor"``
-        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan", "CIM_SystemDevice"]``
+        * scoping path: ``["CIM_AssociatedSensor", "CIM_Fan",
+          "CIM_SystemDevice"]``
         * scoping class: ``"CIM_ComputerSystem"``
 
         Parameters:
@@ -761,21 +762,24 @@ class WBEMServer(object):
 
             Will be ignored, unless the profile is a component profile and its
             implementation supports only the scoping class methodology.
-            `None` will cause the scoping class methodology not to be attempted.
+            `None` will cause the scoping class methodology not to be
+            attempted.
 
           scoping_class (:term:`string`):
             Class name of scoping class defined by the management profile.
 
             Will be ignored, unless the profile is a component profile and its
             implementation supports only the scoping class methodology.
-            `None` will cause the scoping class methodology not to be attempted.
+            `None` will cause the scoping class methodology not to be
+            attempted.
 
           scoping_path (list of :term:`string`):
             Scoping path defined by the management profile.
 
             Will be ignored, unless the profile is a component profile and its
             implementation supports only the scoping class methodology.
-            `None` will cause the scoping class methodology not to be attempted.
+            `None` will cause the scoping class methodology not to be
+            attempted.
 
           reference_direction (:term:`string`):
             Defines the navigation direction across the CIM_ReferencedProfile
@@ -809,12 +813,10 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError: Server implementation error: Various server errors.
-            ValueError: Various user errors.
-            TypeError: `profile_path` must be a
-              :class:`~pywbem.CIMInstanceName`.
-        """  # noqa: E501
-        # pylint: enable=line-too-long
+            ModelError: Model implementation errors on the server.
+            ValueError: User errors regarding input parameter values.
+            TypeError: User errors regarding input parameter types.
+        """
 
         if reference_direction not in ('dmtf', 'snia'):
             ValueError(
@@ -878,20 +880,31 @@ class WBEMServer(object):
                 raise
         else:
             if ret_val != 0:
-                raise ValueError(
-                    _format("Server implementation error: The "
-                            "GetCentralInstances() method is implemented but "
-                            "failed with rc={0} for profile {1!A}",
+                raise ModelError(
+                    _format("The GetCentralInstances() method is implemented "
+                            "but failed with rc={0} for profile {1!A}",
                             ret_val, profile_path.to_wbem_uri()))
-            return out_params['CentralInstances']
+            central_inst_paths = out_params['CentralInstances']
+            return central_inst_paths
 
         # Try central methodology
-        ci_paths = self._conn.AssociatorNames(
-            ObjectName=profile_path,
-            AssocClass="CIM_ElementConformsToProfile",
-            ResultRole="ManagedElement")
-        if ci_paths:
-            return ci_paths
+        try:
+            central_inst_paths = self._conn.AssociatorNames(
+                ObjectName=profile_path,
+                AssocClass="CIM_ElementConformsToProfile",
+                ResultRole="ManagedElement")
+        except CIMError as exc:
+            if exc.status_code == CIM_ERR_NOT_SUPPORTED:
+                # This association traversal is not implemented, so we can
+                # conclude that the central methodology is not implemented.
+                pass  # Try next methodology
+            else:
+                raise
+        else:
+            # The central methodology is implemented.
+            # Note: It is possible (and valid) that there are no central
+            # instances.
+            return central_inst_paths
 
         # Try scoping methodology
         if central_class is None or \
@@ -903,67 +916,92 @@ class WBEMServer(object):
                         "for profile {0!A}",
                         profile_path.to_wbem_uri()))
 
-        # Go up one level on the profile side
+        # Go up one level on the profile side, to the scoping profile
         referencing_profile_paths = self._conn.AssociatorNames(
             ObjectName=profile_path,
             AssocClass="CIM_ReferencedProfile",
             ResultRole=scoping_result_role)
         if not referencing_profile_paths:
-            raise ValueError(
-                _format("Server implementation error: No referencing profile "
-                        "found for profile {0!A} when attempting the scoping "
-                        "class methodology",
-                        profile_path.to_wbem_uri()))
+            raise ModelError(
+                _format("No referencing profile found for profile {0!A} when "
+                        "attempting the scoping class methodology (traversing "
+                        "CIM_ReferencedProfile to its {1!A} end using the {2} "
+                        "reference direction)",
+                        profile_path.to_wbem_uri(), scoping_result_role,
+                        reference_direction))
         elif len(referencing_profile_paths) > 1:
-            raise ValueError(
-                _format("Server implementation error: More than one "
-                        "referencing profile found for profile {0!A} when "
-                        "attempting the scoping class methodology. "
-                        "Found referencing profiles {1!A}",
-                        profile_path.to_wbem_uri(),
+            raise ModelError(
+                _format("More than one referencing profile found for profile "
+                        "{0!A} when attempting the scoping class methodology "
+                        "(traversing CIM_ReferencedProfile to its {1!A} end "
+                        "using the {2} reference direction). "
+                        "Found referencing profiles {3!A}",
+                        profile_path.to_wbem_uri(), scoping_result_role,
+                        reference_direction,
                         [p.to_wbem_uri() for p in referencing_profile_paths]))
 
-        # Traverse to the resource side (remember that scoping instances are
-        # the central instances at the next upper level).
-        # Do this recursively, if needed.
-        if len(scoping_path) >= 3:
-            upper_central_class = scoping_path[1]
-            upper_scoping_path = scoping_path[2:-1]
-        else:
-            upper_central_class = None
-            upper_scoping_path = None
+        # Traverse to the resource side.
+        # Note: Because the scoping path of the scoping profile is not known,
+        # all we can do is to rely on the central methodology to be implemented
+        # by the scoping profile. Therefore, we pass only the central class of
+        # the scoping profile (which is the scoping class of the original
+        # profile).
+        # Note: It is assumed that the scoping profile has the same reference
+        # direction as the original profile.
+        scoping_profile_path = referencing_profile_paths[0]
         scoping_inst_paths = self.get_central_instances(
-            referencing_profile_paths[0],
-            upper_central_class, scoping_class, upper_scoping_path)
+            scoping_profile_path,
+            scoping_class, None, None,
+            reference_direction)
         if not scoping_inst_paths:
-            raise ValueError(
-                _format("Server implementation error: No scoping instances "
-                        "found for profile {0!A} when attempting the scoping "
-                        "class methodology",
+            # In order to be able to traverse down to the original profile's
+            # central instances, we need the scoping profile to have
+            # at least one central instance.
+            raise ModelError(
+                _format("Profile {0!A} does not have any central instances, "
+                        "but that is required in its role of the scoping "
+                        "profile of profile {1!A} when attempting the "
+                        "scoping class methodology",
+                        scoping_profile_path.to_wbem_uri(),
                         profile_path.to_wbem_uri()))
 
-        # Go down one level on the resource side (using the last
-        # entry in the scoping path as the association to traverse)
-        total_ci_paths = []
-        assoc_class = scoping_path[-1]
-        for ip in scoping_inst_paths:
-            ci_paths = self._conn.AssociatorNames(
-                ObjectName=ip,
-                AssocClass=assoc_class,
-                ResultClass=central_class)
-            if not ci_paths:
-                # At least one central instance for each scoping instance
-                raise ValueError(
-                    _format("Server implementation error: No central "
-                            "instances found for profile {0!A} when "
-                            "traversing down across association class {1!A} "
-                            "to central class {2!A} while attempting the "
-                            "scoping class methodology",
-                            profile_path.to_wbem_uri(), assoc_class,
-                            central_class))
-            total_ci_paths.extend(ci_paths)
+        # On the resource side, traverse down the reversed scoping path,
+        # to the central instances of the original profile.
+        traversal_path = list(reversed(scoping_path))
+        traversal_path.append(central_class)
+        central_inst_paths = self._traverse(scoping_inst_paths, traversal_path)
+        return central_inst_paths
 
-        return total_ci_paths
+    def _traverse(self, start_paths, traversal_path):
+        """
+        Traverse a multi-hop traversal path from a list of start instance
+        paths, and return the resulting list of instance paths.
+
+        Parameters:
+          start_paths (list of CIMInstanceName): Instance paths to start
+            traversal from.
+          traversal_path (list of string): Traversal hops, where the list
+            contains pairs of items: association class name, far end class
+            name. Example: a 2-hop traversal is represented as
+            `['A1', 'C1', 'A2', 'C2']`.
+
+        Returns:
+          List of CIMInstanceName: Instances at the far end of the traversal.
+        """
+        assert len(traversal_path) >= 2
+        assoc_class = traversal_path[0]
+        far_class = traversal_path[1]
+        total_next_paths = []
+        for path in start_paths:
+            next_paths = self._conn.AssociatorNames(
+                ObjectName=path,
+                AssocClass=assoc_class,
+                ResultClass=far_class)
+            total_next_paths.extend(next_paths)
+        traversal_path = traversal_path[2:]
+        if traversal_path:
+            total_next_paths = self._traverse(total_next_paths, traversal_path)
+        return total_next_paths
 
     def _determine_interop_ns(self):
         """
