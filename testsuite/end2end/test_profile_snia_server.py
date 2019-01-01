@@ -96,14 +96,20 @@ class Test_SNIA_Server_Profile(ProfileTest):
                 inst, 'CommunicationMechanism', [2, 4])
             # TODO 2018-12 AM: The SNIA Server profile mandates that the
             #      FunctionalProfilesSupported property is 0 (Unknown), but it
-            #      is an array property.
-            # TODO 2018-12 AM: OP returns a set of functional profiles, which
-            #      is in conflict with the profile. However, probably most
-            #      WBEM servers will do so.
+            #      is an array property. Even after fixing this to an array
+            #      with one item 0, it does not make much sense to require that
+            #      that support is not implemented just because the profile
+            #      does not use it.
+            #      This should be brought back into the SMI-S community.
             # self.assert_property_contains(
             #     inst, 'FunctionalProfilesSupported', 0)
-            self.assert_property_one_of(
-                inst, 'MultipleOperationsSupported', [False])
+            # TODO 2018-12 AM: The SNIA Server profile mandates that the
+            #      MultipleOperationsSupported property is False, but it does
+            #      not make much sense to require that that support is not
+            #      implemented just because the profile does not use it.
+            #      This should be brought back into the SMI-S community.
+            # self.assert_property_one_of(
+            #     inst, 'MultipleOperationsSupported', [False])
 
         # Check that there is at least one associated CIM_ObjectManagerComm...
         assert len(far_insts) >= 1
