@@ -95,6 +95,7 @@ __all__ = []
 
 
 CIMXML_HEX_PATTERN = re.compile(r'^(\+|\-)?0[xX][0-9a-fA-F]+$')
+NUMERIC_CIMTYPE_PATTERN = re.compile(r'^([su]int(8|16|32|64)|real(32|64))$')
 
 
 def filter_tuples(list_):
@@ -1058,12 +1059,20 @@ class TupleParser(object):
         data = self.pcdata(tup_tree)
         attrl = attrs(tup_tree)
 
-        valuetype = attrl.get('VALUETYPE', 'string')
+        valuetype = attrl.get('VALUETYPE', None)
         cimtype = attrl.get('TYPE', None)
+        cimtype_origin = "TYPE attribute ({0!r}) of {1} element, with " \
+            "fallback to VALUETYPE attribute ({2!r})". \
+            format(cimtype, name(tup_tree), valuetype)
+
+        # Tolerate that some WBEM servers return TYPE="" instead of omitting
+        # TYPE (e.g. the WBEM Solutions server).
+        if cimtype == '':
+            cimtype = None
 
         # Default the CIM type from VALUETYPE if not specified in TYPE
         if cimtype is None:
-            if valuetype == 'string':
+            if valuetype is None or valuetype == 'string':
                 cimtype = 'string'
             elif valuetype == 'boolean':
                 cimtype = 'boolean'
@@ -1075,7 +1084,7 @@ class TupleParser(object):
                             "value {1!A}", name(tup_tree), valuetype),
                     conn_id=self.conn_id)
 
-        return self.unpack_single_value(data, cimtype)
+        return self.unpack_single_value(data, cimtype, cimtype_origin)
 
     #
     # Object definition elements
@@ -2129,6 +2138,8 @@ class TupleParser(object):
         """
 
         valtype = attrs(tup_tree)['TYPE']
+        valtype_origin = "TYPE attribute ({0!r}) of {0} element". \
+            format(valtype, name(tup_tree))
 
         raw_val = self.list_of_matching(tup_tree, ['VALUE', 'VALUE.ARRAY'])
 
@@ -2144,12 +2155,12 @@ class TupleParser(object):
         raw_val = raw_val[0]
 
         if isinstance(raw_val, list):
-            return [self.unpack_single_value(data, valtype)
+            return [self.unpack_single_value(data, valtype, valtype_origin)
                     for data in raw_val]
 
-        return self.unpack_single_value(raw_val, valtype)
+        return self.unpack_single_value(raw_val, valtype, valtype_origin)
 
-    def unpack_single_value(self, data, cimtype):
+    def unpack_single_value(self, data, cimtype, cimtype_origin):
         """
         Unpack a single (non-array) CIM typed string value of any CIM type
         except 'reference' and return it as a CIM data type object, or Python
@@ -2160,15 +2171,25 @@ class TupleParser(object):
 
         cimtype (string): CIM data type name (e.g. 'datetime') except
           'reference', or None (in which case a numeric value is assumed).
+
+        cimtype_origin (string): Human readable text explaining the origin of
+          the cimtype argument, for error messages.
         """
         if cimtype in ('string', 'char16', 'datetime'):
-            return self.unpack_string(data, cimtype)
+            return self.unpack_string(data, cimtype, cimtype_origin)
         elif cimtype == 'boolean':
             return self.unpack_boolean(data)
-        # None or 'numeric'
-        return self.unpack_numeric(data, cimtype)
+        elif cimtype is None or NUMERIC_CIMTYPE_PATTERN.match(cimtype):
+            return self.unpack_numeric(data, cimtype, cimtype_origin)
+        else:
+            # Note that 'reference' is not allowed for this function.
+            raise ParseError(
+                _format("Invalid CIM type found: {0!A}; "
+                        "Type origin: {1}",
+                        cimtype, cimtype_origin),
+                conn_id=self.conn_id)
 
-    def unpack_string(self, data, cimtype):
+    def unpack_string(self, data, cimtype, cimtype_origin):
         """
         Unpack a CIM-XML string value of one of the CIM types ('string',
         'char16', 'datetime') and return it as a CIM data type object, or None.
@@ -2177,6 +2198,9 @@ class TupleParser(object):
           None is returned).
 
         cimtype (string): CIM data type name (e.g. 'datetime').
+
+        cimtype_origin (string): Human readable text explaining the origin of
+          the cimtype argument, for error messages.
         """
 
         if data is None:
@@ -2213,8 +2237,9 @@ class TupleParser(object):
                     conn_id=self.conn_id)
         else:
             raise ParseError(
-                _format("Invalid CIM type name {0!A} for string: {1!A}",
-                        cimtype, data),
+                _format("Invalid CIM type name {0!A} for string: {1!A}; "
+                        "Type origin: {2}",
+                        cimtype, data, cimtype_origin),
                 conn_id=self.conn_id)
         return value
 
@@ -2249,7 +2274,7 @@ class TupleParser(object):
                 _format("Invalid boolean value {0!A}", data),
                 conn_id=self.conn_id)
 
-    def unpack_numeric(self, data, cimtype):
+    def unpack_numeric(self, data, cimtype, cimtype_origin):
         """
         Unpack a string value of a numeric CIM type and return its CIM data
         type object, or None.
@@ -2259,6 +2284,9 @@ class TupleParser(object):
 
         cimtype (string): CIM data type name (e.g. 'uint8'), or None (in which
           case the value is returned as a Python int/long or float).
+
+        cimtype_origin (string): Human readable text explaining the origin of
+          the cimtype argument, for error messages.
         """
 
         if data is None:
@@ -2287,7 +2315,8 @@ class TupleParser(object):
                     value = float(data)
                 except ValueError:
                     raise ParseError(
-                        _format("Invalid numeric value {0!A}", data),
+                        _format("Invalid numeric value {0!A}; "
+                                "Type origin: {1}", data, cimtype_origin),
                         conn_id=self.conn_id)
 
         # Convert the Python number into a CIM data type
@@ -2300,7 +2329,8 @@ class TupleParser(object):
             value = CIMType(value)
         except ValueError as exc:
             raise ParseError(
-                str(exc),
+                _format("Cannot convert value {0!A} to numeric CIM type {1}; "
+                        "Type origin: {2}", exc, CIMType, cimtype_origin),
                 conn_id=self.conn_id)
 
         return value

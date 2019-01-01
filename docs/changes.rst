@@ -519,6 +519,11 @@ This version contains all fixes up to pywbem 0.12.4.
   profiles, and that is used to drive profile discovery related tests against
   WBEM servers.
 
+* Added toleration support in the CIM-XML response parsing for WBEM servers
+  that return attribute `TYPE` with an empty string instead of omitting it.
+  As part of that, improved the checking for valid values of the TYPE
+  attribute. See issue #1564.
+
 **Known issues:**
 
 * See `list of open issues`_.
