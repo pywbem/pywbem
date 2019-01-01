@@ -5,11 +5,13 @@ pytest support for pywbem end2end tests.
 from __future__ import absolute_import
 
 import os
+import warnings
 import pytest
 import yaml
 import six
 
-from pywbem import WBEMConnection, WBEMServer, CIMInstance, CIMInstanceName
+from pywbem import WBEMConnection, WBEMServer, CIMInstance, CIMInstanceName, \
+    ConnectionError, AuthError, Error
 from server_file import ServerDefinitionFile, ServerDefinition
 from _utils import _latest_profile_inst, path_equal, path_in, instance_of
 
@@ -75,6 +77,26 @@ def wbem_connection(request, server_definition):
         ca_certs=sd.ca_certs,
         no_verification=sd.no_verification,
         timeout=10)
+
+    # Check that the server can be reached and authenticated with, by issuing
+    # some quick operation. Operation failures are tolerated (e.g. GetQualifier
+    # is not supported on SFCB), and the connection and authgentication errors
+    # can still be detected because they will be detected before the operation
+    # fails.
+    try:
+        conn.GetQualifier('Association')
+    except ConnectionError as exc:
+        msg = "Test server at {0!r} cannot be reached. {1}: {2}". \
+            format(sd.url, exc.__class__.__name__, exc)
+        warnings.warn(msg, RuntimeWarning)
+        pytest.skip(msg)
+    except AuthError as exc:
+        msg = "Test server at {0!r} cannot be authenticated with. {1}: {2}". \
+            format(sd.url, exc.__class__.__name__, exc)
+        warnings.warn(msg, RuntimeWarning)
+        pytest.skip(msg)
+    except Error:
+        pass
 
     return conn
 
