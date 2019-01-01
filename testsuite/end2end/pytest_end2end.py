@@ -13,7 +13,7 @@ import six
 from pywbem import WBEMConnection, WBEMServer, CIMInstance, CIMInstanceName, \
     ConnectionError, AuthError, Error
 from server_file import ServerDefinitionFile, ServerDefinition
-from _utils import _latest_profile_inst, path_equal, path_in, instance_of
+from _utils import latest_profile_inst, path_equal, path_in, instance_of
 
 __all__ = ['server_definition', 'default_namespace', 'wbem_connection',
            'profile_definition', 'single_profile_definition', 'ProfileTest']
@@ -230,7 +230,7 @@ class ProfileTest(object):
             pytest.skip("{0} {1} profile is not advertised on server {2!r}".
                         format(self.profile_org, self.profile_name,
                                self.conn.url))
-        self.profile_inst = _latest_profile_inst(profile_insts)
+        self.profile_inst = latest_profile_inst(profile_insts)
 
         self.profile_definition = single_profile_definition(
             self.profile_org, self.profile_name)
