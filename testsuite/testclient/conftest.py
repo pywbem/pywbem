@@ -841,6 +841,28 @@ def runtestcase(testcase):
                                  "%s\n" %
                                  (tc_name, exp_exception, op_name,
                                   raised_traceback_str))
+        if isinstance(raised_exception,
+                      (pywbem.CIMXMLParseError, pywbem.XMLParseError)):
+            if raised_exception.request_data != conn.last_raw_request:
+                raise AssertionError("Testcase %s: The %s exception raised by "
+                                     "PyWBEM operation %s has unexpected "
+                                     "CIM-XML request data:\n"
+                                     "%s\n"
+                                     "Expected CIM-XML request data:\n"
+                                     "%s\n" %
+                                     (tc_name, raised_exception, op_name,
+                                      raised_exception.request_data,
+                                      conn.last_raw_request))
+            if raised_exception.response_data != conn.last_raw_reply:
+                raise AssertionError("Testcase %s: The %s exception raised by "
+                                     "PyWBEM operation %s has unexpected "
+                                     "CIM-XML response data:\n"
+                                     "%s\n"
+                                     "Expected CIM-XML response data:\n"
+                                     "%s\n" %
+                                     (tc_name, raised_exception, op_name,
+                                      raised_exception.response_data,
+                                      conn.last_raw_reply))
     else:
         if raised_exception is not None:
             raise AssertionError("Testcase %s: No exception was "

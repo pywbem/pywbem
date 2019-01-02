@@ -152,7 +152,7 @@ from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
-from .exceptions import CIMXMLParseError, CIMError
+from .exceptions import CIMXMLParseError, XMLParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
 from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
@@ -1727,7 +1727,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self._last_reply = None
 
         # Send request and receive response
-        reply_xml, self._last_server_response_time = wbem_request(
+        reply_data, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
             x509=self.x509,
             verify_callback=self.verify_callback,
@@ -1740,18 +1740,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Set attributes recording the response, part 1.
         # Only those that can be done without parsing (which can fail).
-        self._last_raw_reply = reply_xml
-        self._last_reply_len = len(reply_xml)
+        self._last_raw_reply = reply_data
+        self._last_reply_len = len(reply_data)
 
         # Parse the XML into a tuple tree (may raise CIMXMLParseError or
         # XMLParseError):
-        tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
+        tt_ = xml_to_tupletree_sax(reply_data, "CIM-XML response")
         tp = TupleParser(self.conn_id)
         tup_tree = tp.parse_cim(tt_)
 
         # Set attributes recording the response, part 2.
         if self.debug:
-            self._last_reply = _to_pretty_xml(reply_xml)
+            self._last_reply = _to_pretty_xml(reply_data)
 
         # Check the tuple tree
 
@@ -2028,7 +2028,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self._last_reply = None
 
         # Send request and receive response
-        reply_xml, self._last_server_response_time = wbem_request(
+        reply_data, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
             x509=self.x509,
             verify_callback=self.verify_callback,
@@ -2041,18 +2041,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Set attributes recording the response, part 1.
         # Only those that can be done without parsing (which can fail).
-        self._last_raw_reply = reply_xml
-        self._last_reply_len = len(reply_xml)
+        self._last_raw_reply = reply_data
+        self._last_reply_len = len(reply_data)
 
         # Parse the XML into a tuple tree (may raise CIMXMLParseError or
         # XMLParseError):
-        tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
+        tt_ = xml_to_tupletree_sax(reply_data, "CIM-XML response")
         tp = TupleParser(self.conn_id)
         tup_tree = tp.parse_cim(tt_)
 
         # Set attributes recording the response, part 2.
         if self.debug:
-            self._last_reply = _to_pretty_xml(reply_xml)
+            self._last_reply = _to_pretty_xml(reply_data)
 
         # Check the tuple tree
 
@@ -2473,6 +2473,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return instances
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -2582,6 +2587,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return instancenames
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -2749,6 +2759,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return instance
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -2937,6 +2952,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -3074,6 +3094,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return instancename
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -3139,6 +3164,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -3372,6 +3402,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return objects
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -3544,6 +3579,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return objects
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -3757,6 +3797,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return objects
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -3911,6 +3956,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return objects
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -4032,6 +4082,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return result
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -4136,6 +4191,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return instances
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -6526,6 +6586,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -6751,6 +6816,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -7032,6 +7102,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -7270,6 +7345,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -7534,6 +7614,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -7755,6 +7840,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -7984,6 +8074,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                                    query_result_class)
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8136,6 +8231,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8284,6 +8384,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8426,6 +8531,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 *self._get_rslt_params(result, namespace))
             return result_tuple
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8509,6 +8619,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8679,6 +8794,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return classes
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8808,6 +8928,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return classnames
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -8968,6 +9093,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return klass
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9049,6 +9179,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9128,6 +9263,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9206,6 +9346,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9293,6 +9438,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return qualifierdecls
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9390,6 +9540,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             return qualifierdecl
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9464,6 +9619,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise
@@ -9536,6 +9696,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
             return
 
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
         except Exception as exce:
             exc = exce
             raise

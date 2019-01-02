@@ -222,6 +222,15 @@ class ParseError(Error):
 
     Derived from :exc:`~pywbem.Error`.
 
+    This class supports attaching the CIM-XML request and response data in
+    properties :attr:`~pywbem.ParseError.request_data` and
+    :attr:`~pywbem.ParseError.response_data`, respectively. When exceptions
+    of this class are raised by pywbem, these properties will always be
+    set.
+
+    The CIM-XML response data is part of the `str()` representation of the
+    exception.
+
     This exception is a base class for two more specific exceptions:
 
     * :exc:`~pywbem.CIMXMLParseError` - Issue at the CIM-XML level (e.g. NAME
@@ -245,6 +254,38 @@ class ParseError(Error):
             was not known.
         """
         super(ParseError, self).__init__(message, conn_id=conn_id)
+        self._request_data = None
+        self._response_data = None
+
+    @property
+    def request_data(self):
+        """
+        :term:`string`: CIM-XML request data (unformatted).
+        """
+        return self._request_data
+
+    @request_data.setter
+    def request_data(self, request_data):
+        """Setter method; for a description see the getter method."""
+        self._request_data = request_data
+
+    @property
+    def response_data(self):
+        """
+        :term:`string`: CIM-XML response data (unformatted).
+        """
+        return self._response_data
+
+    @response_data.setter
+    def response_data(self, response_data):
+        """Setter method; for a description see the getter method."""
+        self._response_data = response_data
+
+    def __str__(self):
+        error_str = super(ParseError, self).__str__()
+        ret_str = "{0}\nCIM-XML response: {1}". \
+            format(error_str, self.response_data)
+        return ret_str
 
 
 class CIMXMLParseError(ParseError):
