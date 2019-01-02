@@ -237,9 +237,11 @@ class ValueMapping(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError: No `Values` qualifier defined.
-            TypeError: The property is not integer-typed.
-            KeyError: The property does not exist in the class.
+            KeyError: The CIM property does not exist in the CIM class.
+            TypeError: The CIM property is not integer-typed.
+            ValueError: No `Values` qualifier defined on the CIM property.
+            ValueError: Invalid integer representation in `ValueMap` qualifier
+              defined on the CIM property.
         """  # noqa: E501
 
         conn = server
@@ -300,9 +302,11 @@ class ValueMapping(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError: No `Values` qualifier defined.
-            TypeError: The method is not integer-typed.
-            KeyError: The method does not exist in the class.
+            KeyError: The CIM method does not exist in the CIM class.
+            TypeError: The CIM method is not integer-typed.
+            ValueError: No `Values` qualifier defined on the CIM method.
+            ValueError: Invalid integer representation in `ValueMap` qualifier
+              defined on the CIM method.
         """  # noqa: E501
 
         conn = server
@@ -367,10 +371,12 @@ class ValueMapping(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ValueError: No `Values` qualifier defined.
-            TypeError: The parameter is not integer-typed.
-            KeyError: The method does not exist in the class, or the
-              parameter does not exist in the method.
+            KeyError: The CIM method does not exist in the CIM class.
+            KeyError: The CIM parameter does not exist in the CIM method.
+            TypeError: The CIM parameter is not integer-typed.
+            ValueError: No `Values` qualifier defined on the CIM parameter.
+            ValueError: Invalid integer representation in `ValueMap` qualifier
+              defined on the CIM parameter.
         """  # noqa: E501
 
         conn = server
@@ -425,7 +431,8 @@ class ValueMapping(object):
 
         Raises:
 
-            ValueError: Invalid `ValueMap` entry.
+            ValueError: Invalid integer representation in `ValueMap` qualifier
+              defined on the CIM element.
         """
         values_str = values_list[i]
         valuemap_str = valuemap_list[i]
@@ -510,9 +517,10 @@ class ValueMapping(object):
 
         Raises:
 
-            ValueError: No `Values` qualifier defined.
-            ValueError: Invalid `ValueMap` entry.
             TypeError: The CIM element is not integer-typed.
+            ValueError: No `Values` qualifier defined on the CIM element.
+            ValueError: Invalid integer representation in `ValueMap` qualifier
+              defined on the CIM element.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
