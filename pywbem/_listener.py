@@ -144,7 +144,7 @@ from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
     _statuscode2name
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
-from .exceptions import ParseError, VersionError
+from .exceptions import CIMXMLParseError, XMLParseError, VersionError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -362,7 +362,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         try:
             msgid, methodname, params = self.parse_export_request(body)
-        except ParseError as exc:
+        except (CIMXMLParseError, XMLParseError) as exc:
             self.send_http_error(400, "request-not-well-formed", str(exc))
             return
         except VersionError as exc:
@@ -494,7 +494,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         a tuple(msgid, methodname, params).
         """
 
-        # Parse the XML into a tuple tree (may raise ParseError):
+        # Parse the XML into a tuple tree (may raise CIMXMLParseError or
+        # XMLParseError):
 
         tt_ = xml_to_tupletree_sax(request_str, "CIM-XML export request")
         tp = TupleParser()
@@ -503,7 +504,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting CIM element, got {0}", tup_tree[0]))
         dtd_version = tup_tree[1]['DTDVERSION']
         if not re.match(SUPPORTED_DTD_VERSION_PATTERN, dtd_version):
@@ -514,7 +515,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting MESSAGE element, got {0}", tup_tree[0]))
         msgid = tup_tree[1]['ID']
         protocol_version = tup_tree[1]['PROTOCOLVERSION']
@@ -526,13 +527,13 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLEEXPREQ':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting SIMPLEEXPREQ element, got {0}",
                         tup_tree[0]))
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'EXPMETHODCALL':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting EXPMETHODCALL element, got {0}",
                         tup_tree[0]))
 

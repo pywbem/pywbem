@@ -24,7 +24,8 @@ from .cim_constants import _statuscode2name, _statuscode2string
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
-           'VersionError', 'ParseError', 'ModelError', 'CIMError']
+           'VersionError', 'ParseError', 'CIMXMLParseError', 'XMLParseError',
+           'CIMError', 'ModelError']
 
 
 class Error(Exception):
@@ -108,9 +109,11 @@ class HTTPError(Error):
     cimdetails)`.
 
     The `message` instance variable is not set.
+
+    Occurrence of this exception nearly always indicates an issue with the
+    WBEM server.
     """
 
-    # pylint: disable=super-init-not-called
     def __init__(self, status, reason, cimerror=None, cimdetails=None,
                  conn_id=None):
         """
@@ -213,9 +216,59 @@ class TimeoutError(Error):
 
 class ParseError(Error):
     """
-    This exception indicates a parsing error with the CIM-XML response
-    returned by the WBEM server, or in the CIM-XML request sent by the WBEM
-    listener. Derived from :exc:`~pywbem.Error`.
+    This exception indicates a parsing error with the CIM-XML operation
+    response the pywbem client received, or with the CIM-XML indication
+    request the pywbem listener received.
+
+    Derived from :exc:`~pywbem.Error`.
+
+    This exception is a base class for two more specific exceptions:
+
+    * :exc:`~pywbem.CIMXMLParseError` - Issue at the CIM-XML level (e.g. NAME
+      attribute missing on CLASS element)
+    * :exc:`~pywbem.XMLParseError` - Issue at the XML level (e.g. ill-formed
+      XML)
+
+    Occurrence of this exception nearly always indicates an issue with the
+    WBEM server.
+    """
+
+    def __init__(self, message, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+          conn_id (:term:`connection id`): Connection ID of the connection in
+            whose context the error happened. `None` if the error did not
+            happen in context of any connection, or if the connection context
+            was not known.
+        """
+        super(ParseError, self).__init__(message, conn_id=conn_id)
+
+
+class CIMXMLParseError(ParseError):
+    """
+    This exception indicates a specific kind of :exc:`~pywbem.ParseError`
+    that is an issue at the CIM-XML level.
+
+    Example: 'NAME' attribute missing on 'CLASS' element.
+
+    Occurrence of this exception nearly always indicates an issue with the
+    WBEM server.
+    """
+    pass
+
+
+class XMLParseError(ParseError):
+    """
+    This exception indicates a specific kind of :exc:`~pywbem.ParseError`
+    that is an issue at the XML level.
+
+    Example: Ill-formed XML.
+
+    Occurrence of this exception nearly always indicates an issue with the
+    WBEM server.
     """
     pass
 

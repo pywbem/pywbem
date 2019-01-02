@@ -18,7 +18,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: CIMXMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -94,7 +94,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -170,7 +170,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -246,7 +246,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -321,7 +321,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -396,7 +396,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -471,7 +471,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -546,7 +546,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -621,7 +621,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -696,7 +696,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -771,7 +771,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -846,7 +846,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -921,7 +921,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -996,7 +996,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1071,7 +1071,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1146,7 +1146,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1221,7 +1221,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1296,7 +1296,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1371,7 +1371,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1446,7 +1446,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1521,7 +1521,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1596,7 +1596,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1671,7 +1671,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1746,7 +1746,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1821,7 +1821,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1896,7 +1896,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -1971,7 +1971,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2046,7 +2046,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2121,7 +2121,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2196,7 +2196,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2271,7 +2271,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom
@@ -2346,7 +2346,7 @@
                     Name: Fritz
             LocalOnly: false
     pywbem_response:
-        exception: ParseError
+        exception: XMLParseError
     http_request:
         verb: POST
         url: http://acme.com:80/cimom

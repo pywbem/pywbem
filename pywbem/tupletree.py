@@ -60,7 +60,7 @@ import re
 import sys
 import six
 
-from .exceptions import ParseError
+from .exceptions import XMLParseError
 from ._utils import _format
 
 __all__ = []
@@ -153,7 +153,7 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
 
     Raises:
 
-      pywbem.ParseError: Error detected by SAX parser or UTF-8/XML checkers
+      pywbem.XMLParseError: Error detected by SAX parser or UTF-8/XML checkers
     """
 
     handler = CIMContentHandler()
@@ -184,7 +184,7 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
         org_tb = sys.exc_info()[2]
 
         # Improve quality of exception info (the check...() functions may
-        # raise ParseError):
+        # raise XMLParseError):
         _chk_str = check_invalid_utf8_sequences(xml_string, meaning, conn_id)
         check_invalid_xml_chars(_chk_str, meaning, conn_id)
 
@@ -204,7 +204,7 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
                 "{0}",
                 line)
 
-        pe = ParseError(
+        pe = XMLParseError(
             _format("XML parsing error encountered in {0}: {1}\n{2}\n",
                     meaning, exc, xml_msg),
             conn_id=conn_id)
@@ -283,8 +283,8 @@ _ILL_FORMED_UTF8_RE = re.compile(
 
 def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     """
-    Examine a UTF-8 encoded string and raise a `pywbem.ParseError` exception if
-    the string contains invalid UTF-8 sequences (incorrectly encoded or
+    Examine a UTF-8 encoded string and raise a `pywbem.XMLParseError` exception
+    if the string contains invalid UTF-8 sequences (incorrectly encoded or
     ill-formed).
 
     This function works in both "wide" and "narrow" Unicode builds of Python
@@ -314,7 +314,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
 
       TypeError: Invoked with incorrect Python object type for `utf8_xml`.
 
-      pywbem.ParseError: `utf8_xml` contains invalid UTF-8 sequences.
+      pywbem.XMLParseError: `utf8_xml` contains invalid UTF-8 sequences.
 
     Notes on Unicode support in Python:
 
@@ -395,7 +395,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
             cpos2 = min(ifs_pos + context_after, len(utf8_string))
             exc_txt += _format(", CIM-XML snippet: {0!A}",
                                utf8_string[cpos1:cpos2])
-        raise ParseError(exc_txt, conn_id=conn_id)
+        raise XMLParseError(exc_txt, conn_id=conn_id)
 
     # Check for incorrectly encoded UTF-8 sequences.
     # @ibm.13@ Simplified logic (removed loop).
@@ -422,7 +422,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
         cpos2 = min(_p2 + context_after, len(utf8_string))
         exc_txt += _format(", CIM-XML snippet: {0!A}",
                            utf8_string[cpos1:cpos2])
-        raise ParseError(exc_txt, conn_id=conn_id)
+        raise XMLParseError(exc_txt, conn_id=conn_id)
 
     return utf8_string_u
 
@@ -440,7 +440,7 @@ else:
 
 def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
     """
-    Examine an XML string and raise a `pywbem.ParseError` exception if the
+    Examine an XML string and raise a `pywbem.XMLParseError` exception if the
     string contains characters that cannot legally be represented as XML
     characters.
 
@@ -464,7 +464,7 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
 
       TypeError: Invoked with incorrect Python object type for `xml_string`.
 
-      pywbem.ParseError: `xml_string` contains invalid XML characters.
+      pywbem.XMLParseError: `xml_string` contains invalid XML characters.
 
     Notes on XML characters:
 
@@ -505,4 +505,4 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
             exc_txt += _format("\n  At offset {0}: U+{1:04X}, "
                                "CIM-XML snippet: {2!A}",
                                ixc_pos, ord(ixc_char), xml_string[cpos1:cpos2])
-        raise ParseError(exc_txt, conn_id=conn_id)
+        raise XMLParseError(exc_txt, conn_id=conn_id)
