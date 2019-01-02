@@ -454,6 +454,12 @@ This version contains all fixes up to pywbem 0.12.4.
   `ToleratedServerIssueWarning` and to continue with the next approach for
   determining the central instances. See issue #1438.
 
+* The `last_raw_request` and `last_raw_reply` properties of `WBEMConnection`
+  had previously only been set when debug was enabled on the connection.
+  They are now always set. This was needed to support tolerating ill-formed
+  XML, and does not cost any additional conversions.
+  See issues #1438 and #1568.
+
 * In the `WBEMServer` class, the Interop namespace is now added to the set
   of namespaces in the `namespaces`  property, if missing there. This
   accomodates the behavior of a particular WBEM server that was found to
