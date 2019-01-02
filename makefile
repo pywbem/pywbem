@@ -100,6 +100,7 @@ package_version = $(shell $(PYTHON_CMD) -c "$$(printf 'try:\n from pbr.version i
 # Python versions
 python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
 python_mn_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s%s'%sys.version_info[0:2])")
+python_m_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s'%sys.version_info[0:1])")
 
 # Directory for the generated distribution files
 dist_dir := dist
@@ -199,6 +200,14 @@ ifdef TESTCASES
 pytest_opts := $(TESTOPTS) -k $(TESTCASES)
 else
 pytest_opts := $(TESTOPTS)
+endif
+pytest_end2end_opts := --tb=short $(pytest_opts)
+
+pytest_warnings := default
+ifeq ($(python_m_version),3)
+  pytest_end2end_warnings := default,ignore::DeprecationWarning,ignore::ResourceWarning
+else
+  pytest_end2end_warnings := default,ignore::DeprecationWarning
 endif
 
 # Files to be put into distribution archive.
@@ -569,7 +578,7 @@ ifeq ($(PLATFORM),Windows)
 else
 	testsuite/test_uprint.sh
 endif
-	bash -c "set -o pipefail; PYTHONWARNINGS=default py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases --ignore=testsuite/end2end -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=$(pytest_warnings) py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases --ignore=testsuite/end2end -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $(test_log_file)"
 
@@ -577,7 +586,7 @@ endif
 end2end: makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/end2end/*.py
 	@echo "makefile: Running end2end tests"
 	rm -f $(test_end2end_log_file)
-	bash -c "set -o pipefail; cd testsuite/end2end; PYTHONWARNINGS=default py.test --color=yes $(pytest_opts) -s 2>&1 |tee ../../$(test_end2end_tmp_file)"
+	bash -c "set -o pipefail; cd testsuite/end2end; PYTHONWARNINGS=$(pytest_end2end_warnings) py.test --color=yes $(pytest_end2end_opts) -s 2>&1 |tee ../../$(test_end2end_tmp_file)"
 	mv -f $(test_end2end_tmp_file) $(test_end2end_log_file)
 	@echo "makefile: Done running end2end tests; Log file: $(test_end2end_log_file)"
 
