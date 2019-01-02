@@ -482,7 +482,8 @@ This version contains all fixes up to pywbem 0.12.4.
   have been added: `CIMXMLParseError` and `XMLParseError`, that are
   now raised instead of `ParseError`. Because these are subclasses,
   this change is backwards compatible for users that have caught
-  `ParseError`.
+  `ParseError`. The new subclasses have the CIM-XML request and
+  response data available as properties.
 
 **Cleanup:**
 
