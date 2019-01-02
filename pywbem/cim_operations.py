@@ -1058,21 +1058,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def debug(self):
         """
-        :class:`py:bool`: Boolean indicating that saving the last request and
-        last response is enabled for this connection.
+        :class:`py:bool`: Boolean indicating that debug is enabled for this
+        connection.
 
-        When enabled (value `True`), the last request and last reply will be
-        available in the following properties of this class:
+        When enabled (value `True`), the prettified last CIM-XML request and
+        response will be stored in the following properties of this class:
 
         * :attr:`~pywbem.WBEMConnection.last_request`
-        * :attr:`~pywbem.WBEMConnection.last_raw_request`
         * :attr:`~pywbem.WBEMConnection.last_reply`
-        * :attr:`~pywbem.WBEMConnection.last_raw_reply`
 
         When disabled (value `False`), these properties will be `None`.
 
         This attribute is writeable. The initial value of this attribute is
         `False`.
+
+        Note that the following properties will be set regardless of whether
+        debug is enabled for this connection:
+
+        * :attr:`~pywbem.WBEMConnection.last_raw_request`
+        * :attr:`~pywbem.WBEMConnection.last_raw_reply`
+        * :attr:`~pywbem.WBEMConnection.last_request_len`
+        * :attr:`~pywbem.WBEMConnection.last_reply_len`
         """
         return self._debug
 
@@ -1085,12 +1091,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_request(self):
         """
         :term:`unicode string`:
-        CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as prettified XML.
+        CIM-XML data of the last request sent to the WBEM server on this
+        connection, formatted as prettified XML.
+
+        This property is only set when debug is enabled (see
+        :attr:`~pywbem.WBEMConnection.debug`), and is `None` otherwise.
 
         Prior to sending the very first request on this connection object,
-        and when debug saving of requests and responses is disabled (see
-        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        this property is `None`.
         """
         return self._last_request
 
@@ -1099,11 +1107,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         :term:`unicode string`:
         CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as it was sent.
+        on this connection, formatted as it was sent (=raw).
 
         Prior to sending the very first request on this connection object,
-        and when debug saving of requests and responses is disabled (see
-        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        this property is `None`.
+
+        As of pywbem 0.13, this property is set independently of whether debug
+        is enabled (see :attr:`~pywbem.WBEMConnection.debug`).
         """
         return self._last_raw_request
 
@@ -1114,14 +1124,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         CIM-XML data of the last response received from the WBEM server
         on this connection, formatted as prettified XML.
 
-        Setting this property requires XML parsing of the received CIM-XML
-        response. If the XML parsing fails, this property will be `None`, but
-        the :attr:`~pywbem.WBEMConnection.last_raw_reply` property will already
-        have been set and should be used, instead.
+        This property is only set when debug is enabled (see
+        :attr:`~pywbem.WBEMConnection.debug`), and is `None` otherwise.
 
-        Prior to receiving the very first response on this connection object,
-        and when debug saving of requests and responses is disabled (see
-        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        This property is set to `None` in the WBEM operation methods of
+        this class before the request is sent to the WBEM server, and is set
+        to the prettified response when the response has been received from
+        the WBEM server and XML parsed. If the XML parsing fails, this property
+        will be `None`, but the :attr:`~pywbem.WBEMConnection.last_raw_reply`
+        property does not depend on XML parsing and will already have been set
+        at that point.
+
+        Prior to sending the very first request on this connection object,
+        this property is `None`.
         """
         return self._last_reply
 
@@ -1130,11 +1145,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         :term:`unicode string`:
         CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as it was received.
+        on this connection, formatted as it was received (=raw).
 
-        Prior to receiving the very first response on this connection object,
-        and when debug saving of requests and responses is disabled (see
-        :attr:`~pywbem.WBEMConnection.debug`), this property is `None`.
+        This property is set to `None` in the WBEM operation methods of
+        this class before the request is sent to the WBEM server, and is set
+        to the prettified response when the response has been received from
+        the WBEM server, and before XML parsing takes place.
+
+        Prior to sending the very first request on this connection object,
+        this property is `None`.
+
+        As of pywbem 0.13, this property is set independently of whether debug
+        is enabled (see :attr:`~pywbem.WBEMConnection.debug`).
         """
         return self._last_raw_reply
 
@@ -1146,11 +1168,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         in Bytes.
 
         Prior to sending the very first request on this connection object,
-        or if the last operation raised an exception, it is 0.
+        this property is 0.
 
-        Note that this property is updated independently of whether saving of
-        last request and response is enabled or disabled (see
-        :attr:`~pywbem.WBEMConnection.debug`)
+        This property is set independently of whether debug is enabled
+        (see :attr:`~pywbem.WBEMConnection.debug`).
         """
         return self._last_request_len
 
@@ -1161,12 +1182,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         The size of the HTTP body in the CIM-XML response of the last
         operation, in Bytes.
 
-        Prior to receiving the very first response on this connection object,
-        or if the last operation raised an exception, it is 0.
+        This property is set to 0 in the WBEM operation methods of
+        this class before the request is sent to the WBEM server, and is set
+        to the size when the response has been received from
+        the WBEM server, and before XML parsing takes place.
 
-        Note that this property is updated independently of whether saving of
-        last request and response is enabled or disabled (see
-        :attr:`~pywbem.WBEMConnection.debug`)
+        Prior to sending the very first request on this connection object,
+        this property is 0.
+
+        This property is set independently of whether debug is enabled
+        (see :attr:`~pywbem.WBEMConnection.debug`).
         """
         return self._last_reply_len
 
@@ -1670,21 +1695,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 '1001', '1.0'),
             '2.0', '2.0')
 
+        request_data = req_xml.toxml()
+
+        # Set attributes recording the request.
+        # Also, reset attributes recording the reply in case we fail.
+        self._last_raw_request = request_data
+        self._last_request_len = len(request_data)
+        self._last_raw_reply = None
+        self._last_reply_len = 0
+        self._last_server_response_time = None
         if self.debug:
-            self._last_raw_request = req_xml.toxml()
             self._last_request = req_xml.toprettyxml(indent='  ')
-            # Reset replies in case we fail before they are set
-            self._last_raw_reply = None
             self._last_reply = None
 
         # Send request and receive response
-        self._last_request_len = 0
-        self._last_reply_len = 0
-        self._last_server_response_time = None
-
-        request_data = req_xml.toxml()
-        self._last_request_len = len(request_data)
-
         reply_xml, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
             x509=self.x509,
@@ -1696,18 +1720,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             recorders=self._operation_recorders,
             conn_id=self.conn_id)
 
+        # Set attributes recording the response, part 1.
+        # Only those that can be done without parsing (which can fail).
+        self._last_raw_reply = reply_xml
         self._last_reply_len = len(reply_xml)
-
-        # Set the raw response before parsing (which can fail)
-        if self.debug:
-            self._last_raw_reply = reply_xml
 
         # Parse the XML into a tuple tree (may raise ParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
         tp = TupleParser(self.conn_id)
         tup_tree = tp.parse_cim(tt_)
 
-        # Set the pretty response after parsing (it could fail otherwise)
+        # Set attributes recording the response, part 2.
         if self.debug:
             self._last_reply = _to_pretty_xml(reply_xml)
 
@@ -1972,22 +1995,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 '1001', '1.0'),
             '2.0', '2.0')
 
+        request_data = req_xml.toxml()
+
+        # Set attributes recording the request.
+        # Also, reset attributes recording the reply in case we fail.
+        self._last_raw_request = request_data
+        self._last_request_len = len(request_data)
+        self._last_raw_reply = None
+        self._last_reply_len = 0
+        self._last_server_response_time = None
         if self.debug:
-            self._last_raw_request = req_xml.toxml()
             self._last_request = req_xml.toprettyxml(indent='  ')
-            # Reset replies in case we fail before they are set
-            self._last_raw_reply = None
             self._last_reply = None
 
         # Send request and receive response
-
-        self._last_request_len = 0
-        self._last_reply_len = 0
-        self._last_server_response_time = None
-
-        request_data = req_xml.toxml()
-        self._last_request_len = len(request_data)
-
         reply_xml, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
             x509=self.x509,
@@ -1999,18 +2020,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             recorders=self._operation_recorders,
             conn_id=self.conn_id)
 
+        # Set attributes recording the response, part 1.
+        # Only those that can be done without parsing (which can fail).
+        self._last_raw_reply = reply_xml
         self._last_reply_len = len(reply_xml)
-
-        # Set the raw response before parsing (which can fail)
-        if self.debug:
-            self._last_raw_reply = reply_xml
 
         # Parse the XML into a tuple tree (may raise ParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
         tp = TupleParser(self.conn_id)
         tup_tree = tp.parse_cim(tt_)
 
-        # Set the pretty response after parsing (it could fail otherwise)
+        # Set attributes recording the response, part 2.
         if self.debug:
             self._last_reply = _to_pretty_xml(reply_xml)
 
