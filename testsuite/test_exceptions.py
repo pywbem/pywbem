@@ -10,7 +10,8 @@ import six
 import pytest
 
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, VersionError, CIMError, ModelError, CIMInstance
+    ParseError, CIMXMLParseError, XMLParseError, VersionError, CIMError, \
+    ModelError, CIMInstance
 
 # Test connection ID used for showing connection information in exception
 # messages
@@ -66,7 +67,6 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     ConnectionError,
     AuthError,
     TimeoutError,
-    ParseError,
     VersionError,
     ModelError,
 ], scope='module')
@@ -329,6 +329,57 @@ def test_cimerror_3(status_tuple, error_instances, conn_info):
 
     assert exc.args[2] == error_instances
     assert len(exc.args) == 3
+
+    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
+    _assert_subscription(exc)
+
+
+@pytest.fixture(params=[
+    # The exception classes for which the ParseError test should be done:
+    ParseError,
+    CIMXMLParseError,
+    XMLParseError,
+], scope='module')
+def parseerror_class(request):
+    """
+    Fixture representing variations of the ParseError exception classes.
+
+    Returns the exception class.
+    """
+    return request.param
+
+
+@pytest.fixture(params=[
+    # The init arguments for the ParseError exception class:
+    # (message,)
+    (None,),
+    ('',),
+    ('ill-formed XML',),
+], scope='module')
+def parseerror_args(request):
+    """
+    Fixture representing variations of positional init arguments for the
+    ParseError exception class.
+
+    Returns a tuple of positional arguments for initializing a ParseError
+    exception object.
+    """
+    return request.param
+
+
+def test_parseerror(parseerror_class, parseerror_args, conn_info):
+    # pylint: disable=redefined-outer-name
+    """
+    Test ParseError exception class (and subclasses).
+    """
+
+    conn_id_kwarg, exp_conn_str = conn_info
+    message = parseerror_args[0]
+
+    exc = parseerror_class(*parseerror_args, **conn_id_kwarg)
+
+    assert exc.args[0] == message
+    assert len(exc.args) == 1
 
     _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)

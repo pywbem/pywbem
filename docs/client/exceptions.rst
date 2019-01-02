@@ -102,6 +102,38 @@ Exceptions
 
    .. rubric:: Details
 
+.. autoclass:: pywbem.CIMXMLParseError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.CIMXMLParseError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.CIMXMLParseError
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem.XMLParseError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.XMLParseError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.XMLParseError
+      :attributes:
+
+   .. rubric:: Details
+
 .. autoclass:: pywbem.CIMError
    :members:
 

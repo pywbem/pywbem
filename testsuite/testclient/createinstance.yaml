@@ -730,7 +730,7 @@
         path: null
       namespace: null
   pywbem_response:
-    exception: ParseError
+    exception: CIMXMLParseError
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
@@ -818,7 +818,7 @@
         path: null
       namespace: null
   pywbem_response:
-    exception: ParseError
+    exception: CIMXMLParseError
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
@@ -908,7 +908,7 @@
         path: null
       namespace: null
   pywbem_response:
-    exception: ParseError
+    exception: CIMXMLParseError
   http_request:
     verb: POST
     url: http://acme.com:80/cimom

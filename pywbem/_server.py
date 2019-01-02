@@ -101,7 +101,7 @@ from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError, ParseError, ModelError
+from .exceptions import CIMError, CIMXMLParseError, XMLParseError, ModelError
 from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstanceName, CIMInstance
@@ -847,9 +847,13 @@ class WBEMServer(object):
                 pass  # try next approach
             else:
                 raise
-        except ParseError as exc:
-            # The EMC server returns ill-formed XML when invoking this
-            # CIM method. Tolerate that behavior and try next approach.
+        except (CIMXMLParseError, XMLParseError) as exc:
+            # The EMC server returns XMLParseError due to ill-formed XML.
+            # The Dell server returns CIMXMLParseError due to INSTANCE element
+            # with missing CLASSNAME attribute.
+            # In both cases the ERROR element is parseable in the CIM-XML
+            # string. Tolerate that behavior if the error is that the
+            # method is not implemented, and try next approach.
             reply_oneline = self._conn.last_raw_reply.replace(b'\n', b'')
             m = re.search(b'<ERROR CODE="([0-9]+)"', reply_oneline)
             if m:
@@ -870,13 +874,16 @@ class WBEMServer(object):
                         ToleratedServerIssueWarning, 1)
                     # try next approach
                 else:
-                    raise ParseError(
-                        "CIM-XML response has ill-formed XML with "
-                        "recognizable ERROR element indicating CIM status "
-                        "code {0}: {1}".format(status_code, exc))
+                    # It would be nice to extend the exception message to
+                    # indicate that a CIM status code was detectable, but
+                    # it is not possible to do that if we want to maintain
+                    # standard exception semantics w.r.t. the message.
+                    # So we just re-raise the original CIMXMLParseError or
+                    # XMLParseError.
+                    raise
             else:
-                # In this case, the ERROR element is not recognizable, and
-                # so the original ParseError seems sufficient.
+                # In this case, the ERROR element is not recognizable, so we
+                # just re-raise the original CIMXMLParseError or XMLParseError.
                 raise
         else:
             if ret_val != 0:

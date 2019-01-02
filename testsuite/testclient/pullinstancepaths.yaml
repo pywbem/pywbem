@@ -631,7 +631,7 @@
       - '500182'
       - root/cimv2
   pywbem_response:
-        exception: ParseError
+        exception: CIMXMLParseError
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
@@ -692,7 +692,7 @@
       - '500182'
       - root/cimv2
   pywbem_response:
-        exception: ParseError
+        exception: CIMXMLParseError
   http_request:
     verb: POST
     url: http://acme.com:80/cimom

@@ -89,7 +89,7 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration
 from .cim_types import CIMDateTime, type_from_name
 from .tupletree import xml_to_tupletree_sax
-from .exceptions import ParseError
+from .exceptions import CIMXMLParseError
 
 __all__ = []
 
@@ -151,7 +151,7 @@ class TupleParser(object):
         """
         for inst in tup_tree[2]:
             if not isinstance(inst, six.string_types):
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has unexpected child elements: "
                             "{1!A} (allowed is only text content)",
                             name(tup_tree), inst),
@@ -188,7 +188,7 @@ class TupleParser(object):
         """
 
         if name(tup_tree) != nodename:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Unexpected element {0!A} (expecting element {1!A})",
                         name(tup_tree), nodename),
                 conn_id=self.conn_id)
@@ -201,7 +201,7 @@ class TupleParser(object):
         if required_attrs:
             for attr in required_attrs:
                 if attr not in tt_attrs:
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Element {0!A} missing required attribute "
                                 "{1!A} (only has attributes {2!A})",
                                 name(tup_tree), attr, attrs(tup_tree).keys()),
@@ -214,7 +214,7 @@ class TupleParser(object):
                     del tt_attrs[attr]
 
         for k in tt_attrs.keys():
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid attribute {1!A}",
                         name(tup_tree), k),
                 conn_id=self.conn_id)
@@ -230,7 +230,7 @@ class TupleParser(object):
                 if name(child) not in allowed_children:
                     invalid_children.add(name(child))
             if invalid_children:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has invalid child element(s) "
                             "{1!A} ({2})",
                             name(tup_tree), list(invalid_children), allow_txt),
@@ -240,7 +240,7 @@ class TupleParser(object):
             for child in tup_tree[2]:
                 if isinstance(child, six.string_types):
                     if child.lstrip(' \t\n') != '':
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Element {0!A} has unexpected non-blank "
                                     "text content {1!A}",
                                     name(tup_tree), child),
@@ -256,12 +256,12 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if not k:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} missing required child element {1!A}",
                         name(tup_tree), acceptable),
                 conn_id=self.conn_id)
         if len(k) > 1:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has too many child elements {1!A} "
                         "(allowed is one child element {2!A})",
                         name(tup_tree), [name(t) for t in k], acceptable),
@@ -270,7 +270,7 @@ class TupleParser(object):
         child = k[0]
 
         if name(child) not in acceptable:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid child element {1!A} "
                         "(allowed is one child element {2!A})",
                         name(tup_tree), name(child), acceptable),
@@ -286,7 +286,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) > 1:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has too many child elements {1!A} "
                         "(allowed is one optional child element {2!A})",
                         name(tup_tree), [name(t) for t in k], allowed),
@@ -308,7 +308,7 @@ class TupleParser(object):
 
         for child in kids(tup_tree):
             if name(child) not in acceptable:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has invalid child element {1!A} "
                             "(allowed are child elements {2!A})",
                             name(tup_tree), name(child), acceptable),
@@ -348,7 +348,7 @@ class TupleParser(object):
 
         a_child = name(k[0])
         if a_child not in acceptable:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid child element {1!A} "
                         "(allowed is a sequence of like elements from {2!A})",
                         name(tup_tree), a_child, acceptable),
@@ -356,7 +356,7 @@ class TupleParser(object):
         result = []
         for child in k:
             if name(child) != a_child:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has invalid child element {1!A} "
                             "(sequence must have like elements {2!A})",
                             name(tup_tree), name(child), a_child),
@@ -369,7 +369,7 @@ class TupleParser(object):
         """
         Raise exception for not implemented function.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is "
                     "not implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -393,7 +393,7 @@ class TupleParser(object):
         self.check_node(tup_tree, 'CIM', ['CIMVERSION', 'DTDVERSION'])
 
         if not attrs(tup_tree)['CIMVERSION'].startswith('2.'):
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("CIMVERSION is {0}, expected 2.x.y",
                         attrs(tup_tree)['CIMVERSION']),
                 conn_id=self.conn_id)
@@ -546,7 +546,7 @@ class TupleParser(object):
 
         k = kids(tup_tree)
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(INSTANCENAME, INSTANCE))",
@@ -574,7 +574,7 @@ class TupleParser(object):
 
         k = kids(tup_tree)
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(INSTANCEPATH, INSTANCE))",
@@ -607,7 +607,7 @@ class TupleParser(object):
 
             _object.path = inst_path
         else:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting one or two child elements "
                         "(CLASS | (INSTANCENAME, INSTANCE)))",
@@ -637,7 +637,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "((LOCALCLASSPATH, CLASS) | (LOCALINSTANCEPATH, "
@@ -680,7 +680,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "((CLASSPATH, CLASS) | (INSTANCEPATH, INSTANCE)))",
@@ -735,7 +735,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(HOST, LOCALNAMESPACEPATH))", name(tup_tree), k),
@@ -762,7 +762,7 @@ class TupleParser(object):
         self.check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ['NAMESPACE'])
 
         if not kids(tup_tree):
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} missing child elements (expecting one "
                         "or more child elements 'NAMESPACE')", name(tup_tree)),
                 conn_id=self.conn_id)
@@ -818,7 +818,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(NAMESPACEPATH, CLASSNAME))", name(tup_tree), k),
@@ -846,7 +846,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(LOCALNAMESPACEPATH, CLASSNAME))", name(tup_tree), k),
@@ -895,7 +895,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(NAMESPACEPATH, INSTANCENAME))", name(tup_tree), k),
@@ -923,7 +923,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if len(k) != 2:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid number of child elements "
                         "{1!A} (expecting two child elements "
                         "(LOCALNAMESPACEPATH, INSTANCENAME))",
@@ -963,7 +963,7 @@ class TupleParser(object):
 
         if k0_name == 'KEYVALUE' or k0_name == 'VALUE.REFERENCE':
             if len(kids(tup_tree)) != 1:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has more than one child element "
                             "{1!A} (expecting child elements "
                             "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))",
@@ -981,7 +981,7 @@ class TupleParser(object):
                 kbs.update(key_bind)
             return CIMInstanceName(classname, kbs)
         else:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has invalid child elements {1!A} "
                         "(expecting child elements "
                         "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))",
@@ -1079,7 +1079,7 @@ class TupleParser(object):
             elif valuetype == 'numeric':
                 pass
             else:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has invalid 'VALUETYPE' attribute "
                             "value {1!A}", name(tup_tree), valuetype),
                     conn_id=self.conn_id)
@@ -1200,7 +1200,7 @@ class TupleParser(object):
         for k, v in attrs(tup_tree).items():
             v_ = self.unpack_boolean(v)
             if v_ is None:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Element {0!A} has an invalid value {1!A} for its "
                             "boolean attribute {2!A}", name(tup_tree), v, k),
                     conn_id=self.conn_id)
@@ -1244,7 +1244,7 @@ class TupleParser(object):
         for child in kids(tup_tree):
             if name(child) == 'SCOPE':
                 if scopes is not None:
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Element {0!A} has more than one child "
                                 "element {1!A} (allowed is only one)",
                                 name(tup_tree), name(child)),
@@ -1253,7 +1253,7 @@ class TupleParser(object):
             else:
                 # name is 'VALUE' or 'VALUE.ARRAY'
                 if value is not None:
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Element {0!A} has more than one child "
                                 "element {1!A} (allowed is only one)",
                                 name(tup_tree), name(child)),
@@ -1343,7 +1343,7 @@ class TupleParser(object):
             val = self.unpack_value(tup_tree)
         except ValueError as exc:
             msg = str(exc)
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Cannot parse content of 'VALUE' child element of "
                         "'PROPERTY' element with name {0!A}: {1}",
                         attrl['NAME'], msg),
@@ -1446,7 +1446,7 @@ class TupleParser(object):
         elif len(value) == 1:
             value = value[0]
         else:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has more than one child element "
                         "'VALUE.REFERENCE' (allowed are zero or one)",
                         name(tup_tree)),
@@ -1495,7 +1495,7 @@ class TupleParser(object):
 
         return_type = attrl.get('TYPE', None)
         if not return_type:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} missing attribute 'TYPE' (a void "
                         "method return type is not supported in CIM)",
                         name(tup_tree)),
@@ -1640,7 +1640,7 @@ class TupleParser(object):
         Not Implemented. Because this request is generally not implemented
         by platforms, It will probably never be implemented.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is not "
                     "implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -1651,7 +1651,7 @@ class TupleParser(object):
         Not Implemented. Because this request is generally not implemented
         by platforms, It will probably never be implemented.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is not "
                     "implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -1695,7 +1695,7 @@ class TupleParser(object):
         k = kids(tup_tree)
 
         if not k:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} missing child elements "
                         "(expecting child elements "
                         "(LOCALNAMESPACEPATH, IPARAMVALUE*))", name(tup_tree)),
@@ -1723,13 +1723,13 @@ class TupleParser(object):
         path = self.list_of_matching(tup_tree,
                                      ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
         if not path:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} missing a required child element "
                         "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'",
                         name(tup_tree)),
                 conn_id=self.conn_id)
         if len(path) > 1:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has too many child elements {1!A} "
                         "(allowed is one of 'LOCALCLASSPATH' or "
                         "'LOCALINSTANCEPATH')", name(tup_tree), path),
@@ -1858,7 +1858,7 @@ class TupleParser(object):
         This function not implemented. Because this request is generally not
         implemented. It will probably never be implemented.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is not "
                     "implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -1869,7 +1869,7 @@ class TupleParser(object):
         This function not implemented. Because this request is generally not
         implemented. It will probably never be implemented.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is not "
                     "implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -1896,7 +1896,7 @@ class TupleParser(object):
         (indication senders) so it is not implemented in the pywbem
         client.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is not "
                     "implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -1924,7 +1924,7 @@ class TupleParser(object):
         """
         This function not implemented.
         """
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Internal Error: Parsing support for element {0!A} is not "
                     "implemented", name(tup_tree)),
             conn_id=self.conn_id)
@@ -2056,7 +2056,7 @@ class TupleParser(object):
         try:
             func = getattr(self, funcname)
         except AttributeError:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Invalid element {0!A}", name(tup_tree)),
                 conn_id=self.conn_id)
         return func(tup_tree)  # a bound method, i.e. self is implicit
@@ -2107,7 +2107,7 @@ class TupleParser(object):
 
         Raises:
 
-          ParseError: There is an error in the XML.
+          CIMXMLParseError: There is an error in the XML.
         """
 
         if isinstance(val, list):
@@ -2115,7 +2115,7 @@ class TupleParser(object):
         if val is None:
             return None
 
-        # Perform the un-embedding (may raise ParseError)
+        # Perform the un-embedding (may raise XMLParseError)
         tup_tree = xml_to_tupletree_sax(val, "embedded object", self.conn_id)
 
         if name(tup_tree) == 'INSTANCE':
@@ -2123,7 +2123,7 @@ class TupleParser(object):
         elif name(tup_tree) == 'CLASS':
             return self.parse_class(tup_tree)
 
-        raise ParseError(
+        raise CIMXMLParseError(
             _format("Invalid top-level element {0!A} in embedded object "
                     "value", name(tup_tree)),
             conn_id=self.conn_id)
@@ -2146,7 +2146,7 @@ class TupleParser(object):
         if not raw_val:
             return None
         elif len(raw_val) > 1:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Element {0!A} has too many child elements {1!A} "
                         "(allowed is one of 'VALUE' or 'VALUE.ARRAY')",
                         name(tup_tree)),
@@ -2183,7 +2183,7 @@ class TupleParser(object):
             return self.unpack_numeric(data, cimtype, cimtype_origin)
         else:
             # Note that 'reference' is not allowed for this function.
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Invalid CIM type found: {0!A}; "
                         "Type origin: {1}",
                         cimtype, cimtype_origin),
@@ -2212,31 +2212,31 @@ class TupleParser(object):
             try:
                 value = CIMDateTime(data)
             except ValueError as exc:
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Invalid datetime value: {0!A} ({1})", data, exc),
                     conn_id=self.conn_id)
         elif cimtype == 'char16':
             value = data
             if value == '':
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Char16 value is empty",
                     conn_id=self.conn_id)
             if len(value) > 1:
                 # More than one character, or one character from the UCS-4 set
                 # in a narrow Python build (which represents it using
                 # surrogates).
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Char16 value has more than one UCS-2 "
                             "character: {0!A}", data),
                     conn_id=self.conn_id)
             if len(value) == 1 and ord(value) > 0xFFFF:
                 # One character from the UCS-4 set in a wide Python build.
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Char16 value is a character outside of the "
                             "UCS-2 range: {0!A}", data),
                     conn_id=self.conn_id)
         else:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Invalid CIM type name {0!A} for string: {1!A}; "
                         "Type origin: {2}",
                         cimtype, data, cimtype_origin),
@@ -2270,7 +2270,7 @@ class TupleParser(object):
                           stacklevel=_stacklevel_above_module(__name__))
             return None
         else:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Invalid boolean value {0!A}", data),
                 conn_id=self.conn_id)
 
@@ -2314,7 +2314,7 @@ class TupleParser(object):
                 try:
                     value = float(data)
                 except ValueError:
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Invalid numeric value {0!A}; "
                                 "Type origin: {1}", data, cimtype_origin),
                         conn_id=self.conn_id)
@@ -2328,7 +2328,7 @@ class TupleParser(object):
         try:
             value = CIMType(value)
         except ValueError as exc:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Cannot convert value {0!A} to numeric CIM type {1}; "
                         "Type origin: {2}", exc, CIMType, cimtype_origin),
                 conn_id=self.conn_id)

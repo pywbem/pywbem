@@ -476,6 +476,14 @@ This version contains all fixes up to pywbem 0.12.4.
   the 'Antecedent' end goes to the autonomous profile.
   See issue #1411.
 
+* In order to be able to distinguish errors at the CIM-XML level (e.g.
+  required attribute missing on an XML element) and at the XML level
+  (e.g. ill-formed XML), two subclasses of the `ParseError` exception
+  have been added: `CIMXMLParseError` and `XMLParseError`, that are
+  now raised instead of `ParseError`. Because these are subclasses,
+  this change is backwards compatible for users that have caught
+  `ParseError`.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

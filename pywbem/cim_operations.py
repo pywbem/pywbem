@@ -152,7 +152,7 @@ from .cim_http import get_cimobject_header, wbem_request
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
 from .cim_http import parse_url
-from .exceptions import ParseError, CIMError
+from .exceptions import CIMXMLParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
 from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
@@ -325,27 +325,45 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     The methods of this class may raise the following exceptions:
 
-    * Exceptions indicating processing errors:
+    * Exceptions indicating operational errors:
 
       - :exc:`~pywbem.ConnectionError` - A connection with the WBEM server
         could not be established or broke down.
 
       - :exc:`~pywbem.AuthError` - Authentication failed with the WBEM server.
 
+      - :exc:`~pywbem.TimeoutError` - The WBEM server did not respond in time
+        and the client timed out.
+
+      Such exceptions can typically be resolved by the client user or server
+      admin.
+
+    * Exceptions indicating server-side issues:
+
       - :exc:`~pywbem.HTTPError` - HTTP error (bad status code) received from
         WBEM server.
 
-      - :exc:`~pywbem.ParseError` - The response from the WBEM server cannot
-        be parsed (for example, invalid characters or UTF-8 sequences,
-        ill-formed XML, or invalid CIM-XML).
+      - :exc:`~pywbem.CIMXMLParseError` - The response from the WBEM server
+        cannot be parsed because it is invalid CIM-XML (for example, a required
+        attribute is missing on an XML element).
+
+      - :exc:`~pywbem.XMLParseError` - The response from the WBEM server
+        cannot be parsed because it is invalid XML (for example, invalid
+        characters or UTF-8 sequences, or ill-formed XML).
+
+      Such exceptions nearly always indicate an issue with the implementation
+      of the WBEM server.
+
+    * Other exceptions:
 
       - :exc:`~pywbem.CIMError` - The WBEM server returned an error response
         with a CIM status code.
 
-      - :exc:`~pywbem.TimeoutError` - The WBEM server did not respond in time
-        and the client timed out.
+      Depending on the nature of the request, and on the CIM status code, the
+      reason may be a client user error (e.g. incorrect class name) or
+      a server side issue (e.g. some internal error in the server).
 
-    * Exceptions indicating programming errors:
+    * Exceptions indicating programming errors (in pywbem or by the user):
 
       - :exc:`~py:exceptions.TypeError`
       - :exc:`~py:exceptions.KeyError`
@@ -1725,7 +1743,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_raw_reply = reply_xml
         self._last_reply_len = len(reply_xml)
 
-        # Parse the XML into a tuple tree (may raise ParseError):
+        # Parse the XML into a tuple tree (may raise CIMXMLParseError or
+        # XMLParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
         tp = TupleParser(self.conn_id)
         tup_tree = tp.parse_cim(tt_)
@@ -1737,31 +1756,31 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting CIM element, got {0}", tup_tree[0]),
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting MESSAGE element, got {0}", tup_tree[0]),
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLERSP':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting SIMPLERSP element, got {0}", tup_tree[0]),
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'IMETHODRESPONSE':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting IMETHODRESPONSE element, got {0}",
                         tup_tree[0]),
                 conn_id=self.conn_id)
 
         if tup_tree[1]['NAME'] != methodname:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting attribute NAME={0!A}, got {1!A}",
                         methodname, tup_tree[1]['NAME']),
                 conn_id=self.conn_id)
@@ -1822,13 +1841,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Check unexpected return value and output parameters
         if not has_return_value and return_value:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Unexpected IRETURNVALUE child element of "
                         "IMETHODRESPONSE for operation {0} which is defined as "
                         "void", methodname),
                 conn_id=self.conn_id)
         if not has_out_params and out_param_names:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Unexpected PARAMVALUE child element(s) of "
                         "IMETHODRESPONSE for operation {0} which has no output "
                         "parameters defined: {1!A}",
@@ -2025,7 +2044,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_raw_reply = reply_xml
         self._last_reply_len = len(reply_xml)
 
-        # Parse the XML into a tuple tree (may raise ParseError):
+        # Parse the XML into a tuple tree (may raise CIMXMLParseError or
+        # XMLParseError):
         tt_ = xml_to_tupletree_sax(reply_xml, "CIM-XML response")
         tp = TupleParser(self.conn_id)
         tup_tree = tp.parse_cim(tt_)
@@ -2037,31 +2057,31 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Check the tuple tree
 
         if tup_tree[0] != 'CIM':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting CIM element, got {0}", tup_tree[0]),
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting MESSAGE element, got {0}", tup_tree[0]),
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLERSP':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting SIMPLERSP element, got {0}", tup_tree[0]),
                 conn_id=self.conn_id)
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'METHODRESPONSE':
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting METHODRESPONSE element, got {0}",
                         tup_tree[0]),
                 conn_id=self.conn_id)
 
         if tup_tree[1]['NAME'] != methodname:
-            raise ParseError(
+            raise CIMXMLParseError(
                 _format("Expecting attribute NAME={0!A}, got {1!A}",
                         methodname, tup_tree[1]['NAME']),
                 conn_id=self.conn_id)
@@ -2236,7 +2256,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                             else False
                         end_of_sequence_found = True
                     else:
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("EndOfSequence output parameter has an "
                                     "invalid value: {0!A}", p[2]),
                             conn_id=self.conn_id)
@@ -2250,13 +2270,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 rtn_objects = p[2]
 
         if not end_of_sequence_found and not enumeration_context_found:
-            raise ParseError(
+            raise CIMXMLParseError(
                 "Expected EndOfSequence or EnumerationContext output "
                 "parameter in open/pull response, but none received",
                 conn_id=self.conn_id)
 
         if not end_of_sequence and enumeration_context is None:
-            raise ParseError(
+            raise CIMXMLParseError(
                 "Expected EnumerationContext output parameter because "
                 "EndOfSequence=False, but did not receive it.",
                 conn_id=self.conn_id)
@@ -2439,7 +2459,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for instance in instances:
 
                 if not isinstance(instance, CIMInstance):
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Expecting CIMInstance object in result list, "
                                 "got {0} object", instance.__class__.__name__),
                         conn_id=self.conn_id)
@@ -2548,7 +2568,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for instancepath in instancenames:
 
                 if not isinstance(instancepath, CIMInstanceName):
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Expecting CIMInstanceName object in result "
                                 "list, got {0} object",
                                 instancepath.__class__.__name__),
@@ -2701,19 +2721,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             if result is None:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IMETHODRESPONSE, "
                     "got no child elements", conn_id=self.conn_id)
             result = result[0][2]  # List of children of IRETURNVALUE
 
             if not result:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IRETURNVALUE, "
                     "got no child elements", conn_id=self.conn_id)
             instance = result[0]  # CIMInstance object
 
             if not isinstance(instance, CIMInstance):
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Expecting CIMInstance object in result, got {0} "
                             "object", instance.__class__.__name__),
                     conn_id=self.conn_id)
@@ -3029,19 +3049,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             if result is None:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IMETHODRESPONSE, "
                     "got no child elements", conn_id=self.conn_id)
             result = result[0][2]  # List of children of IRETURNVALUE
 
             if not result:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IRETURNVALUE, "
                     "got no child elements", conn_id=self.conn_id)
             instancename = result[0]  # CIMInstanceName object
 
             if not isinstance(instancename, CIMInstanceName):
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Expecting CIMInstanceName object in result, got "
                             "{0} object", instancename.__class__.__name__),
                     conn_id=self.conn_id)
@@ -3331,7 +3351,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # instance-level invocation
                 for instance in objects:
                     if not isinstance(instance, CIMInstance):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMInstance object in result "
                                     "list, got {0} object",
                                     instance.__class__.__name__),
@@ -3342,7 +3362,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 for classpath, klass in objects:
                     if not isinstance(classpath, CIMClassName) or \
                             not isinstance(klass, CIMClass):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting tuple (CIMClassName, CIMClass) "
                                     "in result list, got tuple ({0}, {1})",
                                     classpath.__class__.__name__,
@@ -3505,7 +3525,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # instance-level invocation
                 for instancepath in objects:
                     if not isinstance(instancepath, CIMInstanceName):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMInstanceName object in "
                                     "result list, got {0} object",
                                     instancepath.__class__.__name__),
@@ -3515,7 +3535,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # class-level invocation
                 for classpath in objects:
                     if not isinstance(classpath, CIMClassName):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMClassName object in result "
                                     "list, got {0} object",
                                     classpath.__class__.__name__),
@@ -3716,7 +3736,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # instance-level invocation
                 for instance in objects:
                     if not isinstance(instance, CIMInstance):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMInstance object in result "
                                     "list, got {0} object",
                                     instance.__class__.__name__),
@@ -3727,7 +3747,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 for classpath, klass in objects:
                     if not isinstance(classpath, CIMClassName) or \
                             not isinstance(klass, CIMClass):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting tuple (CIMClassName, CIMClass) "
                                     "in result list, got tuple ({0}, {1})",
                                     classpath.__class__.__name__,
@@ -3872,7 +3892,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # instance-level invocation
                 for instancepath in objects:
                     if not isinstance(instancepath, CIMInstanceName):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMInstanceName object in "
                                     "result list, got {0} object",
                                     instancepath.__class__.__name__),
@@ -3882,7 +3902,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # class-level invocation
                 for classpath in objects:
                     if not isinstance(classpath, CIMClassName):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMClassName object in result "
                                     "list, got {0} object",
                                     classpath.__class__.__name__),
@@ -7911,13 +7931,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 if p[0] == 'QueryResultClass':
                     class_obj = p[2]
                     if not isinstance(class_obj, CIMClass):
-                        raise ParseError(
+                        raise CIMXMLParseError(
                             _format("Expecting CIMClass object in "
                                     "QueryResultClass output parameter, got "
                                     "{0} object", class_obj.__class__.__name__),
                             conn_id=self.conn_id)
                     return class_obj
-            raise ParseError(
+            raise CIMXMLParseError(
                 "QueryResultClass output parameter is missing",
                 conn_id=self.conn_id)
 
@@ -8643,7 +8663,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for klass in classes:
 
                 if not isinstance(klass, CIMClass):
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Expecting CIMClass object in result list, "
                                 "got {0} object", klass.__class__.__name__),
                         conn_id=self.conn_id)
@@ -8775,7 +8795,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             for classpath in classpaths:
 
                 if not isinstance(classpath, CIMClassName):
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Expecting CIMClassName object in result "
                                 "list, got {0} object",
                                 classpath.__class__.__name__),
@@ -8921,19 +8941,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             if result is None:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IMETHODRESPONSE, "
                     "got no child elements", conn_id=self.conn_id)
             result = result[0][2]  # List of children of IRETURNVALUE
 
             if not result:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IRETURNVALUE, "
                     "got no child elements", conn_id=self.conn_id)
             klass = result[0]  # CIMClass object
 
             if not isinstance(klass, CIMClass):
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Expecting CIMClass object, got {0} object",
                             klass.__class__.__name__),
                     conn_id=self.conn_id)
@@ -9265,7 +9285,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             for qualifierdecl in qualifierdecls:
                 if not isinstance(qualifierdecl, CIMQualifierDeclaration):
-                    raise ParseError(
+                    raise CIMXMLParseError(
                         _format("Expecting CIMQualifierDeclaration object in "
                                 "result list, got {0} object",
                                 qualifierdecl.__class__.__name__),
@@ -9351,19 +9371,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 **extra)
 
             if result is None:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IMETHODRESPONSE, "
                     "got no child elements", conn_id=self.conn_id)
             result = result[0][2]  # List of children of IRETURNVALUE
 
             if not result:
-                raise ParseError(
+                raise CIMXMLParseError(
                     "Expecting a child element below IRETURNVALUE, "
                     "got no child elements", conn_id=self.conn_id)
             qualifierdecl = result[0]  # CIMQualifierDeclaration object
 
             if not isinstance(qualifierdecl, CIMQualifierDeclaration):
-                raise ParseError(
+                raise CIMXMLParseError(
                     _format("Expecting CIMQualifierDeclaration object, got "
                             "{0} object", qualifierdecl.__class__.__name__),
                     conn_id=self.conn_id)
