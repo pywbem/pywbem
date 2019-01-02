@@ -141,6 +141,7 @@ from collections import namedtuple
 import logging
 
 import six
+
 from . import cim_xml
 from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
 from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED

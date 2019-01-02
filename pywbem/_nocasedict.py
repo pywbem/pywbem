@@ -50,6 +50,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+
 import six
 
 from ._utils import _stacklevel_above_module, _format

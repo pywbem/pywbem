@@ -24,11 +24,12 @@ Operation recorder interface and implementations.
 from __future__ import print_function, absolute_import
 from collections import namedtuple
 try:
-    from collections import OrderedDict  # pylint: disable=import-error
+    from collections import OrderedDict
 except ImportError:
-    from ordereddict import OrderedDict  # pylint: disable=import-error
+    from ordereddict import OrderedDict
 from datetime import datetime, timedelta
 import logging
+
 import six
 import yaml
 from yaml.representer import RepresenterError
