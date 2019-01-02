@@ -5,7 +5,10 @@ end2end tests.
 
 from __future__ import absolute_import
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 import errno
 import yaml
 import yamlordereddictloader

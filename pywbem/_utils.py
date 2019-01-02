@@ -24,11 +24,13 @@ from __future__ import print_function, absolute_import
 
 import re
 import inspect
-import collections
 from string import Formatter
 import six
 if six.PY2:
+    from collections import Mapping, Set, MutableSequence, Sequence
     from future_builtins import ascii
+else:
+    from collections.abc import Mapping, Set, MutableSequence, Sequence
 
 __all__ = []
 
@@ -153,8 +155,8 @@ def _ascii2(value):
       str: ASCII string
     """
 
-    if isinstance(value, collections.Mapping):
-        # NocaseDict in current impl. is not a collections.Mapping; it uses
+    if isinstance(value, Mapping):
+        # NocaseDict in current impl. is not a Mapping; it uses
         # its own repr() implementation (via ascii(), called further down)
         items = [_ascii2(k) + ": " + _ascii2(v)
                  for k, v in six.iteritems(value)]
@@ -163,21 +165,21 @@ def _ascii2(value):
             return item_str
         return "{0}({1})".format(value.__class__.__name__, item_str)
 
-    if isinstance(value, collections.Set):
+    if isinstance(value, Set):
         items = [_ascii2(v) for v in value]
         item_str = "{" + ", ".join(items) + "}"
         if value.__class__.__name__ == 'set':
             return item_str
         return "{0}({1})".format(value.__class__.__name__, item_str)
 
-    if isinstance(value, collections.MutableSequence):
+    if isinstance(value, MutableSequence):
         items = [_ascii2(v) for v in value]
         item_str = "[" + ", ".join(items) + "]"
         if value.__class__.__name__ == 'list':
             return item_str
         return "{0}({1})".format(value.__class__.__name__, item_str)
 
-    if isinstance(value, collections.Sequence) and \
+    if isinstance(value, Sequence) and \
             not isinstance(value, (six.text_type, six.binary_type)):
         items = [_ascii2(v) for v in value]
         if len(items) == 1:

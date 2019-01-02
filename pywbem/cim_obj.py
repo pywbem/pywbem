@@ -246,7 +246,7 @@ import re
 try:
     from collections import OrderedDict
 except ImportError:
-    from ordereddict import OrderedDict  # pylint: disable=import-error
+    from ordereddict import OrderedDict
 from xml.dom.minidom import Element
 
 import six

@@ -16,9 +16,11 @@ exclude =
 # remove the comment and it will ignore noga entries at least in files.
 #disable_noqa
 
-# Globally disabled flake8 issues:    
+# Globally disabled flake8 issues:
 # * W504 (line break after binary operator) is issued since 10/2018 in situations
 #   that are ok (e.g. within brackets).
+# * E402 (module level import not at top of file) is quite daunting since we
+#   are using conditional imports for py2/py3 in a number of places.
 ignore =
-    W504
-
+    W504,
+    E402
