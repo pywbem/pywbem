@@ -14,7 +14,8 @@ from pywbem import WBEMConnection, WBEMServer, CIMInstance, CIMInstanceName, \
     ConnectionError, AuthError, Error
 from pywbem._utils import _format
 from server_file import ServerDefinitionFile, ServerDefinition
-from _utils import latest_profile_inst, path_equal, path_in, instance_of
+from _utils import latest_profile_inst, path_equal, path_in, instance_of, \
+    ServerObjectCache
 
 __all__ = ['server_definition', 'default_namespace', 'wbem_connection',
            'profile_definition', 'single_profile_definition', 'ProfileTest']
@@ -202,41 +203,597 @@ def profile_definition(request):
     return pd
 
 
+def assert_association_a1(test_self, source_path, source_role, assoc_class,
+                          far_role, far_class):
+    """
+    Assert that navigation from a source instance across an association
+    succeeds.
+
+    This test performs approach a1:
+      - associations: References with manual far end filtering
+      - far ends: Associators with operation-based far end filtering
+    """
+
+    a1_assoc_insts = test_self.conn.References(
+        source_path,
+        ResultClass=assoc_class,
+        Role=source_role)
+
+    a1_assoc_insts = [
+        inst for inst in a1_assoc_insts
+        if far_role in inst.path.keybindings and
+        instance_of(test_self.conn, inst.path.keybindings[far_role], far_class)
+    ]
+    a1_assoc_paths = [inst.path for inst in a1_assoc_insts]
+
+    a1_far_insts = test_self.conn.Associators(
+        source_path,
+        AssocClass=assoc_class,
+        ResultClass=far_class,
+        Role=source_role,
+        ResultRole=far_role)
+
+    a1_far_paths = [inst.path for inst in a1_far_insts]
+
+    test_self._assert_association_consistency(
+        source_path, source_role,
+        a1_assoc_insts,
+        "manually filtered result of References (a1)",
+        a1_assoc_paths,
+        "paths of manually filtered result of References (a1)",
+        assoc_class,
+        a1_far_insts,
+        "result of Associators (a1)",
+        a1_far_paths,
+        "paths of result of Associators (a1)",
+        far_class, far_role)
+
+    # Store the result in the object cache for use by the functions for the
+    # other approaches. The order of function invocations is guaranteed by
+    # the list of functions in the assert_association_func fixture.
+    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
+                       source_role, assoc_class, far_role, far_class])
+    a1_far_paths_id = prefix + ':a1_far_paths'
+    test_self.object_cache.add_list(
+        test_self.conn.url, a1_far_paths_id, a1_far_paths)
+    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
+    test_self.object_cache.add_list(
+        test_self.conn.url, a1_assoc_paths_id, a1_assoc_paths)
+
+    return a1_far_insts, a1_assoc_insts
+
+
+def assert_association_a2(test_self, source_path, source_role, assoc_class,
+                          far_role, far_class):
+    """
+    Assert that navigation from a source instance across an association
+    succeeds.
+
+    This test performs approach a2:
+      - associations: References with manual far end filtering
+      - far end: Associators with manual far end filtering
+    """
+
+    a2_assoc_insts = test_self.conn.References(
+        source_path,
+        ResultClass=assoc_class,
+        Role=source_role)
+
+    a2_assoc_insts = [
+        inst for inst in a2_assoc_insts
+        if far_role in inst.path.keybindings and
+        instance_of(test_self.conn, inst.path.keybindings[far_role], far_class)
+    ]
+    a2_assoc_paths = [inst.path for inst in a2_assoc_insts]
+    a2_assoc_far_paths = [path.keybindings[far_role]
+                          for path in a2_assoc_paths]
+
+    a2_far_insts = test_self.conn.Associators(
+        source_path,
+        AssocClass=assoc_class,
+        Role=source_role)
+
+    a2_far_insts = [
+        inst for inst in a2_far_insts
+        if path_in(inst.path, a2_assoc_far_paths) and
+        instance_of(test_self.conn, inst.path, far_class)
+    ]
+    a2_far_paths = [inst.path for inst in a2_far_insts]
+
+    test_self._assert_association_consistency(
+        source_path, source_role,
+        a2_assoc_insts,
+        "manually filtered result of References (a2)",
+        a2_assoc_paths,
+        "paths of manually filtered result of References (a2)",
+        assoc_class,
+        a2_far_insts,
+        "manually filtered result of Associators (a2)",
+        a2_far_paths,
+        "paths of manually filtered result of Associators (a2)",
+        far_class, far_role)
+
+    # Retrieve the result of approach a1 from the object cache.
+    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
+                       source_role, assoc_class, far_role, far_class])
+    a1_far_paths_id = prefix + ':a1_far_paths'
+    a1_far_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_far_paths_id)
+    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
+    a1_assoc_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_assoc_paths_id)
+
+    # Check consistency with approach a1
+    assert len(a2_assoc_paths) == len(a1_assoc_paths)
+    for path in a2_assoc_paths:
+        test_self.assert_path_in(
+            path,
+            "path of manually filtered result of References (a2)",
+            a1_assoc_paths,
+            "path of manually filtered result of References (a1)")
+    assert len(a2_far_paths) == len(a1_far_paths)
+    for path in a2_far_paths:
+        test_self.assert_path_in(
+            path,
+            "path of manually filtered result of Associators (a2)",
+            a1_far_paths,
+            "path of result of Associators (a1)")
+
+    return a2_far_insts, a2_assoc_insts
+
+
+def assert_association_a3(test_self, source_path, source_role, assoc_class,
+                          far_role, far_class):
+    """
+    Assert that navigation from a source instance across an association
+    succeeds.
+
+    This test performs approach a3:
+      - associations: ReferenceNames with manual far end filtering and
+        GetInstance.
+      - far end: AssociatorNames with operation-based far end filtering and
+        GetInstance.
+    """
+
+    a3_assoc_paths = test_self.conn.ReferenceNames(
+        source_path,
+        ResultClass=assoc_class,
+        Role=source_role)
+
+    a3_assoc_paths = [
+        path for path in a3_assoc_paths
+        if far_role in path.keybindings and
+        instance_of(test_self.conn, path.keybindings[far_role], far_class)
+    ]
+    a3_assoc_insts = []
+
+    for path in a3_assoc_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a3_assoc_insts.append(_inst)
+
+    a3_far_paths = test_self.conn.AssociatorNames(
+        source_path,
+        AssocClass=assoc_class,
+        ResultClass=far_class,
+        Role=source_role,
+        ResultRole=far_role)
+
+    a3_far_insts = []
+    for path in a3_far_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a3_far_insts.append(_inst)
+
+    test_self._assert_association_consistency(
+        source_path, source_role,
+        a3_assoc_insts,
+        "GetInstance on manually filtered result of ReferenceNames (a3)",
+        a3_assoc_paths,
+        "manually filtered result of ReferenceNames (a3)",
+        assoc_class,
+        a3_far_insts,
+        "GetInstance on result of AssociatorNames (a3)",
+        a3_far_paths,
+        "result of AssociatorNames (a3)",
+        far_class, far_role)
+
+    # Retrieve the result of approach a1 from the object cache.
+    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
+                       source_role, assoc_class, far_role, far_class])
+    a1_far_paths_id = prefix + ':a1_far_paths'
+    a1_far_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_far_paths_id)
+    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
+    a1_assoc_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_assoc_paths_id)
+
+    # Check consistency with approach a1
+    assert len(a3_assoc_paths) == len(a1_assoc_paths)
+    for path in a3_assoc_paths:
+        test_self.assert_path_in(
+            path,
+            "manually filtered result of ReferenceNames (a3)",
+            a1_assoc_paths,
+            "path of manually filtered result of References (a1)")
+    assert len(a3_far_paths) == len(a1_far_paths)
+    for path in a3_far_paths:
+        test_self.assert_path_in(
+            path,
+            "result of AssociatorNames (a3)",
+            a1_far_paths,
+            "path of result of Associators (a1)")
+
+    return a3_far_insts, a3_assoc_insts
+
+
+def assert_association_a4(test_self, source_path, source_role, assoc_class,
+                          far_role, far_class):
+    """
+    Assert that navigation from a source instance across an association
+    succeeds.
+
+    This test performs approach a4:
+      - associations: ReferenceNames with manual far end filtering and
+        GetInstance.
+      - far end: AssociatorNames with manual far end filtering and
+        GetInstance.
+    """
+
+    a4_assoc_paths = test_self.conn.ReferenceNames(
+        source_path,
+        ResultClass=assoc_class,
+        Role=source_role)
+
+    a4_assoc_paths = [
+        path for path in a4_assoc_paths
+        if far_role in path.keybindings and
+        instance_of(test_self.conn, path.keybindings[far_role], far_class)
+    ]
+    a4_assoc_far_paths = [path.keybindings[far_role]
+                          for path in a4_assoc_paths]
+
+    a4_assoc_insts = []
+    for path in a4_assoc_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a4_assoc_insts.append(_inst)
+
+    a4_far_paths = test_self.conn.AssociatorNames(
+        source_path,
+        AssocClass=assoc_class,
+        Role=source_role)
+
+    a4_far_paths = [
+        path for path in a4_far_paths
+        if path_in(path, a4_assoc_far_paths) and
+        instance_of(test_self.conn, path, far_class)
+    ]
+
+    a4_far_insts = []
+    for path in a4_far_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a4_far_insts.append(_inst)
+
+    test_self._assert_association_consistency(
+        source_path, source_role,
+        a4_assoc_insts,
+        "GetInstance on manually filtered result of ReferenceNames (a4)",
+        a4_assoc_paths,
+        "manually filtered result of ReferenceNames (a4)",
+        assoc_class,
+        a4_far_insts,
+        "GetInstance on manually filtered result of AssociatorNames (a4)",
+        a4_far_paths,
+        "manually filtered result of AssociatorNames (a4)",
+        far_class, far_role)
+
+    # Retrieve the result of approach a1 from the object cache.
+    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
+                       source_role, assoc_class, far_role, far_class])
+    a1_far_paths_id = prefix + ':a1_far_paths'
+    a1_far_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_far_paths_id)
+    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
+    a1_assoc_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_assoc_paths_id)
+
+    # Check consistency with approach a1
+    assert len(a4_assoc_paths) == len(a1_assoc_paths)
+    for path in a4_assoc_paths:
+        test_self.assert_path_in(
+            path,
+            "manually filtered result of ReferenceNames (a4)",
+            a1_assoc_paths,
+            "path of manually filtered result of References (a1)")
+    assert len(a4_far_paths) == len(a1_far_paths)
+    for path in a4_far_paths:
+        test_self.assert_path_in(
+            path,
+            "manually filtered result of AssociatorNames (a4)",
+            a1_far_paths,
+            "path of result of Associators (a1)")
+
+    return a4_far_insts, a4_assoc_insts
+
+
+def assert_association_a5(test_self, source_path, source_role, assoc_class,
+                          far_role, far_class):
+    """
+    Assert that navigation from a source instance across an association
+    succeeds.
+
+    This test performs approach a5:
+      - associations: EnumerateInstances of the association and manual
+        filtering.
+      - far end: GetInstance on the far end keys of the associations.
+    """
+
+    a5_assoc_insts = test_self.conn.EnumerateInstances(
+        namespace=source_path.namespace,
+        ClassName=assoc_class)
+
+    a5_assoc_insts = [
+        inst for inst in a5_assoc_insts
+        if source_role in inst.path.keybindings and
+        path_equal(inst.path.keybindings[source_role], source_path) and
+        far_role in inst.path.keybindings and
+        instance_of(test_self.conn, inst.path.keybindings[far_role], far_class)
+    ]
+    a5_assoc_paths = [inst.path for inst in a5_assoc_insts]
+    a5_assoc_far_paths = [path.keybindings[far_role]
+                          for path in a5_assoc_paths]
+
+    a5_far_insts = []
+    for path in a5_assoc_far_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a5_far_insts.append(_inst)
+
+    a5_far_paths = [inst.path for inst in a5_far_insts]
+
+    test_self._assert_association_consistency(
+        source_path, source_role,
+        a5_assoc_insts,
+        "manually filtered result of "
+        "EnumerateInstances on association class (a5)",
+        a5_assoc_paths,
+        "paths of manually filtered result of "
+        "EnumerateInstances on association class (a5)",
+        assoc_class,
+        a5_far_insts,
+        "GetInstance on far ends of manually filtered result of "
+        "EnumerateInstances on association class (a5)",
+        a5_far_paths,
+        "far ends of manually filtered result of "
+        "EnumerateInstances on association class (a5)",
+        far_class, far_role)
+
+    # Retrieve the result of approach a1 from the object cache.
+    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
+                       source_role, assoc_class, far_role, far_class])
+    a1_far_paths_id = prefix + ':a1_far_paths'
+    a1_far_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_far_paths_id)
+    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
+    a1_assoc_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_assoc_paths_id)
+
+    # Check consistency with approach a1
+    assert len(a5_assoc_paths) == len(a1_assoc_paths)
+    for path in a5_assoc_paths:
+        test_self.assert_path_in(
+            path,
+            "path of manually filtered result of EnumerateInstances on "
+            "association class (a5)",
+            a1_assoc_paths,
+            "path of manually filtered result of References (a1)")
+    assert len(a5_far_paths) == len(a1_far_paths)
+    for path in a5_far_paths:
+        test_self.assert_path_in(
+            path,
+            "far ends of manually filtered result of EnumerateInstances "
+            "on association class (a5)",
+            a1_far_paths,
+            "path of result of Associators (a1)")
+
+    return a5_far_insts, a5_assoc_insts
+
+
+def assert_association_a6(test_self, source_path, source_role, assoc_class,
+                          far_role, far_class):
+    """
+    Assert that navigation from a source instance across an association
+    succeeds.
+
+    This test performs approach a6:
+      - associations: EnumerateInstanceNames of the association and manual
+        filtering, followed by GetInstance.
+      - far end: GetInstance on the far end keys of the associations.
+    """
+
+    a6_assoc_paths = test_self.conn.EnumerateInstanceNames(
+        namespace=source_path.namespace,
+        ClassName=assoc_class)
+
+    a6_assoc_paths = [
+        path for path in a6_assoc_paths
+        if source_role in path.keybindings and
+        path_equal(path.keybindings[source_role], source_path) and
+        far_role in path.keybindings and
+        instance_of(test_self.conn, path.keybindings[far_role], far_class)
+    ]
+    a6_assoc_far_paths = [path.keybindings[far_role]
+                          for path in a6_assoc_paths]
+
+    a6_assoc_insts = []
+    for path in a6_assoc_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a6_assoc_insts.append(_inst)
+
+    a6_far_insts = []
+    for path in a6_assoc_far_paths:
+        _inst = test_self.conn.GetInstance(path)
+        a6_far_insts.append(_inst)
+
+    a6_far_paths = [inst.path for inst in a6_far_insts]
+
+    test_self._assert_association_consistency(
+        source_path, source_role,
+        a6_assoc_insts,
+        "GetInstance on manually filtered result of "
+        "EnumerateInstanceNames on association class (a6)",
+        a6_assoc_paths,
+        "manually filtered result of "
+        "EnumerateInstanceNames on association class (a6)",
+        assoc_class,
+        a6_far_insts,
+        "GetInstance on far ends of manually filtered result of "
+        "EnumerateInstanceNames on association class (a6)",
+        a6_far_paths,
+        "far ends of manually filtered result of "
+        "EnumerateInstanceNames on association class (a6)",
+        far_class, far_role)
+
+    # Retrieve the result of approach a1 from the object cache.
+    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
+                       source_role, assoc_class, far_role, far_class])
+    a1_far_paths_id = prefix + ':a1_far_paths'
+    a1_far_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_far_paths_id)
+    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
+    a1_assoc_paths = test_self.object_cache.get_list(
+        test_self.conn.url, a1_assoc_paths_id)
+
+    # Check consistency with approach a1
+    assert len(a6_assoc_paths) == len(a1_assoc_paths)
+    for path in a6_assoc_paths:
+        test_self.assert_path_in(
+            path,
+            "manually filtered result of EnumerateInstanceNames on "
+            "association class (a6)",
+            a1_assoc_paths,
+            "path of manually filtered result of References (a1)")
+    assert len(a6_far_paths) == len(a1_far_paths)
+    for path in a6_far_paths:
+        test_self.assert_path_in(
+            path,
+            "far ends of manually filtered result of "
+            "EnumerateInstanceNames on association class (a6)",
+            a1_far_paths,
+            "path of result of Associators (a1)")
+
+    return a6_far_insts, a6_assoc_insts
+
+
+@pytest.fixture(
+    params=[
+        # the function for a1 must be first, because its results are stored
+        # in the object cache for use by the subsequent functions.
+        assert_association_a1,
+        assert_association_a2,
+        assert_association_a3,
+        assert_association_a4,
+        assert_association_a5,
+        assert_association_a6,
+    ],
+    scope='module',
+)
+def assert_association_func(request):
+    """
+    Fixture representing a function for asserting association traversal.
+
+    Returns the function.
+
+    Interface of the function:
+
+        Parameters:
+          test_self, source_path, source_role, assoc_class, far_role, far_class
+
+        Returns:
+            tuple of:
+            - list of associated (far end) instances
+            - list of association instances
+    """
+    return request.param
+
+
 class ProfileTest(object):
     """
     Base class for end2end tests on a specific profile.
     """
 
+    object_cache = ServerObjectCache()
+
     def init_profile(self, conn, profile_org, profile_name):
         """
         Initialize attributes for the profile.
 
-        The input parameters are simply stored as attributes.
-        In addition, the following attributes are set:
-        * server: WBEMServer object created from the connection.
-        * assert_msg: Message to be used for assertions, to provide context.
-        * profile_inst: CIMInstance for the CIM_RegisteredProfile object for
-          the profile. If it does not exist, the testcase is skipped.
-        * profile_definition: Profile definition dictionary for the profile.
+        The following instance attributes are set:
+          * conn: conn argument (WBEMConnection).
+          * profile_org: profile_org argument (registered org string).
+          * profile_name: profile_name argument (registered name string).
+          * server: WBEMServer object created from the connection.
+          * profile_definition: Profile definition dictionary for the profile.
+          * profile_id: org:name string to identify the profile
+          * profile_inst: CIMInstance for the CIM_RegisteredProfile object for
+            the profile. If it does not exist, the testcase is skipped.
         """
         # pylint: disable=attribute-defined-outside-init
         self.conn = conn
         self.profile_org = profile_org
         self.profile_name = profile_name
 
-        self.server = WBEMServer(self.conn)
-        profile_insts = self.server.get_selected_profiles(
-            self.profile_org, self.profile_name)
-        if not profile_insts:
-            pytest.skip("{0} {1} profile is not advertised on server {2!r}".
-                        format(self.profile_org, self.profile_name,
-                               self.conn.url))
-        self.profile_inst = latest_profile_inst(profile_insts)
-
+        self.server = WBEMServer(conn)
         self.profile_definition = single_profile_definition(
-            self.profile_org, self.profile_name)
+            profile_org, profile_name)
         assert self.profile_definition is not None
+
+        self.profile_id = "{0}:{1}".format(profile_org, profile_name)
+        profile_insts_id = self.profile_id + ':profile_insts'
+
+        try:
+            profile_insts = self.object_cache.get_list(
+                conn.url, profile_insts_id)
+        except KeyError:
+            profile_insts = self.server.get_selected_profiles(
+                profile_org, profile_name)
+            self.object_cache.add_list(
+                conn.url, profile_insts_id, profile_insts)
+
+        if not profile_insts:
+            pytest.skip("{0} {1} profile is not advertised on server "
+                        "{2!r}".
+                        format(profile_org, profile_name, self.conn.url))
+
+        self.profile_inst = latest_profile_inst(profile_insts)
         # pylint: enable=attribute-defined-outside-init
+
+    def init_central_instances(self, conn):
+        """
+        Initialize attributes for the profile by calling init_profile()
+        and get the central instances.
+
+        The following instance attributes are set, in addition to
+        init_profile():
+          * central_inst_paths: central instances as list of CIMInstanceName.
+        """
+
+        self.init_profile(conn)
+
+        central_paths_id = self.profile_id + ':central_paths'
+
+        try:
+            central_paths = self.object_cache.get_list(
+                self.conn.url, central_paths_id)
+        except KeyError:
+            central_paths = self.server.get_central_instances(
+                self.profile_inst.path,
+                central_class=self.profile_definition['central_class'],
+                scoping_class=self.profile_definition['scoping_class'],
+                scoping_path=self.profile_definition['scoping_path'],
+                reference_direction=self.profile_definition[
+                    'reference_direction'])
+            self.object_cache.add_list(
+                self.conn.url, central_paths_id, central_paths)
+
+        self.central_inst_paths = central_paths
 
     def assert_instance_of(self, path_list, classname):
         """
@@ -502,346 +1059,3 @@ class ProfileTest(object):
             self.assert_path_in(
                 path, assoc_paths_msg,
                 assoc_insts, "path of {0}".format(assoc_insts_msg))
-
-    def assert_association(self, source_path, source_role, assoc_class,
-                           far_role, far_class):
-        """
-        Assert that navigation from a source instance across an association
-        succeeds.
-
-        This test performs a number of different approaches for determining the
-        associated and association instances and their instance paths.
-
-        Consistency is verified within each approach and across the
-        approaches.
-
-        Returns:
-            tuple of:
-            - list of associated (far end) instances
-            - list of association instances
-        """
-
-        # Approach a1:
-        # - associations: References with manual far end filtering
-        # - far end: Associators with operation-based far end filtering
-        a1_assoc_insts = self.conn.References(
-            source_path,
-            ResultClass=assoc_class,
-            Role=source_role)
-        a1_assoc_insts = [
-            inst for inst in a1_assoc_insts
-            if far_role in inst.path.keybindings and
-            instance_of(self.conn, inst.path.keybindings[far_role], far_class)
-        ]
-        a1_assoc_paths = [inst.path for inst in a1_assoc_insts]
-        a1_far_insts = self.conn.Associators(
-            source_path,
-            AssocClass=assoc_class,
-            ResultClass=far_class,
-            Role=source_role,
-            ResultRole=far_role)
-        a1_far_paths = [inst.path for inst in a1_far_insts]
-        self._assert_association_consistency(
-            source_path, source_role,
-            a1_assoc_insts,
-            "manually filtered result of References (a1)",
-            a1_assoc_paths,
-            "paths of manually filtered result of References (a1)",
-            assoc_class,
-            a1_far_insts,
-            "result of Associators (a1)",
-            a1_far_paths,
-            "paths of result of Associators (a1)",
-            far_class, far_role)
-
-        # Approach a2:
-        # - associations: References with manual far end filtering
-        # - far end: Associators with manual far end filtering
-        a2_assoc_insts = self.conn.References(
-            source_path,
-            ResultClass=assoc_class,
-            Role=source_role)
-        a2_assoc_insts = [
-            inst for inst in a2_assoc_insts
-            if far_role in inst.path.keybindings and
-            instance_of(self.conn, inst.path.keybindings[far_role], far_class)
-        ]
-        a2_assoc_paths = [inst.path for inst in a2_assoc_insts]
-        a2_assoc_far_paths = [path.keybindings[far_role]
-                              for path in a2_assoc_paths]
-        a2_far_insts = self.conn.Associators(
-            source_path,
-            AssocClass=assoc_class,
-            Role=source_role)
-        a2_far_insts = [
-            inst for inst in a2_far_insts
-            if path_in(inst.path, a2_assoc_far_paths) and
-            instance_of(self.conn, inst.path, far_class)
-        ]
-        a2_far_paths = [inst.path for inst in a2_far_insts]
-        self._assert_association_consistency(
-            source_path, source_role,
-            a2_assoc_insts,
-            "manually filtered result of References (a2)",
-            a2_assoc_paths,
-            "paths of manually filtered result of References (a2)",
-            assoc_class,
-            a2_far_insts,
-            "manually filtered result of Associators (a2)",
-            a2_far_paths,
-            "paths of manually filtered result of Associators (a2)",
-            far_class, far_role)
-
-        # Check consistency with approach a1
-        assert len(a2_assoc_paths) == len(a1_assoc_paths)
-        for path in a2_assoc_paths:
-            self.assert_path_in(
-                path,
-                "path of manually filtered result of References (a2)",
-                a1_assoc_paths,
-                "path of manually filtered result of References (a1)")
-        assert len(a2_far_paths) == len(a1_far_paths)
-        for path in a2_far_paths:
-            self.assert_path_in(
-                path,
-                "path of manually filtered result of Associators (a2)",
-                a1_far_paths,
-                "path of result of Associators (a1)")
-
-        # Approach a3:
-        # - associations: ReferenceNames with manual far end filtering and
-        #   GetInstance.
-        # - far end: AssociatorNames with operation-based far end filtering and
-        #   GetInstance.
-        a3_assoc_paths = self.conn.ReferenceNames(
-            source_path,
-            ResultClass=assoc_class,
-            Role=source_role)
-        a3_assoc_paths = [
-            path for path in a3_assoc_paths
-            if far_role in path.keybindings and
-            instance_of(self.conn, path.keybindings[far_role], far_class)
-        ]
-        a3_assoc_insts = []
-        for path in a3_assoc_paths:
-            _inst = self.conn.GetInstance(path)
-            a3_assoc_insts.append(_inst)
-        a3_far_paths = self.conn.AssociatorNames(
-            source_path,
-            AssocClass=assoc_class,
-            ResultClass=far_class,
-            Role=source_role,
-            ResultRole=far_role)
-        a3_far_insts = []
-        for path in a3_far_paths:
-            _inst = self.conn.GetInstance(path)
-            a3_far_insts.append(_inst)
-        self._assert_association_consistency(
-            source_path, source_role,
-            a3_assoc_insts,
-            "GetInstance on manually filtered result of ReferenceNames (a3)",
-            a3_assoc_paths,
-            "manually filtered result of ReferenceNames (a3)",
-            assoc_class,
-            a3_far_insts,
-            "GetInstance on result of AssociatorNames (a3)",
-            a3_far_paths,
-            "result of AssociatorNames (a3)",
-            far_class, far_role)
-
-        # Check consistency with approach a1
-        assert len(a3_assoc_paths) == len(a1_assoc_paths)
-        for path in a3_assoc_paths:
-            self.assert_path_in(
-                path,
-                "manually filtered result of ReferenceNames (a3)",
-                a1_assoc_paths,
-                "path of manually filtered result of References (a1)")
-        assert len(a3_far_paths) == len(a1_far_paths)
-        for path in a3_far_paths:
-            self.assert_path_in(
-                path,
-                "result of AssociatorNames (a3)",
-                a1_far_paths,
-                "path of result of Associators (a1)")
-
-        # Approach a4:
-        # - associations: ReferenceNames with manual far end filtering and
-        #   GetInstance.
-        # - far end: AssociatorNames with manual far end filtering and
-        #   GetInstance.
-        a4_assoc_paths = self.conn.ReferenceNames(
-            source_path,
-            ResultClass=assoc_class,
-            Role=source_role)
-        a4_assoc_paths = [
-            path for path in a4_assoc_paths
-            if far_role in path.keybindings and
-            instance_of(self.conn, path.keybindings[far_role], far_class)
-        ]
-        a4_assoc_far_paths = [path.keybindings[far_role]
-                              for path in a4_assoc_paths]
-        a4_assoc_insts = []
-        for path in a4_assoc_paths:
-            _inst = self.conn.GetInstance(path)
-            a4_assoc_insts.append(_inst)
-        a4_far_paths = self.conn.AssociatorNames(
-            source_path,
-            AssocClass=assoc_class,
-            Role=source_role)
-        a4_far_paths = [
-            path for path in a4_far_paths
-            if path_in(path, a4_assoc_far_paths) and
-            instance_of(self.conn, path, far_class)
-        ]
-        a4_far_insts = []
-        for path in a4_far_paths:
-            _inst = self.conn.GetInstance(path)
-            a4_far_insts.append(_inst)
-        self._assert_association_consistency(
-            source_path, source_role,
-            a4_assoc_insts,
-            "GetInstance on manually filtered result of ReferenceNames (a4)",
-            a4_assoc_paths,
-            "manually filtered result of ReferenceNames (a4)",
-            assoc_class,
-            a4_far_insts,
-            "GetInstance on manually filtered result of AssociatorNames (a4)",
-            a4_far_paths,
-            "manually filtered result of AssociatorNames (a4)",
-            far_class, far_role)
-
-        # Check consistency with approach a1
-        assert len(a4_assoc_paths) == len(a1_assoc_paths)
-        for path in a4_assoc_paths:
-            self.assert_path_in(
-                path,
-                "manually filtered result of ReferenceNames (a4)",
-                a1_assoc_paths,
-                "path of manually filtered result of References (a1)")
-        assert len(a4_far_paths) == len(a1_far_paths)
-        for path in a4_far_paths:
-            self.assert_path_in(
-                path,
-                "manually filtered result of AssociatorNames (a4)",
-                a1_far_paths,
-                "path of result of Associators (a1)")
-
-        # Approach a5:
-        # - associations: EnumerateInstances of the association and manual
-        #   filtering.
-        # - far end: GetInstance on the far end keys of the associations.
-        a5_assoc_insts = self.conn.EnumerateInstances(
-            namespace=source_path.namespace,
-            ClassName=assoc_class)
-        a5_assoc_insts = [
-            inst for inst in a5_assoc_insts
-            if source_role in inst.path.keybindings and
-            path_equal(inst.path.keybindings[source_role], source_path) and
-            far_role in inst.path.keybindings and
-            instance_of(self.conn, inst.path.keybindings[far_role], far_class)
-        ]
-        a5_assoc_paths = [inst.path for inst in a5_assoc_insts]
-        a5_assoc_far_paths = [path.keybindings[far_role]
-                              for path in a5_assoc_paths]
-        a5_far_insts = []
-        for path in a5_assoc_far_paths:
-            _inst = self.conn.GetInstance(path)
-            a5_far_insts.append(_inst)
-        a5_far_paths = [inst.path for inst in a5_far_insts]
-        self._assert_association_consistency(
-            source_path, source_role,
-            a5_assoc_insts,
-            "manually filtered result of "
-            "EnumerateInstances on association class (a5)",
-            a5_assoc_paths,
-            "paths of manually filtered result of "
-            "EnumerateInstances on association class (a5)",
-            assoc_class,
-            a5_far_insts,
-            "GetInstance on far ends of manually filtered result of "
-            "EnumerateInstances on association class (a5)",
-            a5_far_paths,
-            "far ends of manually filtered result of "
-            "EnumerateInstances on association class (a5)",
-            far_class, far_role)
-
-        # Check consistency with approach a1
-        assert len(a5_assoc_paths) == len(a1_assoc_paths)
-        for path in a5_assoc_paths:
-            self.assert_path_in(
-                path,
-                "path of manually filtered result of EnumerateInstances on "
-                "association class (a5)",
-                a1_assoc_paths,
-                "path of manually filtered result of References (a1)")
-        assert len(a5_far_paths) == len(a1_far_paths)
-        for path in a5_far_paths:
-            self.assert_path_in(
-                path,
-                "far ends of manually filtered result of EnumerateInstances "
-                "on association class (a5)",
-                a1_far_paths,
-                "path of result of Associators (a1)")
-
-        # Approach a6:
-        # - associations: EnumerateInstanceNames of the association and manual
-        #   filtering, followed by GetInstance.
-        # - far end: GetInstance on the far end keys of the associations.
-        a6_assoc_paths = self.conn.EnumerateInstanceNames(
-            namespace=source_path.namespace,
-            ClassName=assoc_class)
-        a6_assoc_paths = [
-            path for path in a6_assoc_paths
-            if source_role in path.keybindings and
-            path_equal(path.keybindings[source_role], source_path) and
-            far_role in path.keybindings and
-            instance_of(self.conn, path.keybindings[far_role], far_class)
-        ]
-        a6_assoc_far_paths = [path.keybindings[far_role]
-                              for path in a6_assoc_paths]
-        a6_assoc_insts = []
-        for path in a6_assoc_paths:
-            _inst = self.conn.GetInstance(path)
-            a6_assoc_insts.append(_inst)
-        a6_far_insts = []
-        for path in a6_assoc_far_paths:
-            _inst = self.conn.GetInstance(path)
-            a6_far_insts.append(_inst)
-        a6_far_paths = [inst.path for inst in a6_far_insts]
-        self._assert_association_consistency(
-            source_path, source_role,
-            a6_assoc_insts,
-            "GetInstance on manually filtered result of "
-            "EnumerateInstanceNames on association class (a6)",
-            a6_assoc_paths,
-            "manually filtered result of "
-            "EnumerateInstanceNames on association class (a6)",
-            assoc_class,
-            a6_far_insts,
-            "GetInstance on far ends of manually filtered result of "
-            "EnumerateInstanceNames on association class (a6)",
-            a6_far_paths,
-            "far ends of manually filtered result of "
-            "EnumerateInstanceNames on association class (a6)",
-            far_class, far_role)
-
-        # Check consistency with approach a1
-        assert len(a6_assoc_paths) == len(a1_assoc_paths)
-        for path in a6_assoc_paths:
-            self.assert_path_in(
-                path,
-                "manually filtered result of EnumerateInstanceNames on "
-                "association class (a6)",
-                a1_assoc_paths,
-                "path of manually filtered result of References (a1)")
-        assert len(a6_far_paths) == len(a1_far_paths)
-        for path in a6_far_paths:
-            self.assert_path_in(
-                path,
-                "far ends of manually filtered result of "
-                "EnumerateInstanceNames on association class (a6)",
-                a1_far_paths,
-                "path of result of Associators (a1)")
-
-        return a1_far_insts, a1_assoc_insts
