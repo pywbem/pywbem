@@ -4,6 +4,8 @@ Utility functions for end2end tests.
 
 from __future__ import absolute_import, print_function
 
+from copy import deepcopy
+
 from pywbem import CIMInstance, CIMInstanceName, \
     CIMError, CIM_ERR_INVALID_CLASS
 
@@ -82,6 +84,72 @@ def path_in(inst_path, inst_path_list):
     return False
 
 
+class ServerObjectCache(object):
+    """
+    A cache for named lists of CIM objects from a particular WBEM server.
+
+    Each list is identified by a name that can be an arbitrary string.
+
+    The WBEM server is identified by its URL. This allows the objects to
+    be reused across WBEMConnection or WBEMServer objects to the same server.
+    """
+
+    def __init__(self):
+        # Cache dictionary:
+        # - key: server URL
+        # - value: dictionary of named lists:
+        #   - key: list name
+        #   _ value: list of CIM objects (e.g. CIMInstanceName, CIMClass)
+        self._server_dict = dict()
+
+    def add_list(self, server_url, list_name, obj_list):
+        if server_url not in self._server_dict:
+            self._server_dict[server_url] = dict()
+        list_dict = self._server_dict[server_url]
+        if list_name in list_dict:
+            raise KeyError(
+                "List {0} for server {1} is already in the cache".
+                format(list_name, server_url))
+        list_dict[list_name] = deepcopy(obj_list)
+
+    def del_list(self, server_url, list_name):
+        if server_url not in self._server_dict:
+            raise KeyError(
+                "Server {0} is not in the cache".
+                format(server_url))
+        list_dict = self._server_dict[server_url]
+        if list_name not in list_dict:
+            raise KeyError(
+                "List {0} for server {1} is not in the cache".
+                format(list_name, server_url))
+        del list_dict[list_name]
+        if not list_dict:
+            del self._server_dict[server_url]
+
+    def get_list(self, server_url, list_name):
+        if server_url not in self._server_dict:
+            raise KeyError(
+                "Server {0} is not in the cache".
+                format(server_url))
+        list_dict = self._server_dict[server_url]
+        if list_name not in list_dict:
+            raise KeyError(
+                "List {0} for server {1} is not in the cache".
+                format(list_name, server_url))
+        return list_dict[list_name]
+
+    def has_list(self, server_url, list_name):
+        if server_url not in self._server_dict:
+            return False
+        list_dict = self._server_dict[server_url]
+        if list_name not in list_dict:
+            return False
+        return True
+
+
+ENUM_INST_CACHE = ServerObjectCache()
+
+
 def instance_of(conn, path_list, classname):
     """
     Return whether all of a set of CIM instances (identified by their instance
@@ -124,16 +192,23 @@ def instance_of(conn, path_list, classname):
     for path in paths:
         assert path.namespace.lower() == namespace.lower()
 
+    enum_paths_id = namespace.lower() + ':' + classname.lower()
+
     try:
-        enum_paths = conn.EnumerateInstanceNames(
-            namespace=namespace, ClassName=classname)
-    except CIMError as exc:
-        if exc.status_code == CIM_ERR_INVALID_CLASS:
-            raise AssertionError(
-                "Class {0!r} does not exist in namespace {1!r}".
-                format(classname, namespace))
-        else:
-            raise
+        enum_paths = ENUM_INST_CACHE.get_list(conn.url, enum_paths_id)
+    except KeyError:
+        try:
+            enum_paths = conn.EnumerateInstanceNames(
+                namespace=namespace, ClassName=classname)
+        except CIMError as exc:
+            if exc.status_code == CIM_ERR_INVALID_CLASS:
+                raise AssertionError(
+                    "Class {0!r} does not exist in namespace {1!r}".
+                    format(classname, namespace))
+            else:
+                raise
+        ENUM_INST_CACHE.add_list(conn.url, enum_paths_id, enum_paths)
+
     for path in paths:
         if not path_in(path, enum_paths):
             return False
