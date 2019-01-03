@@ -188,10 +188,9 @@ def _ascii2(value):
             return item_str
         return "{0}({1})".format(value.__class__.__name__, item_str)
 
-    ret = ascii(value)  # returns type str in py2 and py3
-
     if isinstance(value, six.text_type):
 
+        ret = ascii(value)  # returns type str in py2 and py3
         if ret.startswith('u'):
             ret = ret[1:]
 
@@ -205,8 +204,21 @@ def _ascii2(value):
                      r'\\u00\1', ret)
 
     elif isinstance(value, six.binary_type):
+        ret = ascii(value)  # returns type str in py2 and py3
         if ret.startswith('b'):
             ret = ret[1:]
+
+    elif isinstance(value, (six.integer_types, float)):
+        # str() on Python containers calls repr() on the items. PEP 3140
+        # that attempted to fix that, has been rejected. See
+        # https://www.python.org/dev/peps/pep-3140/.
+        # We don't want to make that same mistake, and because ascii() calls
+        # repr(), we call str() on the items explicitly. This makes a
+        # difference for example for all pywbem.CIMInt values.
+        ret = str(value)
+
+    else:
+        ret = ascii(value)  # returns type str in py2 and py3
 
     return ret
 
