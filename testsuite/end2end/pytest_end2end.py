@@ -12,6 +12,7 @@ import six
 
 from pywbem import WBEMConnection, WBEMServer, CIMInstance, CIMInstanceName, \
     ConnectionError, AuthError, Error
+from pywbem._utils import _format
 from server_file import ServerDefinitionFile, ServerDefinition
 from _utils import latest_profile_inst, path_equal, path_in, instance_of
 
@@ -375,10 +376,10 @@ class ProfileTest(object):
         prop_value = prop.value
         if prop_value not in value_list:
             raise AssertionError(
-                "Property value issue: The value of simple property {0!r} in "
-                "an instance of class {1!r} is not in the allowable set of "
-                "values {2!r}, but is {3!r}".
-                format(prop_name, instance.classname, value_list, prop_value))
+                _format("Property value issue: The value of simple property "
+                        "{0!A} in an instance of class {1!A} is not in the "
+                        "allowable set of values {2!A}, but is {3!A}",
+                        prop_name, instance.classname, value_list, prop_value))
 
     def assert_property_contains(self, instance, prop_name, value):
         """
@@ -404,10 +405,10 @@ class ProfileTest(object):
         prop_values = prop.value
         if value not in prop_values:
             raise AssertionError(
-                "Property value issue: The value of array property {0!r} in "
-                "an instance of class {1!r} does not contain value {2!r}, "
-                "but is {3!r}".
-                format(prop_name, instance.classname, value, prop_values))
+                _format("Property value issue: The value of array property "
+                        "{0!A} in an instance of class {1!A} does not contain "
+                        "value {2!A}, but is {3!A}",
+                        prop_name, instance.classname, value, prop_values))
 
     def assert_path_equal(self, path1, path1_msg, path2, path2_msg):
         """
@@ -428,10 +429,10 @@ class ProfileTest(object):
 
         if not path_equal(path1, path2):
             raise AssertionError(
-                "Instance path issue: Instance path {0!r} ({1}) "
-                "does not match instance path {2!r} ({3})".
-                format(path1.to_wbem_uri(), path1_msg,
-                       path2.to_wbem_uri(), path2_msg))
+                _format("Instance path issue: Instance path {0!A} ({1}) "
+                        "does not match instance path {2!A} ({3})",
+                        path1.to_wbem_uri(), path1_msg,
+                        path2.to_wbem_uri(), path2_msg))
 
     def assert_path_in(self, path, path_msg, path_list, path_list_msg):
         """
@@ -446,9 +447,9 @@ class ProfileTest(object):
 
         if not path_in(path, path_list):
             raise AssertionError(
-                "Instance path issue: Instance path {0!r} ({1}) "
-                "is not in expected set of instance paths ({2})".
-                format(path.to_wbem_uri(), path_msg, path_list_msg))
+                _format("Instance path issue: Instance path {0!A} ({1}) "
+                        "is not in expected set of instance paths ({2})",
+                        path.to_wbem_uri(), path_msg, path_list_msg))
 
     def _assert_association_consistency(
             self,
