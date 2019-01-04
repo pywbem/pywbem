@@ -485,6 +485,11 @@ This version contains all fixes up to pywbem 0.12.4.
   `ParseError`. The new subclasses have the CIM-XML request and
   response data available as properties.
 
+* The `WBEMServer.get_selected_profiles()` method has been changed to
+  match the registered names, organisations and versions of profiles
+  case insensitively, in order to better deal with profile name changes
+  in SMI-S. See issue #1551.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).
