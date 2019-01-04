@@ -113,6 +113,14 @@ class TestServerClass(BaseMethodsForTests):
             assert org_vm.tovalues(inst['RegisteredOrganization']) == 'DMTF'
             assert inst['RegisteredName'] == 'Indications'
 
+        # Test case insensitive matching
+        sel_prof = server.get_selected_profiles(registered_org='DmtF',
+                                                registered_name='inDiCations')
+        assert len(sel_prof) == 1
+        for inst in sel_prof:
+            assert org_vm.tovalues(inst['RegisteredOrganization']) == 'DMTF'
+            assert inst['RegisteredName'] == 'Indications'
+
         sel_prof = server.get_selected_profiles(registered_org='DMTF')
         assert len(sel_prof) == 3
         for inst in sel_prof:

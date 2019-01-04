@@ -634,21 +634,23 @@ class WBEMServer(object):
 
         Parameters:
 
-            profile_org (:term:`string`): A filter for the registered
-              organization of the profile, matching (case sensitively) the
+            registered_org (:term:`string`): A filter for the registered
+              organization of the profile, matching (case insensitively) the
               `RegisteredOrganization` property of the `CIM_RegisteredProfile`
               instance, via its `Values` qualifier.
               If `None`, this parameter is ignored for filtering.
 
-            profile_name (:term:`string`): A filter for the registered name of
-              the profile, matching (case sensitively) the `RegisteredName`
-              property of the `CIM_RegisteredProfile` instance.
+            registered_name (:term:`string`): A filter for the registered name
+              of the profile, matching (case insensitively) the
+              `RegisteredName` property of the `CIM_RegisteredProfile`
+              instance.
               If `None`, this parameter is ignored for filtering.
 
-            profile_version (:term:`string`): A filter for the registered
-              version of the profile, matching (case sensitively) the
+            registered_version (:term:`string`): A filter for the registered
+              version of the profile, matching (case insensitively) the
               `RegisteredVersion` property of the `CIM_RegisteredProfile`
-              instance.
+              instance. Note that version strings may contain aplhabetic
+              characters to indicate the draft level.
               If `None`, this parameter is ignored for filtering.
 
         Returns:
@@ -669,6 +671,13 @@ class WBEMServer(object):
         org_vm = ValueMapping.for_property(self, self.interop_ns,
                                            'CIM_RegisteredProfile',
                                            'RegisteredOrganization')
+        org_lower = registered_org.lower() \
+            if registered_org is not None else None
+        name_lower = registered_name.lower() \
+            if registered_name is not None else None
+        version_lower = registered_version.lower() \
+            if registered_version is not None else None
+
         rtn = []
         for inst in self.profiles:
             try:
@@ -697,12 +706,18 @@ class WBEMServer(object):
                             "'RegisteredVersion'",
                             self.interop_ns))
 
+            inst_org_lower = inst_org.lower() \
+                if inst_org is not None else None
+            inst_name_lower = inst_name.lower() \
+                if inst_name is not None else None
+            inst_version_lower = inst_version.lower() \
+                if inst_version is not None else None
+
             # pylint: disable=too-many-boolean-expressions
-            if (registered_org is None or registered_org == inst_org) and \
-                    (registered_name is None or registered_name == inst_name) \
-                    and \
-                    (registered_version is None or
-                     registered_version == inst_version):
+            if (org_lower is None or org_lower == inst_org_lower) and \
+                    (name_lower is None or name_lower == inst_name_lower) and \
+                    (version_lower is None or
+                     version_lower == inst_version_lower):
                 rtn.append(inst)
         return rtn
 
