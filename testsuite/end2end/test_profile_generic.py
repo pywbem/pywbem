@@ -28,6 +28,13 @@ def test_get_central_instances(  # noqa: F811
     profile_insts = server.get_selected_profiles(
         profile_definition['registered_org'],
         profile_definition['registered_name'])
+
+    if profile_definition['type'] == 'pattern':
+            pytest.skip("{0} {1} is a pattern on server {2} at {3}".
+                        format(profile_definition['registered_org'],
+                               profile_definition['registered_name'],
+                               wbem_connection.server_definition.nickname,
+                               wbem_connection.url))
     if not profile_insts:
         pytest.skip("{0} {1} profile is not advertised on server {2} at {3}".
                     format(profile_definition['registered_org'],
@@ -40,12 +47,16 @@ def test_get_central_instances(  # noqa: F811
     profile_inst = latest_profile_inst(profile_insts)
 
     # Check test case consistency
-    assert profile_definition['central_class'] is not None
-    if profile_definition['autonomous']:
-        assert profile_definition['scoping_path'] is None
-    # Note: For component profiles, we allow scoping class and scoping path
-    # to be unspecified (= None), because they do not matter if the central
-    # methodology is implemented.
+    if profile_definition['central_class'] is None:
+        raise ValueError(
+            "Profile definition error: The central_class attribute of "
+            "item {0} {1!r} with type {0} must be non-null".
+            format(profile_definition['registered_org'],
+                   profile_definition['registered_name'],
+                   profile_definition['type']))
+    # Note: Even for component profiles, we allow scoping class and scoping
+    # path to be unspecified (= None), because they do not matter if the
+    # central class methodology is implemented.
 
     # Function to be tested
     server.get_central_instances(
