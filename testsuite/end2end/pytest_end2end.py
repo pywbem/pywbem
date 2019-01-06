@@ -156,9 +156,9 @@ def _apply_profile_definition_defaults(pd):
             pd['reference_direction'] = 'dmtf'
         else:
             raise ValueError(
-                "The reference_direction item of a profile definition can "
-                "only be defaulted when the registered organisation is DMTF "
-                "or SNIA, but it is {0}".format(org))
+                "Profile definition error: The reference_direction item of a "
+                "profile definition can only be defaulted when the registered "
+                "organisation is DMTF or SNIA, but it is {0}".format(org))
     if 'scoping_class' not in pd:
         pd['scoping_class'] = None
     if 'scoping_path' not in pd:
@@ -176,6 +176,7 @@ def single_profile_definition(org, name):
     """
     assert org is not None
     assert name is not None
+
     for pd in PROFILE_DEFINITIONS:
         if pd['registered_org'] == org and pd['registered_name'] == name:
             pd = _apply_profile_definition_defaults(pd.copy())
