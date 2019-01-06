@@ -5,13 +5,15 @@ instances).
 
 from __future__ import absolute_import, print_function
 
+import warnings
 import pytest
-from pywbem import WBEMServer
+from pywbem import WBEMServer, ValueMapping
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
 from pytest_end2end import profile_definition  # noqa: F401, E501
+from pytest_end2end import PROFILE_DEFINITION_DICT
 from _utils import latest_profile_inst
 
 
@@ -69,3 +71,29 @@ def test_get_central_instances(  # noqa: F811
     # We intentionally do not check a minimum number of central instances,
     # because it is generally valid for profile implementations not to require
     # at least one central instance.
+
+
+def test_warn_undefined_profiles(  # noqa: F811
+        wbem_connection):
+    """
+    Warn if the server advertises profiles not defined in profiles.yml.
+    """
+    server = WBEMServer(wbem_connection)
+    server_def = wbem_connection.server_definition
+
+    org_vm = ValueMapping.for_property(server, server.interop_ns,
+                                       'CIM_RegisteredProfile',
+                                       'RegisteredOrganization')
+
+    for inst in server.profiles:
+        org = org_vm.tovalues(inst['RegisteredOrganization'])
+        name = inst['RegisteredName']
+        version = inst['RegisteredVersion']
+        pd_key = '{0}:{1}'.format(org, name)
+        if pd_key not in PROFILE_DEFINITION_DICT:
+            warnings.warn(
+                "{0} {1!r} profile version {2} advertised on server {3} "
+                "(at {4}) is not defined in profiles.yml".
+                format(org, name, version, server_def.nickname,
+                       wbem_connection.url),
+                RuntimeWarning)
