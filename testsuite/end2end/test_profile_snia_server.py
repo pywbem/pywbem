@@ -6,11 +6,17 @@ from __future__ import absolute_import, print_function
 
 import warnings
 
+from pywbem._utils import _format
+
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
 from pytest_end2end import assert_association_func  # noqa: F401
 from pytest_end2end import ProfileTest
+from assertions import assert_number_of_instances_equal, \
+    assert_number_of_instances_minimum, assert_instance_of, \
+    assert_instance_consistency, assert_mandatory_properties, \
+    assert_property_one_of, assert_property_contains
 
 
 class Test_SNIA_Server_Profile(ProfileTest):
@@ -35,8 +41,14 @@ class Test_SNIA_Server_Profile(ProfileTest):
             scoping_path=self.profile_definition['scoping_path'],
             reference_direction=self.profile_definition['reference_direction'])
 
+        central_insts_msg = _format(
+            "central instances of profile {0} {1!A}",
+            self.profile_definition['registered_org'],
+            self.profile_definition['registered_name'])
+
         # Check that there is just one central instance for this profile
-        assert len(central_inst_paths) == 1
+        assert_number_of_instances_equal(
+            wbem_connection, central_inst_paths, central_insts_msg, 1)
 
     def test_central_instance(self, wbem_connection):  # noqa: F811
         """
@@ -45,20 +57,22 @@ class Test_SNIA_Server_Profile(ProfileTest):
         self.init_central_instances(wbem_connection)
         central_inst_path = self.central_inst_paths[0]
 
-        self.assert_instance_of(central_inst_path, 'CIM_ObjectManager')
+        assert_instance_of(
+            wbem_connection, central_inst_path, 'CIM_ObjectManager')
 
         central_inst = self.conn.GetInstance(central_inst_path)
 
-        self.assert_instance_of(central_inst, 'CIM_ObjectManager')
-        self.assert_instance_consistency(central_inst, central_inst_path)
+        assert_instance_of(
+            wbem_connection, central_inst, 'CIM_ObjectManager')
 
-        mandatory_property_list = [
-            'SystemCreationClassName', 'SystemName',
-            'CreationClassName', 'Name',
-            'ElementName', 'Description',
-            'OperationalStatus', 'Started',
-        ]
-        self.assert_mandatory_properties(central_inst, mandatory_property_list)
+        assert_instance_consistency(
+            wbem_connection, central_inst, central_inst_path)
+
+        assert_mandatory_properties(
+            wbem_connection, central_inst,
+            ['SystemCreationClassName', 'SystemName', 'CreationClassName',
+             'Name', 'ElementName', 'Description', 'OperationalStatus',
+             'Started'])
 
     def test_Namespace(  # noqa: F811
             self, wbem_connection, assert_association_func):
@@ -69,21 +83,28 @@ class Test_SNIA_Server_Profile(ProfileTest):
         central_inst_path = self.central_inst_paths[0]
 
         far_insts, _ = assert_association_func(
-            test_self=self,
+            conn=wbem_connection,
+            profile_id=self.profile_id,
             source_path=central_inst_path,
             source_role='Antecedent',
             assoc_class='CIM_NamespaceInManager',
             far_role='Dependent',
             far_class='CIM_Namespace')
 
-        mandatory_property_list = [
-            'SystemCreationClassName', 'SystemName',
-            'ObjectManagerCreationClassName', 'ObjectManagerName',
-            'CreationClassName', 'Name',
-            'ClassType',
-        ]
+        far_insts_msg = _format(
+            "CIM_Namespace instances associated via "
+            "CIM_NamespaceInManager to "
+            "central instance of profile {0} {1!A}",
+            self.profile_definition['registered_org'],
+            self.profile_definition['registered_name'])
+
         for inst in far_insts:
-            self.assert_mandatory_properties(inst, mandatory_property_list)
+
+            assert_mandatory_properties(
+                wbem_connection, inst,
+                ['SystemCreationClassName', 'SystemName',
+                 'ObjectManagerCreationClassName', 'ObjectManagerName',
+                 'CreationClassName', 'Name', 'ClassType'])
 
         # Check that they are the namespaces determined by WBEMServer.
         # Because the Interop namespace is added if missing, we need to also
@@ -92,7 +113,16 @@ class Test_SNIA_Server_Profile(ProfileTest):
         if self.server.interop_ns.lower() not in inst_names:
             inst_names.append(self.server.interop_ns.lower())
         determined_names = [ns.lower() for ns in self.server.namespaces]
-        assert set(inst_names) == set(determined_names)
+
+        if set(inst_names) != set(determined_names):
+            raise AssertionError(
+                _format("The namespaces ({0}) of the {1} do not match the "
+                        "namespaces ({2}) determined by the WBEMServer class"
+                        "(server {3} at {4})",
+                        set(inst_names), far_insts_msg,
+                        set(determined_names),
+                        wbem_connection.server_definition.nickname,
+                        wbem_connection.url))
 
     def test_ObjectManagerCommunicationMechanism(  # noqa: F811
             self, wbem_connection, assert_association_func):
@@ -103,25 +133,33 @@ class Test_SNIA_Server_Profile(ProfileTest):
         central_inst_path = self.central_inst_paths[0]
 
         far_insts, _ = assert_association_func(
-            test_self=self,
+            conn=wbem_connection,
+            profile_id=self.profile_id,
             source_path=central_inst_path,
             source_role='Antecedent',
             assoc_class='CIM_CommMechanismForManager',
             far_role='Dependent',
             far_class='CIM_ObjectManagerCommunicationMechanism')
 
-        mandatory_property_list = [
-            'SystemCreationClassName', 'SystemName',
-            'CreationClassName', 'Name',
-            'ElementName', 'CommunicationMechanism',
-            'FunctionalProfilesSupported',
-            'MultipleOperationsSupported',
-            'AuthenticationMechanismsSupported',
-        ]
+        far_insts_msg = _format(
+            "CIM_ObjectManagerCommunicationMechanism instances associated via "
+            "CIM_CommMechanismForManager to "
+            "central instance of profile {0} {1!A}",
+            self.profile_definition['registered_org'],
+            self.profile_definition['registered_name'])
+
         for inst in far_insts:
-            self.assert_mandatory_properties(inst, mandatory_property_list)
-            self.assert_property_one_of(
-                inst, 'CommunicationMechanism', [2, 4])
+
+            assert_mandatory_properties(
+                wbem_connection, inst,
+                ['SystemCreationClassName', 'SystemName', 'CreationClassName',
+                 'Name', 'ElementName', 'CommunicationMechanism',
+                 'FunctionalProfilesSupported', 'MultipleOperationsSupported',
+                 'AuthenticationMechanismsSupported'])
+
+            assert_property_one_of(
+                wbem_connection, inst,
+                'CommunicationMechanism', [2, 4])
 
             # Note: The SNIA Server profile mandates that the
             #       FunctionalProfilesSupported property is 0 (Unknown), but it
@@ -131,8 +169,9 @@ class Test_SNIA_Server_Profile(ProfileTest):
             #       profile does not use it.
             # TODO 2018-12 AM: This should be brought back to SMI-S.
             try:
-                self.assert_property_contains(
-                    inst, 'FunctionalProfilesSupported', 0)
+                assert_property_contains(
+                    wbem_connection, inst,
+                    'FunctionalProfilesSupported', 0)
             except AssertionError as exc:
                 warnings.warn("A disabled check failed: {0}: {1}".
                               format(exc.__class__.__name__, exc),
@@ -144,15 +183,17 @@ class Test_SNIA_Server_Profile(ProfileTest):
             #       implemented just because the profile does not use it.
             # TODO 2018-12 AM: This should be brought back to SMI-S.
             try:
-                self.assert_property_one_of(
-                    inst, 'MultipleOperationsSupported', [False])
+                assert_property_one_of(
+                    wbem_connection, inst,
+                    'MultipleOperationsSupported', [False])
             except AssertionError as exc:
                 warnings.warn("A disabled check failed: {0}: {1}".
                               format(exc.__class__.__name__, exc),
                               RuntimeWarning)
 
-        # Check that there is at least one associated CIM_ObjectManagerComm...
-        assert len(far_insts) >= 1
+        # Check that there is at least one associated istance
+        assert_number_of_instances_minimum(
+            wbem_connection, far_insts, far_insts_msg, 1)
 
     def test_System(  # noqa: F811
             self, wbem_connection, assert_association_func):
@@ -163,21 +204,31 @@ class Test_SNIA_Server_Profile(ProfileTest):
         central_inst_path = self.central_inst_paths[0]
 
         far_insts, _ = assert_association_func(
-            test_self=self,
+            conn=wbem_connection,
+            profile_id=self.profile_id,
             source_path=central_inst_path,
             source_role='Dependent',
             assoc_class='CIM_HostedService',
             far_role='Antecedent',
             far_class='CIM_System')
 
-        mandatory_property_list = [
-            'CreationClassName', 'Name',
-            'NameFormat', 'Description', 'ElementName', 'OperationalStatus',
-        ]
+        far_insts_msg = _format(
+            "CIM_System instances associated via CIM_HostedService to "
+            "central instance of profile {0} {1!A}",
+            self.profile_definition['registered_org'],
+            self.profile_definition['registered_name'])
+
         for inst in far_insts:
-            self.assert_mandatory_properties(inst, mandatory_property_list)
-            self.assert_property_one_of(
-                inst, 'NameFormat', ['IP', 'WWN', 'Other'])
+
+            assert_mandatory_properties(
+                wbem_connection, inst,
+                ['CreationClassName', 'Name', 'NameFormat', 'Description',
+                 'ElementName', 'OperationalStatus'])
+
+            assert_property_one_of(
+                wbem_connection, inst,
+                'NameFormat', ['IP', 'WWN', 'Other'])
 
         # Check that there is one associated CIM_System instance
-        assert len(far_insts) == 1
+        assert_number_of_instances_equal(
+            wbem_connection, far_insts, far_insts_msg, 1)

@@ -22,7 +22,6 @@ def test_get_central_instances(  # noqa: F811
     WBEMServer.gen_central_instances().
     """
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
 
     # Verify that the profile to be tested is advertised by the server
     # and skip the profile if not advertised.
@@ -30,9 +29,10 @@ def test_get_central_instances(  # noqa: F811
         profile_definition['registered_org'],
         profile_definition['registered_name'])
     if not profile_insts:
-        pytest.skip("{0} {1} profile is not advertised on server {2!r}".
+        pytest.skip("{0} {1} profile is not advertised on server {2} at {3}".
                     format(profile_definition['registered_org'],
                            profile_definition['registered_name'],
+                           wbem_connection.server_definition.nickname,
                            wbem_connection.url))
 
     # In case there is more than one version advertised, use only the latest
@@ -40,9 +40,9 @@ def test_get_central_instances(  # noqa: F811
     profile_inst = latest_profile_inst(profile_insts)
 
     # Check test case consistency
-    assert profile_definition['central_class'] is not None, msg
+    assert profile_definition['central_class'] is not None
     if profile_definition['autonomous']:
-        assert profile_definition['scoping_path'] is None, msg
+        assert profile_definition['scoping_path'] is None
     # Note: For component profiles, we allow scoping class and scoping path
     # to be unspecified (= None), because they do not matter if the central
     # methodology is implemented.
