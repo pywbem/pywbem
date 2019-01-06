@@ -248,18 +248,6 @@ def assert_association_a1(test_self, source_path, source_role, assoc_class,
         "paths of result of Associators (a1)",
         far_class, far_role)
 
-    # Store the result in the object cache for use by the functions for the
-    # other approaches. The order of function invocations is guaranteed by
-    # the list of functions in the assert_association_func fixture.
-    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
-    a1_far_paths_id = prefix + ':a1_far_paths'
-    test_self.object_cache.add_list(
-        test_self.conn.url, a1_far_paths_id, a1_far_paths)
-    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
-    test_self.object_cache.add_list(
-        test_self.conn.url, a1_assoc_paths_id, a1_assoc_paths)
-
     return a1_far_insts, a1_assoc_insts
 
 
@@ -312,32 +300,6 @@ def assert_association_a2(test_self, source_path, source_role, assoc_class,
         a2_far_paths,
         "paths of manually filtered result of Associators (a2)",
         far_class, far_role)
-
-    # Retrieve the result of approach a1 from the object cache.
-    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
-    a1_far_paths_id = prefix + ':a1_far_paths'
-    a1_far_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_far_paths_id)
-    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
-    a1_assoc_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_assoc_paths_id)
-
-    # Check consistency with approach a1
-    assert len(a2_assoc_paths) == len(a1_assoc_paths)
-    for path in a2_assoc_paths:
-        test_self.assert_path_in(
-            path,
-            "path of manually filtered result of References (a2)",
-            a1_assoc_paths,
-            "path of manually filtered result of References (a1)")
-    assert len(a2_far_paths) == len(a1_far_paths)
-    for path in a2_far_paths:
-        test_self.assert_path_in(
-            path,
-            "path of manually filtered result of Associators (a2)",
-            a1_far_paths,
-            "path of result of Associators (a1)")
 
     return a2_far_insts, a2_assoc_insts
 
@@ -395,32 +357,6 @@ def assert_association_a3(test_self, source_path, source_role, assoc_class,
         a3_far_paths,
         "result of AssociatorNames (a3)",
         far_class, far_role)
-
-    # Retrieve the result of approach a1 from the object cache.
-    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
-    a1_far_paths_id = prefix + ':a1_far_paths'
-    a1_far_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_far_paths_id)
-    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
-    a1_assoc_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_assoc_paths_id)
-
-    # Check consistency with approach a1
-    assert len(a3_assoc_paths) == len(a1_assoc_paths)
-    for path in a3_assoc_paths:
-        test_self.assert_path_in(
-            path,
-            "manually filtered result of ReferenceNames (a3)",
-            a1_assoc_paths,
-            "path of manually filtered result of References (a1)")
-    assert len(a3_far_paths) == len(a1_far_paths)
-    for path in a3_far_paths:
-        test_self.assert_path_in(
-            path,
-            "result of AssociatorNames (a3)",
-            a1_far_paths,
-            "path of result of Associators (a1)")
 
     return a3_far_insts, a3_assoc_insts
 
@@ -485,32 +421,6 @@ def assert_association_a4(test_self, source_path, source_role, assoc_class,
         "manually filtered result of AssociatorNames (a4)",
         far_class, far_role)
 
-    # Retrieve the result of approach a1 from the object cache.
-    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
-    a1_far_paths_id = prefix + ':a1_far_paths'
-    a1_far_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_far_paths_id)
-    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
-    a1_assoc_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_assoc_paths_id)
-
-    # Check consistency with approach a1
-    assert len(a4_assoc_paths) == len(a1_assoc_paths)
-    for path in a4_assoc_paths:
-        test_self.assert_path_in(
-            path,
-            "manually filtered result of ReferenceNames (a4)",
-            a1_assoc_paths,
-            "path of manually filtered result of References (a1)")
-    assert len(a4_far_paths) == len(a1_far_paths)
-    for path in a4_far_paths:
-        test_self.assert_path_in(
-            path,
-            "manually filtered result of AssociatorNames (a4)",
-            a1_far_paths,
-            "path of result of Associators (a1)")
-
     return a4_far_insts, a4_assoc_insts
 
 
@@ -564,34 +474,6 @@ def assert_association_a5(test_self, source_path, source_role, assoc_class,
         "far ends of manually filtered result of "
         "EnumerateInstances on association class (a5)",
         far_class, far_role)
-
-    # Retrieve the result of approach a1 from the object cache.
-    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
-    a1_far_paths_id = prefix + ':a1_far_paths'
-    a1_far_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_far_paths_id)
-    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
-    a1_assoc_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_assoc_paths_id)
-
-    # Check consistency with approach a1
-    assert len(a5_assoc_paths) == len(a1_assoc_paths)
-    for path in a5_assoc_paths:
-        test_self.assert_path_in(
-            path,
-            "path of manually filtered result of EnumerateInstances on "
-            "association class (a5)",
-            a1_assoc_paths,
-            "path of manually filtered result of References (a1)")
-    assert len(a5_far_paths) == len(a1_far_paths)
-    for path in a5_far_paths:
-        test_self.assert_path_in(
-            path,
-            "far ends of manually filtered result of EnumerateInstances "
-            "on association class (a5)",
-            a1_far_paths,
-            "path of result of Associators (a1)")
 
     return a5_far_insts, a5_assoc_insts
 
@@ -650,34 +532,6 @@ def assert_association_a6(test_self, source_path, source_role, assoc_class,
         "far ends of manually filtered result of "
         "EnumerateInstanceNames on association class (a6)",
         far_class, far_role)
-
-    # Retrieve the result of approach a1 from the object cache.
-    prefix = ':'.join([test_self.profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
-    a1_far_paths_id = prefix + ':a1_far_paths'
-    a1_far_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_far_paths_id)
-    a1_assoc_paths_id = prefix + ':a1_assoc_paths'
-    a1_assoc_paths = test_self.object_cache.get_list(
-        test_self.conn.url, a1_assoc_paths_id)
-
-    # Check consistency with approach a1
-    assert len(a6_assoc_paths) == len(a1_assoc_paths)
-    for path in a6_assoc_paths:
-        test_self.assert_path_in(
-            path,
-            "manually filtered result of EnumerateInstanceNames on "
-            "association class (a6)",
-            a1_assoc_paths,
-            "path of manually filtered result of References (a1)")
-    assert len(a6_far_paths) == len(a1_far_paths)
-    for path in a6_far_paths:
-        test_self.assert_path_in(
-            path,
-            "far ends of manually filtered result of "
-            "EnumerateInstanceNames on association class (a6)",
-            a1_far_paths,
-            "path of result of Associators (a1)")
 
     return a6_far_insts, a6_assoc_insts
 
@@ -1059,3 +913,46 @@ class ProfileTest(object):
             self.assert_path_in(
                 path, assoc_paths_msg,
                 assoc_insts, "path of {0}".format(assoc_insts_msg))
+
+        # Check consistency across the association approaches
+        # Py test does not seem to have a reliable order of executing the
+        # testcases w.r.t. items in fixtures. Therefore, we have to assume
+        # that this function is invoked in arbitrary order w.r.t. the
+        # association approaches. The algorithn we use is that the
+        # first approach defines the results all subsequent approaches
+        # compare against.
+        prefix = ':'.join([self.profile_id, source_path.to_wbem_uri(),
+                           source_role, assoc_class, far_role, far_class])
+        far_paths_id = prefix + ':far_paths'
+        assoc_paths_id = prefix + ':assoc_paths'
+        if not self.object_cache.has_list(self.conn.url, far_paths_id):
+            # This is the first approach executed (not necessarily a1).
+            # Store the results in the object cache.
+            self.object_cache.add_list(
+                self.conn.url, far_paths_id, far_paths)
+            self.object_cache.add_list(
+                self.conn.url, assoc_paths_id, assoc_paths)
+        else:
+            # This is not the first approach executed.
+
+            # Retrieve the result of the first approach from the object cache.
+            first_far_paths = self.object_cache.get_list(
+                self.conn.url, far_paths_id)
+            first_assoc_paths = self.object_cache.get_list(
+                self.conn.url, assoc_paths_id)
+
+            # Check consistency with first approach
+            assert len(assoc_paths) == len(first_assoc_paths)
+            for path in assoc_paths:
+                self.assert_path_in(
+                    path,
+                    assoc_paths_msg,
+                    first_assoc_paths,
+                    assoc_paths_msg + " of first executed association approach")
+            assert len(far_paths) == len(first_far_paths)
+            for path in far_paths:
+                self.assert_path_in(
+                    path,
+                    far_paths_msg,
+                    first_far_paths,
+                    far_paths_msg + " of first executed association approach")
