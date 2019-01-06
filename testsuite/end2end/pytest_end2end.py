@@ -21,9 +21,26 @@ from assertions import assert_association_a1, assert_association_a2, \
 TESTSERVER = os.getenv('TESTSERVER', 'default')
 SD_LIST = list(ServerDefinitionFile().iter_servers(TESTSERVER))
 
+# Profile definition file (in end2end directory).
 PROFILES_YAML_FILE = 'profiles.yml'
-with open(PROFILES_YAML_FILE, 'r') as fp:
-    PROFILE_DEFINITIONS = yaml.load(fp)
+
+# Profile definition list.
+# The list items are profile definition items, as described in the profile
+# definition file.
+with open(PROFILES_YAML_FILE, 'r') as _fp:
+    PROFILE_DEFINITION_LIST = yaml.load(_fp)
+del _fp
+
+# Profile definition dictionary.
+# The dict key is 'org:name', for optimized direct access.
+# the dict values are profile definition items, as described in the profile
+# definition file.
+PROFILE_DEFINITION_DICT = dict()
+for _pd in PROFILE_DEFINITION_LIST:
+    _key = '{0}:{1}'.format(_pd['registered_org'],
+                            _pd['registered_name'])
+    PROFILE_DEFINITION_DICT[_key] = _pd
+del _pd, _key
 
 
 def fixtureid_server_definition(fixture_value):
@@ -176,16 +193,17 @@ def single_profile_definition(org, name):
     """
     assert org is not None
     assert name is not None
-
-    for pd in PROFILE_DEFINITIONS:
-        if pd['registered_org'] == org and pd['registered_name'] == name:
-            pd = _apply_profile_definition_defaults(pd.copy())
-            return pd
-    return None
+    pd_key = "{0}:{1}".format(org, name)
+    try:
+        pd = PROFILE_DEFINITION_DICT[pd_key]
+    except KeyError:
+        return None
+    pd = _apply_profile_definition_defaults(pd.copy())
+    return pd
 
 
 @pytest.fixture(
-    params=PROFILE_DEFINITIONS,
+    params=PROFILE_DEFINITION_LIST,
     scope='module',
     ids=fixtureid_profile_definition
 )
