@@ -201,13 +201,13 @@ pytest_opts := $(TESTOPTS) -k $(TESTCASES)
 else
 pytest_opts := $(TESTOPTS)
 endif
-pytest_end2end_opts := --tb=short $(pytest_opts)
+pytest_end2end_opts := -v --tb=short $(pytest_opts)
 
 pytest_warnings := default
 ifeq ($(python_m_version),3)
-  pytest_end2end_warnings := default,ignore::DeprecationWarning,ignore::ResourceWarning
+  pytest_end2end_warnings := default,ignore::DeprecationWarning,ignore::PendingDeprecationWarning,ignore::ResourceWarning
 else
-  pytest_end2end_warnings := default,ignore::DeprecationWarning
+  pytest_end2end_warnings := default,ignore::DeprecationWarning,ignore::PendingDeprecationWarning
 endif
 
 # Files to be put into distribution archive.
