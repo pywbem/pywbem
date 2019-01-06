@@ -108,19 +108,19 @@ class ServerObjectCache(object):
         list_dict = self._server_dict[server_url]
         if list_name in list_dict:
             raise KeyError(
-                "List {0} for server {1} is already in the cache".
+                "List {0!r} for server {1!r} is already in the cache".
                 format(list_name, server_url))
         list_dict[list_name] = deepcopy(obj_list)
 
     def del_list(self, server_url, list_name):
         if server_url not in self._server_dict:
             raise KeyError(
-                "Server {0} is not in the cache".
+                "Server {0!r} is not in the cache".
                 format(server_url))
         list_dict = self._server_dict[server_url]
         if list_name not in list_dict:
             raise KeyError(
-                "List {0} for server {1} is not in the cache".
+                "List {0!r} for server {1!r} is not in the cache".
                 format(list_name, server_url))
         del list_dict[list_name]
         if not list_dict:
@@ -129,12 +129,12 @@ class ServerObjectCache(object):
     def get_list(self, server_url, list_name):
         if server_url not in self._server_dict:
             raise KeyError(
-                "Server {0} is not in the cache".
+                "Server {0!r} is not in the cache".
                 format(server_url))
         list_dict = self._server_dict[server_url]
         if list_name not in list_dict:
             raise KeyError(
-                "List {0} for server {1} is not in the cache".
+                "List {0!r} for server {1!r} is not in the cache".
                 format(list_name, server_url))
         return list_dict[list_name]
 
