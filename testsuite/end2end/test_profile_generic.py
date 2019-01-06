@@ -18,7 +18,7 @@ from _utils import latest_profile_inst
 
 
 def test_get_central_instances(  # noqa: F811
-        wbem_connection, profile_definition):
+        profile_definition, wbem_connection):
     """
     Test that the central instances of the profile can be determined using
     WBEMServer.gen_central_instances().
