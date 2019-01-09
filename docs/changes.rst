@@ -235,6 +235,9 @@ This version contains all fixes up to pywbem 0.12.4.
     it returned to indicate server implementation issues, have been
     changed to use the newly introduced `ModelError` exception.
 
+* For Python 2.6, pinned version of lxml to <4.3.0, because lxml 4.3.0 has
+  removed support for Python 2.6. See issue #1592.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
