@@ -16,7 +16,7 @@
 #   - specification: Item is a specification (e.g. SNIA SMI-S).
 #   - autonomous: Item is an autonomous profile (e.g. SNIA Array).
 #   - component: Item is a component profile (e.g. SNIA FC Target Ports).
-#   - pattern: Item is a pattern that is not advertised.
+#   - pattern: Item is a pattern profile (that is still advertised).
 # * reference_direction: Scoping profile reference direction: 'dmtf' or 'snia',
 #   or null to imply it from registered_org.
 #   Optional, defaults to null.
@@ -64,24 +64,21 @@
   #       to be implemented. However, as of the current SMI-S 1.8 Revision 3,
   #       the SNIA 'Server' profile is still listed as deprecated. Note that
   #       deprecated profiles must still be implemented in SMI-S.
-  # Note: Special case: For historical reasons, this profile is a special case
-  #       in that the profile is defined as autonomous in the SMI-S 1.8
-  #       standard, but its scoping class CIM_System is different from its
+  # Note: SMI-S change: In SMI-S 1.8, the Server profile is defined as
+  #       autonomous, but its scoping class CIM_System is different from its
   #       central class CIM_ObjectManager. That violates the DMTF definition of
   #       autonomous, and requires treating the profile like a component
-  #       profile for discovery purposes. Discussion with Mike Walker revealed
-  #       that the profile is supposed to remain an autonomous profile, and in
-  #       order to support the corresponding discovery, its scoping class
-  #       should be changed to CIM_ObjectManager in a future version of the
-  #       SMI-S standard. For now, the profile definition in this file will
-  #       represent the SMI-S 1.8 situation.
+  #       profile for discovery purposes. Discussion with Mike Walker settled
+  #       on resolving this by changing the scoping class in SMI-S to
+  #       CIM_ObjectManager.
+  #       See SMIS-180-Errata-SCR00004 for the corresponding change request.
+  #       The definition below reflects that change already.
   registered_org: SNIA
   registered_name: Server
   type: autonomous
   central_class: CIM_ObjectManager
-  scoping_class: CIM_System
-  scoping_path:
-    - CIM_HostedService
+  scoping_class: CIM_ObjectManager
+  scoping_path: null
   doc: SMI-S Common Profiles
 -
   registered_org: DMTF
@@ -424,7 +421,7 @@
   doc: SMI-S Common Profiles
 -
   # Note: Special case: This profile has two scoping paths, see below.
-  # TODO 2019-01 AM: How to go about the two scoping paths.
+  # TODO #1583: How to go about the two scoping paths.
   registered_org: SNIA
   registered_name: Enhanced Zoning and Enhanced Zoning Control
   type: component
@@ -611,17 +608,14 @@
     - CIM_HostedService
   doc: SMI-S Block
 -
-  # Note: Special case: SNIA 'Health' is a package, not a profile.
-  #       TBD: However, it can still optionally be advertised like a component
-  #       profile.
-  # Note: The SMI-S 1.8 standard defines packages as follows:
-  #         "A Package is a profile that whose implementation is mandatory to
-  #         comply with the requirements of all of its containing top-level
-  #         profiles. Since a package is always mandatory, it is not registered
-  #         with the CIM Server. Packages provide decomposition in the
-  #         specification.".
-  #       Discussion with Mike Walker reveals that there is agreement in the
-  #       SMI-S community that packages can optionally be advertised.
+  # Note: SMI-S change: The 'Health' profile is a package. The SMI-S standard
+  #       has conflicting rules on whether or not a package is being
+  #       advertised. Mike Walker investigated the history of that and found
+  #       that packages are supposed to always be advertised.
+  #       See SMIS-180-Errata-SCR00005 for the corresponding change request.
+  #       The definition below defines the profile as a component profile
+  #       because for purposes of the end2end test, that is no different
+  #       from packages in this new definition.
   registered_org: SNIA
   registered_name: Health
   type: component
@@ -677,9 +671,8 @@
     - CIM_SystemDevice
   doc: DMTF DSP1074
 -
-  # Note: Special case: SNIA 'Block Services' is a package, not a profile.
-  #       However, it can still optionally be advertised like a component
-  #       profile.
+  # Note: SMI-S change: The 'Block Services' profile is a package.
+  #       See the note on the 'Health' profile for details.
   registered_org: SNIA
   registered_name: Block Services
   type: component
@@ -883,22 +876,22 @@
     - CIM_HostedAccessPoint
   doc: SMI-S File Systems
 -
-  # Note: The 'File Storage' profile is a profile (not a package) despite the
-  #       fact that it only defines an association. The profile definition in
-  #       the SMI-S 1.8 standard does not define central class or scoping
+  # Note: SMI-S change: The 'File Storage' profile is not a package,
+  #       despite the fact that it only defines an association. The profile
+  #       definition in SMI-S 1.8 does not define central class or scoping
   #       class. However, for discovery as a component profile, it needs to
-  #       define central class, scoping class, and scoping path. The
-  #       definitions below are what we came up with after discussing with
-  #       Mike Walker.
+  #       define central class, scoping class, and scoping path. Discussion
+  #       with Mike Walker settled on the definitions below. Note that the
+  #       central class CIM_LogicalDisk is not part of this profile, but pywbem
+  #       does not require that the central class is in the profile.
+  #       See SMIS-180-Errata-SCR00003 for the corresponding change request.
   registered_org: SNIA
   registered_name: File Storage
   type: component
   central_class: CIM_LogicalDisk
-  scoping_class: CIM_ComputerSystem
+  scoping_class: CIM_LocalFileSystem
   scoping_path:
     - CIM_ResidesOnExtent
-    - CIM_LogicalFileSystem
-    - CIM_HostedFileSystem
   doc: SMI-S File Systems
 -
   registered_org: SNIA
