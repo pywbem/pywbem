@@ -5,13 +5,13 @@ End2end tests for WBEMServer class.
 from __future__ import absolute_import, print_function
 
 import re
+from pywbem import WBEMServer
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
 from pytest_end2end import default_namespace  # noqa: F401, E501
-
-from pywbem import WBEMServer
+from _utils import server_func_asserted, server_prop_asserted
 
 
 def test_namespace_consistency(  # noqa: F811
@@ -24,9 +24,10 @@ def test_namespace_consistency(  # noqa: F811
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
-    interop_ns_lower = server.interop_ns.lower()
-    namespaces_lower = [ns.lower() for ns in server.namespaces]
-    namespace_paths = server.namespace_paths
+    interop_ns_lower = server_prop_asserted(server, 'interop_ns').lower()
+    namespaces_lower = [ns.lower()
+                        for ns in server_prop_asserted(server, 'namespaces')]
+    namespace_paths = server_prop_asserted(server, 'namespace_paths')
 
     assert interop_ns_lower in namespaces_lower, msg
 
@@ -49,11 +50,13 @@ def test_namespace_getinstance(  # noqa: F811
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
-    namespace_paths = server.namespace_paths
+    namespace_paths = server_prop_asserted(server, 'namespace_paths')
 
     for path in namespace_paths:
 
-        inst = wbem_connection.GetInstance(path)
+        inst = wbem_connection.GetInstance(
+            path,
+            asserted=True)
 
         inst_name_lower = inst['Name'].lower()
         path_name_lower = path['Name'].lower()
@@ -69,12 +72,12 @@ def test_brand_version(  # noqa: F811
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
-    brand = server.brand
+    brand = server_prop_asserted(server, 'brand')
     assert brand is not None, msg
 
     # Note: The version is None if it cannot be determined.
     # We check that it begins with a digit and does not contain blanks.
-    version = server.version
+    version = server_prop_asserted(server, 'version')
     if version is not None:
         assert re.match(r'^[0-9][^ ]*$', version), \
             "version={0!r}; {1}".format(version, msg)
@@ -90,14 +93,16 @@ def test_cimom_inst(  # noqa: F811
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
-    cimom_inst = server.cimom_inst
+    cimom_inst = server_prop_asserted(server, 'cimom_inst')
 
-    interop_ns_lower = server.interop_ns.lower()
+    interop_ns_lower = server_prop_asserted(server, 'interop_ns').lower()
 
     assert cimom_inst.path is not None, msg
     assert cimom_inst.path.namespace.lower() == interop_ns_lower, msg
 
-    get_inst = wbem_connection.GetInstance(cimom_inst.path)
+    get_inst = wbem_connection.GetInstance(
+        cimom_inst.path,
+        asserted=True)
 
     assert cimom_inst == get_inst, msg
 
@@ -112,9 +117,9 @@ def test_profiles(  # noqa: F811
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
-    profile_insts = server.profiles
+    profile_insts = server_prop_asserted(server, 'profiles')
 
-    interop_ns_lower = server.interop_ns.lower()
+    interop_ns_lower = server_prop_asserted(server, 'interop_ns').lower()
 
     for profile_inst in profile_insts:
         assert profile_inst.path is not None, msg
@@ -123,7 +128,9 @@ def test_profiles(  # noqa: F811
         assert profile_inst['RegisteredName'] is not None, msg
         assert profile_inst['RegisteredVersion'] is not None, msg
 
-        get_inst = wbem_connection.GetInstance(profile_inst.path)
+        get_inst = wbem_connection.GetInstance(
+            profile_inst.path,
+            asserted=True)
 
         assert profile_inst == get_inst, msg
 
@@ -138,8 +145,8 @@ def test_get_selected_profiles_no_filter(  # noqa: F811
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
-    profile_insts = server.profiles
-    all_profile_insts = server.get_selected_profiles()
+    profile_insts = server_prop_asserted(server, 'profiles')
+    all_profile_insts = server_func_asserted(server, 'get_selected_profiles')
 
     assert len(profile_insts) == len(all_profile_insts), msg
     for inst in profile_insts:

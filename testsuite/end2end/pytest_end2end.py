@@ -9,10 +9,11 @@ import warnings
 import pytest
 import yaml
 
-from pywbem import WBEMConnection, WBEMServer, ConnectionError, AuthError, \
-    Error, ToleratedServerIssueWarning
+from pywbem import WBEMServer, Error, ConnectionError, AuthError, \
+    ToleratedServerIssueWarning
 from server_file import ServerDefinitionFile, ServerDefinition
-from _utils import latest_profile_inst, ServerObjectCache
+from _utils import latest_profile_inst, ServerObjectCache, \
+    WBEMConnectionAsserted, server_func_asserted
 from assertions import assert_association_a1, assert_association_a2, \
     assert_association_a3, assert_association_a4, assert_association_a5, \
     assert_association_a6
@@ -93,7 +94,7 @@ def wbem_connection(request, server_definition):
     x509 = dict(cert_file=sd.cert_file, key_file=sd.key_file) \
         if sd.cert_file and sd.key_file else None
 
-    conn = WBEMConnection(
+    conn = WBEMConnectionAsserted(
         sd.url, (sd.user, sd.password),
         x509=x509,
         ca_certs=sd.ca_certs,
@@ -108,16 +109,19 @@ def wbem_connection(request, server_definition):
     # can still be detected because they will be detected before the operation
     # fails.
     try:
-        conn.GetQualifier('Association')
+        conn.GetQualifier(
+            'Association',
+            asserted=False)
     except ConnectionError as exc:
-        msg = "Test server at {0!r} cannot be reached. {1}: {2}". \
-            format(sd.url, exc.__class__.__name__, exc)
+        msg = "Server {0} at {1}: Server cannot be reached: {2} - {3}". \
+            format(sd.nickname, sd.url, exc.__class__.__name__, exc)
         sd.skip_msg = msg
         warnings.warn(msg, ToleratedServerIssueWarning)
         pytest.skip(msg)
     except AuthError as exc:
-        msg = "Test server at {0!r} cannot be authenticated with. {1}: {2}". \
-            format(sd.url, exc.__class__.__name__, exc)
+        msg = "Server {0} at {1}: Server cannot be authenticated with: " \
+            "{2} - {3}". \
+            format(sd.nickname, sd.url, exc.__class__.__name__, exc)
         sd.skip_msg = msg
         warnings.warn(msg, ToleratedServerIssueWarning)
         pytest.skip(msg)
@@ -302,7 +306,8 @@ class ProfileTest(object):
             profile_insts = self.object_cache.get_list(
                 conn.url, profile_insts_id)
         except KeyError:
-            profile_insts = self.server.get_selected_profiles(
+            profile_insts = server_func_asserted(
+                self.server, 'get_selected_profiles',
                 profile_org, profile_name)
             self.object_cache.add_list(
                 conn.url, profile_insts_id, profile_insts)
@@ -333,7 +338,8 @@ class ProfileTest(object):
             central_paths = self.object_cache.get_list(
                 self.conn.url, central_paths_id)
         except KeyError:
-            central_paths = self.server.get_central_instances(
+            central_paths = server_func_asserted(
+                self.server, 'get_central_instances',
                 self.profile_inst.path,
                 central_class=self.profile_definition['central_class'],
                 scoping_class=self.profile_definition['scoping_class'],

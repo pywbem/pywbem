@@ -32,11 +32,10 @@ def assert_number_of_instances_equal(
     """
     if len(inst_list) != exp_number:
         raise AssertionError(
-            _format("List of instances ({0}) does not have the expected "
-                    "exact size of {1} but is {2} "
-                    "(server {3} at {4})",
-                    inst_list_msg, exp_number, len(inst_list),
-                    conn.server_definition.nickname, conn.url))
+            _format("Server {0} at {1}: List of instances ({2}) does not have "
+                    "the expected exact size of {3} but is {4}",
+                    conn.server_definition.nickname, conn.url,
+                    inst_list_msg, exp_number, len(inst_list)))
 
 
 def assert_number_of_instances_minimum(
@@ -58,11 +57,10 @@ def assert_number_of_instances_minimum(
     """
     if len(inst_list) < exp_number:
         raise AssertionError(
-            _format("List of instances ({0}) does not have the expected "
-                    "minimum size of {1} but is {2} "
-                    "(server {3} at {4})",
-                    inst_list_msg, exp_number, len(inst_list),
-                    conn.server_definition.nickname, conn.url))
+            _format("Server {0} at {1}: List of instances ({2}) does not have "
+                    "the expected minimum size of {3} but is {4}",
+                    conn.server_definition.nickname, conn.url,
+                    inst_list_msg, exp_number, len(inst_list)))
 
 
 def assert_instance_of(conn, path_list, classname):
@@ -99,10 +97,10 @@ def assert_instance_of(conn, path_list, classname):
     for path in path_list:
         if not instance_of(conn, path, classname):
             raise AssertionError(
-                _format("Instance at {0!A} is not of class {1!A} "
-                        "(server {2} at {3})",
-                        path.to_wbem_uri(), classname,
-                        conn.server_definition.nickname, conn.url))
+                _format("Server {0} at {1}: Instance at {2!A} is not of "
+                        "class {3!A}",
+                        conn.server_definition.nickname, conn.url,
+                        path.to_wbem_uri(), classname))
 
 
 def assert_instance_consistency(conn, instance, path):
@@ -133,34 +131,32 @@ def assert_instance_consistency(conn, instance, path):
 
     if instance.classname.lower() != path.classname.lower():
         raise AssertionError(
-            _format("Inconsistent instance and instance path: "
-                    "Instance classname {0!A} does not match classname of "
-                    "instance path {1!A} "
-                    "(server {2} at {3})",
-                    instance.classname, path.to_wbem_uri(),
-                    conn.server_definition.nickname, conn.url))
+            _format("Server {0} at {1}: Inconsistent instance and instance "
+                    "path: Instance classname {2!A} does not match classname "
+                    "of instance path {3!A}",
+                    conn.server_definition.nickname, conn.url,
+                    instance.classname, path.to_wbem_uri()))
 
     for key_name in path.keybindings:
 
         if key_name not in instance.properties:
             raise AssertionError(
-                _format("Inconsistent instance and instance path: "
-                        "Instance does not have key property {0!A} of "
-                        "instance path {1!A} "
-                        "(server {2} at {3})",
-                        key_name, path.to_wbem_uri(),
-                        conn.server_definition.nickname, conn.url))
+                _format("Server {0} at {1}: Inconsistent instance and "
+                        "instance path: Instance does not have key property "
+                        "{2!A} of instance path {3!A}",
+                        conn.server_definition.nickname, conn.url,
+                        key_name, path.to_wbem_uri()))
 
         if instance.properties[key_name].value != \
                 path.keybindings[key_name]:
             raise AssertionError(
-                _format("Inconsistent instance and instance path: "
-                        "For key {0!A}, instance property value {1!A} does "
-                        "not match instance path keybinding value {2!A} "
-                        "(server {3} at {4})",
+                _format("Server {0} at {1}: Inconsistent instance and "
+                        "instance path: For key {2!A}, instance property "
+                        "value {3!A} does not match instance path keybinding "
+                        "value {4!A}",
+                        conn.server_definition.nickname, conn.url,
                         key_name, instance.properties[key_name],
-                        path.keybindings[key_name],
-                        conn.server_definition.nickname, conn.url))
+                        path.keybindings[key_name]))
 
 
 def assert_mandatory_properties(conn, instance, property_list):
@@ -185,22 +181,20 @@ def assert_mandatory_properties(conn, instance, property_list):
 
         if prop_name not in instance_prop_names:
             raise AssertionError(
-                _format("Mandatory properties issue: "
-                        "Instance of class {0!A} does not have mandatory "
-                        "property {1!A} "
-                        "(server {2} at {3})",
-                        instance.classname, prop_name,
-                        conn.server_definition.nickname, conn.url))
+                _format("Server {0} at {1}: Mandatory properties issue: "
+                        "Instance of class {2!A} does not have mandatory "
+                        "property {3!A}",
+                        conn.server_definition.nickname, conn.url,
+                        instance.classname, prop_name))
 
         prop_value = instance.properties[prop_name]
         if prop_value is None:
             raise AssertionError(
-                _format("Mandatory properties issue: "
-                        "Instance of class {0!A} has mandatory property "
-                        "{1!A} but with a value of NULL "
-                        "(server {2} at {3})",
-                        instance.classname, prop_name,
-                        conn.server_definition.nickname, conn.url))
+                _format("Server {0} at {1}: Mandatory properties issue: "
+                        "Instance of class {2!A} has mandatory property "
+                        "{3!A} but with a value of NULL",
+                        conn.server_definition.nickname, conn.url,
+                        instance.classname, prop_name))
 
 
 def assert_property_one_of(conn, instance, prop_name, value_list):
@@ -230,12 +224,11 @@ def assert_property_one_of(conn, instance, prop_name, value_list):
     prop_value = prop.value
     if prop_value not in value_list:
         raise AssertionError(
-            _format("Property value issue: The value of simple property "
-                    "{0!A} in an instance of class {1!A} is not in the "
-                    "allowable set of values {2!A}, but is {3!A} "
-                    "(server {4} at {5})",
-                    prop_name, instance.classname, value_list, prop_value,
-                    conn.server_definition.nickname, conn.url))
+            _format("Server {0} at {1}: Property value issue: The value of "
+                    "simple property {2!A} in an instance of class {3!A} is "
+                    "not in the allowable set of values {4!A}, but is {5!A}",
+                    conn.server_definition.nickname, conn.url,
+                    prop_name, instance.classname, value_list, prop_value))
 
 
 def assert_property_contains(conn, instance, prop_name, value):
@@ -264,12 +257,11 @@ def assert_property_contains(conn, instance, prop_name, value):
     prop_values = prop.value
     if value not in prop_values:
         raise AssertionError(
-            _format("Property value issue: The value of array property "
-                    "{0!A} in an instance of class {1!A} does not contain "
-                    "value {2!A}, but is {3!A} "
-                    "(server {4} at {5})",
-                    prop_name, instance.classname, value, prop_values,
-                    conn.server_definition.nickname, conn.url))
+            _format("Server {0} at {1}: Property value issue: The value of "
+                    "array property {2!A} in an instance of class {3!A} does "
+                    "not contain value {4!A}, but is {5!A}",
+                    conn.server_definition.nickname, conn.url,
+                    prop_name, instance.classname, value, prop_values))
 
 
 def assert_path_equal(conn, path1, path1_msg, path2, path2_msg):
@@ -305,12 +297,11 @@ def assert_path_equal(conn, path1, path1_msg, path2, path2_msg):
 
     if not path_equal(path1, path2):
         raise AssertionError(
-            _format("Instance path issue: Instance path {0!A} ({1}) "
-                    "does not match instance path {2!A} ({3}) "
-                    "(server {4} at {5})",
+            _format("Server {0} at {1}: Instance path issue: Instance path "
+                    "{2!A} ({3}) does not match instance path {4!A} ({5})",
+                    conn.server_definition.nickname, conn.url,
                     path1.to_wbem_uri(), path1_msg,
-                    path2.to_wbem_uri(), path2_msg,
-                    conn.server_definition.nickname, conn.url))
+                    path2.to_wbem_uri(), path2_msg))
 
 
 def assert_path_in(conn, path, path_msg, path_list, path_list_msg):
@@ -341,11 +332,11 @@ def assert_path_in(conn, path, path_msg, path_list, path_list_msg):
 
     if not path_in(path, path_list):
         raise AssertionError(
-            _format("Instance path issue: Instance path {0!A} ({1}) "
-                    "is not in expected set of instance paths ({2}) "
-                    "(server {3} at {4})",
-                    path.to_wbem_uri(), path_msg, path_list_msg,
-                    conn.server_definition.nickname, conn.url))
+            _format("Server {0} at {1}: Instance path issue: Instance path "
+                    "{2!A} ({3}) is not in expected set of instance paths "
+                    "({4})",
+                    conn.server_definition.nickname, conn.url,
+                    path.to_wbem_uri(), path_msg, path_list_msg))
 
 
 def assert_association_a1(
@@ -379,7 +370,8 @@ def assert_association_a1(
     a1_assoc_insts = conn.References(
         source_path,
         ResultClass=assoc_class,
-        Role=source_role)
+        Role=source_role,
+        asserted=True)
 
     a1_assoc_insts = [
         inst for inst in a1_assoc_insts
@@ -393,7 +385,8 @@ def assert_association_a1(
         AssocClass=assoc_class,
         ResultClass=far_class,
         Role=source_role,
-        ResultRole=far_role)
+        ResultRole=far_role,
+        asserted=True)
 
     a1_far_paths = [inst.path for inst in a1_far_insts]
 
@@ -445,7 +438,8 @@ def assert_association_a2(
     a2_assoc_insts = conn.References(
         source_path,
         ResultClass=assoc_class,
-        Role=source_role)
+        Role=source_role,
+        asserted=True)
 
     a2_assoc_insts = [
         inst for inst in a2_assoc_insts
@@ -459,7 +453,8 @@ def assert_association_a2(
     a2_far_insts = conn.Associators(
         source_path,
         AssocClass=assoc_class,
-        Role=source_role)
+        Role=source_role,
+        asserted=True)
 
     a2_far_insts = [
         inst for inst in a2_far_insts
@@ -518,7 +513,8 @@ def assert_association_a3(
     a3_assoc_paths = conn.ReferenceNames(
         source_path,
         ResultClass=assoc_class,
-        Role=source_role)
+        Role=source_role,
+        asserted=True)
 
     a3_assoc_paths = [
         path for path in a3_assoc_paths
@@ -528,7 +524,7 @@ def assert_association_a3(
     a3_assoc_insts = []
 
     for path in a3_assoc_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a3_assoc_insts.append(_inst)
 
     a3_far_paths = conn.AssociatorNames(
@@ -536,11 +532,12 @@ def assert_association_a3(
         AssocClass=assoc_class,
         ResultClass=far_class,
         Role=source_role,
-        ResultRole=far_role)
+        ResultRole=far_role,
+        asserted=True)
 
     a3_far_insts = []
     for path in a3_far_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a3_far_insts.append(_inst)
 
     _assert_association_consistency(
@@ -593,7 +590,8 @@ def assert_association_a4(
     a4_assoc_paths = conn.ReferenceNames(
         source_path,
         ResultClass=assoc_class,
-        Role=source_role)
+        Role=source_role,
+        asserted=True)
 
     a4_assoc_paths = [
         path for path in a4_assoc_paths
@@ -605,13 +603,14 @@ def assert_association_a4(
 
     a4_assoc_insts = []
     for path in a4_assoc_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a4_assoc_insts.append(_inst)
 
     a4_far_paths = conn.AssociatorNames(
         source_path,
         AssocClass=assoc_class,
-        Role=source_role)
+        Role=source_role,
+        asserted=True)
 
     a4_far_paths = [
         path for path in a4_far_paths
@@ -621,7 +620,7 @@ def assert_association_a4(
 
     a4_far_insts = []
     for path in a4_far_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a4_far_insts.append(_inst)
 
     _assert_association_consistency(
@@ -672,7 +671,8 @@ def assert_association_a5(
 
     a5_assoc_insts = conn.EnumerateInstances(
         namespace=source_path.namespace,
-        ClassName=assoc_class)
+        ClassName=assoc_class,
+        asserted=True)
 
     a5_assoc_insts = [
         inst for inst in a5_assoc_insts
@@ -687,7 +687,7 @@ def assert_association_a5(
 
     a5_far_insts = []
     for path in a5_assoc_far_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a5_far_insts.append(_inst)
 
     a5_far_paths = [inst.path for inst in a5_far_insts]
@@ -744,7 +744,8 @@ def assert_association_a6(
 
     a6_assoc_paths = conn.EnumerateInstanceNames(
         namespace=source_path.namespace,
-        ClassName=assoc_class)
+        ClassName=assoc_class,
+        asserted=True)
 
     a6_assoc_paths = [
         path for path in a6_assoc_paths
@@ -758,12 +759,12 @@ def assert_association_a6(
 
     a6_assoc_insts = []
     for path in a6_assoc_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a6_assoc_insts.append(_inst)
 
     a6_far_insts = []
     for path in a6_assoc_far_paths:
-        _inst = conn.GetInstance(path)
+        _inst = conn.GetInstance(path, asserted=True)
         a6_far_insts.append(_inst)
 
     a6_far_paths = [inst.path for inst in a6_far_insts]
@@ -799,30 +800,28 @@ def _assert_association_consistency(
 
     if len(far_insts) != len(far_paths):
         raise AssertionError(
-            _format("Number of far end instances {0} ({1}) does not match "
-                    "number of far end paths {2} ({3}) "
-                    "(server {4} at {5})",
+            _format("Server {0} at {1}: Number of far end instances {2} ({3}) "
+                    "does not match number of far end paths {4} ({5})",
+                    conn.server_definition.nickname, conn.url,
                     len(far_insts), far_insts_msg,
-                    len(far_paths), far_paths_msg,
-                    conn.server_definition.nickname, conn.url))
+                    len(far_paths), far_paths_msg))
 
     if len(assoc_insts) != len(assoc_paths):
         raise AssertionError(
-            _format("Number of association instances {0} ({1}) does not match "
-                    "number of association paths {2} ({3}) "
-                    "(server {4} at {5})",
+            _format("Server {0} at {1}: Number of association instances {2} "
+                    "({3}) does not match number of association paths "
+                    "{4} ({5})",
+                    conn.server_definition.nickname, conn.url,
                     len(assoc_insts), assoc_insts_msg,
-                    len(assoc_paths), assoc_paths_msg,
-                    conn.server_definition.nickname, conn.url))
+                    len(assoc_paths), assoc_paths_msg))
 
     if len(far_insts) != len(assoc_insts):
         raise AssertionError(
-            _format("Number of far end instances {0} ({1}) does not match "
-                    "number of association instances {2} ({3}) "
-                    "(server {4} at {5})",
+            _format("Server {0} at {1}: Number of far end instances {2} ({3}) "
+                    "does not match number of association instances {4} ({5})",
+                    conn.server_definition.nickname, conn.url,
                     len(far_insts), far_insts_msg,
-                    len(assoc_insts), assoc_insts_msg,
-                    conn.server_definition.nickname, conn.url))
+                    len(assoc_insts), assoc_insts_msg))
 
     assert_instance_of(conn, far_insts, far_class)
     for inst in far_insts:
@@ -959,7 +958,8 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
     sub_profile_insts = conn.Associators(
         profile_inst.path,
         AssocClass='CIM_ReferencedProfile',
-        ResultRole=result_role_down)
+        ResultRole=result_role_down,
+        asserted=True)
 
     if not sub_profile_insts:
         # The profile is a leaf profile, i.e. does not reference any further
@@ -972,12 +972,12 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
 
             if sub_profile_uri in profile_ancestry:
                 raise AssertionError(
-                    "Profile tree under top level specification {0} {1!r} has "
-                    "a circular reference on server {2} (at {3}): "
+                    "Server {0} at {1}: Profile tree under top level "
+                    "specification {2} {3!r} has a circular reference: "
                     "Profile at {4} references profile at {5} which is "
                     "already in its own reference ancestry {6}".
-                    format(tls_org, tls_name,
-                           conn.server_definition.nickname, conn.url,
+                    format(conn.server_definition.nickname, conn.url,
+                           tls_org, tls_name,
                            profile_uri, sub_profile_uri,
                            profile_ancestry.keys()))
 

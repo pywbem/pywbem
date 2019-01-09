@@ -7,7 +7,7 @@ from __future__ import absolute_import, print_function
 from copy import deepcopy
 
 from pywbem import CIMInstance, CIMInstanceName, \
-    CIMError, CIM_ERR_INVALID_CLASS
+    Error, CIMError, CIM_ERR_INVALID_CLASS, WBEMConnection
 
 
 def latest_profile_inst(profile_insts):
@@ -199,17 +199,217 @@ def instance_of(conn, path_list, classname):
     except KeyError:
         try:
             enum_paths = conn.EnumerateInstanceNames(
-                namespace=namespace, ClassName=classname)
+                namespace=namespace, ClassName=classname,
+                asserted=False)
         except CIMError as exc:
             if exc.status_code == CIM_ERR_INVALID_CLASS:
                 raise AssertionError(
-                    "Class {0!r} does not exist in namespace {1!r}".
-                    format(classname, namespace))
+                    "Server {0} at {1}: Class {2!r} does not exist in "
+                    "namespace {3!r}".
+                    format(conn.server_definition.nickname, conn.url,
+                           classname, namespace))
             else:
-                raise
+                conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
+        except Error as exc:
+            conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
         ENUM_INST_CACHE.add_list(conn.url, enum_paths_id, enum_paths)
 
     for path in paths:
         if not path_in(path, enum_paths):
             return False
     return True
+
+
+class WBEMConnectionAsserted(WBEMConnection):
+    """
+    Subclass of WBEMConnection that adds the functionality to assert that
+    the operation succeeds, and that raises an AssertionError if it does
+    not succeed.
+
+    The assertion behavior is disabled by default and can be enabled by
+    specifying keyword argument `asserted=True`.
+    """
+
+    def _call_func(self, funcname, *args, **kwargs):
+        if 'asserted' in kwargs:
+            asserted = bool(kwargs['asserted'])
+            del kwargs['asserted']
+        else:
+            # The default must be non-asserted, in order to allow all the
+            # operation invocations in WBEMServer to do their error handling.
+            asserted = False
+        func = getattr(super(WBEMConnectionAsserted, self), funcname)
+        # returns a bound method
+        if asserted:
+            try:
+                return func(*args, **kwargs)
+            except Error as exc:
+                self.raise_as_assertion_error(exc, funcname, *args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+
+    def raise_as_assertion_error(self, exc, funcname, *args, **kwargs):
+        parm_list = ["{0!r}".format(a) for a in args]
+        parm_list.extend(["{0}={1!r}".format(k, kwargs[k]) for k in kwargs])
+        parm_str = ", ".join(parm_list)
+        raise AssertionError(
+            "Server {0} at {1}: WBEMConnection.{2}() failed and raised "
+            "{3} - {4}. "
+            "Parameters: ({5})".
+            format(self.server_definition.nickname, self.url, funcname,
+                   exc.__class__.__name__, exc, parm_str))
+
+    def EnumerateInstances(self, *args, **kwargs):
+        return self._call_func('EnumerateInstances', *args, **kwargs)
+
+    def EnumerateInstanceNames(self, *args, **kwargs):
+        return self._call_func('EnumerateInstanceNames', *args, **kwargs)
+
+    def GetInstance(self, *args, **kwargs):
+        return self._call_func('GetInstance', *args, **kwargs)
+
+    def ModifyInstance(self, *args, **kwargs):
+        return self._call_func('ModifyInstance', *args, **kwargs)
+
+    def CreateInstance(self, *args, **kwargs):
+        return self._call_func('CreateInstance', *args, **kwargs)
+
+    def DeleteInstance(self, *args, **kwargs):
+        return self._call_func('DeleteInstance', *args, **kwargs)
+
+    def Associators(self, *args, **kwargs):
+        return self._call_func('Associators', *args, **kwargs)
+
+    def AssociatorNames(self, *args, **kwargs):
+        return self._call_func('AssociatorNames', *args, **kwargs)
+
+    def References(self, *args, **kwargs):
+        return self._call_func('References', *args, **kwargs)
+
+    def ReferenceNames(self, *args, **kwargs):
+        return self._call_func('ReferenceNames', *args, **kwargs)
+
+    def InvokeMethod(self, *args, **kwargs):
+        return self._call_func('InvokeMethod', *args, **kwargs)
+
+    def ExecQuery(self, *args, **kwargs):
+        return self._call_func('ExecQuery', *args, **kwargs)
+
+    def IterEnumerateInstances(self, *args, **kwargs):
+        return self._call_func('IterEnumerateInstances', *args, **kwargs)
+
+    def IterEnumerateInstancePaths(self, *args, **kwargs):
+        return self._call_func('IterEnumerateInstancePaths', *args, **kwargs)
+
+    def IterAssociatorInstances(self, *args, **kwargs):
+        return self._call_func('IterAssociatorInstances', *args, **kwargs)
+
+    def IterAssociatorInstancePaths(self, *args, **kwargs):
+        return self._call_func('IterAssociatorInstancePaths', *args, **kwargs)
+
+    def IterReferenceInstances(self, *args, **kwargs):
+        return self._call_func('IterReferenceInstances', *args, **kwargs)
+
+    def IterReferenceInstancePaths(self, *args, **kwargs):
+        return self._call_func('IterReferenceInstancePaths', *args, **kwargs)
+
+    def IterQueryInstances(self, *args, **kwargs):
+        return self._call_func('IterQueryInstances', *args, **kwargs)
+
+    def OpenEnumerateInstances(self, *args, **kwargs):
+        return self._call_func('OpenEnumerateInstances', *args, **kwargs)
+
+    def OpenEnumerateInstancePaths(self, *args, **kwargs):
+        return self._call_func('OpenEnumerateInstancePaths', *args, **kwargs)
+
+    def OpenAssociatorInstances(self, *args, **kwargs):
+        return self._call_func('OpenAssociatorInstances', *args, **kwargs)
+
+    def OpenAssociatorInstancePaths(self, *args, **kwargs):
+        return self._call_func('OpenAssociatorInstancePaths', *args, **kwargs)
+
+    def OpenReferenceInstances(self, *args, **kwargs):
+        return self._call_func('OpenReferenceInstances', *args, **kwargs)
+
+    def OpenReferenceInstancePaths(self, *args, **kwargs):
+        return self._call_func('OpenReferenceInstancePaths', *args, **kwargs)
+
+    def OpenQueryInstances(self, *args, **kwargs):
+        return self._call_func('OpenQueryInstances', *args, **kwargs)
+
+    def PullInstancesWithPath(self, *args, **kwargs):
+        return self._call_func('PullInstancesWithPath', *args, **kwargs)
+
+    def PullInstancePaths(self, *args, **kwargs):
+        return self._call_func('PullInstancePaths', *args, **kwargs)
+
+    def PullInstances(self, *args, **kwargs):
+        return self._call_func('PullInstances', *args, **kwargs)
+
+    def CloseEnumeration(self, *args, **kwargs):
+        return self._call_func('CloseEnumeration', *args, **kwargs)
+
+    def EnumerateClasses(self, *args, **kwargs):
+        return self._call_func('EnumerateClasses', *args, **kwargs)
+
+    def EnumerateClassNames(self, *args, **kwargs):
+        return self._call_func('EnumerateClassNames', *args, **kwargs)
+
+    def GetClass(self, *args, **kwargs):
+        return self._call_func('GetClass', *args, **kwargs)
+
+    def ModifyClass(self, *args, **kwargs):
+        return self._call_func('ModifyClass', *args, **kwargs)
+
+    def CreateClass(self, *args, **kwargs):
+        return self._call_func('CreateClass', *args, **kwargs)
+
+    def DeleteClass(self, *args, **kwargs):
+        return self._call_func('DeleteClass', *args, **kwargs)
+
+    def EnumerateQualifiers(self, *args, **kwargs):
+        return self._call_func('EnumerateQualifiers', *args, **kwargs)
+
+    def GetQualifier(self, *args, **kwargs):
+        return self._call_func('GetQualifier', *args, **kwargs)
+
+    def SetQualifier(self, *args, **kwargs):
+        return self._call_func('SetQualifier', *args, **kwargs)
+
+    def DeleteQualifier(self, *args, **kwargs):
+        return self._call_func('DeleteQualifier', *args, **kwargs)
+
+
+def server_func_asserted(server, funcname, *args, **kwargs):
+    """
+    Call a method on a `WBEMServer` object and assert that it does not raise a
+    pywbem.Error exception.
+    """
+    func = getattr(server, funcname)
+    try:
+        return func(*args, **kwargs)
+    except Error as exc:
+        parm_list = ["{0!r}".format(a) for a in args]
+        parm_list.extend(["{0}={1!r}".format(k, kwargs[k]) for k in kwargs])
+        parm_str = ", ".join(parm_list)
+        raise AssertionError(
+            "Server {0} at {1}: Calling WBEMServer.{2}() failed and "
+            "raised {3} - {4}. "
+            "Parameters: ({5})".
+            format(server.conn.server_definition.nickname, server.conn.url,
+                   funcname, exc.__class__.__name__, exc, parm_str))
+
+
+def server_prop_asserted(server, propname):
+    """
+    Get the value of a property of a `WBEMServer` object and assert that it
+    does not raise a pywbem.Error exception.
+    """
+    try:
+        return getattr(server, propname)
+    except Error as exc:
+        raise AssertionError(
+            "Server {0} at {1}: Getting WBEMServer.{2} failed and "
+            "raised {3} - {4}.".
+            format(server.conn.server_definition.nickname, server.conn.url,
+                   propname, exc.__class__.__name__, exc))

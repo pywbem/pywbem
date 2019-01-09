@@ -14,7 +14,8 @@ from pywbem import WBEMServer, ValueMapping, ToleratedServerIssueWarning
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
 from pytest_end2end import profile_definition  # noqa: F401, E501
 from pytest_end2end import PROFILE_DEFINITION_DICT
-from _utils import latest_profile_inst
+from _utils import latest_profile_inst, server_func_asserted, \
+    server_prop_asserted
 
 
 def test_get_central_instances(  # noqa: F811
@@ -27,22 +28,25 @@ def test_get_central_instances(  # noqa: F811
 
     # Verify that the profile to be tested is advertised by the server
     # and skip the profile if not advertised.
-    profile_insts = server.get_selected_profiles(
+    profile_insts = server_func_asserted(
+        server, 'get_selected_profiles',
         profile_definition['registered_org'],
         profile_definition['registered_name'])
 
     if profile_definition['type'] == 'pattern':
-            pytest.skip("{0} {1} is a pattern on server {2} at {3}".
-                        format(profile_definition['registered_org'],
-                               profile_definition['registered_name'],
-                               wbem_connection.server_definition.nickname,
-                               wbem_connection.url))
+        pytest.skip("Server {0} at {1}: The {2} {3!r} profile is a pattern "
+                    "and is not expected to be advertised".
+                    format(wbem_connection.server_definition.nickname,
+                           wbem_connection.url,
+                           profile_definition['registered_org'],
+                           profile_definition['registered_name']))
     if not profile_insts:
-        pytest.skip("{0} {1} profile is not advertised on server {2} at {3}".
-                    format(profile_definition['registered_org'],
-                           profile_definition['registered_name'],
-                           wbem_connection.server_definition.nickname,
-                           wbem_connection.url))
+        pytest.skip("Server {0} at {1}: The {2} {3!r} profile is not "
+                    "advertised".
+                    format(wbem_connection.server_definition.nickname,
+                           wbem_connection.url,
+                           profile_definition['registered_org'],
+                           profile_definition['registered_name']))
 
     # In case there is more than one version advertised, use only the latest
     # version.
@@ -61,7 +65,8 @@ def test_get_central_instances(  # noqa: F811
     # central class methodology is implemented.
 
     # Function to be tested
-    server.get_central_instances(
+    server_func_asserted(
+        server, 'get_central_instances',
         profile_inst.path,
         central_class=profile_definition['central_class'],
         scoping_class=profile_definition['scoping_class'],
@@ -81,20 +86,22 @@ def test_warn_undefined_profiles(  # noqa: F811
     server = WBEMServer(wbem_connection)
     server_def = wbem_connection.server_definition
 
-    org_vm = ValueMapping.for_property(server, server.interop_ns,
-                                       'CIM_RegisteredProfile',
-                                       'RegisteredOrganization')
+    org_vm = ValueMapping.for_property(
+        server,
+        server_prop_asserted(server, 'interop_ns'),
+        'CIM_RegisteredProfile',
+        'RegisteredOrganization')
 
-    for inst in server.profiles:
+    for inst in server_prop_asserted(server, 'profiles'):
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         version = inst['RegisteredVersion']
         pd_key = '{0}:{1}'.format(org, name)
         if pd_key not in PROFILE_DEFINITION_DICT:
             warnings.warn(
-                "{0} {1!r} profile version {2} advertised on server {3} "
-                "(at {4}) is not defined in profiles.yml. This may be caused "
-                "by an incorrectly implemented profile name".
-                format(org, name, version, server_def.nickname,
-                       wbem_connection.url),
+                "Server {0} at {1}: {2} {3!r} profile version {4} is "
+                "advertised but not defined in profiles.yml. This may be "
+                "caused by an incorrectly implemented profile name".
+                format(server_def.nickname, wbem_connection.url,
+                       org, name, version),
                 ToleratedServerIssueWarning)

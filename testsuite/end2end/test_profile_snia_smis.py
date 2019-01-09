@@ -5,12 +5,14 @@ End2end tests for SNIA SMI-S registered specification.
 from __future__ import absolute_import, print_function
 
 import pytest
+
 from pywbem import WBEMServer
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
 from pytest_end2end import wbem_connection, server_definition  # noqa: F401, E501
 from assertions import assert_instance_of, assert_profile_tree, std_uri
+from _utils import server_func_asserted
 
 # Organization and name of the registered specification
 SPEC_ORG = 'SNIA'
@@ -27,12 +29,14 @@ def test_snia_smis_to_profile_not_swapped(  # noqa: F811
     server = WBEMServer(wbem_connection)
     server_def = wbem_connection.server_definition
 
-    spec_insts = server.get_selected_profiles(SPEC_ORG, SPEC_NAME)
+    spec_insts = server_func_asserted(
+        server, 'get_selected_profiles',
+        SPEC_ORG, SPEC_NAME)
     if not spec_insts:
-        pytest.skip("{0} {1!r} specification is not advertised on server {2} "
-                    "(at {3})".
-                    format(SPEC_ORG, SPEC_NAME, server_def.nickname,
-                           wbem_connection.url))
+        pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
+                    "advertised".
+                    format(server_def.nickname, wbem_connection.url,
+                           SPEC_ORG, SPEC_NAME))
 
     for spec_inst in spec_insts:
 
@@ -40,18 +44,17 @@ def test_snia_smis_to_profile_not_swapped(  # noqa: F811
             spec_inst.path,
             AssocClass='CIM_ElementConformsToProfile',
             ResultRole='ConformantStandard',  # swapped role
-            ResultClass='CIM_RegisteredProfile')
+            ResultClass='CIM_RegisteredProfile',
+            asserted=True)
 
         if profiles_swapped:
             raise AssertionError(
-                "The instance representing the {0} {1!r} specification "
-                "references profiles via CIM_ElementConformsToProfile using "
-                "incorrectly swapped roles (ConformantStandard on profile "
-                "side) on server {2} (at {3}):{4!r}".
-                format(SPEC_ORG, SPEC_NAME, server_def.nickname,
-                       wbem_connection.url,
-                       ['\n  ' + inst.path.to_wbem_uri()
-                        for inst in profiles_swapped]))
+                "Server {0} at {1}: The instance representing the {2} {3!r} "
+                "specification references {4} profiles via "
+                "CIM_ElementConformsToProfile using incorrectly swapped roles "
+                "so that ConformantStandard is on the profile side".
+                format(server_def.nickname, wbem_connection.url,
+                       SPEC_ORG, SPEC_NAME, len(profiles_swapped)))
 
 
 def test_snia_smis_to_profile_not_reffed(  # noqa: F811
@@ -63,29 +66,32 @@ def test_snia_smis_to_profile_not_reffed(  # noqa: F811
     server = WBEMServer(wbem_connection)
     server_def = wbem_connection.server_definition
 
-    spec_insts = server.get_selected_profiles(SPEC_ORG, SPEC_NAME)
+    spec_insts = server_func_asserted(
+        server, 'get_selected_profiles',
+        SPEC_ORG, SPEC_NAME)
     if not spec_insts:
-        pytest.skip("{0} {1!r} specification is not advertised on server {2} "
-                    "(at {3})".
-                    format(SPEC_ORG, SPEC_NAME, server_def.nickname,
-                           wbem_connection.url))
+        pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
+                    "advertised".
+                    format(server_def.nickname, wbem_connection.url,
+                           SPEC_ORG, SPEC_NAME))
 
     for spec_inst in spec_insts:
 
         profiles_reffed = server.conn.Associators(
             spec_inst.path,
             AssocClass='CIM_ReferencedProfile',
-            ResultClass='CIM_RegisteredProfile')
+            ResultClass='CIM_RegisteredProfile',
+            asserted=True)
 
         if profiles_reffed:
             raise AssertionError(
-                "The instance representing the {0} {1!r} specification "
-                "incorrectly references its profiles via "
-                "CIM_ReferencedProfile on server {2} (at {3}):{4!r}".
-                format(SPEC_ORG, SPEC_NAME, server_def.nickname,
-                       wbem_connection.url,
-                       ['\n  ' + inst.path.to_wbem_uri()
-                        for inst in profiles_reffed]))
+                "Server {0} at {1}: The instance representing the {2} {3!r} "
+                "specification incorrectly references {4} profiles via "
+                "CIM_ReferencedProfile (it should do that via "
+                "CIM_ElementConformsToProfile)".
+                format(server_def.nickname, wbem_connection.url,
+                       SPEC_ORG, SPEC_NAME,
+                       len(profiles_reffed)))
 
 
 def test_snia_smis_profile_tree_not_circular(  # noqa: F811
@@ -98,12 +104,14 @@ def test_snia_smis_profile_tree_not_circular(  # noqa: F811
     server = WBEMServer(wbem_connection)
     server_def = wbem_connection.server_definition
 
-    spec_insts = server.get_selected_profiles(SPEC_ORG, SPEC_NAME)
+    spec_insts = server_func_asserted(
+        server, 'get_selected_profiles',
+        SPEC_ORG, SPEC_NAME)
     if not spec_insts:
-        pytest.skip("{0} {1!r} specification is not advertised on server {2} "
-                    "(at {3})".
-                    format(SPEC_ORG, SPEC_NAME, server_def.nickname,
-                           wbem_connection.url))
+        pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
+                    "advertised".
+                    format(server_def.nickname, wbem_connection.url,
+                           SPEC_ORG, SPEC_NAME))
 
     for spec_inst in spec_insts:
 
@@ -114,7 +122,8 @@ def test_snia_smis_profile_tree_not_circular(  # noqa: F811
         top_profiles = server.conn.Associators(
             spec_inst.path,
             AssocClass='CIM_ElementConformsToProfile',
-            ResultRole='ManagedElement')
+            ResultRole='ManagedElement',
+            asserted=True)
 
         assert_instance_of(server.conn, top_profiles, 'CIM_RegisteredProfile')
 
