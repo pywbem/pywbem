@@ -18,6 +18,7 @@ from assertions import assert_number_of_instances_equal, \
     assert_number_of_instances_minimum, assert_instance_of, \
     assert_instance_consistency, assert_mandatory_properties, \
     assert_property_one_of, assert_property_contains
+from _utils import server_func_asserted, server_prop_asserted
 
 
 class Test_SNIA_Server_Profile(ProfileTest):
@@ -35,7 +36,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         self.init_profile(wbem_connection)
 
-        central_inst_paths = self.server.get_central_instances(
+        central_inst_paths = server_func_asserted(
+            self.server, 'get_central_instances',
             self.profile_inst.path,
             central_class=self.profile_definition['central_class'],
             scoping_class=self.profile_definition['scoping_class'],
@@ -61,7 +63,9 @@ class Test_SNIA_Server_Profile(ProfileTest):
         assert_instance_of(
             wbem_connection, central_inst_path, 'CIM_ObjectManager')
 
-        central_inst = self.conn.GetInstance(central_inst_path)
+        central_inst = self.conn.GetInstance(
+            central_inst_path,
+            asserted=True)
 
         assert_instance_of(
             wbem_connection, central_inst, 'CIM_ObjectManager')
@@ -111,19 +115,23 @@ class Test_SNIA_Server_Profile(ProfileTest):
         # Because the Interop namespace is added if missing, we need to also
         # do that here.
         inst_names = [inst['Name'].lower() for inst in far_insts]
-        if self.server.interop_ns.lower() not in inst_names:
-            inst_names.append(self.server.interop_ns.lower())
-        determined_names = [ns.lower() for ns in self.server.namespaces]
+        interop_ns_lower = server_prop_asserted(
+            self.server, 'interop_ns').lower()
+        if interop_ns_lower not in inst_names:
+            inst_names.append(interop_ns_lower)
+        determined_names = [ns.lower()
+                            for ns in server_prop_asserted(
+                                self.server, 'namespaces')]
 
         if set(inst_names) != set(determined_names):
             raise AssertionError(
-                _format("The namespaces ({0}) of the {1} do not match the "
-                        "namespaces ({2}) determined by the WBEMServer class"
-                        "(server {3} at {4})",
-                        set(inst_names), far_insts_msg,
-                        set(determined_names),
+                _format("Server {0} at {1}: The namespaces ({2}) of the {3} "
+                        "do not match the namespaces ({4}) determined by the "
+                        "WBEMServer class",
                         wbem_connection.server_definition.nickname,
-                        wbem_connection.url))
+                        wbem_connection.url,
+                        set(inst_names), far_insts_msg,
+                        set(determined_names)))
 
     def test_ObjectManagerCommunicationMechanism(  # noqa: F811
             self, assert_association_func, wbem_connection):
