@@ -899,3 +899,92 @@ def _assert_association_consistency(
                 far_paths_msg,
                 first_far_paths,
                 far_paths_msg + " of first executed association approach")
+
+
+def std_uri(instance):
+    """
+    Return canonical WBEM URI of the path of the instance, nullifying the
+    host, or the empty string.
+    """
+    if instance is None or instance.path is None:
+        return ''
+    else:
+        path = instance.path.copy()
+        path.host = None
+        return path.to_wbem_uri(format='canonical')
+
+
+def assert_profile_tree(conn, profile_inst, profile_ancestry,
+                        reference_direction, tls_org, tls_name):
+    """
+    Assert that a profile tree is a tree without circular references,
+    when navigating to referenced profiles in the specified reference
+    direction.
+
+    Parameters:
+
+        conn (WBEMConnection with 'server_definition' attribute)
+
+        profile_inst (CIMInstance): Profile that is tested.
+
+        profile_ancestry (dict): Profile ancestry up to the top level spec,
+          as a dict with:
+            * key: std_uri of profile that is tested.
+            * value: std_uri of its referencing profile (or spec, for the top).
+
+        reference_direction (string): Reference direction to use for the test
+          ('dmtf' or 'snia').
+
+        tls_org (string), tls_name (string): Org and name of top level spec
+          of the profile tree (used only for failure messages).
+    """
+
+    profile_uri = std_uri(profile_inst)
+
+    # from pprint import pprint
+    # print("Debug: assert_profile_tree called")
+    # print("       profile:  {0}".format(profile_uri))
+    # print("       ancestry: ")
+    # for k in profile_ancestry.keys():
+    #     print("                 {0}".format(k))
+
+    if reference_direction == 'dmtf':
+        result_role_down = 'Antecedent'
+        # result_role_up = 'Dependent'
+    else:
+        assert reference_direction == 'snia'
+        result_role_down = 'Dependent'
+        # result_role_up = 'Antecedent'
+
+    sub_profile_insts = conn.Associators(
+        profile_inst.path,
+        AssocClass='CIM_ReferencedProfile',
+        ResultRole=result_role_down)
+
+    if not sub_profile_insts:
+        # The profile is a leaf profile, i.e. does not reference any further
+        # profiles.
+        pass
+    else:
+        for sub_profile_inst in sub_profile_insts:
+
+            sub_profile_uri = std_uri(sub_profile_inst)
+
+            if sub_profile_uri in profile_ancestry:
+                raise AssertionError(
+                    "Profile tree under top level specification {0} {1!r} has "
+                    "a circular reference on server {2} (at {3}): "
+                    "Profile at {4} references profile at {5} which is "
+                    "already in its own reference ancestry {6}".
+                    format(tls_org, tls_name,
+                           conn.server_definition.nickname, conn.url,
+                           profile_uri, sub_profile_uri,
+                           profile_ancestry.keys()))
+
+            profile_ancestry[sub_profile_uri] = profile_uri
+
+            assert_profile_tree(
+                conn, sub_profile_inst, profile_ancestry,
+                reference_direction, tls_org, tls_name)
+
+            del profile_ancestry[sub_profile_uri]
