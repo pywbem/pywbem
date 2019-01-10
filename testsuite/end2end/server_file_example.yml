@@ -35,13 +35,15 @@
 #
 # server_groups:                 # Dict of WBEM server groups (optional).
 #   NICKNAME42:                  # Nickname of WBEM server group.
-#     - NICKNAME1                # Nicknames of servers in that group.
+#     - NICKNAME1                # Nicknames of servers or server groups in
+#                                # that group.
 #     - NICKNAME2
 
 # Note: This is an example file that should be copied to server_file.yml and
 # modified as needed.
 
 servers:
+
   srv1:
     description: My WBEM server
     url: https://srv1.xxx.com:5989
@@ -52,8 +54,26 @@ servers:
     ca_certs: ~/.ssh/ca_certs/
     no_verification: false
 
+  srv2:
+    description: server srv2
+    # ...
+
+  srv3:
+    description: server srv3
+    # ...
+
 server_groups:
+
   default:
+    - group_a
+
+  group_a:
     - srv1
+    - srv2
+
+  group_b:
+    - srv3
+
   all:
-    - srv1
+    - group_a
+    - group_b
