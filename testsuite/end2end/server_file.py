@@ -65,6 +65,7 @@ class ServerDefinitionFile(object):
                     "The WBEM server definition file {0!r} must contain a "
                     "dictionary at the top level, but contains {1}".
                     format(self._filename, type(data)))
+
             servers = data.get('servers', None)
             if servers is None:
                 raise ServerDefinitionFileError(
@@ -73,37 +74,51 @@ class ServerDefinitionFile(object):
                     format(self._filename, data.keys()))
             if not isinstance(servers, OrderedDict):
                 raise ServerDefinitionFileError(
-                    "The 'servers' item in WBEM server definition file "
-                    "{0!r} must be a dictionary, but is {1}".
+                    "'servers' in WBEM server definition file {0!r} "
+                    "must be a dictionary, but is a {1}".
                     format(self._filename, type(servers)))
             self._servers.update(servers)
+
             server_groups = data.get('server_groups', OrderedDict())
             if not isinstance(server_groups, OrderedDict):
                 raise ServerDefinitionFileError(
-                    "The 'server_groups' item in WBEM server definition file "
-                    "{0!r} must be a dictionary, but is {1}".
+                    "'server_groups' in WBEM server definition file {0!r} "
+                    "must be a dictionary, but is a {1}".
                     format(self._filename, type(server_groups)))
             for sg_nick in server_groups:
-                server_group = server_groups[sg_nick]
-                if not isinstance(server_group, list):
-                    raise ServerDefinitionFileError(
-                        "Server group {0!r} in WBEM server definition file "
-                        "{1!r} must be a list, but is {2}".
-                        format(sg_nick, self._filename, type(server_group)))
-                for srv_nick in server_group:
-                    if not isinstance(srv_nick, str):
-                        raise ServerDefinitionFileError(
-                            "Server {0!r} in server group {1!r} in WBEM "
-                            "server definition file {2!r} must be a string, "
-                            "but is {3}".
-                            format(srv_nick, sg_nick, self._filename,
-                                   type(srv_nick)))
-                    if srv_nick not in self._servers:
-                        raise ServerDefinitionFileError(
-                            "Server group {0!r} in WBEM server definition "
-                            "file {1!r} references an unknown server {2!r}".
-                            format(sg_nick, self._filename, srv_nick))
+                visited_sg_nicks = list()
+                self._check_sg(sg_nick, server_groups, servers,
+                               visited_sg_nicks)
             self._server_groups.update(server_groups)
+
+    def _check_sg(self, sg_nick, server_groups, servers, visited_sg_nicks):
+        visited_sg_nicks.append(sg_nick)
+        server_group = server_groups[sg_nick]
+        if not isinstance(server_group, list):
+            raise ServerDefinitionFileError(
+                "Server group {0!r} in WBEM server definition file {1!r} "
+                "must be a list, but is a {2}".
+                format(sg_nick, self._filename, type(server_group)))
+        for nick in server_group:
+            if nick in visited_sg_nicks:
+                raise ServerDefinitionFileError(
+                    "Circular reference: Server group {0!r} in WBEM server "
+                    "definition file {1!r} contains server group {2!r}, which "
+                    "directly or indirectly contains server group {0!r}".
+                    format(sg_nick, self._filename, nick))
+            if not isinstance(nick, str):
+                raise ServerDefinitionFileError(
+                    "Item {0!r} in server group {1!r} in WBEM server "
+                    "definition file {2!r} must be a string, but is a {3}".
+                    format(nick, sg_nick, self._filename, type(nick)))
+            if nick in server_groups:
+                self._check_sg(nick, server_groups, servers, visited_sg_nicks)
+            elif nick not in servers:
+                raise ServerDefinitionFileError(
+                    "Item {0!r} in server group {1!r} in WBEM server "
+                    "definition file {2!r} is not a known server or server "
+                    "group".
+                    format(nick, sg_nick, self._filename))
 
     @property
     def filename(self):
@@ -121,27 +136,29 @@ class ServerDefinitionFile(object):
             server_dict = self._servers[nickname]
         except KeyError:
             raise ValueError(
-                "Server nickname {0!r} not found in WBEM server definition "
-                "file {1!r}".
+                "Server with nickname {0!r} not found in WBEM server "
+                "definition file {1!r}".
                 format(nickname, self._filename))
         return ServerDefinition(nickname, server_dict)
 
-    def iter_servers(self, nickname):
+    def list_servers(self, nickname):
         """
-        Iterate through the servers of the server group with the specified
-        nickname, or the single server with the specified nickname, and yield
-        a `ServerDefinition` object for each server.
+        Return a list of `ServerDefinition` objects for the servers in the
+        server group with the specified nickname, or the single server with
+        the specified nickname.
         """
         if nickname in self._servers:
-            yield self.get_server(nickname)
+            return [self.get_server(nickname)]
         elif nickname in self._server_groups:
-            for srv_nickname in self._server_groups[nickname]:
-                # The server definition file parsing has already ensured that
-                # the group only specifies existing server nicknames.
-                yield self.get_server(srv_nickname)
+            server_list = list()
+            for item_nick in self._server_groups[nickname]:
+                for server_nick in self.list_servers(item_nick):
+                    if server_nick not in server_list:
+                        server_list.append(server_nick)
+            return server_list
         else:
             raise ValueError(
-                "Server group or server nickname {0!r} not found in WBEM "
+                "Server group or server with nickname {0!r} not found in WBEM "
                 "server definition file {1!r}".
                 format(nickname, self._filename))
 

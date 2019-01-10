@@ -19,7 +19,7 @@ from assertions import assert_association_a1, assert_association_a2, \
 
 # Server nickname or server group nickname in WBEM server definition file
 TESTSERVER = os.getenv('TESTSERVER', 'default')
-SD_LIST = list(ServerDefinitionFile().iter_servers(TESTSERVER))
+SD_LIST = ServerDefinitionFile().list_servers(TESTSERVER)
 
 # Profile definition file (in end2end directory).
 PROFILES_YAML_FILE = 'profiles.yml'
