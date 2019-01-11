@@ -84,6 +84,12 @@ def wbem_connection(request, server_definition):
     """
     sd = server_definition
 
+    # Skip this server if we had a skip reason in an earlier attempt
+    skip_msg = getattr(sd, 'skip_msg', None)
+    if skip_msg:
+        pytest.skip("Remembered skip reason from earlier attempt: {0}".
+                    format(skip_msg))
+
     x509 = dict(cert_file=sd.cert_file, key_file=sd.key_file) \
         if sd.cert_file and sd.key_file else None
 
@@ -106,15 +112,19 @@ def wbem_connection(request, server_definition):
     except ConnectionError as exc:
         msg = "Test server at {0!r} cannot be reached. {1}: {2}". \
             format(sd.url, exc.__class__.__name__, exc)
+        sd.skip_msg = msg
         warnings.warn(msg, RuntimeWarning)
         pytest.skip(msg)
     except AuthError as exc:
         msg = "Test server at {0!r} cannot be authenticated with. {1}: {2}". \
             format(sd.url, exc.__class__.__name__, exc)
+        sd.skip_msg = msg
         warnings.warn(msg, RuntimeWarning)
         pytest.skip(msg)
     except Error:
-        pass
+        sd.skip_msg = None
+    finally:
+        sd.skip_msg = None
 
     return conn
 
