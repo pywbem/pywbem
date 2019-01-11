@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function
 
 import warnings
 
+from pywbem import ToleratedServerIssueWarning
 from pywbem._utils import _format
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
@@ -173,9 +174,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
                     wbem_connection, inst,
                     'FunctionalProfilesSupported', 0)
             except AssertionError as exc:
-                warnings.warn("A disabled check failed: {0}: {1}".
+                warnings.warn("Downgraded the following test failure to a "
+                              "warning: {0}: {1}".
                               format(exc.__class__.__name__, exc),
-                              RuntimeWarning)
+                              ToleratedServerIssueWarning)
 
             # Note: The SNIA Server profile mandates that the
             #       MultipleOperationsSupported property is False, but it does
@@ -187,9 +189,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
                     wbem_connection, inst,
                     'MultipleOperationsSupported', [False])
             except AssertionError as exc:
-                warnings.warn("A disabled check failed: {0}: {1}".
+                warnings.warn("Downgraded the following test failure to a "
+                              "warning: {0}: {1}".
                               format(exc.__class__.__name__, exc),
-                              RuntimeWarning)
+                              ToleratedServerIssueWarning)
 
         # Check that there is at least one associated istance
         assert_number_of_instances_minimum(

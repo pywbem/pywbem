@@ -11,7 +11,8 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
-    Real32, Real64, ParseError
+    Real32, Real64, ParseError, ToleratedServerIssueWarning
+
 import pytest_extensions
 
 
@@ -1205,7 +1206,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean"></KEYVALUE>',
             exp_result=None,
         ),
-        None, UserWarning, True
+        None, ToleratedServerIssueWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (WS string)",
@@ -1214,7 +1215,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean">  </KEYVALUE>',
             exp_result=None,
         ),
-        None, UserWarning, True
+        None, ToleratedServerIssueWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (ASCII string)",
@@ -1306,7 +1307,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean"></KEYVALUE>',
             exp_result=None,
         ),
-        None, UserWarning, True
+        None, ToleratedServerIssueWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (WS string)",
@@ -1315,7 +1316,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">  </KEYVALUE>',
             exp_result=None,
         ),
-        None, UserWarning, True
+        None, ToleratedServerIssueWarning, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (ASCII string)",
@@ -7747,7 +7748,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<SCOPE CLASS=""/>',
             exp_result=None,
         ),
-        ParseError, UserWarning, True
+        ParseError, ToleratedServerIssueWarning, True
     ),
     (
         "SCOPE with all supported scope attributes with different values",

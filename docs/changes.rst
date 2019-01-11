@@ -507,6 +507,10 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Added and improved CIM-XML response checks at operation level (Issue #919).
 
+* Changed some warnings classified as `UserWarning` to be classified as
+  `pywbem.ToleratedServerIssueWarning`, because that better fits the nature
+  of the warnings. See issue #1595.
+
 **Build, test, quality:**
 
 * Add tests for WBEMSubscriptionManager class using pywbem_mock.  This involved

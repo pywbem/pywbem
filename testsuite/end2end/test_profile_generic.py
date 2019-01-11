@@ -7,7 +7,7 @@ from __future__ import absolute_import, print_function
 
 import warnings
 import pytest
-from pywbem import WBEMServer, ValueMapping
+from pywbem import WBEMServer, ValueMapping, ToleratedServerIssueWarning
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
@@ -93,7 +93,8 @@ def test_warn_undefined_profiles(  # noqa: F811
         if pd_key not in PROFILE_DEFINITION_DICT:
             warnings.warn(
                 "{0} {1!r} profile version {2} advertised on server {3} "
-                "(at {4}) is not defined in profiles.yml".
+                "(at {4}) is not defined in profiles.yml. This may be caused "
+                "by an incorrectly implemented profile name".
                 format(org, name, version, server_def.nickname,
                        wbem_connection.url),
-                RuntimeWarning)
+                ToleratedServerIssueWarning)

@@ -90,6 +90,8 @@ from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 from .cim_types import CIMDateTime, type_from_name
 from .tupletree import xml_to_tupletree_sax
 from .exceptions import CIMXMLParseError
+from ._warnings import ToleratedServerIssueWarning
+
 
 __all__ = []
 
@@ -2266,7 +2268,7 @@ class TupleParser(object):
         elif data_ == '':
             warnings.warn("WBEM server sent invalid empty boolean value in a "
                           "CIM-XML response.",
-                          UserWarning,
+                          ToleratedServerIssueWarning,
                           stacklevel=_stacklevel_above_module(__name__))
             return None
         else:
