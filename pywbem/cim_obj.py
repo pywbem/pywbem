@@ -1820,8 +1820,8 @@ class CIMInstanceName(_CIMComparisonMixin):
         * :term:`DSP0207` restricts the namespace types (URI schemes) to be one
           of ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
           tolerates any namespace type, but issues a
-          :exc:`~py:exceptions.UserWarning` if it is not one of the namespace
-          types defined in :term:`DSP0207`.
+          :exc:`~py:exceptions.UserWarning` if it is not one of
+          the namespace types defined in :term:`DSP0207`.
 
         * :term:`DSP0207` requires a slash before the namespace name. For local
           WBEM URIs (no namespace type, no authority), that slash is the first
@@ -3508,8 +3508,8 @@ class CIMClassName(_CIMComparisonMixin):
         * :term:`DSP0207` restricts the namespace types (URI schemes) to be one
           of ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
           tolerates any namespace type, but issues a
-          :exc:`~py:exceptions.UserWarning` if it is not one of the namespace
-          types defined in :term:`DSP0207`.
+          :exc:`~py:exceptions.UserWarning` if it is not one of
+          the namespace types defined in :term:`DSP0207`.
 
         * :term:`DSP0207` requires a slash before the namespace name. For local
           WBEM URIs (no namespace type, no authority), that slash is the first

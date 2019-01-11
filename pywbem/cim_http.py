@@ -52,6 +52,7 @@ from six.moves import urllib
 
 from .cim_obj import CIMClassName, CIMInstanceName
 from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
+from ._warnings import ToleratedServerIssueWarning
 from ._utils import _ensure_unicode, _ensure_bytes, _format
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
@@ -521,8 +522,9 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
             self.verify_callback = verify_callback
             # issue 297: Verify_callback is  not used in py 3
             if verify_callback is not None and six.PY3:
-                warnings.warn("verify_callback parameter ignored",
-                              UserWarning)
+                warnings.warn("The 'verify_callback' parameter was specified "
+                              "on WBEMConnection() but is not used on "
+                              "Python 3", UserWarning)
 
         def connect(self):
             # pylint: disable=too-many-branches
@@ -815,13 +817,15 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                         warnings.warn("Ignoring socket error ECONNRESET "
                                       "(connection reset), continuing with "
                                       "reading the response.",
-                                      UserWarning, stacklevel=2)
+                                      ToleratedServerIssueWarning,
+                                      stacklevel=2)
                         # continue with reading response
                     elif exc.args[0] == errno.EPIPE:
                         warnings.warn("Ignoring socket error EPIPE "
                                       "(broken pipe), continuing with "
                                       "reading the response.",
-                                      UserWarning, stacklevel=2)
+                                      ToleratedServerIssueWarning,
+                                      stacklevel=2)
                         # continue with reading response
                     else:
                         raise
@@ -902,7 +906,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                             "(retrying - this was attempt "
                                             "{1} of {2})",
                                             exc, num_tries + 1, try_limit),
-                                        UserWarning, stacklevel=2)
+                                        ToleratedServerIssueWarning,
+                                        stacklevel=2)
                                     continue  # with next retry
                         elif 'Local' in auth_chal:
                             try:
@@ -966,7 +971,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                     "returning any response (retrying - this "
                                     "was attempt {0} of {1} at {2})",
                                     num_tries + 1, try_limit, datetime.now()),
-                            UserWarning, stacklevel=2)
+                            ToleratedServerIssueWarning,
+                            stacklevel=2)
                         continue  # with next retry
                     else:
                         raise ConnectionError(

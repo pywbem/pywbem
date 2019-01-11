@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 from pywbem import WBEMConnection, WBEMServer, ConnectionError, AuthError, \
-    Error
+    Error, ToleratedServerIssueWarning
 from server_file import ServerDefinitionFile, ServerDefinition
 from _utils import latest_profile_inst, ServerObjectCache
 from assertions import assert_association_a1, assert_association_a2, \
@@ -113,13 +113,13 @@ def wbem_connection(request, server_definition):
         msg = "Test server at {0!r} cannot be reached. {1}: {2}". \
             format(sd.url, exc.__class__.__name__, exc)
         sd.skip_msg = msg
-        warnings.warn(msg, RuntimeWarning)
+        warnings.warn(msg, ToleratedServerIssueWarning)
         pytest.skip(msg)
     except AuthError as exc:
         msg = "Test server at {0!r} cannot be authenticated with. {1}: {2}". \
             format(sd.url, exc.__class__.__name__, exc)
         sd.skip_msg = msg
-        warnings.warn(msg, RuntimeWarning)
+        warnings.warn(msg, ToleratedServerIssueWarning)
         pytest.skip(msg)
     except Error:
         sd.skip_msg = None
