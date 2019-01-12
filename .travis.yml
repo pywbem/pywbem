@@ -9,7 +9,7 @@
 # of commits. For pywbem, it started failing with the default depth 50
 # when the number of commits since the last tag exceeded about 150.
 git:
-  depth: 200
+  depth: 400
 
 # By default, notification emails are sent to the PR creator and commiter.
 notifications:
