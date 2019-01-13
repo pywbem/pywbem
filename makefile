@@ -182,13 +182,25 @@ flake8_rc_file := .flake8
 py_src_files := \
     setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
-    $(wildcard testsuite/*.py) \
-    $(wildcard testsuite/testclient/*.py) \
-		$(wildcard testsuite/end2end/*.py) \
+    $(wildcard tests/*.py) \
+		$(wildcard tests/*/*.py) \
+		$(wildcard tests/*/*/*.py) \
+		$(wildcard tests/*/*/*/*.py) \
     wbemcli \
     wbemcli.py \
     mof_compiler \
     $(wildcard $(mock_package_name)/*.py) \
+
+# Python source files for test (unit test and function test)
+test_src_files := \
+    $(wildcard tests/unittest/*.py) \
+    $(wildcard tests/unittest/*/*.py) \
+		$(wildcard tests/functiontest/*.py) \
+
+test_yaml_files := \
+$(wildcard tests/unittest/*.y*ml) \
+$(wildcard tests/unittest/*/*.y*ml) \
+$(wildcard tests/functiontest/*.y*ml) \
 
 # Test log
 test_log_file := test_$(python_mn_version).log
@@ -249,7 +261,7 @@ help:
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources and save results in: flake8.log"
 	@echo "  pylint     - Run PyLint on sources and save results in: pylint.log"
-	@echo "  test       - Run tests and save results in: $(test_log_file)"
+	@echo "  test       - Run unit and function tests and save results in: $(test_log_file)"
 	@echo "  all        - Do all of the above"
 	@echo "  end2end    - Run end2end tests and save results in: $(test_end2end_log_file)"
 	@echo "  install_os - Install OS-level installation and runtime prereqs"
@@ -411,7 +423,7 @@ clean:
 	bash -c "$(FIND) . -name \"__pycache__\" |xargs -n 1 rm -Rf"
 	rm -Rf tmp_ tmp_*
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
-	rm -Rf build tmp_install testtmp testsuite/testtmp .cache $(package_name).egg-info .eggs
+	rm -Rf build tmp_install testtmp tests/testtmp .cache $(package_name).egg-info .eggs
 	@echo "makefile: Done removing temporary build products"
 	@echo "makefile: Target $@ done."
 
@@ -570,23 +582,18 @@ safety.log: makefile minimum-constraints.txt
 	@echo "makefile: Done running pyup.io safety check; Log file: $@"
 
 .PHONY: test
-test: makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/*.py testsuite/test_uprint.* testsuite/testclient/*.py testsuite/testclient/*.yaml coveragerc
-	@echo "makefile: Running tests"
+test: makefile $(package_name)/*.py $(mock_package_name)/*.py $(test_src_files) $(test_yaml_files) coveragerc
+	@echo "makefile: Running unit and function tests"
 	rm -f $(test_log_file)
-ifeq ($(PLATFORM),Windows)
-	cmd /d /c testsuite\test_uprint.bat
-else
-	testsuite/test_uprint.sh
-endif
-	bash -c "set -o pipefail; PYTHONWARNINGS=$(pytest_warnings) py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) --ignore=attic --ignore=releases --ignore=testsuite/end2end -s 2>&1 |tee $(test_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=$(pytest_warnings) py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_opts) tests/unittest tests/functiontest -s 2>&1 |tee $(test_tmp_file)"
 	mv -f $(test_tmp_file) $(test_log_file)
 	@echo "makefile: Done running tests; Log file: $(test_log_file)"
 
 .PHONY: end2end
-end2end: makefile $(package_name)/*.py $(mock_package_name)/*.py testsuite/end2end/*.py
+end2end:
 	@echo "makefile: Running end2end tests"
 	rm -f $(test_end2end_log_file)
-	bash -c "set -o pipefail; cd testsuite/end2end; PYTHONWARNINGS=$(pytest_end2end_warnings) py.test --color=yes $(pytest_end2end_opts) -s 2>&1 |tee ../../$(test_end2end_tmp_file)"
+	bash -c "set -o pipefail; PYTHONWARNINGS=$(pytest_end2end_warnings) py.test --color=yes $(pytest_end2end_opts) tests/end2endtest -s 2>&1 |tee $(test_end2end_tmp_file)"
 	mv -f $(test_end2end_tmp_file) $(test_end2end_log_file)
 	@echo "makefile: Done running end2end tests; Log file: $(test_end2end_log_file)"
 

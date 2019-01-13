@@ -28,10 +28,10 @@ wbemcli.log
 /build_doc/
 mofparsetab.py
 moflextab.py
-testsuite/runtests.log
-/testsuite/testtmp/
-/testsuite/schema/mof*/
-/testsuite/end2end/server_file.yml
+tests/runtests.log
+/tests/testtmp/
+/tests/schema/mof*/
+server_file.yml
 /epydoc-3.0.1-patches/
 swig-2.0*.tar.gz
 /swig-2.0*/

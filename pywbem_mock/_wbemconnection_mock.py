@@ -2313,7 +2313,8 @@ class FakedWBEMConnection(WBEMConnection):
             # Write it back to the instance in casde it was changed
             new_instance['Name'] = new_namespace
 
-            # These values must match those in testsuite/wbemserver_mock.py
+            # These values must match those in
+            # tests/unittest/utils/wbemserver_mock.py.
             new_instance['CreationClassName'] = ns_classname
             new_instance['ObjectManagerName'] = 'MyFakeObjectManager'
             new_instance['ObjectManagerCreationClassName'] = \

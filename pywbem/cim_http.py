@@ -262,7 +262,7 @@ def parse_url(url, allow_defaults=True):
     "-eth0" to "%eth0".
 
     Examples for valid URLs can be found in the test program
-    `testsuite/test_cim_http.py`.
+    `tests/unittest/pywbem/test_cim_http.py`.
 
     Parameters:
 

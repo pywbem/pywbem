@@ -1,0 +1,92 @@
+Testing
+-------
+
+All of the following `make` commands run the tests in the currently active
+Python environment. Depending on how the `pywbem` package is installed in that
+Python environment, either the directories in the main repository directory
+are used, or the installed package.
+
+The test case files and any utility functions they use are always used from
+the main repository directory, and are located in the `tests` directory
+structure:
+
+    tests
+     +-- unittest            Unit tests for single modules of the package
+     |    +-- pywbem              Unit tests for the pywbem package
+     |    +-- pywbem_mock         Unit tests for the pywbem_mock package
+     |    +-- unittest_utils      Unit tests for tests/unittest/utils
+     |    +-- functiontest        Unit tests for tests/functiontest
+     |    +-- end2endtest_utils   Unit tests for tests/end2endtest/utils
+     |    +-- servers             Unit tests for tests/servers
+     |    +-- utils               Utility functions for use by unit tests
+     +-- functiontest        Function tests for the entire pywbem client
+     +-- end2endtest         End2end tests against WBEM servers
+     |    +-- utils               Utility functions for use by end2end tests
+     +-- manualtest          Manual tests
+     +-- servers             WBEM server definition file used by some tests and module for accessing it
+     +-- profiles            Simple definitions of management profiles used by some tests
+     +-- schema              The CIM schema MOF files used by some MOF tests
+     +-- dtd                 The CIM DTD file used by some CIM-XML validation tests
+
+There are multiple types of tests in pywbem:
+
+1. Unit tests and function tests
+
+   These tests do not require any WBEM server to be available, and the tests
+   validate their results automatically.
+
+   They are run by executing:
+
+       $ make test
+
+   Test execution can be modified by a number of environment variables, as
+   documented in the make help (execute `make help`).
+
+2. End2end tests
+
+   These tests are run against one or more WBEM servers, and the tests validate
+   their results automatically.
+
+   They are run by preparing a server definition file:
+
+       tests/end2endtest/server_file.yaml
+
+   from the provided example, and by executing:
+
+       $ make end2end
+
+   Again, test execution can be modified by a number of environment variables,
+   as documented in the make help (execute `make help`).
+
+3. Manual tests
+
+   There are several Python scripts and shell scripts that can be run manually.
+   The results need to be validated manually.
+
+   These scripts are in the directory:
+
+       tests/manualtest/
+
+   and are executed by simply invoking them from within the main directory
+   of the repository, e.g.:
+
+       tests/manualtest/run_cim_operations.py
+
+   Some of the scripts support a `--help` option that informs about their
+   usage.
+
+   The `run_cim_operations.py` script needs a particular MOF file loaded in the
+   repository of the WBEM server that is used for the test. This can be done
+   using the MOF compiler of pywbem:
+
+       $ mof_compiler -s <target_url> tests/unittest/pywbem/test.mof
+
+To run the unit and function tests in all supported Python environments, the
+Tox tool can be used. It creates the necessary virtual Python environments and
+executes `make test` (i.e. the unit and function tests) in each of them.
+
+For running Tox, it does not matter which Python environment is currently
+active, as long as the Python `tox` package is installed in it:
+
+    $ tox                              # Run tests on all supported Python versions
+    $ tox -e py27                      # Run tests on Python 2.7
