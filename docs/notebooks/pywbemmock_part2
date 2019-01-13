@@ -1,0 +1,86 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Creating a repository from DMTF Schema\n",
+    "\n",
+    "In addition to creating a repository specifically defined classes, etc. the repository can be created using the DMTF schema as the source for qualifier declarations and classes.\n",
+    "\n",
+    "Using this method requires that you make the following decisions:\n",
+    "\n",
+    "1. Which version of the DMTF released schema you intend to use.\n",
+    "\n",
+    "2. Where in your local environment do you want to save and expand the schema. This should be a directory and serves both as the storage space for download and expansion and the location checked before download so that the schema is not downloaded each time it is used.\n",
+    "\n",
+    "3. Use of the experimental schema for the defined DMTF schema release as well as the released schema.\n",
+    "\n",
+    "4. The leaf classes you need. The method takes responsibility for determining superclasses and other required classes ( ex. associations, embedded instances) defined in the mof for any of the leaf classes you specify."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/home/kschopmeyer/pywbem/pywbem3work/pywbem/docs/notebooks\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pywbem\n",
+    "import pywbem_mock\n",
+    "\n",
+    "import os\n",
+    "print(os.getcwd())\n",
+    "\n",
+    "# Defines the version of the DMTF schema to be installed.\n",
+    "# This demo is done with the schema already loaded into the pywbem development environment assuming that\n",
+    "# the user is using the docs/notebooks directory\n",
+    "DMTF_TEST_SCHEME_VER = \"2.49.0\"\n",
+    "SCHEMA_DIR = \".\"\n",
+    "\n",
+    "classnames = ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',\n",
+    "              'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile']\n",
+    "\n",
+    "#conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')\n",
+    "\n",
+    "#conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,\n",
+    "#                                 class_names=classnames, verbose=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.4.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
