@@ -177,7 +177,8 @@ class DMTFCIMSchema(object):
         cim_schema_version = 'cim_schema_{0}'.format(self.schema_version_str)
         mof_zip_bn = '{0}{1}-MOFs.zip'.format(cim_schema_version, schema_type)
         self._schema_zip_url = \
-            'http://www.dmtf.org/standards/cim/cim_schema_v{0}{1}{2}/{3}'. \
+            'https://www.dmtf.org/sites/default/files/cim/' \
+            'cim_schema_v{0}{1}{2}/{3}'. \
             format(schema_version[0], schema_version[1], schema_version[2],
                    mof_zip_bn)
         schema_mof_bld_name = cim_schema_version + '.mof'

@@ -238,6 +238,9 @@ This version contains all fixes up to pywbem 0.12.4.
 * For Python 2.6, pinned version of lxml to <4.3.0, because lxml 4.3.0 has
   removed support for Python 2.6. See issue #1592.
 
+* Fixed the URL on the DMTF site from which the MOF archive is downloaded.
+  This has changed on the DMTF site and needed to be adjusted.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
