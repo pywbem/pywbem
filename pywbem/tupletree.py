@@ -51,7 +51,7 @@ The fourth element is reserved.
 
 # NOTE: The original dom based parsers have been replaced with a sax parser
 #       in Nov. 2016. The dom tupletree code is in the file
-#       testsuite/test_tupletree.py
+#       tests/unittest/pywbem/test_tupletree.py
 
 from __future__ import absolute_import
 

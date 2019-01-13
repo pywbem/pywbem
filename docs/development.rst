@@ -137,7 +137,8 @@ pywbem package at https://pywbem.readthedocs.io/
 This page is automatically updated whenever the Git repo for this package
 changes the branch from which this documentation is built.
 
-In order to build the documentation locally from the Git work directory, issue:
+In order to build the documentation locally from the Git work directory,
+execute:
 
 ::
 
@@ -149,29 +150,121 @@ The top-level document to open with a web browser will be
 
 .. _`Testing`:
 
+.. # Keep the tests/README file in sync with this 'Testing' section.
+
 Testing
 -------
 
-To run unit tests in the currently active Python environment, issue one of
-these example commands:
+
+All of the following `make` commands run the tests in the currently active
+Python environment. Depending on how the `pywbem` package is installed in that
+Python environment, either the `pywbem` and `pywbem_mock` directories in the
+main repository directory are used, or the installed `pywbem` package.
+The test case files and any utility functions they use are always used from
+the `tests` directory in the main repository directory.
+
+The `tests` directory has the following subdirectory structure:
 
 ::
 
-    $ make test                                              # Run all unit tests
-    $ PYTHONPATH=. py.test testsuite/test_cim_obj.py -s      # Run only this test source file
-    $ PYTHONPATH=. py.test InitCIMInstanceName -s            # Run only this test class
-    $ PYTHONPATH=. py.test -k InitCIMInstanceName or Bla -s  # py.test -k expressions are possible
+    tests
+     +-- unittest            Unit tests
+     |    +-- pywbem              Unit tests for the pywbem package
+     |    +-- pywbem_mock         Unit tests for the pywbem_mock package
+     |    +-- unittest_utils      Unit tests for tests/unittest/utils
+     |    +-- functiontest        Unit tests for tests/functiontest
+     |    +-- end2endtest_utils   Unit tests for tests/end2endtest/utils
+     |    +-- servers             Unit tests for tests/servers
+     |    +-- utils               Utility functions used by unit tests
+     +-- functiontest        Function tests
+     +-- end2endtest         End2end tests
+     |    +-- utils               Utility functions used by end2end tests
+     +-- manualtest          Manual tests
+     +-- servers             WBEM server definition file used by some tests and module for accessing it
+     +-- profiles            Simple definitions of management profiles used by some tests
+     +-- schema              The CIM schema MOF files used by some MOF tests
+     +-- dtd                 The CIM DTD file used by some CIM-XML validation tests
 
-Invoke ``py.test --help`` for details on the expression syntax of its ``-k``
-option.
+There are multiple types of tests in pywbem:
 
-To run the unit tests and some more commands that verify the project is in good
-shape in all supported Python environments, use Tox:
+1. Unit tests and function tests
+
+   These tests do not require any WBEM server to be available, and the tests
+   validate their results automatically.
+
+   The distinction between unit tests and function tests as used in pywbem is
+   that function tests exercise the entire pywbem client component or entire
+   pywbem scripts, while unit tests exercise single modules.
+
+   They are run by executing:
+
+   ::
+
+       $ make test
+
+   Test execution can be modified by a number of environment variables, as
+   documented in the make help (execute `make help`).
+
+2. End2end tests
+
+   These tests are run against one or more WBEM servers, and the tests validate
+   their results automatically.
+
+   They are run by preparing a server definition file:
+
+   ::
+
+       tests/end2endtest/server_file.yaml
+
+   from the provided example, and by executing:
+
+   ::
+
+       $ make end2end
+
+   Again, test execution can be modified by a number of environment variables,
+   as documented in the make help (execute `make help`).
+
+3. Manual tests
+
+   There are several Python scripts and shell scripts that can be run manually.
+   The results need to be validated manually.
+
+   These scripts are in the directory:
+
+   ::
+
+       tests/manualtest/
+
+   and are executed by simply invoking them from within the main directory
+   of the repository, e.g.:
+
+   ::
+
+       tests/manualtest/run_cim_operations.py
+
+   Some of the scripts support a `--help` option that informs about their
+   usage.
+
+   The `run_cim_operations.py` script needs a particular MOF file loaded in the
+   repository of the WBEM server that is used for the test. This can be done
+   using the MOF compiler of pywbem:
+
+   ::
+
+       $ mof_compiler -s <target_url> tests/unittest/pywbem/test.mof
+
+To run the unit and function tests in all supported Python environments, the
+Tox tool can be used. It creates the necessary virtual Python environments and
+executes `make test` (i.e. the unit and function tests) in each of them.
+
+For running Tox, it does not matter which Python environment is currently
+active, as long as the Python `tox` package is installed in it:
 
 ::
 
-    $ tox                              # Run all tests on all supported Python versions
-    $ tox -e py27                      # Run all tests on Python 2.7
+    $ tox                              # Run tests on all supported Python versions
+    $ tox -e py27                      # Run tests on Python 2.7
 
 
 .. _`Updating the DMTF MOF Test Schema`:
@@ -180,9 +273,8 @@ Updating the DMTF MOF Test Schema
 ---------------------------------
 
 Pywbem uses DMTF CIM Schemas in its CI testing.  The schema used is stored in
-the form received from the DMTF in the directory ``testsuite/schema`` and is
-expanded and compiled in ``testsuite/test_mof_compiler.py`` as part of the
-tests.
+the form received from the DMTF in the directory ``tests/schema`` and is
+expanded and compiled as part of the unit tests.
 
 Since the DMTF regularly updates the schema, the pywbem project tries to stay
 up-to-date with the current schema. At the same time, earlier schemas can be
@@ -193,9 +285,8 @@ The schema used for testing can be modified by modifying the test file:
 
 ::
 
-    testsuite/dmtf_mof_schema_def.py
+    tests/unittest/utils/dmtf_mof_schema_def.py
 
-Detailed information on this process is in ``testsuite/dmtf_mof_schema_def.py``
 
 .. _`Developing Ipython Notebooks`:
 

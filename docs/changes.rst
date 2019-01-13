@@ -288,7 +288,7 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Extend wbemcli to use pywbem_mock with a new command line parameter
   (--mock_server <mock_info-filename>). Added a set of new tests for this
-  parameter and a mof file and pythong to testsuite to test the new option.
+  parameter and a MOF file and test code to test the new option.
   (Issue #1268)
 
 * Installation on Windows is now more automated by means of a new
@@ -520,7 +520,7 @@ This version contains all fixes up to pywbem 0.12.4.
   changing the tests for the WBEMServer class using pywbem_mock because the the
   WBEMSubscriptionManager class depends on the existence of the classes and
   instances that support the pywbem WbemServer class existing in the WBEM
-  server.  A new file (wbemserver_mock.py) was added to the testsuite directory
+  server.  A new file (wbemserver_mock.py) was added to the tests
   that creates the pywbem_mock for any tests that depend on classes like
   CIM_Namespace, CIM_ObjectManager existing in the mocked server. See issue
   #1250
@@ -536,18 +536,25 @@ This version contains all fixes up to pywbem 0.12.4.
   This is only a workaround; An issue against python-coveralls has been
   opened: https://github.com/z4r/python-coveralls/issues/66
 
+* Reorganized the `testsuite` directory to better separate unit tests,
+  function tests, end2end tests, and the tested areas (pywbem, pywbem_mock, and
+  test utility functions). The new top level test directory is now named
+  `tests` and the new directrory structure is documented in section
+  "Testing" in the development section of the pywbem documentation and in the
+  file `tests/README`.
+
 * Added the concept of end2end tests for pywbem.
   The end2end tests execute test files named `test_*.py` within the
-  `testsuite/end2end` directory against groups of real WBEM servers defined by
-  a WBEM server definition file in YAML syntax:
-  `testsuite/end2end/server_file.yml`.
+  `tests/end2endtest` directory against groups of real WBEM servers defined
+  by a WBEM server definition file in YAML syntax:
+  `tests/servers/server_file.yml`.
   There is an example file `server_file_example.yml`.
   There are some initial tests, and users can define their own tests.
 
-* For the end2end tests, added a file `profiles.yaml` that defines the
-  discovery-related characteristics of a number of DMTF and SNIA management
-  profiles, and that is used to drive profile discovery related tests against
-  WBEM servers.
+* For the end2end tests, added a file `tests/profiles/profiles.yml` that
+  defines the discovery-related characteristics of a number of DMTF and SNIA
+  management profiles, and that is used to drive profile discovery related
+  tests against WBEM servers.
 
 * Added toleration support in the CIM-XML response parsing for WBEM servers
   that return attribute `TYPE` with an empty string instead of omitting it.
