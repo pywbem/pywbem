@@ -126,8 +126,10 @@ def wbem_connection(request, server_definition):
         warnings.warn(msg, ToleratedServerIssueWarning)
         pytest.skip(msg)
     except Error:
+        # Any other error may be due to the WBEM server not supporting
+        # qualifier operations. In that case, we don't optimize.
         sd.skip_msg = None
-    finally:
+    else:
         sd.skip_msg = None
 
     return conn
