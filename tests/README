@@ -3,27 +3,28 @@ Testing
 
 All of the following `make` commands run the tests in the currently active
 Python environment. Depending on how the `pywbem` package is installed in that
-Python environment, either the directories in the main repository directory
-are used, or the installed package.
-
+Python environment, either the `pywbem` and `pywbem_mock` directories in the
+main repository directory are used, or the installed `pywbem` package.
 The test case files and any utility functions they use are always used from
-the main repository directory, and are located in the `tests` directory
-structure:
+the `tests` directory in the main repository directory.
+
+The `tests` directory has the following subdirectory structure:
 
     tests
-     +-- unittest            Unit tests for single modules of the package
+     +-- unittest            Unit tests
+     |    +-- utils               Utility functions used by unit tests
      |    +-- pywbem              Unit tests for the pywbem package
      |    +-- pywbem_mock         Unit tests for the pywbem_mock package
      |    +-- unittest_utils      Unit tests for tests/unittest/utils
      |    +-- functiontest        Unit tests for tests/functiontest
      |    +-- end2endtest_utils   Unit tests for tests/end2endtest/utils
      |    +-- servers             Unit tests for tests/servers
-     |    +-- utils               Utility functions for use by unit tests
-     +-- functiontest        Function tests for the entire pywbem client
-     +-- end2endtest         End2end tests against WBEM servers
-     |    +-- utils               Utility functions for use by end2end tests
+     +-- functiontest        Function tests
+     +-- end2endtest         End2end tests
+     |    +-- utils               Utility functions used by end2end tests
      +-- manualtest          Manual tests
-     +-- servers             WBEM server definition file used by some tests and module for accessing it
+     +-- servers             WBEM server definition file used by some tests and module
+     |                         for accessing it
      +-- profiles            Simple definitions of management profiles used by some tests
      +-- schema              The CIM schema MOF files used by some MOF tests
      +-- dtd                 The CIM DTD file used by some CIM-XML validation tests
@@ -34,6 +35,10 @@ There are multiple types of tests in pywbem:
 
    These tests do not require any WBEM server to be available, and the tests
    validate their results automatically.
+
+   The distinction between unit tests and function tests as used in pywbem is
+   that function tests exercise the entire pywbem client component or entire
+   pywbem scripts, while unit tests exercise single modules.
 
    They are run by executing:
 
@@ -49,7 +54,7 @@ There are multiple types of tests in pywbem:
 
    They are run by preparing a server definition file:
 
-       tests/end2endtest/server_file.yaml
+       tests/servers/server_file.yml
 
    from the provided example, and by executing:
 
