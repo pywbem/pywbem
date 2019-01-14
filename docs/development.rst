@@ -169,18 +169,19 @@ The `tests` directory has the following subdirectory structure:
 
     tests
      +-- unittest            Unit tests
+     |    +-- utils               Utility functions used by unit tests
      |    +-- pywbem              Unit tests for the pywbem package
      |    +-- pywbem_mock         Unit tests for the pywbem_mock package
      |    +-- unittest_utils      Unit tests for tests/unittest/utils
      |    +-- functiontest        Unit tests for tests/functiontest
      |    +-- end2endtest_utils   Unit tests for tests/end2endtest/utils
      |    +-- servers             Unit tests for tests/servers
-     |    +-- utils               Utility functions used by unit tests
      +-- functiontest        Function tests
      +-- end2endtest         End2end tests
      |    +-- utils               Utility functions used by end2end tests
      +-- manualtest          Manual tests
-     +-- servers             WBEM server definition file used by some tests and module for accessing it
+     +-- servers             WBEM server definition file used by some tests and module
+     |                         for accessing it
      +-- profiles            Simple definitions of management profiles used by some tests
      +-- schema              The CIM schema MOF files used by some MOF tests
      +-- dtd                 The CIM DTD file used by some CIM-XML validation tests
@@ -214,7 +215,7 @@ There are multiple types of tests in pywbem:
 
    ::
 
-       tests/end2endtest/server_file.yaml
+       tests/servers/server_file.yml
 
    from the provided example, and by executing:
 
