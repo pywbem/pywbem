@@ -37,7 +37,7 @@ try:
 except ImportError:
     pass
 
-from ..utils.validate import validate_xml
+from ..utils.validate import validate_cim_xml, CIMXMLValidationError
 from ..utils.unittest_extensions import CIMObjectMixin
 from ..utils.pytest_extensions import simplified_test_function
 
@@ -129,11 +129,17 @@ class ValidationTestCase(unittest.TestCase):
         """
 
         xml_str = obj.tocimxml().toxml()
-        self.assertTrue(
-            validate_xml(xml_str, root_elem=root_elem),
-            'DTD validation of CIM-XML for %s object failed\n'
-            '  Required XML root element: %s\n'
-            '  Generated CIM-XML: %s' % (type(obj), root_elem, xml_str))
+
+        try:
+            validate_cim_xml(xml_str, root_elem)
+        except CIMXMLValidationError as exc:
+            raise AssertionError(
+                "DTD validation of CIM-XML for {0} object failed:\n"
+                "{1}\n"
+                "Required XML root element: {2}\n"
+                "CIM-XML string:\n"
+                "{3}".
+                format(type(obj), exc, root_elem, xml_str))
 
         xml_str2 = obj.tocimxmlstr()
         self.assertTrue(isinstance(xml_str2, six.text_type),

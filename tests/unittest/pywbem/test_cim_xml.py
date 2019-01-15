@@ -1,53 +1,18 @@
 #!/usr/bin/env python
+"""
+Unit tests for pywbem cim_xml.py module.
+"""
 
-"""
-Exercise routines in cim_xml by creating xml document fragments and
-passing them through a validator.
-"""
-#
 # TODO: A bunch of tests are still unimplemented for bits of the
 # schema that PyWBEM doesn't use right now.
-#
 
 from __future__ import absolute_import
 
-import os
-import sys
 import unittest
 
 from pywbem import cim_xml
-from pywbem._utils import _ensure_bytes
 
-DTD_FILE = os.path.join('tests', 'dtd', 'CIM_DTD_V22.dtd')
-
-
-def validate_xml(data):
-    """Run xmllint to validate files, using the CIM DTD file"""
-
-    from subprocess import Popen, PIPE
-
-    # Run xmllint to validate file
-
-    p = Popen('xmllint --dtdvalid %s --noout -' % DTD_FILE, stdout=PIPE,
-              stdin=PIPE, stderr=PIPE, shell=True)
-
-    data = _ensure_bytes(data)
-    p.stdin.write(data)
-    p.stdin.close()
-
-    for x in p.stdout.readlines():
-        sys.stdout.write(x)
-
-    status = p.wait()
-    p.stdout.close()
-    p.stderr.close()
-
-    if status != 0:
-        return False
-
-    return True
-
-# Test data to save typing
+from ..utils.validate import validate_cim_xml, CIMXMLValidationError
 
 
 def LOCALNAMESPACEPATH():   # pylint: disable=invalid-name
@@ -93,7 +58,16 @@ class CIMXMLTest(unittest.TestCase):
     def validate(xml, expectedResult=0):
         # pylint: disable=unused-argument
         """xml is a string with the CIM-XML."""
-        validate_xml(xml)
+
+        try:
+            validate_cim_xml(xml)
+        except CIMXMLValidationError as exc:
+            raise AssertionError(
+                "DTD validation of CIM-XML failed:\n"
+                "{0}\n"
+                "CIM-XML string:\n"
+                "{1}".
+                format(exc, xml))
 
     def test_all(self):
         """Loop over xml to execute tests"""
@@ -724,11 +698,6 @@ class KeyValue(CIMXMLTest):
 #     3.2.5.9. PARAMETER.REFERENCE
 #     3.2.5.10. PARAMETER.ARRAY
 #     3.2.5.11. PARAMETER.REFARRAY
-#     3.2.5.12. TABLECELL.DECLARATION
-#     3.2.5.13. TABLECELL.REFERENCE
-#     3.2.5.14. TABLEROW.DECLARATION
-#     3.2.5.15. TABLE
-#     3.2.5.16. TABLEROW
 
 
 class Class(CIMXMLTest):
@@ -1178,15 +1147,6 @@ class ParameterReferenceArray(CIMXMLTest):
                                           cim_xml.VALUE('true'))]))
 
 
-# New in v2.2 of the DTD
-
-# TABLECELL.DECLARATION
-# TABLECELL.REFERENCE
-# TABLEROW.DECLARATION
-# TABLE
-# TABLEROW
-
-
 #################################################################
 #     3.2.6. Message Elements
 #################################################################
@@ -1212,8 +1172,6 @@ class ParameterReferenceArray(CIMXMLTest):
 #     3.2.6.19 SIMPLEEXPRSP
 #     3.2.6.20 EXPMETHODRESPONSE
 #     3.2.6.21 EXPPARAMVALUE
-#     3.2.6.22 RESPONSEDESTINATION
-#     3.2.6.23 SIMPLEREQACK
 
 
 class Message(CIMXMLTest):
@@ -1334,8 +1292,7 @@ class SimpleExpReq(CIMXMLTest):
 
 class IMethodCall(CIMXMLTest):
     """
-    <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*,
-                           RESPONSEDESTINATION?)>
+    <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
     <!ATTLIST IMETHODCALL
         %CIMName;>
     """
@@ -1350,13 +1307,10 @@ class IMethodCall(CIMXMLTest):
             'FooMethod2', LOCALNAMESPACEPATH(),
             [cim_xml.IPARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
 
-        # TODO: RESPONSEDESTINATION
-
 
 class MethodCall(CIMXMLTest):
     """
-    <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*,
-                          RESPONSEDESTINATION?>
+    <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*)>
     <!ATTLIST METHODCALL
         %CIMName;>
     """
@@ -1382,8 +1336,6 @@ class MethodCall(CIMXMLTest):
             'FooMethod',
             cim_xml.LOCALINSTANCEPATH(LOCALNAMESPACEPATH(), INSTANCENAME()),
             [cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
-
-        # TODO: RESPONSEDESTINATION
 
 
 class ExpMethodCall(CIMXMLTest):
@@ -1565,7 +1517,7 @@ class MultiExpRsp(CIMXMLTest):
 
 class SimpleRsp(CIMXMLTest):
     """
-    <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE | SIMPLEREQACK>
+    <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE >
     """
 
     def setUp(self):
@@ -1580,8 +1532,6 @@ class SimpleRsp(CIMXMLTest):
 
         self.xml.append(
             cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')))
-
-        # TODO: SIMPLEREQACK
 
 
 class SimpleExpRsp(CIMXMLTest):
@@ -1818,31 +1768,6 @@ class IReturnValue(CIMXMLTest):
             cim_xml.VALUE_NAMEDINSTANCE(
                 INSTANCENAME(),
                 cim_xml.INSTANCE('CIM_Pet', []))))
-
-
-# pylint: disable=too-few-public-methods
-class ResponseDestination(UnimplementedTest):
-    """
-    The RESPONSEDESTINATION element contains an instance that
-    describes the desired destination for the response.
-
-    <!ELEMENT RESPONSEDESTINATON (INSTANCE)>
-    """
-
-
-# pylint: disable=too-few-public-methods
-class SimpleReqAck(UnimplementedTest):
-    """
-
-    The SIMPLEREQACK defines the acknowledgement response to a Simple
-    CIM Operation asynchronous request. The ERROR subelement is used
-    to report a fundamental error which prevented the asynchronous
-    request from being initiated.
-
-    <!ELEMENT SIMPLEREQACK (ERROR?)>
-    <!ATTLIST SIMPLEREQACK
-        INSTANCEID CDATA     #REQUIRED>
-    """
 
 
 if __name__ == '__main__':
