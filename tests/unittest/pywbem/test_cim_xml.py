@@ -1,46 +1,328 @@
-#!/usr/bin/env python
 """
 Unit tests for pywbem cim_xml.py module.
 """
 
-# TODO: A bunch of tests are still unimplemented for bits of the
-# schema that PyWBEM doesn't use right now.
-
 from __future__ import absolute_import
 
+try:
+    from collections.abc import Iterable
+except ImportError:  # py2
+    from collections import Iterable
 import unittest
+import six
+import pytest
 
 from pywbem import cim_xml
 
 from ..utils.validate import validate_cim_xml, CIMXMLValidationError
+from ..utils.pytest_extensions import simplified_test_function
 
 
-def LOCALNAMESPACEPATH():   # pylint: disable=invalid-name
-    """Return a LOCALNAMESPACEPATH"""
-    return cim_xml.LOCALNAMESPACEPATH([cim_xml.NAMESPACE('root'),
-                                       cim_xml.NAMESPACE('cimv2')])
+def iter_flattened(lst):
+    """
+    Flatten the arbitrarily nested input list of lists, and yield each
+    resulting list item.
+    """
+    for item in lst:
+        if isinstance(item, Iterable) and \
+                not isinstance(item, six.string_types):
+            for sub_item in iter_flattened(item):
+                yield sub_item
+        else:
+            yield item
 
 
-def NAMESPACEPATH():   # pylint: disable=invalid-name
-    """Return predefined NAMESPACEPATH"""
+def sample_LOCALNAMESPACEPATH_node():
+    """
+    Return a sample LOCALNAMESPACEPATH as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
+    return cim_xml.LOCALNAMESPACEPATH(
+        [cim_xml.NAMESPACE('root'),
+         cim_xml.NAMESPACE('cimv2')])
+
+
+def sample_LOCALNAMESPACEPATH_str():
+    """
+    Return a sample LOCALNAMESPACEPATH as a list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<LOCALNAMESPACEPATH>',
+        '<NAMESPACE NAME="root"/>',
+        '<NAMESPACE NAME="cimv2"/>',
+        '</LOCALNAMESPACEPATH>',
+    ]
+
+
+def sample_NAMESPACEPATH_node():
+    """
+    Return a sample NAMESPACEPATH as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
     return cim_xml.NAMESPACEPATH(
-        cim_xml.HOST('leonardo'), LOCALNAMESPACEPATH())
+        cim_xml.HOST('leonardo'),
+        sample_LOCALNAMESPACEPATH_node())
 
 
-def CLASSNAME():  # pylint: disable=invalid-name
-    """return predefined CLASSNAME, CIM_Foo"""
+def sample_NAMESPACEPATH_str():
+    """
+    Return a sample NAMESPACEPATH as a (nested) list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<NAMESPACEPATH>',
+        '<HOST>leonardo</HOST>',
+        sample_LOCALNAMESPACEPATH_str(),
+        '</NAMESPACEPATH>',
+    ]
+
+
+def sample_CLASSNAME_node():
+    """
+    Return a sample CLASSNAME as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
     return cim_xml.CLASSNAME('CIM_Foo')
 
 
-def INSTANCENAME():  # pylint: disable=invalid-name
-    """Return predefinedINSTANCENAME"""
+def sample_CLASSNAME_str():
+    """
+    Return a sample CLASSNAME as a list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<CLASSNAME NAME="CIM_Foo"/>',
+    ]
+
+
+def sample_LOCALCLASSPATH_node():
+    """
+    Return a sample LOCALCLASSPATH as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
+    return cim_xml.LOCALCLASSPATH(
+        sample_LOCALNAMESPACEPATH_node(),
+        sample_CLASSNAME_node())
+
+
+def sample_LOCALCLASSPATH_str():
+    """
+    Return a sample LOCALCLASSPATH as a (nested) list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<LOCALCLASSPATH>',
+        sample_LOCALNAMESPACEPATH_str(),
+        sample_CLASSNAME_str(),
+        '</LOCALCLASSPATH>',
+    ]
+
+
+def sample_CLASSPATH_node():
+    """
+    Return a sample CLASSPATH as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
+    return cim_xml.CLASSPATH(
+        sample_NAMESPACEPATH_node(),
+        sample_CLASSNAME_node())
+
+
+def sample_CLASSPATH_str():
+    """
+    Return a sample CLASSPATH as a (nested) list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<CLASSPATH>',
+        sample_NAMESPACEPATH_str(),
+        sample_CLASSNAME_str(),
+        '</CLASSPATH>',
+    ]
+
+
+def sample_INSTANCENAME_node():
+    """
+    Return a sample INSTANCENAME as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
     return cim_xml.INSTANCENAME(
         'CIM_Pet',
-        [cim_xml.KEYBINDING('type', cim_xml.KEYVALUE('dog', 'string')),
-         cim_xml.KEYBINDING('age', cim_xml.KEYVALUE('2', 'numeric'))])
+        [cim_xml.KEYBINDING(
+            'type',
+            cim_xml.KEYVALUE('dog', 'string')),
+         cim_xml.KEYBINDING(
+            'age',
+            cim_xml.KEYVALUE('2', 'numeric'))])
 
-# Base classes
 
+def sample_INSTANCENAME_str():
+    """
+    Return a sample INSTANCENAME as a (nested) list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<INSTANCENAME CLASSNAME="CIM_Pet">',
+        '<KEYBINDING NAME="type">',
+        '<KEYVALUE TYPE="string">dog</KEYVALUE>',
+        '</KEYBINDING>',
+        '<KEYBINDING NAME="age">',
+        '<KEYVALUE TYPE="numeric">2</KEYVALUE>',
+        '</KEYBINDING>',
+        '</INSTANCENAME>',
+    ]
+
+
+def sample_LOCALINSTANCEPATH_node():
+    """
+    Return a sample LOCALINSTANCEPATH as a cim_xml node.
+    Must match the result of the corresponding ..._str() function.
+    """
+    return cim_xml.LOCALINSTANCEPATH(
+        sample_LOCALNAMESPACEPATH_node(),
+        sample_INSTANCENAME_node())
+
+
+def sample_LOCALINSTANCEPATH_str():
+    """
+    Return a sample LOCALINSTANCEPATH as a (nested) list of XML strings.
+    Must match the result of the corresponding ..._node() function.
+    """
+    return [
+        '<LOCALINSTANCEPATH>',
+        sample_LOCALNAMESPACEPATH_str(),
+        sample_INSTANCENAME_str(),
+        '</LOCALINSTANCEPATH>',
+    ]
+
+
+TESTCASES_CIM_XML_NODE = [
+
+    # Testcases for cim_xml nodes.
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * xml_node: cim_xml node to be tested (cim_xml.CIMElement subclass).
+    #   * exp_xml_str_list: Expected XML string of the cim_xml node, as a
+    #     (possibly nested) list of strings, or None.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # CIM top level element
+    (
+        "CIM: Simple request for EnumerateInstances",
+        dict(
+            xml_node=cim_xml.CIM(
+                cim_xml.MESSAGE(
+                    cim_xml.SIMPLEREQ(
+                        cim_xml.IMETHODCALL(
+                            'EnumerateInstances',
+                            sample_LOCALNAMESPACEPATH_node(),
+                            [
+                                cim_xml.IPARAMVALUE(
+                                    'ClassName',
+                                    sample_CLASSNAME_node(),
+                                ),
+                            ],
+                        ),
+                    ),
+                    '1001', '1.0'),
+                '2.0', '2.0'),
+            exp_xml_str_list=None,
+        ),
+        None, None, True
+    ),
+    (
+        "CIM: Simple request for extrinsic method call (no parms)",
+        dict(
+            xml_node=cim_xml.CIM(
+                cim_xml.MESSAGE(
+                    cim_xml.SIMPLEREQ(
+                        cim_xml.METHODCALL(
+                            'MyMethod',
+                            sample_LOCALINSTANCEPATH_node(),
+                        ),
+                    ),
+                    '1001', '1.0'),
+                '2.0', '2.0'),
+            exp_xml_str_list=None,
+        ),
+        None, None, True
+    ),
+
+    (
+        "VALUE.REFERENCE: Using sample CLASSPATH",
+        dict(
+            xml_node=cim_xml.VALUE_REFERENCE(
+                sample_CLASSPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.REFERENCE>',
+                sample_CLASSPATH_str(),
+                '</VALUE.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIM_XML_NODE)
+@simplified_test_function
+def test_cim_xml_node(testcase, xml_node, exp_xml_str_list):
+    """
+    Test function for a cim_xml node.
+
+    A cim_xml node is an object of a subclass of cim_xml.CIMElement.
+
+    The helper functions defined in class CIMElement are used only by the
+    __init__() methods of its subclasses, so they are not tested separately.
+
+    The __init__() method of the cim_xml node has already been executed during
+    creation of the testcase list for this test function, so this test
+    function checks the resulting cim_xml node object, as follows:
+
+    * Create the XML string for the cim_xml node, using `toxml()`. That method
+      is inherited from some base class of CIMElement and is not subject of
+      the test.
+    * Validate this XML string against the CIM-XML DTD.
+    * Compare this XML string against the expected CIM-XML string, if one is
+      defined.
+    """
+
+    act_xml_str = xml_node.toxml()
+
+    try:
+        validate_cim_xml(act_xml_str)
+    except CIMXMLValidationError as exc:
+        raise AssertionError(
+            "DTD validation of CIM-XML failed:\n"
+            "{0}\n"
+            "CIM-XML string:\n"
+            "{1}".
+            format(exc, act_xml_str))
+
+    if exp_xml_str_list is not None:
+
+        # It is a (possibly nested) list of strings
+        exp_xml_str = ''.join(iter_flattened(exp_xml_str_list))
+
+        assert act_xml_str == exp_xml_str, \
+            "Unexpected CIM-XML string:\n" \
+            "  expected: {0!r}\n" \
+            "  actual:   {1!r}". \
+            format(exp_xml_str, act_xml_str)
+
+
+###############################################################################
+#
+# TODO: Convert the following test classes to items in TESTCASES_CIM_XML_NODE
+#
 
 class CIMXMLTest(unittest.TestCase):
     """Run validate.py script against an xml document fragment."""
@@ -92,6 +374,7 @@ class CIMXMLTest(unittest.TestCase):
 # pylint: disable=too-few-public-methods
 class UnimplementedTest(object):
     """Test unimplemented. Raise AssertionError"""
+
     @staticmethod
     def test_all():
         """raise Assertion Error"""
@@ -104,9 +387,9 @@ class UnimplementedTest(object):
 
 #     3.2.1.1. CIM
 
-
 class CIM(CIMXMLTest):
     """CIM Top level element as class"""
+
     def setUp(self):
         """setUp for CIM class"""
         super(CIM, self).setUp()
@@ -115,7 +398,7 @@ class CIM(CIMXMLTest):
                 cim_xml.SIMPLEREQ(
                     cim_xml.IMETHODCALL(
                         'IntrinsicMethod',
-                        LOCALNAMESPACEPATH())),
+                        sample_LOCALNAMESPACEPATH_node())),
                 '1001', '1.0'),
             '2.0', '2.0'))
 
@@ -307,33 +590,34 @@ class ValueReference(CIMXMLTest):
 
         # CLASSPATH
 
-        self.xml.append(cim_xml.VALUE_REFERENCE(
-            cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME())))
+        self.xml.append(cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node()))
 
         # LOCALCLASSPATH
 
         self.xml.append(cim_xml.VALUE_REFERENCE(
-            cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME())))
+            cim_xml.LOCALCLASSPATH(
+                sample_LOCALNAMESPACEPATH_node(),
+                sample_CLASSNAME_node())))
 
         # CLASSNAME
 
-        self.xml.append(cim_xml.VALUE_REFERENCE(CLASSNAME()))
+        self.xml.append(cim_xml.VALUE_REFERENCE(sample_CLASSNAME_node()))
 
         # INSTANCEPATH
 
         self.xml.append(cim_xml.VALUE_REFERENCE(
             cim_xml.INSTANCEPATH(
-                NAMESPACEPATH(), INSTANCENAME())))
+                sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node())))
 
         # LOCALINSTANCEPATH
 
         self.xml.append(cim_xml.VALUE_REFERENCE(
             cim_xml.LOCALINSTANCEPATH(
-                LOCALNAMESPACEPATH(), INSTANCENAME())))
+                sample_LOCALNAMESPACEPATH_node(), sample_INSTANCENAME_node())))
 
         # INSTANCENAME
 
-        self.xml.append(cim_xml.VALUE_REFERENCE(INSTANCENAME()))
+        self.xml.append(cim_xml.VALUE_REFERENCE(sample_INSTANCENAME_node()))
 
 
 class ValueRefArray(CIMXMLTest):
@@ -353,7 +637,7 @@ class ValueRefArray(CIMXMLTest):
         self.xml.append(cim_xml.VALUE_REFARRAY(
             [cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Foo')),
              cim_xml.VALUE_REFERENCE(cim_xml.LOCALCLASSPATH(
-                 LOCALNAMESPACEPATH(), CLASSNAME()))]))
+                 sample_LOCALNAMESPACEPATH_node(), sample_CLASSNAME_node()))]))
 
 
 class ValueObject(CIMXMLTest):
@@ -382,7 +666,7 @@ class ValueNamedInstance(CIMXMLTest):
         super(ValueNamedInstance, self).setUp()
 
         self.xml.append(cim_xml.VALUE_NAMEDINSTANCE(
-            INSTANCENAME(),
+            sample_INSTANCENAME_node(),
             cim_xml.INSTANCE('CIM_Pet', [])))
 
 
@@ -402,7 +686,7 @@ class ValueNamedObject(CIMXMLTest):
         # INSTANCENAME, INSTANCE
 
         self.xml.append(cim_xml.VALUE_NAMEDOBJECT(
-            (INSTANCENAME(),
+            (sample_INSTANCENAME_node(),
              cim_xml.INSTANCE('CIM_Pet', []))))
 
 
@@ -418,14 +702,14 @@ class ValueObjectWithPath(CIMXMLTest):
         # (CLASSPATH, CLASS)
 
         self.xml.append(cim_xml.VALUE_OBJECTWITHPATH(
-            cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()),
+            sample_CLASSPATH_node(),
             cim_xml.CLASS('CIM_Foo')))
 
         # (INSTANCEPATH, INSTANCE)
 
         self.xml.append(cim_xml.VALUE_OBJECTWITHPATH(
             cim_xml.INSTANCEPATH(
-                NAMESPACEPATH(), INSTANCENAME()),
+                sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node()),
             cim_xml.INSTANCE('CIM_Pet', [])))
 
 
@@ -441,15 +725,17 @@ class ValueObjectWithLocalPath(CIMXMLTest):
         # (LOCALCLASSPATH, CLASS)
 
         self.xml.append(cim_xml.VALUE_OBJECTWITHLOCALPATH(
-            cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME()),
+            cim_xml.LOCALCLASSPATH(
+                sample_LOCALNAMESPACEPATH_node(),
+                sample_CLASSNAME_node()),
             cim_xml.CLASS('CIM_Foo')))
 
         # (LOCALINSTANCEPATH, INSTANCE)
 
         self.xml.append(cim_xml.VALUE_OBJECTWITHLOCALPATH(
             cim_xml.LOCALINSTANCEPATH(
-                LOCALNAMESPACEPATH(),
-                INSTANCENAME()),
+                sample_LOCALNAMESPACEPATH_node(),
+                sample_INSTANCENAME_node()),
             cim_xml.INSTANCE('CIM_Pet', [])))
 
 
@@ -471,7 +757,7 @@ class ValueInstanceWithPath(CIMXMLTest):
 
         self.xml.append(cim_xml.VALUE_INSTANCEWITHPATH(
             cim_xml.INSTANCEPATH(
-                NAMESPACEPATH(), INSTANCENAME()),
+                sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node()),
             cim_xml.INSTANCE('CIM_Pet', [])))
 
 
@@ -502,7 +788,7 @@ class NamespacePath(CIMXMLTest):
     def setUp(self):
         super(NamespacePath, self).setUp()
 
-        self.xml.append(NAMESPACEPATH())
+        self.xml.append(sample_NAMESPACEPATH_node())
 
 
 class LocalNamespacePath(CIMXMLTest):
@@ -513,7 +799,7 @@ class LocalNamespacePath(CIMXMLTest):
     def setUp(self):
         super(LocalNamespacePath, self).setUp()
 
-        self.xml.append(LOCALNAMESPACEPATH())
+        self.xml.append(sample_LOCALNAMESPACEPATH_node())
 
 
 class Host(CIMXMLTest):
@@ -548,7 +834,7 @@ class ClassPath(CIMXMLTest):
     def setUp(self):
         super(ClassPath, self).setUp()
 
-        self.xml.append(cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))
+        self.xml.append(sample_CLASSPATH_node())
 
 
 class LocalClassPath(CIMXMLTest):
@@ -560,7 +846,7 @@ class LocalClassPath(CIMXMLTest):
         super(LocalClassPath, self).setUp()
 
         self.xml.append(cim_xml.LOCALCLASSPATH(
-            LOCALNAMESPACEPATH(), CLASSNAME()))
+            sample_LOCALNAMESPACEPATH_node(), sample_CLASSNAME_node()))
 
 
 class ClassName(CIMXMLTest):
@@ -573,7 +859,7 @@ class ClassName(CIMXMLTest):
     def setUp(self):
         super(ClassName, self).setUp()
 
-        self.xml.append(CLASSNAME())
+        self.xml.append(sample_CLASSNAME_node())
 
 
 class InstancePath(CIMXMLTest):
@@ -585,7 +871,7 @@ class InstancePath(CIMXMLTest):
         super(InstancePath, self).setUp()
 
         self.xml.append(cim_xml.INSTANCEPATH(
-            NAMESPACEPATH(), INSTANCENAME()))
+            sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node()))
 
 
 class LocalInstancePath(CIMXMLTest):
@@ -597,7 +883,7 @@ class LocalInstancePath(CIMXMLTest):
         super(LocalInstancePath, self).setUp()
 
         self.xml.append(cim_xml.LOCALINSTANCEPATH(
-            LOCALNAMESPACEPATH(), INSTANCENAME()))
+            sample_LOCALNAMESPACEPATH_node(), sample_INSTANCENAME_node()))
 
 
 class InstanceName(CIMXMLTest):
@@ -616,7 +902,7 @@ class InstanceName(CIMXMLTest):
 
         # KEYBINDING
 
-        self.xml.append(INSTANCENAME())
+        self.xml.append(sample_INSTANCENAME_node())
 
         # KEYVALUE
 
@@ -627,7 +913,7 @@ class InstanceName(CIMXMLTest):
 
         self.xml.append(cim_xml.INSTANCENAME(
             'CIM_Pet',
-            cim_xml.VALUE_REFERENCE(INSTANCENAME())))
+            cim_xml.VALUE_REFERENCE(sample_INSTANCENAME_node())))
 
 
 class ObjectPath(CIMXMLTest):
@@ -640,10 +926,11 @@ class ObjectPath(CIMXMLTest):
 
         self.xml.append(cim_xml.OBJECTPATH(
             cim_xml.INSTANCEPATH(
-                NAMESPACEPATH(), INSTANCENAME())))
+                sample_NAMESPACEPATH_node(),
+                sample_INSTANCENAME_node())))
 
         self.xml.append(cim_xml.OBJECTPATH(
-            cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME())))
+            sample_CLASSPATH_node()))
 
 
 class KeyBinding(CIMXMLTest):
@@ -661,8 +948,7 @@ class KeyBinding(CIMXMLTest):
 
         self.xml.append(cim_xml.KEYBINDING(
             'CIM_Foo',
-            cim_xml.VALUE_REFERENCE(
-                cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
+            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
 
 
 class KeyValue(CIMXMLTest):
@@ -1193,17 +1479,21 @@ class Message(CIMXMLTest):
             cim_xml.SIMPLEREQ(
                 cim_xml.IMETHODCALL(
                     'FooMethod',
-                    LOCALNAMESPACEPATH())),
+                    sample_LOCALNAMESPACEPATH_node())),
             '1001', '1.0'))
 
         # MULTIREQ
 
         self.xml.append(cim_xml.MESSAGE(
             cim_xml.MULTIREQ(
-                [cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
-                                                       LOCALNAMESPACEPATH())),
-                 cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
-                                                       LOCALNAMESPACEPATH()))]),
+                [cim_xml.SIMPLEREQ(
+                    cim_xml.IMETHODCALL(
+                        'FooMethod',
+                        sample_LOCALNAMESPACEPATH_node())),
+                 cim_xml.SIMPLEREQ(
+                    cim_xml.IMETHODCALL(
+                        'FooMethod',
+                        sample_LOCALNAMESPACEPATH_node()))]),
             '1001', '1.0'))
 
         # SIMPLERSP
@@ -1238,10 +1528,14 @@ class MultiReq(CIMXMLTest):
         super(MultiReq, self).setUp()
 
         self.xml.append(cim_xml.MULTIREQ(
-            [cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
-                                                   LOCALNAMESPACEPATH())),
-             cim_xml.SIMPLEREQ(cim_xml.IMETHODCALL('FooMethod',
-                                                   LOCALNAMESPACEPATH()))]))
+            [cim_xml.SIMPLEREQ(
+                cim_xml.IMETHODCALL(
+                    'FooMethod',
+                    sample_LOCALNAMESPACEPATH_node())),
+             cim_xml.SIMPLEREQ(
+                cim_xml.IMETHODCALL(
+                    'FooMethod',
+                    sample_LOCALNAMESPACEPATH_node()))]))
 
 
 class MultiExpReq(CIMXMLTest):
@@ -1268,14 +1562,18 @@ class SimpleReq(CIMXMLTest):
         # IMETHODCALL
 
         self.xml.append(cim_xml.SIMPLEREQ(
-            cim_xml.IMETHODCALL('FooIMethod', LOCALNAMESPACEPATH())))
+            cim_xml.IMETHODCALL(
+                'FooIMethod',
+                sample_LOCALNAMESPACEPATH_node())))
 
         # METHODCALL
 
         self.xml.append(cim_xml.SIMPLEREQ(
             cim_xml.METHODCALL(
                 'FooMethod',
-                cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME()))))
+                cim_xml.LOCALCLASSPATH(
+                    sample_LOCALNAMESPACEPATH_node(),
+                    sample_CLASSNAME_node()))))
 
 
 class SimpleExpReq(CIMXMLTest):
@@ -1301,10 +1599,10 @@ class IMethodCall(CIMXMLTest):
         super(IMethodCall, self).setUp()
 
         self.xml.append(
-            cim_xml.IMETHODCALL('FooMethod', LOCALNAMESPACEPATH()))
+            cim_xml.IMETHODCALL('FooMethod', sample_LOCALNAMESPACEPATH_node()))
 
         self.xml.append(cim_xml.IMETHODCALL(
-            'FooMethod2', LOCALNAMESPACEPATH(),
+            'FooMethod2', sample_LOCALNAMESPACEPATH_node(),
             [cim_xml.IPARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
 
 
@@ -1322,19 +1620,25 @@ class MethodCall(CIMXMLTest):
 
         self.xml.append(cim_xml.METHODCALL(
             'FooMethod',
-            cim_xml.LOCALINSTANCEPATH(LOCALNAMESPACEPATH(), INSTANCENAME())))
+            cim_xml.LOCALINSTANCEPATH(
+                sample_LOCALNAMESPACEPATH_node(),
+                sample_INSTANCENAME_node())))
 
         # LOCALCLASSPATH
 
         self.xml.append(cim_xml.METHODCALL(
             'FooMethod',
-            cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME())))
+            cim_xml.LOCALCLASSPATH(
+                sample_LOCALNAMESPACEPATH_node(),
+                sample_CLASSNAME_node())))
 
         # PARAMVALUEs
 
         self.xml.append(cim_xml.METHODCALL(
             'FooMethod',
-            cim_xml.LOCALINSTANCEPATH(LOCALNAMESPACEPATH(), INSTANCENAME()),
+            cim_xml.LOCALINSTANCEPATH(
+                sample_LOCALNAMESPACEPATH_node(),
+                sample_INSTANCENAME_node()),
             [cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
 
 
@@ -1382,8 +1686,7 @@ class ParamValue(CIMXMLTest):
 
         self.xml.append(cim_xml.PARAMVALUE(
             'Pet',
-            cim_xml.VALUE_REFERENCE(cim_xml.CLASSPATH(NAMESPACEPATH(),
-                                                      CLASSNAME()))))
+            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
 
         # VALUE.ARRAY
 
@@ -1430,20 +1733,19 @@ class IParamValue(CIMXMLTest):
 
         self.xml.append(cim_xml.IPARAMVALUE(
             'Pet',
-            cim_xml.VALUE_REFERENCE(
-                cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
+            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
 
         # INSTANCENAME
 
         self.xml.append(cim_xml.IPARAMVALUE(
             'Pet',
-            INSTANCENAME()))
+            sample_INSTANCENAME_node()))
 
         # CLASSNAME
 
         self.xml.append(cim_xml.IPARAMVALUE(
             'Pet',
-            CLASSNAME()))
+            sample_CLASSNAME_node()))
 
         # TODO: QUALIFIER.DECLARATION
 
@@ -1464,7 +1766,7 @@ class IParamValue(CIMXMLTest):
         self.xml.append(cim_xml.IPARAMVALUE(
             'Pet',
             cim_xml.VALUE_NAMEDINSTANCE(
-                INSTANCENAME(),
+                sample_INSTANCENAME_node(),
                 cim_xml.INSTANCE('CIM_Pet', []))))
 
 
@@ -1511,13 +1813,15 @@ class MultiExpRsp(CIMXMLTest):
 
         self.xml.append(
             cim_xml.MULTIEXPRSP(
-                [cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod')),
-                 cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
+                [cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE('FooMethod')),
+                 cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
 
 
 class SimpleRsp(CIMXMLTest):
     """
-    <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE >
+    <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
     """
 
     def setUp(self):
@@ -1676,8 +1980,8 @@ class ReturnValue(CIMXMLTest):
 
         # VALUE.REFERENCE
 
-        self.xml.append(cim_xml.RETURNVALUE(cim_xml.VALUE_REFERENCE(
-            cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
+        self.xml.append(cim_xml.RETURNVALUE(
+            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
 
         # TODO: PARAMTYPE
 
@@ -1702,12 +2006,12 @@ class IReturnValue(CIMXMLTest):
         # CLASSNAME
 
         self.xml.append(cim_xml.IRETURNVALUE(
-            CLASSNAME()))
+            sample_CLASSNAME_node()))
 
         # INSTANCENAME
 
         self.xml.append(cim_xml.IRETURNVALUE(
-            INSTANCENAME()))
+            sample_INSTANCENAME_node()))
 
         # VALUE
 
@@ -1718,14 +2022,16 @@ class IReturnValue(CIMXMLTest):
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_OBJECTWITHPATH(
-                cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()),
+                sample_CLASSPATH_node(),
                 cim_xml.CLASS('CIM_Foo'))))
 
         # VALUE.OBJECTWITHLOCALPATH
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_OBJECTWITHLOCALPATH(
-                cim_xml.LOCALCLASSPATH(LOCALNAMESPACEPATH(), CLASSNAME()),
+                cim_xml.LOCALCLASSPATH(
+                    sample_LOCALNAMESPACEPATH_node(),
+                    sample_CLASSNAME_node()),
                 cim_xml.CLASS('CIM_Foo'))))
 
         # VALUE.OBJECT
@@ -1737,7 +2043,9 @@ class IReturnValue(CIMXMLTest):
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.OBJECTPATH(
-                cim_xml.INSTANCEPATH(NAMESPACEPATH(), INSTANCENAME()))))
+                cim_xml.INSTANCEPATH(
+                    sample_NAMESPACEPATH_node(),
+                    sample_INSTANCENAME_node()))))
 
         # TODO: QUALIFIER.DECLARATION
 
@@ -1749,8 +2057,7 @@ class IReturnValue(CIMXMLTest):
         # VALUE.REFERENCE
 
         self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_REFERENCE(
-                cim_xml.CLASSPATH(NAMESPACEPATH(), CLASSNAME()))))
+            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
 
         # CLASS
 
@@ -1766,9 +2073,5 @@ class IReturnValue(CIMXMLTest):
 
         self.xml.append(cim_xml.IRETURNVALUE(
             cim_xml.VALUE_NAMEDINSTANCE(
-                INSTANCENAME(),
+                sample_INSTANCENAME_node(),
                 cim_xml.INSTANCE('CIM_Pet', []))))
-
-
-if __name__ == '__main__':
-    unittest.main()
