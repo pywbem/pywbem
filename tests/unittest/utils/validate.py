@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # (C) Copyright 2004,2005 Hewlett-Packard Development Company, L.P.
 #
@@ -20,63 +19,113 @@
 #
 
 """
-Validate XML instance data against the CIM-XML DTD.
+Utility function for validation of XML strings against the CIM-XML DTD.
 
-Can also be invoked as a script for testing purposes, and then validates
-XML data specified in standard input.
+The CIM-XML DTD is defined in DSP0201 as a text standard that shows the DTD
+in the text. DSP0203 is the complete DTD, but is provided only for convenience.
+In case of differences, DSP0201 overrules DSP0203.
+
+Note: The CIM_DTD_V22.dtd file used for DTD checking by pywbem for some time
+      is a preliminary version that contained a few elements that were never
+      released as a DMTF standard:
+        TABLE, TABLEROW, TABLEROW.DECLARATION, TABLECELL.DECLARATION,
+        TABLECELL.REFERENCE, RESPONSEDESTINATION.
+
+Note: Changes in DSP0203 2.3.1, compared to 2.2.0 (final):
+      - SIMPLERSP: Removed child SIMPLEREQACK, to fix a an incompletely removed
+        left-over from the preliminary version of 2.2.
+      - RETURNVALUE: Made its child elements optional, in support of void
+        CIM methods.
+      - IMETHODRESPONSE: Added PARAMVALUE*, in support of pull operations. Note
+        this was inconsistent and IPARAMVALUE should have been used.
+      - PARAMVALUE: Added choices for children CLASSNAME, CLASS, INSTANCE,
+        VALUE.NAMEDINSTANCE, in support of pull operations (became necessary
+        as a result of using PARAMVALUE in IMETHODRESPONSE).
+      - ENUMERATIONCONTEXT: Added this element in support of pull operations.
+
+Note: Changes in DSP0203 2.4.0, compared to 2.3.1:
+      - KEYVALUE: Its TYPE attribute is now required. (incompatible!)
+      - SIMPLEREQ: Added optional CORRELATOR* children, in support of operation
+        correlation.
+      - CORRELATOR: Added this element in support of operation correlation.
+      - PARAMVALUE: Added choice for children INSTANCENAME* in support of
+        pull operations (became necessary as a result of using PARAMVALUE in
+        IMETHODRESPONSE).
+      - IRETURNVALUE: Added choice for children VALUE.INSTANCEWITHPATH* in
+        support of pull operations.
+      - ENUMERATIONCONTEXT: Removed this element again, because representation
+        of enumeration context value in pull operations was changed to string
+        in DSP0200.
+      - EXPPARAMVALUE: Removed incorrect children VALUE, METHODRESPONSE,
+        IMETHODRESPONSE, because they were not needed.
 """
 
 from __future__ import print_function, absolute_import
 
-import sys
 import os
 import os.path
 from subprocess import Popen, PIPE, STDOUT
 
 from pywbem._utils import _ensure_bytes
 
-DTD_FILE = os.path.join('tests', 'dtd', 'CIM_DTD_V22.dtd')
+# CIM-XML DTD file to validate against
+DTD_FILE = os.path.join('tests', 'dtd', 'DSP0203_2.3.1.dtd')
+
+# TODO: The DTD 2.4.0 requires the TYPE attribute on the KEYVALUE elements,
+#       and this causes some tests in test_cim_xml.py to fail. Fix them.
 
 
-def validate_xml(data, root_elem=None):
+class CIMXMLValidationError(Exception):
     """
-    Validate the provided XML instance data against the CIM-XML DTD, optionally
+    Exception indicating a CIM-XML validation error.
+    """
+    pass
+
+
+def validate_cim_xml(cim_xml_str, root_elem_name=None):
+    """
+    Validate a CIM-XML string against the CIM-XML DTD, optionally
     requiring a particular XML root element.
 
-    Arguments:
+    If the validation succeeds, the function returns. Otherwise,
+    `CIMXMLValidationError` is raised and its exception message is the
+    (possible multi-line) output of the `xmllint` command.
 
-      * `data`: XML instance data to be validated.
-      * `root_elem`: Name of XML element that is expected as the root element
-        in the XML instance data to be validated. None means no checking for
-        a particular root element is performed.
+    Parameters:
+
+      cim_xml_str (string): CIM-XML string to be validated.
+
+      root_elem_name (string): Name of XML element that is expected as the root
+        element in the CIM-XML string to be validated.
+        `None` means no checking for a particular root element is performed.
+
+    Raises:
+
+      CIMXMLValidationError: CIM-XML validation error
     """
 
+    # The DOCTYPE instruction needs the DTD file with forward slashes.
+    # Also, the xmllint used on Windows requires forward slashes and complains
+    # with "Could not parse DTD tests\dtd\DSP0203_2.3.1.dtd" if invoked
+    # with backslashes.
     dtd_file_fw = DTD_FILE.replace('\\', '/')
 
-    # Make sure the XML data requires the specified root element, if any
-    if root_elem is not None:
-        data = '<!DOCTYPE %s SYSTEM "%s">\n' % (root_elem, dtd_file_fw) + data
+    # Make sure the validator checks the specified root element, if any
+    if root_elem_name is not None:
+        cim_xml_str = '<!DOCTYPE {0} SYSTEM "{1}">\n{2}'. \
+            format(root_elem_name, dtd_file_fw, cim_xml_str)
         xmllint_cmd = 'xmllint --valid --noout -'
     else:
-        xmllint_cmd = 'xmllint --dtdvalid %s --noout -' % DTD_FILE
+        xmllint_cmd = 'xmllint --dtdvalid {0} --noout -'.format(dtd_file_fw)
 
     p = Popen(xmllint_cmd, stdout=PIPE, stderr=STDOUT, stdin=PIPE, shell=True)
 
-    data = _ensure_bytes(data)
-    p.stdin.write(data)
+    cim_xml_str = _ensure_bytes(cim_xml_str)
+    p.stdin.write(cim_xml_str)
     p.stdin.close()
 
-    first_time = True
-    for x in p.stdout.readlines():
-        if first_time:
-            first_time = False
-            print("\nOutput from xmllint:")
-        sys.stdout.write(x)
+    output = '\n'.join(p.stdout.readlines())
 
     status = p.wait()
-    p.stdout.close()
-
     if status != 0:
-        return False
-
-    return True
+        raise CIMXMLValidationError(output)

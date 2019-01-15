@@ -1,0 +1,356 @@
+<!--
+DMTF - Distributed Management Task Force, Inc. - http://www.dmtf.org
+
+Document number: DSP0203
+Date: 2014-01-16
+Version: 2.4.0
+Document status: DMTF Standard
+
+Title: DTD for Representation of CIM in XML
+
+Document type: Specification (W3C Document Type Definition)
+Document language: en-US
+
+Copyright (C) 2008-2014 Distributed Management Task Force, Inc. (DMTF).
+All rights reserved.
+DMTF is a not-for-profit association of industry members dedicated to
+promoting enterprise and systems management and interoperability.  Members
+and non-members may reproduce DMTF specifications and documents for uses
+consistent with this purpose, provided that correct attribution is given.
+As DMTF specifications may be revised from time to time, the particular version
+and release date should always be noted.  Implementation of certain elements of
+this standard or proposed standard may be subject to third party patent rights,
+including provisional patent rights (herein "patent rights").
+DMTF makes no representations to users of the standard as to the existence of
+such rights, and is not responsible to recognize, disclose, or identify any or
+all such third party patent right, owners or claimants, nor for any incomplete
+or inaccurate identification or disclosure of such rights, owners or claimants.
+DMTF shall have no liability to any party, in any manner or circumstance, under
+any legal theory whatsoever, for failure to recognize, disclose, or identify
+any such third party patent rights, or for such party's reliance on the
+standard or incorporation thereof in its product, protocols or testing
+procedures.  DMTF shall have no liability to any party implementing such
+standard, whether such implementation is foreseeable or not, nor to any
+patent owner or claimant, and shall have no liability or responsibility for
+costs or losses incurred if a standard is withdrawn or modified after
+publication, and shall be indemnified and held harmless by any party
+implementing the standard from any and all claims of infringement by a patent
+owner for such implementations.  For information about patents held by
+third-parties which have notified the DMTF that, in their opinion, such patent
+may relate to or impact implementations of DMTF standards, visit
+http://www.dmtf.org/about/policies/disclosures.php.
+
+Foreword:
+This document was prepared by the DMTF CIM-XML Working Group. DMTF is a
+not-for-profit association of industry members dedicated to promoting enterprise
+and systems management and interoperability. For information about the DMTF, see
+http://www.dmtf.org.
+
+Acknowledgements:
+The DMTF acknowledges the following individuals for their contributions to this document:
+* Andreas Maier (IBM) (Editor of this version)
+* Jim Davis (WBEM Solutions) (Editor of previous versions)
+* George Ericson (EMC)
+* Karl Schopmeyer (Inova)
+
+Introduction:
+This Document Type Definition (DTD) defines the XML schema for DSP0201 (CIM Representation in XML).
+
+Normative references:
+* DMTF DSP0004, CIM Infrastructure Specification 2.7,
+  http://www.dmtf.org/standards/published_documents/DSP0004_2.7.pdf
+* DMTF DSP0201, Representation of CIM in XML 2.4,
+  http://www.dmtf.org/standards/published_documents/DSP0201_2.4.pdf
+
+Change log:
+2.3.0 - 2008-05-14 - Released as DMTF Final
+2.3.1 - 2009-07-25 - Released as DMTF Standard
+2.4.0a - 2013-04-29 - Released as Work in Progress, with the following changes:
+* Removed ENUMERATIONCONTEXT element because representation of enumeration
+  context value was changed to string in DSP0200
+  (CRCIMXML00022.001)
+* Added support for operation correlators
+  (CRCIMXML00014.002)
+* Added INSTANCENAME as a child element of PARAMVALUE
+  (CRCIMXML00032.001)
+2.4.0c - 2014-01-16 - DMTF Standard, with the following changes:
+* Changed order of definitions to be consistent with DSP0201.
+* Removed superfluous parenthesis around VALUE.REFERENCE in definition of PROPERTY.REFERENCE element.
+* Removed inconsistency to DSP0201 2.4.0 by removing the EXPPARAMVALUE child elements VALUE, METHODRESPONSE and
+  IMETHODRESPONSE.
+* Added VALUE.INSTANCEWITHPATH as a child element to IRETURNVALUE because it was needed for pulled operations.
+-->
+<!--
+DSP0201 defines the same DTD as this document (DSP0203). In case of differences,
+DSP0201 overrules this document.
+-->
+<!--
+**************************************************
+Entity Declarations
+**************************************************
+-->
+<!ENTITY % CIMName "NAME CDATA #REQUIRED">
+<!ENTITY % CIMType "TYPE (boolean|string|char16|uint8|sint8|uint16|sint16|uint32|sint32|uint64|sint64|datetime|real32|real64)">
+<!--
+**************************************************
+DEPRECATION NOTE: The flavor TOINSTANCE is
+DEPRECATED and MAY be removed from the
+QualifierFlavor entity in a future version of this
+document.  Its usage is discouraged.
+**************************************************
+-->
+<!ENTITY % QualifierFlavor "OVERRIDABLE    (true|false)  'true'
+                            TOSUBCLASS     (true|false)  'true'
+                            TOINSTANCE     (true|false)  'false'
+                            TRANSLATABLE   (true|false)  'false'">
+<!ENTITY % ClassOrigin "CLASSORIGIN CDATA #IMPLIED">
+<!ENTITY % Propagated "PROPAGATED (true|false) 'false'">
+<!ENTITY % ArraySize "ARRAYSIZE CDATA #IMPLIED">
+<!ENTITY % SuperClass "SUPERCLASS CDATA #IMPLIED">
+<!ENTITY % ClassName "CLASSNAME CDATA #REQUIRED">
+<!ENTITY % ReferenceClass "REFERENCECLASS CDATA #IMPLIED">
+<!ENTITY % ParamType "PARAMTYPE (boolean|string|char16|uint8|sint8|uint16|sint16|uint32|sint32|uint64|sint64|datetime|real32|real64|reference|object|instance)">
+<!ENTITY % EmbeddedObject "EmbeddedObject (object|instance) #IMPLIED">
+<!--
+**************************************************
+Top-level element
+**************************************************
+-->
+<!ELEMENT CIM (MESSAGE | DECLARATION)>
+<!ATTLIST CIM
+    CIMVERSION CDATA #REQUIRED
+    DTDVERSION CDATA #REQUIRED
+>
+<!--
+**************************************************
+Object declaration elements
+**************************************************
+-->
+<!ELEMENT DECLARATION (DECLGROUP | DECLGROUP.WITHNAME | DECLGROUP.WITHPATH)+>
+<!ELEMENT DECLGROUP ((LOCALNAMESPACEPATH | NAMESPACEPATH)?, QUALIFIER.DECLARATION*, VALUE.OBJECT*)>
+<!ELEMENT DECLGROUP.WITHNAME ((LOCALNAMESPACEPATH | NAMESPACEPATH)?, QUALIFIER.DECLARATION*, VALUE.NAMEDOBJECT*)>
+<!ELEMENT DECLGROUP.WITHPATH (VALUE.OBJECTWITHPATH | VALUE.OBJECTWITHLOCALPATH)*>
+<!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
+<!ATTLIST QUALIFIER.DECLARATION
+    %CIMName;
+    %CIMType; #REQUIRED
+    ISARRAY (true|false) #IMPLIED
+    %ArraySize;
+    %QualifierFlavor;
+>
+<!ELEMENT SCOPE EMPTY>
+<!ATTLIST SCOPE
+    CLASS (true | false) "false"
+    ASSOCIATION (true | false) "false"
+    REFERENCE (true | false) "false"
+    PROPERTY (true | false) "false"
+    METHOD (true | false) "false"
+    PARAMETER (true | false) "false"
+    INDICATION (true | false) "false"
+>
+<!--
+**************************************************
+Object Value elements
+**************************************************
+-->
+<!ELEMENT VALUE (#PCDATA)>
+<!ELEMENT VALUE.ARRAY (VALUE | VALUE.NULL)*>
+<!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME | INSTANCEPATH | LOCALINSTANCEPATH | INSTANCENAME)>
+<!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE | VALUE.NULL)*>
+<!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
+<!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
+<!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
+<!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) | (INSTANCEPATH, INSTANCE))>
+<!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) | (LOCALINSTANCEPATH, INSTANCE))>
+<!ELEMENT VALUE.NULL EMPTY>
+<!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH, INSTANCE)>
+<!--
+**************************************************
+Object naming and locating elements
+**************************************************
+-->
+<!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
+<!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
+<!ELEMENT HOST (#PCDATA)>
+<!ELEMENT NAMESPACE EMPTY>
+<!ATTLIST NAMESPACE
+    %CIMName;
+>
+<!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
+<!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
+<!ELEMENT CLASSNAME EMPTY>
+<!ATTLIST CLASSNAME
+    %CIMName;
+>
+<!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+<!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
+<!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
+<!ATTLIST INSTANCENAME
+    %ClassName;
+>
+<!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
+<!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
+<!ATTLIST KEYBINDING
+    %CIMName;
+>
+<!ELEMENT KEYVALUE (#PCDATA)>
+<!ATTLIST KEYVALUE
+    VALUETYPE (string | boolean | numeric) "string"
+    %CIMType; #REQUIRED
+>
+<!--
+**************************************************
+Object definition elements
+**************************************************
+-->
+<!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY | PROPERTY.REFERENCE)*, METHOD*)>
+<!ATTLIST CLASS
+    %CIMName;
+    %SuperClass;
+>
+<!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY | PROPERTY.REFERENCE)*)>
+<!ATTLIST INSTANCE
+    %ClassName;
+    xml:lang NMTOKEN #IMPLIED
+>
+<!ELEMENT QUALIFIER ((VALUE | VALUE.ARRAY)?)>
+<!ATTLIST QUALIFIER
+    %CIMName;
+    %CIMType; #REQUIRED
+    %Propagated;
+    %QualifierFlavor;
+    xml:lang NMTOKEN #IMPLIED
+>
+<!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
+<!ATTLIST PROPERTY
+    %CIMName;
+    %CIMType; #REQUIRED
+    %ClassOrigin;
+    %Propagated;
+    %EmbeddedObject;
+    xml:lang NMTOKEN #IMPLIED
+>
+<!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
+<!ATTLIST PROPERTY.ARRAY
+    %CIMName;
+    %CIMType; #REQUIRED
+    %ArraySize;
+    %ClassOrigin;
+    %Propagated;
+    %EmbeddedObject;
+    xml:lang NMTOKEN #IMPLIED
+>
+<!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, VALUE.REFERENCE?)>
+<!ATTLIST PROPERTY.REFERENCE
+    %CIMName;
+    %ReferenceClass;
+    %ClassOrigin;
+    %Propagated;
+>
+<!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE | PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
+<!ATTLIST METHOD
+    %CIMName;
+    %CIMType; #IMPLIED
+    %ClassOrigin;
+    %Propagated;
+>
+<!ELEMENT PARAMETER (QUALIFIER*)>
+<!ATTLIST PARAMETER
+    %CIMName;
+    %CIMType; #REQUIRED
+>
+<!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
+<!ATTLIST PARAMETER.REFERENCE
+    %CIMName;
+    %ReferenceClass;
+>
+<!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
+<!ATTLIST PARAMETER.ARRAY
+    %CIMName;
+    %CIMType; #REQUIRED
+    %ArraySize;
+>
+<!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
+<!ATTLIST PARAMETER.REFARRAY
+    %CIMName;
+    %ReferenceClass;
+    %ArraySize;
+>
+<!--
+**************************************************
+Message elements
+**************************************************
+-->
+<!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP | SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP | MULTIEXPRSP)>
+<!ATTLIST MESSAGE
+    ID CDATA #REQUIRED
+    PROTOCOLVERSION CDATA #REQUIRED
+>
+<!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
+<!ELEMENT SIMPLEREQ (CORRELATOR*, (METHODCALL | IMETHODCALL))>
+<!ELEMENT METHODCALL ((LOCALCLASSPATH | LOCALINSTANCEPATH), PARAMVALUE*)>
+<!ATTLIST METHODCALL
+    %CIMName;
+>
+<!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY | VALUE.REFARRAY | CLASSNAME | INSTANCENAME | CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+<!ATTLIST PARAMVALUE
+    %CIMName;
+    %ParamType; #IMPLIED
+    %EmbeddedObject;
+>
+<!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
+<!ATTLIST IMETHODCALL
+    %CIMName;
+>
+<!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE | CLASSNAME | INSTANCENAME | QUALIFIER.DECLARATION | CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+<!ATTLIST IPARAMVALUE
+    %CIMName;
+>
+<!ELEMENT MULTIRSP (SIMPLERSP, SIMPLERSP+)>
+<!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
+<!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
+<!ATTLIST METHODRESPONSE
+    %CIMName;
+>
+<!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
+<!ATTLIST IMETHODRESPONSE
+    %CIMName;
+>
+<!ELEMENT ERROR (INSTANCE*)>
+<!ATTLIST ERROR
+    CODE CDATA #REQUIRED
+    DESCRIPTION CDATA #IMPLIED
+>
+<!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)?>
+<!ATTLIST RETURNVALUE
+    %EmbeddedObject;
+    %ParamType; #IMPLIED
+>
+<!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* | VALUE.OBJECTWITHPATH* | VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* | OBJECTPATH* | QUALIFIER.DECLARATION* | VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* | INSTANCE* | INSTANCEPATH* | VALUE.NAMEDINSTANCE* | VALUE.INSTANCEWITHPATH*)>
+<!ELEMENT MULTIEXPREQ (SIMPLEEXPREQ, SIMPLEEXPREQ+)>
+<!ELEMENT SIMPLEEXPREQ (CORRELATOR*, EXPMETHODCALL)>
+<!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
+<!ATTLIST EXPMETHODCALL
+    %CIMName;
+>
+<!ELEMENT MULTIEXPRSP (SIMPLEEXPRSP, SIMPLEEXPRSP+)>
+<!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
+<!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
+<!ATTLIST EXPMETHODRESPONSE
+    %CIMName;
+>
+<!ELEMENT EXPPARAMVALUE (INSTANCE?)>
+<!ATTLIST EXPPARAMVALUE
+    %CIMName;
+>
+<!--
+**************************************************
+CHANGE NOTE: The ENUMERATIONCONTEXT element was
+removed in version 2.4.0 of this document.
+**************************************************
+-->
+<!ELEMENT CORRELATOR (VALUE)>
+<!ATTLIST CORRELATOR
+    %CIMName;
+    %CIMType; #REQUIRED
+>
