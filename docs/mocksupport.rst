@@ -339,7 +339,7 @@ with a simple callback function.
     import pywbem
     import pywbem_mock
 
-    def method1_callback(conn, objectname, methodname, params):
+    def method1_callback(conn, methodname, objectname, **params):
         """
         Callback function that demonstrates what can be done, without being
         really useful.
@@ -650,12 +650,20 @@ classes (superclasses, etc.).
 
     conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/interop')
 
-    classes = ['CIM_RegisteredProfile', 'CIM_Namespace', 'CIM_ObjectManager',
-               'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile']
+    # Leaf classes that are to be compiled along with their dependent classes
+    leaf_classes = ['CIM_RegisteredProfile',
+                    'CIM_Namespace',
+                    'CIM_ObjectManager',
+                    'CIM_ElementConformsToProfile',
+                    'CIM_ReferencedProfile']
 
-    conn.compile_mof_schema((2, 49, 0), my_schema_mof, 'my_schema_dir',
+    # Compile dmtf schema version 2.49.0, the qualifier declarations and
+    # the classes in 'classes' and all dependent classes and keep the
+    # schema in directory my_schema_dir
+    conn.compile_dmtf_schema((2, 49, 0), "my_schema_dir", classes,
                             verbose=True)
 
+    # Display the resulting repository
     conn.display_repository()
 
 .. _`Example: Set up qualifier types and classes from MOF`:

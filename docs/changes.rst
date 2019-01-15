@@ -241,6 +241,9 @@ This version contains all fixes up to pywbem 0.12.4.
 * Fixed the URL on the DMTF site from which the MOF archive is downloaded.
   This has changed on the DMTF site and needed to be adjusted.
 
+* Fixed order of parameters in example method_callback_interface defined in
+  pywbem_mock FakedWBEMConnection. (See issue #1614)
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:

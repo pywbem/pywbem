@@ -137,7 +137,7 @@ def _uprint(dest, text):
             format(type(text)))
 
 
-def method_callback_interface(conn, objectname, methodname, **params):
+def method_callback_interface(conn, methodname, objectname, **params):
     # pylint: disable=unused-argument, invalid-name, line-too-long
     """
     Interface for user-provided callback functions for CIM method invocation
@@ -151,6 +151,11 @@ def method_callback_interface(conn, objectname, methodname, **params):
         Faked connection. This can be used to access the mock repository of the
         faked connection, via its operation methods (e.g. `GetClass`).
 
+      methodname (:term:`string`):
+        The CIM method name that is being invoked. This is the method name for
+        which the callback function was registered. This parameter allows a
+        single callback function to be registered for multiple methods.
+
       objectname (:class:`~pywbem.CIMInstanceName` or :class:`~pywbem.CIMClassName`):
         The object path of the target object of the invoked method, as follows:
 
@@ -163,11 +168,6 @@ def method_callback_interface(conn, objectname, methodname, **params):
           :class:`~pywbem.CIMClassName` object which has its `namespace`
           property set to the target namespace of the invocation. Its `host`
           property will not be set.
-
-      methodname (:term:`string`):
-        The CIM method name that is being invoked. This is the method name for
-        which the callback function was registered. This parameter allows a
-        single callback function to be registered for multiple methods.
 
       params (:ref:`NocaseDict`):
         The input parameters for the method that were passed to the
