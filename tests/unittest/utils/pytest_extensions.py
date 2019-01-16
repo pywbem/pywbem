@@ -6,13 +6,11 @@ from __future__ import absolute_import
 
 import functools
 from collections import namedtuple
-import six
-import pytest
-if six.PY3:
-    # pylint: disable=no-name-in-module
+try:
     from inspect import Signature, Parameter
-else:
+except ImportError:  # py2
     from funcsigs import Signature, Parameter
+import pytest
 
 __all__ = ['simplified_test_function']
 

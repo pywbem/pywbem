@@ -75,15 +75,13 @@ import os
 from zipfile import ZipFile
 import shutil
 import six
+try:
+    from urllib.request import urlopen
+except ImportError:  # py2
+    from urllib2 import urlopen
 
 from pywbem._utils import _format
 
-if six.PY2:
-    # pylint: disable=wrong-import-order
-    from urllib2 import urlopen
-else:
-    # pylint: disable=wrong-import-order
-    from urllib.request import urlopen
 
 __all__ = ['DMTFCIMSchema']
 
