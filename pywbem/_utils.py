@@ -26,11 +26,14 @@ import re
 import inspect
 from string import Formatter
 import six
-if six.PY2:
-    from collections import Mapping, Set, MutableSequence, Sequence
+try:
+    from builtins import ascii
+except ImportError:  # py2
     from future_builtins import ascii
-else:
+try:
     from collections.abc import Mapping, Set, MutableSequence, Sequence
+except ImportError:  # py2
+    from collections import Mapping, Set, MutableSequence, Sequence
 
 __all__ = []
 

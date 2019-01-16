@@ -248,7 +248,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 from xml.dom.minidom import Element
-
+try:
+    from builtins import type as builtin_type
+except ImportError:  # py2
+    from __builtin__ import type as builtin_type
 import six
 
 from . import cim_xml
@@ -262,13 +265,6 @@ from ._nocasedict import NocaseDict
 from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
     _realValue_to_float
-
-if six.PY2:
-    # pylint: disable=wrong-import-order
-    from __builtin__ import type as builtin_type
-else:
-    # pylint: disable=wrong-import-order
-    from builtins import type as builtin_type  # pylint: disable=import-error
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
