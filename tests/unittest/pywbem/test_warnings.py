@@ -53,10 +53,8 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     Test the exception defined by exc for connection related information.
     """
     exp_conn_id = conn_id_kwarg.get('conn_id', None)
-    exc_str = str(exc)
     assert exc.conn_id is exp_conn_id
     assert exc.conn_str == exp_conn_str
-    assert exp_conn_str in exc_str
 
 
 @pytest.fixture(params=[

@@ -76,11 +76,6 @@ class Error(Exception):
         ret_str = "Connection id: {0}".format(self.conn_id)
         return ret_str
 
-    def __str__(self):
-        error_str = super(Error, self).__str__()
-        ret_str = "{0}, {1}".format(error_str, self.conn_str)
-        return ret_str
-
 
 class ConnectionError(Error):
     """
@@ -202,7 +197,6 @@ class HTTPError(Error):
             ret_str += ", CIMError: {0}".format(self.cimerror)
         for key in self.cimdetails:
             ret_str += ", {0}: {1}".format(key, self.cimdetails[key])
-        ret_str += ", {0}".format(self.conn_str)
         return ret_str
 
 
@@ -442,9 +436,9 @@ class CIMError(Error):
     def __str__(self):
         inst_str = " ({0} instances)".format(len(self.instances)) \
             if self.instances else ""
-        ret_str = "{0} ({1}): {2}{3}, {4}".format(
+        ret_str = "{0} ({1}): {2}{3}".format(
             self.status_code, self.status_code_name, self.status_description,
-            inst_str, self.conn_str)
+            inst_str)
         return ret_str
 
 

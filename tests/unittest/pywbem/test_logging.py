@@ -40,7 +40,7 @@ import pytest
 
 from testfixtures import LogCapture, compare, TempDirectory
 
-from pywbem import WBEMConnection
+from pywbem import WBEMConnection, ConnectionError
 from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 
@@ -404,14 +404,16 @@ def test_loggers_from_string(testcase, param, expected_result, log_file,
 class BaseLoggingExecutionTests(object):
     """Base class for logging execution tests"""
 
-    @classmethod
-    def setup_class(cls):
+    def setup_method(self):
         """Setup that is run before each test method."""
         # pylint: disable=protected-access
         WBEMConnection._reset_logging_config()
+        configure_loggers_from_string(
+            'all=file', TEST_OUTPUT_LOG, propagate=True, connection=True)
+        self.logger = logging.getLogger(LOGGER_API_CALLS_NAME)
+        assert self.logger is not None
 
-    @classmethod
-    def teardown_class(cls):
+    def teardown_method(self):
         LogCapture.uninstall_all()
         logging.shutdown()
         if os.path.isfile(TEST_OUTPUT_LOG):
@@ -421,32 +423,45 @@ class BaseLoggingExecutionTests(object):
 class TestLoggerOutput(BaseLoggingExecutionTests):
     """Test output from logging"""
 
-    def test_log_output(self, log_capture):
+    def test_log_output_faked(self, log_capture):
         # pylint: disable=redefined-outer-name
+        """
+        Test faked log output.
+        """
+        log_data = 'This is fake log data'
 
-        test_input = 'all=file'
+        self.logger.debug(log_data)
 
-        configure_loggers_from_string(
-            test_input, TEST_OUTPUT_LOG, propagate=True)
+        log_capture.check(('pywbem.api', 'DEBUG', log_data))
 
-        my_logger = logging.getLogger(LOGGER_API_CALLS_NAME)
+    def test_log_output_conn(self):
+        # pylint: disable=redefined-outer-name
+        """
+        Test log output of creating a WBEMConnection object and executing
+        a GetQualifier operation that fails.
+        """
 
-        assert my_logger is not None
+        url = 'dummy'  # File URL to get quick result
+        conn = WBEMConnection(url)
+        try:
+            conn.GetQualifier('Association')
+        except ConnectionError:
+            pass
 
-        max_size = 1000
-        result = 'This is fake return data'
-        return_name = 'Return'
-        if max_size and len(repr(result)) > max_size:
-            result = '{:.{sz}s}...' \
-                .format(repr(result), sz=max_size)
-        else:
-            result = '%s' % repr(result)
+        exp_line_patterns = [
+            r".*-{0}\..*-Connection:.* WBEMConnection\(url='{1}'".
+            format(LOGGER_API_CALLS_NAME, url),
+            r".*-{0}\..*-Request:.* GetQualifier\(QualifierName='Association'".
+            format(LOGGER_API_CALLS_NAME),
+            r".*-{0}\..*-Exception:.* GetQualifier\(\"ConnectionError".
+            format(LOGGER_API_CALLS_NAME),
+        ]
 
-        my_logger.debug('%s: %s: %s', return_name, 'FakeMethodName', result)
-
-        log_capture.check(('pywbem.api', 'DEBUG',
-                           "Return: FakeMethodName: 'This is fake return"
-                           " data'"))
+        with open(TEST_OUTPUT_LOG, "r") as log_fp:
+            log_lines = log_fp.readlines()
+        assert len(log_lines) == len(exp_line_patterns)
+        for i, pattern in enumerate(exp_line_patterns):
+            assert re.match(pattern, log_lines[i])
 
 
 class TestLoggerPropagate(object):
