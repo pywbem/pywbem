@@ -5,9 +5,8 @@ instances).
 
 from __future__ import absolute_import, print_function
 
-import warnings
 import pytest
-from pywbem import WBEMServer, ValueMapping, ToleratedServerIssueWarning
+from pywbem import WBEMServer, ValueMapping
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
@@ -71,10 +70,10 @@ def test_get_central_instances(  # noqa: F811
     # at least one central instance.
 
 
-def test_warn_undefined_profiles(  # noqa: F811
+def test_undefined_profiles(  # noqa: F811
         wbem_connection):
     """
-    Warn if the server advertises profiles not defined in profiles.yml.
+    Test that the server advertises only profiles defined in profiles.yml.
     """
     server = WBEMServer(wbem_connection)
     server_def = wbem_connection.server_definition
@@ -85,16 +84,21 @@ def test_warn_undefined_profiles(  # noqa: F811
         'CIM_RegisteredProfile',
         'RegisteredOrganization')
 
+    undefined_profile_ids = []
     for inst in server_prop_asserted(server, 'profiles'):
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         version = inst['RegisteredVersion']
         pd_key = '{0}:{1}'.format(org, name)
         if pd_key not in PROFILE_DEFINITION_DICT:
-            warnings.warn(
-                "Server {0} at {1}: {2} {3!r} profile version {4} is "
-                "advertised but not defined in profiles.yml. This may be "
-                "caused by an incorrectly implemented profile name".
-                format(server_def.nickname, wbem_connection.url,
-                       org, name, version),
-                ToleratedServerIssueWarning)
+            undefined_profile_ids.append(
+                "{0} {1!r} {2}".format(org, name, version))
+
+    if undefined_profile_ids:
+        undefined_profile_lines = '\n'.join(undefined_profile_ids)
+        raise AssertionError(
+            "Server {0} at {1} advertises the following profiles that are "
+            "not defined in profiles.yml. This may be caused by incorrectly "
+            "implemented profile names:\n{2}".
+            format(server_def.nickname, wbem_connection.url,
+                   undefined_profile_lines))
