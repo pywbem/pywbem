@@ -33,13 +33,6 @@ def test_get_central_instances(  # noqa: F811
         profile_definition['registered_org'],
         profile_definition['registered_name'])
 
-    if profile_definition['type'] == 'pattern':
-        pytest.skip("Server {0} at {1}: The {2} {3!r} profile is a pattern "
-                    "and is not expected to be advertised".
-                    format(wbem_connection.server_definition.nickname,
-                           wbem_connection.url,
-                           profile_definition['registered_org'],
-                           profile_definition['registered_name']))
     if not profile_insts:
         pytest.skip("Server {0} at {1}: The {2} {3!r} profile is not "
                     "advertised".
