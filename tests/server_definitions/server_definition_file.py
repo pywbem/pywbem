@@ -70,12 +70,12 @@ class ServerDefinitionFile(object):
                     "dictionary at the top level, but contains {1}".
                     format(self._filepath, type(data)))
 
-            servers = data.get('servers', None)
-            if servers is None:
+            if 'servers' not in data:
                 raise ServerDefinitionFileError(
                     "The WBEM server definition file {0!r} does not define a "
                     "'servers' item, but items: {1}".
                     format(self._filepath, data.keys()))
+            servers = data.get('servers')
             if not isinstance(servers, OrderedDict):
                 raise ServerDefinitionFileError(
                     "'servers' in WBEM server definition file {0!r} "
@@ -167,6 +167,12 @@ class ServerDefinitionFile(object):
                 "Server group or server with nickname {0!r} not found in WBEM "
                 "server definition file {1!r}".
                 format(nickname, self._filepath))
+
+    def list_all_servers(self):
+        """
+        Return a list of all servers in the WBEM server definition file.
+        """
+        return [self.get_server(nickname) for nickname in self._servers]
 
 
 class ServerDefinition(object):

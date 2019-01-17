@@ -696,3 +696,125 @@ def test_ServerDefinitionFile_list_servers(
                 "list_servers() at position {0}: " \
                 "Expected nick {1!r}, got nick {2!r}". \
                 format(i, exp_sd_nick, sd.nickname)
+
+
+TESTCASES_SERVER_DEFINITION_FILE_LIST_ALL_SERVERS = [
+
+    # Testcases for ServerDefinitionFile.list_all_servers()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * sd_file_data: Content of server definition file whose path is passed
+    #     to ServerDefinitionFile().
+    #   * exp_sd_nick_list: List with the nickname of the expected
+    #     ServerDefinition objects returned by
+    #     ServerDefinitionFile.list_all_servers().
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    # Error cases
+    (
+        "Empty servers and server groups",
+        dict(
+            sd_file_data="servers: {}\n"
+                         "server_groups: {}\n",
+            exp_sd_nick_list=[],
+        ),
+        None, None, True
+    ),
+
+    # Valid cases
+    (
+        "Two servers, no groups",
+        dict(
+            sd_file_data="servers:\n"
+                         "  srv1:\n"
+                         "    url: https://srv1\n"
+                         "    user: USER\n"
+                         "    password: PASSWORD\n"
+                         "  srv2:\n"
+                         "    url: https://srv2\n"
+                         "    user: USER\n"
+                         "    password: PASSWORD\n"
+                         "server_groups:\n"
+                         "  grp1:\n"
+                         "    - srv1\n"
+                         "    - srv2\n",
+            exp_sd_nick_list=['srv1', 'srv2'],
+        ),
+        None, None, True
+    ),
+    (
+        "Two servers, two groups",
+        dict(
+            sd_file_data="servers:\n"
+                         "  srv1:\n"
+                         "    url: https://srv1\n"
+                         "    user: USER\n"
+                         "    password: PASSWORD\n"
+                         "  srv2:\n"
+                         "    url: https://srv2\n"
+                         "    user: USER\n"
+                         "    password: PASSWORD\n"
+                         "server_groups:\n"
+                         "  grp1:\n"
+                         "    - srv1\n"
+                         "    - srv2\n"
+                         "  grp2:\n"
+                         "    - srv2\n",
+            exp_sd_nick_list=['srv1', 'srv2'],
+        ),
+        None, None, True
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_SERVER_DEFINITION_FILE_LIST_ALL_SERVERS)
+@simplified_test_function
+def test_ServerDefinitionFile_list_all_servers(
+        testcase, sd_file_data, exp_sd_nick_list):
+    """
+    Test function for ServerDefinitionFile.list_all_servers()
+    """
+
+    with TempDirectory() as tmp_dir:
+
+        # Create the server definition file
+        fd_filename = 'tmp_server_definition_file.yml'
+        sd_filepath = os.path.join(tmp_dir.path, fd_filename)
+        if isinstance(sd_file_data, six.text_type):
+            sd_file_data = sd_file_data.encode('utf-8')
+        tmp_dir.write(fd_filename, sd_file_data)
+
+        try:
+            sdf = ServerDefinitionFile(filepath=sd_filepath)
+        except Exception as exc:
+            pytest.fail(
+                "Unexpected exception from ServerDefinitionFile(): {0}: {1}".
+                format(exc.__class__.__name__, exc))
+
+        # The code to be tested
+        sd_list = sdf.list_all_servers()
+
+        # Ensure that exceptions raised in the remainder of this function
+        # are not mistaken as expected exceptions
+        assert testcase.exp_exc_types is None
+
+        act_list_servers_len = len(sd_list)
+        assert act_list_servers_len == len(exp_sd_nick_list), \
+            "Unexpected number of ServerDefinition objects returned from " \
+            "list_all_servers(): Expected nicks {0!r}, got nicks {1!r}". \
+            format(exp_sd_nick_list, [sd.nickname for sd in sd_list])
+
+        for i, sd in enumerate(sd_list):
+            exp_sd_nick = exp_sd_nick_list[i]
+            assert sd.nickname == exp_sd_nick, \
+                "Unexpected ServerDefinition object returned from " \
+                "list_all_servers() at position {0}: " \
+                "Expected nick {1!r}, got nick {2!r}". \
+                format(i, exp_sd_nick, sd.nickname)
