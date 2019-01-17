@@ -180,7 +180,7 @@ The `tests` directory has the following subdirectory structure:
      +-- end2endtest         End2end tests
      |    +-- utils               Utility functions used by end2end tests
      +-- manualtest          Manual tests
-     +-- servers             WBEM server definition file used by some tests and module
+     +-- server_definitions  WBEM server definition file used by some tests and module
      |                         for accessing it
      +-- profiles            Simple definitions of management profiles used by some tests
      +-- schema              The CIM schema MOF files used by some MOF tests
@@ -215,7 +215,7 @@ There are multiple types of tests in pywbem:
 
    ::
 
-       tests/servers/server_file.yml
+       tests/server_definitions/server_definition_file.yml
 
    from the provided example, and by executing:
 

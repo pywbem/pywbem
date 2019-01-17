@@ -1,5 +1,5 @@
 """
-Unit test for servers/server_file.py
+Unit test for server_definition_file.py
 """
 
 from __future__ import absolute_import, print_function
@@ -10,8 +10,8 @@ import pytest
 from testfixtures import TempDirectory
 
 from ..utils.pytest_extensions import simplified_test_function
-from ...servers.server_file import ServerDefinition, ServerDefinitionFile, \
-    ServerDefinitionFileError
+from ...server_definitions.server_definition_file import ServerDefinition, \
+    ServerDefinitionFile, ServerDefinitionFileError
 
 
 TESTCASES_SERVER_DEFINITION_INIT = [
@@ -450,7 +450,7 @@ def test_ServerDefinitionFile_init(
     with TempDirectory() as tmp_dir:
 
         # Create the server definition file
-        fd_filename = 'tmp_server_file.yml'
+        fd_filename = 'tmp_server_definition_file.yml'
         sd_filepath = os.path.join(tmp_dir.path, fd_filename)
         if isinstance(sd_file_data, six.text_type):
             sd_file_data = sd_file_data.encode('utf-8')
@@ -663,7 +663,7 @@ def test_ServerDefinitionFile_list_servers(
     with TempDirectory() as tmp_dir:
 
         # Create the server definition file
-        fd_filename = 'tmp_server_file.yml'
+        fd_filename = 'tmp_server_definition_file.yml'
         sd_filepath = os.path.join(tmp_dir.path, fd_filename)
         if isinstance(sd_file_data, six.text_type):
             sd_file_data = sd_file_data.encode('utf-8')

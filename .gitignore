@@ -32,6 +32,7 @@ tests/runtests.log
 /tests/testtmp/
 /tests/schema/mof*/
 server_file.yml
+server_definition_file.yml
 /epydoc-3.0.1-patches/
 swig-2.0*.tar.gz
 /swig-2.0*/
