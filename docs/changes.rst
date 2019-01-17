@@ -517,6 +517,12 @@ This version contains all fixes up to pywbem 0.12.4.
   `pywbem.ToleratedServerIssueWarning`, because that better fits the nature
   of the warnings. See issue #1595.
 
+* Removed the Connection ID from any exception and warning messages, so that
+  Python warnings about the same thing are now properly folded together into
+  one warning during end2end tests. The exception objects still contain
+  the connection ID as a property `conn_id`, and the pywbem log also still
+  shows the connection ID for each entry. See issue #1589.
+
 **Build, test, quality:**
 
 * Add tests for WBEMSubscriptionManager class using pywbem_mock.  This involved
