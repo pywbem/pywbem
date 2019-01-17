@@ -16,7 +16,6 @@
 #   - specification: Item is a specification (e.g. SNIA SMI-S).
 #   - autonomous: Item is an autonomous profile (e.g. SNIA Array).
 #   - component: Item is a component profile (e.g. SNIA FC Target Ports).
-#   - pattern: Item is a pattern profile (that is still advertised).
 # * reference_direction: Scoping profile reference direction: 'dmtf' or 'snia',
 #   or null to imply it from registered_org.
 #   Optional, defaults to null.
