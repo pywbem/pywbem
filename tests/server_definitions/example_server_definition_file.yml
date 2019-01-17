@@ -39,8 +39,8 @@
 #                                # that group.
 #     - NICKNAME2
 
-# Note: This is an example file that should be copied to server_file.yml and
-# modified as needed.
+# Note: This is an example file that should be copied to
+#       server_definition_file.yml and modified as needed.
 
 servers:
 

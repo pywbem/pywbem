@@ -556,8 +556,8 @@ This version contains all fixes up to pywbem 0.12.4.
   The end2end tests execute test files named `test_*.py` within the
   `tests/end2endtest` directory against groups of real WBEM servers defined
   by a WBEM server definition file in YAML syntax:
-  `tests/servers/server_file.yml`.
-  There is an example file `server_file_example.yml`.
+  `tests/server_definitions/server_definition_file.yml`.
+  There is an example file `example_server_definition_file.yml`.
   There are some initial tests, and users can define their own tests.
 
 * For the end2end tests, added a file `tests/profiles/profiles.yml` that

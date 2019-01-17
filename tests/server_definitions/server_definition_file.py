@@ -16,8 +16,9 @@ import yamlordereddictloader
 
 FILE_DIR = os.path.dirname(__file__)
 
-DEFAULT_SERVER_FILE = os.path.join(FILE_DIR, 'server_file.yml')
-EXAMPLE_SERVER_FILE = os.path.join(FILE_DIR, 'server_file_example.yml')
+DEFAULT_SERVER_FILE = os.path.join(FILE_DIR, 'server_definition_file.yml')
+EXAMPLE_SERVER_FILE = os.path.join(FILE_DIR,
+                                   'example_server_definition_file.yml')
 
 
 class ServerDefinitionFileError(Exception):
