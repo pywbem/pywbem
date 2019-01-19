@@ -12,8 +12,8 @@ import yaml
 from pywbem import WBEMServer, Error, ConnectionError, AuthError, \
     ToleratedServerIssueWarning
 
-from ...server_definitions.server_definition_file import \
-    ServerDefinitionFile, ServerDefinition
+from .server_definition_file import ServerDefinition, \
+    ServerDefinitionFile
 from .utils import latest_profile_inst, ServerObjectCache, \
     WBEMConnectionAsserted, server_func_asserted
 from .assertions import assert_association_a1, assert_association_a2, \

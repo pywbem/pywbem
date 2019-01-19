@@ -10,7 +10,7 @@ import pytest
 from testfixtures import TempDirectory
 
 from ..utils.pytest_extensions import simplified_test_function
-from ...server_definitions.server_definition_file import ServerDefinition, \
+from tests.end2endtest.utils.server_definition_file import ServerDefinition, \
     ServerDefinitionFile, ServerDefinitionFileError
 
 
