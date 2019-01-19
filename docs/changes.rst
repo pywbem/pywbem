@@ -570,6 +570,10 @@ This version contains all fixes up to pywbem 0.12.4.
   As part of that, improved the checking for valid values of the TYPE
   attribute. See issue #1564.
 
+* Improved testing of the `tocimxml()` and `tocimxmlstr()` methods of the CIM
+  object classes (e.g. `CIMinstance`) by adding validation against the CIM-XML
+  DTD, and by adding tests for the `indent` parameter of `tocimxmlstr()`.
+
 **Known issues:**
 
 * See `list of open issues`_.

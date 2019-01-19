@@ -64,6 +64,7 @@ from __future__ import print_function, absolute_import
 
 import os
 import os.path
+import re
 from subprocess import Popen, PIPE, STDOUT
 
 from pywbem._utils import _ensure_bytes
@@ -112,7 +113,7 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
 
     # Make sure the validator checks the specified root element, if any
     if root_elem_name is not None:
-        cim_xml_str = '<!DOCTYPE {0} SYSTEM "{1}">\n{2}'. \
+        cim_xml_str = u'<!DOCTYPE {0} SYSTEM "{1}">\n{2}'. \
             format(root_elem_name, dtd_file_fw, cim_xml_str)
         xmllint_cmd = 'xmllint --valid --noout -'
     else:
@@ -129,3 +130,38 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
     status = p.wait()
     if status != 0:
         raise CIMXMLValidationError(output)
+
+
+def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
+    """
+    Validate a CIM-XML string of a CIM object against an expected CIM-XML
+    string and against the CIM-XML DTD.
+
+    Parameters:
+
+      obj (CIM object): The CIM object that belongs to the CIM-XML string,
+       just for reporting purposes.
+
+      obj_xml_str (string): The CIM-XML string to be validated.
+
+      exp_xml_str (string): The expected CIM-XML string.
+    """
+
+    assert obj_xml_str == exp_xml_str
+
+    m = re.match(r'^<([^ >]+)', exp_xml_str)
+    assert m is not None, \
+        "Testcase issue: Cannot determine root element from expected " \
+        "CIM-XML string:\n{0}".format(exp_xml_str)
+    root_elem_name = m.group(1)
+
+    try:
+        validate_cim_xml(obj_xml_str, root_elem_name)
+    except CIMXMLValidationError as exc:
+        raise AssertionError(
+            "DTD validation of CIM-XML for {0} object failed:\n"
+            "{1}\n"
+            "Required XML root element: {2}\n"
+            "CIM-XML string:\n"
+            "{3}".
+            format(type(obj), exc, root_elem_name, obj_xml_str))

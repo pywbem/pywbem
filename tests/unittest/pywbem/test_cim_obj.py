@@ -37,7 +37,7 @@ try:
 except ImportError:
     pass
 
-from ..utils.validate import validate_cim_xml, CIMXMLValidationError
+from ..utils.validate import validate_cim_xml_obj
 from ..utils.unittest_extensions import CIMObjectMixin
 from ..utils.pytest_extensions import simplified_test_function
 
@@ -107,65 +107,6 @@ exp_eo_instance = u'instance' if CHECK_0_12_0 else 'instance'
 
 print("Debug: CHECK_0_12_0 = %s, __version__ = %s" %
       (CHECK_0_12_0, __version__))
-
-
-class ValidationTestCase(unittest.TestCase):
-    """
-    A base class for test cases that need validation against CIM-XML.
-    """
-
-    def validate(self, obj, root_elem=None):
-        """
-        Convert a CIM object to its CIM-XML and validate that using the CIM-XML
-        DTD.
-
-        Raises a test failure if the validation fails.
-
-        Arguments:
-          * `obj`: The CIM object to be validated (e.g. a `CIMInstance` object)
-          * `root_elem`: The expected XML root element of the CIM-XML
-            representing the CIM object. `None` means that no test for an
-            expected XML root element will happen.
-        """
-
-        xml_str = obj.tocimxml().toxml()
-
-        try:
-            validate_cim_xml(xml_str, root_elem)
-        except CIMXMLValidationError as exc:
-            raise AssertionError(
-                "DTD validation of CIM-XML for {0} object failed:\n"
-                "{1}\n"
-                "Required XML root element: {2}\n"
-                "CIM-XML string:\n"
-                "{3}".
-                format(type(obj), exc, root_elem, xml_str))
-
-        xml_str2 = obj.tocimxmlstr()
-        self.assertTrue(isinstance(xml_str2, six.text_type),
-                        'XML string returned by tocimxmlstr() is not '
-                        'a unicode type, but: %s' % type(xml_str2))
-        self.assertEqual(xml_str2, xml_str,
-                         'XML string returned by tocimxmlstr() is not '
-                         'equal to tocimxml().toxml().')
-
-        xml_pretty_str = obj.tocimxml().toprettyxml(indent='    ')
-        xml_pretty_str2 = obj.tocimxmlstr(indent='    ')
-        self.assertTrue(isinstance(xml_pretty_str2, six.text_type),
-                        'XML string returned by tocimxmlstr() is not '
-                        'a unicode type, but: %s' % type(xml_pretty_str2))
-        self.assertEqual(xml_pretty_str2, xml_pretty_str,
-                         'XML string returned by tocimxmlstr(indent) is not '
-                         'equal to tocimxml().toprettyxml(indent).')
-
-        xml_pretty_str = obj.tocimxml().toprettyxml(indent='  ')
-        xml_pretty_str2 = obj.tocimxmlstr(indent=2)
-        self.assertTrue(isinstance(xml_pretty_str2, six.text_type),
-                        'XML string returned by tocimxmlstr() is not '
-                        'a unicode type, but: %s' % type(xml_pretty_str2))
-        self.assertEqual(xml_pretty_str2, xml_pretty_str,
-                         'XML string returned by tocimxmlstr(indent) is not '
-                         'equal to tocimxml().toprettyxml(indent).')
 
 
 def swapcase2(text):
@@ -2312,8 +2253,7 @@ def test_CIMInstanceName_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -2333,8 +2273,66 @@ def test_CIMInstanceName_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    assert isinstance(obj_xml_str, six.text_type)
+
     exp_xml_str = ''.join(exp_xml_str)
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_TOCIMXML)
+@simplified_test_function
+def test_CIMInstanceName_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMInstanceName.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_TOCIMXML)
+@simplified_test_function
+def test_CIMInstanceName_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMInstanceName.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
@@ -6032,8 +6030,7 @@ def test_CIMInstance_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -6053,9 +6050,66 @@ def test_CIMInstance_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCE_TOCIMXML)
+@simplified_test_function
+def test_CIMInstance_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMInstance.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCE_TOCIMXML)
+@simplified_test_function
+def test_CIMInstance_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMInstance.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMInstance_tomof(object):
@@ -11621,8 +11675,7 @@ def test_CIMProperty_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -11642,9 +11695,66 @@ def test_CIMProperty_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = u''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPROPERTY_TOCIMXML)
+@simplified_test_function
+def test_CIMProperty_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMProperty.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPROPERTY_TOCIMXML)
+@simplified_test_function
+def test_CIMProperty_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMProperty.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMProperty_tomof(object):
@@ -15437,8 +15547,7 @@ def test_CIMQualifier_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -15458,9 +15567,66 @@ def test_CIMQualifier_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIER_TOCIMXML)
+@simplified_test_function
+def test_CIMQualifier_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMQualifier.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIER_TOCIMXML)
+@simplified_test_function
+def test_CIMQualifier_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMQualifier.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMQualifier_tomof(object):  # pylint: disable=too-few-public-methods
@@ -16637,8 +16803,7 @@ def test_CIMClassName_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -16658,9 +16823,66 @@ def test_CIMClassName_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASSNAME_TOCIMXML)
+@simplified_test_function
+def test_CIMClassName_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMClassName.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASSNAME_TOCIMXML)
+@simplified_test_function
+def test_CIMClassName_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMClassName.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMClassName_from_wbem_uri(object):
@@ -18798,8 +19020,7 @@ def test_CIMClass_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -18819,9 +19040,66 @@ def test_CIMClass_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASS_TOCIMXML)
+@simplified_test_function
+def test_CIMClass_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMClass.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMCLASS_TOCIMXML)
+@simplified_test_function
+def test_CIMClass_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMClass.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMClass_tomof(object):  # pylint: disable=too-few-public-methods
@@ -20298,8 +20576,7 @@ def test_CIMMethod_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -20319,9 +20596,66 @@ def test_CIMMethod_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMMETHOD_TOCIMXML)
+@simplified_test_function
+def test_CIMMethod_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMMethod.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMMETHOD_TOCIMXML)
+@simplified_test_function
+def test_CIMMethod_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMMethod.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMMethod_tomof(object):  # pylint: disable=too-few-public-methods
@@ -24836,8 +25170,7 @@ def test_CIMParameter_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -24857,9 +25190,66 @@ def test_CIMParameter_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPARAMETER_TOCIMXML)
+@simplified_test_function
+def test_CIMParameter_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMParameter.tocimxmlstr() with indent as integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMPARAMETER_TOCIMXML)
+@simplified_test_function
+def test_CIMParameter_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMParameter.tocimxmlstr() with indent as string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMParameter_tomof(object):  # pylint: disable=too-few-public-methods
@@ -29057,8 +29447,7 @@ def test_CIMQualifierDeclaration_tocimxml(testcase,
 
     obj_xml_str = obj_xml.toxml()
     exp_xml_str = ''.join(exp_xml_str)
-
-    assert obj_xml_str == exp_xml_str
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 @pytest.mark.parametrize(
@@ -29078,9 +29467,68 @@ def test_CIMQualifierDeclaration_tocimxmlstr(testcase,
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    exp_xml_str = ''.join(exp_xml_str)
+    assert isinstance(obj_xml_str, six.text_type)
 
-    assert obj_xml_str == exp_xml_str
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
+@simplified_test_function
+def test_CIMQualifierDeclaration_tocimxmlstr_indent_int(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMQualifierDeclaration.tocimxmlstr() with indent as
+    integer.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent)
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
+@simplified_test_function
+def test_CIMQualifierDeclaration_tocimxmlstr_indent_str(
+        testcase, obj, kwargs, exp_xml_str):
+    """
+    Test function for CIMQualifierDeclaration.tocimxmlstr() with indent as
+    string.
+    """
+
+    indent = 4
+    indent_str = ' ' * indent
+
+    # The code to be tested
+    obj_xml_str = obj.tocimxmlstr(indent=indent_str, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
+    exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
+
+    assert obj_xml_str == exp_xml_str, \
+        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
+        format(obj.__class__.__name__, indent_str)
 
 
 class Test_CIMQualifierDeclaration_tomof(object):
