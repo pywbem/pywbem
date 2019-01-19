@@ -14,10 +14,10 @@ import errno
 import yaml
 import yamlordereddictloader
 
-FILE_DIR = os.path.dirname(__file__)
+SDF_DIR = os.path.join('tests', 'server_definitions')
 
-DEFAULT_SERVER_FILE = os.path.join(FILE_DIR, 'server_definition_file.yml')
-EXAMPLE_SERVER_FILE = os.path.join(FILE_DIR,
+DEFAULT_SERVER_FILE = os.path.join(SDF_DIR, 'server_definition_file.yml')
+EXAMPLE_SERVER_FILE = os.path.join(SDF_DIR,
                                    'example_server_definition_file.yml')
 
 
