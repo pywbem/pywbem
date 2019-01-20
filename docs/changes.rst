@@ -499,6 +499,10 @@ This version contains all fixes up to pywbem 0.12.4.
   case insensitively, in order to better deal with profile name changes
   in SMI-S. See issue #1551.
 
+* Docs: Clarified in the WBEMServer.get_central_instances() method that
+  all profiles scoped by a top-level specification or autonomous profile
+  implement the same reference direction ('snia' or 'dmtf').
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

@@ -820,6 +820,19 @@ class WBEMServer(object):
               - Antecedent = autonomous profile
               - Dependent = component (= sub) profile
 
+            It should be assumed that all profiles that are directly or
+            indirectly scoped by a particular top-level (= wrapper)
+            specification implement the reference direction that matches the
+            registered organisation of the top-level specification.
+
+            Examples:
+
+            * All profiles scoped by the SNIA SMI-S top-level specification
+              should be assumed to implement the 'snia' reference direction.
+
+            * All profiles scoped by the DMTF SMASH wrapper specification
+              should be assumed to implement the 'dmtf' reference direction.
+
         Returns:
 
           :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
