@@ -307,6 +307,8 @@ This version contains all fixes up to pywbem 0.12.4.
 * Docs: Added a shell command for determining the version of an installed
   pywbem package, that covers all released pywbem versions (Issue #1246).
 
+* Docs: Added jupyter notebooks to demonstrate use of pywbem_mock.
+
 * Make: Eliminated the confusing but unproblematic error message about
   pbr importing when running certain make targets in a freshly created
   Python environment. Issue #1288.

@@ -83,17 +83,18 @@ executing WBEM operations on the faked connection:
     import pywbem_mock
 
     # MOF string defining qualifiers, class, and instance
-    mof = """
-        # CIM qualifier types (declarations)
+    mof = '''
         Qualifier Key : boolean = false,
             Scope(property, reference),
             Flavor(DisableOverride, ToSubclass);
         Qualifier Description : string = null,
             Scope(any),
             Flavor(EnableOverride, ToSubclass, Translatable);
+        Qualifier In : boolean = true,
+            Scope(parameter),
+            Flavor(DisableOverride, ToSubclass);
 
-        # A CIM class declaration
-             [Description ("This is a dumb test class")]
+            [Description ("This is a dumb test class")]
         class CIM_Foo {
                 [Key, Description ("This is key prop")]
             string InstanceID;
@@ -106,9 +107,8 @@ executing WBEM operations on the faked connection:
               boolean Immediate);
         };
 
-        # A CIM instance
         instance of CIM_Foo as $I1 { InstanceID = "I1"; SomeData=3 };
-        """
+        '''
 
     # Create a faked connection (with a mock repository in full mode)
     conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')
@@ -121,6 +121,8 @@ executing WBEM operations on the faked connection:
 
     # Enumerate top-level classes in the default namespace (without subclasses)
     classes = conn.EnumerateClasses();
+    for cls in classes:
+        print(cls.tomof())
 
     # Get the 'Description' qualifier type in the default namespace
     qd = conn.GetQualifier('Description')
@@ -344,6 +346,8 @@ with a simple callback function.
         Callback function that demonstrates what can be done, without being
         really useful.
         """
+        print('params: %r' % params )
+        print('object_name %s' % objectname)
 
         # Access input parameters
         ip1 = params['IP1']
@@ -358,7 +362,7 @@ with a simple callback function.
         op1 = CIMParameter('OP1', 'string', value='Some output data')
         return rtn_val, [op1]
 
-    mof = """
+    mof = '''
         Qualifier In : boolean = true,
             Scope(parameter),
             Flavor(DisableOverride, ToSubclass);
@@ -369,6 +373,10 @@ with a simple callback function.
 
         Qualifier Out : boolean = false,
             Scope(parameter),
+            Flavor(DisableOverride, ToSubclass);
+
+        Qualifier Static : boolean = false,
+            Scope(property, method),
             Flavor(DisableOverride, ToSubclass);
 
         class TST_Class {
@@ -382,7 +390,8 @@ with a simple callback function.
               string IP1,
                 [IN (false), OUT, Description("Output param 1")]
               string OP1);
-    """
+        };
+    '''
 
     # Create a faked connection
     conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')
@@ -683,7 +692,7 @@ qualifier types and classes that are defined in a MOF string.
     conn = pywbem_mock.FakedWBEMConnection()
 
     # Add some qualifier types and classes to the mock repo by compiling MOF
-    mof = """
+    mof = '''
         Qualifier Key : boolean = false,
             Scope(property, reference),
             Flavor(DisableOverride, ToSubclass);
@@ -711,7 +720,7 @@ qualifier types and classes that are defined in a MOF string.
               [Key]
             TST_Class2 REF Ref2;
         };
-    """
+    '''
     conn.compile_mof_string(mof, tst_namespace)
 
     conn.display_repository()
