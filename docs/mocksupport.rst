@@ -83,7 +83,7 @@ executing WBEM operations on the faked connection:
     import pywbem_mock
 
     # MOF string defining qualifiers, class, and instance
-    mof = ''''
+    mof = '''
         Qualifier Key : boolean = false,
             Scope(property, reference),
             Flavor(DisableOverride, ToSubclass);
@@ -692,7 +692,7 @@ qualifier types and classes that are defined in a MOF string.
     conn = pywbem_mock.FakedWBEMConnection()
 
     # Add some qualifier types and classes to the mock repo by compiling MOF
-    mof = """
+    mof = '''
         Qualifier Key : boolean = false,
             Scope(property, reference),
             Flavor(DisableOverride, ToSubclass);
@@ -720,7 +720,7 @@ qualifier types and classes that are defined in a MOF string.
               [Key]
             TST_Class2 REF Ref2;
         };
-    """
+    '''
     conn.compile_mof_string(mof, tst_namespace)
 
     conn.display_repository()
