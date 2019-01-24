@@ -145,16 +145,17 @@ set _RC=%errorlevel%
 if not "%_RC%"=="0" goto error2
 
 echo Files in dist:
-ls -l dist
+dir dist
 
 if %PYTHON_ARCH%==32 (
     set _ARCH_SUFFIX=win32
 ) else (
     set _ARCH_SUFFIX=win_amd64
 )
-set _M2CRYPTO_WHEEL=dist/M2Crypto-%_M2CRYPTO_VERSION%-cp27-cp27m-%_ARCH_SUFFIX%.whl
-echo Wheel archive:
-ls -l %_M2CRYPTO_WHEEL%
+for %%i in (dist\M2Crypto-%_M2CRYPTO_VERSION%-*.whl) do set _M2CRYPTO_WHEEL=%%i
+
+echo File path of wheel archive:
+echo %_M2CRYPTO_WHEEL%
 
 set _CMD=pip install %_M2CRYPTO_WHEEL%
 echo %_CMD%
