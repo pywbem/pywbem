@@ -95,12 +95,12 @@ coverage_html_dir := coverage_html
 # e.g. because the pywbem.egg-info directory or the PKG-INFO file are deleted,
 # when a new version tag has been assigned. Therefore, this variable is assigned with
 # "=" so that it is evaluated every time it is used.
-package_version = $(shell $(PYTHON_CMD) -c "$$(printf 'try:\n from pbr.version import VersionInfo\nexcept ImportError:\n pass\nelse:\n print(VersionInfo(\042$(package_name)\042).release_string())\n')")
+package_version = $(shell $(PYTHON_CMD) -c "from pbr.version import VersionInfo; print(VersionInfo('$(package_name)').release_string())")
 
 # Python versions
-python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s.%s.%s'%sys.version_info[0:3])")
-python_mn_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s%s'%sys.version_info[0:2])")
-python_m_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('%s'%sys.version_info[0:1])")
+python_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('{0}.{1}.{2}'.format(*sys.version_info[0:3]))")
+python_mn_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('{0}{1}'.format(*sys.version_info[0:2]))")
+python_m_version := $(shell $(PYTHON_CMD) -c "import sys; sys.stdout.write('{0}'.format(sys.version_info[0:1]))")
 
 # Directory for the generated distribution files
 dist_dir := dist
@@ -183,9 +183,9 @@ py_src_files := \
     setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
     $(wildcard tests/*.py) \
-		$(wildcard tests/*/*.py) \
-		$(wildcard tests/*/*/*.py) \
-		$(wildcard tests/*/*/*/*.py) \
+    $(wildcard tests/*/*.py) \
+    $(wildcard tests/*/*/*.py) \
+    $(wildcard tests/*/*/*/*.py) \
     wbemcli \
     wbemcli.py \
     mof_compiler \
@@ -195,12 +195,12 @@ py_src_files := \
 test_src_files := \
     $(wildcard tests/unittest/*.py) \
     $(wildcard tests/unittest/*/*.py) \
-		$(wildcard tests/functiontest/*.py) \
+    $(wildcard tests/functiontest/*.py) \
 
 test_yaml_files := \
-$(wildcard tests/unittest/*.y*ml) \
-$(wildcard tests/unittest/*/*.y*ml) \
-$(wildcard tests/functiontest/*.y*ml) \
+    $(wildcard tests/unittest/*.y*ml) \
+    $(wildcard tests/unittest/*/*.y*ml) \
+    $(wildcard tests/functiontest/*.y*ml) \
 
 # Test log
 test_log_file := test_$(python_mn_version).log
@@ -303,8 +303,16 @@ else
 	@true
 endif
 
-install_basic.done:
-	@echo "makefile: Installing/upgrading basic Python packages (pip, etc., with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
+pip_upgrade.done:
+ifeq ($(python_mn_version),26)
+	$(PIP_CMD) install $(pip_level_opts) pip
+else
+	$(PYTHON_CMD) -m pip install $(pip_level_opts) pip
+endif
+	touch pip_upgrade.done
+
+install_basic.done: pip_upgrade.done
+	@echo "makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 ifeq ($(python_mn_version),26)
 	$(PIP_CMD) install importlib
 endif
@@ -313,9 +321,9 @@ endif
 # The approach with "python -m pip" is needed for Windows because pip.exe may be locked,
 # but it is not supported on Python 2.6 (which is not supported with pywbem on Windows).
 ifeq ($(python_mn_version),26)
-	$(PIP_CMD) install $(pip_level_opts) pip setuptools 'wheel<0.30.0'
+	$(PIP_CMD) install $(pip_level_opts) setuptools 'wheel<0.30.0'
 else
-	$(PYTHON_CMD) -m pip install $(pip_level_opts) pip setuptools wheel
+	$(PIP_CMD) install $(pip_level_opts) setuptools wheel
 endif
 	$(PIP_CMD) install $(pip_level_opts) pbr
 	touch install_basic.done
@@ -325,7 +333,7 @@ endif
 install_os: install_os.done
 	@echo "makefile: Target $@ done."
 
-install_os.done: pywbem_os_setup.sh
+install_os.done: pip_upgrade.done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "makefile: Installing OS-level installation and runtime requirements"
 	@echo "Debug: PATH=$(PATH)"
 ifeq ($(PLATFORM),Windows)
@@ -344,7 +352,7 @@ _show_bitsize:
 	$(PYTHON_CMD) -c "import platform; print(int(platform.architecture()[0].rstrip('bit')))"
 	@echo "makefile: Done determining bit size of Python executable"
 
-install_pywbem.done: requirements.txt setup.py setup.cfg
+install_pywbem.done: pip_upgrade.done requirements.txt setup.py setup.cfg
 	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	rm -Rf build $(package_name).egg-info .eggs
 	rm -f PKG-INFO
@@ -359,7 +367,7 @@ install: install.done
 	@echo "makefile: Target $@ done."
 
 install.done: makefile install_os.done install_basic.done install_pywbem.done
-	$(PYTHON_CMD) -c "import $(package_name); print('ok, version=%r'%$(package_name).__version__)"
+	$(PYTHON_CMD) -c "import $(package_name); print('ok, version={0}'.format($(package_name).__version__))"
 	$(PYTHON_CMD) -c "import $(mock_package_name); print('ok')"
 	touch install.done
 
@@ -381,7 +389,7 @@ endif
 develop: develop.done
 	@echo "makefile: Target $@ done."
 
-develop.done: install.done develop_os.done install_basic.done dev-requirements.txt
+develop.done: pip_upgrade.done install.done develop_os.done install_basic.done dev-requirements.txt
 	@echo "makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	$(PIP_CMD) install $(pip_level_opts) -r dev-requirements.txt
 	touch develop.done
@@ -419,8 +427,8 @@ clobber: clean
 .PHONY: clean
 clean:
 	@echo "makefile: Removing temporary build products"
-	bash -c "$(FIND) . -name '*.pyc' -delete"
-	bash -c "$(FIND) . -name \"__pycache__\" |xargs -n 1 rm -Rf"
+	$(FIND) . -name '*.pyc' -delete
+	$(FIND) . -name __pycache__ | xargs -n 1 rm -Rf
 	rm -Rf tmp_ tmp_*
 	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out $(test_tmp_file)
 	rm -Rf build tmp_install testtmp tests/testtmp .cache $(package_name).egg-info .eggs
