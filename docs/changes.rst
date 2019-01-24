@@ -244,6 +244,10 @@ This version contains all fixes up to pywbem 0.12.4.
 * Fixed order of parameters in example method_callback_interface defined in
   pywbem_mock FakedWBEMConnection. (See issue #1614)
 
+* Fixed an error "Python : can't open file 'C:\Users\firstname' :
+  No such file or directory" when invoking wbemcli.bat on native Windows
+  in a directory whose path name contained blanks. (See issue #1622)
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
