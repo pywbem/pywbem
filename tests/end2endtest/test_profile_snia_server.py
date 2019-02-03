@@ -79,8 +79,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
              'Name', 'ElementName', 'Description', 'OperationalStatus',
              'Started'])
 
-    def test_Namespace(  # noqa: F811
-            self, assert_association_func, wbem_connection):
+    def test_Namespace(
+            self, assert_association_func, wbem_connection):  # noqa: F811
         """
         Test the associated CIM_Namespace instances.
         """
@@ -133,8 +133,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
                         set(inst_names), far_insts_msg,
                         set(determined_names)))
 
-    def test_ObjectManagerCommunicationMechanism(  # noqa: F811
-            self, assert_association_func, wbem_connection):
+    def test_ObjectManagerCommunicationMechanism(
+            self, assert_association_func, wbem_connection):  # noqa: F811
         """
         Test the associated CIM_ObjectManagerCommunicationMechanism instances.
         """
@@ -206,8 +206,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         assert_number_of_instances_minimum(
             wbem_connection, far_insts, far_insts_msg, 1)
 
-    def test_System(  # noqa: F811
-            self, assert_association_func, wbem_connection):
+    def test_System(
+            self, assert_association_func, wbem_connection):  # noqa: F811
         """
         Test the associated CIM_System instance.
         """

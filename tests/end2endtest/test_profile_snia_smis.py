@@ -20,8 +20,7 @@ SPEC_NAME = 'SMI-S'
 REFERENCE_DIRECTION = 'snia'
 
 
-def test_snia_smis_to_profile_not_swapped(  # noqa: F811
-        wbem_connection):
+def test_snia_smis_to_profile_not_swapped(wbem_connection):  # noqa: F811
     """
     Test that the SMI-S specification does not reference its profiles via
     CIM_ElementConformsToProfile with its ends incorrectly swapped.
@@ -57,8 +56,7 @@ def test_snia_smis_to_profile_not_swapped(  # noqa: F811
                        SPEC_ORG, SPEC_NAME, len(profiles_swapped)))
 
 
-def test_snia_smis_to_profile_not_reffed(  # noqa: F811
-        wbem_connection):
+def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
     """
     Test that the SMI-S specification does not reference its profiles via
     CIM_ReferencedProfile.
@@ -94,8 +92,7 @@ def test_snia_smis_to_profile_not_reffed(  # noqa: F811
                        len(profiles_reffed)))
 
 
-def test_snia_smis_profile_tree_not_circular(  # noqa: F811
-        wbem_connection):
+def test_snia_smis_profile_tree_not_circular(wbem_connection):  # noqa: F811
     """
     Test that the SMI-S specification has a profile tree without circular
     references, when navigating to referenced profiles in the SNIA reference

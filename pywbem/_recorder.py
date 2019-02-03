@@ -78,10 +78,10 @@ def _represent_ordereddict(dump, tag, mapping, flow_style=None):
         node_value = dump.represent_data(item_value)
         if not (isinstance(node_key, yaml.ScalarNode) and
                 not node_key.style):
-                    best_style = False    # pylint: disable=bad-indentation
+            best_style = False    # pylint: disable=bad-indentation
         if not (isinstance(node_value, yaml.ScalarNode) and
                 not node_value.style):
-                    best_style = False    # pylint: disable=bad-indentation
+            best_style = False    # pylint: disable=bad-indentation
         value.append((node_key, node_value))
     if flow_style is None:
         if dump.default_flow_style is not None:

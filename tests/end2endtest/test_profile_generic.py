@@ -17,8 +17,8 @@ from .utils.utils import latest_profile_inst, server_func_asserted, \
     server_prop_asserted
 
 
-def test_get_central_instances(  # noqa: F811
-        profile_definition, wbem_connection):
+def test_get_central_instances(
+        profile_definition, wbem_connection):  # noqa: F811
     """
     Test that the central instances of the profile can be determined using
     WBEMServer.gen_central_instances().
@@ -70,8 +70,7 @@ def test_get_central_instances(  # noqa: F811
     # at least one central instance.
 
 
-def test_undefined_profiles(  # noqa: F811
-        wbem_connection):
+def test_undefined_profiles(wbem_connection):  # noqa: F811
     """
     Test that the server advertises only profiles defined in profiles.yml.
     """

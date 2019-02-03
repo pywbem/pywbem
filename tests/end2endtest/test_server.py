@@ -14,8 +14,8 @@ from .utils.pytest_extensions import default_namespace  # noqa: F401, E501
 from .utils.utils import server_func_asserted, server_prop_asserted
 
 
-def test_namespace_consistency(  # noqa: F811
-        default_namespace, wbem_connection):
+def test_namespace_consistency(
+        default_namespace, wbem_connection):  # noqa: F811
     """
     Test that the Interop namespace and all namespaces and namespace paths can
     be determined, and verify consistency between them.
@@ -41,8 +41,8 @@ def test_namespace_consistency(  # noqa: F811
         assert ns_path_name_lower in namespaces_lower, msg
 
 
-def test_namespace_getinstance(  # noqa: F811
-        default_namespace, wbem_connection):
+def test_namespace_getinstance(
+        default_namespace, wbem_connection):  # noqa: F811
     """
     Test that GetInstance on the instance paths of all namespaces succeeds.
     """
@@ -63,8 +63,8 @@ def test_namespace_getinstance(  # noqa: F811
         assert inst_name_lower == path_name_lower, msg
 
 
-def test_brand_version(  # noqa: F811
-        default_namespace, wbem_connection):
+def test_brand_version(
+        default_namespace, wbem_connection):  # noqa: F811
     """
     Test that the server brand and version can be determined.
     """
@@ -83,8 +83,8 @@ def test_brand_version(  # noqa: F811
             "version={0!r}; {1}".format(version, msg)
 
 
-def test_cimom_inst(  # noqa: F811
-        default_namespace, wbem_connection):
+def test_cimom_inst(
+        default_namespace, wbem_connection):  # noqa: F811
     """
     Test that the instance representing the server can be determined and that
     GetInstance on it succeeds.
@@ -107,8 +107,8 @@ def test_cimom_inst(  # noqa: F811
     assert cimom_inst == get_inst, msg
 
 
-def test_profiles(  # noqa: F811
-        default_namespace, wbem_connection):
+def test_profiles(
+        default_namespace, wbem_connection):  # noqa: F811
     """
     Test that the registered profiles advertised by the server can be
     determined and that GetInstance on them succeeds.
@@ -135,8 +135,8 @@ def test_profiles(  # noqa: F811
         assert profile_inst == get_inst, msg
 
 
-def test_get_selected_profiles_no_filter(  # noqa: F811
-        default_namespace, wbem_connection):
+def test_get_selected_profiles_no_filter(
+        default_namespace, wbem_connection):  # noqa: F811
     """
     Test that the get_selected_profiles() method without filtering returns
     the same profiles as the profiles attribute.
