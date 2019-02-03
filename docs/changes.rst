@@ -514,10 +514,12 @@ This version contains all fixes up to pywbem 0.12.4.
   without knowledge of some of the related DMTF standards. Changed that
   to make it understandable for pywbem users without requiring knowledge
   of these documents. Some of the text has been moved to a new section
-  "Profile advertisement methodologies" in the Appendix of the pywbem 
+  "Profile advertisement methodologies" in the Appendix of the pywbem
   documentation. As part of that, clarified how to determine the scoping
   class and scoping path for a component profile that does not specify
   them in the profile description. See issue #1398.
+
+* Corrected the hint how to exit in wbemcli when running on Windows.
 
 **Cleanup:**
 

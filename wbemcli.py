@@ -3119,8 +3119,11 @@ def _get_banner():
     # Give hint about exiting. Most people exit with 'quit()' which will
     # not return from the interact() method, and thus will not write
     # the history.
-    result += '\nPress Ctrl-D to exit'
-    result += '\nType h() for help'
+    if _sys.platform == 'win32':
+        result += '\nEnter Ctrl-Z or quit() or exit() to exit'
+    else:
+        result += '\nPress Ctrl-D or enter quit() or exit() to exit'
+    result += '\nEnter h() for help'
 
     return result
 
