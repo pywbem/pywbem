@@ -19,6 +19,16 @@
 # Author: Andreas Maier <maiera@de.ibm.com>
 #
 
+# Script that installs OS-level prerequisites for pywbem on Linux, MacOS, and
+# Windows with UNIX-like environments.
+#
+# Prerequisite commands for running this script:
+#     python (This script uses the active Python environment, virtual Python
+#       environments are supported)
+#     pip (with support for download subcommand, is installed by makefile)
+#     uname
+#     The package installer for your OS (yum, dnf, apt, zypper, brew)
+
 arg1="${1:-install}"
 arg2="${2:-}"
 myname=$(basename $0)

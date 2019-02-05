@@ -209,6 +209,7 @@ install:
     fi
 # End of m2crypto quick fix.
   - pip list
+  - make platform env
   - make install
   - pip list
   - make develop

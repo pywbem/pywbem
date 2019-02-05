@@ -5,36 +5,86 @@ environment:
 # Python 2.6 is not supported by M2Crypto on Windows (nor by the earlier used
 # M2CryptoWin32/Win64; its __m2crypto.pyd file depends on python27.dll).
 #------------------------
+
     - PYTHON_VERSION: 2.7
       PYTHON_ARCH: 32
       PYTHON_HOME: C:\Python27
+      UNIX_PATH: none
+
+#    - PYTHON_VERSION: 2.7
+#      PYTHON_ARCH: 32
+#      PYTHON_HOME: C:\Python27
+#      UNIX_PATH: C:\cygwin\bin
+
 #    - PYTHON_VERSION: 2.7
 #      PYTHON_ARCH: 64
 #      PYTHON_HOME: C:\Python27-x64
+#      UNIX_PATH: none
+
+#    - PYTHON_VERSION: 2.7
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python27-x64
+#      UNIX_PATH: C:\cygwin64\bin
+
+    - PYTHON_VERSION: 2.7
+      PYTHON_ARCH: 64
+      PYTHON_HOME: C:\Python27-x64
+      UNIX_PATH: C:\msys64\usr\bin
+
 #    - PYTHON_VERSION: 3.4
 #      PYTHON_ARCH: 32
 #      PYTHON_HOME: C:\Python34
+#      UNIX_PATH: none
+
 #    - PYTHON_VERSION: 3.4
 #      PYTHON_ARCH: 64
 #      PYTHON_HOME: C:\Python34-x64
+#      UNIX_PATH: none
+
 #    - PYTHON_VERSION: 3.5
 #      PYTHON_ARCH: 32
 #      PYTHON_HOME: C:\Python35
+#      UNIX_PATH: none
+
 #    - PYTHON_VERSION: 3.5
 #      PYTHON_ARCH: 64
 #      PYTHON_HOME: C:\Python35-x64
+#      UNIX_PATH: none
+
 #    - PYTHON_VERSION: 3.6
 #      PYTHON_ARCH: 32
 #      PYTHON_HOME: C:\Python36
+#      UNIX_PATH: none
+
 #    - PYTHON_VERSION: 3.6
 #      PYTHON_ARCH: 64
 #      PYTHON_HOME: C:\Python36-x64
+#      UNIX_PATH: none
+
 #    - PYTHON_VERSION: 3.7
 #      PYTHON_ARCH: 32
 #      PYTHON_HOME: C:\Python37
+#      UNIX_PATH: none
+
+#    - PYTHON_VERSION: 3.7
+#      PYTHON_ARCH: 32
+#      PYTHON_HOME: C:\Python37
+#      UNIX_PATH: C:\cygwin\bin
+
+#    - PYTHON_VERSION: 3.7
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python37-x64
+#      UNIX_PATH: none
+
     - PYTHON_VERSION: 3.7
       PYTHON_ARCH: 64
       PYTHON_HOME: C:\Python37-x64
+      UNIX_PATH: C:\cygwin64\bin
+
+#    - PYTHON_VERSION: 3.7
+#      PYTHON_ARCH: 64
+#      PYTHON_HOME: C:\Python37-x64
+#      UNIX_PATH: C:\msys64\usr\bin
 
 configuration:
 # These values will become the values of the PACKAGE_LEVEL env.var.
@@ -81,25 +131,18 @@ install:
   - 'set $newpath=%$newpath:^^=%'
   - 'set PATH=%$newpath%'
 
-  # Add CygWin
-  # This must be after removal of Python 2.7 (because CygWin has the Unix find) and
-  # before adding Python (because CygWin also has a python).
-  - set PATH=C:\cygwin\bin;%PATH%
+  # Add UNIX path, if set in the build matrix
+  # This must be after removal of Python 2.7 (because that uses the Windows
+  # find and the UNIX env likely has the Unix find) and before adding Python
+  # (because the UNIX env may also have a python).
+  - 'if not "%UNIX_PATH%"=="none" set PATH=%UNIX_PATH%;%PATH%'
 
-  # Add Python
+  # Add Python (includes Pip)
   - reg ADD HKCU\Software\Python\PythonCore\%PYTHON_VERSION%\InstallPath /ve /d "%PYTHON_HOME%" /t REG_SZ /f
   - reg ADD HKLM\Software\Python\PythonCore\%PYTHON_VERSION%\InstallPath /ve /d "%PYTHON_HOME%" /t REG_SZ /f
-  - set PATH=%PYTHON_HOME%;%PYTHON_HOME%\Scripts;%PATH%
+  - 'set PATH=%PYTHON_HOME%;%PYTHON_HOME%\Scripts;%PATH%'
   - where python
   - python --version
-
-  ## Install InnoSetup - disabled because it is not needed
-  #- choco install -y InnoSetup
-  #- set PATH="C:\Program Files (x86)\Inno Setup 5";%PATH%
-
-  ## Install pip - disabled because pip is already installed
-  #- ps: (new-object System.Net.WebClient).Downloadfile('https://bootstrap.pypa.io/get-pip.py', 'C:\Users\appveyor\get-pip.py')
-  #- ps: Start-Process -FilePath "C:\Python27\python.exe" -ArgumentList "C:\Users\appveyor\get-pip.py" -Wait -Passthru
   - where pip
   - pip --version
 
@@ -107,60 +150,66 @@ install:
   - where choco
   - choco --version
 
+  # Install GNU make if no UNIX env is set
+  - if "%UNIX_PATH%"=="none" choco install -y make
+  - where make
+  - make --version
+
   # Circumvention:
   # The installation in pywbem_os_setup.bat installs swig but without generating
   # the swig.exe shim file (using GenShim).
   # See GenShim issue https://github.com/chocolatey/shimgen/issues/43
   # Therefore, we install swig here in order to create the swig.exe shim file.
   # TODO: Remove the circumvention once it works in pywbem_os_setup.bat.
-  - choco install -r -y --allow-empty-checksums swig
-  - where swig
+  #- choco install -y --allow-empty-checksums swig
+  #- where swig
+  #- swig -version
 
   # Examine the final environment
-  - 'echo "%PATH%"'
-  - 'echo "%PYTHONPATH%"'
-  - 'echo "%INCLUDE%"'
-  - 'echo "%LIB%"'
-  - 'echo "%SWIG_FEATURES%"'
+  - 'echo: %PATH%'
+  - 'echo: %PYTHONPATH%'
+  - 'echo: %INCLUDE%'
+  - 'echo: %LIB%'
+  - 'echo: %SWIG_FEATURES%'
 
-  # Install tox
-  - pip install tox==2.0.0
-  - where tox
-  - tox --version
+  # Verify that the commands used in pywbem_os_setup.bat are available
+  # Already verified further up: choco, pip, python.
+  - where chmod
+  - chmod --version
+  - where tar
+  - tar --version
 
-  # Verify that the commands used in tox.ini are available
-  # Already verified further up: tox, pip, python.
-  - where make
-  - make --version
+  # Install Python virtualenv and OS commands
+  #
+  # Note: Installing Swig in pywbem_os_setup.bat does not work when it runs
+  # inside of make which runs inside of tox, because it does not generate the
+  # swig.exe shim file (using GenShim). See GenShim issue
+  # https://github.com/chocolatey/shimgen/issues/43.
+  # Therefore, we invoke pywbem_os_setup.bat outside of make.
+  - pip install virtualenv
+  - virtualenv myenv
+  - myenv\Scripts\activate
+  - where python
+  - python --version
+  - where pip
+  - pip --version
+  - call pywbem_os_setup.bat install
+  - call pywbem_os_setup.bat develop
 
   # Verify that the commands used in makefile are available
   # Already verified further up: pip, python.
-  - where sh
-  - sh --version
-  - where bash
-  - bash --version
-  - where rm
-  - rm --version
-  - where mv
-  - mv --version
-  - where xargs
-  - xargs --version
-  - where grep
-  - grep --version
-  - where sed
-  - sed --version
-  - where tar
-  - tar --version
-  - where find
-  - find --version
-
-  # Verify that the commands used in pywbem_os_setup.bat are available
-  - where curl
-  - curl --version
 
   # Verify that the commands used in the pywbem testsuite are available
   - where xmllint
   - xmllint --version
+
+  # Install Python packages
+  - make platform env
+  - pip list
+  - make install
+  - pip list
+  - make develop
+  - pip list
 
 # Not a C# project, build stuff at the test step instead.
 build: false
@@ -168,4 +217,4 @@ build: false
 before_test:
 
 test_script:
-  - tox -e pywin
+  - make test

@@ -253,13 +253,14 @@ Installing to OS-X
 Installing to native Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section describes the installation of pywbem into a native Windows
-environment (i.e. without using a UNIX-like environment; for that, see
-:ref:`Installing to a UNIX-like environment under Windows`):
+This section describes the installation of pywbem into a *native Windows
+environment*. That is an environment where the Windows command processor is
+used to run any commands. Tools from UNIX-like environments may or may not be
+present in the PATH.
 
 * Prerequisites:
 
-  - The Python environment into which you want to install must be the current
+  - The Python environment into which you want to install must be the active
     Python environment, and must have at least the following Python packages
     installed:
 
@@ -267,9 +268,6 @@ environment (i.e. without using a UNIX-like environment; for that, see
     - wheel
     - pip
     - pbr
-
-  - The `Chocolatey package manager`_ must be installed and its "choco" command
-    available in the PATH.
 
   - Windows command prompt in administrator mode.
 
@@ -280,30 +278,50 @@ environment (i.e. without using a UNIX-like environment; for that, see
   - `pywbem_os_setup.bat <https://raw.githubusercontent.com/pywbem/pywbem/master/pywbem_os_setup.bat>`_
     on the `master` branch of the pywbem Git repository
 
-  That script installs OS-level prerequisite packages needed by pywbem.
-
-* Execute the ``pywbem_os_setup.bat`` script in an administrator command prompt:
+* Execute the ``pywbem_os_setup.bat`` script in a Windows command prompt in
+  administrator mode:
 
   .. code-block:: bash
 
-      > pywbem_os_setup.bat
+     > pywbem_os_setup.bat
 
-  The script uses the `Chocolatey package manager`_.
+  This script checks whether the commands needed for installing and using
+  pywbem are available in the PATH. If not, it installs them via the
+  `Chocolatey package manager`_.
+
+  The following commands are needed for installing and using pywbem:
+
+  * ``swig``
+  * ``curl``
+  * ``grep``
+  * ``chmod``
+  * ``tar``
+
+  These commands can be made available in the PATH via a UNIX-like environment
+  such as `CygWin`_, `MSYS2`_, Babun, or Gow. If they are not all available in
+  the PATH, the `Chocolatey package manager`_ must be installed and its
+  ``choco`` command must be available in the PATH.
 
   This script will also install the ``M2Crypto`` Python package into the active
-  Python environment.
+  Python environment, so it must be run with the desired Python environment
+  active.
 
-  This script will also install Win32 OpenSSL from
+  This script will also download and install Win32 OpenSSL from
   https://slproweb.com/products/Win32OpenSSL.html.
 
 * Install pywbem (and its other prerequisite Python packages) into the active
-  Python environment:
+  Python environment by running in a Windows command prompt in administrator
+  mode:
 
   .. code-block:: bash
 
-      > pip install pywbem
+     > pip install pywbem
 
 .. _`Chocolatey package manager`: https://chocolatey.org/
+
+.. _`CygWin`: https://cygwin.org/
+
+.. _`MSYS2`: https://www.msys2.org/
 
 
 .. _`Installing to a UNIX-like environment under Windows`:
@@ -311,8 +329,10 @@ environment (i.e. without using a UNIX-like environment; for that, see
 Installing to a UNIX-like environment under Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section describes the installation of pywbem into a UNIX-like environment
-under Windows (such as CygWin, MinGW, Babun, or Gow).
+This section describes the installation of pywbem into a *UNIX-like environment
+under Windows* (such as `CygWin`_, `MSYS2`_, Babun, or Gow). That is an
+environment where the UNIX/Linux shell of the UNIX-like environment (such as
+``bash`` or ``sh``) is used to run any commands.
 
 Note that Unix-like environments on Windows bring their own Python, so in such
 an environment, you install into that Python, and not into the Python of
@@ -341,11 +361,12 @@ Windows.
     tell us by `opening an issue <https://github.com/pywbem/pywbem/issues>`_).
 
 * Install pywbem (and its other prerequisite Python packages) into the active
-  Python environment:
+  Python environment, by running in the UNIX/Linux shell of the UNIX-like
+  environment:
 
   .. code-block:: bash
 
-      > pip install pywbem
+      $ pip install pywbem
 
   If the Swig compilation during installation of ``M2Crypto`` fails, there may
   be components of the UNIX-like environment missing (see first item).
