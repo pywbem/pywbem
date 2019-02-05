@@ -616,6 +616,25 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Added support for running pylint also on Python 3.x. See issue #1640.
 
+* Improved the makefile for use on native Windows. See issue #1631. Details:
+
+  - Some GNU make versions on native Windows have an issue with double
+    quotes in make $(shell ..) commands; removed the use of double quotes.
+    As a result, most inline python commands have been moved into new small
+    scripts in the tools directory.
+    Also, several make targets that used to produce log files,
+    no longer can do that and the user needs to redirect the make invocation
+    in order to get a log file.
+
+  - Removed dependencies on most UNIX-like commands (touch, tee, bash, rm,
+    find, xargs) when using make on native Windows.
+
+  - Encapsulated file removal and copy commands to be compatible between
+    native Windows and other platforms.
+
+  - Updated the appveyor.yml file to check only the new, smaller, list of
+    commands.
+
 **Known issues:**
 
 * See `list of open issues`_.
