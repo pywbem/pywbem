@@ -521,6 +521,10 @@ This version contains all fixes up to pywbem 0.12.4.
 
 * Corrected the hint how to exit in wbemcli when running on Windows.
 
+* Added method to statistics (class Statistics, method reset()) to reset
+  the statistics on a WBEMConnection. This simply resets all of the statistics
+  values gathered on that connection to their initial values.
+
 **Cleanup:**
 
 * Moved class `NocaseDict` into its own module (Issue #848).

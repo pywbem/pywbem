@@ -140,6 +140,7 @@ from __future__ import absolute_import
 
 import time
 import copy
+import six
 
 from ._utils import _format
 
@@ -716,3 +717,19 @@ class Statistics(object):
         else:
             ret += "Disabled"
         return ret.strip()
+
+    def reset(self):
+        """
+        Reset all statistics and clear any statistic names.
+        All statistics must be inactive before a reset will execute
+
+        Returns: True if reset, False if not
+        """
+        # Test for any stats being currently timed.
+        for stat in six.itervalues(self._op_stats):
+            if stat._start_time is not None:  # pylint: disable=protected-access
+                return False
+
+        # clear all statistics
+        self._op_stats = {}
+        return True

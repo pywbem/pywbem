@@ -320,6 +320,45 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
                             "actual max duration: %r" % stats.max_time)
 
+    def test_reset(self):
+        """Test resetting statistics."""
+
+        statistics = Statistics()
+        statistics.enable()
+
+        duration = 1.0
+
+        # Allowable delta in seconds between expected and actual duration.
+        # Notes:
+        # * Windows has only a precision of 1/60 sec.
+        # * In CI environments, the tests sometimes run slow.
+        delta = 0.5
+
+        stats = statistics.start_timer('GetInstance')
+        # test reset fails because stat in process
+        self.assertFalse(statistics.reset())
+        time.sleep(duration)
+        stats.stop_timer(100, 200)
+
+        # take a snapshot
+        snapshot = statistics.snapshot()
+
+        # verify that only the first set of data is in the snapshot
+        for _, stats in snapshot:
+            self.assertEqual(stats.count, 1)
+            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
+                            "actual avg duration: %r" % stats.avg_time)
+            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
+                            "actual min duration: %r" % stats.min_time)
+            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
+                            "actual max duration: %r" % stats.max_time)
+
+        self.assertTrue(statistics.reset())
+
+        # take another snapshot. This snapshot should be empty
+        snapshot = statistics.snapshot()
+        self.assertTrue(len(snapshot) == 0)
+
 
 class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
     """Test repr and report output from statistics class"""
