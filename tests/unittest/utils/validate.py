@@ -67,7 +67,7 @@ import os.path
 import re
 from subprocess import Popen, PIPE, STDOUT
 
-from pywbem._utils import _ensure_bytes
+from pywbem._utils import _ensure_bytes, _ensure_unicode
 
 # CIM-XML DTD file to validate against
 DTD_FILE = os.path.join('tests', 'dtd', 'DSP0203_2.3.1.dtd')
@@ -125,10 +125,10 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
     p.stdin.write(cim_xml_str)
     p.stdin.close()
 
-    output = '\n'.join(p.stdout.readlines())
-
     status = p.wait()
     if status != 0:
+        out_lines = p.stdout.readlines()
+        output = _ensure_unicode(b'\n'.join(out_lines))
         raise CIMXMLValidationError(output)
 
 

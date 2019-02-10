@@ -259,6 +259,9 @@ This version contains all fixes up to pywbem 0.12.4.
   contribute to the same repository (the original version copied objects
   from the compiler repository to the mocker repository).
 
+* Test: Fixed a bytes/unicode error in validate.py that occurred on Python 3
+  when xmllint failed validating the DTD.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
