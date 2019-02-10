@@ -259,13 +259,14 @@ def execute_wbemcli(args, verbose=False):
         if not isinstance(arg, six.text_type):
             arg = arg.decode('utf-8')
         cmd_args.append(arg)
+    cmd_args = u' '.join(cmd_args)
 
     if verbose:
-        print('CMD_ARGS %s' % cmd_args)
+        print('Calling with shell: %r' % cmd_args)
 
     # Using universal_newlines=True reduces EOLs to
     # '\n' despite what other packages might add on.
-    proc = Popen(cmd_args, shell=False, stdout=PIPE, stderr=PIPE,
+    proc = Popen(cmd_args, shell=True, stdout=PIPE, stderr=PIPE,
                  universal_newlines=True)
     stdout_str, stderr_str = proc.communicate()
     rc = proc.returncode
