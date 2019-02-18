@@ -151,7 +151,7 @@ install:
   - choco --version
 
   # Install GNU make if no UNIX env is set
-  - if "%UNIX_PATH%"=="none" choco install -y make
+  - if "%UNIX_PATH%"=="none" tools\retry choco install -y make
   - where make
   - make --version
 
