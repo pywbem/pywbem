@@ -37,8 +37,8 @@ goto end
 
 echo Installing OS-level prerequisite packages for install on platform Windows ...
 
-if not exist ..\tmp_pywbem_os_setup mkdir ..\tmp_pywbem_os_setup
-pushd ..\tmp_pywbem_os_setup
+if not exist tmp_pywbem_os_setup mkdir tmp_pywbem_os_setup
+pushd tmp_pywbem_os_setup
 
 if not %PYTHON_M_VERSION%==2 goto install_no_py2
 
@@ -59,6 +59,8 @@ echo Installing Swig ...
 :: TODO: Remove the circumvention once it works in pywbem_os_setup.bat.
 
 set _CMD=choco install -y swig
+:: The following test ensures that this script still works when downloaded standalone.
+if exist ..\tools\retry.bat set _CMD=..\tools\retry.bat %_CMD%
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
@@ -82,6 +84,8 @@ if %errorlevel%==0 (
 echo Installing Curl ...
 
 set _CMD=choco install -y curl
+:: The following test ensures that this script still works when downloaded standalone.
+if exist ..\tools\retry.bat set _CMD=..\tools\retry.bat %_CMD%
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
@@ -105,6 +109,8 @@ if %errorlevel%==0 (
 echo Installing Grep ...
 
 set _CMD=choco install -y grep
+:: The following test ensures that this script still works when downloaded standalone.
+if exist ..\tools\retry.bat set _CMD=..\tools\retry.bat %_CMD%
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
@@ -248,6 +254,8 @@ if %errorlevel%==0 (
 echo Installing xmllint ...
 
 set _CMD=choco install -y xsltproc
+:: The following test ensures that this script still works when downloaded standalone.
+if exist tools\retry.bat set _CMD=tools\retry.bat %_CMD%
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
@@ -262,8 +270,6 @@ if not "%_RC%"=="0" goto error1
 echo Done installing xmllint
 :done_xmllint
 
-echo Warning: Package 'libxml2' must be installed manually.
-
 goto end
 
 :error2
@@ -275,5 +281,6 @@ echo Error: Command returned rc=%_RC%
 exit /b %_RC%
 
 :end
+rmdir /q /s tmp_pywbem_os_setup
 endlocal
 exit /b 0
