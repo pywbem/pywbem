@@ -17,6 +17,7 @@ import re
 import getpass as _getpass
 
 import argparse as _argparse
+from tabulate import tabulate
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
 
@@ -102,6 +103,10 @@ def run_pull_enum_instances(conn, max_object_count):
 
     total_svr_response_time = 0
     total_op_time = 0
+    total_last_xmltuple = 0
+    total_last_tupleparser = 0
+    total_last_tuplechecker = 0
+    total_rtnscheck = 0
 
     while not result.eos:
         result = conn.PullInstancesWithPath(result.context,
@@ -109,33 +114,34 @@ def run_pull_enum_instances(conn, max_object_count):
         record_response_times(conn, max_object_count, op_count)
         op_count += 1
         insts_pulled.extend(result.instances)
+        total_op_time = 0
+        total_last_xmltuple += conn._last_xmltuple
+        total_last_tupleparser += conn._last_tupleparser
+        total_last_tuplechecker += conn._last_tuplechecker
+        total_rtnscheck += conn._last_rtnscheck
         if conn.last_server_response_time:
             total_svr_response_time += conn.last_server_response_time
         else:
             total_svr_response_time = 0
         total_op_time += conn.last_operation_time
 
-    diff = total_op_time - total_svr_response_time
-    percentage = (diff / total_op_time) * 100
-
     # return tuple containing info on the sequence (instances pulled,
     #                                               zero origin opertion ctr)
     #                                               tuple of time stats
     return [len(insts_pulled), op_count,
-            (total_svr_response_time, total_op_time, diff, percentage)]
+            (total_svr_response_time,   # 0
+             total_op_time,             # 1
+             "%.6f" % total_last_xmltuple,    # 2
+             "%.6f" % total_last_tupleparser,    # 3
+             "%.6f" % total_last_tuplechecker,   # 4
+             "%.6f" % total_rtnscheck)]          # 5
 
 
 def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
     """
     Run a single test for a defined response_count and response size
     """
-    table_data_format1 = '{0:10.10} {1:8d} {2:10d} {3:10.10} {4:10.10} ' \
-                         '{5:11.11} {6:10.2f} {7:10.3f} ' \
-                         '{8:10.3f} {9:10.3f} {10:11.3f}'
-
-    table_data_format2 = '{0:10.10} {1:8d} {2:10d} {3:10d} {4:9d}  ' \
-                         '{5:11.11} {6:10.2f} {7:10.3f} ' \
-                         '{8:10.3f} {9:10.3f} {10:11.3f}'
+    rows = []
 
     set_provider_parameters(conn, response_count, response_size)
 
@@ -143,6 +149,7 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
     enum_count = run_enum_instances(conn)
     enum_time = datetime.datetime.now() - start_time
     inst_per_sec = enum_count / enum_time.total_seconds()
+
     if conn.last_server_response_time:
         diff = conn.last_operation_time - conn.last_server_response_time
     else:
@@ -150,11 +157,14 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
         conn.last_server_response_time = 0
     percentage = (diff / conn.last_operation_time) * 100
 
-    print(table_data_format1.format(
-        'Enum', enum_count, response_size, '', '', str(enum_time),
-        inst_per_sec,
-        conn.last_server_response_time,
-        conn.last_operation_time, diff, percentage))
+    row = ['Enum', enum_count, response_size, '', '', str(enum_time),
+           inst_per_sec,
+           conn.last_server_response_time,
+           conn.last_operation_time, diff, percentage,
+           conn._last_xmltuple,
+           conn._last_tupleparser, conn._last_tuplechecker,
+           conn._last_rtnscheck]
+    rows.append(row)
 
     for max_obj_cnt in max_obj_cnt_array:
         pull_start_time = datetime.datetime.now()
@@ -166,13 +176,20 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
         diff = stats[1] - stats[0]
         percentage = (diff / stats[1]) * 100
 
-        print(table_data_format2.format(
-            'Open/Pull', pull_result[0], response_size, max_obj_cnt,
-            pull_result[1],
-            str(pull_time),
-            inst_per_sec,
-            stats[0],
-            stats[1], diff, percentage))
+    row = ['Open/Pull', pull_result[0], response_size, max_obj_cnt,
+           pull_result[1],
+           str(pull_time),
+           inst_per_sec,
+           stats[0],
+           stats[1],
+           diff,
+           percentage,
+           stats[2],
+           stats[3],
+           stats[4],
+           stats[5]]
+    rows.append(row)
+    return rows
 
 
 def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
@@ -181,29 +198,30 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
     """
     # Run the enumeration one time to eliminate any server startup time
     # loss and test for the server_response time
+    rows = []
     run_enum_instances(conn)
     if conn.last_server_response_time is None:
         print('WARNING: Server probably not returning server response time')
 
-    table_format = '{0:10.10} {1:10.10} {2:10.10} {3:10.10} ' \
-        '{4:10.10} {5:11.11} {6:10.10} {7:10.10} ' \
-        '{8:10.10} {9:10.10} {10:11.11}'
-
-    print(table_format.format('Operation', 'Response', 'RespSize', 'MaxObjCnt',
-                              'Result', 'Exec time', 'inst/sec', 'svr-time',
-                              'resp-time', 'svr response', 'other proc'))
-    print(table_format.format('', 'Count', 'Bytes', 'Request',
-                              'Count', '', '', 'sec',
-                              'sec', 'sec', 'percent'))
-
+    header = ['Operation', 'Response\nCount', 'RespSize\nBytes',
+              'MaxObjCnt\nRequest',
+              'Result\nCount', 'Exec time', 'inst/sec', 'svr-time\nsec',
+              'resp-time\nsec', 'other_proc\nsec', 'other_proc\npercent',
+              'xmltuple\nsec', 'tupleparser\nsec', 'tuplechecker\nsec',
+              'rtnscheck\nsec']
     for response_size in response_sizes:
         for response_count in response_counts:
-            run_single_test(conn, response_count, response_size, pull_sizes)
+            # run_single_test(conn, response_count, response_size, pull_sizes)
+            rows.extend(run_single_test(conn, response_count, response_size,
+                        pull_sizes))
+
+    table = tabulate(rows, headers=header, tablefmt="grid")
+    print(table)
 
     if verbose:
         print('\n\n')
         print(conn.statistics.formatted())
-        print("\n\nIndividual Returns for response-count=%s" % response_count)
+        print("\n\nIndividual Returns for response-counts=%s" % response_counts)
         headers = ('ObjsCnt', 'Pull#', 'SvrTime', 'RspTime',
                    'OpTime-SvrTime', '%Not Svr')
 
@@ -388,18 +406,10 @@ Examples:
         '-h', '--help', action='help',
         help='Show this help message and exit')
 
-    return argparser.parse_args()
-
-
-def main(prog):
-    """
-    Parse command line arguments, connect to the WBEM server and open the
-    interactive shell.
-    """
-    args = parse_args()
+    args = argparser.parse_args()
 
     if not args.server:
-        _argparse.error('No WBEM server specified')
+        argparser.error('No WBEM server specified')
 
     if args.server[0] == '/':
         url = args.server
@@ -408,16 +418,26 @@ def main(prog):
         url = args.server
 
     elif re.match(r"^[a-zA-Z0-9]+://", args.server) is not None:
-        _argparse.error('Invalid scheme on server argument.'
+        argparser.error('Invalid scheme on server argument.'
                         ' Use "http" or "https"')
 
     else:
         url = '%s://%s' % ('https', args.server)
 
-    creds = None
-
     if args.key_file is not None and args.cert_file is None:
-        _argparse.error('keyfile option requires certfile option')
+        argparser.error('keyfile option requires certfile option')
+
+    return args, url
+
+
+def main(prog):
+    """
+    Parse command line arguments, connect to the WBEM server and open the
+    interactive shell.
+    """
+    args, url = parse_args()
+
+    creds = None
 
     if args.user is not None and args.password is None:
         args.password = _getpass.getpass('Enter password for %s: '
