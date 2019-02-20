@@ -84,6 +84,12 @@ jupyter>=1.0.0; python_version >= '2.7'
 # TODO: Follow up on resolution of this issue.
 tornado<5.0; python_version <= '2.7'
 
+# Table output formatter used by the manual performance tests to display
+# timing results
+tabulate >= 0.8.3
+
+# Performance profiling tools
+pyinstrument >=3.0.1
 
 # Indirect dependencies are no longer specified here, but for testing with a
 # minimum version, they are listed in the minimum-constraints.txt file.
