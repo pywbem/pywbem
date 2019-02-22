@@ -183,7 +183,7 @@ if %errorlevel%==0 (
     goto done_m2crypto
 )
 
-set _M2CRYPTO_VERSION=0.30.1
+set _M2CRYPTO_VERSION=0.31.0
 echo Installing Python package M2Crypto version %_M2CRYPTO_VERSION% ...
 
 set _CMD=pip download M2Crypto==%_M2CRYPTO_VERSION%
