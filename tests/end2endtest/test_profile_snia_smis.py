@@ -10,9 +10,11 @@ from pywbem import WBEMServer
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
+# pylint: disable=unused-import, line-too-long
 from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
 from .utils.assertions import assert_instance_of, assert_profile_tree, std_uri
 from .utils.utils import server_func_asserted
+# pylint: enable=unused-import, line-too-long
 
 # Organization and name of the registered specification
 SPEC_ORG = 'SNIA'

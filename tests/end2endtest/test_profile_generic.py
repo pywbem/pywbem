@@ -10,11 +10,13 @@ from pywbem import WBEMServer, ValueMapping
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
+# pylint: disable=unused-import, line-too-long
 from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
 from .utils.pytest_extensions import profile_definition  # noqa: F401, E501
 from .utils.pytest_extensions import PROFILE_DEFINITION_DICT
 from .utils.utils import latest_profile_inst, server_func_asserted, \
     server_prop_asserted
+# pylint: enable=unused-import, line-too-long
 
 
 def test_get_central_instances(
@@ -48,7 +50,7 @@ def test_get_central_instances(
     if profile_definition['central_class'] is None:
         raise ValueError(
             "Profile definition error: The central_class attribute of "
-            "item {0} {1!r} with type {0} must be non-null".
+            "item {0} {1!r} with type {2} must be non-null".
             format(profile_definition['registered_org'],
                    profile_definition['registered_name'],
                    profile_definition['type']))
