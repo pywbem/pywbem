@@ -262,6 +262,9 @@ This version contains all fixes up to pywbem 0.12.4.
 * Test: Fixed a bytes/unicode error in validate.py that occurred on Python 3
   when xmllint failed validating the DTD.
 
+* Increased the minimum M2Crypto version to 0.31.0 in order to pick
+  up the fix for pywbem issue #1275 (incorrect timeout value).
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:

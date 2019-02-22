@@ -35,7 +35,7 @@ wheel==0.29.0
 
 # Direct dependencies for install (must be consistent with requirements.txt)
 
-M2Crypto==0.30.1
+M2Crypto==0.31.0
 mock==2.0.0
 ordereddict==1.1
 pbr==1.10.0
