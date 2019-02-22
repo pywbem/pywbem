@@ -158,6 +158,7 @@ package_version = $(shell $(PYTHON_CMD) tools/package_version.py $(package_name)
 python_version := $(shell $(PYTHON_CMD) tools/python_version.py 3)
 python_mn_version := $(shell $(PYTHON_CMD) tools/python_version.py 2)
 python_m_version := $(shell $(PYTHON_CMD) tools/python_version.py 1)
+pymn := py$(python_mn_version)
 
 # Directory for the generated distribution files
 dist_dir := dist
@@ -375,7 +376,7 @@ ifeq (,$(package_version))
 	$(error Package version could not be determined - requires pbr - run "make install")
 endif
 
-pip_upgrade.done: makefile
+pip_upgrade_$(pymn).done: makefile
 	-$(call RM_FUNC,$@)
 ifeq ($(python_mn_version),2.6)
 	$(PIP_CMD) install $(pip_level_opts) pip
@@ -384,7 +385,7 @@ else
 endif
 	echo "done" >$@
 
-install_basic.done: makefile pip_upgrade.done
+install_basic_$(pymn).done: makefile pip_upgrade_$(pymn).done
 	@echo "makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
 ifeq ($(python_mn_version),2.6)
@@ -404,10 +405,10 @@ endif
 	@echo "makefile: Done installing/upgrading basic Python packages"
 
 .PHONY: install_os
-install_os: install_os.done
+install_os: install_os_$(pymn).done
 	@echo "makefile: Target $@ done."
 
-install_os.done: makefile pip_upgrade.done pywbem_os_setup.sh pywbem_os_setup.bat
+install_os_$(pymn).done: makefile pip_upgrade_$(pymn).done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "makefile: Installing OS-level installation and runtime requirements"
 	@echo "Debug: PATH=$(PATH)"
 	-$(call RM_FUNC,$@)
@@ -425,7 +426,7 @@ _show_bitsize:
 	$(PYTHON_CMD) tools/python_bitsize.py
 	@echo "makefile: Done determining bit size of Python executable"
 
-install_pywbem.done: makefile pip_upgrade.done requirements.txt setup.py setup.cfg
+install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py setup.cfg
 	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
 	-$(call RM_FUNC,PKG-INFO)
@@ -437,20 +438,20 @@ install_pywbem.done: makefile pip_upgrade.done requirements.txt setup.py setup.c
 	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
 
 .PHONY: install
-install: install.done
+install: install_$(pymn).done
 	@echo "makefile: Target $@ done."
 
-install.done: makefile install_os.done install_basic.done install_pywbem.done
+install_$(pymn).done: makefile install_os_$(pymn).done install_basic_$(pymn).done install_pywbem_$(pymn).done
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) -c "import $(package_name)"
 	$(PYTHON_CMD) -c "import $(mock_package_name)"
 	echo "done" >$@
 
 .PHONY: develop_os
-develop_os: develop_os.done
+develop_os: develop_os_$(pymn).done
 	@echo "makefile: Target $@ done."
 
-develop_os.done: pywbem_os_setup.sh
+develop_os_$(pymn).done: pywbem_os_setup.sh
 	@echo "makefile: Installing OS-level development requirements"
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
@@ -462,10 +463,10 @@ endif
 	@echo "makefile: Done installing OS-level development requirements"
 
 .PHONY: develop
-develop: develop.done
+develop: develop_$(pymn).done
 	@echo "makefile: Target $@ done."
 
-develop.done: pip_upgrade.done install.done develop_os.done install_basic.done dev-requirements.txt
+develop_$(pymn).done: pip_upgrade_$(pymn).done install_$(pymn).done develop_os_$(pymn).done install_basic_$(pymn).done dev-requirements.txt
 	@echo "makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
 	$(PIP_CMD) install $(pip_level_opts) -r dev-requirements.txt
@@ -481,11 +482,11 @@ builddoc: html
 	@echo "makefile: Target $@ done."
 
 .PHONY: check
-check: flake8.done safety.done
+check: flake8_$(pymn).done safety_$(pymn).done
 	@echo "makefile: Target $@ done."
 
 .PHONY: pylint
-pylint: pylint.done
+pylint: pylint_$(pymn).done
 	@echo "makefile: Target $@ done."
 
 .PHONY: all
@@ -621,7 +622,7 @@ $(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependen
 	@echo "makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
-$(moftab_files): install.done $(moftab_dependent_files) build_moftab.py
+$(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 	@echo "makefile: Creating the LEX/YACC table modules"
 	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
 	$(PYTHON_CMD) -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
@@ -638,7 +639,7 @@ $(moftab_files): install.done $(moftab_dependent_files) build_moftab.py
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
 # The make command checks for statuses: 1,2,32
-pylint.done: makefile $(pylint_rc_file) $(py_src_files)
+pylint_$(pymn).done: makefile $(pylint_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
@@ -650,7 +651,7 @@ else
 	@echo "makefile: Done running Pylint"
 endif
 
-flake8.done: makefile $(flake8_rc_file) $(py_src_files)
+flake8_$(pymn).done: makefile $(flake8_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Flake8 on Python $(python_version)" >&2
 else
@@ -662,7 +663,7 @@ else
 	@echo "makefile: Done running Flake8"
 endif
 
-safety.done: makefile minimum-constraints.txt
+safety_$(pymn).done: makefile minimum-constraints.txt
 	@echo "makefile: Running pyup.io safety check"
 	-$(call RM_FUNC,$@)
 	-safety check -r minimum-constraints.txt --full-report
