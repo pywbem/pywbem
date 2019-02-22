@@ -220,7 +220,8 @@ script:
   - make build
   - if [[ -n $_MANUAL_CI_RUN ]]; then make builddoc; fi
   - make check
-  - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
+  # - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
+  - make pylint
   - make test
 
 after_success:

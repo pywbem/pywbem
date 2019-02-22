@@ -559,15 +559,15 @@ $(moftab_files): install.done $(moftab_dependent_files) build_moftab.py
 # Status 1 to 16 will be bit-ORed.
 # The make command checks for statuses: 1,2,32
 pylint.log: makefile $(pylint_rc_file) $(py_src_files)
-ifeq ($(python_mn_version),27)
+ifeq ($(python_mn_version),26)
+	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
+else
 	@echo "makefile: Running Pylint"
 	rm -f pylint.log
 	pylint --version
 	-bash -c 'set -o pipefail; PYTHONPATH=. pylint --rcfile=$(pylint_rc_file) $(py_src_files) 2>&1 |tee pylint.tmp.log; rc=$$?; if (($$rc >= 32 || $$rc & 0x03)); then exit $$rc; fi'
 	mv -f pylint.tmp.log pylint.log
 	@echo "makefile: Done running Pylint; Log file: $@"
-else
-	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 endif
 
 flake8.log: makefile $(flake8_rc_file) $(py_src_files)

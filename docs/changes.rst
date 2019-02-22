@@ -611,6 +611,8 @@ This version contains all fixes up to pywbem 0.12.4.
   object classes (e.g. `CIMinstance`) by adding validation against the CIM-XML
   DTD, and by adding tests for the `indent` parameter of `tocimxmlstr()`.
 
+* Added support for running pylint also on Python 3.x. See issue #1640.
+
 **Known issues:**
 
 * See `list of open issues`_.
