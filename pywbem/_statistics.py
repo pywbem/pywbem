@@ -512,7 +512,7 @@ class OperationStatistic(object):
         This is a low-level method that is called by
         :meth:`pywbem.Statistics.formatted`.
         """
-        if include_server_time:  # pylint: disable=no-else-return
+        if include_server_time:
             return ('{0:5d} {1:5d} '
                     '{2:7.3f} {3:7.3f} {4:7.3f} '
                     '{5:7.3f} {6:7.3f} {7:7.3f} '

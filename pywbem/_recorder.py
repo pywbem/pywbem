@@ -26,7 +26,7 @@ from collections import namedtuple
 try:
     from collections import OrderedDict
 except ImportError:
-    from ordereddict import OrderedDict
+    from ordereddict import OrderedDict  # pylint: disable=import-error
 from datetime import datetime, timedelta
 import logging
 

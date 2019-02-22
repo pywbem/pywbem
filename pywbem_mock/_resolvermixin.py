@@ -45,7 +45,6 @@ from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, CIM_ERR_NOT_FOUND, \
 
 from pywbem._utils import _format
 
-# TODO REMOVE
 from pywbem._nocasedict import NocaseDict
 
 
@@ -169,11 +168,11 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         CIMMethod, or CIMParameter.  This method resolves each of the objects
         in the dictionary, using the superclass if it is defined.
         """
-        if new_objects:   # TODO REMOVE
+        if new_objects:   # TODO Future REMOVE. This is test code
             assert isinstance(new_objects, (dict, NocaseDict))
             keys = new_objects.keys()
             assert isinstance(new_objects[keys[0]], (CIMMethod, CIMProperty,
-                              CIMParameter))
+                                                     CIMParameter))
 
         if not superclass:
             for new_obj in six.itervalues(new_objects):
@@ -267,10 +266,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                 superclass.classname))
             else:
                 assert True, "Invalid Type {0}" .format(type(super_obj))
-            if verbose:
-                print('\nNEWOBJ1 %r\n %r\n%s' % (type_str, new_obj,
-                                                 new_class,
-                                                 new_class.tomof()))
+
             self._set_new_object(new_obj, super_obj,
                                  new_class,
                                  superclass, qualifier_repo,
@@ -278,7 +274,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
             # if type is method, resolve the parameters.
             if isinstance(new_obj, CIMMethod):
-                # TODO clean up new_obj.name
                 self._resolve_objects(
                     new_obj.parameters,
                     superclass_objects[new_obj.name].parameters,
@@ -286,16 +281,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                     superclass, classrepo, qualifier_repo,
                     "Parameter", verbose=verbose)
 
-            if verbose:
-                print('NEWOBJ1A %r' % new_obj)
-
         # Copy objects from from superclass that are not in new_class
         # Placed after loop with items in new_object so they are not part
         # of that loop.
         for oname, ovalue in six.iteritems(superclass_objects):
             if oname not in new_objects:
                 new_value = ovalue.copy()
-                # TODO the following two lines are dup
                 new_value.propagated = True
                 assert ovalue.class_origin
                 new_value.class_origin = ovalue.class_origin
@@ -480,13 +471,13 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         if qualifier_repo:
             self._validate_qualifiers(new_class.qualifiers, qualifier_repo,
                                       new_class, 'CLASS')
-            for oname, pvalue in new_class.properties.items():
+            for pvalue in new_class.properties.values():
                 self._validate_qualifiers(pvalue.qualifiers, qualifier_repo,
                                           new_class, 'PROPERTY')
-            for mname, mvalue in new_class.methods.items():
+            for mvalue in new_class.methods.values():
                 self._validate_qualifiers(mvalue.qualifiers, qualifier_repo,
                                           new_class, 'METHOD')
-                for pname, pvalue in mvalue.parameters.items():
+                for pvalue in mvalue.parameters.values():
                     self._validate_qualifiers(pvalue.qualifiers, qualifier_repo,
                                               new_class, 'PARAMETER')
 

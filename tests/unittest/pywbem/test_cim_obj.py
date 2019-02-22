@@ -18,7 +18,7 @@ from mock import patch
 try:
     from collections import OrderedDict
 except ImportError:
-    from ordereddict import OrderedDict
+    from ordereddict import OrderedDict  # pylint: disable=import-error
 import pytest
 import six
 

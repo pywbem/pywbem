@@ -25,11 +25,11 @@ This class supports value ranges (e.g. ``"4..6"``) and the unclaimed marker
 """
 
 import re
-import six
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+import six
 
 from .cim_types import CIMInt, type_from_name
 from .cim_obj import CIMProperty, CIMMethod, CIMParameter
@@ -464,6 +464,7 @@ class ValueMapping(object):
             return (lo, hi, values_str)
 
     def _to_int(self, val_str):
+        """Conver val_str to an integer or raise ValueError"""
         val = _integerValue_to_int(val_str)
         if val is None:
             raise ValueError(
