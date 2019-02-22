@@ -33,7 +33,7 @@ from datetime import datetime
 try:
     from collections import OrderedDict
 except ImportError:
-    from ordereddict import OrderedDict
+    from ordereddict import OrderedDict  # pylint: disable=import-error
 import six
 import pytest
 from testfixtures import OutputCapture
@@ -1854,37 +1854,37 @@ class TestRepoMethods(object):
                                  translatable=None,
                                  toinstance=None, propagated=True)}))}),
                  methods=NocaseDict({}),
-                     qualifiers=NocaseDict({
-                         'Association': CIMQualifier(
-                             name='Association', value=True,
-                             type='boolean', tosubclass=True,
-                             overridable=False,
-                             translatable=None, toinstance=None,
-                             propagated=False),
-                         'Version': CIMQualifier(
-                             name='Version', value='2.8.0',
-                             type='string', tosubclass=False,
-                             overridable=True,
-                             translatable=True, toinstance=None,
-                             propagated=False),
-                         'UMLPackagePath': CIMQualifier(
-                             name='UMLPackagePath',
-                             value='CIM::Core::CoreElements',
-                             type='string',
-                             tosubclass=True, overridable=True,
-                             translatable=None,
-                             toinstance=None, propagated=False),
-                         'Description': CIMQualifier(
-                             name='Description',
-                             value='HostedDependency defines a '
-                                   'ManagedElement in the '
-                                   'context of another '
-                                   'ManagedElement in which it '
-                                   'resides.',
-                             type='string', tosubclass=True,
-                             overridable=True,
-                             translatable=True, toinstance=None,
-                             propagated=False)}),
+                 qualifiers=NocaseDict({
+                     'Association': CIMQualifier(
+                         name='Association', value=True,
+                         type='boolean', tosubclass=True,
+                         overridable=False,
+                         translatable=None, toinstance=None,
+                         propagated=False),
+                     'Version': CIMQualifier(
+                         name='Version', value='2.8.0',
+                         type='string', tosubclass=False,
+                         overridable=True,
+                         translatable=True, toinstance=None,
+                         propagated=False),
+                     'UMLPackagePath': CIMQualifier(
+                         name='UMLPackagePath',
+                         value='CIM::Core::CoreElements',
+                         type='string',
+                         tosubclass=True, overridable=True,
+                         translatable=None,
+                         toinstance=None, propagated=False),
+                     'Description': CIMQualifier(
+                         name='Description',
+                         value='HostedDependency defines a '
+                               'ManagedElement in the '
+                               'context of another '
+                               'ManagedElement in which it '
+                               'resides.',
+                         type='string', tosubclass=True,
+                         overridable=True,
+                         translatable=True, toinstance=None,
+                         propagated=False)}),
                  path=CIMClassName(classname='CIM_HostedDependency',
                                    namespace='root/cimv2',
                                    host='FakedUrl')),
@@ -1950,7 +1950,7 @@ def resolve_class(conn, cls, ns):
     """
     ns = ns or conn.default_namespace
     qualifier_repo = conn._get_qualifier_repo(ns)
-    rslvd_cls = conn._resolve_class(cls,
+    rslvd_cls = conn._resolve_class(cls,  # pylint: disable=protected-access
                                     ns, qualifier_repo)
     return rslvd_cls
 
@@ -2396,192 +2396,201 @@ class TestClassOperations(object):
             ['Create simple class correctly',
              None, 'CIM_Foo',
              CIMClass(
-                    'CIM_Foo', superclass=None,
-                    qualifiers={'Description': CIMQualifier(
-                                    'Description', "CIM_Foo description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                    properties={
-                        'InstanceID': CIMProperty(
-                            'InstanceID', None,  # noqa: E121
-                            qualifiers={
-                                'Key': CIMQualifier(
-                                    'Key', True, type='boolean',
-                                    overridable=False,
-                                    tosubclass=True,
-                                    propagated=False), },
-                            type='string', class_origin='CIM_Foo',
-                            propagated=False), },
-                    methods={
-                        'Delete': CIMMethod('Delete', 'uint32',
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', "qualifier description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                            class_origin='CIM_Foo',
-                            propagated=False),
-                        'Fuzzy': CIMMethod('Fuzzy', 'string',
-                            qualifiers={'Description': CIMQualifier(
-                                    'Description', "qualifier description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                            class_origin='CIM_Foo',
-                            propagated=False), },
-                    ),
+                 'CIM_Foo', superclass=None,
+                 qualifiers={
+                     'Description': CIMQualifier(
+                         'Description', "CIM_Foo description",
+                         overridable=True,
+                         tosubclass=True,
+                         translatable=True,
+                         propagated=False)},
+                 properties={
+                     'InstanceID': CIMProperty(
+                         'InstanceID', None,  # noqa: E121
+                         qualifiers={
+                             'Key': CIMQualifier(
+                                 'Key', True, type='boolean',
+                                 overridable=False,
+                                 tosubclass=True,
+                                 propagated=False), },
+                         type='string', class_origin='CIM_Foo',
+                         propagated=False), },
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         class_origin='CIM_Foo',
+                         propagated=False),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         class_origin='CIM_Foo',
+                         propagated=False), },
+                 ),
              None, True],
 
             ['Validate CreateClass creates valid subclass from 2 superclasses',
              'CIM_Foo',
              'CIM_Foo_sub',
              CIMClass(
-                    'CIM_Foo_sub', superclass='CIM_Foo',
-                    qualifiers={'Description': CIMQualifier(
-                                    'Description', "Subclass Description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                    properties={
-                        'cimfoo_sub': CIMProperty(
-                            'cimfoo_sub', None,  # noqa: E121
-                            qualifiers={'Description': CIMQualifier(
-                                    'Description', "qualifier description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                            type='string', class_origin='CIM_Foo_sub',
-                            propagated=False),
-                        'InstanceID': CIMProperty(
-                            'InstanceID', None,  # noqa: E121
-                            qualifiers={
-                                'Key': CIMQualifier(
-                                    'Key', True, type='boolean',
-                                    overridable=False,
-                                    tosubclass=True,
-                                    propagated=True), },
-                            type='string', class_origin='CIM_Foo',
-                            propagated=True), },
-                    methods={
-                        'Delete': CIMMethod('Delete', 'uint32',
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', "qualifier description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=True)},
-                            class_origin='CIM_Foo',
-                            propagated=True),
-                        'Fuzzy': CIMMethod('Fuzzy', 'string',
-                            qualifiers={'Description': CIMQualifier(
-                                    'Description', "qualifier description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=True)},
-                            class_origin='CIM_Foo',
-                            propagated=True), },
-                    ),
+                 'CIM_Foo_sub', superclass='CIM_Foo',
+                 qualifiers={'Description': CIMQualifier(
+                     'Description', "Subclass Description",
+                     overridable=True,
+                     tosubclass=True,
+                     translatable=True,
+                     propagated=False)},
+                 properties={
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', None,  # noqa: E121
+                         qualifiers={'Description': CIMQualifier(
+                             'Description', "qualifier description",
+                             overridable=True,
+                             tosubclass=True,
+                             translatable=True,
+                             propagated=False)},
+                         type='string', class_origin='CIM_Foo_sub',
+                         propagated=False),
+                     'InstanceID': CIMProperty(
+                         'InstanceID', None,  # noqa: E121
+                         qualifiers={
+                             'Key': CIMQualifier(
+                                 'Key', True, type='boolean',
+                                 overridable=False,
+                                 tosubclass=True,
+                                 propagated=True), },
+                         type='string', class_origin='CIM_Foo',
+                         propagated=True), },
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         class_origin='CIM_Foo',
+                         propagated=True),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         qualifiers={'Description': CIMQualifier(
+                             'Description', "qualifier description",
+                             overridable=True,
+                             tosubclass=True,
+                             translatable=True,
+                             propagated=True)},
+                         class_origin='CIM_Foo',
+                         propagated=True), },
+                 ),
              None, True],
 
             ["Create valid 2nd level subclass from fixture defined classes.",
-                ['CIM_Foo', 'CIM_Foo_sub'],
-                'CIM_Foo_sub_sub',
-                'CIM_Foo_sub_sub', None, True, ],
+             ['CIM_Foo', 'CIM_Foo_sub'],
+             'CIM_Foo_sub_sub',
+             'CIM_Foo_sub_sub', None, True, ],
 
             ["Create valid 2nd level subclass from class with extra data.",
-                ['CIM_Foo', 'CIM_Foo_sub'],
-                'CIM_Foo_sub_sub',
-                CIMClass(
-                    'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
-                    qualifiers={'Description': CIMQualifier(
-                                    'Description', 'Subclass Description',
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                    properties={
-                        'InstanceID':
-                            CIMProperty('InstanceID', None, type='string',
-                                # TODO Should orig be CIM_Foo
-                                class_origin='CIM_Foo', propagated=True,
-                                is_array=False, array_size=None,
-                                qualifiers={
-                                'key': CIMQualifier('Key', True,
-                                                    propagated=True,
-                                                    tosubclass=True,
-                                                    overridable=False),
-                                }),
-                        'cimfoo_sub': CIMProperty(
-                            'cimfoo_sub', None,
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', "qualifier description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=True)},
-                            type='string', class_origin='CIM_Foo_sub',
-                            propagated=True),
-                        'cimfoo_sub_sub': CIMProperty(
-                            'cimfoo_sub_sub', None,
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', "property description",
-                                    overridable=True,
-                                    tosubclass=True,
-                                    translatable=True,
-                                    propagated=False)},
-                            type='string', class_origin='CIM_Foo_sub_sub',
-                            propagated=False),
-                        },
-                    methods={
-                        'Delete': CIMMethod('Delete', 'uint32',
-                            class_origin='CIM_Foo', propagated=True,
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', 'qualifier description',
-                                    propagated=True,
-                                    tosubclass=True,
-                                    overridable=True,
-                                    translatable=True)}),
-                         'Fuzzy': CIMMethod('Fuzzy', 'string',
-                            class_origin='CIM_Foo', propagated=True,
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', 'qualifier description',
-                                    propagated=True,
-                                    tosubclass=True,
-                                    overridable=True,
-                                    translatable=True)}),
-                        },
+             ['CIM_Foo', 'CIM_Foo_sub'],
+             'CIM_Foo_sub_sub',
+             CIMClass(
+                 'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                 qualifiers={'Description': CIMQualifier(
+                     'Description', 'Subclass Description',
+                     overridable=True,
+                     tosubclass=True,
+                     translatable=True,
+                     propagated=False)},
+                 properties={
+                     'InstanceID':
+                         CIMProperty('InstanceID', None, type='string',
+                                     class_origin='CIM_Foo', propagated=True,
+                                     is_array=False, array_size=None,
+                                     qualifiers={
+                                         'key': CIMQualifier('Key', True,
+                                                             propagated=True,
+                                                             tosubclass=True,
+                                                             overridable=False),
+                                         }),
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', None,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         type='string', class_origin='CIM_Foo_sub',
+                         propagated=True),
+                     'cimfoo_sub_sub': CIMProperty(
+                         'cimfoo_sub_sub', None,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "property description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         type='string', class_origin='CIM_Foo_sub_sub',
+                         propagated=False),
+                     },
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         class_origin='CIM_Foo', propagated=True,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', 'qualifier description',
+                                 propagated=True,
+                                 tosubclass=True,
+                                 overridable=True,
+                                 translatable=True)}),
+                     'Fuzzy': CIMMethod('Fuzzy', 'string',
+                                        class_origin='CIM_Foo', propagated=True,
+                                        qualifiers={
+                                            'Description': CIMQualifier(
+                                                'Description',
+                                                'qualifier description',
+                                                propagated=True,
+                                                tosubclass=True,
+                                                overridable=True,
+                                                translatable=True)}),
+                     },
                 ),
-                None, True,
+             None, True,
             ],
 
-            ['Create valid 2nd level subclass with key override. '
-             ' Confirms key is set.',
+            [
+                'Create valid 2nd level subclass with key override. '
+                ' Confirms key is set.',
                 ['CIM_Foo'],
                 CIMClass(
                     'CIM_Foo_testOverride', superclass='CIM_Foo',
                     properties={
                         'InstanceID':
-                            CIMProperty('InstanceID', None,
-                            qualifiers={
-                            'Override': CIMQualifier(
-                                'Override', 'InstanceID'),
-                            'Description': CIMQualifier(
-                                'Description', "blah Blah Blah")
+                            CIMProperty(
+                                'InstanceID', None,
+                                qualifiers={
+                                    'Override': CIMQualifier(
+                                        'Override', 'InstanceID'),
+                                    'Description': CIMQualifier(
+                                        'Description', "blah Blah Blah")
                                 },
-                            type='string'),
+                                type='string'),
                     }
                 ),
                 # exp_rtn class definition
@@ -2589,28 +2598,30 @@ class TestClassOperations(object):
                     'CIM_Foo_testOverride', superclass='CIM_Foo',
                     properties={
                         'InstanceID':
-                            CIMProperty('InstanceID', None, type='string',
+                            CIMProperty(
+                                'InstanceID', None, type='string',
                                 class_origin='CIM_Foo', propagated=True,
                                 is_array=False, array_size=None,
                                 qualifiers={
-                                'key': CIMQualifier('Key', True,
-                                                    propagated=True,
-                                                    tosubclass=True,
-                                                    overridable=False),
-                                'Override': CIMQualifier(
-                                    'Override', 'InstanceID',
-                                    propagated=False,
-                                    tosubclass=False,
-                                    overridable=True),
-                                'Description': CIMQualifier(
-                                    'Description', "blah Blah Blah",
-                                    propagated=False,
-                                    tosubclass=True,
-                                    overridable=True,
-                                    translatable=True)})
-                                },
+                                    'key': CIMQualifier('Key', True,
+                                                        propagated=True,
+                                                        tosubclass=True,
+                                                        overridable=False),
+                                    'Override': CIMQualifier(
+                                        'Override', 'InstanceID',
+                                        propagated=False,
+                                        tosubclass=False,
+                                        overridable=True),
+                                    'Description': CIMQualifier(
+                                        'Description', "blah Blah Blah",
+                                        propagated=False,
+                                        tosubclass=True,
+                                        overridable=True,
+                                        translatable=True)})
+                        },
                     methods={
-                        'Delete': CIMMethod('Delete', 'uint32',
+                        'Delete': CIMMethod(
+                            'Delete', 'uint32',
                             class_origin='CIM_Foo', propagated=True,
                             qualifiers={
                                 'Description': CIMQualifier(
@@ -2619,7 +2630,8 @@ class TestClassOperations(object):
                                     tosubclass=True,
                                     overridable=True,
                                     translatable=True)}),
-                         'Fuzzy': CIMMethod('Fuzzy', 'string',
+                        'Fuzzy': CIMMethod(
+                            'Fuzzy', 'string',
                             class_origin='CIM_Foo', propagated=True,
                             qualifiers={
                                 'Description': CIMQualifier(
@@ -2628,12 +2640,13 @@ class TestClassOperations(object):
                                     tosubclass=True,
                                     overridable=True,
                                     translatable=True)}),
-                                },
+                        },
                     ),
                 None, True,
             ],
 
-            ['Fail create invalid subclass, dup property with no override',
+            [
+                'Fail create invalid subclass, dup property with no override',
                 ['CIM_Foo', 'CIM_Foo_sub'],
                 CIMClass(
                     'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
@@ -2644,7 +2657,7 @@ class TestClassOperations(object):
                             class_origin='CIM_Foo_sub_sub', propagated=False)
                     }
                 ),
-             None, CIMError(CIM_ERR_INVALID_PARAMETER), True,
+                None, CIMError(CIM_ERR_INVALID_PARAMETER), True,
             ],
 
 
