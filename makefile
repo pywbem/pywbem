@@ -520,7 +520,7 @@ upload: _check_version $(dist_files)
 	@echo "makefile: Target $@ done."
 
 .PHONY: html
-html: $(doc_build_dir)/html/docs/index.html
+html: develop_$(pymn).done $(doc_build_dir)/html/docs/index.html
 	@echo "makefile: Target $@ done."
 
 $(doc_build_dir)/html/docs/index.html: makefile $(doc_utility_help_files) $(doc_dependent_files)
@@ -534,7 +534,7 @@ else
 endif
 
 .PHONY: pdf
-pdf: makefile $(doc_utility_help_files) $(doc_dependent_files)
+pdf: develop_$(pymn).done makefile $(doc_utility_help_files) $(doc_dependent_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
@@ -548,7 +548,7 @@ else
 endif
 
 .PHONY: man
-man: makefile $(doc_utility_help_files) $(doc_dependent_files)
+man: develop_$(pymn).done makefile $(doc_utility_help_files) $(doc_dependent_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
@@ -560,7 +560,7 @@ else
 endif
 
 .PHONY: docchanges
-docchanges:
+docchanges: develop_$(pymn).done
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
@@ -572,7 +572,7 @@ else
 endif
 
 .PHONY: doclinkcheck
-doclinkcheck:
+doclinkcheck: develop_$(pymn).done
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
@@ -584,7 +584,7 @@ else
 endif
 
 .PHONY: doccoverage
-doccoverage:
+doccoverage: develop_$(pymn).done
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
@@ -639,7 +639,7 @@ $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
 # The make command checks for statuses: 1,2,32
-pylint_$(pymn).done: makefile $(pylint_rc_file) $(py_src_files)
+pylint_$(pymn).done: develop_$(pymn).done makefile $(pylint_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
@@ -651,7 +651,7 @@ else
 	@echo "makefile: Done running Pylint"
 endif
 
-flake8_$(pymn).done: makefile $(flake8_rc_file) $(py_src_files)
+flake8_$(pymn).done: develop_$(pymn).done makefile $(flake8_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "makefile: Warning: Skipping Flake8 on Python $(python_version)" >&2
 else
@@ -663,7 +663,7 @@ else
 	@echo "makefile: Done running Flake8"
 endif
 
-safety_$(pymn).done: makefile minimum-constraints.txt
+safety_$(pymn).done: develop_$(pymn).done makefile minimum-constraints.txt
 	@echo "makefile: Running pyup.io safety check"
 	-$(call RM_FUNC,$@)
 	-safety check -r minimum-constraints.txt --full-report
@@ -671,13 +671,13 @@ safety_$(pymn).done: makefile minimum-constraints.txt
 	@echo "makefile: Done running pyup.io safety check"
 
 .PHONY: test
-test: $(moftab_files)
+test: develop_$(pymn).done $(moftab_files)
 	@echo "makefile: Running unit and function tests"
 	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warnings_opts) $(pytest_opts) tests/unittest tests/functiontest -s
 	@echo "makefile: Done running tests"
 
 .PHONY: end2end
-end2end: $(moftab_files)
+end2end: develop_$(pymn).done $(moftab_files)
 	@echo "makefile: Running end2end tests"
 	py.test --color=yes $(pytest_end2end_warnings_opts) $(pytest_end2end_opts) tests/end2endtest -s
 	@echo "makefile: Done running end2end tests"
