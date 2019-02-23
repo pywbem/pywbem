@@ -110,6 +110,16 @@ Limitations:
 * On Windows (native), pywbem is not supported on Python 2.6, because the
   M2Crypto package does not support Python 2.6.
 
+Announcement of removal of Python 2.6 support:
+
+* The Python Software Foundation has stopped supporting Python 2.6 with the
+  2.6.9 release in october 2013. Since then, many Python package projects have
+  continued releasing versions for Python 2.6, and so has pywbem. In 2017 and
+  2018, a number of Python package projects have actively removed support for
+  Python 2.6 and it has become an increasingly difficult task for pywbem to
+  keep supporting Python 2.6. For this reason, Python 2.6 support will be
+  removed from pywbem in its future 1.0.0 version.
+
 
 .. _`Installing to Linux`:
 
