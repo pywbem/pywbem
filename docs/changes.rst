@@ -66,6 +66,9 @@ This version contains all fixes up to pywbem 0.12.4.
 
 **Deprecations:**
 
+* Added announcement that Python 2.6 support in pywbem will be removed in
+  its future 1.0.0 version.
+
 * Deprecated the `tocimobj()` function because it has some inconsistencies,
   in favor of the `cimvalue()` function introduced in pywbem 0.12.0. Changed
   all internal uses of `tocimobj()` to `cimvalue()`. (Issue #904).
