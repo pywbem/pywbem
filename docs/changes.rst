@@ -16,11 +16,9 @@ Change log
 Version 0.13.0
 --------------
 
-This version is currently in development and is shown as |version|.
+Released: 2019-02-23
 
-Released: not yet
-
-This version contains all fixes up to pywbem 0.12.4.
+This version contains all fixes up to pywbem 0.12.6.
 
 **Incompatible changes:**
 
@@ -38,12 +36,15 @@ This version contains all fixes up to pywbem 0.12.4.
   relies on that, it is highly recommended that you decouple such
   dependencies (Issue #1251).
 
-* Changed keybinding processing to disallow NULL keybinding values unless the
-  config property `IGNORE_NULL_KEY_VALUE` in config.py is set `True`. This is
-  in accord with DSP0004. This is only incompatible if user code relies on
-  creating a keybinding having `None` as a value. If this is the case setting
-  this property to `TRUE` will restore the original behavior but the NULL
-  keybinding may be an issue with some WBEM servers. (Issue #1298)
+* Changed keybinding processing when creating `CINInstanceName` objects to
+  disallow NULL keybinding values. This is in accord with the CIM standard
+  DSP0004.
+  This is only incompatible if user code relies on the non-standard
+  behavior of creating a keybinding having `None` as a value.
+  If your code relies on that non-standard behavior, it can be
+  re-established by via the config property `IGNORE_NULL_KEY_VALUE` in
+  config.py. Note that NULL keybindings may be an issue with some WBEM
+  servers. (Issue #1298)
 
 * The fix for issue #1302 removed the pywbem config variables from the
   `pywbem` namespace. They are now only available via the `pywbem.config`
@@ -51,7 +52,7 @@ This version contains all fixes up to pywbem 0.12.4.
   previously documented approach for changing them through the `pywbem`
   namespace did not work, so if you changed the config variables
   successfully, you have done that through the `pywbem.config` namespace
-  already.
+  already, and this change does not affect you.
 
 * Removed the `ez_setup.py` script from the repository. That script is the
   well-known tool that bootstraps `easy_setup` which was used for installing
@@ -573,8 +574,9 @@ This version contains all fixes up to pywbem 0.12.4.
 
 **Build, test, quality:**
 
-* Add tests for WBEMSubscriptionManager class using pywbem_mock.  This involved
-  changing the tests for the WBEMServer class using pywbem_mock because the the
+* Add tests for the `WBEMSubscriptionManager` class using the pywbem mock
+  support.  This involved
+  changing the tests for the `WBEMServer` class using pywbem_mock because the the
   WBEMSubscriptionManager class depends on the existence of the classes and
   instances that support the pywbem WbemServer class existing in the WBEM
   server.  A new file (wbemserver_mock.py) was added to the tests
@@ -642,12 +644,6 @@ This version contains all fixes up to pywbem 0.12.4.
 
   - Updated the appveyor.yml file to check only the new, smaller, list of
     commands.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.12.0
