@@ -268,6 +268,8 @@ This version contains all fixes up to pywbem 0.12.4.
 * Increased the minimum M2Crypto version to 0.31.0 in order to pick
   up the fix for pywbem issue #1275 (incorrect timeout value).
 
+* Added the Pyton `tox` package to the dependencies for development.
+
 **Enhancements:**
 
 * Extend pywbem MOF compiler to search for dependent classes including:
