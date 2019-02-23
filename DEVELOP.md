@@ -64,6 +64,10 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     * Remove the statement that the version is in development.
 
+    * Update the statement which fixes of the previous stable version
+      are contained in this version.  If there is no fix release
+      of the previous stable version, the line can be removed.
+
     * Change the release date to today´s date.
 
     * Make sure that all changes are described. This can be done by comparing
@@ -88,9 +92,11 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     * Update the constants near the top of the file::
 
-        .. |pywbem-version| replace:: {M.N.U}
-        .. |pywbem-next-version| replace:: {M.N.U+1}
-        .. |pywbem-next-issue| replace:: {issue-number}
+      ```
+      .. |pywbem-version| replace:: {M.N.U}
+      .. |pywbem-next-version| replace:: {M.N.U+1}
+      .. |pywbem-next-issue| replace:: {issue-number}
+      ```
 
       Where the items in curly braces are replaced with their actual values.
 
@@ -100,18 +106,20 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     To make the following changes:
 
-    * Update the pywbem version in the two links near the bottom of the file::
+    * Update the pywbem version in the two links near the bottom of the file:
 
-        .. _README file: https://github.com/pywbem/pywbem/blob/stable_{M.N}/README.rst
-        .. _Documentation: https://pywbem.readthedocs.io/en/stable_{M.N}/
+      ```
+      .. _README file: https://github.com/pywbem/pywbem/blob/stable_{M.N}/README.rst
+      .. _Documentation: https://pywbem.readthedocs.io/en/stable_{M.N}/
+      ```
 
       Where the items in curly braces are replaced with their actual values.
 
 6.  Tag the version (temporary tagging, only locally):
 
     Note: This is the basis on which `pbr` determines the package version for
-    the subsequent steps. Because we also have PKG-INFO in the repo, tagging
-    now needs to be done in two steps, this temporary step and a subsequent
+    the subsequent steps. Because we also have the file `PKG-INFO` in the repo,
+    tagging now needs to be done in two steps, this temporary step and a subsequent
     final step.
 
     Create a tag for the new version (just locally):
@@ -131,8 +139,8 @@ Their upstream repos are assumed to have the remote name `origin`.
 
 8.  Commit the changes and push to upstream:
 
-    Note: This also includes PKG-INFO in the commit, which now has the tagged
-    version.
+    Note: This also includes the file `PKG-INFO` in the commit, which now has
+    the version that was tagged.
 
     - `git status` - to double check which files have been changed
     - `git commit -asm "Release $MNU"`
@@ -291,6 +299,8 @@ It covers all variants of new versions:
 
     This version is currently in development and is shown as |version|.
 
+    This version contains all fixes up to pywbem 0.9.3.
+ 
     Released: not yet
 
     **Incompatible changes:**
