@@ -135,7 +135,6 @@ Installing to Linux
     - setuptools
     - wheel (<0.30.0 on Python 2.6)
     - pip
-    - pbr
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
@@ -214,7 +213,6 @@ Installing to OS-X
     - setuptools
     - wheel (<0.30.0 on Python 2.6)
     - pip
-    - pbr
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
@@ -277,7 +275,6 @@ present in the PATH.
     - setuptools
     - wheel
     - pip
-    - pbr
 
   - Windows command prompt in administrator mode.
 
@@ -357,7 +354,6 @@ Windows.
     - setuptools
     - wheel (<0.30.0 on Python 2.6)
     - pip
-    - pbr
 
   - Prerequisite OS-level packages must be available in the UNIX-like
     environment.
