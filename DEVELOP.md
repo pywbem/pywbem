@@ -294,12 +294,12 @@ It covers all variants of new versions:
     To insert the following section before the top-most section:
 
     ```
-    Version 0.10.0
-    ^^^^^^^^^^^^^^
+    pywbem 0.10.0
+    -------------
 
     This version is currently in development and is shown as |version|.
 
-    This version contains all fixes up to pywbem 0.9.3.
+    This version contains all fixes up to pywbem 0.9.x.
  
     Released: not yet
 
