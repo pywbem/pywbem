@@ -496,7 +496,7 @@ all: install develop build builddoc check pylint test
 .PHONY: clobber
 clobber: clean
 	@echo "makefile: Removing everything for a fresh start"
-	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) pywbem/*cover wbemcli.log)
+	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) pywbem/*cover pywbem_mock/*cover wbemcli.log)
 	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir))
 	@echo "makefile: Done removing everything for a fresh start"
 	@echo "makefile: Target $@ done."
