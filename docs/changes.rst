@@ -28,6 +28,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Extend makefile clobber to remove cover files from pywbem_mock package.
+
 **Enhancements:**
 
 **Known issues:**
