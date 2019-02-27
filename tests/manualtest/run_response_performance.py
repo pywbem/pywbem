@@ -194,7 +194,7 @@ def execute_pyinstrument_tests(args):
     table_rows = execute_raw_tests(args)
 
     profiler.stop()
-    print(profiler.output_text(unicode=True, color=True))
+    print(profiler.output_text(unicode=True, color=True).encode('utf-8'))
     return table_rows
 
 
