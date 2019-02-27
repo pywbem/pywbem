@@ -109,6 +109,13 @@ twine==1.8.1
 # Jupyter Notebook (no imports, invoked via jupyter script):
 jupyter==1.0.0
 
+# Table output formatter used by the manual performance tests to display
+# timing results
+tabulate >= 0.8.3
+
+# Performance profiling tools
+pyinstrument >=3.0.1
+pyinstrument-cext==0.2.0  # from pyinstrument
 
 # Indirect dependencies for develop (not in dev-requirements.txt)
 
