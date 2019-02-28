@@ -81,7 +81,7 @@ import traceback
 import six
 
 from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
-from ._utils import _ensure_unicode, _hash_item, _format
+from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode
 
 if six.PY2:
     _Longint = long  # noqa: F821
@@ -1167,8 +1167,10 @@ def atomic_to_cim_xml(obj):
     """
     if obj is None:
         return obj
-    elif isinstance(obj, six.string_types):
-        return _ensure_unicode(obj)
+    elif isinstance(obj, six.text_type):
+        return obj
+    elif isinstance(obj, six.binary_type):
+        return _to_unicode(obj)
     elif isinstance(obj, bool):
         return u'TRUE' if obj else u'FALSE'
     elif isinstance(obj, (CIMInt, six.integer_types, CIMDateTime)):

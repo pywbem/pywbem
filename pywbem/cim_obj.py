@@ -264,7 +264,7 @@ from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
 from ._nocasedict import NocaseDict
 from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
-    _realValue_to_float
+    _realValue_to_float, _to_unicode
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
@@ -936,8 +936,11 @@ def _cim_keybinding(key, value):
     if value is None:
         return None
 
-    if isinstance(value, (six.text_type, six.binary_type)):
-        return _ensure_unicode(value)
+    if isinstance(value, six.text_type):
+        return value
+
+    if isinstance(value, six.binary_type):
+        return _to_unicode(value)
 
     if isinstance(value, (bool, CIMInstanceName, CIMType)):
         return value
@@ -1012,7 +1015,9 @@ def _cim_property_decl(key, value):
     if key is None:
         raise ValueError("Property name must not be None")
 
-    if not isinstance(value, CIMProperty):
+    try:
+        assert isinstance(value, CIMProperty)
+    except AssertionError:
         raise TypeError(
             _format("Property must be a CIMProperty object, but is: {0}",
                     type(value)))
@@ -1036,7 +1041,9 @@ def _cim_method(key, value):
     if key is None:
         raise ValueError("Method name must not be None")
 
-    if not isinstance(value, CIMMethod):
+    try:
+        assert isinstance(value, CIMMethod)
+    except AssertionError:
         raise TypeError(
             _format("Method must be a CIMMethod object, but is: {0}",
                     type(value)))
@@ -1342,7 +1349,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMInstanceName):
+        try:
+            assert isinstance(other, CIMInstanceName)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMInstanceName, but is: {0}",
                         type(other)))
@@ -1621,7 +1630,12 @@ class CIMInstanceName(_CIMComparisonMixin):
                     key, cim_xml.VALUE_REFERENCE(value.tocimxml())))
                 continue
 
-            if isinstance(value, bool):
+            if isinstance(value, six.text_type):
+                type_ = 'string'
+            elif isinstance(value, six.binary_type):
+                type_ = 'string'
+                value = _to_unicode(value)
+            elif isinstance(value, bool):
                 # Note: Bool is a subtype of int, therefore bool is tested
                 # before int.
                 type_ = 'boolean'
@@ -1633,9 +1647,6 @@ class CIMInstanceName(_CIMComparisonMixin):
                 # Numeric CIM data types derive from Python number types.
                 type_ = 'numeric'
                 value = str(value)
-            elif isinstance(value, six.string_types):
-                type_ = 'string'
-                value = _ensure_unicode(value)
             else:
                 # Double check the type of the keybindings, because they can be
                 # set individually.
@@ -2097,7 +2108,14 @@ class CIMInstanceName(_CIMComparisonMixin):
             ret.append(key)
             ret.append('=')
 
-            if isinstance(value, bool):
+            if isinstance(value, six.string_types):
+                # string, char16
+                ret.append('"')
+                ret.append(value.
+                           replace('\\', '\\\\').
+                           replace('"', '\\"'))
+                ret.append('"')
+            elif isinstance(value, bool):
                 # boolean
                 # Note that in Python a bool is an int, so test for bool first
                 ret.append(str(value).upper())
@@ -2124,13 +2142,6 @@ class CIMInstanceName(_CIMComparisonMixin):
                 # datetime
                 ret.append('"')
                 ret.append(str(value))
-                ret.append('"')
-            elif isinstance(value, six.string_types):
-                # string, char16
-                ret.append('"')
-                ret.append(value.
-                           replace('\\', '\\\\').
-                           replace('"', '\\"'))
                 ret.append('"')
             else:
                 raise TypeError(
@@ -2558,7 +2569,9 @@ class CIMInstance(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMInstance):
+        try:
+            assert isinstance(other, CIMInstance)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMInstance, but is: {0}",
                         type(other)))
@@ -2905,7 +2918,9 @@ class CIMInstance(_CIMComparisonMixin):
         # for bool and string types anyway. Because that conversion had been
         # implemented, we still check that the items are CIMProperty objects.
         for key, value in self.properties.items():
-            if not isinstance(value, CIMProperty):
+            try:
+                assert isinstance(value, CIMProperty)
+            except AssertionError:
                 raise TypeError(
                     _format("Property {0!A} has invalid type: {1} (must be "
                             "CIMProperty)", key, builtin_type(value)))
@@ -3343,7 +3358,9 @@ class CIMClassName(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMClassName):
+        try:
+            assert isinstance(other, CIMClassName)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMClassName, but is: {0}",
                         type(other)))
@@ -4070,7 +4087,9 @@ class CIMClass(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMClass):
+        try:
+            assert isinstance(other, CIMClass)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMClass, but is: {0}", type(other)))
         return (cmpname(self.classname, other.classname) or
@@ -5088,7 +5107,9 @@ class CIMProperty(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMProperty):
+        try:
+            assert isinstance(other, CIMProperty)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMProperty, but is: {0}", type(other)))
         return (cmpname(self.name, other.name) or
@@ -5469,7 +5490,9 @@ class CIMMethod(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMMethod):
+        try:
+            assert isinstance(other, CIMMethod)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMMethod, but is: {0}", type(other)))
         return (cmpname(self.name, other.name) or
@@ -6045,7 +6068,9 @@ class CIMParameter(_CIMComparisonMixin):
 
         if self is other:
             return 0
-        if not isinstance(other, CIMParameter):
+        try:
+            assert isinstance(other, CIMParameter)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMParameter, but is: {0}",
                         type(other)))
@@ -6731,7 +6756,9 @@ class CIMQualifier(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMQualifier):
+        try:
+            assert isinstance(other, CIMQualifier)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMQualifier, but is: {0}",
                         type(other)))
@@ -7393,7 +7420,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         """
         if self is other:
             return 0
-        if not isinstance(other, CIMQualifierDeclaration):
+        try:
+            assert isinstance(other, CIMQualifierDeclaration)
+        except AssertionError:
             raise TypeError(
                 _format("other must be CIMQualifierDeclaration, but is: {0}",
                         type(other)))

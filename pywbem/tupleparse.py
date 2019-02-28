@@ -152,7 +152,9 @@ class TupleParser(object):
         The child nodes must be text nodes (no element nodes).
         """
         for inst in tup_tree[2]:
-            if not isinstance(inst, six.string_types):
+            try:
+                assert isinstance(inst, six.string_types)
+            except AssertionError:
                 raise CIMXMLParseError(
                     _format("Element {0!A} has unexpected child elements: "
                             "{1!A} (allowed is only text content)",
