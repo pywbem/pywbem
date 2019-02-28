@@ -4483,21 +4483,20 @@ class CIMProperty(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = _format("property {0!A}", name)
-
         if type is None:
-            type = _infer_type(value, element_txt)
+            type = _infer_type(value, "property", name)
 
         if is_array is None:
             is_array = _infer_is_array(value)
 
-        _check_array_parms(is_array, array_size, value, element_txt)
+        _check_array_parms(is_array, array_size, value, "property", name)
 
         if embedded_object is None:
             embedded_object = _infer_embedded_object(value)
 
         if embedded_object is not None:
-            _check_embedded_object(embedded_object, type, value, element_txt)
+            _check_embedded_object(embedded_object, type, value,
+                                   "property", name)
 
         if reference_class is not None:
             if is_array:
@@ -5790,17 +5789,16 @@ class CIMParameter(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = _format("parameter {0!A}", name)
-
         if is_array is None:
             is_array = _infer_is_array(value)
-        _check_array_parms(is_array, array_size, value, element_txt)
+        _check_array_parms(is_array, array_size, value, "parameter", name)
 
         if embedded_object is None:
             embedded_object = _infer_embedded_object(value)
 
         if embedded_object is not None:
-            _check_embedded_object(embedded_object, type, value, element_txt)
+            _check_embedded_object(embedded_object, type, value,
+                                   "parameter", name)
 
         # We use the respective setter methods:
         self.type = type
@@ -6524,10 +6522,8 @@ class CIMQualifier(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = _format("qualifier {0!A}", name)
-
         if type is None:
-            type = _infer_type(value, element_txt)
+            type = _infer_type(value, "qualifier", name)
 
         # We use the respective setter methods:
         self.type = type
@@ -7139,12 +7135,11 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.name = name
 
-        element_txt = _format("qualifier declaration {0!A}", name)
-
         if is_array is None:
             is_array = _infer_is_array(value)
 
-        _check_array_parms(is_array, array_size, value, element_txt)
+        _check_array_parms(is_array, array_size, value,
+                           "qualifier declaration", name)
 
         # We use the respective setter methods:
         self.type = type
@@ -8124,22 +8119,22 @@ def _partition(str_arg, sep):
         return (str_arg[:idx], sep, str_arg[idx + len(sep):])
 
 
-def _infer_type(value, element_txt):
+def _infer_type(value, element_kind, element_name):
     """
     Infer the CIM type name of the value, based upon its Python type.
     """
 
     if value is None:
         raise ValueError(
-            _format("Cannot infer CIM type of {0} from its value when the "
-                    "value is None", element_txt))
+            _format("Cannot infer CIM type of {0} {1!A} from its value when "
+                    "the value is None", element_kind, element_name))
 
     try:
         return cimtype(value)
     except TypeError as exc:
         raise ValueError(
-            _format("Cannot infer CIM type of {0} from its value: {1!A}",
-                    element_txt, exc))
+            _format("Cannot infer CIM type of {0} {1!A} from its value: {2!A}",
+                    element_kind, element_name, exc))
 
 
 def _infer_is_array(value):
@@ -8155,7 +8150,8 @@ def _infer_is_array(value):
     return isinstance(value, list)
 
 
-def _check_array_parms(is_array, array_size, value, element_txt):
+def _check_array_parms(is_array, array_size, value, element_kind,
+                       element_name):
     """
     Check whether array-related parameters are ok.
     """
@@ -8165,19 +8161,22 @@ def _check_array_parms(is_array, array_size, value, element_txt):
 
     if array_size and not is_array:
         raise ValueError(
-            _format("The array_size parameter of {0} is {1!A} but the "
-                    "is_array parameter is False.", element_txt, array_size))
+            _format("The array_size parameter of {0} {1!A} is {2!A} but the "
+                    "is_array parameter is False.",
+                    element_kind, element_name, array_size))
 
     if value is not None:
         value_is_array = isinstance(value, (list, tuple))
         if not is_array and value_is_array:
             raise ValueError(
-                _format("The is_array parameter of {0} is False but value "
-                        "{1!A} is an array.", element_txt, value))
+                _format("The is_array parameter of {0} {1!A} is False but "
+                        "value {2!A} is an array.",
+                        element_kind, element_name, value))
         if is_array and not value_is_array:
             raise ValueError(
-                _format("The is_array parameter of {0} is True but value "
-                        "{1!A} is not an array.", element_txt, value))
+                _format("The is_array parameter of {0} {1!A} is True but "
+                        "value {2!A} is not an array.",
+                        element_kind, element_name, value))
 
 
 def _infer_embedded_object(value):
@@ -8210,7 +8209,8 @@ def _infer_embedded_object(value):
     return None
 
 
-def _check_embedded_object(embedded_object, type, value, element_txt):
+def _check_embedded_object(embedded_object, type, value, element_kind,
+                           element_name):
     # pylint: disable=redefined-builtin
     """
     Check whether embedded-object-related parameters are ok.
@@ -8218,15 +8218,15 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
 
     if embedded_object not in ('instance', 'object'):
         raise ValueError(
-            _format("{0} specifies an invalid value for embedded_object: "
-                    "{1!A} (must be 'instance' or 'object')",
-                    element_txt, embedded_object))
+            _format("{0} {1!A} specifies an invalid value for "
+                    "embedded_object: {2!A} (must be 'instance' or 'object')",
+                    element_kind, element_name, embedded_object))
 
     if type != 'string':
         raise ValueError(
-            _format("{0} specifies embedded_object {1!A} but its CIM type is "
-                    "invalid: {2!A} (must be 'string')",
-                    element_txt, embedded_object, type))
+            _format("{0} {1!A} specifies embedded_object {2!A} but its CIM "
+                    "type is invalid: {3!A} (must be 'string')",
+                    element_kind, element_name, embedded_object, type))
 
     if value is not None:
         if isinstance(value, list):
@@ -8235,19 +8235,20 @@ def _check_embedded_object(embedded_object, type, value, element_txt):
                 if v0 is not None and \
                         not isinstance(v0, (CIMInstance, CIMClass)):
                     raise ValueError(
-                        _format("Array {0} specifies embedded_object {1!A} but "
-                                "the Python type of its first array value is "
-                                "invalid: {2} (must be CIMInstance or "
-                                "CIMClass)",
-                                element_txt, embedded_object,
+                        _format("Array {0} {1!A} specifies embedded_object "
+                                "{2!A} but the Python type of its first array "
+                                "value is invalid: {3} (must be CIMInstance "
+                                "or CIMClass)",
+                                element_kind, element_name, embedded_object,
                                 builtin_type(v0)))
         else:
             if not isinstance(value, (CIMInstance, CIMClass)):
                 raise ValueError(
-                    _format("{0} specifies embedded_object {1!A} but the "
-                            "Python type of its value is invalid: {2} "
+                    _format("{0} {1!A} specifies embedded_object {2!A} but "
+                            "the Python type of its value is invalid: {3} "
                             "(must be CIMInstance or CIMClass)",
-                            element_txt, embedded_object, builtin_type(value)))
+                            element_kind, element_name, embedded_object,
+                            builtin_type(value)))
 
 
 def byname(nlist):
