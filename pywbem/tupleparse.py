@@ -217,23 +217,23 @@ class TupleParser(object):
                 if attr in tt_attrs:
                     del tt_attrs[attr]
 
-        for k in tt_attrs.keys():
+        if tt_attrs:
             raise CIMXMLParseError(
-                _format("Element {0!A} has invalid attribute {1!A}",
-                        name(tup_tree), k),
+                _format("Element {0!A} has invalid attribute(s) {1!A}",
+                        name(tup_tree), tt_attrs.keys()),
                 conn_id=self.conn_id)
 
         if allowed_children is not None:
-            if not allowed_children:
-                allow_txt = "no child elements are allowed"
-            else:
-                allow_txt = _format("allowed are child elements {0!A}",
-                                    allowed_children)
-            invalid_children = set()
+            invalid_children = set()  # Elimitate duplicates
             for child in kids(tup_tree):
                 if name(child) not in allowed_children:
                     invalid_children.add(name(child))
             if invalid_children:
+                if not allowed_children:
+                    allow_txt = "no child elements are allowed"
+                else:
+                    allow_txt = _format("allowed are child elements {0!A}",
+                                        allowed_children)
                 raise CIMXMLParseError(
                     _format("Element {0!A} has invalid child element(s) "
                             "{1!A} ({2})",
