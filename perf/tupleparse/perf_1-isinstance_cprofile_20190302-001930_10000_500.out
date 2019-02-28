@@ -1,0 +1,41 @@
+         21510543 function calls (20760538 primitive calls) in 13.147 seconds
+
+   Ordered by: internal time, call count
+   List reduced from 197 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   800000    0.746    0.000    1.216    0.000 abc.py:128(__instancecheck__)
+  3150013    0.695    0.000    1.911    0.000 {isinstance}
+40000/30000    0.635    0.000    0.899    0.000 copy.py:234(_deepcopy_tuple)
+   140005    0.634    0.000    3.367    0.000 tupleparse.py:168(check_node)
+210000/90000    0.564    0.000    2.562    0.000 _utils.py:150(_ascii2)
+270000/20000    0.442    0.000    2.103    0.000 copy.py:145(deepcopy)
+    90000    0.420    0.000    0.712    0.000 collections.py:50(__init__)
+  1480000    0.413    0.000    0.413    0.000 _weakrefset.py:70(__contains__)
+   140005    0.405    0.000    0.496    0.000 tupletree.py:96(startElement)
+180000/90000    0.382    0.000    3.417    0.000 string.py:567(_vformat)
+       92    0.315    0.003    2.005    0.022 {built-in method Parse}
+   300007    0.290    0.000    0.730    0.000 tupletree.py:115(characters)
+    40000    0.250    0.000    2.733    0.000 cim_obj.py:4321(__init__)
+ 120004/1    0.222    0.000   11.132   11.132 tupleparse.py:2046(parse_any)
+100000/20000    0.218    0.000    6.533    0.000 tupleparse.py:324(list_of_matching)
+   260005    0.208    0.000    0.301    0.000 tupleparse.py:103(filter_tuples)
+    40000    0.200    0.000    0.264    0.000 {method 'sub' of '_sre.SRE_Pattern' objects}
+    70000    0.198    0.000    0.828    0.000 _nocasedict.py:90(__init__)
+    30000    0.188    0.000    4.566    0.000 tupleparse.py:1320(parse_property)
+   980004    0.184    0.000    0.184    0.000 {getattr}
+   170006    0.177    0.000    0.177    0.000 {method 'format' of 'str' objects}
+  1190016    0.167    0.000    0.167    0.000 {method 'append' of 'list' objects}
+   240006    0.149    0.000    0.149    0.000 re.py:230(_compile)
+   260000    0.146    0.000    0.198    0.000 copy.py:267(_keep_alive)
+    40000    0.121    0.000    0.995    0.000 tupleparse.py:2135(unpack_value)
+
+
+Results: profile=cprofile, response_counts=[10000],
+   response-sizes=[500], 20190302-001930
++----------------+----------------+------------+--------------+
+|   Exp Response |   Act Response |   Response |   Parse time |
+|     Size Bytes |   Size (Bytes) |      Count |        sec.) |
++================+================+============+==============+
+|            500 |            589 |      10000 |      13.2364 |
++----------------+----------------+------------+--------------+

@@ -79,6 +79,24 @@ def _ensure_bool(obj):
     return obj
 
 
+def _to_unicode(obj):
+    """
+    Convert the input binary string to a :term:`unicode string`.
+    The input object must be a byte string.
+    Use this if there is a previous test about the string type.
+    """
+    return obj.decode("utf-8")
+
+
+def _to__bytes(obj):
+    """
+    Convert the input binary string to a :term:`byte string`.
+    The input object must be a unicode string.
+    Use this if there is a previous test about the string type.
+    """
+    return obj.encode("utf-8")
+
+
 def _hash_name(name):
     """
     Hash a CIM name, case-insensitively.

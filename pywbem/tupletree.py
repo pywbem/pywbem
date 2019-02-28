@@ -61,7 +61,7 @@ import sys
 import six
 
 from .exceptions import XMLParseError
-from ._utils import _format
+from ._utils import _format, _ensure_bytes
 
 __all__ = []
 
@@ -167,8 +167,7 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
     #      SAXParseException: "<unknown>:1:1: not well-formed (invalid token)"
     #    or:
     #      TypeError: 'str' does not support the buffer interface
-    if isinstance(xml_string, six.text_type):
-        xml_string = xml_string.encode("utf-8")
+    xml_string = _ensure_bytes(xml_string)
 
     try:
         xml.sax.parseString(xml_string, handler, None)
@@ -370,7 +369,9 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     context_before = 16    # number of chars to print before any bad chars
     context_after = 16     # number of chars to print after any bad chars
 
-    if not isinstance(utf8_string, six.binary_type):
+    try:
+        assert isinstance(utf8_string, six.binary_type)
+    except AssertionError:
         raise TypeError(
             _format("utf8_string parameter is not a byte string, but has "
                     "type {0}", type(utf8_string)))
@@ -482,7 +483,9 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
     context_before = 16    # number of chars to print before any bad chars
     context_after = 16     # number of chars to print after any bad chars
 
-    if not isinstance(xml_string, six.text_type):
+    try:
+        assert isinstance(xml_string, six.text_type)
+    except AssertionError:
         raise TypeError(
             _format("xml_string parameter is not a unicode string, but has "
                     "type {0}", type(xml_string)))
