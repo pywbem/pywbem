@@ -6,6 +6,7 @@
 /.tox/
 .ipynb_checkpoints/
 *.pyc
+*.pyo
 *.log
 *.tmp
 tmp.*
@@ -24,6 +25,7 @@ wbemcli.log
 /blah.yaml
 .coverage
 /coverage_html/
+cprofilerstats*.profile
 /build/
 /build_doc/
 mofparsetab.py
