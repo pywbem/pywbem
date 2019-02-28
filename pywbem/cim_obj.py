@@ -2500,15 +2500,18 @@ class CIMInstance(_CIMComparisonMixin):
     def path(self, path):
         """Setter method; for a description see the getter method."""
 
-        # pylint: disable=attribute-defined-outside-init
-        self._path = copy_.deepcopy(path)
+        if path is None:
+            # pylint: disable=attribute-defined-outside-init
+            self._path = None
+        else:
+            # The provided path is deep copied because its keybindings may be
+            # updated when setting properties (in __setitem__()).
+            # pylint: disable=attribute-defined-outside-init
+            self._path = path.copy()
 
-        # The provided path is deep copied because its keybindings may be
-        # updated when setting properties (in __setitem__()).
-
-        # We perform this check after the initialization to avoid errors
-        # in test tools that show the object with repr().
-        assert isinstance(path, CIMInstanceName) or path is None
+            # We perform this check after the initialization to avoid errors
+            # in test tools that show the object with repr().
+            assert isinstance(path, CIMInstanceName)
 
     @property
     def property_list(self):
