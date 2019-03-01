@@ -289,16 +289,18 @@ class TupleParser(object):
 
         k = kids(tup_tree)
 
-        if len(k) > 1:
-            raise CIMXMLParseError(
-                _format("Element {0!A} has too many child elements {1!A} "
-                        "(allowed is one optional child element {2!A})",
-                        name(tup_tree), [name(t) for t in k], allowed),
-                conn_id=self.conn_id)
-        elif len(k) == 1:
-            return self.one_child(tup_tree, allowed)
-        else:
+        if not k:
             return None
+
+        if len(k) == 1:
+            return self.one_child(tup_tree, allowed)
+
+        # len(k) > 1
+        raise CIMXMLParseError(
+            _format("Element {0!A} has too many child elements {1!A} "
+                    "(allowed is one optional child element {2!A})",
+                    name(tup_tree), [name(t) for t in k], allowed),
+            conn_id=self.conn_id)
 
     def list_of_various(self, tup_tree, acceptable):
         """
@@ -601,24 +603,24 @@ class TupleParser(object):
         self.check_node(tup_tree, 'VALUE.NAMEDOBJECT')
 
         k = kids(tup_tree)
-        if len(k) == 1:
-            _object = self.parse_class(k[0])
-        elif len(k) == 2:
-            inst_path = self.parse_instancename(kids(tup_tree)[0])
+        len_k = len(k)
 
-            # redefines _object from pywbem.cim_obj.CIMClass to ...CIMInstance
-            _object = self.parse_instance(kids(tup_tree)[1])
-
+        if len_k == 2:
+            inst_path = self.parse_instancename(k[0])
+            _object = self.parse_instance(k[1])
             _object.path = inst_path
-        else:
-            raise CIMXMLParseError(
-                _format("Element {0!A} has invalid number of child elements "
-                        "{1!A} (expecting one or two child elements "
-                        "(CLASS | (INSTANCENAME, INSTANCE)))",
-                        name(tup_tree), k),
-                conn_id=self.conn_id)
+            return (name(tup_tree), attrs(tup_tree), _object)
 
-        return (name(tup_tree), attrs(tup_tree), _object)
+        if len_k == 1:
+            _object = self.parse_class(k[0])
+            return (name(tup_tree), attrs(tup_tree), _object)
+
+        raise CIMXMLParseError(
+            _format("Element {0!A} has invalid number of child elements "
+                    "{1!A} (expecting one or two child elements "
+                    "(CLASS | (INSTANCENAME, INSTANCE)))",
+                    name(tup_tree), k),
+            conn_id=self.conn_id)
 
     # pylint: disable=invalid-name
     def parse_value_objectwithlocalpath(self, tup_tree):
@@ -955,18 +957,19 @@ class TupleParser(object):
 
         self.check_node(tup_tree, 'INSTANCENAME', ['CLASSNAME'])
 
-        if not kids(tup_tree):
+        k = kids(tup_tree)
+        if not k:
             # probably not ever going to see this, but it's valid
             # according to the grammar
             return CIMInstanceName(attrs(tup_tree)['CLASSNAME'], {})
 
-        kid0 = kids(tup_tree)[0]
+        kid0 = k[0]
         k0_name = name(kid0)
 
         classname = attrs(tup_tree)['CLASSNAME']
 
         if k0_name == 'KEYVALUE' or k0_name == 'VALUE.REFERENCE':
-            if len(kids(tup_tree)) != 1:
+            if len(k) != 1:
                 raise CIMXMLParseError(
                     _format("Element {0!A} has more than one child element "
                             "{1!A} (expecting child elements "
@@ -976,7 +979,8 @@ class TupleParser(object):
 
             val = self.parse_any(kid0)
             return CIMInstanceName(classname, {None: val})
-        elif k0_name == 'KEYBINDING':
+
+        if k0_name == 'KEYBINDING':
             kbs = {}
             # self.list_of_various() has the same effect as self.list_of_same()
             # when used with a single allowed child element, but is a little
@@ -984,13 +988,13 @@ class TupleParser(object):
             for key_bind in self.list_of_various(tup_tree, ['KEYBINDING']):
                 kbs.update(key_bind)
             return CIMInstanceName(classname, kbs)
-        else:
-            raise CIMXMLParseError(
-                _format("Element {0!A} has invalid child elements {1!A} "
-                        "(expecting child elements "
-                        "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))",
-                        name(tup_tree), kids(tup_tree)),
-                conn_id=self.conn_id)
+
+        raise CIMXMLParseError(
+            _format("Element {0!A} has invalid child elements {1!A} "
+                    "(expecting child elements "
+                    "(KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?))",
+                    name(tup_tree), k),
+            conn_id=self.conn_id)
 
     def parse_objectpath(self, tup_tree):
         """
@@ -2124,7 +2128,8 @@ class TupleParser(object):
 
         if name(tup_tree) == 'INSTANCE':
             return self.parse_instance(tup_tree)
-        elif name(tup_tree) == 'CLASS':
+
+        if name(tup_tree) == 'CLASS':
             return self.parse_class(tup_tree)
 
         raise CIMXMLParseError(
@@ -2149,7 +2154,8 @@ class TupleParser(object):
 
         if not raw_val:
             return None
-        elif len(raw_val) > 1:
+
+        if len(raw_val) > 1:
             raise CIMXMLParseError(
                 _format("Element {0!A} has too many child elements {1!A} "
                         "(allowed is one of 'VALUE' or 'VALUE.ARRAY')",
@@ -2181,17 +2187,19 @@ class TupleParser(object):
         """
         if cimtype in ('string', 'char16', 'datetime'):
             return self.unpack_string(data, cimtype, cimtype_origin)
-        elif cimtype == 'boolean':
+
+        if cimtype == 'boolean':
             return self.unpack_boolean(data)
-        elif cimtype is None or NUMERIC_CIMTYPE_PATTERN.match(cimtype):
+
+        if cimtype is None or NUMERIC_CIMTYPE_PATTERN.match(cimtype):
             return self.unpack_numeric(data, cimtype, cimtype_origin)
-        else:
-            # Note that 'reference' is not allowed for this function.
-            raise CIMXMLParseError(
-                _format("Invalid CIM type found: {0!A}; "
-                        "Type origin: {1}",
-                        cimtype, cimtype_origin),
-                conn_id=self.conn_id)
+
+        # Note that 'reference' is not allowed for this function.
+        raise CIMXMLParseError(
+            _format("Invalid CIM type found: {0!A}; "
+                    "Type origin: {1}",
+                    cimtype, cimtype_origin),
+            conn_id=self.conn_id)
 
     def unpack_string(self, data, cimtype, cimtype_origin):
         """
@@ -2211,15 +2219,18 @@ class TupleParser(object):
             return None
 
         if cimtype == 'string':
-            value = data
-        elif cimtype == 'datetime':
+            return data
+
+        if cimtype == 'datetime':
             try:
                 value = CIMDateTime(data)
             except ValueError as exc:
                 raise CIMXMLParseError(
                     _format("Invalid datetime value: {0!A} ({1})", data, exc),
                     conn_id=self.conn_id)
-        elif cimtype == 'char16':
+            return value
+
+        if cimtype == 'char16':
             value = data
             if value == '':
                 raise CIMXMLParseError(
@@ -2239,13 +2250,13 @@ class TupleParser(object):
                     _format("Char16 value is a character outside of the "
                             "UCS-2 range: {0!A}", data),
                     conn_id=self.conn_id)
-        else:
-            raise CIMXMLParseError(
-                _format("Invalid CIM type name {0!A} for string: {1!A}; "
-                        "Type origin: {2}",
-                        cimtype, data, cimtype_origin),
-                conn_id=self.conn_id)
-        return value
+            return value
+
+        raise CIMXMLParseError(
+            _format("Invalid CIM type name {0!A} for string: {1!A}; "
+                    "Type origin: {2}",
+                    cimtype, data, cimtype_origin),
+            conn_id=self.conn_id)
 
     def unpack_boolean(self, data):
         """
@@ -2263,20 +2274,23 @@ class TupleParser(object):
         # (even though the XML definition requires them to be lowercase.)
 
         data_ = data.strip().lower()                   # ignore space
+
         if data_ == 'true':
             return True
-        elif data_ == 'false':
+
+        if data_ == 'false':
             return False
-        elif data_ == '':
+
+        if data_ == '':
             warnings.warn("WBEM server sent invalid empty boolean value in a "
                           "CIM-XML response.",
                           ToleratedServerIssueWarning,
                           stacklevel=_stacklevel_above_module(__name__))
             return None
-        else:
-            raise CIMXMLParseError(
-                _format("Invalid boolean value {0!A}", data),
-                conn_id=self.conn_id)
+
+        raise CIMXMLParseError(
+            _format("Invalid boolean value {0!A}", data),
+            conn_id=self.conn_id)
 
     def unpack_numeric(self, data, cimtype, cimtype_origin):
         """
@@ -2336,5 +2350,4 @@ class TupleParser(object):
                 _format("Cannot convert value {0!A} to numeric CIM type {1}; "
                         "Type origin: {2}", exc, CIMType, cimtype_origin),
                 conn_id=self.conn_id)
-
         return value
