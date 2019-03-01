@@ -1,0 +1,41 @@
+         11110508 function calls (10870503 primitive calls) in 7.506 seconds
+
+   Ordered by: internal time, call count
+   List reduced from 163 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    80000    0.947    0.000    1.323    0.000 collections.py:50(__init__)
+   140005    0.482    0.000    0.809    0.000 tupleparse.py:168(check_node)
+   140005    0.436    0.000    0.525    0.000 tupletree.py:96(startElement)
+  2010019    0.362    0.000    0.362    0.000 {isinstance}
+       92    0.324    0.004    1.482    0.016 {built-in method Parse}
+    80000    0.231    0.000    1.684    0.000 _nocasedict.py:90(__init__)
+    40000    0.218    0.000    1.893    0.000 cim_obj.py:4324(__init__)
+   260005    0.211    0.000    0.308    0.000 tupleparse.py:103(filter_tuples)
+    80000    0.210    0.000    0.256    0.000 abc.py:148(__subclasscheck__)
+ 120004/1    0.202    0.000    6.014    6.014 tupleparse.py:2046(parse_any)
+100000/20000    0.188    0.000    3.767    0.000 tupleparse.py:324(list_of_matching)
+    30000    0.169    0.000    2.605    0.000 tupleparse.py:1320(parse_property)
+   300007    0.136    0.000    0.201    0.000 tupletree.py:115(characters)
+   140005    0.122    0.000    0.671    0.000 expatreader.py:335(start_element)
+    40000    0.111    0.000    0.905    0.000 tupleparse.py:2135(unpack_value)
+   300000    0.105    0.000    0.182    0.000 _utils.py:41(_ensure_unicode)
+   260005    0.095    0.000    0.403    0.000 tupleparse.py:128(kids)
+    80000    0.093    0.000    0.111    0.000 _abcoll.py:548(update)
+    80000    0.083    0.000    0.111    0.000 _nocasedict.py:377(update)
+   570010    0.082    0.000    0.082    0.000 {method 'append' of 'list' objects}
+    10000    0.080    0.000    4.582    0.000 tupleparse.py:1130(parse_instance)
+    10000    0.079    0.000    0.872    0.000 tupleparse.py:1376(parse_property_array)
+   300007    0.078    0.000    0.279    0.000 pyexpat.c:441(CharacterData)
+    20000    0.077    0.000    0.645    0.000 cim_obj.py:1252(keybindings)
+    40000    0.075    0.000    0.279    0.000 cim_obj.py:2635(__setitem__)
+
+
+Results: profile=cprofile, response_counts=[10000],
+   response-sizes=[500], 20190302-003611
++----------------+----------------+------------+--------------+
+|   Exp Response |   Act Response |   Response |   Parse time |
+|     Size Bytes |   Size (Bytes) |      Count |        sec.) |
++================+================+============+==============+
+|            500 |            589 |      10000 |       7.6061 |
++----------------+----------------+------------+--------------+

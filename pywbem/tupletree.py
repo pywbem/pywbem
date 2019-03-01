@@ -113,15 +113,13 @@ class CIMContentHandler(xml.sax.ContentHandler):
             self.element = self.elements.pop()
 
     def characters(self, content):
-        if self.element[2]:
-            try:
-                re.match(r'\s+', self.element[2][-1])
-            except TypeError:
-                pass
-            else:
-                ws = self.element[2].pop()
-                content = '{0}{1}'.format(ws, content)
-        self.element[2].append(content)
+        children = self.element[2]  # mutable list
+        # If the last node is a character node, append the content to it.
+        # Otherwise, append a new character node with the content.
+        if children and isinstance(children[-1], six.text_type):
+            children[-1] += content
+        else:
+            children.append(content)
 
 
 def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
