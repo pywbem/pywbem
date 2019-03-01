@@ -238,41 +238,49 @@ class ExecuteTests(object):
         self.profiler = args.profiler
         self.verbose = args.verbose
         self.log = args.log
+        self.runid = args.runid or 'default'
+        # insure no blanks in the text
+        self.runid.replace(" ", "-")
+
         self.file_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         # set logfile name if log option set. If the individual
         # option set, this will be modified
         if self.log:
-            self.logfile = "perf_{0}_{1}.log".format(self.file_datetime,
-                                                     self.profiler)
+            self.logfile = "perf_{0}_{1}_{2}.log".format(self.runid,
+                                                         self.profiler,
+                                                         self.file_datetime)
         else:
             self.logfile = None
 
         # define a dumpfile for the cprofile save.
-        self.dumpfilename = "{0}_{1}.{2}".format(PROFILE_DUMP_MAIN_NAME,
-                                                 self.file_datetime,
-                                                 PROFILE_DUMP_SUFFIX)
+        self.dumpfilename = "{0}_{1}_{2}.{3}".format(PROFILE_DUMP_MAIN_NAME,
+                                                     self.runid,
+                                                     self.file_datetime,
+                                                     PROFILE_DUMP_SUFFIX)
         # number of lines to display for cprofile output
         self.top_n_rows = args.top_n_rows
 
-        # ncalls – how many times the function/method has been called (in case
+        # ncalls - how many times the function/method has been called (in case
         # the same function/method is being called recursively then ncalls has
         # two values eg. 120/20, where the first is the true number of calls,
         # while the second is the number of direct calls)
 
-        # tottime – the total time in seconds excluding the time of other
+        # tottime - the total time in seconds excluding the time of other
         # functions/methods
 
-        # percall – average time to execute function (per call)
+        # percall - average time to execute function (per call)
 
-        # cumtime – the total time in seconds includes the times of other
+        # cumtime - the total time in seconds includes the times of other
         # functions it calls
 
         self.cprofilesort = ["tottime", "ncalls"]
 
     def __repr__(self):
-        return "Params(response_size={0} response_count={1} profiler={2} " \
-               " verbose={3}, log={4}, file_datetime={5}, logfile={6}, " \
-               "dumpfilename={7}, top_n_rows={8}, cprofilesort={9})".format(
+        return "ExecuteTests(runid={0}, response_size={1} response_count={2} " \
+               "profiler={3} verbose={4}, log={5}, file_datetime={6}, " \
+               "logfile={7}, dumpfilename={8}, top_n_rows={9}, " \
+               "cprofilesort={10})".format(
+                   self.runid,
                    self.response_size,
                    self.response_count,
                    self.profiler,
@@ -423,8 +431,9 @@ def execute_individual_tests(args):
             # define a dump file name for each execution
             tests.response_count = [response_count]
             tests.response_size = [response_size]
-            tests.dumpfilename = "{0}_{1}_{2}_{3}.{4}".format(
+            tests.dumpfilename = "{0}_{1}_{2}_{3}_{4}.{5}".format(
                 PROFILE_DUMP_MAIN_NAME,
+                tests.runid,
                 tests.file_datetime,
                 response_size,
                 response_count,
@@ -434,9 +443,10 @@ def execute_individual_tests(args):
             # for each individual  test suffixes the name with the
             # response_size and response_count
             if args.log:
-                tests.logfile = "perf_{0}_{1}_{2}_{3}.log".format(
-                    tests.file_datetime,
+                tests.logfile = "perf_{0}_{1}_{2}_{3}_{4}.log".format(
+                    tests.runid,
                     args.profiler,
+                    tests.file_datetime,
                     response_count,
                     response_size)
 
@@ -536,6 +546,14 @@ Examples:
         help='R|The number of rows of profile data for the cprofile\n'
              'display. This is the top n tottime results.\n'
              'Default: %s' % DEFAULT_TOP_N_ROWS)
+
+    tests_arggroup.add_argument(
+        '-r', '--runid', dest='runid',
+        metavar='text', type=str,
+        action='store', default="defailt",
+        help='R|A string that is concatenated into each filename\n'
+             'created by the script.\n'
+             'Default: %s' % "default")
 
     tests_arggroup.add_argument(
         '-i', '--individual', dest='individual',
