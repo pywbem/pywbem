@@ -100,17 +100,6 @@ CIMXML_HEX_PATTERN = re.compile(r'^(\+|\-)?0[xX][0-9a-fA-F]+$')
 NUMERIC_CIMTYPE_PATTERN = re.compile(r'^([su]int(8|16|32|64)|real(32|64))$')
 
 
-def filter_tuples(list_):
-    """
-    Return only the tuples in a list.
-
-    In a tupletree, tuples correspond to XML elements.  Useful for
-    stripping out whitespace data in a child list.
-    """
-
-    return [] if list_ is None else [x for x in list_ if isinstance(x, tuple)]
-
-
 def name(tup_tree):
     """
     Return first (name) element of tup_tree
@@ -127,9 +116,17 @@ def attrs(tup_tree):
 
 def kids(tup_tree):
     """
-    Return third (children) element of tup_tree
+    Return a list with the child elements of tup_tree.
+
+    The child elements are represented as tupletree nodes.
+
+    Child nodes that are not XML elements (e.g. text nodes) in tup_tree have
+    been filtered out.
     """
-    return filter_tuples(tup_tree[2])
+    k = tup_tree[2]
+    if k is None:
+        return []
+    return [x for x in k if isinstance(x, tuple)]
 
 
 class TupleParser(object):

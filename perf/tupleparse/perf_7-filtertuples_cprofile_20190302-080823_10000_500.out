@@ -1,0 +1,41 @@
+         10820503 function calls (10580498 primitive calls) in 6.523 seconds
+
+   Ordered by: internal time, call count
+   List reduced from 162 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    80000    0.831    0.000    1.224    0.000 collections.py:50(__init__)
+   140005    0.423    0.000    0.684    0.000 tupleparse.py:165(check_node)
+   140005    0.362    0.000    0.442    0.000 tupletree.py:96(startElement)
+  1990019    0.322    0.000    0.322    0.000 {isinstance}
+       92    0.274    0.003    1.278    0.014 {built-in method Parse}
+    80000    0.268    0.000    0.283    0.000 _abcoll.py:548(update)
+    40000    0.199    0.000    1.474    0.000 cim_obj.py:4324(__init__)
+    80000    0.198    0.000    1.538    0.000 _nocasedict.py:90(__init__)
+   250005    0.192    0.000    0.275    0.000 tupleparse.py:117(kids)
+ 120004/1    0.180    0.000    5.237    5.237 tupleparse.py:2047(parse_any)
+100000/20000    0.163    0.000    3.048    0.000 tupleparse.py:323(list_of_matching)
+    30000    0.145    0.000    2.057    0.000 tupleparse.py:1321(parse_property)
+   300007    0.128    0.000    0.187    0.000 tupletree.py:115(characters)
+   140005    0.106    0.000    0.566    0.000 expatreader.py:335(start_element)
+    40000    0.098    0.000    0.759    0.000 tupleparse.py:2137(unpack_value)
+   300000    0.090    0.000    0.158    0.000 _utils.py:41(_ensure_unicode)
+    80000    0.075    0.000    0.099    0.000 _nocasedict.py:377(update)
+   570010    0.074    0.000    0.074    0.000 {method 'append' of 'list' objects}
+    10000    0.069    0.000    3.960    0.000 tupleparse.py:1131(parse_instance)
+   300007    0.068    0.000    0.256    0.000 pyexpat.c:441(CharacterData)
+    20000    0.067    0.000    0.619    0.000 cim_obj.py:1252(keybindings)
+    40000    0.067    0.000    0.248    0.000 cim_obj.py:2635(__setitem__)
+    10000    0.067    0.000    0.740    0.000 tupleparse.py:1377(parse_property_array)
+    80000    0.064    0.000    0.102    0.000 abc.py:148(__subclasscheck__)
+   600019    0.063    0.000    0.063    0.000 tupleparse.py:103(name)
+
+
+Results: profile=cprofile, response_counts=[10000],
+   response-sizes=[500], 20190302-080823
++----------------+----------------+------------+--------------+
+|   Exp Response |   Act Response |   Response |   Parse time |
+|     Size Bytes |   Size (Bytes) |      Count |        sec.) |
++================+================+============+==============+
+|            500 |            589 |      10000 |      6.61412 |
++----------------+----------------+------------+--------------+
