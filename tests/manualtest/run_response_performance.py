@@ -33,9 +33,9 @@ DEFAULT_TOP_N_ROWS = 20
 # Dictionary
 XML_DICTIONARY = {}
 
-PROFILE_DUMP_MAIN_NAME = 'cprofilerstats'
+PROFILE_OUT_PREFIX = 'perf'
 PROFILE_DUMP_SUFFIX = 'profile'
-PROFILE_DUMP_NAME = None
+PROFILE_LOG_SUFFIX = 'out'
 
 
 STDOUT_ENCODING = getattr(_sys.stdout, 'encoding', None)
@@ -246,17 +246,23 @@ class ExecuteTests(object):
         # set logfile name if log option set. If the individual
         # option set, this will be modified
         if self.log:
-            self.logfile = "perf_{0}_{1}_{2}.log".format(self.runid,
-                                                         self.profiler,
-                                                         self.file_datetime)
+            self.logfile = "{0}_{1}_{2}_{3}.{4}".format(
+                PROFILE_OUT_PREFIX,
+                self.runid,
+                self.profiler,
+                self.file_datetime,
+                PROFILE_LOG_SUFFIX)
         else:
             self.logfile = None
 
         # define a dumpfile for the cprofile save.
-        self.dumpfilename = "{0}_{1}_{2}.{3}".format(PROFILE_DUMP_MAIN_NAME,
-                                                     self.runid,
-                                                     self.file_datetime,
-                                                     PROFILE_DUMP_SUFFIX)
+        self.dumpfilename = "{0}_{1}_{2}_{3}.{4}".format(
+            PROFILE_OUT_PREFIX,
+            self.runid,
+            self.profiler,
+            self.file_datetime,
+            PROFILE_DUMP_SUFFIX)
+
         # number of lines to display for cprofile output
         self.top_n_rows = args.top_n_rows
 
@@ -431,24 +437,27 @@ def execute_individual_tests(args):
             # define a dump file name for each execution
             tests.response_count = [response_count]
             tests.response_size = [response_size]
-            tests.dumpfilename = "{0}_{1}_{2}_{3}_{4}.{5}".format(
-                PROFILE_DUMP_MAIN_NAME,
+            tests.dumpfilename = "{0}_{1}_{2}_{3}_{4}_{5}.{6}".format(
+                PROFILE_OUT_PREFIX,
                 tests.runid,
+                args.profiler,
                 tests.file_datetime,
-                response_size,
                 response_count,
+                response_size,
                 PROFILE_DUMP_SUFFIX)
 
             # If a log destination is defined modify the dump file name
             # for each individual  test suffixes the name with the
             # response_size and response_count
             if args.log:
-                tests.logfile = "perf_{0}_{1}_{2}_{3}_{4}.log".format(
+                tests.logfile = "{0}_{1}_{2}_{3}_{4}_{5}.{6}".format(
+                    PROFILE_OUT_PREFIX,
                     tests.runid,
                     args.profiler,
                     tests.file_datetime,
                     response_count,
-                    response_size)
+                    response_size,
+                    PROFILE_LOG_SUFFIX)
 
             tests.execute_tests()
 
