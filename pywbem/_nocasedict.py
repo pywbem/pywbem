@@ -204,14 +204,20 @@ class NocaseDict(object):
         Return the normalized key to be used for the internal dictionary,
         from the input key.
         """
-        if isinstance(key, six.string_types):
-            return key.lower()
-        elif self.allow_unnamed_keys and key is None:
+        if key is not None:
+            try:
+                return key.lower()
+            except AttributeError:
+                raise TypeError(
+                    _format("NocaseDict key {0!A} must be a string, "
+                            "but is {1}", key, type(key)))
+
+        if self.allow_unnamed_keys:
             return None
-        else:
-            raise TypeError(
-                _format("NocaseDict key {0!A} must be a string, but is {1}",
-                        key, type(key)))
+
+        raise TypeError(
+            _format("NocaseDict key None (unnamed key) is not "
+                    "allowed for this object"))
 
     def __getitem__(self, key):
         """
