@@ -342,10 +342,10 @@ class ExecuteTests(object):
         # if dest defined, output to file defined by dest
         if self.logfile:
             with open(self.logfile, 'w') as stream:
-                stats = pstats.Stats(profiler, stream=stream)
+                ps = pstats.Stats(profiler, stream=stream)
                 ps.strip_dirs()
                 ps.sort_stats("tottime", "ncalls")
-                stats.print_stats(self.top_n_rows)
+                ps.print_stats(self.top_n_rows)
 
         return table_rows
 
