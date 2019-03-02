@@ -29,9 +29,8 @@ if six.PY2:
 DEFAULT_RESPONSE_SIZE = [100, 1000]
 DEFAULT_RESPONSE_COUNT = [100, 1000]
 DEFAULT_TOP_N_ROWS = 20
+DEFAULT_RUNID = 'default'
 
-# Dictionary
-XML_DICTIONARY = {}
 
 PROFILE_OUT_PREFIX = 'perf'
 PROFILE_DUMP_SUFFIX = 'profile'
@@ -110,7 +109,7 @@ class _PywbemCustomFormatter(_SmartFormatter,
 
     https://stackoverflow.com/questions/18462610/argumentparser-epilog-and-description-formatting-in-conjunction-with-argumentdef
     """
-    pass
+    pass  # pylint: disable=unnecessary-pass
 
 
 TEMPLATE = u"""\n<VALUE.NAMEDINSTANCE>
@@ -156,6 +155,9 @@ def build_xml_obj(number, size):
     return TEMPLATE.format(number, pattern, s1_value, a1_value)
 
 
+AVG_RESPONSE_SIZE = 0
+
+
 def create_xml_objs(count, size):
     """
     Create the set of CIMInstances XML that will go into the test XML
@@ -166,9 +168,8 @@ def create_xml_objs(count, size):
         obj = build_xml_obj(number, size)
         obj_size.append(len(obj))
         objstr += obj
-
-    global AVG_OBJ_SIZE
-    AVG_OBJ_SIZE = sum(obj_size) / len(obj_size)
+    global AVG_RESPONSE_SIZE
+    AVG_RESPONSE_SIZE = sum(obj_size) / len(obj_size)
 
     return objstr
 
@@ -186,12 +187,14 @@ def create_xml(count=1000, size=100):
 
     xml += '\n</IRETURNVALUE></IMETHODRESPONSE></SIMPLERSP></MESSAGE></CIM>'
 
-    return xml
+    return xml, AVG_RESPONSE_SIZE
 
 
 def execute_test_code(xml_string, profiler):
     """
-    The test code to be executed.
+    The test code to be executed. If a profiler is defined it is enabled
+    just before the test code is executed and disabled just after the
+    code is executed.
     """
     if profiler:
         if isinstance(profiler, cProfile.Profile):
@@ -216,7 +219,7 @@ def execute_with_time(xml_string, profiler):
     """
     Start time measurement and execute the test code.
 
-     desc reserved for future tests.
+    Returns the execution time
     """
     start_time = time.time()
 
@@ -238,7 +241,7 @@ class ExecuteTests(object):
         self.profiler = args.profiler
         self.verbose = args.verbose
         self.log = args.log
-        self.runid = args.runid or 'default'
+        self.runid = args.runid or DEFAULT_RUNID
         # insure no blanks in the text
         self.runid.replace(" ", "-")
 
@@ -266,6 +269,7 @@ class ExecuteTests(object):
         # number of lines to display for cprofile output
         self.top_n_rows = args.top_n_rows
 
+        # The following describes the columns in the cprofile output.
         # ncalls - how many times the function/method has been called (in case
         # the same function/method is being called recursively then ncalls has
         # two values eg. 120/20, where the first is the true number of calls,
@@ -300,21 +304,21 @@ class ExecuteTests(object):
 
     def execute_raw_tests(self, profiler=None):
         """
-        Execute the parse test for all of the input parameters defined in
-        args. This allows multiple tests to be executed
-        We want to reduce this to the minimum code since everything here is
-        profiled
+        Execute the parse test for all of the input parameters defined in in
+        self.response_count and self.response_size. This allows multiple tests
+        to be executed
         """
         table_rows = []
         for response_size in self.response_size:
             for response_count in self.response_count:
-                key = key = "%s:%s" % (response_count, response_size)
-                xml = XML_DICTIONARY[key]
+                xml, avg_resp_size = create_xml(response_count, response_size)
                 execution_time = execute_with_time(xml, profiler=profiler)
                 row = (response_size,
-                       int(len(xml) / response_count),
+                       int(avg_resp_size),
                        response_count,
-                       execution_time)
+                       len(xml),
+                       "{0:5.2f}".format(execution_time),
+                       int(response_count / execution_time))
                 table_rows.append(row)
         return table_rows
 
@@ -334,15 +338,13 @@ class ExecuteTests(object):
 
         try:
             ps.dump_stats(self.dumpfilename)
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             print('cProfiler dump stats exception %s %s. Ignored' %
                   (ex.__class__.__name__, ex))
 
-        # modify stats for display
+        # modify stats for display and output to stdout
         ps.strip_dirs()
         ps.sort_stats(*self.cprofilesort)
-
-        # output profile stats to stdout
         ps.print_stats(self.top_n_rows)
 
         # if dest defined, output to file defined by dest
@@ -350,7 +352,7 @@ class ExecuteTests(object):
             with open(self.logfile, 'w') as stream:
                 ps = pstats.Stats(profiler, stream=stream)
                 ps.strip_dirs()
-                ps.sort_stats("tottime", "ncalls")
+                ps.sort_stats(*self.cprofilesort)
                 ps.print_stats(self.top_n_rows)
 
         return table_rows
@@ -363,12 +365,9 @@ class ExecuteTests(object):
         """
         table_rows = []
         profiler = Profiler()
-        # The start and stop were moved to the execution code
-        # profiler.start()
 
         table_rows = self.execute_raw_tests(profiler)
 
-        # profiler.stop()
         _uprint(None, profiler.output_text(unicode=True, color=True))
         if self.logfile:
             _uprint(self.logfile, profiler.output_text(unicode=True,
@@ -377,16 +376,6 @@ class ExecuteTests(object):
 
     def execute_tests(self):
         """Execute the test associated with profiler input argument."""
-
-        # build a dictionary of xml responses for the test. The removes this
-        # from any possible profile tests.
-        global XML_DICTIONARY
-        XML_DICTIONARY = {}
-        for response_size in self.response_size:
-            for response_count in self.response_count:
-                xml = create_xml(response_count, response_size)
-                key = "%s:%s" % (response_count, response_size)
-                XML_DICTIONARY[key] = xml
 
         if self.profiler == 'none':
             table_rows = self.execute_raw_tests()
@@ -399,15 +388,18 @@ class ExecuteTests(object):
                                'Should never occur' % self.profiler)
 
         # build and output results report
-        header = ["Exp Response\nSize Bytes",
-                  "Act Response\nSize (Bytes)",
+        header = ["Exp inst\nsize",
+                  "Act inst\nsize",
                   "Response\nCount",
-                  "Parse time\nsec.)"]
+                  "XML\nsize",
+                  "Parse time\nsec.",
+                  "Instances\nper sec"]
         title = 'Results: profile={0}, response_counts={1},\n   ' \
-                'response-sizes={2}, {3}'.format(self.profiler,
-                                                 self.response_count,
-                                                 self.response_size,
-                                                 self.file_datetime)
+                'response-sizes={2}, runid={3} {4}'.format(self.profiler,
+                                                           self.response_count,
+                                                           self.response_size,
+                                                           self.runid,
+                                                           self.file_datetime)
         table = tabulate(table_rows, header, tablefmt="grid")
 
         # print statistics to terminal
@@ -559,10 +551,10 @@ Examples:
     tests_arggroup.add_argument(
         '-r', '--runid', dest='runid',
         metavar='text', type=str,
-        action='store', default="defailt",
+        action='store', default=DEFAULT_RUNID,
         help='R|A string that is concatenated into each filename\n'
              'created by the script.\n'
-             'Default: %s' % "default")
+             'Default: %s' % DEFAULT_RUNID)
 
     tests_arggroup.add_argument(
         '-i', '--individual', dest='individual',
@@ -604,6 +596,11 @@ def main():
         display results.
     """
     args = parse_args()
+
+    print('Starting profiler={0}, response-count={1} response-size={2} '
+          'runid={3} log={4}'.format(args.profiler, args.response_count,
+                                     args.response_size, args.runid,
+                                     args.log))
 
     if args.individual:
         execute_individual_tests(args)
