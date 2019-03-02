@@ -7665,6 +7665,15 @@ class Test_CIMProperty_init(object):
                  is_array=True, array_size=2),
             None, True
         ),
+        (
+            "Verify that mismatch between is_array False and array_size is "
+            "ignored",
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 is_array=False, array_size=2),
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 is_array=False, array_size=2),
+            None, True
+        ),
 
         # Value/type tests with arrays: Initialization to arrays of CIM string
         # and numeric types
@@ -21181,6 +21190,15 @@ class Test_CIMParameter_init(object):
             None, True
         ),
         (
+            "Verify that mismatch between is_array False and array_size is "
+            "ignored",
+            dict(name=u'FooParam', type=u'string', value=u'abc',
+                 is_array=False, array_size=2),
+            dict(name=u'FooParam', type=u'string', value=u'abc',
+                 is_array=False, array_size=2),
+            None, True
+        ),
+        (
             "Verify that qualifiers dict is converted to NocaseDict",
             dict(name=u'FooParam', type=u'string',
                  qualifiers=dict(Q1=qualifier_Q1)),
@@ -25822,6 +25840,15 @@ class Test_CIMQualifierDeclaration_init(object):
                 array_size=42),
             None, CHECK_0_12_0
         ),
+        (
+            "Verify that mismatch between is_array False and array_size is "
+            "ignored",
+            dict(name=u'FooQual', type=u'string',
+                 is_array=False, array_size=4),
+            dict(name=u'FooQual', type=u'string',
+                 is_array=False, array_size=4),
+            None, True
+        ),
 
         # Scopes tests
         (
@@ -26132,12 +26159,6 @@ class Test_CIMQualifierDeclaration_init(object):
             "Verify that invalid type fails (since 0.12)",
             dict(name='FooQual', type='xxx'),
             ValueError, CHECK_0_12_0
-        ),
-        (
-            "Verify that mismatch between is_array False and array_size fails",
-            dict(name='FooQual', type='string',
-                 is_array=False, array_size=4),
-            ValueError, True
         ),
         (
             "Verify that mismatch between is_array False and array value fails",

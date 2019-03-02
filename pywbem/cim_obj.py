@@ -4491,8 +4491,12 @@ class CIMProperty(_CIMComparisonMixin):
 
         if is_array is None:
             is_array = _infer_is_array(value)
-
-        _check_array_parms(is_array, array_size, value, "property", name)
+        else:
+            # For performance reasons, we check only if not inferred.
+            # This leaves the incorrect combination of is_array=False and
+            # array_size=5 undetected, which seems acceptable because
+            # array_size is ignored anyway when is_array=False.
+            _check_array_parms(is_array, array_size, value, "property", name)
 
         if embedded_object is None:
             embedded_object = _infer_embedded_object(value)
@@ -5800,7 +5804,12 @@ class CIMParameter(_CIMComparisonMixin):
 
         if is_array is None:
             is_array = _infer_is_array(value)
-        _check_array_parms(is_array, array_size, value, "parameter", name)
+        else:
+            # For performance reasons, we check only if not inferred.
+            # This leaves the incorrect combination of is_array=False and
+            # array_size=5 undetected, which seems acceptable because
+            # array_size is ignored anyway when is_array=False.
+            _check_array_parms(is_array, array_size, value, "parameter", name)
 
         if embedded_object is None:
             embedded_object = _infer_embedded_object(value)
@@ -7149,9 +7158,13 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
         if is_array is None:
             is_array = _infer_is_array(value)
-
-        _check_array_parms(is_array, array_size, value,
-                           "qualifier declaration", name)
+        else:
+            # For performance reasons, we check only if not inferred.
+            # This leaves the incorrect combination of is_array=False and
+            # array_size=5 undetected, which seems acceptable because
+            # array_size is ignored anyway when is_array=False.
+            _check_array_parms(is_array, array_size, value,
+                               "qualifier declaration", name)
 
         # We use the respective setter methods:
         self.type = type
@@ -8168,14 +8181,13 @@ def _check_array_parms(is_array, array_size, value, element_kind,
     Check whether array-related parameters are ok.
     """
 
-    assert is_array is not None
-    # _infer_is_array() ensures that, and is supposed to be called
-
-    if array_size and not is_array:
-        raise ValueError(
-            _format("The array_size parameter of {0} {1!A} is {2!A} but the "
-                    "is_array parameter is False.",
-                    element_kind, element_name, array_size))
+    # The following case has been disabled because it cannot happen given
+    # how this check function is used:
+    # if array_size and is_array is False:
+    #     raise ValueError(
+    #         _format("The array_size parameter of {0} {1!A} is {2!A} but the "
+    #                 "is_array parameter is False.",
+    #                 element_kind, element_name, array_size))
 
     if value is not None:
         value_is_array = isinstance(value, (list, tuple))
