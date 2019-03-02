@@ -145,22 +145,25 @@ class NocaseDict(object):
         # Can be set to allow unnamed keys.
         self.allow_unnamed_keys = False
 
-        # Step 1: Initialize from at most one positional argument
-        if len(args) == 1:
+        # In by far the most cases, NocaseDict objects are created without
+        # any init parameters.
+
+        # Step 1: Add a single positional argument
+        if args:
+            if len(args) > 1:
+                raise TypeError(
+                    _format("Too many positional arguments for NocaseDict "
+                            "initialization: {0} (1 allowed)", len(args)))
             arg = args[0]
             if isinstance(arg, (list, tuple)):
-                # Initialize from iterable of: tuple(key,value), or object
-                try:
-                    # This is used for iterables:
-                    iterator = arg.items()
-                except AttributeError:
-                    # This is used for dictionaries:
-                    iterator = arg
-                for item in iterator:
+                # Initialize from tuple/list of key/value pairs or CIM objects
+                for item in arg:
                     try:
+                        # CIM object
                         key = item.name
                         value = item
                     except AttributeError:
+                        # key, value pair
                         key, value = item
                     self[key] = value
             elif isinstance(arg, (OrderedDict, NocaseDict)):
@@ -183,19 +186,16 @@ class NocaseDict(object):
                 raise TypeError(
                     _format("Invalid type for NocaseDict initialization: "
                             "{0} ({1})", arg.__class__.__name__, type(arg)))
-        elif len(args) > 1:
-            raise TypeError(
-                _format("Too many positional arguments for NocaseDict "
-                        "initialization: {0} (1 allowed)", len(args)))
 
         # Step 2: Add any keyword arguments
-        if len(kwargs) > 1 and sys.version_info[0:2] < (3, 7):
-            warnings.warn("Initializing a pywbem.NocaseDict object from "
-                          "keyword arguments before Python 3.7 will not "
-                          "preserve order of items",
-                          UserWarning,
-                          stacklevel=_stacklevel_above_module(__name__))
-        self.update(kwargs)
+        if kwargs:
+            if len(kwargs) > 1 and sys.version_info[0:2] < (3, 7):
+                warnings.warn("Initializing a pywbem.NocaseDict object from "
+                              "keyword arguments before Python 3.7 will not "
+                              "preserve order of items",
+                              UserWarning,
+                              stacklevel=_stacklevel_above_module(__name__))
+            self.update(kwargs)
 
     # Basic accessor and settor methods
 
