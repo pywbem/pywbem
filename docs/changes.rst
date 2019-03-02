@@ -32,6 +32,12 @@ Released: not yet
 
 **Enhancements:**
 
+* Added the possibility to specify a value of `False` for the `embedded_object`
+  attribute/parameter of `CIMProperty` and `CIMParameter`. It is stored as
+  `None`. The only difference to specifying `None` is that the
+  `embedded_object` value is not inferred from the property or parameter value
+  in that case, so this saves performance.
+
 **Known issues:**
 
 * See `list of open issues`_.

@@ -4434,6 +4434,9 @@ class CIMProperty(_CIMComparisonMixin):
             attribute in the :class:`~pywbem.CIMProperty` object to be
             inferred. An exception is raised if it cannot be inferred.
 
+            `False` means the property value is not an embedded object, and
+            is stored as `None`.
+
         Examples:
 
         ::
@@ -4494,7 +4497,7 @@ class CIMProperty(_CIMComparisonMixin):
         if embedded_object is None:
             embedded_object = _infer_embedded_object(value)
 
-        if embedded_object is not None:
+        if embedded_object:
             _check_embedded_object(embedded_object, type, value,
                                    "property", name)
 
@@ -4656,7 +4659,10 @@ class CIMProperty(_CIMComparisonMixin):
     def embedded_object(self, embedded_object):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._embedded_object = _ensure_unicode(embedded_object)
+        if embedded_object is False:
+            self._embedded_object = None
+        else:
+            self._embedded_object = _ensure_unicode(embedded_object)
 
     @property
     def is_array(self):
@@ -5784,6 +5790,9 @@ class CIMParameter(_CIMComparisonMixin):
             attribute in the :class:`~pywbem.CIMParameter` object to be
             inferred from the parameter value (i.e. the `value` parameter). An
             exception is raised if it cannot be inferred.
+
+            `False` means the parameter value is not an embedded object, and
+            is stored as `None`.
         """
 
         # We use the respective setter methods:
@@ -5796,7 +5805,7 @@ class CIMParameter(_CIMComparisonMixin):
         if embedded_object is None:
             embedded_object = _infer_embedded_object(value)
 
-        if embedded_object is not None:
+        if embedded_object:
             _check_embedded_object(embedded_object, type, value,
                                    "parameter", name)
 
@@ -6042,7 +6051,10 @@ class CIMParameter(_CIMComparisonMixin):
     def embedded_object(self, embedded_object):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._embedded_object = _ensure_unicode(embedded_object)
+        if embedded_object is False:
+            self._embedded_object = None
+        else:
+            self._embedded_object = _ensure_unicode(embedded_object)
 
     def _cmp(self, other):
         """
@@ -8181,21 +8193,21 @@ def _check_array_parms(is_array, array_size, value, element_kind,
 
 def _infer_embedded_object(value):
     """
-    Infer CIMProperty.embedded_object from the CIM value.
+    Infer CIMProperty/CIMParameter.embedded_object from the CIM value.
     """
 
     if value is None:
         # The default behavior is to assume that a value of None is not
         # an embedded object. If the user wants that, they must specify
         # the embedded_object parameter.
-        return None
+        return False
 
     if isinstance(value, list):
         if not value:
             # The default behavior is to assume that an empty array value
             # is not an embedded object. If the user wants that, they must
             # specify the embedded_object parameter.
-            return None
+            return False
         value = value[0]
 
     if isinstance(value, CIMInstance):
@@ -8206,7 +8218,7 @@ def _infer_embedded_object(value):
     if isinstance(value, CIMClass):
         return 'object'
 
-    return None
+    return False
 
 
 def _check_embedded_object(embedded_object, type, value, element_kind,
