@@ -1,0 +1,123 @@
+
+  _     ._   __/__   _ _  _  _ _/_   Recorded: 11:38:37  Samples:  2737
+ /_//_/// /_\ / //_// / //_'/ //     Duration: 5.494    
+/   _/                      v3.0.1
+
+Program: tests/manualtest/run_response_performance.py -i -c 1000 10000 -s 500 -n 25 -l -p pyinst -r 10-checkarray
+
+[31m5.494[0m [48;5;24m[38;5;15mexecute_test_code[0m  [2mrun_response_performance.py:192[0m
+├─ [31m4.275[0m [48;5;24m[38;5;15mparse_cim[0m  [2mpywbem/tupleparse.py:384[0m
+│  └─ [31m4.275[0m [48;5;24m[38;5;15mone_child[0m  [2mpywbem/tupleparse.py:250[0m
+│     └─ [31m4.275[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│        └─ [31m4.275[0m [48;5;24m[38;5;15mparse_message[0m  [2mpywbem/tupleparse.py:1631[0m
+│           └─ [31m4.275[0m [48;5;24m[38;5;15mone_child[0m  [2mpywbem/tupleparse.py:250[0m
+│              └─ [31m4.275[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                 └─ [31m4.275[0m [48;5;24m[38;5;15mparse_simplersp[0m  [2mpywbem/tupleparse.py:1892[0m
+│                    └─ [31m4.275[0m [48;5;24m[38;5;15mone_child[0m  [2mpywbem/tupleparse.py:250[0m
+│                       └─ [31m4.275[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                          └─ [31m4.275[0m [48;5;24m[38;5;15mparse_imethodresponse[0m  [2mpywbem/tupleparse.py:1947[0m
+│                             └─ [31m4.275[0m [48;5;24m[38;5;15mlist_of_various[0m  [2mpywbem/tupleparse.py:302[0m
+│                                └─ [31m4.275[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                   └─ [31m4.275[0m [48;5;24m[38;5;15mparse_ireturnvalue[0m  [2mpywbem/tupleparse.py:2014[0m
+│                                      └─ [31m4.267[0m [48;5;24m[38;5;15mlist_of_same[0m  [2mpywbem/tupleparse.py:339[0m
+│                                         └─ [31m4.248[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                            └─ [31m4.218[0m [48;5;24m[38;5;15mparse_value_namedinstance[0m  [2mpywbem/tupleparse.py:538[0m
+│                                               ├─ [33m3.166[0m [48;5;24m[38;5;15mparse_instance[0m  [2mpywbem/tupleparse.py:1128[0m
+│                                               │  ├─ [33m2.585[0m [48;5;24m[38;5;15mlist_of_matching[0m  [2mpywbem/tupleparse.py:323[0m
+│                                               │  │  └─ [33m2.499[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                               │  │     ├─ [33m1.773[0m [48;5;24m[38;5;15mparse_property[0m  [2mpywbem/tupleparse.py:1318[0m
+│                                               │  │     │  ├─ [33m1.140[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/cim_obj.py:4324[0m
+│                                               │  │     │  │  ├─ [32m0.849[0m [48;5;24m[38;5;15mqualifiers[0m  [2mpywbem/cim_obj.py:4789[0m
+│                                               │  │     │  │  │  └─ [32m0.830[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/_nocasedict.py:90[0m
+│                                               │  │     │  │  │     ├─ [32m0.570[0m __init__[0m  [2mcollections.py:50[0m
+│                                               │  │     │  │  │     │     [8 frames hidden]  [2mcollections, _abcoll, abc, _weakrefset[0m
+│                                               │  │     │  │  │     └─ [92m[2m0.238[0m [self][0m  [2m[0m
+│                                               │  │     │  │  └─ [92m[2m0.085[0m [self][0m  [2m[0m
+│                                               │  │     │  ├─ [32m0.334[0m [48;5;24m[38;5;15munpack_value[0m  [2mpywbem/tupleparse.py:2147[0m
+│                                               │  │     │  │  ├─ [92m[2m0.171[0m [48;5;24m[38;5;15mlist_of_matching[0m  [2mpywbem/tupleparse.py:323[0m
+│                                               │  │     │  │  │  └─ [92m[2m0.138[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                               │  │     │  │  │     └─ [92m[2m0.102[0m [48;5;24m[38;5;15mparse_value[0m  [2mpywbem/tupleparse.py:450[0m
+│                                               │  │     │  │  │        └─ [92m[2m0.057[0m [48;5;24m[38;5;15mcheck_node[0m  [2mpywbem/tupleparse.py:165[0m
+│                                               │  │     │  │  └─ [92m[2m0.109[0m [48;5;24m[38;5;15munpack_single_value[0m  [2mpywbem/tupleparse.py:2178[0m
+│                                               │  │     │  │     └─ [92m[2m0.073[0m [48;5;24m[38;5;15munpack_numeric[0m  [2mpywbem/tupleparse.py:2291[0m
+│                                               │  │     │  ├─ [92m[2m0.138[0m [48;5;24m[38;5;15mcheck_node[0m  [2mpywbem/tupleparse.py:165[0m
+│                                               │  │     │  │  └─ [92m[2m0.120[0m [self][0m  [2m[0m
+│                                               │  │     │  └─ [92m[2m0.108[0m [self][0m  [2m[0m
+│                                               │  │     ├─ [32m0.636[0m [48;5;24m[38;5;15mparse_property_array[0m  [2mpywbem/tupleparse.py:1375[0m
+│                                               │  │     │  ├─ [92m[2m0.258[0m [48;5;24m[38;5;15munpack_value[0m  [2mpywbem/tupleparse.py:2147[0m
+│                                               │  │     │  │  └─ [92m[2m0.245[0m [48;5;24m[38;5;15mlist_of_matching[0m  [2mpywbem/tupleparse.py:323[0m
+│                                               │  │     │  │     └─ [92m[2m0.226[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                               │  │     │  │        └─ [92m[2m0.216[0m [48;5;24m[38;5;15mparse_value_array[0m  [2mpywbem/tupleparse.py:469[0m
+│                                               │  │     │  │           └─ [92m[2m0.188[0m [48;5;24m[38;5;15mlist_of_various[0m  [2mpywbem/tupleparse.py:302[0m
+│                                               │  │     │  │              └─ [92m[2m0.175[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                               │  │     │  │                 └─ [92m[2m0.160[0m [48;5;24m[38;5;15mparse_value[0m  [2mpywbem/tupleparse.py:450[0m
+│                                               │  │     │  │                    └─ [92m[2m0.128[0m [48;5;24m[38;5;15mcheck_node[0m  [2mpywbem/tupleparse.py:165[0m
+│                                               │  │     │  │                       └─ [92m[2m0.121[0m [48;5;24m[38;5;15mkids[0m  [2mpywbem/tupleparse.py:117[0m
+│                                               │  │     │  ├─ [92m[2m0.212[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/cim_obj.py:4324[0m
+│                                               │  │     │  │  └─ [92m[2m0.110[0m [48;5;24m[38;5;15mqualifiers[0m  [2mpywbem/cim_obj.py:4789[0m
+│                                               │  │     │  │     └─ [92m[2m0.107[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/_nocasedict.py:90[0m
+│                                               │  │     │  │        └─ [92m[2m0.067[0m __init__[0m  [2mcollections.py:50[0m
+│                                               │  │     │  │              [8 frames hidden]  [2mcollections, _abcoll, abc, _weakrefset[0m
+│                                               │  │     │  ├─ [92m[2m0.095[0m [48;5;24m[38;5;15mcheck_node[0m  [2mpywbem/tupleparse.py:165[0m
+│                                               │  │     │  │  └─ [92m[2m0.082[0m [self][0m  [2m[0m
+│                                               │  │     │  └─ [92m[2m0.055[0m [self][0m  [2m[0m
+│                                               │  │     └─ [92m[2m0.090[0m [self][0m  [2m[0m
+│                                               │  ├─ [92m[2m0.224[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/cim_obj.py:2253[0m
+│                                               │  │  ├─ [92m[2m0.104[0m [48;5;24m[38;5;15mproperties[0m  [2mpywbem/cim_obj.py:2405[0m
+│                                               │  │  │  └─ [92m[2m0.098[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/_nocasedict.py:90[0m
+│                                               │  │  │     └─ [92m[2m0.069[0m __init__[0m  [2mcollections.py:50[0m
+│                                               │  │  │           [8 frames hidden]  [2mcollections, _abcoll, abc, _weakrefset[0m
+│                                               │  │  └─ [92m[2m0.088[0m [48;5;24m[38;5;15mqualifiers[0m  [2mpywbem/cim_obj.py:2460[0m
+│                                               │  │     └─ [92m[2m0.081[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/_nocasedict.py:90[0m
+│                                               │  ├─ [92m[2m0.207[0m [48;5;24m[38;5;15m__setitem__[0m  [2mpywbem/cim_obj.py:2635[0m
+│                                               │  │  ├─ [92m[2m0.081[0m [48;5;24m[38;5;15m__setitem__[0m  [2mpywbem/_nocasedict.py:231[0m
+│                                               │  │  └─ [92m[2m0.066[0m [self][0m  [2m[0m
+│                                               │  ├─ [92m[2m0.078[0m [48;5;24m[38;5;15mcheck_node[0m  [2mpywbem/tupleparse.py:165[0m
+│                                               │  │  └─ [92m[2m0.063[0m [self][0m  [2m[0m
+│                                               │  └─ [92m[2m0.059[0m [self][0m  [2m[0m
+│                                               ├─ [32m0.556[0m [48;5;24m[38;5;15mpath[0m  [2mpywbem/cim_obj.py:2499[0m
+│                                               │  └─ [32m0.554[0m [48;5;24m[38;5;15mcopy[0m  [2mpywbem/cim_obj.py:1438[0m
+│                                               │     └─ [32m0.541[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/cim_obj.py:1102[0m
+│                                               │        └─ [32m0.517[0m [48;5;24m[38;5;15mkeybindings[0m  [2mpywbem/cim_obj.py:1252[0m
+│                                               │           ├─ [32m0.384[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/_nocasedict.py:90[0m
+│                                               │           │  ├─ [32m0.298[0m [self][0m  [2m[0m
+│                                               │           │  └─ [92m[2m0.082[0m __init__[0m  [2mcollections.py:50[0m
+│                                               │           │        [8 frames hidden]  [2mcollections, abc, _weakrefset, _abcoll[0m
+│                                               │           └─ [92m[2m0.071[0m [48;5;24m[38;5;15mitems[0m  [2mpywbem/_nocasedict.py:313[0m
+│                                               └─ [32m0.430[0m [48;5;24m[38;5;15mparse_instancename[0m  [2mpywbem/tupleparse.py:942[0m
+│                                                  ├─ [92m[2m0.189[0m [48;5;24m[38;5;15mlist_of_various[0m  [2mpywbem/tupleparse.py:302[0m
+│                                                  │  └─ [92m[2m0.170[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                                  │     └─ [92m[2m0.146[0m [48;5;24m[38;5;15mparse_keybinding[0m  [2mpywbem/tupleparse.py:1013[0m
+│                                                  │        └─ [92m[2m0.087[0m [48;5;24m[38;5;15mone_child[0m  [2mpywbem/tupleparse.py:250[0m
+│                                                  │           └─ [92m[2m0.082[0m [48;5;24m[38;5;15mparse_any[0m  [2mpywbem/tupleparse.py:2057[0m
+│                                                  │              └─ [92m[2m0.070[0m [48;5;24m[38;5;15mparse_keyvalue[0m  [2mpywbem/tupleparse.py:1034[0m
+│                                                  └─ [92m[2m0.158[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/cim_obj.py:1102[0m
+│                                                     └─ [92m[2m0.139[0m [48;5;24m[38;5;15mkeybindings[0m  [2mpywbem/cim_obj.py:1252[0m
+│                                                        └─ [92m[2m0.089[0m [48;5;24m[38;5;15m__init__[0m  [2mpywbem/_nocasedict.py:90[0m
+│                                                           └─ [92m[2m0.057[0m __init__[0m  [2mcollections.py:50[0m
+│                                                                 [8 frames hidden]  [2mcollections, abc, _weakrefset, _abcoll[0m
+└─ [33m1.166[0m [48;5;24m[38;5;15mxml_to_tupletree_sax[0m  [2mpywbem/tupletree.py:125[0m
+   └─ [33m1.157[0m parseString[0m  [2mxml/sax/__init__.py:35[0m
+         [5 frames hidden]  [2mxml[0m
+            [33m1.157[0m feed[0m  [2mxml/sax/expatreader.py:209[0m
+            ├─ [32m0.631[0m [48;5;24m[38;5;15mStartElement[0m  [2m../../../../../private/tmp/python@2-20190212-94033-m4zuyi/Python-2.7.15/Modules/pyexpat.c:566[0m
+            │  └─ [32m0.603[0m start_element[0m  [2mxml/sax/expatreader.py:335[0m
+            │        [4 frames hidden]  [2mxml[0m
+            │           [32m0.493[0m [48;5;24m[38;5;15mstartElement[0m  [2mpywbem/tupletree.py:96[0m
+            │           └─ [32m0.444[0m [self][0m  [2m[0m
+            ├─ [92m[2m0.209[0m [48;5;24m[38;5;15mCharacterData[0m  [2m../../../../../private/tmp/python@2-20190212-94033-m4zuyi/Python-2.7.15/Modules/pyexpat.c:441[0m
+            │  └─ [92m[2m0.169[0m [48;5;24m[38;5;15mcharacters[0m  [2mpywbem/tupletree.py:115[0m
+            └─ [92m[2m0.098[0m [48;5;24m[38;5;15mEndElement[0m  [2m../../../../../private/tmp/python@2-20190212-94033-m4zuyi/Python-2.7.15/Modules/pyexpat.c:618[0m
+               └─ [92m[2m0.085[0m end_element[0m  [2mxml/sax/expatreader.py:338[0m
+                     [2 frames hidden]  [2mxml[0m
+                        [92m[2m0.059[0m [48;5;24m[38;5;15mendElement[0m  [2mpywbem/tupletree.py:111[0m
+
+
+Results: profile=pyinst, response_counts=[10000],
+   response-sizes=[500], 20190302-113811
++----------------+----------------+------------+--------------+
+|   Exp Response |   Act Response |   Response |   Parse time |
+|     Size Bytes |   Size (Bytes) |      Count |        sec.) |
++================+================+============+==============+
+|            500 |            589 |      10000 |      5.53824 |
++----------------+----------------+------------+--------------+
