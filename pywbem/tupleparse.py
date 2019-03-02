@@ -1353,18 +1353,19 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])
 
-        embedded_object = None
+        embedded_object = False
         if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
             try:
                 embedded_object = attrl['EmbeddedObject']
             except KeyError:
                 embedded_object = attrl['EMBEDDEDOBJECT']
-        if embedded_object is not None:
+        if embedded_object:
             val = self.parse_embeddedObject(val)
 
         return CIMProperty(attrl['NAME'],
                            val,
-                           attrl['TYPE'],
+                           type=attrl['TYPE'],
+                           is_array=False,
                            class_origin=attrl.get('CLASSORIGIN', None),
                            propagated=self.unpack_boolean(
                                attrl.get('PROPAGATED', 'false')),
@@ -1403,24 +1404,24 @@ class TupleParser(object):
             # Issue #1044: Clarify if hex support is needed.
             array_size = int(array_size)
 
-        embedded_object = None
+        embedded_object = False
         if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
             try:
                 embedded_object = attrl['EmbeddedObject']
             except KeyError:
                 embedded_object = attrl['EMBEDDEDOBJECT']
-        if embedded_object is not None:
+        if embedded_object:
             values = self.parse_embeddedObject(values)
 
         obj = CIMProperty(attrl['NAME'],
                           values,
-                          attrl['TYPE'],
+                          type=attrl['TYPE'],
+                          is_array=True,
+                          array_size=array_size,
                           class_origin=attrl.get('CLASSORIGIN', None),
                           propagated=self.unpack_boolean(
                               attrl.get('PROPAGATED', 'false')),
                           qualifiers=qualifiers,
-                          is_array=True,
-                          array_size=array_size,
                           embedded_object=embedded_object)
 
         return obj
@@ -1458,12 +1459,16 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])
 
-        pref = CIMProperty(attrl['NAME'], value, type='reference',
+        pref = CIMProperty(attrl['NAME'],
+                           value,
+                           type='reference',
+                           is_array=False,
                            qualifiers=qualifiers,
                            reference_class=attrl.get('REFERENCECLASS', None),
                            class_origin=attrl.get('CLASSORIGIN', None),
                            propagated=self.unpack_boolean(
-                               attrl.get('PROPAGATED', 'false')))
+                               attrl.get('PROPAGATED', 'false')),
+                           embedded_object=False)
 
         return pref
 
@@ -1528,8 +1533,11 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])
 
-        return CIMParameter(attrl['NAME'], type=attrl['TYPE'],
-                            qualifiers=qualifiers)
+        return CIMParameter(attrl['NAME'],
+                            type=attrl['TYPE'],
+                            is_array=False,
+                            qualifiers=qualifiers,
+                            embedded_object=False)
 
     def parse_parameter_reference(self, tup_tree):
         """
@@ -1550,8 +1558,10 @@ class TupleParser(object):
 
         return CIMParameter(attrl['NAME'],
                             type='reference',
+                            is_array=False,
                             reference_class=attrl.get('REFERENCECLASS', None),
-                            qualifiers=qualifiers)
+                            qualifiers=qualifiers,
+                            embedded_object=False)
 
     def parse_parameter_array(self, tup_tree):
         """
@@ -1580,7 +1590,8 @@ class TupleParser(object):
                             type=attrl['TYPE'],
                             is_array=True,
                             array_size=array_size,
-                            qualifiers=qualifiers)
+                            qualifiers=qualifiers,
+                            embedded_object=False)
 
     def parse_parameter_refarray(self, tup_tree):
         """
@@ -1605,11 +1616,13 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ['QUALIFIER'])
 
-        return CIMParameter(attrl['NAME'], 'reference',
+        return CIMParameter(attrl['NAME'],
+                            type='reference',
                             is_array=True,
-                            reference_class=attrl.get('REFERENCECLASS', None),
                             array_size=array_size,
-                            qualifiers=qualifiers)
+                            reference_class=attrl.get('REFERENCECLASS', None),
+                            qualifiers=qualifiers,
+                            embedded_object=False)
 
     #
     # Message elements

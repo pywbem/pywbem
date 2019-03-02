@@ -7604,6 +7604,16 @@ class Test_CIMProperty_init(object):
             None, True
         ),
 
+        # embedded_object=False tests
+        (
+            "Verify that embedded_object=False results in None",
+            dict(name=u'FooProp', value=u'abc', type='string',
+                 embedded_object=False),
+            dict(name=u'FooProp', value=u'abc', type=u'string',
+                 embedded_object=None),
+            None, True
+        ),
+
         # Is_array/array_size tests: Array tests with different is_array and
         # array_size
         (
@@ -21270,6 +21280,16 @@ class Test_CIMParameter_init(object):
                  value=CIMClass('CIM_Emb'), embedded_object='object'),
             dict(name=u'FooParam', type=u'string',
                  value=CIMClass('CIM_Emb'), embedded_object=u'object'),
+            None, True
+        ),
+
+        # embedded_object=False tests
+        (
+            "Verify that embedded_object=False results in None",
+            dict(name=u'FooParam', type=u'string', value=u'abc',
+                 embedded_object=False),
+            dict(name=u'FooParam', type=u'string', value=u'abc',
+                 embedded_object=None),
             None, True
         ),
 
