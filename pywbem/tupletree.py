@@ -103,7 +103,7 @@ class CIMContentHandler(xml.sax.ContentHandler):
         attr_dict = {}  # No order preservation possible, see note above
         for k, v in attrs.items():
             attr_dict[k] = v
-        element = (name, attr_dict, list(), None)
+        element = (name, attr_dict, [])
         if self.element:
             self.element[2].append(element)
         self.element = element
