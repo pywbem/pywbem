@@ -2187,8 +2187,8 @@ class TupleParser(object):
         cimtype (string): CIM data type name (e.g. 'datetime') except
           'reference', or None (in which case a numeric value is assumed).
         """
-        if cimtype in ('string', 'char16', 'datetime'):
-            return self.unpack_string(data, cimtype)
+        if cimtype == 'string':
+            return data
 
         if cimtype == 'boolean':
             return self.unpack_boolean(data)
@@ -2196,62 +2196,15 @@ class TupleParser(object):
         if cimtype is None or NUMERIC_CIMTYPE_PATTERN.match(cimtype):
             return self.unpack_numeric(data, cimtype)
 
+        if cimtype == 'datetime':
+            return self.unpack_datetime(data)
+
+        if cimtype == 'char16':
+            return self.unpack_char16(data)
+
         # Note that 'reference' is not allowed for this function.
         raise CIMXMLParseError(
             _format("Invalid CIM type found: {0!A}", cimtype),
-            conn_id=self.conn_id)
-
-    def unpack_string(self, data, cimtype):
-        """
-        Unpack a CIM-XML string value of one of the CIM types ('string',
-        'char16', 'datetime') and return it as a CIM data type object, or None.
-
-        data (unicode string): CIM-XML string value, or None (in which case
-          None is returned).
-
-        cimtype (string): CIM data type name (e.g. 'datetime').
-        """
-
-        if data is None:
-            return None
-
-        if cimtype == 'string':
-            return data
-
-        if cimtype == 'datetime':
-            try:
-                value = CIMDateTime(data)
-            except ValueError as exc:
-                raise CIMXMLParseError(
-                    _format("Invalid datetime value: {0!A} ({1})", data, exc),
-                    conn_id=self.conn_id)
-            return value
-
-        if cimtype == 'char16':
-            value = data
-            if value == '':
-                raise CIMXMLParseError(
-                    "Char16 value is empty",
-                    conn_id=self.conn_id)
-            if len(value) > 1:
-                # More than one character, or one character from the UCS-4 set
-                # in a narrow Python build (which represents it using
-                # surrogates).
-                raise CIMXMLParseError(
-                    _format("Char16 value has more than one UCS-2 "
-                            "character: {0!A}", data),
-                    conn_id=self.conn_id)
-            if len(value) == 1 and ord(value) > 0xFFFF:
-                # One character from the UCS-4 set in a wide Python build.
-                raise CIMXMLParseError(
-                    _format("Char16 value is a character outside of the "
-                            "UCS-2 range: {0!A}", data),
-                    conn_id=self.conn_id)
-            return value
-
-        raise CIMXMLParseError(
-            _format("Invalid CIM type name {0!A} for string: {1!A}",
-                    cimtype, data),
             conn_id=self.conn_id)
 
     def unpack_boolean(self, data):
@@ -2343,3 +2296,60 @@ class TupleParser(object):
                         exc, CIMType),
                 conn_id=self.conn_id)
         return value
+
+    def unpack_datetime(self, data):
+        """
+        Unpack a CIM-XML string value of CIM type 'datetime' and return it
+        as a CIMDateTime object, or None.
+
+        data (unicode string): CIM-XML string value, or None (in which case
+          None is returned).
+        """
+
+        if data is None:
+            return None
+
+        try:
+            value = CIMDateTime(data)
+        except ValueError as exc:
+            raise CIMXMLParseError(
+                _format("Invalid datetime value: {0!A} ({1})", data, exc),
+                conn_id=self.conn_id)
+        return value
+
+    def unpack_char16(self, data):
+        """
+        Unpack a CIM-XML string value of CIM type 'char16' and return it
+        as a unicode string object, or None.
+
+        data (unicode string): CIM-XML string value, or None (in which case
+          None is returned).
+        """
+
+        if data is None:
+            return None
+
+        len_data = len(data)
+
+        if len_data == 0:
+            raise CIMXMLParseError(
+                "Char16 value is empty",
+                conn_id=self.conn_id)
+
+        if len_data > 1:
+            # More than one character, or one character from the UCS-4 set
+            # in a narrow Python build (which represents it using
+            # surrogates).
+            raise CIMXMLParseError(
+                _format("Char16 value has more than one UCS-2 "
+                        "character: {0!A}", data),
+                conn_id=self.conn_id)
+
+        if ord(data) > 0xFFFF:
+            # One character from the UCS-4 set in a wide Python build.
+            raise CIMXMLParseError(
+                _format("Char16 value is a character outside of the "
+                        "UCS-2 range: {0!A}", data),
+                conn_id=self.conn_id)
+
+        return data
