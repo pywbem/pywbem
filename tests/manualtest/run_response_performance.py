@@ -244,6 +244,7 @@ class ExecuteTests(object):
         self.runid = args.runid or DEFAULT_RUNID
         # insure no blanks in the text
         self.runid.replace(" ", "-")
+        self.tbl_output_format = 'simple'
 
         self.file_datetime = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         # set logfile name if log option set. If the individual
@@ -400,7 +401,7 @@ class ExecuteTests(object):
                                                            self.response_size,
                                                            self.runid,
                                                            self.file_datetime)
-        table = tabulate(table_rows, header, tablefmt="grid")
+        table = tabulate(table_rows, header, tablefmt=self.tbl_output_format)
 
         # print statistics to terminal
         print("")
