@@ -1369,18 +1369,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: enable=line-too-long
 
         if simple_name == 'all':
-            cls._configure_logger('api', log_dest=log_dest,
-                                  detail_level=detail_level,
-                                  log_filename=log_filename,
-                                  connection=connection,
-                                  propagate=propagate)
-            cls._configure_logger('http', log_dest=log_dest,
-                                  detail_level=detail_level,
-                                  log_filename=log_filename,
-                                  connection=connection,
-                                  propagate=propagate)
+            for name in ['api', 'http']:
+                cls._configure_logger(name, log_dest=log_dest,
+                                      detail_level=detail_level,
+                                      log_filename=log_filename,
+                                      connection=connection,
+                                      propagate=propagate)
             return
-        elif simple_name == 'api':
+
+        if simple_name == 'api':
             logger_name = LOGGER_API_CALLS_NAME
         elif simple_name == 'http':
             logger_name = LOGGER_HTTP_NAME
@@ -1931,7 +1928,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             """
             Infer the CIM data type name of a parameter value.
             """
-            if isinstance(obj, CIMType):
+            if isinstance(obj, CIMType):  # pylint: disable=no-else-return
                 return obj.cimtype
             elif isinstance(obj, bool):
                 return 'boolean'
@@ -1981,9 +1978,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             """
             if isinstance(obj, list) and obj:
                 return infer_embedded_object(obj[0])
-            elif isinstance(obj, CIMClass):
+
+            if isinstance(obj, CIMClass):
                 return 'object'
-            elif isinstance(obj, CIMInstance):
+
+            if isinstance(obj, CIMInstance):
                 return 'instance'
             return None
 
@@ -2252,9 +2251,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         for p in result:
             if p[0] == 'EndOfSequence':
                 if isinstance(p[2], six.string_types):
-                    if p[2].lower() in ['true', 'false']:  # noqa: E125
-                        end_of_sequence = True if p[2].lower() == 'true' \
-                            else False
+                    p2 = p[2].lower()
+                    if p2 in ['true', 'false']:  # noqa: E125
+                        end_of_sequence = True if p2 == 'true' else False
                         end_of_sequence_found = True
                     else:
                         raise CIMXMLParseError(

@@ -1017,7 +1017,7 @@ class TestClientRecorder(BaseOperationRecorder):
 
         # namedtuple is subclass of tuple so it is instance of tuple but
         # not type tuple. Cvt to dictionary and cvt dict to yaml.
-        # pylint: disable=unidiomatic-typecheck
+        # pylint: disable=unidiomatic-typecheck, no-else-return
         if isinstance(obj, tuple) and type(obj) is not tuple:
             ret_dict = obj._asdict()
             return self.toyaml(ret_dict)

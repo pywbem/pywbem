@@ -440,28 +440,30 @@ class ValueMapping(object):
         if m is None:
             valuemap_int = self._to_int(valuemap_str)
             return (valuemap_int, valuemap_int, values_str)
+
+        # match found
+        lo = m.group(1)
+        if lo == '':
+            if i == 0:
+                lo = cimtype.minvalue
+            else:
+                _, previous_hi, _ = self._values_tuple(
+                    i - 1, valuemap_list, values_list, cimtype)
+                lo = previous_hi + 1
         else:
-            lo = m.group(1)
-            if lo == '':
-                if i == 0:
-                    lo = cimtype.minvalue
-                else:
-                    _, previous_hi, _ = self._values_tuple(
-                        i - 1, valuemap_list, values_list, cimtype)
-                    lo = previous_hi + 1
+            lo = self._to_int(lo)
+
+        hi = m.group(2)
+        if hi == '':
+            if i == len(valuemap_list) - 1:
+                hi = cimtype.maxvalue
             else:
-                lo = self._to_int(lo)
-            hi = m.group(2)
-            if hi == '':
-                if i == len(valuemap_list) - 1:
-                    hi = cimtype.maxvalue
-                else:
-                    next_lo, _, _ = self._values_tuple(
-                        i + 1, valuemap_list, values_list, cimtype)
-                    hi = next_lo - 1
-            else:
-                hi = self._to_int(hi)
-            return (lo, hi, values_str)
+                next_lo, _, _ = self._values_tuple(
+                    i + 1, valuemap_list, values_list, cimtype)
+                hi = next_lo - 1
+        else:
+            hi = self._to_int(hi)
+        return (lo, hi, values_str)
 
     def _to_int(self, val_str):
         """Conver val_str to an integer or raise ValueError"""
@@ -594,6 +596,7 @@ class ValueMapping(object):
         """
         Return a string that identifies the value-mapped element.
         """
+        # pylint: disable=no-else-return
         if isinstance(self.element, CIMProperty):
             return _format("property {0!A} in class {1!A} (in {2!A})",
                            self.propname, self.classname, self.namespace)

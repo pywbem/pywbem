@@ -71,7 +71,17 @@ disable=I0011,
         too-many-lines, too-many-public-methods,
         too-many-nested-blocks, too-many-return-statements, too-many-arguments,
         wildcard-import, unused-wildcard-import,
-        locally-enabled, superfluous-parens,
+        locally-enabled, superfluous-parens, useless-object-inheritance,
+        consider-using-set-comprehension
+
+# Note: "useless-object-inheritance" is python 3 only. In Python 2,
+#        "new-style" objects must inherit from object, or else
+#        they will be "old-style". In Python 3, this distinction does not
+#        exist; all objects inherit from object, and so explicitly inheriting
+#        from it is useless.  Ignore as long as we are using pytnon 2.7
+
+# Note: "consider-using-set-comprehension" not allowed in python 2.6 so we
+#       ignore it as long as we are using 2.7
 
 # Note: The too-many-* messages are excluded temporarily, and should be dealt
 #       with at some point.

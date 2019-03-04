@@ -14,6 +14,7 @@ from __future__ import absolute_import
 # import pdb
 
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
+
 import sys
 import re
 from socket import getfqdn
@@ -121,7 +122,7 @@ class ClientTest(unittest.TestCase):
         self.yamlfile = CLI_ARGS['yamlfile']
         self.output_log = CLI_ARGS['log']
         self.yamlfp = None
-        self.stats_enabled = True if CLI_ARGS['stats'] else False
+        self.stats_enabled = bool(CLI_ARGS['stats'])
         if self.stats_enabled:
             self.start_time = time.time()
 
@@ -910,7 +911,7 @@ class EnumerateInstances(ClientTest):
             self.cimcall(self.conn.EnumerateInstances,
                          TEST_CLASS,
                          namespace='root/blah')
-            self.failIf(True)      # should never get here
+            self.assertFalse(True)      # should never get here
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -920,7 +921,7 @@ class EnumerateInstances(ClientTest):
         """ Confirm correct error with nonexistent classname."""
         try:
             self.cimcall(self.conn.EnumerateInstances, 'CIM_BlahBlah')
-            self.failIf(True)
+            self.assertFalse(True)
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_CLASS:
@@ -931,7 +932,7 @@ class EnumerateInstances(ClientTest):
         try:
             self.cimcall(self.conn.EnumerateInstances, TEST_CLASS,
                          blablah=3)
-            self.failIf(True)
+            self.assertFalse(True)  # Expecting exception
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
@@ -1921,8 +1922,8 @@ class PullQueryInstances(ClientTest):
                 raise AssertionError(
                     "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
-            else:
-                raise
+
+            raise
 
     def test_zeroopen_pull_sequence(self):
         try:
@@ -1953,8 +1954,8 @@ class PullQueryInstances(ClientTest):
                 raise AssertionError(
                     "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
-            else:
-                raise
+
+            raise
 
 
 class ExecQuery(ClientTest):
@@ -1984,8 +1985,8 @@ class ExecQuery(ClientTest):
                 raise AssertionError(
                     "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
-            else:
-                raise
+
+            raise
 
     def test_namespace_error(self):
         """Call with explicit CIM namespace that does not exist."""
@@ -4051,8 +4052,8 @@ class PegasusServerTestBase(ClientTest):
             if ce.args[0] != CIM_ERR_NOT_FOUND:
                 print('class get %s failed' % my_class)
                 raise
-            else:
-                return False
+
+            return False
 
     def has_namespace(self, ns):
         ns_ = self.get_namespaces()
@@ -5752,8 +5753,8 @@ class IterQueryInstances(PegasusServerTestBase):
                 raise AssertionError(
                     "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
-            else:
-                raise
+
+            raise
 
     def test_zeroopen_iterexecquery(self):
         try:
@@ -5787,8 +5788,8 @@ class IterQueryInstances(PegasusServerTestBase):
                 raise AssertionError(
                     "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
-            else:
-                raise
+
+            raise
 
     def test_original_execquery(self):
         """Set to use original operation and retry request"""
@@ -5825,8 +5826,8 @@ class IterQueryInstances(PegasusServerTestBase):
                 raise AssertionError(
                     "CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED: The WBEM"
                     " server doesn't support WQL for ExecQuery")
-            else:
-                raise
+
+            raise
 
 
 RECEIVED_INDICATION_COUNT = 0
@@ -6528,6 +6529,7 @@ class TestSubscriptionsClass(PyWBEMServerClass, RegexpMixin):
         self.assertEqual(self.get_objects_from_server(), 0)
 
     def test_not_owned_indications2(self):
+        # pylint: disable=too-many-locals
         """Create a server, listener, etc. create a filter  and subscription
            and request OpenPegasus to send a set of indications to our
            consumer.  Tests that the proper set of indications received
@@ -6625,7 +6627,7 @@ class TestSubscriptionsClass(PyWBEMServerClass, RegexpMixin):
 
         self.assertEqual(self.get_objects_from_server(), 0)
 
-    def test_both_indications(self):
+    def test_both_indications(self):  # pylint: disable=too-many-locals
         """Create a server, listener, etc. create a filter  and subscription
            and request OpenPegasus to send a set of indications to our
            consumer.  Tests that the proper set of indications received
@@ -6842,6 +6844,7 @@ TEST_LIST = [
 
 
 def parse_args(argv_):
+    # pylint: disable=too-many-branches, too-many-statements
     argv = list(argv_)
 
     if len(argv) <= 1:

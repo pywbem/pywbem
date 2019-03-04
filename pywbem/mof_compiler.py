@@ -593,8 +593,7 @@ def p_mp_createClass(p):
                             except CIMError as ce:
                                 if ce.status_code == CIM_ERR_NOT_FOUND:
                                     raise err
-                                else:
-                                    raise
+                                raise
                             p.parser.classnames[ns].append(cln)
                     fixedRefs = True
                 else:
@@ -2164,8 +2163,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
                     raise
-                else:
-                    raise
+                raise
 
         try:
             self.compile_ordered_classnames.append(cc.classname)

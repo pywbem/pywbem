@@ -971,7 +971,8 @@ class WBEMServer(object):
                         "reference direction)",
                         profile_path.to_wbem_uri(), scoping_result_role,
                         reference_direction))
-        elif len(referencing_profile_paths) > 1:
+
+        if len(referencing_profile_paths) > 1:
             raise ModelError(
                 _format("More than one referencing profile found for profile "
                         "{0!A} when attempting the scoping class methodology "
