@@ -281,7 +281,7 @@ class YamlItem(pytest.Item):
         provide details about the failure.
         """
         exc = excinfo.value
-        if isinstance(exc, ClientTestFailure):
+        if isinstance(exc, ClientTestFailure):  # pylint: disable=no-else-return
             return "Failure running test case: %s" % exc
         elif isinstance(exc, ClientTestError):
             return "Error in definition of test case: %s" % exc
@@ -830,7 +830,7 @@ def runtestcase(testcase):
         exp_exception = 'CIMError'
 
     if exp_exception is not None:
-        if raised_exception is None:
+        if raised_exception is None:   # pylint: disable=no-else-raise
             raise AssertionError("Testcase %s: A %s exception was "
                                  "expected to be raised by PyWBEM "
                                  "operation %s, but no exception was "
@@ -1057,38 +1057,38 @@ def result_tuple(value, tc_name):
     For openqueryinstances it returns a named tuple with 4 elements
     in place of 3
     """
-    if isinstance(value, dict):
-        # test for both paths and instances.
-        objs = None
-        if "query_result_class" in value:
-            result = namedtuple("exp_result", ["instances", "eos", "context",
-                                               "query_result_class"])
-        else:
-            result = namedtuple("exp_result", ["instances", "eos", "context"])
-
-        # either path or instances should be in value
-        if "instances" in value:
-            # instances = value["instances"]
-            objs = obj(value["instances"], tc_name)
-            if 'paths' in value:
-                raise AssertionError("WBEMConnection operation method "
-                                     "result is not as expected. Both "
-                                     "'instances' and 'paths' component.")
-        elif "paths" in value:
-            # paths = value["paths"]
-            objs = obj(value["paths"], tc_name)
-            result = namedtuple("result", ["paths", "eos", "context"])
-        else:
-            raise AssertionError("WBEMConnection operation method result "
-                                 "is not as expected. No 'instances' "
-                                 "or 'paths' component.")
-
-        # if query_result_class in value, add it to result
-        if "query_result_class" in value:
-            return result(objs, value["eos"], value["context"],
-                          value["query_result_class"])
-        return result(objs, value["eos"], value["context"])
-
-    else:
+    if not isinstance(value, dict):
         raise AssertionError("WBEMConnection operation invalid tuple "
                              "definition.")
+
+    # test for both paths and instances.
+    objs = None
+    if "query_result_class" in value:
+        result = namedtuple("exp_result", ["instances", "eos", "context",
+                                           "query_result_class"])
+    else:
+        result = namedtuple("exp_result", ["instances", "eos", "context"])
+
+    # either path or instances should be in value
+    if "instances" in value:
+        # instances = value["instances"]
+        objs = obj(value["instances"], tc_name)
+        if 'paths' in value:
+            raise AssertionError("WBEMConnection operation method "
+                                 "result is not as expected. Both "
+                                 "'instances' and 'paths' component.")
+    elif "paths" in value:
+        # paths = value["paths"]
+        objs = obj(value["paths"], tc_name)
+        result = namedtuple("result", ["paths", "eos", "context"])
+    else:
+        raise AssertionError("WBEMConnection operation method result "
+                             "is not as expected. No 'instances' "
+                             "or 'paths' component.")
+
+    # if query_result_class in value, add it to result
+    if "query_result_class" in value:
+        return result(objs, value["eos"], value["context"],
+                      value["query_result_class"])
+
+    return result(objs, value["eos"], value["context"])

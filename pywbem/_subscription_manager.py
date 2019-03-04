@@ -1197,12 +1197,12 @@ class WBEMSubscriptionManager(object):
             dest_path = server.conn.CreateInstance(dest_inst)
             dest_inst = server.conn.GetInstance(dest_path)
             self._owned_destinations[server_id].append(dest_inst)
-            return dest_inst
         else:
             # Responsibility to ensure it does not exist yet is with the user
             dest_path = server.conn.CreateInstance(dest_inst)
             dest_inst = server.conn.GetInstance(dest_path)
-            return dest_inst
+
+        return dest_inst
 
     def _create_filter(self, server_id, source_namespace, query,
                        query_language, owned, filter_id, name):
@@ -1291,12 +1291,12 @@ class WBEMSubscriptionManager(object):
             filter_path = server.conn.CreateInstance(filter_inst)
             filter_inst = server.conn.GetInstance(filter_path)
             self._owned_filters[server_id].append(filter_inst)
-            return filter_inst
         else:
             # Responsibility to ensure it does not exist yet is with the user
             filter_path = server.conn.CreateInstance(filter_inst)
             filter_inst = server.conn.GetInstance(filter_path)
-            return filter_inst
+
+        return filter_inst
 
     def _create_subscription(self, server_id, dest_path, filter_path, owned):
         """
@@ -1354,9 +1354,9 @@ class WBEMSubscriptionManager(object):
             sub_path = server.conn.CreateInstance(sub_inst)
             sub_inst = server.conn.GetInstance(sub_path)
             self._owned_subscriptions[server_id].append(sub_inst)
-            return sub_inst
         else:
             # Responsibility to ensure it does not exist yet is with the user
             sub_path = server.conn.CreateInstance(sub_inst)
             sub_inst = server.conn.GetInstance(sub_path)
-            return sub_inst
+
+        return sub_inst

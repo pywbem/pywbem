@@ -158,23 +158,23 @@ def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
                len(objdict1), sorted(objdict1.keys()),
                len(objdict2), sorted(objdict2.keys())))
         return False
-    else:
-        for name, value in objdict1.items():
-            if name not in objdict2:
-                print('%s:%s %s in %s not in %s' % (obj_type, parent_obj_name,
-                                                    name,
-                                                    objdict1.keys().sort(),
-                                                    objdict2.keys().sort()))
 
-            if value != objdict2[name]:
-                print('%s:%s mismatch \np1=%r\np2=%r' %
-                      (obj_type, parent_obj_name, value, objdict2[name]), )
-            if getattr(value, "qualifiers", None):
-                objs_equal(value.qualifiers, objdict2[name].qualifiers,
-                           'qualifiers', parent_obj_name + ':' + name)
-            if getattr(value, "parameters", None):
-                objs_equal(value.parameters, objdict2[name].parameters,
-                           'parameter', parent_obj_name + ':' + name)
+    for name, value in objdict1.items():
+        if name not in objdict2:
+            print('%s:%s %s in %s not in %s' % (obj_type, parent_obj_name,
+                                                name,
+                                                objdict1.keys().sort(),
+                                                objdict2.keys().sort()))
+
+        if value != objdict2[name]:
+            print('%s:%s mismatch \np1=%r\np2=%r' %
+                  (obj_type, parent_obj_name, value, objdict2[name]), )
+        if getattr(value, "qualifiers", None):
+            objs_equal(value.qualifiers, objdict2[name].qualifiers,
+                       'qualifiers', parent_obj_name + ':' + name)
+        if getattr(value, "parameters", None):
+            objs_equal(value.parameters, objdict2[name].parameters,
+                       'parameter', parent_obj_name + ':' + name)
 
     return False
 
@@ -1949,6 +1949,7 @@ def resolve_class(conn, cls, ns):
     class).
     """
     ns = ns or conn.default_namespace
+    # pylint: disable=protected-access
     qualifier_repo = conn._get_qualifier_repo(ns)
     rslvd_cls = conn._resolve_class(cls,  # pylint: disable=protected-access
                                     ns, qualifier_repo)
@@ -2570,7 +2571,7 @@ class TestClassOperations(object):
                                                 overridable=True,
                                                 translatable=True)}),
                      },
-                ),
+                 ),
              None, True,
             ],
 
@@ -5767,7 +5768,7 @@ class TestDMTFCIMSchema(object):
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
         mof_dir = 'mofExperimental%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
-        assert test_schema_mof_dir == test_schema_mof_dir
+        assert test_schema_mof_dir == mof_dir
 
         assert schema.schema_mof_file == \
             os.path.join(test_schema_mof_dir,

@@ -427,46 +427,47 @@ class OperationStatistic(object):
           `None` if the statistics container holding this object is not
           enabled.
         """
-        if self.container.enabled:
-            if self._start_time is None:
-                raise RuntimeError('stop_timer() called without preceding '
-                                   'start_timer()')
-            dt = time.time() - self._start_time
-            self._start_time = None
-            self._count += 1
-            self._time_sum += dt
-            self._request_len_sum += request_len
-            self._reply_len_sum += reply_len
-
-            if exception:
-                self._exception_count += 1
-
-            if dt > self._time_max:
-                self._time_max = dt
-            if dt < self._time_min:
-                self._time_min = dt
-
-            if server_time:
-                self._server_time_stored = True
-                self._server_time_sum += server_time
-                if dt > self._server_time_max:
-                    self._server_time_max = server_time
-                if dt < self._server_time_min:
-                    self._server_time_min = server_time
-
-            if request_len > self._request_len_max:
-                self._request_len_max = request_len
-            if request_len < self._request_len_min:
-                self._request_len_min = request_len
-
-            if reply_len > self._reply_len_max:
-                self._reply_len_max = reply_len
-            if reply_len < self._reply_len_min:
-                self._reply_len_min = reply_len
-
-            return dt
-        else:
+        if not self.container.enabled:
             return None
+
+        # stop the timer
+        if self._start_time is None:
+            raise RuntimeError('stop_timer() called without preceding '
+                               'start_timer()')
+        dt = time.time() - self._start_time
+        self._start_time = None
+        self._count += 1
+        self._time_sum += dt
+        self._request_len_sum += request_len
+        self._reply_len_sum += reply_len
+
+        if exception:
+            self._exception_count += 1
+
+        if dt > self._time_max:
+            self._time_max = dt
+        if dt < self._time_min:
+            self._time_min = dt
+
+        if server_time:
+            self._server_time_stored = True
+            self._server_time_sum += server_time
+            if dt > self._server_time_max:
+                self._server_time_max = server_time
+            if dt < self._server_time_min:
+                self._server_time_min = server_time
+
+        if request_len > self._request_len_max:
+            self._request_len_max = request_len
+        if request_len < self._request_len_min:
+            self._request_len_min = request_len
+
+        if reply_len > self._reply_len_max:
+            self._reply_len_max = reply_len
+        if reply_len < self._reply_len_min:
+            self._reply_len_min = reply_len
+
+        return dt
 
     def __repr__(self):
         """
@@ -506,13 +507,14 @@ class OperationStatistic(object):
 
     def formatted(self, include_server_time):
         """
-        Return a formatted one-line string with the statistics values for the
-        operation for which this statistics object maintains data.
+        Return a formatted one-line string with the statistics
+        values for the operation for which this statistics object
+        maintains data.
 
         This is a low-level method that is called by
         :meth:`pywbem.Statistics.formatted`.
         """
-        if include_server_time:
+        if include_server_time:  # pylint: disable=no-else-return
             return ('{0:5d} {1:5d} '
                     '{2:7.3f} {3:7.3f} {4:7.3f} '
                     '{5:7.3f} {6:7.3f} {7:7.3f} '

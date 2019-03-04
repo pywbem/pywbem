@@ -261,7 +261,7 @@ class _Ascii2Formatter(Formatter):
         """
         do any conversion on the resulting object
         """
-        if conversion is None:
+        if conversion is None:  # pylint: disable=no-else-return
             return value
         elif conversion == 's':
             return str(value)

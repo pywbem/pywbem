@@ -809,19 +809,21 @@ def _scalar_value_tomof(
 
     if value is None:
         return mofval(u'NULL', indent, maxline, line_pos, end_space)
-    elif type == 'string':
+
+    if type == 'string':
         if isinstance(value, six.string_types):
             return mofstr(value, indent, maxline, line_pos, end_space,
                           avoid_splits)
-        elif isinstance(value, (CIMInstance, CIMClass)):
+
+        if isinstance(value, (CIMInstance, CIMClass)):
             # embedded instance or class
             return mofstr(value.tomof(), indent, maxline, line_pos, end_space,
                           avoid_splits)
-        else:
-            raise TypeError(
-                _format("Scalar value of CIM type {0} has invalid Python type "
-                        "type {1} for conversion to a MOF string",
-                        type, builtin_type(value)))
+        raise TypeError(
+            _format("Scalar value of CIM type {0} has invalid Python type "
+                    "type {1} for conversion to a MOF string",
+                    type, builtin_type(value)))
+
     elif type == 'char16':
         return mofstr(value, indent, maxline, line_pos, end_space, avoid_splits,
                       quote_char=u"'")
@@ -4899,7 +4901,7 @@ class CIMProperty(_CIMComparisonMixin):
 
         qualifiers = [q.tocimxml() for q in self.qualifiers.values()]
 
-        if self.is_array:
+        if self.is_array:  # pylint: disable=no-else-return
             assert self.type != 'reference'
 
             if self.value is None:
@@ -6217,7 +6219,7 @@ class CIMParameter(_CIMComparisonMixin):
           of :term:`Element`.
         """
 
-        if as_value:
+        if as_value:  # pylint: disable=no-else-return
 
             if self.value is None:
                 value_xml = None
@@ -6273,7 +6275,7 @@ class CIMParameter(_CIMComparisonMixin):
 
             qualifiers = [q.tocimxml() for q in self.qualifiers.values()]
 
-            if self.is_array:
+            if self.is_array:  # pylint: disable=no-else-return
 
                 if self.array_size is None:
                     array_size = None
@@ -7866,10 +7868,12 @@ def tocimobj(type_, value):
     if type_ == 'boolean':
         if isinstance(value, bool):
             return value
-        elif isinstance(value, six.string_types):
+
+        if isinstance(value, six.string_types):
             if value.lower() == 'true':
                 return True
-            elif value.lower() == 'false':
+
+            if value.lower() == 'false':
                 return False
         raise ValueError(
             _format("Invalid boolean value: {0!A}", value))
@@ -7935,7 +7939,9 @@ def tocimobj(type_, value):
 
         if isinstance(value, (CIMInstanceName, CIMClassName)):
             return value
-        elif isinstance(value, six.string_types):
+
+        # pylint: disable=no-else-return
+        if isinstance(value, six.string_types):
             nm_space = host = None
             head, sep, tail = _partition(value, '//')
             if sep and head.find('"') == -1:

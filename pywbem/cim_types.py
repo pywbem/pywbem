@@ -472,7 +472,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
                     _format("Asterisks in {0} field of CIM datetime value "
                             "{1!A} do not end at end of field: {2!A}",
                             field_name, dtarg, value_str))
-            if rep_digit is None:
+            if rep_digit is None:  # pylint: disable=no-else-return
                 # Must be an all-asterisk field
                 if first != 0:
                     raise ValueError(
@@ -643,7 +643,7 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         """
         Return a string representing the object in CIM datetime format.
         """
-        if self.is_interval:
+        if self.is_interval:  # pylint: disable=no-else-return
             days = self.timedelta.days
             hours = self.timedelta.seconds // 3600
             sec_in_hour = self.timedelta.seconds - hours * 3600
@@ -714,8 +714,10 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
         from .cim_obj import cmpitem
         if self is other:
             return 0
-        elif not isinstance(other, CIMDateTime):
+
+        if not isinstance(other, CIMDateTime):
             return 1
+
         return (cmpitem(self.datetime, other.datetime) or
                 cmpitem(self.timedelta, other.timedelta))
 
@@ -1165,7 +1167,7 @@ def atomic_to_cim_xml(obj):
 
         TypeError
     """
-    if obj is None:
+    if obj is None:  # pylint: disable=no-else-return
         return obj
     elif isinstance(obj, six.text_type):
         return obj
