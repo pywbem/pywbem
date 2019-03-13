@@ -193,17 +193,8 @@ install:
   - python --version
   - where pip
   - pip --version
-  - call pywbem_os_setup.bat install
-  - call pywbem_os_setup.bat develop
 
-  # Verify that the commands used in makefile are available
-  # Already verified further up: pip, python.
-
-  # Verify that the commands used in the pywbem testsuite are available
-  - where xmllint
-  - xmllint --version
-
-  # Install Python packages
+  # Install Python packages and OS-level prerequisites
   - make platform env
   - pip list
   - make install
