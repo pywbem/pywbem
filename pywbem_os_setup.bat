@@ -4,7 +4,7 @@
 @rem Prerequisite commands for running this script:
 @rem     python (This script uses the active Python environment, virtual Python
 @rem       environments are supported)
-@rem     pip (with support for download subcommand, is installed by makefile)
+@rem     pip>=8.0.0 (with support for download subcommand, is installed by makefile)
 @rem     choco (Chocolatey package manager, from https://chocolatey.org)
 @rem     tar
 @rem     chmod

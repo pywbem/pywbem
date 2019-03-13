@@ -30,6 +30,8 @@ Released: not yet
 
 * Extend makefile clobber to remove cover files from pywbem_mock package.
 
+* Fixed pip version issue on Appveyor
+
 **Enhancements:**
 
 * Added the possibility to specify a value of `False` for the `embedded_object`

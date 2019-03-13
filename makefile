@@ -451,7 +451,7 @@ install_$(pymn).done: makefile install_os_$(pymn).done install_basic_$(pymn).don
 develop_os: develop_os_$(pymn).done
 	@echo "makefile: Target $@ done."
 
-develop_os_$(pymn).done: pywbem_os_setup.sh
+develop_os_$(pymn).done: makefile pip_upgrade_$(pymn).done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "makefile: Installing OS-level development requirements"
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
