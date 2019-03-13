@@ -28,6 +28,8 @@ Released: not yet
 
 * Fixed pip version issue on Appveyor
 
+* Fixed AttributeError on __offset in CIMDateTime.repr(). See issue #1681.
+
 **Enhancements:**
 
 **Known issues:**

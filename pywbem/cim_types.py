@@ -245,12 +245,12 @@ class MinutesFromUTC(tzinfo):
             where a positive value indicates minutes east of UTC, and a
             negative value indicates minutes west of UTC.
         """
-        self.__offset = timedelta(minutes=offset)
+        self._offset = offset
 
     def __repr__(self):
         return _format(
             "MinutesFromUTC("
-            "offset={s.__offset!A})",
+            "offset={s._offset!A})",
             s=self)
 
     def utcoffset(self, dt):  # pylint: disable=unused-argument
@@ -266,7 +266,7 @@ class MinutesFromUTC(tzinfo):
         This implementation returns the offset used to initialize the object,
         for any specified `dt` parameter.
         """
-        return self.__offset
+        return timedelta(minutes=self._offset)
 
     def dst(self, dt):  # pylint: disable=unused-argument
         """
