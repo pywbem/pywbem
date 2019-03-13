@@ -698,6 +698,44 @@ def test_datetime_init(datetime_init_tuple):
         assert str(obj) == exp_str
 
 
+def test_datetime_repr(datetime_init_tuple):
+    """
+    Test repr(CIMDateTime) from all input types using
+    datetime_init_tuple pytest.fixture.
+    """
+    # pylint: disable=redefined-outer-name
+    (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_precision,
+     exp_minutesfromutc, exp_str) = datetime_init_tuple
+
+    if isinstance(exp_kind, type) and issubclass(exp_kind, Exception):
+        pytest.skip("Testing repr() needs CIMDatetime object")
+
+    obj = CIMDateTime(dtarg)
+
+    # The code to be tested.
+    # The actual test is that no exception is raised.
+    repr(obj)
+
+
+def test_datetime_str(datetime_init_tuple):
+    """
+    Test str(CIMDateTime) from all input types using
+    datetime_init_tuple pytest.fixture.
+    """
+    # pylint: disable=redefined-outer-name
+    (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_precision,
+     exp_minutesfromutc, exp_str) = datetime_init_tuple
+
+    if isinstance(exp_kind, type) and issubclass(exp_kind, Exception):
+        pytest.skip("Testing str() needs CIMDatetime object")
+
+    obj = CIMDateTime(dtarg)
+
+    # The code to be tested.
+    # The actual test is that no exception is raised.
+    str(obj)
+
+
 # TODO: Add testcases for get_local_utcoffset()
 # TODO: Add testcases for now()
 # TODO: Add testcases for fromtimestamp()
