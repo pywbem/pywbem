@@ -26,6 +26,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed pip version issue on Appveyor
+
 **Enhancements:**
 
 **Known issues:**
