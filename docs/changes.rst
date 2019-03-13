@@ -18,7 +18,7 @@ pywbem 0.14.0
 
 This version is currently in development and is shown as |version|.
 
-This version contains all fixes up to pywbem 0.13.x.
+This version contains all fixes up to pywbem 0.13.1.
 
 Released: not yet
 
@@ -31,6 +31,8 @@ Released: not yet
 * Extend makefile clobber to remove cover files from pywbem_mock package.
 
 * Fixed pip version issue on Appveyor
+
+* Fixed AttributeError on __offset in CIMDateTime.repr(). See issue #1681.
 
 **Enhancements:**
 
