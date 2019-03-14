@@ -16,27 +16,13 @@ Change log
 pywbem 0.13.1
 -------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-03-14
 
 **Bug fixes:**
 
 * Fixed pip version issue on Appveyor
 
 * Fixed AttributeError on __offset in CIMDateTime.repr(). See issue #1681.
-
-**Enhancements:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.13.0
