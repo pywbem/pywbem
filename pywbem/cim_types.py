@@ -84,8 +84,10 @@ from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
 from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode
 
 if six.PY2:
+    # pylint: disable=invalid-name,undefined-variable
     _Longint = long  # noqa: F821
 else:
+    # pylint: disable=invalid-name
     _Longint = int
 
 

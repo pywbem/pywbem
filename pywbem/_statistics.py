@@ -709,6 +709,7 @@ class Statistics(object):
                 # pylint: disable=protected-access
                 if stats._server_time_stored:
                     include_svr = True
+            # pylint: disable=protected-access
             if include_svr:
                 ret += OperationStatistic._formatted_header_w_svr
             else:

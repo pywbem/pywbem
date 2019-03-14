@@ -28,6 +28,7 @@ __all__ = ['Warning', 'ToleratedServerIssueWarning']
 
 
 class Warning(Error, six.moves.builtins.Warning):
+    # pylint: disable=redefined-builtin
     """
     Base class for pywbem specific warnings.
     """

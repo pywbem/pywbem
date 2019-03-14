@@ -52,8 +52,10 @@ __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
 if six.PY2:
+    # pylint: disable=invalid-name, undefined-variable
     _Longint = long  # noqa: F821
 else:
+    # pylint: disable=invalid-name
     _Longint = int
 
 OpArgsTuple = namedtuple("OpArgsTuple", ["method", "args"])
@@ -684,8 +686,8 @@ class LogOperationRecorder(BaseOperationRecorder):
             """ format ret as repr while clipping it to max_len if
                 max_len is not None.
             """
-            # format the 'summary' and 'paths' detail_levels
-            if self.api_detail_level == 'summary':
+            # Format the 'summary' and 'paths' detail_levels
+            if self.api_detail_level == 'summary':  # pylint: disable=R1705
                 if isinstance(ret, list):
                     if ret:
                         ret_type = type(ret[0]).__name__ if ret else ""

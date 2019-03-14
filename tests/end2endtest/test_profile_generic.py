@@ -21,6 +21,7 @@ from .utils.utils import latest_profile_inst, server_func_asserted, \
 
 def test_get_central_instances(
         profile_definition, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the central instances of the profile can be determined using
     WBEMServer.gen_central_instances().
@@ -73,6 +74,7 @@ def test_get_central_instances(
 
 
 def test_undefined_profiles(wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the server advertises only profiles defined in profiles.yml.
     """

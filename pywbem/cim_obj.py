@@ -304,6 +304,7 @@ _KB_VAL = r'(?:{0}|{1}|{2})'.format(
 # To get all repetitions, capture a repeated group instead of repeating a
 # capturing group: https://www.regular-expressions.info/captureall.html
 WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
+    # pylint: disable=duplicate-string-formatting-argument
     r'^(\w+={0})((?:,\w+={1})*)$'.format(_KB_VAL, _KB_VAL),
     flags=(re.UNICODE | re.IGNORECASE))
 
@@ -810,7 +811,7 @@ def _scalar_value_tomof(
     if value is None:
         return mofval(u'NULL', indent, maxline, line_pos, end_space)
 
-    if type == 'string':
+    if type == 'string':  # pylint: disable=no-else-raise
         if isinstance(value, six.string_types):
             return mofstr(value, indent, maxline, line_pos, end_space,
                           avoid_splits)
@@ -2502,13 +2503,12 @@ class CIMInstance(_CIMComparisonMixin):
     def path(self, path):
         """Setter method; for a description see the getter method."""
 
+        # pylint: disable=attribute-defined-outside-init
         if path is None:
-            # pylint: disable=attribute-defined-outside-init
             self._path = None
         else:
             # The provided path is deep copied because its keybindings may be
             # updated when setting properties (in __setitem__()).
-            # pylint: disable=attribute-defined-outside-init
             self._path = path.copy()
 
             # We perform this check after the initialization to avoid errors
@@ -8183,6 +8183,8 @@ def _infer_is_array(value):
 
 def _check_array_parms(is_array, array_size, value, element_kind,
                        element_name):
+    # pylint: disable=unused-argument
+    # The array_size argument is unused.
     """
     Check whether array-related parameters are ok.
     """

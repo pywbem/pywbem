@@ -9,13 +9,16 @@ from pywbem import WBEMServer
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
+# pylint: disable=line-too-long,unused-import
 from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
+# pylint: enable=line-too-long
 from .utils.pytest_extensions import default_namespace  # noqa: F401, E501
 from .utils.utils import server_func_asserted, server_prop_asserted
 
 
 def test_namespace_consistency(
         default_namespace, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the Interop namespace and all namespaces and namespace paths can
     be determined, and verify consistency between them.
@@ -43,6 +46,7 @@ def test_namespace_consistency(
 
 def test_namespace_getinstance(
         default_namespace, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that GetInstance on the instance paths of all namespaces succeeds.
     """
@@ -65,6 +69,7 @@ def test_namespace_getinstance(
 
 def test_brand_version(
         default_namespace, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the server brand and version can be determined.
     """
@@ -85,6 +90,7 @@ def test_brand_version(
 
 def test_cimom_inst(
         default_namespace, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the instance representing the server can be determined and that
     GetInstance on it succeeds.
@@ -109,6 +115,7 @@ def test_cimom_inst(
 
 def test_profiles(
         default_namespace, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the registered profiles advertised by the server can be
     determined and that GetInstance on them succeeds.
@@ -137,6 +144,7 @@ def test_profiles(
 
 def test_get_selected_profiles_no_filter(
         default_namespace, wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the get_selected_profiles() method without filtering returns
     the same profiles as the profiles attribute.

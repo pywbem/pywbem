@@ -569,11 +569,12 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.log(format, args, logging.INFO)
 
     def log_request(self, code='-', size='-'):
+        #  pylint: disable=unused-argument
         """
         This function is called during :meth:`send_response`.
 
         We override it to get a little more information logged in a somewhat
-        better format.
+        better format.  We do not use the size  method argument.
         """
         self.log('%s: HTTP status %s',
                  (self._get_log_prefix(), code),

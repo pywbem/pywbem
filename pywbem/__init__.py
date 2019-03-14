@@ -63,7 +63,7 @@ from ._version import __version__  # noqa: F401
 
 _python_m = sys.version_info[0]  # pylint: disable=invalid-name
 _python_n = sys.version_info[1]  # pylint: disable=invalid-name
-if _python_m == 2 and _python_n < 6:   # pylint: disable=no-else-return
+if _python_m == 2 and _python_n < 6:   # pylint: disable=no-else-raise
     raise RuntimeError('On Python 2, pywbem requires Python 2.6 or higher')
 elif _python_m == 3 and _python_n < 4:
     raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')

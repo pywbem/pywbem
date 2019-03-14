@@ -911,7 +911,7 @@ class EnumerateInstances(ClientTest):
             self.cimcall(self.conn.EnumerateInstances,
                          TEST_CLASS,
                          namespace='root/blah')
-            self.assertFalse(True)      # should never get here
+            self.fail()      # should never get here
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_NAMESPACE:
@@ -921,7 +921,7 @@ class EnumerateInstances(ClientTest):
         """ Confirm correct error with nonexistent classname."""
         try:
             self.cimcall(self.conn.EnumerateInstances, 'CIM_BlahBlah')
-            self.assertFalse(True)
+            self.fail()  # should never get here
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_INVALID_CLASS:
@@ -932,7 +932,7 @@ class EnumerateInstances(ClientTest):
         try:
             self.cimcall(self.conn.EnumerateInstances, TEST_CLASS,
                          blablah=3)
-            self.assertFalse(True)  # Expecting exception
+            self.fail()  # Expecting exception
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
@@ -4575,7 +4575,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                       FilterQueryLanguage=None, FilterQuery=None,
                       OperationTimeout=None, ContinueOnError=None,
                       MaxObjectCount=None, ignore_value_diff=False,
-                      expected_response_count=None, pull_disabled=False):
+                      expected_response_count=None):
         # pylint: disable=invalid-name
         """
         Run test by executing interEnumInstances, open/pull instance,
@@ -4608,7 +4608,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
         if expected_response_count is not None:
             self.assertEqual(len(iter_instances), expected_response_count)
 
-        # execute pull operation
+        # execute open/pull sequence
         result = self.cimcall(self.conn.OpenEnumerateInstances, ClassName,
                               namespace=namespace, LocalOnly=LocalOnly,
                               DeepInheritance=DeepInheritance,
@@ -4758,8 +4758,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
         property_list = ['Id', 'SequenceNumber', 'ResponseCount', 'S1']
         self.run_enum_test(TEST_PEG_STRESS_CLASSNAME,
                            namespace=TEST_PEG_STRESS_NAMESPACE,
-                           MaxObjectCount=100, PropertyList=property_list,
-                           pull_disabled=True)
+                           MaxObjectCount=100, PropertyList=property_list)
 
         # pylint: disable=protected-access
         self.assertEqual(self.conn.use_pull_operations, False)
@@ -4891,7 +4890,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
     def run_enumpath_test(self, ClassName, namespace=None,
                           FilterQueryLanguage=None, FilterQuery=None,
                           OperationTimeout=None, ContinueOnError=None,
-                          MaxObjectCount=None, pull_disabled=False):
+                          MaxObjectCount=None):
         # pylint: disable=invalid-name,
         """
         Run test by executing interEnumInstances, open/pull instance,
@@ -4914,7 +4913,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
         for path in generator:
             iter_paths.append(path)
 
-        # execute pull operation
+        # execute open/pull operation sequence
         result = self.cimcall(self.conn.OpenEnumerateInstancePaths, ClassName,
                               namespace=namespace,
                               FilterQueryLanguage=FilterQueryLanguage,
@@ -4936,7 +4935,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
 
         self.assertPathsEqual(iter_paths, pulled_paths, True)
 
-        # execute original enumerate instance paths operation
+        # Execute original enumerate instance paths operation
         # Ignore host here because EnumerateInstanceNames does not return
         # it.
         orig_paths = self.cimcall(self.conn.EnumerateInstanceNames, ClassName,
@@ -4967,7 +4966,6 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
 
         To force the original operation, recall self.setup with
         has_pull_operation = False
-
         """
 
         # Force a new setup to set the use_pull_operations False.
@@ -4978,7 +4976,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
 
         self.run_enumpath_test(TEST_PEG_STRESS_CLASSNAME,
                                namespace=TEST_PEG_STRESS_NAMESPACE,
-                               MaxObjectCount=100, pull_disabled=True)
+                               MaxObjectCount=100)
 
         # pylint: disable=protected-access
         self.assertEqual(self.conn.use_pull_operations, False)
@@ -5246,7 +5244,7 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
         for path in generator:
             iter_paths.append(path)
 
-        # execute pull operation
+        # execute open/pull operation sequence
         result = self.cimcall(self.conn.OpenReferenceInstancePaths,
                               InstanceName, ResultClass=ResultClass, Role=Role,
                               FilterQueryLanguage=FilterQueryLanguage,

@@ -40,6 +40,7 @@ class ServerDefinitionFile(object):
         self._load_file()
 
     def _load_file(self):
+        """Load the yaml file."""
         try:
             with open(self._filepath) as fp:
                 try:
@@ -52,7 +53,7 @@ class ServerDefinitionFile(object):
                         format(self._filepath, exc.__class__.__name__,
                                exc))
         except IOError as exc:
-            if exc.errno == errno.ENOENT:
+            if exc.errno == errno.ENOENT:  # pylint: disable=no-else-raise
                 raise ServerDefinitionFileError(
                     "The WBEM server definition file {0!r} was not found; "
                     "copy it from {1!r}".
@@ -96,6 +97,7 @@ class ServerDefinitionFile(object):
             self._server_groups.update(server_groups)
 
     def _check_sg(self, sg_nick, server_groups, servers, visited_sg_nicks):
+        """Check server groups for nicknames"""
         visited_sg_nicks.append(sg_nick)
         server_group = server_groups[sg_nick]
         if not isinstance(server_group, list):
@@ -153,7 +155,8 @@ class ServerDefinitionFile(object):
         """
         if nickname in self._servers:
             return [self.get_server(nickname)]
-        elif nickname in self._server_groups:
+
+        if nickname in self._server_groups:  # pylint: disable no-else-return
             sd_list = list()  # of ServerDefinition objects
             sd_nick_list = list()  # of server nicknames
             for item_nick in self._server_groups[nickname]:
@@ -195,6 +198,8 @@ class ServerDefinition(object):
             'implementation_namespace', None)
 
     def _required_attr(self, server_dict, attr_name, nickname):
+        # pylint: disable=no-self-use
+        """Return the sever_dict attribute or a KeyError"""
         try:
             return server_dict[attr_name]
         except KeyError:

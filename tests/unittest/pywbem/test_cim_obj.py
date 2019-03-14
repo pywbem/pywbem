@@ -4997,6 +4997,7 @@ class CIMInstanceDict(DictionaryTestCase):
 
         if six.PY2:
             with self.assertRaises(ValueError if CHECK_0_12_0 else TypeError):
+                # pylint: disable=undefined-variable
                 obj['Foo'] = long(43)  # noqa: F821
 
         # Setting properties to CIM data type values

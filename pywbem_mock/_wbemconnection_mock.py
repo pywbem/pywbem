@@ -1048,8 +1048,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                         cmt_end))
 
             else:
-                assert obj_type == 'Classes' or \
-                    obj_type == 'Qualifier Declarations'
+                assert obj_type in ['Classes', 'Qualifier Declarations']
                 try:
                     objs = object_repo[namespace]
                 except KeyError:
@@ -1527,7 +1526,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Does NOT copy so these are what is in repository. User functions
         MUST NOT modify these classes.
 
-        Returns: Returns generator where each yield returns a singe
+        Returns: Returns generator where each yield returns a single
                  association class
         """
 
@@ -2100,14 +2099,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                            include_qualifiers=True,
                                            include_classorigin=True)
         except CIMError as ce:
-            if ce.status_code == CIM_ERR_NOT_FOUND:
-                raise CIMError(
-                    CIM_ERR_INVALID_CLASS,
-                    _format("Cannot create instance because its creation "
-                            "class {0!A} does not exist in namespace {1!A}.",
-                            new_instance.classname, namespace))
-            else:
+            if ce.status_code != CIM_ERR_NOT_FOUND:
                 raise
+
+            raise CIMError(
+                CIM_ERR_INVALID_CLASS,
+                _format("Cannot create instance because its creation "
+                        "class {0!A} does not exist in namespace {1!A}.",
+                        new_instance.classname, namespace))
 
         # Handle namespace creation, currently hard coded.
         # TODO AM 8/18 Generalize the hard coded handling into provider concept
@@ -2170,16 +2169,16 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     _format("Property {0!A} specified in NewInstance is not "
                             "exposed by class {1!A} in namespace {2!A}",
                             ipname, target_class.classname, namespace))
-            else:
-                cprop = target_class.properties[ipname]
-                iprop = new_instance.properties[ipname]
-                if iprop.is_array != cprop.is_array or \
-                        iprop.type != cprop.type:
-                    raise CIMError(
-                        CIM_ERR_INVALID_PARAMETER,
-                        _format("Instance and class property {0!A} types "
-                                "do not match: instance={1!A}, class={2!A}",
-                                ipname, iprop, cprop))
+
+            cprop = target_class.properties[ipname]
+            iprop = new_instance.properties[ipname]
+            if iprop.is_array != cprop.is_array or \
+                    iprop.type != cprop.type:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Instance and class property {0!A} types "
+                            "do not match: instance={1!A}, class={2!A}",
+                            ipname, iprop, cprop))
 
         # Build instance path. We build the complete instance path
         new_instance.path = CIMInstanceName.from_instance(
@@ -2264,8 +2263,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     _format("Cannot modify instance because its creation "
                             "class {0!A} does not exist in namespace {1!A}.",
                             modified_instance.classname, namespace))
-            else:
-                raise
+            raise
 
         # get key properties and all class props
         cl_props = [p.name for p in six.itervalues(target_class.properties)]
@@ -2344,18 +2342,18 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     _format("Property {0!A} specified in ModifiedInstance is "
                             "not exposed by class {1!A} in namespace {2!A}",
                             pname, target_class.classname, namespace))
-            else:
-                cprop = target_class.properties[pname]
-                iprop = modified_instance.properties[pname]
-                if iprop.is_array != cprop.is_array \
-                        or iprop.type != cprop.type \
-                        or iprop.array_size != cprop.array_size:
-                    raise CIMError(
-                        CIM_ERR_INVALID_PARAMETER,
-                        _format("Instance and class property name={0!A} type "
-                                "or other attributes do not match: "
-                                "instance={1!A}, class={2!A}",
-                                pname, iprop, cprop))
+
+            cprop = target_class.properties[pname]
+            iprop = modified_instance.properties[pname]
+            if iprop.is_array != cprop.is_array \
+                    or iprop.type != cprop.type \
+                    or iprop.array_size != cprop.array_size:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Instance and class property name={0!A} type "
+                            "or other attributes do not match: "
+                            "instance={1!A}, class={2!A}",
+                            pname, iprop, cprop))
 
         # Modify the value of properties in the repo with those from
         # modified instance
@@ -3259,6 +3257,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self._validate_namespace(namespace)
         self._validate_open_params(**params)
 
+        # pylint: disable=assignment-from-no-return
+        # TODO: Not implemented
         result = self._fake_execquery(namespace, **params)
 
         objects = [] if result is None else [x[2] for x in result[0][2]]
