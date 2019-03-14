@@ -20,7 +20,6 @@ import argparse as _argparse
 from tabulate import tabulate
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
-
 from pywbem import WBEMConnection, Error, Uint64, TestClientRecorder
 
 # Pegasus class/namespace to use for test
@@ -34,6 +33,12 @@ DEFAULT_PULL_SIZE = [1, 100, 1000]
 
 
 STATS_LIST = []
+
+
+def format_timedelta(td):
+    hours, remainder = divmod(td.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return '%02d:%02d:%05.2f' % (hours, minutes, seconds)
 
 
 class _PywbemCustomFormatter(_SmartFormatter,
@@ -72,12 +77,6 @@ def set_provider_parameters(conn, count, size):
         raise
 
 
-def run_enum_instances(conn):
-    """Execute an EnumerateInstances request and return the instances"""
-    instances = conn.EnumerateInstances(TEST_CLASSNAME)
-    return len(instances)
-
-
 def record_response_times(conn, max_object_count, op_count):
     """
     Record the server and client response times from the last response
@@ -103,10 +102,6 @@ def run_pull_enum_instances(conn, max_object_count):
 
     total_svr_response_time = 0
     total_op_time = 0
-    total_last_xmltuple = 0
-    total_last_tupleparser = 0
-    total_last_tuplechecker = 0
-    total_rtnscheck = 0
 
     while not result.eos:
         result = conn.PullInstancesWithPath(result.context,
@@ -115,10 +110,6 @@ def run_pull_enum_instances(conn, max_object_count):
         op_count += 1
         insts_pulled.extend(result.instances)
         total_op_time = 0
-        total_last_xmltuple += conn._last_xmltuple
-        total_last_tupleparser += conn._last_tupleparser
-        total_last_tuplechecker += conn._last_tuplechecker
-        total_rtnscheck += conn._last_rtnscheck
         if conn.last_server_response_time:
             total_svr_response_time += conn.last_server_response_time
         else:
@@ -128,13 +119,10 @@ def run_pull_enum_instances(conn, max_object_count):
     # return tuple containing info on the sequence (instances pulled,
     #                                               zero origin opertion ctr)
     #                                               tuple of time stats
+    # The time stats are totals over the number of open/pull operations
     return [len(insts_pulled), op_count,
             (total_svr_response_time,   # 0
-             total_op_time,             # 1
-             "%.6f" % total_last_xmltuple,    # 2
-             "%.6f" % total_last_tupleparser,    # 3
-             "%.6f" % total_last_tuplechecker,   # 4
-             "%.6f" % total_rtnscheck)]          # 5
+             total_op_time)]            # 1
 
 
 def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
@@ -145,50 +133,65 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
 
     set_provider_parameters(conn, response_count, response_size)
 
+    # Test the time to execute EnumerateInstances()
     start_time = datetime.datetime.now()
-    enum_count = run_enum_instances(conn)
+    instances = conn.EnumerateInstances(TEST_CLASSNAME)
+    enum_count = len(instances)
     enum_time = datetime.datetime.now() - start_time
     inst_per_sec = enum_count / enum_time.total_seconds()
 
+    # if server returned a value for the last server response time
+    # use that to compute the difference between the total and server time.
     if conn.last_server_response_time:
         diff = conn.last_operation_time - conn.last_server_response_time
     else:
         diff = conn.last_operation_time
-        conn.last_server_response_time = 0
-    percentage = (diff / conn.last_operation_time) * 100
 
-    row = ['Enum', enum_count, response_size, '', '', str(enum_time),
+    client_pulltime_str = format_timedelta(enum_time)
+    percentage = "{:0.2f}".format((diff / conn.last_operation_time) * 100)
+
+    row = ['Enum', enum_count, response_size, None, None,
+           client_pulltime_str,
            inst_per_sec,
            conn.last_server_response_time,
-           conn.last_operation_time, diff, percentage,
-           conn._last_xmltuple,
-           conn._last_tupleparser, conn._last_tuplechecker,
-           conn._last_rtnscheck]
+           conn.last_operation_time,
+           diff,
+           percentage]
     rows.append(row)
 
+    # Run pull test for each requests max_obj_cnt
     for max_obj_cnt in max_obj_cnt_array:
         pull_start_time = datetime.datetime.now()
-        pull_result = run_pull_enum_instances(conn, max_obj_cnt)
-        pull_time = datetime.datetime.now() - pull_start_time
-        inst_per_sec = pull_result[0] / pull_time.total_seconds()
+        insts_pulled, pull_opcount, pull_stats = run_pull_enum_instances(
+            conn, max_obj_cnt)
+        client_pull_time = datetime.datetime.now() - pull_start_time
 
-        stats = pull_result[2]
-        diff = stats[1] - stats[0]
-        percentage = (diff / stats[1]) * 100
+        client_pulltime_str = format_timedelta(client_pull_time)
+        total_server_responsetime = pull_stats[0]
+        total_operationtime = pull_stats[1]
 
-    row = ['Open/Pull', pull_result[0], response_size, max_obj_cnt,
-           pull_result[1],
-           str(pull_time),
-           inst_per_sec,
-           stats[0],
-           stats[1],
-           diff,
-           percentage,
-           stats[2],
-           stats[3],
-           stats[4],
-           stats[5]]
-    rows.append(row)
+        print("TIME %s %s" % (client_pull_time, client_pulltime_str))
+
+        inst_per_sec = insts_pulled / client_pull_time.total_seconds()
+
+        pywbem_processingtime = total_operationtime - total_server_responsetime
+
+        # total_operationtime exists only if the server returns it
+        if total_operationtime:
+            percentage = "{:0.2f}".format((pywbem_processingtime /
+                                          conn.last_operation_time) * 100)
+        else:
+            percentage = 100
+
+        row = ['Open/Pull', insts_pulled, response_size, max_obj_cnt,
+               pull_opcount,
+               client_pulltime_str,
+               inst_per_sec,
+               total_server_responsetime,
+               total_operationtime,
+               diff,
+               percentage]
+        rows.append(row)
     return rows
 
 
@@ -197,25 +200,30 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
     Run test based on limits provided defined in the input variables
     """
     # Run the enumeration one time to eliminate any server startup time
-    # loss and test for the server_response time
-    rows = []
-    run_enum_instances(conn)
+    # loss
+    conn.EnumerateInstances(TEST_CLASSNAME)
+
     if conn.last_server_response_time is None:
         print('WARNING: Server probably not returning server response time')
 
+    rows = []
     header = ['Operation', 'Response\nCount', 'RespSize\nBytes',
               'MaxObjCnt\nRequest',
-              'Result\nCount', 'Exec time', 'inst/sec', 'svr-time\nsec',
-              'resp-time\nsec', 'other_proc\nsec', 'other_proc\npercent',
-              'xmltuple\nsec', 'tupleparser\nsec', 'tuplechecker\nsec',
-              'rtnscheck\nsec']
+              'Result\nCount',
+              'Total execution\ntime',
+              'inst/sec (hh:mm:ss)',
+              'svr time\nsec',
+              'op resp time\nsec',
+              'totalop - svr\nresp time\nsec',
+              'totalop - svr\nresp time\npercent']
+
     for response_size in response_sizes:
         for response_count in response_counts:
             # run_single_test(conn, response_count, response_size, pull_sizes)
             rows.extend(run_single_test(conn, response_count, response_size,
-                        pull_sizes))
+                                        pull_sizes))
 
-    table = tabulate(rows, headers=header, tablefmt="grid")
+    table = tabulate(rows, headers=header, tablefmt="simple")
     print(table)
 
     if verbose:
@@ -238,11 +246,10 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
                 .format(st[0], st[1], st[2], st[3], diff, percentage))
 
 
-def parse_args():
+def parse_args(prog):
     """
     Parse the input arguments and return the args dictionary
     """
-    prog = _os.path.basename(_sys.argv[0])
     usage = '%(prog)s [options] server'
     # pylint: disable=line-too-long
     desc = """
@@ -362,7 +369,7 @@ Examples:
         help='R|The number of instances that will be returned for each test\n'
              'in the form for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
-             '  -r 1000 10000 100000\n'
+             '  --response-count 1000 10000 100000\n'
              'Default: %s' % DEFAULT_RESPONSE_COUNT)
 
     tests_arggroup.add_argument(
@@ -373,7 +380,7 @@ Examples:
              'be tested. This defines the MaxObjectCount for each open and \n'
              'pull request for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
-             '    -P 100 200 300\n'
+             '    --pull-size 100 200 300\n'
              'Default: %s' % DEFAULT_PULL_SIZE)
 
     tests_arggroup.add_argument(
@@ -384,7 +391,7 @@ Examples:
              'of each response in bytes to be returned from the server.'
              'May be multiple integers. The test will be executed for each\n'
              'integer defined. The format is:\n'
-             '   -R 100 200 300\n'
+             '   --response-size 100 200 300\n'
              'Default: %s' % DEFAULT_RESPONSE_SIZE)
 
     general_arggroup = argparser.add_argument_group(
@@ -435,7 +442,7 @@ def main(prog):
     Parse command line arguments, connect to the WBEM server and open the
     interactive shell.
     """
-    args, url = parse_args()
+    args, url = parse_args(prog)
 
     creds = None
 
@@ -474,4 +481,5 @@ def main(prog):
 
 
 if __name__ == '__main__':
-    _sys.exit(main('run_enum_performance.py'))
+    prog = _os.path.basename(_sys.argv[0])
+    _sys.exit(main(prog))
