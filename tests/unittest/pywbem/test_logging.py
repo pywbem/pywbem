@@ -410,6 +410,7 @@ class BaseLoggingExecutionTests(object):
         WBEMConnection._reset_logging_config()
         configure_loggers_from_string(
             'all=file', TEST_OUTPUT_LOG, propagate=True, connection=True)
+        # pylint: disable=attribute-defined-outside-init
         self.logger = logging.getLogger(LOGGER_API_CALLS_NAME)
         assert self.logger is not None
 

@@ -153,8 +153,8 @@ def sample_INSTANCENAME_node():
             'type',
             cim_xml.KEYVALUE('dog', 'string')),
          cim_xml.KEYBINDING(
-            'age',
-            cim_xml.KEYVALUE('2', 'numeric'))])
+             'age',
+             cim_xml.KEYVALUE('2', 'numeric'))])
 
 
 def sample_INSTANCENAME_str():
@@ -1491,9 +1491,9 @@ class Message(CIMXMLTest):
                         'FooMethod',
                         sample_LOCALNAMESPACEPATH_node())),
                  cim_xml.SIMPLEREQ(
-                    cim_xml.IMETHODCALL(
-                        'FooMethod',
-                        sample_LOCALNAMESPACEPATH_node()))]),
+                     cim_xml.IMETHODCALL(
+                         'FooMethod',
+                         sample_LOCALNAMESPACEPATH_node()))]),
             '1001', '1.0'))
 
         # SIMPLERSP
@@ -1533,9 +1533,9 @@ class MultiReq(CIMXMLTest):
                     'FooMethod',
                     sample_LOCALNAMESPACEPATH_node())),
              cim_xml.SIMPLEREQ(
-                cim_xml.IMETHODCALL(
-                    'FooMethod',
-                    sample_LOCALNAMESPACEPATH_node()))]))
+                 cim_xml.IMETHODCALL(
+                     'FooMethod',
+                     sample_LOCALNAMESPACEPATH_node()))]))
 
 
 class MultiExpReq(CIMXMLTest):
@@ -1816,7 +1816,7 @@ class MultiExpRsp(CIMXMLTest):
                 [cim_xml.SIMPLEEXPRSP(
                     cim_xml.EXPMETHODRESPONSE('FooMethod')),
                  cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
+                     cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
 
 
 class SimpleRsp(CIMXMLTest):

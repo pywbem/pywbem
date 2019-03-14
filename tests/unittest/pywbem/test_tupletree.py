@@ -69,6 +69,7 @@ def xml_to_tupletree(xml_string):
 
 
 class Test_xml_to_tupletree_sax(object):
+    # pylint: disable=too-few-public-methods
     """
     Exhaustive tests for tupletree.xml_to_tupletree_sax(), with inline input
     XML and expected tupletrees (for success) or exceptions (for failures).

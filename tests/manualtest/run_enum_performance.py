@@ -170,8 +170,6 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
         total_server_responsetime = pull_stats[0]
         total_operationtime = pull_stats[1]
 
-        print("TIME %s %s" % (client_pull_time, client_pulltime_str))
-
         inst_per_sec = insts_pulled / client_pull_time.total_seconds()
 
         pywbem_processingtime = total_operationtime - total_server_responsetime
@@ -179,9 +177,9 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
         # total_operationtime exists only if the server returns it
         if total_operationtime:
             percentage = "{:0.2f}".format((pywbem_processingtime /
-                                          conn.last_operation_time) * 100)
+                                           conn.last_operation_time) * 100)
         else:
-            percentage = 100
+            percentage = 100  # This is fake but we don't know svr time.
 
         row = ['Open/Pull', insts_pulled, response_size, max_obj_cnt,
                pull_opcount,
@@ -199,8 +197,7 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
     """
     Run test based on limits provided defined in the input variables
     """
-    # Run the enumeration one time to eliminate any server startup time
-    # loss
+    # Run the enumeration one time to eliminate server startup time loss
     conn.EnumerateInstances(TEST_CLASSNAME)
 
     if conn.last_server_response_time is None:
@@ -210,10 +207,10 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
     header = ['Operation', 'Response\nCount', 'RespSize\nBytes',
               'MaxObjCnt\nRequest',
               'Result\nCount',
-              'Total execution\ntime',
-              'inst/sec (hh:mm:ss)',
+              'Total execution\ntime (hh:mm:ss)',
+              'inst/sec',
               'svr time\nsec',
-              'op resp time\nsec',
+              'operation\nresp time\nsec',
               'totalop - svr\nresp time\nsec',
               'totalop - svr\nresp time\npercent']
 
@@ -237,7 +234,6 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
               format(*headers))
 
         print('\n\nDetailed statistics for each pull  operations')
-        global STATS_LIST
         for st in STATS_LIST:
             diff = conn.last_operation_time - conn.last_server_response_time
             percentage = (diff / conn.last_operation_time) * 100
@@ -481,5 +477,4 @@ def main(prog):
 
 
 if __name__ == '__main__':
-    prog = _os.path.basename(_sys.argv[0])
-    _sys.exit(main(prog))
+    _sys.exit(main(_os.path.basename(_sys.argv[0])))

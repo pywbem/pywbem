@@ -32,7 +32,7 @@ PROFILES_YAML_FILE = os.path.join('tests', 'profiles', 'profiles.yml')
 # definition file.
 with open(PROFILES_YAML_FILE, 'r') as _fp:
     PROFILE_DEFINITION_LIST = yaml.load(_fp)
-del _fp
+del _fp  # pylint: disable=undefined-loop-variable
 
 # Profile definition dictionary.
 # The dict key is 'org:name', for optimized direct access.
@@ -43,7 +43,7 @@ for _pd in PROFILE_DEFINITION_LIST:
     _key = '{0}:{1}'.format(_pd['registered_org'],
                             _pd['registered_name'])
     PROFILE_DEFINITION_DICT[_key] = _pd
-del _pd, _key
+del _pd, _key  # pylint: disable=undefined-loop-variable
 
 
 def fixtureid_server_definition(fixture_value):
@@ -287,7 +287,7 @@ class ProfileTest(object):
 
     object_cache = ServerObjectCache()
 
-    def init_profile(self, conn, profile_org, profile_name):
+    def init_profile(self, conn, profile_org=None, profile_name=None):
         """
         Initialize attributes for the profile.
 
@@ -361,4 +361,5 @@ class ProfileTest(object):
             self.object_cache.add_list(
                 self.conn.url, central_paths_id, central_paths)
 
+        # pylint: disable=attribute-defined-outside-init
         self.central_inst_paths = central_paths

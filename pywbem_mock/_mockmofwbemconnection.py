@@ -31,10 +31,10 @@ from pywbem import MOFWBEMConnection, CIMError, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_FOUND
 from pywbem._nocasedict import NocaseDict
 
-from ._resolvermixin import ResolverMixin
 from pywbem._utils import _format
+from ._resolvermixin import ResolverMixin
 
-# TODO: Use the BaseWBEMConnection and recreate the complete MOFWBEMConnection
+# TODO: FutureUse the BaseWBEMConnection and recreate complete MOFWBEMConnection
 
 
 class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
@@ -133,8 +133,8 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                                 conn_id=self.conn_id)
                         raise
 
-        ccr = self.conn._resolve_class(cc, namespace,
-                                       self.qualifiers[namespace])
+        ccr = self.conn._resolve_class(  # pylint: disable=protected-access
+            cc, namespace, self.qualifiers[namespace])
         if namespace not in self.classes:
             self.classes[namespace] = NocaseDict()
         self.classes[namespace][ccr.classname] = ccr

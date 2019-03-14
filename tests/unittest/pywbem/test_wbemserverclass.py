@@ -42,7 +42,7 @@ VERBOSE = True
 TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 
 
-class BaseMethodsForTests(object):
+class BaseMethodsForTests(object):  # pylint: disable=too-few-public-methods
     """
     Common methods for test of WBEMServer class.  This includes methods to
     build the DMTF schema and to build individual instances.

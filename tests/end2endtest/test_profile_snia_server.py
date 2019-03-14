@@ -10,9 +10,13 @@ from pywbem import ToleratedServerIssueWarning
 from pywbem._utils import _format
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
-# due to the way py.test searches for fixtures, it also need to be imported.
+# due to the way py.test searches for fixtures, it also must be imported.
+
+# pylint: disable=line-too-long,unused-import
 from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
 from .utils.pytest_extensions import assert_association_func  # noqa: F401
+# pylint: enable=line-too-long,unused-import
+
 from .utils.pytest_extensions import ProfileTest
 from .utils.assertions import assert_number_of_instances_equal, \
     assert_number_of_instances_minimum, assert_instance_of, \
@@ -26,11 +30,12 @@ class Test_SNIA_Server_Profile(ProfileTest):
     All end2end tests for SNIA 'Server' profile.
     """
 
-    def init_profile(self, conn):
+    def init_profile(self, conn):  # pylint: disable=arguments-differ
         super(Test_SNIA_Server_Profile, self).init_profile(
-            conn, 'SNIA', 'Server')
+            conn, profile_org='SNIA', profile_name='Server')
 
     def test_get_central_instances(self, wbem_connection):  # noqa: F811
+        # pylint: disable=redefined-outer-name
         """
         Test WBEMServer.get_central_instances() for this profile.
         """
@@ -54,6 +59,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
             wbem_connection, central_inst_paths, central_insts_msg, 1)
 
     def test_central_instance(self, wbem_connection):  # noqa: F811
+        # pylint: disable=redefined-outer-name
         """
         Test the CIM_ObjectManager central instance.
         """
@@ -81,6 +87,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
 
     def test_Namespace(
             self, assert_association_func, wbem_connection):  # noqa: F811
+        # pylint: disable=redefined-outer-name
         """
         Test the associated CIM_Namespace instances.
         """
@@ -135,6 +142,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
 
     def test_ObjectManagerCommunicationMechanism(
             self, assert_association_func, wbem_connection):  # noqa: F811
+        # pylint: disable=redefined-outer-name
         """
         Test the associated CIM_ObjectManagerCommunicationMechanism instances.
         """
@@ -208,6 +216,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
 
     def test_System(
             self, assert_association_func, wbem_connection):  # noqa: F811
+        # pylint: disable=redefined-outer-name
         """
         Test the associated CIM_System instance.
         """

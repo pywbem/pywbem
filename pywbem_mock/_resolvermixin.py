@@ -199,10 +199,10 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                 "{3!A} without override.",
                                 type_str, oname, new_class.classname,
                                 superclass.classname))
-                else:
-                    # TODO need to finish this.  For now just let
-                    # parameter slide. Keep tht new one.
-                    continue
+
+                # TODO need to finish this.  For now just let
+                # parameter slide. Keep the new one.
+                continue
 
             # process object override
             # get override name

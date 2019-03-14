@@ -455,11 +455,11 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         :exc:`~pywbem.HTTPError`
     """
 
-    class HTTPBaseConnection:        # pylint: disable=no-init
+    class HTTPBaseConnection:  # pylint: disable=no-init
         """ Common base for specific connection classes. Implements
             the send method
         """
-        # pylint: disable=old-style-class,too-few-public-methods
+        # pylint: disable=too-few-public-methods
         def send(self, strng):
             """
             A copy of `httplib.HTTPConnection.send()`, with these fixes:
@@ -965,7 +965,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     #   retrying causes testclient test case SocketError104 to
                     #   fail. Also, retrying needs to be tested with a real
                     #   WBEM server.
-                    if False:
+                    if False:  # pylint: disable=using-constant-test
                         warnings.warn(
                             _format("The server closed the connection without "
                                     "returning any response (retrying - this "
