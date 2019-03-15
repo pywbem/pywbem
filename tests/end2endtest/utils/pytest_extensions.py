@@ -57,7 +57,7 @@ def fixtureid_server_definition(fixture_value):
     """
     sd = fixture_value
     assert isinstance(sd, ServerDefinition)
-    return "server_definition={}".format(sd.nickname)
+    return "server_definition={0}".format(sd.nickname)
 
 
 @pytest.fixture(
@@ -154,7 +154,7 @@ def fixtureid_default_namespace(fixture_value):
       * fixture_value (string): The default namespace for the test.
     """
     ns = fixture_value
-    return "default_namespace={}".format(ns)
+    return "default_namespace={0}".format(ns)
 
 
 @pytest.fixture(
