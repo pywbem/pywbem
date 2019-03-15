@@ -169,7 +169,7 @@ def wbemcli_test(desc, args, exp_response, mock_file, condition, verbose=False):
             if test == 'startswith':
                 assert isinstance(test_value, six.string_types)
                 assert rtn_value.startswith(test_value), \
-                    "{}\n{}={!r}".format(desc, component, rtn_value)
+                    "{0}\n{1}={2!r}".format(desc, component, rtn_value)
             # test that lines match between test_value and rtn_value
             # base on regex match
             elif test == 'patterns':
@@ -299,11 +299,11 @@ def assert_rc(exp_rc, rc, stdout, stderr):
     """
 
     assert exp_rc == rc, \
-        "Unexpected exit code (expected {}, got {})\n" \
+        "Unexpected exit code (expected {0}, got {1})\n" \
         "  stdout:\n" \
-        "{}\n\n" \
+        "{2}\n\n" \
         "  stderr:\n" \
-        "{}". \
+        "{3}". \
         format(exp_rc, rc, stdout, stderr)
 
 
@@ -325,11 +325,11 @@ def assert_patterns(exp_patterns, act_lines, meaning):
         of the lines that are matched, e.g. 'stderr'.
     """
     assert len(act_lines) == len(exp_patterns), \
-        "Unexpected number of lines in test desc: {}:\n" \
-        "Expected line cnt={}:\n" \
-        "{}\n\n" \
-        "Actual line cnt={}:\n" \
-        "{}\n". \
+        "Unexpected number of lines in test desc: {0}:\n" \
+        "Expected line cnt={1}:\n" \
+        "{2}\n\n" \
+        "Actual line cnt={3}:\n" \
+        "{4}\n". \
         format(meaning, len(act_lines), '\n'.join(act_lines),
                len(exp_patterns), '\n'.join(exp_patterns))
 
@@ -338,12 +338,12 @@ def assert_patterns(exp_patterns, act_lines, meaning):
         # if not exp_line.endswith('$'):
         #    exp_line += '$'
         assert re.match(exp_line, act_line), \
-            "Unexpected line {} in test desc:{}:\n" \
+            "Unexpected line {0} in test desc:{1}:\n" \
             "Expected line vs. actual line:\n" \
             "------------\n" \
-            "{}\n" \
+            "{2}\n" \
             "------------\n" \
-            "{}\n" \
+            "{3}\n" \
             "------------\n". \
             format(i, meaning, exp_line, act_line)
 
@@ -367,21 +367,21 @@ def assert_lines(exp_lines, act_lines, meaning):
         of the lines that are matched, e.g. 'stderr'.
     """
     assert len(act_lines) == len(exp_lines), \
-        "Unexpected number of lines in {}:\n" \
-        "Expected lines cnt={}:\n" \
-        "{}\n" \
-        "Actual lines cnt={}:\n" \
-        "{}\n". \
+        "Unexpected number of lines in {0}:\n" \
+        "Expected lines cnt={1}:\n" \
+        "{2}\n" \
+        "Actual lines cnt={3}:\n" \
+        "{4}\n". \
         format(meaning, len(exp_lines), '\n'.join(exp_lines),
                len(act_lines), '\n'.join(act_lines))
 
     for i, act_line in enumerate(act_lines):
         exp_line = exp_lines[i]
         assert exp_line == act_line, \
-            "Unexpected line {} in {}:\n" \
+            "Unexpected line {0} in {1}:\n" \
             "  expected line vs. actual line:\n" \
             "------------\n" \
-            "{}\n" \
-            "{}\n" \
+            "{2}\n" \
+            "{3}\n" \
             "------------\n". \
             format(i, meaning, exp_line, act_line)
