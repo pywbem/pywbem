@@ -9730,8 +9730,14 @@ def is_subclass(ch, ns, super_class, sub):
       sub:
         The subclass.  This can either be a string or a
         :class:`~pywbem.CIMClass` object.
-    """
 
+    Returns:
+        :class:`py:bool`: Boolean True if the assertion is True (sub is a
+        subclass of super_class) or False if it is not a subclass.
+
+    Raises:
+        CIMError if the the sub is not a valid class in the repo
+    """
     lsuper = super_class.lower()
     if isinstance(sub, CIMClass):
         subname = sub.classname

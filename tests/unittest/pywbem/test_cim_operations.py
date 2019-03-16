@@ -10,10 +10,15 @@ from __future__ import print_function, absolute_import
 import os
 import pytest
 
-from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE
+from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, CIMError
 
 from pywbem._recorder import LogOperationRecorder
 from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
+from pywbem.cim_operations import is_subclass
+from pywbem_mock import FakedWBEMConnection
+
+from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
+from ..utils.pytest_extensions import simplified_test_function
 
 
 class TestCreateConnection(object):
@@ -222,3 +227,93 @@ class TestGetRsltParams(object):
 
             # pylint: disable=protected-access
             result = conn._get_rslt_params(result, 'namespace')
+
+
+def build_repo():
+    """Fixture to initialize the mock environment and install classes.
+       Definde as a function without the pytest.fixture decorator becasue
+       there is no way to include a fixture in the signature of a test
+       function that uses simplified_test_function. Simplified_test_function
+       reports a parameter count difference because of the extram parameter
+       that is the fixture and fixtures may not be included in the testcases.
+    """
+    schema = install_test_dmtf_schema()
+    namespace = "root/cimv2"
+    partial_schema = """
+        #pragma locale ("en_US")
+        #pragma include ("Interop/CIM_ObjectManager.mof")
+        #pragma include ("Interop/CIM_RegisteredProfile.mof")
+        """
+
+    conn = FakedWBEMConnection(default_namespace=namespace)
+    conn.compile_mof_string(partial_schema, namespace=namespace,
+                            search_paths=[schema.schema_mof_dir])
+    return conn
+
+
+TESTCASES_IS_SUBCLASS = [
+
+    # Testcases for WBEMConnection.is_subclass(...)
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_args: Tuple of positional arguments to is_subclass.
+    #   * init_kwargs: Dict of keyword arguments to is_subclass.
+    #   * exp_attrs: Dict of expected attributes of resulting object.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for
+    #   debugger
+    (
+        "Test of valid call that returns True",
+        dict(
+            init_args=['CIM_ManagedElement', 'CIM_ObjectManager'],
+            exp_attrs=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Test of valid call that returns False",
+        dict(
+            init_args=['CIM_ObjectManager', 'CIM_ManagedElement'],
+            exp_attrs=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Test of invalid subclass, not in repo",
+        dict(
+            init_args=['CIM_ManagedElement', 'CIM_Blah'],
+            exp_attrs=True,
+        ),
+        CIMError, None, True
+    ),
+    (
+        "Test of subclass and superclass ==",
+        dict(
+            init_args=['CIM_ObjectManager', 'CIM_ObjectManager'],
+            exp_attrs=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_IS_SUBCLASS)
+@simplified_test_function
+def test_is_subclass(testcase, init_args, exp_attrs):
+    # pylint: disable no_self_use,unused-argument
+    """
+    Test the method is_subclass(ch, ns, super_class, sub).
+    """
+    conn = build_repo()   # we wanted this to be fixture.
+    # The code to be tested
+    result = is_subclass(conn, conn.default_namespace, *init_args)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+    assert exp_attrs == result

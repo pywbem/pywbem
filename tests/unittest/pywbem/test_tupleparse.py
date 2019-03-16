@@ -5833,6 +5833,18 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
+        "PROPERTY with EMBEDDEDOBJECT=instance, value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY EMBEDDEDOBJECT="instance" NAME="Foo" TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string',
+                embedded_object='instance', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "PROPERTY with EmbeddedObject=instance and invalid value",
         dict(
             xml_str=''
@@ -6241,6 +6253,19 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo"'
+            ' TYPE="string"/>',
+            exp_result=CIMProperty(
+                'Foo', value=None, type='string', is_array=True,
+                embedded_object='instance', propagated=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY with EMBEDDEDOBJECT=instance and value that is None",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY EMBEDDEDOBJECT="instance" NAME="Foo"'
             ' TYPE="string"/>',
             exp_result=CIMProperty(
                 'Foo', value=None, type='string', is_array=True,
@@ -9858,22 +9883,441 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # TODO: IPARAMVALUE tests
-    # TODO: EXPPARAMVALUE tests
-    # TODO: RETURNVALUE tests
+    # RETURNVALUE
+    (
+        "RETURNVALUE with simple PARAMTYPE and zero",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPE="sint32">'
+            '<VALUE>0</VALUE>'
+            '</RETURNVALUE>',
+            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'0'),
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE with simple PARAMTYPE and nonzero value",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPE="sint32">'
+            '<VALUE>1</VALUE>'
+            '</RETURNVALUE>',
+            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'1'),
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE with simple PARAMTYPE and embeddedobject",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPE="string" EmbeddedObject="instance">'
+            '<VALUE>&lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"'
+            '&gt;&lt;PROPERTY NAME="Street" TYPE="string"&gt;'
+            '&lt;VALUE&gt;Default Street&lt;/VALUE&gt;&lt;/PROPERTY&gt;'
+            '&lt;PROPERTY NAME="Town" TYPE="string"&gt;'
+            '&lt;VALUE&gt;Default Town&lt;/VALUE&gt;'
+            '&lt;/PROPERTY&gt;&lt;/CLASS&gt;</VALUE></RETURNVALUE>',
+            exp_result=(u'RETURNVALUE',
+                        {u'EmbeddedObject': u'instance',
+                         u'PARAMTYPE': u'string'},
+                        CIMClass(
+                            classname='PyWBEM_Address',
+                            superclass='PyWBEM_Object',
+                            properties=[
+                                CIMProperty(
+                                    name='Street', value='Default Street',
+                                    type='string', reference_class=None,
+                                    embedded_object=None, propagated=False,
+                                    is_array=False, array_size=None),
+                                CIMProperty(
+                                    name='Town',
+                                    value='Default Town',
+                                    type='string', reference_class=None,
+                                    embedded_object=None, propagated=False,
+                                    is_array=False, array_size=None)],
+                            path=None)),
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE with simple PARAMTYPE and EMBEDDEDOBJECT",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPE="string" EMBEDDEDOBJECT="instance">'
+            '<VALUE>&lt;CLASS NAME="PyWBEM_Address" SUPERCLASS="PyWBEM_Object"'
+            '&gt;&lt;PROPERTY NAME="Street" TYPE="string"&gt;'
+            '&lt;VALUE&gt;Default Street&lt;/VALUE&gt;'
+            '&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Town" TYPE="string"&gt;'
+            '&lt;VALUE&gt;Default Town&lt;/VALUE&gt;'
+            '&lt;/PROPERTY&gt;&lt;/CLASS&gt;</VALUE></RETURNVALUE>',
+            exp_result=(u'RETURNVALUE',
+                        {u'EMBEDDEDOBJECT': u'instance',
+                         u'PARAMTYPE': u'string'},
+                        CIMClass(
+                            classname='PyWBEM_Address',
+                            superclass='PyWBEM_Object',
+                            properties=[
+                                CIMProperty(
+                                    name='Street', value='Default Street',
+                                    type='string', reference_class=None,
+                                    embedded_object=None, propagated=False,
+                                    is_array=False, array_size=None),
+                                CIMProperty(
+                                    name='Town', value='Default Town',
+                                    type='string', reference_class=None,
+                                    embedded_object=None, propagated=False,
+                                    is_array=False, array_size=None)],
+                            path=None)),
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE with simple PARAMTYPE and invalid value. passes",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPE="sint32">'
+            '<VALUE>hi</VALUE>'
+            '</RETURNVALUE>',
+            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'hi'),
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE with Invalid attribute",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPEX="sint32">'
+            '<VALUE>hi</VALUE>'
+            '</RETURNVALUE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "RETURNVALUE with VALUE.REFERENCE",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPEX="sint32">'
+            '<VALUE.REFERENCE>'
+            '<INSTANCENAME CLASSNAME="PyWBEM_Person">'
+            '<KEYBINDING NAME="CreationClassName">'
+            '<KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>'
+            '</KEYBINDING>'
+            '<KEYBINDING NAME="Name">'
+            '<KEYVALUE VALUETYPE="string">Alice</KEYVALUE>'
+            '</KEYBINDING>'
+            '</INSTANCENAME>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+
     # TODO: IRETURNVALUE tests
-    # TODO: IMETHODCALL tests
-    # TODO: IMETHODRESPONSE tests
-    # TODO: METHODCALL tests
+    # TODO: EXPPARAMVALUE tests
     # TODO: METHODRESPONSE tests
+    # TODO: IMETHODRESPONSE tests
     # TODO: EXPMETHODCALL tests
-    # TODO: EXPMETHODRESPONSE tests
     # TODO: MESSAGE tests
-    # TODO: SIMPLEREQ tests
     # TODO: SIMPLERSP tests
     # TODO: SIMPLEEXPREQ tests
     # TODO: SIMPLEEXPRSP tests
 
+    # The implementation of these methods in tupleparser.py is just
+    # a not_implemented exception. Since this is a listener response to
+    # a expmethod caller there is no test defined
+    # EXPMETHODRESPONSE tests
+
+    # The following parse methods are only used by a pywbem server
+    (
+        "SIMPLEREQ of GetClass Request",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ><IMETHODCALL NAME="GetClass">'
+            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
+            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
+            exp_result=(u'SIMPLEREQ',
+                        {},
+                        (u'IMETHODCALL',
+                         {u'NAME': u'GetClass'},
+                         u'root/cimv2',
+                         [(u'ClassName',
+                           CIMClassName(classname='CIM_ComputerSystem',
+                                        namespace=None, host=None)),
+                          (u'PropertyList', [u'PowerManagementCapabilities']),
+                          (u'LocalOnly', False)])),
+        ),
+        None, None, True
+    ),
+    (
+        "SIMPLEREQ invalid, BLAHBLAH for IMETHODCALL",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ><BLAHBLAH NAME="GetClass">'
+            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
+            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+
+    # IMETHODCALL tests
+    (
+        "IMETHODCALL simple request",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="GetClass">'
+            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
+            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL>',
+            exp_result=(u'IMETHODCALL',
+                        {u'NAME': u'GetClass'},
+                        u'root/cimv2',
+                        [(u'ClassName',
+                          CIMClassName(classname='CIM_ComputerSystem',
+                                       namespace=None, host=None)),
+                         (u'PropertyList', [u'PowerManagementCapabilities']),
+                         (u'LocalOnly', False)]),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODCALLError, no NAME",
+        dict(
+            xml_str=''
+            '<IMETHODCALL>'
+            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
+            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "IMETHODCALLError, no Namespace",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="GetClass">'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+
+    # IPARAMVALUE tests
+    (
+        "IPARAM Boolean value, localonly False ",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE>',
+            exp_result=(u'LocalOnly', False),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAM Boolean value localonly True ",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>TRUE</VALUE>'
+            '</IPARAMVALUE>',
+            exp_result=(u'LocalOnly', True),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE Array of integers ",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="ARRAYINT">'
+            '<VALUE.ARRAY><VALUE>1</VALUE><VALUE>2</VALUE>'
+            '</VALUE.ARRAY></IPARAMVALUE>',
+            exp_result=(u'ARRAYINT', [u'1', u'2']),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAM InstanceName value ",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="InstanceName">'
+            '<INSTANCENAME CLASSNAME="PyWBEM_Person">'
+            '<KEYBINDING NAME="Name">'
+            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>'
+            '</KEYBINDING>'
+            '</INSTANCENAME>'
+            '</IPARAMVALUE>',
+            exp_result=(u'InstanceName',
+                        CIMInstanceName("PyWBEM_Person",
+                                        [('Name', 'Fritz')],
+                                        namespace=None, host=None)),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAM Error, No Name in KEYBINDING ",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="InstanceName">'
+            '<INSTANCENAME CLASSNAME="PyWBEM_Person">'
+            '<KEYBINDING>'
+            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>'
+            '</KEYBINDING>'
+            '</INSTANCENAME>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    # TODO. Cover other Elements including: 'VALUE.REFERENCE',
+    #       'CLASSNAME','QUALIFIER.DECLARATION', 'CLASS',
+    #       'INSTANCE', 'VALUE.NAMEDINSTANCE'
+    (
+        "IPARAMVALUE Error No Name",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE">'
+            '<VALUE.ARRAY><VALUE>1</VALUE><VALUE>2</VALUE>'
+            '</VALUE.ARRAY></IPARAMVALUE>',
+            exp_result=(u'ARRAYINT', [u'1', u'2']),
+        ),
+        ParseError, None, True
+    ),
+
+    # METHODCALL tests
+    (
+        "METHODCALL simple test",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
+            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
+            '</LOCALNAMESPACEPATH>'
+            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '</LOCALCLASSPATH>'
+            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=(u'METHODCALL',
+                        {u'NAME': u'SendTestIndicationsCount'},
+                        CIMClassName(classname='Test_IndicationProviderClass',
+                                     namespace='test/TestProvider', host=None),
+                        [(u'indicationSendCount', u'uint32', u'0'),
+                         (u'indicationDropCount', u'uint32', u'42'),
+                         (u'optionalP1', None, None)]),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODCALL test, error No Name",
+        dict(
+            xml_str=''
+            '<METHODCALL>'
+            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
+            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
+            '</LOCALNAMESPACEPATH>'
+            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '</LOCALCLASSPATH>'
+            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "METHODCALL Error, No path",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
+    (
+        "METHODCALL Error, IPARMVALUE in place of PARAMVALUE",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
+            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
+            '</LOCALNAMESPACEPATH>'
+            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '</LOCALCLASSPATH>'
+            '<IPARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</IPARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        ParseError, None, True
+    ),
 ]
 
 
