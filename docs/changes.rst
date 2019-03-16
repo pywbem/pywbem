@@ -42,6 +42,9 @@ Released: not yet
   `embedded_object` value is not inferred from the property or parameter value
   in that case, so this saves performance.
 
+* Added the 'python_requires' keyword to the package definition, which makes pip
+  aware of the supported Python versions.
+
 **Known issues:**
 
 * See `list of open issues`_.
