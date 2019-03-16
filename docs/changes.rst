@@ -45,6 +45,12 @@ Released: not yet
 * Added the 'python_requires' keyword to the package definition, which makes pip
   aware of the supported Python versions.
 
+* Comment out those methods in the TupleParser that are just WBEM server parser
+  methods including iparamvalue, etc. They should never be received by the
+  pywbem client. We left the code in case the server is implemented but this
+  was better than adding the test for these methods. Add test for is_subclass
+  function in cim_operations.py
+
 **Known issues:**
 
 * See `list of open issues`_.

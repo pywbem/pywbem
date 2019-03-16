@@ -1683,76 +1683,6 @@ class TupleParser(object):
 
         return name(tup_tree), attrs(tup_tree), child
 
-    def parse_simplereq(self, tup_tree):
-        """
-          ::
-
-            <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
-        """
-
-        self.check_node(tup_tree, 'SIMPLEREQ')
-
-        child = self.one_child(tup_tree, ['IMETHODCALL', 'METHODCALL'])
-
-        return name(tup_tree), attrs(tup_tree), child
-
-    def parse_imethodcall(self, tup_tree):
-        """
-          ::
-
-            <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
-            <!ATTLIST IMETHODCALL
-                %CIMName;>
-        """
-
-        self.check_node(tup_tree, 'IMETHODCALL', ['NAME'])
-
-        k = kids(tup_tree)
-
-        if not k:
-            raise CIMXMLParseError(
-                _format("Element {0!A} missing child elements "
-                        "(expecting child elements "
-                        "(LOCALNAMESPACEPATH, IPARAMVALUE*))", name(tup_tree)),
-                conn_id=self.conn_id)
-
-        namespace = self.parse_localnamespacepath(k[0])
-
-        params = [self.parse_iparamvalue(x) for x in k[1:]]
-
-        return (name(tup_tree), attrs(tup_tree), namespace, params)
-
-    def parse_methodcall(self, tup_tree):
-        """
-          ::
-
-            <!ELEMENT METHODCALL ((LOCALCLASSPATH | LOCALINSTANCEPATH),
-                                  PARAMVALUE*)>
-            <!ATTLIST METHODCALL
-                %CIMName;>
-        """
-
-        self.check_node(tup_tree, 'METHODCALL', ['NAME'], [],
-                        ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
-
-        path = self.list_of_matching(tup_tree,
-                                     ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
-        if not path:
-            raise CIMXMLParseError(
-                _format("Element {0!A} missing a required child element "
-                        "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'",
-                        name(tup_tree)),
-                conn_id=self.conn_id)
-        if len(path) > 1:
-            raise CIMXMLParseError(
-                _format("Element {0!A} has too many child elements {1!A} "
-                        "(allowed is one of 'LOCALCLASSPATH' or "
-                        "'LOCALINSTANCEPATH')", name(tup_tree), path),
-                conn_id=self.conn_id)
-        path = path[0]
-        params = self.list_of_matching(tup_tree, ['PARAMVALUE'])
-        return (name(tup_tree), attrs(tup_tree), path, params)
-
     def parse_expmethodcall(self, tup_tree):
         """
           ::
@@ -1815,39 +1745,6 @@ class TupleParser(object):
             child = self.parse_embeddedObject(child)
 
         return attrl['NAME'], paramtype, child
-
-    def parse_iparamvalue(self, tup_tree):
-        """
-        Parse expected IPARAMVALUE element. I.e.
-
-          ::
-
-            <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-                                  INSTANCENAME | CLASSNAME |
-                                  QUALIFIER.DECLARATION |
-                                  CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
-            <!ATTLIST IPARAMVALUE
-                %CIMName;>
-
-        :return: NAME, VALUE pair.
-        """
-
-        self.check_node(tup_tree, 'IPARAMVALUE', ['NAME'])
-
-        child = self.optional_child(tup_tree,
-                                    ['VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
-                                     'INSTANCENAME', 'CLASSNAME',
-                                     'QUALIFIER.DECLARATION', 'CLASS',
-                                     'INSTANCE', 'VALUE.NAMEDINSTANCE'])
-
-        _name = attrs(tup_tree)['NAME']
-        if isinstance(child, six.string_types) and \
-                _name.lower() in ['deepinheritance', 'localonly',
-                                  'includequalifiers', 'includeclassorigin']:
-            if child.lower() in ['true', 'false']:
-                child = (child.lower() == 'true')
-
-        return _name, child
 
     def parse_expparamvalue(self, tup_tree):
         """
@@ -2049,6 +1946,116 @@ class TupleParser(object):
 
         # Note: The caller needs to unpack the value.
         return name(tup_tree), attrs(tup_tree), values
+
+    #
+    #  The following parse functions are particular to a server and are not
+    #  used by pywbem client.
+    #
+
+    def parse_simplereq(self, tup_tree):
+        """
+         ::
+
+            <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
+        """
+
+        self.check_node(tup_tree, 'SIMPLEREQ')
+
+        child = self.one_child(tup_tree, ['IMETHODCALL', 'METHODCALL'])
+
+        return name(tup_tree), attrs(tup_tree), child
+
+    def parse_imethodcall(self, tup_tree):
+        """
+          ::
+
+            <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
+            <!ATTLIST IMETHODCALL
+               %CIMName;>
+        """
+
+        self.check_node(tup_tree, 'IMETHODCALL', ['NAME'])
+
+        k = kids(tup_tree)
+
+        if not k:
+            raise CIMXMLParseError(
+                _format("Element {0!A} missing child elements "
+                        "(expecting child elements "
+                        "(LOCALNAMESPACEPATH, IPARAMVALUE*))", name(tup_tree)),
+                conn_id=self.conn_id)
+
+        namespace = self.parse_localnamespacepath(k[0])
+
+        params = [self.parse_iparamvalue(x) for x in k[1:]]
+
+        return (name(tup_tree), attrs(tup_tree), namespace, params)
+
+    def parse_methodcall(self, tup_tree):
+        """
+          ::
+
+            <!ELEMENT METHODCALL ((LOCALCLASSPATH | LOCALINSTANCEPATH),
+                                  PARAMVALUE*)>
+            <!ATTLIST METHODCALL
+                %CIMName;>
+        """
+
+        self.check_node(tup_tree, 'METHODCALL', ['NAME'], [],
+                        ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
+
+        path = self.list_of_matching(tup_tree,
+                                     ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
+        if not path:
+            raise CIMXMLParseError(
+                _format("Element {0!A} missing a required child element "
+                        "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'",
+                        name(tup_tree)),
+                conn_id=self.conn_id)
+        if len(path) > 1:
+            raise CIMXMLParseError(
+                _format("Element {0!A} has too many child elements {1!A} "
+                        "(allowed is one of 'LOCALCLASSPATH' or "
+                        "'LOCALINSTANCEPATH')", name(tup_tree), path),
+                conn_id=self.conn_id)
+        path = path[0]
+        params = self.list_of_matching(tup_tree, ['PARAMVALUE'])
+        return (name(tup_tree), attrs(tup_tree), path, params)
+
+    def parse_iparamvalue(self, tup_tree):
+        """
+        Parse expected IPARAMVALUE element. I.e.
+
+          ::
+
+            <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
+                                  INSTANCENAME | CLASSNAME |
+                                  QUALIFIER.DECLARATION |
+                                  CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+            <!ATTLIST IPARAMVALUE
+                %CIMName;>
+
+        :return: NAME, VALUE pair.
+        """
+
+        self.check_node(tup_tree, 'IPARAMVALUE', ['NAME'])
+
+        child = self.optional_child(tup_tree,
+                                    ['VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
+                                     'INSTANCENAME', 'CLASSNAME',
+                                     'QUALIFIER.DECLARATION', 'CLASS',
+                                     'INSTANCE', 'VALUE.NAMEDINSTANCE'])
+
+        _name = attrs(tup_tree)['NAME']
+        if isinstance(child, six.string_types) and \
+                _name.lower() in ['deepinheritance', 'localonly',
+                                  'includequalifiers', 'includeclassorigin']:
+            if child.lower() in ['true', 'false']:
+                child = (child.lower() == 'true')
+
+        return _name, child
+
+    #   End of server specific parse functions
 
     #
     # Object naming and locating elements
