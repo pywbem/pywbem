@@ -24,6 +24,10 @@ decorator>=4.0.11
 yamlordereddictloader>=0.4.0
 funcsigs>=1.0.2
 
+# Indirect dependencies that are needed due to version pinning
+PyYAML==3.11; python_version == '2.6'  # yaml package, used by yamlordereddictloader
+PyYAML>=3.13; python_version >= '2.7'  # yaml package, used by yamlordereddictloader
+
 # Coverage reporting (no imports, invoked via coveralls script, only used on py27):
 # Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore
 # must be stated before pytest-cov, whose 2.5.1 specifies requirement
