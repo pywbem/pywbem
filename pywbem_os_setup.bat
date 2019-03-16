@@ -136,7 +136,7 @@ if exist %_WINOPENSSL_INSTALL_DIR% (
 
 echo Installing %_WINOPENSSL_BASENAME% ...
 
-set _CMD=curl -o %_WINOPENSSL_BASENAME%.exe -sSL https://slproweb.com/download/%_WINOPENSSL_BASENAME%.exe
+set _CMD=curl -o %_WINOPENSSL_BASENAME%.exe -sSL https://slproweb.com/download/%_WINOPENSSL_BASENAME%.exe --retry 3 --retry-connrefused --retry-delay 10
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
