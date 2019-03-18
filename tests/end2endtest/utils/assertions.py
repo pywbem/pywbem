@@ -908,10 +908,10 @@ def std_uri(instance):
     """
     if instance is None or instance.path is None:
         return ''
-    else:
-        path = instance.path.copy()
-        path.host = None
-        return path.to_wbem_uri(format='canonical')
+
+    path = instance.path.copy()
+    path.host = None
+    return path.to_wbem_uri(format='canonical')
 
 
 def assert_profile_tree(conn, profile_inst, profile_ancestry,

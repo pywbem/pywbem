@@ -965,7 +965,7 @@ class TupleParser(object):
 
         classname = attrs(tup_tree)['CLASSNAME']
 
-        if k0_name == 'KEYVALUE' or k0_name == 'VALUE.REFERENCE':
+        if k0_name in ('KEYVALUE', 'VALUE.REFERENCE'):
             if len(k) != 1:
                 raise CIMXMLParseError(
                     _format("Element {0!A} has more than one child element "

@@ -79,6 +79,7 @@ def server_definition(request):
     scope='module'
 )
 def wbem_connection(request, server_definition):
+    # pylint: disable=redefined-outer-name, unused-argument
     """
     Fixture representing the set of WBEMConnection objects to use for the
     end2end tests.  This fixture uses the  server_definition
@@ -189,6 +190,7 @@ def fixtureid_profile_definition(fixture_value):
 
 
 def _apply_profile_definition_defaults(pd):
+    """Set the reference_direction parameter"""
     if 'reference_direction' not in pd:
         pd['reference_direction'] = None
     if pd['reference_direction'] is None:
