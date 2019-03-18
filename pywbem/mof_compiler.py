@@ -229,7 +229,7 @@ def t_COMMENT(t):
     return  # discard token
 
 
-def t_MCOMMENT(t):  # pylint: disable=useless-return
+def t_MCOMMENT(t):
     r'/\*(.|\n)*?\*/'
     t.lineno += t.value.count('\n')
     return  # discard token
@@ -310,8 +310,7 @@ def t_stringValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({1}))*'.format(
-    # pylint: disable=duplicate-string-formatting-argument
+identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({1}))*'.format(  # noqa E501 pylint: disable=W1308
     utf8Char, utf8Char)
 
 
@@ -321,7 +320,7 @@ def t_IDENTIFIER(t):  # pylint: disable=missing-docstring
     return t
 
 
-def t_newline(t):  # pylint: disable=missing-docstring,useless-return
+def t_newline(t):  # pylint: disable=missing-docstring
     r'\n+'
     t.lexer.lineno += len(t.value)
     t.lexer.linestart = t.lexpos
