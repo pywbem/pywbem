@@ -19,7 +19,7 @@ except ImportError:
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_SUPERCLASS
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
 from pywbem import mof_compiler
@@ -563,6 +563,7 @@ class TestParseError(MOFTest):
                              'parse_error01.mof')
         try:
             self.mofcomp.compile_file(_file, NAME_SPACE)
+            self.fail("Exception expected.")
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 16)
@@ -578,6 +579,7 @@ class TestParseError(MOFTest):
                              'parse_error02.mof')
         try:
             self.mofcomp.compile_file(_file, NAME_SPACE)
+            self.fail("Exception expected.")
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 6)
@@ -593,6 +595,7 @@ class TestParseError(MOFTest):
                              'parse_error03.mof')
         try:
             self.mofcomp.compile_file(_file, NAME_SPACE)
+            self.fail("Should fail")
         except MOFParseError as pe:
             self.assertEqual(pe.file, _file)
             self.assertEqual(pe.lineno, 24)
@@ -610,8 +613,120 @@ class TestParseError(MOFTest):
                              'parse_error04.mof')
         try:
             self.mofcomp.compile_file(_file, NAME_SPACE)
+            self.fail("Exception expected.")
         except MOFParseError as pe:
             self.assertEqual(pe.msg, 'Unexpected end of file')
+
+    def test_missing_alias(self):
+        """
+        Test for alias not defined
+        """
+        mof_str = """
+        Qualifier Association : boolean = false,
+            Scope(association),
+            Flavor(DisableOverride, ToSubclass);
+        Qualifier Description : string = null,
+            Scope(any),
+            Flavor(EnableOverride, ToSubclass, Translatable);
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        class TST_Person{
+            [Key] string name;
+        };
+        [Association]
+        class TST_MemberOfFamilyCollection {
+           [key] TST_Person ref family;
+           [key] TST_Person ref member;
+        };
+        class TST_FamilyCollection {
+            [key] string name;
+        };
+
+        instance of TST_Person { name = "Mike"; };
+        instance of TST_FamilyCollection { name = "family1"; };
+
+        instance of TST_MemberOfFamilyCollection as $MikeMember
+        {
+            family = $Family1;
+            member = $Mike;
+        };
+        """
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Exception expected.")
+        except CIMError as ce:
+            self.assertEqual(ce.status_code, CIM_ERR_FAILED)
+            self.assertEqual(ce.status_description, "Unknown alias: '$Family1'")
+
+    def test_missing_superclass(self):
+        """
+        Test for alias not defined
+        """
+        mof_str = """
+        class PyWBEM_Person : CIM_Blah {
+        };
+        """
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Exception expected.")
+        except CIMError as ce:
+            self.assertEqual(ce.status_code, CIM_ERR_INVALID_SUPERCLASS)
+
+    def test_dup_instance(self):
+        """Test Current behavior where dup instance gets put into repo"""
+        mof_str = """
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        Class ex_sampleClass
+        {
+            [key] uint32 label1;
+            uint32 size;
+        };
+
+        instance of ex_sampleClass
+        {
+            label1 = 9921;
+            size = 1;
+        };
+
+        instance of ex_sampleClass
+        {
+            label1 = 9921;
+            size = 2;
+        };
+        """
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+    def test_instance_wo_class(self):
+        """Test Current behavior where dup instance gets put into repo"""
+        mof_str = """
+
+        instance of ex_sampleClass
+        {
+            label1 = 9921;
+            size = 1;
+        };
+        """
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Exception expected.")
+        except CIMError as ce:
+            self.assertEqual(ce.status_code, CIM_ERR_INVALID_CLASS)
+
+    def test_dup_qualifiers(self):
+        """Test Current behavior where set qualifierbehavior overrides."""
+        mof_str = """
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        """
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
 
 class TestPropertyAlternatives(MOFTest):
@@ -1940,7 +2055,7 @@ class TestPartialSchema(MOFTest):
 
         """
         Test compile a single class with reference properties that are not
-        listed in pragma. This test installes the dependent classes
+        listed in pragma. This test installs the dependent classes
         """
         schema_mof = """
            class My_ClassWithRef {
