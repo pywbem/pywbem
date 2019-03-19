@@ -1,0 +1,34 @@
+         9462652 function calls (9222560 primitive calls) in 8.180 seconds
+
+   Ordered by: internal time, call count
+   List reduced from 322 to 20 due to restriction <20>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    80000    0.924    0.000    1.102    0.000 __init__.py:41(__init__)
+   140005    0.557    0.000    1.340    0.000 tupleparse.py:165(check_node)
+   250005    0.548    0.000    0.862    0.000 tupleparse.py:117(kids)
+       92    0.460    0.005    1.813    0.020 {method 'Parse' of 'pyexpat.xmlparser' objects}
+   140005    0.444    0.000    0.458    0.000 xmlreader.py:330(items)
+  1740099    0.317    0.000    0.317    0.000 {built-in method isinstance}
+   140005    0.282    0.000    0.766    0.000 tupletree.py:96(startElement)
+    80000    0.268    0.000    1.369    0.000 _nocasedict.py:90(__init__)
+ 120004/1    0.241    0.000    6.355    6.355 tupleparse.py:2062(parse_any)
+   250005    0.216    0.000    0.314    0.000 tupleparse.py:129(<listcomp>)
+    30000    0.200    0.000    2.297    0.000 tupleparse.py:1323(parse_property)
+    40000    0.193    0.000    1.165    0.000 cim_obj.py:4326(__init__)
+100000/20000    0.193    0.000    3.563    0.000 tupleparse.py:327(list_of_matching)
+   300007    0.186    0.000    0.245    0.000 tupletree.py:115(characters)
+   140005    0.163    0.000    0.962    0.000 expatreader.py:303(start_element)
+    60000    0.148    0.000    0.161    0.000 __init__.py:62(__setitem__)
+    80000    0.128    0.000    0.147    0.000 _collections_abc.py:575(update)
+   260000    0.103    0.000    0.168    0.000 _utils.py:41(_ensure_unicode)
+    20000    0.099    0.000    0.857    0.000 cim_obj.py:1255(keybindings)
+    40000    0.094    0.000    1.301    0.000 tupleparse.py:2152(unpack_value)
+
+
+Results: profile=cprofile, response_counts=[10000],
+   response-sizes=[500], runid=15-use-tuples 20190319-134131
+  Exp inst    Act inst    Response      XML    Parse time    Instances
+      size        size       Count     size          sec.      per sec
+----------  ----------  ----------  -------  ------------  -----------
+       500         589       10000  5896919          8.31         1203
