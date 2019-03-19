@@ -426,7 +426,7 @@ class TupleParser(object):
 
         self.check_node(tup_tree, 'DECLARATION')
 
-        child = self.one_child(tup_tree, ('DECLGROUP'))
+        child = self.one_child(tup_tree, ('DECLGROUP',))
 
         return name(tup_tree), attrs(tup_tree), child
 
@@ -467,7 +467,7 @@ class TupleParser(object):
             <!ELEMENT VALUE (#PCDATA)>
         """
 
-        self.check_node(tup_tree, 'VALUE', [], [], [], allow_pcdata=True)
+        self.check_node(tup_tree, 'VALUE', (), (), (), allow_pcdata=True)
 
         return self.pcdata(tup_tree)
 
@@ -720,7 +720,7 @@ class TupleParser(object):
             <!ELEMENT VALUE.NULL EMPTY>
         """
 
-        self.check_node(tup_tree, 'VALUE.NULL', [], [], [])
+        self.check_node(tup_tree, 'VALUE.NULL', (), (), ())
 
         return None
 
@@ -767,7 +767,7 @@ class TupleParser(object):
             <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
         """
 
-        self.check_node(tup_tree, 'LOCALNAMESPACEPATH', [], [], ('NAMESPACE',))
+        self.check_node(tup_tree, 'LOCALNAMESPACEPATH', (), (), ('NAMESPACE',))
 
         if not kids(tup_tree):
             raise CIMXMLParseError(
@@ -778,7 +778,7 @@ class TupleParser(object):
         # self.list_of_various() has the same effect as self.list_of_same()
         # when used with a single allowed child element, but is a little
         # faster.
-        ns_list = self.list_of_various(tup_tree, ('NAMESPACE'))
+        ns_list = self.list_of_various(tup_tree, ('NAMESPACE',))
 
         return u'/'.join(ns_list)
 
@@ -791,7 +791,7 @@ class TupleParser(object):
             <!ELEMENT HOST (#PCDATA)>
         """
 
-        self.check_node(tup_tree, 'HOST', [], [], [], allow_pcdata=True)
+        self.check_node(tup_tree, 'HOST', (), (), (), allow_pcdata=True)
 
         return self.pcdata(tup_tree)
 
@@ -807,7 +807,7 @@ class TupleParser(object):
                 %CIMName;>
         """
 
-        self.check_node(tup_tree, 'NAMESPACE', ('NAME',), [], [])
+        self.check_node(tup_tree, 'NAMESPACE', ('NAME',), (), ())
 
         return attrs(tup_tree)['NAME']
 
@@ -881,7 +881,7 @@ class TupleParser(object):
             CIMClassName object (without namespace or host)
         """
 
-        self.check_node(tup_tree, 'CLASSNAME', ('NAME',), [], [])
+        self.check_node(tup_tree, 'CLASSNAME', ('NAME',), (), ())
 
         classname = attrs(tup_tree)['NAME']
         class_path = CIMClassName(classname)
@@ -987,7 +987,7 @@ class TupleParser(object):
             # self.list_of_various() has the same effect as self.list_of_same()
             # when used with a single allowed child element, but is a little
             # faster.
-            for key_bind in self.list_of_various(tup_tree, ('KEYBINDING')):
+            for key_bind in self.list_of_various(tup_tree, ('KEYBINDING',)):
                 kbs.update(key_bind)
             return CIMInstanceName(classname, kbs)
 
@@ -1063,7 +1063,7 @@ class TupleParser(object):
                 %CIMType;              #IMPLIED>
         """
 
-        self.check_node(tup_tree, 'KEYVALUE', [], ('VALUETYPE', 'TYPE'), [],
+        self.check_node(tup_tree, 'KEYVALUE', (), ('VALUETYPE', 'TYPE'), (),
                         allow_pcdata=True)
 
         data = self.pcdata(tup_tree)
@@ -1121,8 +1121,8 @@ class TupleParser(object):
         properties = self.list_of_matching(tup_tree,
                                            ('PROPERTY', 'PROPERTY.REFERENCE',
                                             'PROPERTY.ARRAY'))
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
-        methods = self.list_of_matching(tup_tree, ('METHOD'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
+        methods = self.list_of_matching(tup_tree, ('METHOD',))
 
         return CIMClass(attrl['NAME'],
                         superclass=superclass,
@@ -1155,7 +1155,7 @@ class TupleParser(object):
         # Note: The check above does not enforce the ordering constraint in the
         # DTD that QUALIFIER elements must appear before PROPERTY* elements.
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         props = self.list_of_matching(tup_tree,
                                       ('PROPERTY.REFERENCE', 'PROPERTY',
@@ -1196,9 +1196,9 @@ class TupleParser(object):
                 INDICATION (true | false) "false"
         """
 
-        self.check_node(tup_tree, 'SCOPE', [],
+        self.check_node(tup_tree, 'SCOPE', (),
                         ('CLASS', 'ASSOCIATION', 'REFERENCE', 'PROPERTY',
-                         'METHOD', 'PARAMETER', 'INDICATION'), [])
+                         'METHOD', 'PARAMETER', 'INDICATION'), ())
 
         # Even though XML attributes do not preserve order, we store the
         # scopes in an ordered dict to avoid a warning further down the
@@ -1356,7 +1356,7 @@ class TupleParser(object):
                         attrl['NAME'], msg),
                 conn_id=self.conn_id)
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         embedded_object = False
         if 'EmbeddedObject' in attrl or 'EMBEDDEDOBJECT' in attrl:
@@ -1402,7 +1402,7 @@ class TupleParser(object):
         values = self.unpack_value(tup_tree)
         attrl = attrs(tup_tree)
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
@@ -1447,7 +1447,7 @@ class TupleParser(object):
                         ('REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'),
                         ('QUALIFIER', 'VALUE.REFERENCE'))
 
-        value = self.list_of_matching(tup_tree, ('VALUE.REFERENCE'))
+        value = self.list_of_matching(tup_tree, ('VALUE.REFERENCE',))
 
         if not value:
             value = None
@@ -1462,7 +1462,7 @@ class TupleParser(object):
 
         attrl = attrs(tup_tree)
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         pref = CIMProperty(attrl['NAME'],
                            value,
@@ -1503,7 +1503,7 @@ class TupleParser(object):
                                             'PARAMETER.ARRAY',
                                             'PARAMETER.REFARRAY'))
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         return_type = attrl.get('TYPE', None)
         if not return_type:
@@ -1531,12 +1531,12 @@ class TupleParser(object):
                 %CIMType;              #REQUIRED>
         """
 
-        self.check_node(tup_tree, 'PARAMETER', ('NAME', 'TYPE'), [],
+        self.check_node(tup_tree, 'PARAMETER', ('NAME', 'TYPE'), (),
                         ('QUALIFIER',))
 
         attrl = attrs(tup_tree)
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         return CIMParameter(attrl['NAME'],
                             type=attrl['TYPE'],
@@ -1559,7 +1559,7 @@ class TupleParser(object):
 
         attrl = attrs(tup_tree)
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         return CIMParameter(attrl['NAME'],
                             type='reference',
@@ -1619,7 +1619,7 @@ class TupleParser(object):
             # Issue #1044: Clarify if hex support is needed
             array_size = int(array_size)
 
-        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER'))
+        qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         return CIMParameter(attrl['NAME'],
                             type='reference',
@@ -1684,7 +1684,7 @@ class TupleParser(object):
             <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
         """
 
-        child = self.one_child(tup_tree, ('EXPMETHODCALL'))
+        child = self.one_child(tup_tree, ('EXPMETHODCALL',))
 
         return name(tup_tree), attrs(tup_tree), child
 
@@ -1697,10 +1697,10 @@ class TupleParser(object):
                 %CIMName;>
         """
 
-        self.check_node(tup_tree, 'EXPMETHODCALL', ('NAME',), [],
+        self.check_node(tup_tree, 'EXPMETHODCALL', ('NAME',), (),
                         ('EXPPARAMVALUE',))
 
-        params = self.list_of_matching(tup_tree, ('EXPPARAMVALUE'))
+        params = self.list_of_matching(tup_tree, ('EXPPARAMVALUE',))
 
         return (name(tup_tree), attrs(tup_tree), params)
 
@@ -1762,9 +1762,9 @@ class TupleParser(object):
                 %CIMName;>
         """
 
-        self.check_node(tup_tree, 'EXPPARAMVALUE', ('NAME',), [], ('INSTANCE',))
+        self.check_node(tup_tree, 'EXPPARAMVALUE', ('NAME',), (), ('INSTANCE',))
 
-        child = self.optional_child(tup_tree, ('INSTANCE'))
+        child = self.optional_child(tup_tree, ('INSTANCE',))
 
         _name = attrs(tup_tree)['NAME']
         return _name, child
@@ -1881,7 +1881,7 @@ class TupleParser(object):
         # self.list_of_various() has the same effect as self.list_of_same()
         # when used with a single allowed child element, but is a little
         # faster.
-        instance_list = self.list_of_various(tup_tree, ('INSTANCE'))
+        instance_list = self.list_of_various(tup_tree, ('INSTANCE',))
 
         return (name(tup_tree), attrs(tup_tree), instance_list)
 
@@ -1902,7 +1902,7 @@ class TupleParser(object):
         # is present in version 2.2.  Make it optional to be backwards
         # compatible.
 
-        self.check_node(tup_tree, 'RETURNVALUE', [],
+        self.check_node(tup_tree, 'RETURNVALUE', (),
                         ('PARAMTYPE', 'EmbeddedObject', 'EMBEDDEDOBJECT'))
 
         child = self.optional_child(tup_tree, ('VALUE', 'VALUE.REFERENCE'))
@@ -1966,7 +1966,7 @@ class TupleParser(object):
 
         self.check_node(tup_tree, 'SIMPLEREQ')
 
-        child = self.one_child(tup_tree, ['IMETHODCALL', 'METHODCALL'])
+        child = self.one_child(tup_tree, ('IMETHODCALL', 'METHODCALL'))
 
         return name(tup_tree), attrs(tup_tree), child
 
@@ -1979,7 +1979,7 @@ class TupleParser(object):
                %CIMName;>
         """
 
-        self.check_node(tup_tree, 'IMETHODCALL', ['NAME'])
+        self.check_node(tup_tree, 'IMETHODCALL', ('NAME',))
 
         k = kids(tup_tree)
 
@@ -2006,11 +2006,11 @@ class TupleParser(object):
                 %CIMName;>
         """
 
-        self.check_node(tup_tree, 'METHODCALL', ['NAME'], [],
-                        ['LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'])
+        self.check_node(tup_tree, 'METHODCALL', ('NAME',), (),
+                        ('LOCALCLASSPATH', 'LOCALINSTANCEPATH', 'PARAMVALUE'))
 
         path = self.list_of_matching(tup_tree,
-                                     ['LOCALCLASSPATH', 'LOCALINSTANCEPATH'])
+                                     ('LOCALCLASSPATH', 'LOCALINSTANCEPATH'))
         if not path:
             raise CIMXMLParseError(
                 _format("Element {0!A} missing a required child element "
@@ -2024,7 +2024,7 @@ class TupleParser(object):
                         "'LOCALINSTANCEPATH')", name(tup_tree), path),
                 conn_id=self.conn_id)
         path = path[0]
-        params = self.list_of_matching(tup_tree, ['PARAMVALUE'])
+        params = self.list_of_matching(tup_tree, ('PARAMVALUE',))
         return (name(tup_tree), attrs(tup_tree), path, params)
 
     def parse_iparamvalue(self, tup_tree):
@@ -2043,13 +2043,13 @@ class TupleParser(object):
         :return: NAME, VALUE pair.
         """
 
-        self.check_node(tup_tree, 'IPARAMVALUE', ['NAME'])
+        self.check_node(tup_tree, 'IPARAMVALUE', ('NAME',))
 
         child = self.optional_child(tup_tree,
-                                    ['VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
+                                    ('VALUE', 'VALUE.ARRAY', 'VALUE.REFERENCE',
                                      'INSTANCENAME', 'CLASSNAME',
                                      'QUALIFIER.DECLARATION', 'CLASS',
-                                     'INSTANCE', 'VALUE.NAMEDINSTANCE'])
+                                     'INSTANCE', 'VALUE.NAMEDINSTANCE'))
 
         _name = attrs(tup_tree)['NAME']
         if isinstance(child, six.string_types) and \
