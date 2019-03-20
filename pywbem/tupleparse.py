@@ -2053,9 +2053,9 @@ class TupleParser(object):
 
         _name = attrs(tup_tree)['NAME']
         if isinstance(child, six.string_types) and \
-                _name.lower() in ['deepinheritance', 'localonly',
-                                  'includequalifiers', 'includeclassorigin']:
-            if child.lower() in ['true', 'false']:
+                _name.lower() in ('deepinheritance', 'localonly',
+                                  'includequalifiers', 'includeclassorigin'):
+            if child.lower() in ('true', 'false'):
                 child = (child.lower() == 'true')
 
         return _name, child
