@@ -34,6 +34,14 @@ Released: not yet
 
 * Fixed AttributeError on __offset in CIMDateTime.repr(). See issue #1681.
 
+* Removed the associationDeclaration and IndicationDeclaration mof parser
+  production rules from mof_compiler.py because: a) They were orderd in
+  p_mp_createClass so that the classDeclaration production was always used,
+  b) When reordered, they still created a YACC reduce/reduce conflict where the
+  result was that YACC used the classDeclaration production to resolve the
+  conflict, c) they represent exactly the same syntax as the classDeclaration.
+  In effect, these production rules were never really used executed.
+
 **Enhancements:**
 
 * Added the possibility to specify a value of `False` for the `embedded_object`

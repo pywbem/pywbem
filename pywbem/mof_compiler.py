@@ -79,6 +79,7 @@ from __future__ import print_function, absolute_import
 import sys
 import os
 import re
+# import logging
 from abc import ABCMeta, abstractmethod
 try:
     from collections import OrderedDict
@@ -488,8 +489,6 @@ def p_mofProduction(p):
 
 def p_mp_createClass(p):
     """mp_createClass : classDeclaration
-                      | assocDeclaration
-                      | indicDeclaration
                       """
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-locals
@@ -783,63 +782,6 @@ def p_classFeatureList(p):
         p[0] = p[1] + [p[2]]
 
 
-def p_assocDeclaration(p):
-    # pylint: disable=line-too-long
-    """assocDeclaration : '[' ASSOCIATION qualifierListEmpty ']' CLASS className '{' associationFeatureList '}' ';'
-                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className superClass '{' associationFeatureList '}' ';'
-                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias '{' associationFeatureList '}' ';'
-                        | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias superClass '{' associationFeatureList '}' ';'
-                        """  # noqa: E501
-    aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
-    quals = [aqual] + p[3]
-    p[0] = _assoc_or_indic_decl(quals, p)
-
-
-def p_indicDeclaration(p):
-    # pylint: disable=line-too-long
-    """indicDeclaration : '[' INDICATION qualifierListEmpty ']' CLASS className '{' classFeatureList '}' ';'
-                        | '[' INDICATION qualifierListEmpty ']' CLASS className superClass '{' classFeatureList '}' ';'
-                        | '[' INDICATION qualifierListEmpty ']' CLASS className alias '{' classFeatureList '}' ';'
-                        | '[' INDICATION qualifierListEmpty ']' CLASS className alias superClass '{' classFeatureList '}' ';'
-                        """  # noqa: E501
-    iqual = CIMQualifier('INDICATION', True, type='boolean')
-    quals = [iqual] + p[3]
-    p[0] = _assoc_or_indic_decl(quals, p)
-
-
-def _assoc_or_indic_decl(quals, p):
-    """(refer to grammer rules on p_assocDeclaration and p_indicDeclaration)"""
-    superclass = None
-    alias = None
-    cname = p[6]
-    if p[7] == '{':
-        cfl = p[8]
-    elif p[7][0] == '$':  # alias
-        alias = p[7]
-        if p[8] == '{':
-            cfl = p[9]
-        else:
-            superclass = p[8]
-            cfl = p[10]
-    else:
-        superclass = p[7]
-        cfl = p[9]
-    props = OrderedDict()
-    methods = OrderedDict()
-    for item in cfl:
-        item.class_origin = cname
-        if isinstance(item, CIMMethod):
-            methods[item.name] = item
-        else:
-            props[item.name] = item
-    quals = OrderedDict([(x.name, x) for x in quals])
-    cc = CIMClass(cname, properties=props, methods=methods,
-                  superclass=superclass, qualifiers=quals)
-    if alias:
-        p.parser.aliases[alias] = cc
-    return cc
-
-
 def p_qualifierListEmpty(p):
     """qualifierListEmpty : empty
                           | qualifierListEmpty ',' qualifier
@@ -848,16 +790,6 @@ def p_qualifierListEmpty(p):
         p[0] = []
     else:
         p[0] = p[1] + [p[3]]
-
-
-def p_associationFeatureList(p):
-    """associationFeatureList : empty
-                              | associationFeatureList associationFeature
-                              """
-    if len(p) == 2:
-        p[0] = []
-    else:
-        p[0] = p[1] + [p[2]]
 
 
 def p_className(p):
@@ -885,11 +817,6 @@ def p_classFeature(p):
                     | methodDeclaration
                     | referenceDeclaration
                     """
-    p[0] = p[1]
-
-
-def p_associationFeature(p):
-    """associationFeature : classFeature"""
     p[0] = p[1]
 
 
@@ -1455,6 +1382,10 @@ def _build_flavors(p, flist, qualdecl=None):
     # issue #193 ks 5/16 removed tosubclass & set toinstance.
 
     return flavors
+
+# The ASSOCIATION and INDICATION alternates are required because ASSOCIATION
+# and INDICATION are reserved words as defined in the DMTF spec but also
+# keywords in this LEX definition and used as part of the scope definition
 
 
 def p_qualifierName(p):
@@ -2504,7 +2435,10 @@ class MOFCompiler(object):
             self.parser.classnames[ns] = []
         try:
             # Call the parser.  To generate detailed output of states
-            # add debug=1 to following line.
+            # add debug=... to following line where debug may be a
+            # constant (ex. 1) or may be a log definition, ex..
+            # log = logging.getLogger()
+            # logging.basicConfig(level=logging.DEBUG)
             rv = self.parser.parse(mof, lexer=lexer)
             self.parser.file = oldfile
             self.parser.mof = oldmof
@@ -2638,6 +2572,8 @@ def _yacc(verbose=False):
     # messages to the 'errorlog' in addition to the debug messages
     # to the 'debuglog'. Because we want to see the error messages,
     # we enable debug but set the debuglog to the NullLogger.
+    # To enable debug logging, set debuglog to some other logger
+    # (ex. PlyLogger(sys.stdout) to generate log output.
     return yacc.yacc(optimize=_optimize,
                      tabmodule=_tabmodule,
                      outputdir=_tabdir,
@@ -2652,10 +2588,14 @@ def _lex(verbose=False):
     As a side effect, the LEX table module for the MOF compiler gets created
     if it does not exist yet, or updated if its table version does not match
     the installed version of the `ply` package.
+
+    To debug lex you may set debug=True and enable the debuglog statement.
+    or other logger definition.
     """
 
     return lex.lex(optimize=_optimize,
                    lextab=_lextab,
                    outputdir=_tabdir,
                    debug=False,
+                   # debuglog = lex.PlyLogger(sys.stdout),
                    errorlog=lex.PlyLogger(sys.stdout))
