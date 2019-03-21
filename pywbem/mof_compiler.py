@@ -488,9 +488,9 @@ def p_mofProduction(p):
 
 
 def p_mp_createClass(p):
-    """mp_createClass : classDeclaration
-                      | assocDeclaration
+    """mp_createClass : assocDeclaration
                       | indicDeclaration
+                      | classDeclaration
                       """
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-locals
