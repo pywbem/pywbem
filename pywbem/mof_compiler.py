@@ -79,6 +79,7 @@ from __future__ import print_function, absolute_import
 import sys
 import os
 import re
+import logging
 from abc import ABCMeta, abstractmethod
 try:
     from collections import OrderedDict
@@ -494,6 +495,7 @@ def p_mp_createClass(p):
                       """
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+    print('Creating class p1 %s' % p[1])
     ns = p.parser.handle.default_namespace
     cc = p[1]
     try:
@@ -792,6 +794,7 @@ def p_assocDeclaration(p):
                         | '[' ASSOCIATION qualifierListEmpty ']' CLASS className alias superClass '{' associationFeatureList '}' ';'
                         """  # noqa: E501
     aqual = CIMQualifier('ASSOCIATION', True, type='boolean')
+    print("assocDecl p2=%s p3=%s" % (p[2], p[3]))
     quals = [aqual] + p[3]
     p[0] = _assoc_or_indic_decl(quals, p)
 
@@ -812,6 +815,7 @@ def _assoc_or_indic_decl(quals, p):
     """(refer to grammer rules on p_assocDeclaration and p_indicDeclaration)"""
     superclass = None
     alias = None
+    print('_assoc_or_indic_decl quals=%s p[6]=%s p[7]=%s' % (quals, p[6], p7))
     cname = p[6]
     if p[7] == '{':
         cfl = p[8]
@@ -846,8 +850,10 @@ def p_qualifierListEmpty(p):
                           | qualifierListEmpty ',' qualifier
                           """
     if len(p) == 2:
+        print("qualifierListEmpty p=%r" % p)
         p[0] = []
     else:
+        print("qualifierListEmpty p1=%s p3=%s" % (p[1], p[3]))
         p[0] = p[1] + [p[3]]
 
 
@@ -856,8 +862,10 @@ def p_associationFeatureList(p):
                               | associationFeatureList associationFeature
                               """
     if len(p) == 2:
+        print('assocfeaturelist len')
         p[0] = []
     else:
+        print("assocfeaturelist p1=%s p3=%s" % (p[1], p[2]))
         p[0] = p[1] + [p[2]]
 
 
@@ -2506,7 +2514,9 @@ class MOFCompiler(object):
         try:
             # Call the parser.  To generate detailed output of states
             # add debug=1 to following line.
-            rv = self.parser.parse(mof, lexer=lexer)
+            log = logging.getLogger()
+            logging.basicConfig(level=logging.DEBUG)
+            rv = self.parser.parse(mof, lexer=lexer, debug=log)
             self.parser.file = oldfile
             self.parser.mof = oldmof
             return rv
@@ -2643,7 +2653,7 @@ def _yacc(verbose=False):
                      tabmodule=_tabmodule,
                      outputdir=_tabdir,
                      debug=True,
-                     debuglog=yacc.NullLogger(),
+                     debuglog=yacc.PlyLogger(sys.stdout),
                      errorlog=yacc.PlyLogger(sys.stdout))
 
 
@@ -2658,5 +2668,6 @@ def _lex(verbose=False):
     return lex.lex(optimize=_optimize,
                    lextab=_lextab,
                    outputdir=_tabdir,
-                   debug=False,
+                   debug=True,
+                   debuglog=lex.PlyLogger(sys.stdout),
                    errorlog=lex.PlyLogger(sys.stdout))
