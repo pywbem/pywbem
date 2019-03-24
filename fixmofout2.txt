@@ -1,0 +1,9 @@
+MOF repository: Namespace root/cimv2 in WBEM server vvv
+Executing in dry-run mode
+Compiling file './test.mof'
+Syntax error:./test.mof:1:9
+Qualifier Association : boolean = false,
+         ^^^^^^^^^^^
+mof_compiler: MOFParseError: MOFParseError:
+./test.mof:1:9 msg=None
+['Qualifier Association : boolean = false,', '         ^^^^^^^^^^^']

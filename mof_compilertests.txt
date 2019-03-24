@@ -1,0 +1,9 @@
+pp coverage report run mof_compiler -dv -s http://192.168.3.135 test.mof
+followed by
+coverage html
+
+or
+
+pp mof_compiler -dv -s http://192.168.3.135 test.mof -svvv 2>@1 | tee mofout2.txt
+
+

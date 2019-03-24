@@ -1,0 +1,1105 @@
+
+INFO:root:PLY: PARSE DEBUG START
+DEBUG:root:
+DEBUG:root:State  : 0
+DEBUG:root:Stack  : . LexToken(QUALIFIER,'Qualifier',1,0)
+INFO:root:Action : Reduce rule [empty -> <empty>] with [] and goto state 3
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 3
+DEBUG:root:Stack  : empty . LexToken(QUALIFIER,'Qualifier',1,0)
+INFO:root:Action : Reduce rule [mofProductionList -> empty] with [None] and goto state 2
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+============================
+DEBUG:root:
+DEBUG:root:State  : 2
+DEBUG:root:Stack  : mofProductionList . LexToken(QUALIFIER,'Qualifier',1,0)
+DEBUG:root:Action : Shift and goto state 18
+DEBUG:root:
+DEBUG:root:State  : 18
+DEBUG:root:Stack  : mofProductionList QUALIFIER . LexToken(ASSOCIATION,'Association',1,10)
+DEBUG:root:Action : Shift and goto state 67
+DEBUG:root:
+DEBUG:root:State  : 67
+DEBUG:root:Stack  : mofProductionList QUALIFIER ASSOCIATION . LexToken(:,':',1,22)
+INFO:root:Action : Reduce rule [qualifierName -> ASSOCIATION] with ['Association'] and goto state 66
+INFO:root:Result : <str @ 0x7f9563a7b130> ('Association')
+DEBUG:root:
+DEBUG:root:State  : 66
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName . LexToken(:,':',1,22)
+DEBUG:root:Action : Shift and goto state 91
+DEBUG:root:
+DEBUG:root:State  : 91
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : . LexToken(DT_BOOL,'boolean',1,24)
+DEBUG:root:Action : Shift and goto state 60
+DEBUG:root:
+DEBUG:root:State  : 60
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : DT_BOOL . LexToken(=,'=',1,32)
+INFO:root:Action : Reduce rule [dataType -> DT_BOOL] with ['boolean'] and goto state 139
+INFO:root:Result : <str @ 0x7f95623a6848> ('boolean')
+DEBUG:root:
+DEBUG:root:State  : 139
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType . LexToken(=,'=',1,32)
+DEBUG:root:Action : Shift and goto state 188
+DEBUG:root:
+DEBUG:root:State  : 188
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = . LexToken(FALSE,'false',1,34)
+DEBUG:root:Action : Shift and goto state 119
+DEBUG:root:
+DEBUG:root:State  : 119
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = FALSE . LexToken(,,',',1,39)
+INFO:root:Action : Reduce rule [booleanValue -> FALSE] with ['false'] and goto state 112
+INFO:root:Result : <bool @ 0x9d1cc0> (False)
+DEBUG:root:
+DEBUG:root:State  : 112
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = booleanValue . LexToken(,,',',1,39)
+INFO:root:Action : Reduce rule [constantValue -> booleanValue] with [False] and goto state 223
+INFO:root:Result : <bool @ 0x9d1cc0> (False)
+DEBUG:root:
+DEBUG:root:State  : 223
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = constantValue . LexToken(,,',',1,39)
+INFO:root:Action : Reduce rule [initializer -> constantValue] with [False] and goto state 222
+INFO:root:Result : <bool @ 0x9d1cc0> (False)
+DEBUG:root:
+DEBUG:root:State  : 222
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = initializer . LexToken(,,',',1,39)
+INFO:root:Action : Reduce rule [defaultValue -> = initializer] with ['=',False] and goto state 186
+INFO:root:Result : <bool @ 0x9d1cc0> (False)
+DEBUG:root:
+DEBUG:root:State  : 186
+DEBUG:root:Defaulted state 186: Reduce using 153
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType defaultValue . LexToken(,,',',1,39)
+INFO:root:Action : Reduce rule [qualifierType_2 -> : dataType defaultValue] with [':','boolean',False] and goto state 90
+INFO:root:Result : <tuple @ 0x7f956245b228> (('boolean', False, None, False))
+DEBUG:root:
+DEBUG:root:State  : 90
+DEBUG:root:Defaulted state 90: Reduce using 149
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType_2 . LexToken(,,',',1,39)
+INFO:root:Action : Reduce rule [qualifierType -> qualifierType_2] with [<tuple @ 0x7f956245b228>] and goto state 88
+INFO:root:Result : <tuple @ 0x7f956245b228> (('boolean', False, None, False))
+DEBUG:root:
+DEBUG:root:State  : 88
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType . LexToken(,,',',1,39)
+DEBUG:root:Action : Shift and goto state 138
+DEBUG:root:
+DEBUG:root:State  : 138
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , . LexToken(SCOPE,'Scope',2,45)
+DEBUG:root:Action : Shift and goto state 184
+DEBUG:root:
+DEBUG:root:State  : 184
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE . LexToken((,'(',2,50)
+DEBUG:root:Action : Shift and goto state 218
+DEBUG:root:
+DEBUG:root:State  : 218
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( . LexToken(ASSOCIATION,'association',2,51)
+DEBUG:root:Action : Shift and goto state 263
+DEBUG:root:
+DEBUG:root:State  : 263
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( ASSOCIATION . LexToken(),')',2,62)
+INFO:root:Action : Reduce rule [metaElement -> ASSOCIATION] with ['association'] and goto state 260
+INFO:root:Result : <str @ 0x7f9563a7b630> ('ASSOCIATION')
+DEBUG:root:
+DEBUG:root:State  : 260
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( metaElement . LexToken(),')',2,62)
+INFO:root:Action : Reduce rule [metaElementList -> metaElement] with ['ASSOCIATION'] and goto state 259
+INFO:root:Result : <list @ 0x7f95623c3f88> (['ASSOCIATION'])
+DEBUG:root:
+DEBUG:root:State  : 259
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( metaElementList . LexToken(),')',2,62)
+DEBUG:root:Action : Shift and goto state 314
+DEBUG:root:
+DEBUG:root:State  : 314
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( metaElementList ) . LexToken(,,',',2,63)
+INFO:root:Action : Reduce rule [scope -> , SCOPE ( metaElementList )] with [',','Scope','(',['ASSOCIATION'],')'] and goto state 137
+INFO:root:Result : <OrderedDict @ 0x7f956665a9d8> (OrderedDict([('CLASS', False), ('ASSOCIA ...)
+DEBUG:root:
+DEBUG:root:State  : 137
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope . LexToken(,,',',2,63)
+DEBUG:root:Action : Shift and goto state 183
+DEBUG:root:
+DEBUG:root:State  : 183
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , . LexToken(FLAVOR,'Flavor',2,65)
+DEBUG:root:Action : Shift and goto state 217
+DEBUG:root:
+DEBUG:root:State  : 217
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR . LexToken((,'(',2,71)
+DEBUG:root:Action : Shift and goto state 258
+DEBUG:root:
+DEBUG:root:State  : 258
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( . LexToken(DISABLEOVERRIDE,'DisableOverride',2,72)
+DEBUG:root:Action : Shift and goto state 101
+DEBUG:root:
+DEBUG:root:State  : 101
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( DISABLEOVERRIDE . LexToken(,,',',2,87)
+INFO:root:Action : Reduce rule [flavor -> DISABLEOVERRIDE] with [<str @ 0x7f9563a7b7b0>] and goto state 312
+INFO:root:Result : <str @ 0x7f9563a7b630> ('disableoverride')
+DEBUG:root:
+DEBUG:root:State  : 312
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavor . LexToken(,,',',2,87)
+INFO:root:Action : Reduce rule [flavorListWithComma -> flavor] with [<str @ 0x7f9563a7b630>] and goto state 311
+INFO:root:Result : <list @ 0x7f95623c3f08> (['disableoverride'])
+DEBUG:root:
+DEBUG:root:State  : 311
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma . LexToken(,,',',2,87)
+DEBUG:root:Action : Shift and goto state 344
+DEBUG:root:
+DEBUG:root:State  : 344
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , . LexToken(TOSUBCLASS,'ToSubclass',2,89)
+DEBUG:root:Action : Shift and goto state 103
+DEBUG:root:
+DEBUG:root:State  : 103
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , TOSUBCLASS . LexToken(),')',2,99)
+INFO:root:Action : Reduce rule [flavor -> TOSUBCLASS] with ['ToSubclass'] and goto state 364
+INFO:root:Result : <str @ 0x7f9563a7b1f0> ('tosubclass')
+DEBUG:root:
+DEBUG:root:State  : 364
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , flavor . LexToken(),')',2,99)
+INFO:root:Action : Reduce rule [flavorListWithComma -> flavorListWithComma , flavor] with [<list @ 0x7f95623c3f08>,',','tosubclass'] and goto state 311
+INFO:root:Result : <list @ 0x7f95623c3ac8> (['disableoverride', 'tosubclass'])
+DEBUG:root:
+DEBUG:root:State  : 311
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma . LexToken(),')',2,99)
+DEBUG:root:Action : Shift and goto state 345
+DEBUG:root:
+DEBUG:root:State  : 345
+DEBUG:root:Defaulted state 345: Reduce using 167
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma ) . None
+INFO:root:Action : Reduce rule [defaultFlavor -> , FLAVOR ( flavorListWithComma )] with [',','Flavor','(',<list @ 0x7f95623c3ac8>,')'] and goto state 182
+INFO:root:Result : <dict @ 0x7f95623bb558> ({'ENABLEOVERRIDE': True, 'TOSUBCLASS': T ...)
+DEBUG:root:
+DEBUG:root:State  : 182
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope defaultFlavor . LexToken(;,';',2,100)
+DEBUG:root:Action : Shift and goto state 216
+DEBUG:root:
+DEBUG:root:State  : 216
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope defaultFlavor ; . LexToken(QUALIFIER,'Qualifier',4,103)
+INFO:root:Action : Reduce rule [qualifierDeclaration -> QUALIFIER qualifierName qualifierType scope defaultFlavor ;] with ['Qualifier','Association',<tuple @ 0x7f956245b228>,<OrderedDict @ 0x7f956665a9d8>,<dict @ 0x7f95623bb558>,';'] and goto state 13
+INFO:root:Result : <CIMQualifierDeclaration @ 0x7f95623a6898> (CIMQualifierDeclaration(name='Associatio ...)
+DEBUG:root:
+DEBUG:root:State  : 13
+DEBUG:root:Stack  : mofProductionList qualifierDeclaration . LexToken(QUALIFIER,'Qualifier',4,103)
+INFO:root:Action : Reduce rule [mp_setQualifier -> qualifierDeclaration] with [<CIMQualifierDeclaration @ 0x7f95623a6898>] and goto state 7
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 7
+DEBUG:root:Stack  : mofProductionList mp_setQualifier . LexToken(QUALIFIER,'Qualifier',4,103)
+INFO:root:Action : Reduce rule [mofProduction -> mp_setQualifier] with [None] and goto state 4
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 4
+DEBUG:root:Stack  : mofProductionList mofProduction . LexToken(QUALIFIER,'Qualifier',4,103)
+INFO:root:Action : Reduce rule [mofProductionList -> mofProductionList mofProduction] with [None,None] and goto state 2
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+=============================================
+DEBUG:root:
+DEBUG:root:State  : 2
+DEBUG:root:Stack  : mofProductionList . LexToken(QUALIFIER,'Qualifier',4,103)
+DEBUG:root:Action : Shift and goto state 18
+DEBUG:root:
+DEBUG:root:State  : 18
+DEBUG:root:Stack  : mofProductionList QUALIFIER . LexToken(IDENTIFIER,'Description',4,113)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList QUALIFIER IDENTIFIER . LexToken(:,':',4,125)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['Description'] and goto state 26
+INFO:root:Result : <str @ 0x7f95623cd470> ('Description')
+DEBUG:root:
+DEBUG:root:State  : 26
+DEBUG:root:Stack  : mofProductionList QUALIFIER identifier . LexToken(:,':',4,125)
+INFO:root:Action : Reduce rule [qualifierName -> identifier] with ['Description'] and goto state 66
+INFO:root:Result : <str @ 0x7f95623cd470> ('Description')
+DEBUG:root:
+DEBUG:root:State  : 66
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName . LexToken(:,':',4,125)
+DEBUG:root:Action : Shift and goto state 91
+DEBUG:root:
+DEBUG:root:State  : 91
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : . LexToken(DT_STR,'string',4,127)
+DEBUG:root:Action : Shift and goto state 59
+DEBUG:root:
+DEBUG:root:State  : 59
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : DT_STR . LexToken(=,'=',4,134)
+INFO:root:Action : Reduce rule [dataType -> DT_STR] with ['string'] and goto state 139
+INFO:root:Result : <str @ 0x7f95623a6768> ('string')
+DEBUG:root:
+DEBUG:root:State  : 139
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType . LexToken(=,'=',4,134)
+DEBUG:root:Action : Shift and goto state 188
+DEBUG:root:
+DEBUG:root:State  : 188
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = . LexToken(NULL,'null',4,136)
+DEBUG:root:Action : Shift and goto state 121
+DEBUG:root:
+DEBUG:root:State  : 121
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = NULL . LexToken(,,',',4,140)
+INFO:root:Action : Reduce rule [nullValue -> NULL] with ['null'] and goto state 113
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 113
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = nullValue . LexToken(,,',',4,140)
+INFO:root:Action : Reduce rule [constantValue -> nullValue] with [None] and goto state 223
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 223
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = constantValue . LexToken(,,',',4,140)
+INFO:root:Action : Reduce rule [initializer -> constantValue] with [None] and goto state 222
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 222
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType = initializer . LexToken(,,',',4,140)
+INFO:root:Action : Reduce rule [defaultValue -> = initializer] with ['=',None] and goto state 186
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 186
+DEBUG:root:Defaulted state 186: Reduce using 153
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName : dataType defaultValue . LexToken(,,',',4,140)
+INFO:root:Action : Reduce rule [qualifierType_2 -> : dataType defaultValue] with [':','string',None] and goto state 90
+INFO:root:Result : <tuple @ 0x7f956245b228> (('string', False, None, None))
+DEBUG:root:
+DEBUG:root:State  : 90
+DEBUG:root:Defaulted state 90: Reduce using 149
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType_2 . LexToken(,,',',4,140)
+INFO:root:Action : Reduce rule [qualifierType -> qualifierType_2] with [<tuple @ 0x7f956245b228>] and goto state 88
+INFO:root:Result : <tuple @ 0x7f956245b228> (('string', False, None, None))
+DEBUG:root:
+DEBUG:root:State  : 88
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType . LexToken(,,',',4,140)
+DEBUG:root:Action : Shift and goto state 138
+DEBUG:root:
+DEBUG:root:State  : 138
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , . LexToken(SCOPE,'Scope',5,146)
+DEBUG:root:Action : Shift and goto state 184
+DEBUG:root:
+DEBUG:root:State  : 184
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE . LexToken((,'(',5,151)
+DEBUG:root:Action : Shift and goto state 218
+DEBUG:root:
+DEBUG:root:State  : 218
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( . LexToken(ANY,'any',5,152)
+DEBUG:root:Action : Shift and goto state 270
+DEBUG:root:
+DEBUG:root:State  : 270
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( ANY . LexToken(),')',5,155)
+INFO:root:Action : Reduce rule [metaElement -> ANY] with ['any'] and goto state 260
+INFO:root:Result : <str @ 0x7f95623a6928> ('ANY')
+DEBUG:root:
+DEBUG:root:State  : 260
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( metaElement . LexToken(),')',5,155)
+INFO:root:Action : Reduce rule [metaElementList -> metaElement] with ['ANY'] and goto state 259
+INFO:root:Result : <list @ 0x7f95623c3ac8> (['ANY'])
+DEBUG:root:
+DEBUG:root:State  : 259
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( metaElementList . LexToken(),')',5,155)
+DEBUG:root:Action : Shift and goto state 314
+DEBUG:root:
+DEBUG:root:State  : 314
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType , SCOPE ( metaElementList ) . LexToken(,,',',5,156)
+INFO:root:Action : Reduce rule [scope -> , SCOPE ( metaElementList )] with [',','Scope','(',['ANY'],')'] and goto state 137
+INFO:root:Result : <OrderedDict @ 0x7f9565092620> (OrderedDict([('CLASS', False), ('ASSOCIA ...)
+DEBUG:root:
+DEBUG:root:State  : 137
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope . LexToken(,,',',5,156)
+DEBUG:root:Action : Shift and goto state 183
+DEBUG:root:
+DEBUG:root:State  : 183
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , . LexToken(FLAVOR,'Flavor',5,158)
+DEBUG:root:Action : Shift and goto state 217
+DEBUG:root:
+DEBUG:root:State  : 217
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR . LexToken((,'(',5,164)
+DEBUG:root:Action : Shift and goto state 258
+DEBUG:root:
+DEBUG:root:State  : 258
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( . LexToken(ENABLEOVERRIDE,'EnableOverride',5,165)
+DEBUG:root:Action : Shift and goto state 100
+DEBUG:root:
+DEBUG:root:State  : 100
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( ENABLEOVERRIDE . LexToken(,,',',5,179)
+INFO:root:Action : Reduce rule [flavor -> ENABLEOVERRIDE] with [<str @ 0x7f95623cd770>] and goto state 312
+INFO:root:Result : <str @ 0x7f95623aa230> ('enableoverride')
+DEBUG:root:
+DEBUG:root:State  : 312
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavor . LexToken(,,',',5,179)
+INFO:root:Action : Reduce rule [flavorListWithComma -> flavor] with [<str @ 0x7f95623aa230>] and goto state 311
+INFO:root:Result : <list @ 0x7f95623c3d48> (['enableoverride'])
+DEBUG:root:
+DEBUG:root:State  : 311
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma . LexToken(,,',',5,179)
+DEBUG:root:Action : Shift and goto state 344
+DEBUG:root:
+DEBUG:root:State  : 344
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , . LexToken(TOSUBCLASS,'ToSubclass',5,181)
+DEBUG:root:Action : Shift and goto state 103
+DEBUG:root:
+DEBUG:root:State  : 103
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , TOSUBCLASS . LexToken(,,',',5,191)
+INFO:root:Action : Reduce rule [flavor -> TOSUBCLASS] with ['ToSubclass'] and goto state 364
+INFO:root:Result : <str @ 0x7f95623aa330> ('tosubclass')
+DEBUG:root:
+DEBUG:root:State  : 364
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , flavor . LexToken(,,',',5,191)
+INFO:root:Action : Reduce rule [flavorListWithComma -> flavorListWithComma , flavor] with [<list @ 0x7f95623c3d48>,',','tosubclass'] and goto state 311
+INFO:root:Result : <list @ 0x7f95623c3f08> (['enableoverride', 'tosubclass'])
+DEBUG:root:
+DEBUG:root:State  : 311
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma . LexToken(,,',',5,191)
+DEBUG:root:Action : Shift and goto state 344
+DEBUG:root:
+DEBUG:root:State  : 344
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , . LexToken(TRANSLATABLE,'Translatable',5,193)
+DEBUG:root:Action : Shift and goto state 105
+DEBUG:root:
+DEBUG:root:State  : 105
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , TRANSLATABLE . LexToken(),')',5,205)
+INFO:root:Action : Reduce rule [flavor -> TRANSLATABLE] with ['Translatable'] and goto state 364
+INFO:root:Result : <str @ 0x7f95623aa2b0> ('translatable')
+DEBUG:root:
+DEBUG:root:State  : 364
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma , flavor . LexToken(),')',5,205)
+INFO:root:Action : Reduce rule [flavorListWithComma -> flavorListWithComma , flavor] with [<list @ 0x7f95623c3f08>,',','translatable'] and goto state 311
+INFO:root:Result : <list @ 0x7f95623c3d48> (['enableoverride', 'tosubclass', 'transl ...)
+DEBUG:root:
+DEBUG:root:State  : 311
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma . LexToken(),')',5,205)
+DEBUG:root:Action : Shift and goto state 345
+DEBUG:root:
+DEBUG:root:State  : 345
+DEBUG:root:Defaulted state 345: Reduce using 167
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope , FLAVOR ( flavorListWithComma ) . None
+INFO:root:Action : Reduce rule [defaultFlavor -> , FLAVOR ( flavorListWithComma )] with [',','Flavor','(',<list @ 0x7f95623c3d48>,')'] and goto state 182
+INFO:root:Result : <dict @ 0x7f956226e4c8> ({'ENABLEOVERRIDE': True, 'TOSUBCLASS': T ...)
+DEBUG:root:
+DEBUG:root:State  : 182
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope defaultFlavor . LexToken(;,';',5,206)
+DEBUG:root:Action : Shift and goto state 216
+DEBUG:root:
+DEBUG:root:State  : 216
+DEBUG:root:Stack  : mofProductionList QUALIFIER qualifierName qualifierType scope defaultFlavor ; . LexToken(CLASS,'class',7,209)
+INFO:root:Action : Reduce rule [qualifierDeclaration -> QUALIFIER qualifierName qualifierType scope defaultFlavor ;] with ['Qualifier','Description',<tuple @ 0x7f956245b228>,<OrderedDict @ 0x7f9565092620>,<dict @ 0x7f956226e4c8>,';'] and goto state 13
+INFO:root:Result : <CIMQualifierDeclaration @ 0x7f9565084b38> (CIMQualifierDeclaration(name='Descriptio ...)
+DEBUG:root:
+DEBUG:root:State  : 13
+DEBUG:root:Stack  : mofProductionList qualifierDeclaration . LexToken(CLASS,'class',7,209)
+INFO:root:Action : Reduce rule [mp_setQualifier -> qualifierDeclaration] with [<CIMQualifierDeclaration @ 0x7f9565084b38>] and goto state 7
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 7
+DEBUG:root:Stack  : mofProductionList mp_setQualifier . LexToken(CLASS,'class',7,209)
+INFO:root:Action : Reduce rule [mofProduction -> mp_setQualifier] with [None] and goto state 4
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 4
+DEBUG:root:Stack  : mofProductionList mofProduction . LexToken(CLASS,'class',7,209)
+INFO:root:Action : Reduce rule [mofProductionList -> mofProductionList mofProduction] with [None,None] and goto state 2
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+================================================ class TST_Person
+DEBUG:root:
+DEBUG:root:State  : 2
+DEBUG:root:Stack  : mofProductionList . LexToken(CLASS,'class',7,209)
+DEBUG:root:Action : Shift and goto state 16
+DEBUG:root:
+DEBUG:root:State  : 16
+DEBUG:root:Stack  : mofProductionList CLASS . LexToken(IDENTIFIER,'TST_Person',7,215)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList CLASS IDENTIFIER . LexToken({,'{',7,225)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['TST_Person'] and goto state 63
+INFO:root:Result : <str @ 0x7f95623aa030> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 63
+DEBUG:root:Stack  : mofProductionList CLASS identifier . LexToken({,'{',7,225)
+INFO:root:Action : Reduce rule [className -> identifier] with ['TST_Person'] and goto state 62
+INFO:root:Result : <str @ 0x7f95623aa030> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 62
+DEBUG:root:Stack  : mofProductionList CLASS className . LexToken({,'{',7,225)
+DEBUG:root:Action : Shift and goto state 81
+DEBUG:root:
+DEBUG:root:State  : 81
+DEBUG:root:Stack  : mofProductionList CLASS className { . LexToken([,'[',8,235)
+INFO:root:Action : Reduce rule [empty -> <empty>] with [] and goto state 126
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 126
+DEBUG:root:Stack  : mofProductionList CLASS className { empty . LexToken([,'[',8,235)
+INFO:root:Action : Reduce rule [classFeatureList -> empty] with [None] and goto state 125
+INFO:root:Result : <list @ 0x7f95623c3fc8> ([])
+DEBUG:root:
+DEBUG:root:State  : 125
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList . LexToken([,'[',8,235)
+DEBUG:root:Action : Shift and goto state 170
+DEBUG:root:
+DEBUG:root:State  : 170
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ . LexToken(IDENTIFIER,'Key',8,236)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ IDENTIFIER . LexToken(,,',',8,239)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['Key'] and goto state 26
+INFO:root:Result : <str @ 0x7f95623a67a0> ('Key')
+DEBUG:root:
+DEBUG:root:State  : 26
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ identifier . LexToken(,,',',8,239)
+INFO:root:Action : Reduce rule [qualifierName -> identifier] with ['Key'] and goto state 25
+INFO:root:Result : <str @ 0x7f95623a67a0> ('Key')
+DEBUG:root:
+DEBUG:root:State  : 25
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifierName . LexToken(,,',',8,239)
+INFO:root:Action : Reduce rule [qualifier -> qualifierName] with ['Key'] and goto state 24
+INFO:root:Result : <CIMQualifier @ 0x7f95622df518> (CIMQualifier(name='Key', value=True, typ ...)
+DEBUG:root:
+DEBUG:root:State  : 24
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier . LexToken(,,',',8,239)
+INFO:root:Action : Reduce rule [empty -> <empty>] with [] and goto state 73
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 73
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier empty . LexToken(,,',',8,239)
+INFO:root:Action : Reduce rule [qualifierListEmpty -> empty] with [None] and goto state 75
+INFO:root:Result : <list @ 0x7f9565086c88> ([])
+DEBUG:root:
+DEBUG:root:State  : 75
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty . LexToken(,,',',8,239)
+DEBUG:root:Action : Shift and goto state 95
+DEBUG:root:
+DEBUG:root:State  : 95
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , . LexToken(IDENTIFIER,'Description',8,241)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , IDENTIFIER . LexToken((,'(',8,253)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['Description'] and goto state 26
+INFO:root:Result : <str @ 0x7f9562452bb0> ('Description')
+DEBUG:root:
+DEBUG:root:State  : 26
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , identifier . LexToken((,'(',8,253)
+INFO:root:Action : Reduce rule [qualifierName -> identifier] with ['Description'] and goto state 25
+INFO:root:Result : <str @ 0x7f9562452bb0> ('Description')
+NOTE: ================state 25 is CLASS Classname, etc. Seems to be same as assocDecl
+DEBUG:root:
+DEBUG:root:State  : 25
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName . LexToken((,'(',8,253)
+DEBUG:root:Action : Shift and goto state 78
+DEBUG:root:
+DEBUG:root:State  : 78
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName ( . LexToken(stringValue,'"This is key prop"',8,254)
+DEBUG:root:Action : Shift and goto state 118
+DEBUG:root:
+DEBUG:root:State  : 118
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName ( stringValue . LexToken(),')',8,272)
+INFO:root:Action : Reduce rule [stringValueList -> stringValue] with [<str @ 0x7f9562369108>] and goto state 111
+INFO:root:Result : <str @ 0x7f95623aea98> ('This is key prop')
+DEBUG:root:
+DEBUG:root:State  : 111
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName ( stringValueList . LexToken(),')',8,272)
+INFO:root:Action : Reduce rule [constantValue -> stringValueList] with [<str @ 0x7f95623aea98>] and goto state 107
+INFO:root:Result : <str @ 0x7f95623aea98> ('This is key prop')
+DEBUG:root:
+DEBUG:root:State  : 107
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName ( constantValue . LexToken(),')',8,272)
+DEBUG:root:Action : Shift and goto state 149
+DEBUG:root:
+DEBUG:root:State  : 149
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName ( constantValue ) . LexToken(],']',8,273)
+INFO:root:Action : Reduce rule [qualifierParameter -> ( constantValue )] with ['(',<str @ 0x7f95623aea98>,')'] and goto state 77
+INFO:root:Result : <str @ 0x7f95623aea98> ('This is key prop')
+DEBUG:root:
+DEBUG:root:State  : 77
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifierName qualifierParameter . LexToken(],']',8,273)
+INFO:root:Action : Reduce rule [qualifier -> qualifierName qualifierParameter] with ['Description',<str @ 0x7f95623aea98>] and goto state 145
+INFO:root:Result : <CIMQualifier @ 0x7f956234c438> (CIMQualifier(name='Description', value=' ...)
+DEBUG:root:
+DEBUG:root:State  : 145
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty , qualifier . LexToken(],']',8,273)
+INFO:root:Action : Reduce rule [qualifierListEmpty -> qualifierListEmpty , qualifier] with [[],',',<CIMQualifier @ 0x7f956234c438>] and goto state 75
+INFO:root:Result : <list @ 0x7f95623c3f08> ([CIMQualifier(name='Description', value= ...)
+DEBUG:root:
+DEBUG:root:State  : 75
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty . LexToken(],']',8,273)
+DEBUG:root:Action : Shift and goto state 97
+DEBUG:root:
+DEBUG:root:State  : 97
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList [ qualifier qualifierListEmpty ] . LexToken(DT_STR,'string',9,279)
+INFO:root:Action : Reduce rule [qualifierList -> [ qualifier qualifierListEmpty ]] with ['[',<CIMQualifier @ 0x7f95622df518>,<list @ 0x7f95623c3f08>,']'] and goto state 168
+INFO:root:Result : <list @ 0x7f9565086c88> ([CIMQualifier(name='Key', value=True, ty ...)
+DEBUG:root:
+DEBUG:root:State  : 168
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList . LexToken(DT_STR,'string',9,279)
+DEBUG:root:Action : Shift and goto state 59
+DEBUG:root:
+DEBUG:root:State  : 59
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList DT_STR . LexToken(IDENTIFIER,'name',9,286)
+INFO:root:Action : Reduce rule [dataType -> DT_STR] with ['string'] and goto state 203
+INFO:root:Result : <str @ 0x7f956234c650> ('string')
+DEBUG:root:
+DEBUG:root:State  : 203
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList dataType . LexToken(IDENTIFIER,'name',9,286)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList dataType IDENTIFIER . LexToken(;,';',9,290)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['name'] and goto state 202
+INFO:root:Result : <str @ 0x7f956232d7a0> ('name')
+DEBUG:root:
+DEBUG:root:State  : 202
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList dataType identifier . LexToken(;,';',9,290)
+INFO:root:Action : Reduce rule [propertyName -> identifier] with ['name'] and goto state 245
+INFO:root:Result : <str @ 0x7f956232d7a0> ('name')
+DEBUG:root:
+DEBUG:root:State  : 245
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList dataType propertyName . LexToken(;,';',9,290)
+DEBUG:root:Action : Shift and goto state 299
+DEBUG:root:
+DEBUG:root:State  : 299
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList qualifierList dataType propertyName ; . LexToken(DT_STR,'string',10,296)
+INFO:root:Action : Reduce rule [propertyDeclaration_5 -> qualifierList dataType propertyName ;] with [<list @ 0x7f9565086c88>,'string','name',';'] and goto state 163
+INFO:root:Result : <CIMProperty @ 0x7f956232d908> (CIMProperty(name='name', value=None, typ ...)
+DEBUG:root:
+DEBUG:root:State  : 163
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList propertyDeclaration_5 . LexToken(DT_STR,'string',10,296)
+INFO:root:Action : Reduce rule [propertyDeclaration -> propertyDeclaration_5] with [<CIMProperty @ 0x7f956232d908>] and goto state 156
+INFO:root:Result : <CIMProperty @ 0x7f956232d908> (CIMProperty(name='name', value=None, typ ...)
+DEBUG:root:
+DEBUG:root:State  : 156
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList propertyDeclaration . LexToken(DT_STR,'string',10,296)
+INFO:root:Action : Reduce rule [classFeature -> propertyDeclaration] with [<CIMProperty @ 0x7f956232d908>] and goto state 155
+INFO:root:Result : <CIMProperty @ 0x7f956232d908> (CIMProperty(name='name', value=None, typ ...)
+DEBUG:root:
+DEBUG:root:State  : 155
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList classFeature . LexToken(DT_STR,'string',10,296)
+INFO:root:Action : Reduce rule [classFeatureList -> classFeatureList classFeature] with [[],<CIMProperty @ 0x7f956232d908>] and goto state 125
+INFO:root:Result : <list @ 0x7f95623c3f08> ([CIMProperty(name='name', value=None, ty ...)
+DEBUG:root:
+DEBUG:root:State  : 125
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList . LexToken(DT_STR,'string',10,296)
+DEBUG:root:Action : Shift and goto state 59
+DEBUG:root:
+DEBUG:root:State  : 59
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList DT_STR . LexToken(IDENTIFIER,'extraProperty',10,303)
+INFO:root:Action : Reduce rule [dataType -> DT_STR] with ['string'] and goto state 167
+INFO:root:Result : <str @ 0x7f956234c490> ('string')
+DEBUG:root:
+DEBUG:root:State  : 167
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList dataType . LexToken(IDENTIFIER,'extraProperty',10,303)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList dataType IDENTIFIER . LexToken(;,';',10,316)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['extraProperty'] and goto state 202
+INFO:root:Result : <str @ 0x7f95624526f0> ('extraProperty')
+DEBUG:root:
+DEBUG:root:State  : 202
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList dataType identifier . LexToken(;,';',10,316)
+INFO:root:Action : Reduce rule [propertyName -> identifier] with ['extraProperty'] and goto state 201
+INFO:root:Result : <str @ 0x7f95624526f0> ('extraProperty')
+DEBUG:root:
+DEBUG:root:State  : 201
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList dataType propertyName . LexToken(;,';',10,316)
+DEBUG:root:Action : Shift and goto state 241
+DEBUG:root:
+DEBUG:root:State  : 241
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList dataType propertyName ; . LexToken(},'}',11,318)
+INFO:root:Action : Reduce rule [propertyDeclaration_1 -> dataType propertyName ;] with ['string','extraProperty',';'] and goto state 159
+INFO:root:Result : <CIMProperty @ 0x7f956232db70> (CIMProperty(name='extraProperty', value= ...)
+DEBUG:root:
+DEBUG:root:State  : 159
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList propertyDeclaration_1 . LexToken(},'}',11,318)
+INFO:root:Action : Reduce rule [propertyDeclaration -> propertyDeclaration_1] with [<CIMProperty @ 0x7f956232db70>] and goto state 156
+INFO:root:Result : <CIMProperty @ 0x7f956232db70> (CIMProperty(name='extraProperty', value= ...)
+DEBUG:root:
+DEBUG:root:State  : 156
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList propertyDeclaration . LexToken(},'}',11,318)
+INFO:root:Action : Reduce rule [classFeature -> propertyDeclaration] with [<CIMProperty @ 0x7f956232db70>] and goto state 155
+INFO:root:Result : <CIMProperty @ 0x7f956232db70> (CIMProperty(name='extraProperty', value= ...)
+DEBUG:root:
+DEBUG:root:State  : 155
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList classFeature . LexToken(},'}',11,318)
+INFO:root:Action : Reduce rule [classFeatureList -> classFeatureList classFeature] with [<list @ 0x7f95623c3f08>,<CIMProperty @ 0x7f956232db70>] and goto state 125
+INFO:root:Result : <list @ 0x7f95623c3fc8> ([CIMProperty(name='name', value=None, ty ...)
+DEBUG:root:
+DEBUG:root:State  : 125
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList . LexToken(},'}',11,318)
+DEBUG:root:Action : Shift and goto state 154
+DEBUG:root:
+DEBUG:root:State  : 154
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList } . LexToken(;,';',11,319)
+DEBUG:root:Action : Shift and goto state 199
+DEBUG:root:
+DEBUG:root:State  : 199
+DEBUG:root:Stack  : mofProductionList CLASS className { classFeatureList } ; . LexToken([,'[',13,322)
+INFO:root:Action : Reduce rule [classDeclaration -> CLASS className { classFeatureList } ;] with ['class','TST_Person','{',<list @ 0x7f95623c3fc8>,'}',';'] and goto state 12
+INFO:root:Result : <CIMClass @ 0x7f956234c630> (CIMClass(classname='TST_Person', supercl ...)
+DEBUG:root:
+DEBUG:root:State  : 12
+DEBUG:root:Stack  : mofProductionList classDeclaration . LexToken([,'[',13,322)
+INFO:root:Action : Reduce rule [mp_createClass -> classDeclaration] with [<CIMClass @ 0x7f956234c630>] and goto state 6
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 6
+DEBUG:root:Stack  : mofProductionList mp_createClass . LexToken([,'[',13,322)
+INFO:root:Action : Reduce rule [mofProduction -> mp_createClass] with [None] and goto state 4
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 4
+DEBUG:root:Stack  : mofProductionList mofProduction . LexToken([,'[',13,322)
+INFO:root:Action : Reduce rule [mofProductionList -> mofProductionList mofProduction] with [None,None] and goto state 2
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+
+======================================= [ASSOCIATION], class
+DEBUG:root:
+DEBUG:root:State  : 2
+DEBUG:root:Stack  : mofProductionList . LexToken([,'[',13,322)
+DEBUG:root:Action : Shift and goto state 15
+DEBUG:root:
+DEBUG:root:State  : 15
+DEBUG:root:Stack  : mofProductionList [ . LexToken(ASSOCIATION,'Association',13,323)
+DEBUG:root:Action : Shift and goto state 21
+DEBUG:root:
+DEBUG:root:State  : 21
+DEBUG:root:Stack  : mofProductionList [ ASSOCIATION . LexToken(],']',13,334)
+INFO:root:Action : Reduce rule [qualifierName -> ASSOCIATION] with ['Association'] and goto state 25
+INFO:root:Result : <str @ 0x7f9562454430> ('Association')
+DEBUG:root:
+DEBUG:root:State  : 25
+DEBUG:root:Stack  : mofProductionList [ qualifierName . LexToken(],']',13,334)
+INFO:root:Action : Reduce rule [qualifier -> qualifierName] with ['Association'] and goto state 24
+INFO:root:Result : <CIMQualifier @ 0x7f956232da20> (CIMQualifier(name='Association', value=T ...)
+DEBUG:root:
+DEBUG:root:State  : 24
+DEBUG:root:Stack  : mofProductionList [ qualifier . LexToken(],']',13,334)
+INFO:root:Action : Reduce rule [empty -> <empty>] with [] and goto state 73
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 73
+DEBUG:root:Stack  : mofProductionList [ qualifier empty . LexToken(],']',13,334)
+INFO:root:Action : Reduce rule [qualifierListEmpty -> empty] with [None] and goto state 75
+INFO:root:Result : <list @ 0x7f956227b0c8> ([])
+DEBUG:root:
+DEBUG:root:State  : 75
+DEBUG:root:Stack  : mofProductionList [ qualifier qualifierListEmpty . LexToken(],']',13,334)
+DEBUG:root:Action : Shift and goto state 97
+DEBUG:root:
+DEBUG:root:State  : 97
+DEBUG:root:Stack  : mofProductionList [ qualifier qualifierListEmpty ] . LexToken(CLASS,'class',14,336)
+INFO:root:Action : Reduce rule [qualifierList -> [ qualifier qualifierListEmpty ]] with ['[',<CIMQualifier @ 0x7f956232da20>,[],']'] and goto state 17
+INFO:root:Result : <list @ 0x7f9562454608> ([CIMQualifier(name='Association', value= ...)
+
+=============================== here we go back to state 17 (20) classDeclaration -> qualifierList . CLASS className { classFeatureList }
+Looks like while we started in assocDeclaration, the class element took us back to classDeclaration
+This may be tied to rule 146 Rule 146   qualifierName -> ASSOCIATION
+and state 21 conflict reduction
+
+state 21
+
+    (26) assocDeclaration -> [ ASSOCIATION . qualifierListEmpty ] CLASS className { associationFeatureList } ;
+    (27) assocDeclaration -> [ ASSOCIATION . qualifierListEmpty ] CLASS className superClass { associationFeatureList } ;
+    (28) assocDeclaration -> [ ASSOCIATION . qualifierListEmpty ] CLASS className alias { associationFeatureList } ;
+    (29) assocDeclaration -> [ ASSOCIATION . qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ;
+    (146) qualifierName -> ASSOCIATION .
+    (34) qualifierListEmpty -> . empty
+    (35) qualifierListEmpty -> . qualifierListEmpty , qualifier
+    (203) empty -> .
+
+  ! reduce/reduce conflict for ] resolved using rule 146 (qualifierName -> ASSOCIATION .)
+  ! reduce/reduce conflict for , resolved using rule 146 (qualifierName -> ASSOCIATION .)
+    :               reduce using rule 146 (qualifierName -> ASSOCIATION .)
+    (               reduce using rule 146 (qualifierName -> ASSOCIATION .)
+    {               reduce using rule 146 (qualifierName -> ASSOCIATION .)
+    ]               reduce using rule 146 (qualifierName -> ASSOCIATION .)
+    ,               reduce using rule 146 (qualifierName -> ASSOCIATION .)
+
+  ! ]               [ reduce using rule 203 (empty -> .) ]
+  ! ,               [ reduce using rule 203 (empty -> .) ]
+
+    qualifierListEmpty             shift and go to state 72
+    empty                          shift and go to state 73
+
+yacc invokes two default disambiguating rules:
+
+1. In a shift-reduce conflict, the default is to shift.
+
+2. In a reduce-reduce conflict, the default is to reduce by
+the earlier grammar rule (in the yacc specification). Rule 1 implies that
+reductions are deferred in favor of shifts when there is a choice.
+
+This is the following from line: 1469
+
+def p_qualifierName(p):
+    """qualifierName : identifier
+                     | ASSOCIATION
+                     | INDICATION
+                     """
+    p[0] = p[1]
+
+Rules 146 and 159 are the same so conflict resolution picks the first.
+
+Rule 146   qualifierName -> ASSOCIATION
+Rule 159   metaElement -> ASSOCIATION
+
+========================Next state.
+DEBUG:root:
+DEBUG:root:State  : 17
+DEBUG:root:Stack  : mofProductionList qualifierList . LexToken(CLASS,'class',14,336)
+DEBUG:root:Action : Shift and goto state 64
+
+=============================================But here is wierd part. After
+the conflict, it goes to state 17 which is class declaration.
+
+
+state 17
+
+    (20) classDeclaration -> qualifierList . CLASS className { classFeatureList } ;
+    (21) classDeclaration -> qualifierList . CLASS className superClass { classFeatureList } ;
+    (22) classDeclaration -> qualifierList . CLASS className alias { classFeatureList } ;
+    (23) classDeclaration -> qualifierList . CLASS className alias superClass { classFeatureList } ;
+    (172) instanceDeclaration -> qualifierList . INSTANCE OF className { valueInitializerList } ;
+    (173) instanceDeclaration -> qualifierList . INSTANCE OF className alias { valueInitializerList } ;
+
+    CLASS           shift and go to state 64
+    INSTANCE        shift and go to state 65
+
+DEBUG:root:
+DEBUG:root:State  : 64
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS . LexToken(IDENTIFIER,'TST_Lineage',14,342)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS IDENTIFIER . LexToken({,'{',14,354)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['TST_Lineage'] and goto state 63
+INFO:root:Result : <str @ 0x7f9562454c30> ('TST_Lineage')
+DEBUG:root:
+DEBUG:root:State  : 63
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS identifier . LexToken({,'{',14,354)
+INFO:root:Action : Reduce rule [className -> identifier] with ['TST_Lineage'] and goto state 86
+INFO:root:Result : <str @ 0x7f9562454c30> ('TST_Lineage')
+DEBUG:root:
+DEBUG:root:State  : 86
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className . LexToken({,'{',14,354)
+DEBUG:root:Action : Shift and goto state 133
+DEBUG:root:
+DEBUG:root:State  : 133
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { . LexToken([,'[',15,360)
+INFO:root:Action : Reduce rule [empty -> <empty>] with [] and goto state 126
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 126
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { empty . LexToken([,'[',15,360)
+INFO:root:Action : Reduce rule [classFeatureList -> empty] with [None] and goto state 175
+INFO:root:Result : <list @ 0x7f956227b188> ([])
+DEBUG:root:
+DEBUG:root:State  : 175
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList . LexToken([,'[',15,360)
+DEBUG:root:Action : Shift and goto state 170
+DEBUG:root:
+DEBUG:root:State  : 170
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ . LexToken(IDENTIFIER,'key',15,361)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ IDENTIFIER . LexToken(],']',15,364)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['key'] and goto state 26
+INFO:root:Result : <str @ 0x7f956232ddf8> ('key')
+DEBUG:root:
+DEBUG:root:State  : 26
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ identifier . LexToken(],']',15,364)
+INFO:root:Action : Reduce rule [qualifierName -> identifier] with ['key'] and goto state 25
+INFO:root:Result : <str @ 0x7f956232ddf8> ('key')
+DEBUG:root:
+DEBUG:root:State  : 25
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ qualifierName . LexToken(],']',15,364)
+INFO:root:Action : Reduce rule [qualifier -> qualifierName] with ['key'] and goto state 24
+INFO:root:Result : <CIMQualifier @ 0x7f956232df60> (CIMQualifier(name='key', value=True, typ ...)
+DEBUG:root:
+DEBUG:root:State  : 24
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ qualifier . LexToken(],']',15,364)
+INFO:root:Action : Reduce rule [empty -> <empty>] with [] and goto state 73
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 73
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ qualifier empty . LexToken(],']',15,364)
+INFO:root:Action : Reduce rule [qualifierListEmpty -> empty] with [None] and goto state 75
+INFO:root:Result : <list @ 0x7f956227b8c8> ([])
+DEBUG:root:
+DEBUG:root:State  : 75
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ qualifier qualifierListEmpty . LexToken(],']',15,364)
+DEBUG:root:Action : Shift and goto state 97
+DEBUG:root:
+DEBUG:root:State  : 97
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList [ qualifier qualifierListEmpty ] . LexToken(DT_STR,'string',15,366)
+INFO:root:Action : Reduce rule [qualifierList -> [ qualifier qualifierListEmpty ]] with ['[',<CIMQualifier @ 0x7f956232df60>,[],']'] and goto state 168
+INFO:root:Result : <list @ 0x7f95623c3f08> ([CIMQualifier(name='key', value=True, ty ...)
+DEBUG:root:
+DEBUG:root:State  : 168
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList . LexToken(DT_STR,'string',15,366)
+DEBUG:root:Action : Shift and goto state 59
+DEBUG:root:
+DEBUG:root:State  : 59
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList DT_STR . LexToken(IDENTIFIER,'InstanceID',15,373)
+INFO:root:Action : Reduce rule [dataType -> DT_STR] with ['string'] and goto state 203
+INFO:root:Result : <str @ 0x7f956232dbc8> ('string')
+DEBUG:root:
+DEBUG:root:State  : 203
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList dataType . LexToken(IDENTIFIER,'InstanceID',15,373)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList dataType IDENTIFIER . LexToken(;,';',15,383)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['InstanceID'] and goto state 202
+INFO:root:Result : <str @ 0x7f95624549f0> ('InstanceID')
+DEBUG:root:
+DEBUG:root:State  : 202
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList dataType identifier . LexToken(;,';',15,383)
+INFO:root:Action : Reduce rule [propertyName -> identifier] with ['InstanceID'] and goto state 245
+INFO:root:Result : <str @ 0x7f95624549f0> ('InstanceID')
+DEBUG:root:
+DEBUG:root:State  : 245
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList dataType propertyName . LexToken(;,';',15,383)
+DEBUG:root:Action : Shift and goto state 299
+DEBUG:root:
+DEBUG:root:State  : 299
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList qualifierList dataType propertyName ; . LexToken(IDENTIFIER,'TST_Person',16,389)
+INFO:root:Action : Reduce rule [propertyDeclaration_5 -> qualifierList dataType propertyName ;] with [<list @ 0x7f95623c3f08>,'string','InstanceID',';'] and goto state 163
+INFO:root:Result : <CIMProperty @ 0x7f956232dc88> (CIMProperty(name='InstanceID', value=Non ...)
+DEBUG:root:
+DEBUG:root:State  : 163
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList propertyDeclaration_5 . LexToken(IDENTIFIER,'TST_Person',16,389)
+INFO:root:Action : Reduce rule [propertyDeclaration -> propertyDeclaration_5] with [<CIMProperty @ 0x7f956232dc88>] and goto state 156
+INFO:root:Result : <CIMProperty @ 0x7f956232dc88> (CIMProperty(name='InstanceID', value=Non ...)
+DEBUG:root:
+DEBUG:root:State  : 156
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList propertyDeclaration . LexToken(IDENTIFIER,'TST_Person',16,389)
+INFO:root:Action : Reduce rule [classFeature -> propertyDeclaration] with [<CIMProperty @ 0x7f956232dc88>] and goto state 155
+INFO:root:Result : <CIMProperty @ 0x7f956232dc88> (CIMProperty(name='InstanceID', value=Non ...)
+DEBUG:root:
+DEBUG:root:State  : 155
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList classFeature . LexToken(IDENTIFIER,'TST_Person',16,389)
+INFO:root:Action : Reduce rule [classFeatureList -> classFeatureList classFeature] with [[],<CIMProperty @ 0x7f956232dc88>] and goto state 175
+INFO:root:Result : <list @ 0x7f956227b8c8> ([CIMProperty(name='InstanceID', value=No ...)
+DEBUG:root:
+DEBUG:root:State  : 175
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList . LexToken(IDENTIFIER,'TST_Person',16,389)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList IDENTIFIER . LexToken(REF,'ref',16,400)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['TST_Person'] and goto state 63
+INFO:root:Result : <str @ 0x7f95624556f0> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 63
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList identifier . LexToken(REF,'ref',16,400)
+INFO:root:Action : Reduce rule [className -> identifier] with ['TST_Person'] and goto state 153
+INFO:root:Result : <str @ 0x7f95624556f0> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 153
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList className . LexToken(REF,'ref',16,400)
+DEBUG:root:Action : Shift and goto state 198
+DEBUG:root:
+DEBUG:root:State  : 198
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList className REF . LexToken(IDENTIFIER,'parent',16,404)
+INFO:root:Action : Reduce rule [objectRef -> className REF] with ['TST_Person','ref'] and goto state 169
+INFO:root:Result : <str @ 0x7f95624556f0> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 169
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef . LexToken(IDENTIFIER,'parent',16,404)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef IDENTIFIER . LexToken(;,';',16,410)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['parent'] and goto state 206
+INFO:root:Result : <str @ 0x7f95623620d8> ('parent')
+DEBUG:root:
+DEBUG:root:State  : 206
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef identifier . LexToken(;,';',16,410)
+INFO:root:Action : Reduce rule [referenceName -> identifier] with ['parent'] and goto state 205
+INFO:root:Result : <str @ 0x7f95623620d8> ('parent')
+DEBUG:root:
+DEBUG:root:State  : 205
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef referenceName . LexToken(;,';',16,410)
+DEBUG:root:Action : Shift and goto state 247
+DEBUG:root:
+DEBUG:root:State  : 247
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef referenceName ; . LexToken(IDENTIFIER,'TST_Person',17,416)
+INFO:root:Action : Reduce rule [referenceDeclaration -> objectRef referenceName ;] with ['TST_Person','parent',';'] and goto state 158
+INFO:root:Result : <CIMProperty @ 0x7f956232dc50> (CIMProperty(name='parent', value=None, t ...)
+DEBUG:root:
+DEBUG:root:State  : 158
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList referenceDeclaration . LexToken(IDENTIFIER,'TST_Person',17,416)
+INFO:root:Action : Reduce rule [classFeature -> referenceDeclaration] with [<CIMProperty @ 0x7f956232dc50>] and goto state 155
+INFO:root:Result : <CIMProperty @ 0x7f956232dc50> (CIMProperty(name='parent', value=None, t ...)
+DEBUG:root:
+DEBUG:root:State  : 155
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList classFeature . LexToken(IDENTIFIER,'TST_Person',17,416)
+INFO:root:Action : Reduce rule [classFeatureList -> classFeatureList classFeature] with [<list @ 0x7f956227b8c8>,<CIMProperty @ 0x7f956232dc50>] and goto state 175
+INFO:root:Result : <list @ 0x7f956227b248> ([CIMProperty(name='InstanceID', value=No ...)
+DEBUG:root:
+DEBUG:root:State  : 175
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList . LexToken(IDENTIFIER,'TST_Person',17,416)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList IDENTIFIER . LexToken(REF,'ref',17,427)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['TST_Person'] and goto state 63
+INFO:root:Result : <str @ 0x7f9562454470> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 63
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList identifier . LexToken(REF,'ref',17,427)
+INFO:root:Action : Reduce rule [className -> identifier] with ['TST_Person'] and goto state 153
+INFO:root:Result : <str @ 0x7f9562454470> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 153
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList className . LexToken(REF,'ref',17,427)
+DEBUG:root:Action : Shift and goto state 198
+DEBUG:root:
+DEBUG:root:State  : 198
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList className REF . LexToken(IDENTIFIER,'child',17,431)
+INFO:root:Action : Reduce rule [objectRef -> className REF] with ['TST_Person','ref'] and goto state 169
+INFO:root:Result : <str @ 0x7f9562454470> ('TST_Person')
+DEBUG:root:
+DEBUG:root:State  : 169
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef . LexToken(IDENTIFIER,'child',17,431)
+DEBUG:root:Action : Shift and goto state 27
+DEBUG:root:
+DEBUG:root:State  : 27
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef IDENTIFIER . LexToken(;,';',17,436)
+INFO:root:Action : Reduce rule [identifier -> IDENTIFIER] with ['child'] and goto state 206
+INFO:root:Result : <str @ 0x7f95623620a0> ('child')
+DEBUG:root:
+DEBUG:root:State  : 206
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef identifier . LexToken(;,';',17,436)
+INFO:root:Action : Reduce rule [referenceName -> identifier] with ['child'] and goto state 205
+INFO:root:Result : <str @ 0x7f95623620a0> ('child')
+DEBUG:root:
+DEBUG:root:State  : 205
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef referenceName . LexToken(;,';',17,436)
+DEBUG:root:Action : Shift and goto state 247
+DEBUG:root:
+DEBUG:root:State  : 247
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList objectRef referenceName ; . LexToken(},'}',18,438)
+INFO:root:Action : Reduce rule [referenceDeclaration -> objectRef referenceName ;] with ['TST_Person','child',';'] and goto state 158
+INFO:root:Result : <CIMProperty @ 0x7f9562362f98> (CIMProperty(name='child', value=None, ty ...)
+DEBUG:root:
+DEBUG:root:State  : 158
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList referenceDeclaration . LexToken(},'}',18,438)
+INFO:root:Action : Reduce rule [classFeature -> referenceDeclaration] with [<CIMProperty @ 0x7f9562362f98>] and goto state 155
+INFO:root:Result : <CIMProperty @ 0x7f9562362f98> (CIMProperty(name='child', value=None, ty ...)
+DEBUG:root:
+DEBUG:root:State  : 155
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList classFeature . LexToken(},'}',18,438)
+INFO:root:Action : Reduce rule [classFeatureList -> classFeatureList classFeature] with [<list @ 0x7f956227b248>,<CIMProperty @ 0x7f9562362f98>] and goto state 175
+INFO:root:Result : <list @ 0x7f956227b188> ([CIMProperty(name='InstanceID', value=No ...)
+DEBUG:root:
+DEBUG:root:State  : 175
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList . LexToken(},'}',18,438)
+DEBUG:root:Action : Shift and goto state 210
+DEBUG:root:
+DEBUG:root:State  : 210
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList } . LexToken(;,';',18,439)
+DEBUG:root:Action : Shift and goto state 252
+DEBUG:root:
+DEBUG:root:State  : 252
+DEBUG:root:Stack  : mofProductionList qualifierList CLASS className { classFeatureList } ; . $end
+INFO:root:Action : Reduce rule [classDeclaration -> qualifierList CLASS className { classFeatureList } ;] with [<list @ 0x7f9562454608>,'class','TST_Lineage','{',<list @ 0x7f956227b188>,'}',';'] and goto state 12
+INFO:root:Result : <CIMClass @ 0x7f956232dcf8> (CIMClass(classname='TST_Lineage', superc ...)
+DEBUG:root:
+DEBUG:root:State  : 12
+DEBUG:root:Stack  : mofProductionList classDeclaration . $end
+INFO:root:Action : Reduce rule [mp_createClass -> classDeclaration] with [<CIMClass @ 0x7f956232dcf8>] and goto state 6
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 6
+DEBUG:root:Stack  : mofProductionList mp_createClass . $end
+INFO:root:Action : Reduce rule [mofProduction -> mp_createClass] with [None] and goto state 4
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 4
+DEBUG:root:Stack  : mofProductionList mofProduction . $end
+INFO:root:Action : Reduce rule [mofProductionList -> mofProductionList mofProduction] with [None,None] and goto state 2
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 2
+DEBUG:root:Stack  : mofProductionList . $end
+INFO:root:Action : Reduce rule [mofSpecification -> mofProductionList] with [None] and goto state 1
+INFO:root:Result : <NoneType @ 0x9d34e0> (None)
+DEBUG:root:
+DEBUG:root:State  : 1
+DEBUG:root:Stack  : mofSpecification . $end
+INFO:root:Done   : Returning <NoneType @ 0x9d34e0> (None)
+INFO:root:PLY: PARSE DEBUG END
+    PRAGMA          reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    PROPERTY        reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    QUALIFIER       reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    REFERENCE       reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    RESTRICTED      reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    SCHEMA          reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    SCOPE           reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    TOSUBCLASS      reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    TOINSTANCE      reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+    TRANSLATABLE    reduce using rule 84 (methodDeclaration -> qualifierList dataType methodName ( parameterList ) ; .)
+
+
+state 374
+
+    (29) assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .
+
+    #               reduce using rule 29 (assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .)
+    [               reduce using rule 29 (assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .)
+    CLASS           reduce using rule 29 (assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .)
+    QUALIFIER       reduce using rule 29 (assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .)
+    INSTANCE        reduce using rule 29 (assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .)
+    $end            reduce using rule 29 (assocDeclaration -> [ ASSOCIATION qualifierListEmpty ] CLASS className alias superClass { associationFeatureList } ; .)
+
+
+state 375
+
+    (33) indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .
+
+    #               reduce using rule 33 (indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .)
+    [               reduce using rule 33 (indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .)
+    CLASS           reduce using rule 33 (indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .)
+    QUALIFIER       reduce using rule 33 (indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .)
+    INSTANCE        reduce using rule 33 (indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .)
+    $end            reduce using rule 33 (indicDeclaration -> [ INDICATION qualifierListEmpty ] CLASS className alias superClass { classFeatureList } ; .)
+
+WARNING: 4 reduce/reduce conflicts
+WARNING:
+WARNING: Conflicts:
+WARNING:
+WARNING: reduce/reduce conflict in state 21 resolved using rule (qualifierName -> ASSOCIATION)
+WARNING: rejected rule (empty -> <empty>) in state 21
+WARNING: reduce/reduce conflict in state 21 resolved using rule (qualifierName -> ASSOCIATION)
+WARNING: rejected rule (empty -> <empty>) in state 21
+WARNING: reduce/reduce conflict in state 23 resolved using rule (qualifierName -> INDICATION)
+WARNING: rejected rule (empty -> <empty>) in state 23
+WARNING: reduce/reduce conflict in state 23 resolved using rule (qualifierName -> INDICATION)
+WARNING: rejected rule (empty -> <empty>) in state 23
+lex: tokens   = ['ANY', 'AS', 'ASSOCIATION', 'CLASS', 'DISABLEOVERRIDE', 'DT_BOOL', 'DT_CHAR16', 'DT_DATETIME', 'PRAGMA', 'DT_REAL32', 'DT_REAL64', 'DT_SINT16', 'DT_SINT32', 'DT_SINT64', 'DT_SINT8', 'DT_STR', 'DT_UINT16', 'DT_UINT32', 'DT_UINT64', 'DT_UINT8', 'ENABLEOVERRIDE', 'FALSE', 'FLAVOR', 'INDICATION', 'INSTANCE', 'METHOD', 'NULL', 'OF', 'PARAMETER', 'PROPERTY', 'QUALIFIER', 'REF', 'REFERENCE', 'RESTRICTED', 'SCHEMA', 'SCOPE', 'TOSUBCLASS', 'TOINSTANCE', 'TRANSLATABLE', 'TRUE', 'IDENTIFIER', 'stringValue', 'floatValue', 'charValue', 'binaryValue', 'octalValue', 'decimalValue', 'hexValue']
+lex: literals = '#(){};[],$:='
+lex: states   = {'INITIAL': 'inclusive'}
+lex: Adding rule t_COMMENT -> '//.*' (state 'INITIAL')
+lex: Adding rule t_MCOMMENT -> '/\*(.|\n)*?\*/' (state 'INITIAL')
+lex: Adding rule t_floatValue -> '[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?' (state 'INITIAL')
+lex: Adding rule t_hexValue -> '[+-]?0[xX][0-9a-fA-F]+' (state 'INITIAL')
+lex: Adding rule t_binaryValue -> '[+-]?[0-9]+[bB]' (state 'INITIAL')
+lex: Adding rule t_octalValue -> '[+-]?0[0-9]+' (state 'INITIAL')
+lex: Adding rule t_decimalValue -> '[+-]?([1-9][0-9]*|0)' (state 'INITIAL')
+lex: Adding rule t_charValue -> ''([^'\\\n\r]|([\\](([bfnrt'"\\])|([xX][0-9a-fA-F]{1,4}))))'' (state 'INITIAL')
+lex: Adding rule t_stringValue -> '"([^"\\\n\r]|([\\](([bfnrt'"\\])|([xX][0-9a-fA-F]{1,4}))))*"' (state 'INITIAL')
+lex: Adding rule t_IDENTIFIER -> '([a-zA-Z_]|(([\xC2-\xDF][\x80-\xBF])|(\xE0[\xA0-\xBF][\x80-\xBF])|([\xE1-\xEC][\x80-\xBF][\x80-\xBF])|(\xED[\x80-\x9F][\x80-\xBF])|([\xEE-\xEF][\x80-\xBF][\x80-\xBF])|(\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF])|([\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF])|(\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF])))([0-9a-zA-Z_]|(([\xC2-\xDF][\x80-\xBF])|(\xE0[\xA0-\xBF][\x80-\xBF])|([\xE1-\xEC][\x80-\xBF][\x80-\xBF])|(\xED[\x80-\x9F][\x80-\xBF])|([\xEE-\xEF][\x80-\xBF][\x80-\xBF])|(\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF])|([\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF])|(\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF])))*' (state 'INITIAL')
+lex: Adding rule t_newline -> '\n+' (state 'INITIAL')
+lex: ==== MASTER REGEXS FOLLOW ====
+lex: state 'INITIAL' : regex[0] = '(?P<t_COMMENT>//.*)|(?P<t_MCOMMENT>/\*(.|\n)*?\*/)|(?P<t_floatValue>[+-]?[0-9]*\.[0-9]+([eE][+-]?[0-9]+)?)|(?P<t_hexValue>[+-]?0[xX][0-9a-fA-F]+)|(?P<t_binaryValue>[+-]?[0-9]+[bB])|(?P<t_octalValue>[+-]?0[0-9]+)|(?P<t_decimalValue>[+-]?([1-9][0-9]*|0))|(?P<t_charValue>'([^'\\\n\r]|([\\](([bfnrt'"\\])|([xX][0-9a-fA-F]{1,4}))))')|(?P<t_stringValue>"([^"\\\n\r]|([\\](([bfnrt'"\\])|([xX][0-9a-fA-F]{1,4}))))*")|(?P<t_IDENTIFIER>([a-zA-Z_]|(([\xC2-\xDF][\x80-\xBF])|(\xE0[\xA0-\xBF][\x80-\xBF])|([\xE1-\xEC][\x80-\xBF][\x80-\xBF])|(\xED[\x80-\x9F][\x80-\xBF])|([\xEE-\xEF][\x80-\xBF][\x80-\xBF])|(\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF])|([\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF])|(\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF])))([0-9a-zA-Z_]|(([\xC2-\xDF][\x80-\xBF])|(\xE0[\xA0-\xBF][\x80-\xBF])|([\xE1-\xEC][\x80-\xBF][\x80-\xBF])|(\xED[\x80-\x9F][\x80-\xBF])|([\xEE-\xEF][\x80-\xBF][\x80-\xBF])|(\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF])|([\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF])|(\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF])))*)|(?P<t_newline>\n+)'
+Compiling file './test.mof'
+Setting qualifier 'Association'
+Setting qualifier 'Description'
+qualifierListEmpty p=<ply.yacc.YaccProduction object at 0x7f95623a6710>
+qualifierListEmpty p1=[] p3=CIMQualifier(name='Description', value='This is key prop', type='string', ...)
+Creating class p1 CIMClass(classname='TST_Person', ...)
+Creating class 'root/cimv2':'TST_Person'
+Created class 'root/cimv2':'TST_Person'
+qualifierListEmpty p=<ply.yacc.YaccProduction object at 0x7f95623a6710>
+qualifierListEmpty p=<ply.yacc.YaccProduction object at 0x7f95623a6710>
+Creating class p1 CIMClass(classname='TST_Lineage', ...)
+Creating class 'root/cimv2':'TST_Lineage'
+Created class 'root/cimv2':'TST_Lineage'

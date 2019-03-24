@@ -1,0 +1,20 @@
+Qualifier Association : boolean = false,
+    Scope(association), Flavor(DisableOverride, ToSubclass);
+
+Qualifier Description : string = null,
+    Scope(any), Flavor(EnableOverride, ToSubclass, Translatable);
+
+class TST_Person{
+        [Key, Description ("This is key prop")]
+    string name;
+    string extraProperty;
+};
+
+[Association]
+class TST_Lineage {
+    [key] string InstanceID;
+    TST_Person ref parent;
+    TST_Person ref child;
+};
+
+
