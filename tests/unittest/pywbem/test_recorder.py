@@ -560,8 +560,9 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah')
         # TODO AM 2018-06: Suppress the printing to stderr
-        configure_logger('api', log_dest='stderr', detail_level='all',
-                         connection=conn, propagate=True)
+        configure_logger('api', log_dest='file', detail_level='all',
+                         connection=conn, log_filename=TEST_OUTPUT_LOG,
+                         propagate=True)
 
         conn_id = conn.conn_id
         api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
@@ -600,8 +601,9 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               use_pull_operations=True,
                               stats_enabled=True)
         # TODO AM 2018-06: Suppress the printing to stderr
-        configure_logger('api', log_dest='stderr', detail_level='all',
-                         connection=conn, propagate=True)
+        configure_logger('api', log_dest='file', detail_level='all',
+                         connection=conn, log_filename=TEST_OUTPUT_LOG,
+                         propagate=True)
 
         conn_id = conn.conn_id
         api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
@@ -640,8 +642,9 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               use_pull_operations=True,
                               stats_enabled=True)
         # TODO AM 2018-06: Suppress the printing to stderr
-        configure_logger('api', log_dest='stderr', detail_level='summary',
-                         connection=conn, propagate=True)
+        configure_logger('api', log_dest='file', detail_level='summary',
+                         connection=conn, log_filename=TEST_OUTPUT_LOG,
+                         propagate=True)
 
         conn_id = conn.conn_id
         api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
