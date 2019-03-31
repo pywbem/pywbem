@@ -59,6 +59,8 @@ Released: not yet
   was better than adding the test for these methods. Add test for is_subclass
   function in cim_operations.py
 
+* refactor and extend Jupyter notebook for pywbem_mock.
+
 **Known issues:**
 
 * See `list of open issues`_.
