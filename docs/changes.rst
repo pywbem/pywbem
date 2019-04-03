@@ -16,21 +16,15 @@ Change log
 pywbem 0.14.0
 -------------
 
-This version is currently in development and is shown as |version|.
-
 This version contains all fixes up to pywbem 0.13.1.
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-04-03
 
 **Bug fixes:**
 
 * Extend makefile clobber to remove cover files from pywbem_mock package.
 
-* Fixed pip version issue on Appveyor
+* Fixed pip version issue on Appveyor.
 
 * Fixed AttributeError on __offset in CIMDateTime.repr(). See issue #1681.
 
@@ -43,6 +37,10 @@ Released: not yet
   In effect, these production rules were never really used executed.
 
 **Enhancements:**
+
+* Significant performance improvements in the CIM-XML parser, resulting in
+  about 50% elapsed time savings for 10000 returned CIM instances, compared
+  to pywbem 0.13.0. See issue #1630.
 
 * Added the possibility to specify a value of `False` for the `embedded_object`
   attribute/parameter of `CIMProperty` and `CIMParameter`. It is stored as
@@ -57,15 +55,9 @@ Released: not yet
   methods including iparamvalue, etc. They should never be received by the
   pywbem client. We left the code in case the server is implemented but this
   was better than adding the test for these methods. Add test for is_subclass
-  function in cim_operations.py
+  function in cim_operations.py.
 
-* refactor and extend Jupyter notebook for pywbem_mock.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+* Refactored and extended Jupyter notebook for pywbem_mock.
 
 
 pywbem 0.13.0

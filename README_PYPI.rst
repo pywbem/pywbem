@@ -15,6 +15,6 @@ tasks in the industry.
 For more information on pywbem, see the `pywbem readme`_, and the
 `pywbem documentation`_.
 
-.. _pywbem readme: https://github.com/pywbem/pywbem/blob/stable_0.13/README.rst
-.. _pywbem documentation: https://pywbem.readthedocs.io/en/stable_0.13/
+.. _pywbem readme: https://github.com/pywbem/pywbem/blob/stable_0.14/README.rst
+.. _pywbem documentation: https://pywbem.readthedocs.io/en/stable_0.14/
 .. _CIM/WBEM standards: https://www.dmtf.org/standards/wbem/
