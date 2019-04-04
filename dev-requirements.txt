@@ -52,7 +52,11 @@ pytest-cov>=2.4.0,<2.6
 tox>=2.0.0
 
 # Sphinx (no imports, invoked via sphinx-build script, issues on py26):
-Sphinx>=1.7.6; python_version >= '2.7'
+Sphinx>=1.7.6,<2.0.0; python_version >= '2.7'; python_version <	'3.5'  # BSD
+Sphinx>=1.7.6,<2.0.0; python_version >= '3.5'  # BSD
+# TODO: On py3.5+, Sphinx currently fails, see issue
+#       https://github.com/sphinx-doc/sphinx/issues/6246. Therefore, Sphinx has
+#       been pinned to below 2.0.0 also for py3.5+.
 sphinx-git>=10.1.1; python_version >= '2.7'
 GitPython>=2.1.1; python_version >= '2.7'
 
