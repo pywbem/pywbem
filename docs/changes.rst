@@ -33,6 +33,10 @@ Released: not yet
 
 * Test: Fixed AttributeError in end2end assertion functions (Issue #1714)
 
+* Change history: Removed incorrect statement about commenting out
+  server-specific functionality from the tuple parser from the change history
+  of pywbem 0.14.0.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -86,12 +90,6 @@ Released: 2019-04-03
 
 * Added the 'python_requires' keyword to the package definition, which makes pip
   aware of the supported Python versions.
-
-* Comment out those methods in the TupleParser that are just WBEM server parser
-  methods including iparamvalue, etc. They should never be received by the
-  pywbem client. We left the code in case the server is implemented but this
-  was better than adding the test for these methods. Add test for is_subclass
-  function in cim_operations.py.
 
 * Refactored and extended Jupyter notebook for pywbem_mock.
 
