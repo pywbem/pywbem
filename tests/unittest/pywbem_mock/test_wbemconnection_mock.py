@@ -851,11 +851,11 @@ class TestFakedWBEMConnection(object):
         start_time = datetime.now()
         conn.GetClass('CIM_Foo')
         diff = datetime.now() - start_time
-        # Had to do this because python 2.6 does not support total_seconds())
+        # Did this because python 2.6 does not support total_seconds())
         exec_time = float(diff.seconds) + (float(diff.microseconds) / 1000000)
 
         if delay:
-            assert exec_time > delay * .8 and exec_time < delay * 2.0
+            assert delay * .8 < exec_time < delay * 2.0
         else:
             assert exec_time < 0.1
 
@@ -1249,56 +1249,53 @@ class TestRepoMethods(object):
         conn.display_repository()
         captured = capsys.readouterr()
         # python 2.6 does not include the .out
-        # TODO KS FIX THIS For some reason this test fails.
-        # if sys.version_info[0:2] != (2, 6):
-        # result = captured.out
-        # TODO; KS restore this when other diagnostics removed.
-        # They interfere with the display test
-        # assert result.startswith(
-        #    "# ========Mock Repo Display fmt=mof namespaces=all")
-        # assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
-        # assert "instance of CIM_Foo {" in result
-        # for ns in namespaces:
-        #    assert _format("# Namespace {0!A}: contains 9 Qualifier "
-        #                   "Declarations", ns) \
-        #        in result
-        #    assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
-        #        in result
-        #    assert _format("# Namespace {0!A}: contains 9 Instances", ns) \
-        #        in result
-        # assert "Qualifier Abstract : boolean = false," in result
+        if sys.version_info[0:2] != (2, 6):
+            result = captured.out
+            assert result.startswith(
+                "# ========Mock Repo Display fmt=mof namespaces=all")
+            assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
+            assert "instance of CIM_Foo {" in result
+            for ns in namespaces:
+                assert _format("# Namespace {0!A}: contains 9 Qualifier "
+                               "Declarations", ns) \
+                    in result
+                assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
+                    in result
+                assert _format("# Namespace {0!A}: contains 9 Instances", ns) \
+                    in result
+            assert "Qualifier Abstract : boolean = false," in result
 
-        # Confirm that the display formats work
-        for param in ('xml', 'mof', 'repr'):
-            conn.display_repository(output_format=param)
+            # Confirm that the display formats work
+            for param in ('xml', 'mof', 'repr'):
+                conn.display_repository(output_format=param)
+                captured = capsys.readouterr()
+                if sys.version_info[0:2] != (2, 6):
+                    assert captured.out
+
+            # confirm that the two repositories exist
+            conn.display_repository(namespaces=namespaces)
             captured = capsys.readouterr()
             if sys.version_info[0:2] != (2, 6):
                 assert captured.out
 
-        # confirm that the two repositories exist
-        conn.display_repository(namespaces=namespaces)
-        captured = capsys.readouterr()
-        if sys.version_info[0:2] != (2, 6):
-            assert captured.out
-
-        # test with a defined namespace
-        ns = namespaces[0]
-        conn.display_repository(namespaces=[ns])
-        captured = capsys.readouterr()
-        if sys.version_info[0:2] != (2, 6):
-            assert captured.out
-
-        conn.display_repository(namespaces=ns)
-        captured = capsys.readouterr()
-        if sys.version_info[0:2] != (2, 6):
-            assert captured.out
-
-        # test for invalid output_format
-        with pytest.raises(ValueError):
-            conn.display_repository(output_format='blah')
+            # test with a defined namespace
+            ns = namespaces[0]
+            conn.display_repository(namespaces=[ns])
             captured = capsys.readouterr()
             if sys.version_info[0:2] != (2, 6):
                 assert captured.out
+
+            conn.display_repository(namespaces=ns)
+            captured = capsys.readouterr()
+            if sys.version_info[0:2] != (2, 6):
+                assert captured.out
+
+            # test for invalid output_format
+            with pytest.raises(ValueError):
+                conn.display_repository(output_format='blah')
+                captured = capsys.readouterr()
+                if sys.version_info[0:2] != (2, 6):
+                    assert captured.out
 
     def test_display_repo_tofile(self, conn, tst_instances_mof):
         # pylint: disable=no-self-use
@@ -1970,22 +1967,6 @@ class TestClassOperations(object):
     """
     Test mocking of Class level operations including classname operations
     """
-    # TODO: Future drop this test in the future. Dupe of part of next test.
-    def test_getclass0(self, conn, tst_qualifiers, tst_class):
-        # pylint: disable=no-self-use
-        """
-        Test mocking wbemconnection getClass. Tests with default parameters
-        except IncludeQualifiers
-
-        """
-        conn.add_cimobjects(tst_qualifiers)
-        conn.add_cimobjects(tst_class)
-        cl = conn.GetClass('CIM_Foo', IncludeQualifiers=True,
-                           IncludeClassOrigin=True)
-
-        cl.path = None
-        assert_resolved_classes_equal(conn, None, tst_class, cl)
-
     @pytest.mark.parametrize(
         "ns, cln, tst_ns, exp_status", [
             [DEFAULT_NAMESPACE, 'CIM_Foo', None, None],
@@ -4467,8 +4448,6 @@ class TestQualifierOperations(object):
 
         conn.add_cimobjects(q_list, namespace=ns)
 
-        conn.display_repository()
-
         if not exp_status:
             q_rtns = conn.EnumerateQualifiers(namespace=ns)
             for q in q_rtns:
@@ -4505,8 +4484,6 @@ class TestQualifierOperations(object):
 
         if not exp_status:
             conn.SetQualifier(qual, namespace=ns)
-
-            conn.display_repository()
 
             rtn_qualifier = conn.GetQualifier(qual.name, namespace=ns)
 
