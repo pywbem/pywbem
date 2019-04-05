@@ -42,6 +42,11 @@ Released: not yet
   implement one of the other methodologies, this change is not incompatible for
   pywbem users.
 
+* Improved the performance for receiving large CIM-XML responses in the
+  tupleparser by moving type checks for text content in XML into an error
+  handling path, and by replacing some isinstance() calls with type()
+  comparison.
+
 **Known issues:**
 
 * See `list of open issues`_.

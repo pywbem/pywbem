@@ -120,13 +120,14 @@ def kids(tup_tree):
 
     The child elements are represented as tupletree nodes.
 
-    Child nodes that are not XML elements (e.g. text nodes) in tup_tree have
-    been filtered out.
+    Child nodes that are not XML elements (e.g. text nodes) in tup_tree are
+    filtered out.
     """
     k = tup_tree[2]
     if k is None:
         return []
-    return [x for x in k if isinstance(x, tuple)]
+    # pylint: disable=unidiomatic-typecheck
+    return [x for x in k if type(x) == tuple]
 
 
 class TupleParser(object):
@@ -148,17 +149,16 @@ class TupleParser(object):
 
         The child nodes must be text nodes (no element nodes).
         """
-        for inst in tup_tree[2]:
-            try:
-                assert isinstance(inst, six.string_types)
-            except AssertionError:
-                raise CIMXMLParseError(
-                    _format("Element {0!A} has unexpected child elements: "
-                            "{1!A} (allowed is only text content)",
-                            name(tup_tree), inst),
-                    conn_id=self.conn_id)
-        data = u''.join(tup_tree[2])
-        assert isinstance(data, six.text_type)
+        try:
+            data = u''.join(tup_tree[2])
+
+        except TypeError:
+            raise CIMXMLParseError(
+                _format("Element {0!A} has unexpected child elements: "
+                        "{1!A} (allowed is only text content)",
+                        name(tup_tree), tup_tree[2]),
+                conn_id=self.conn_id)
+
         return data
 
     # pylint: disable=too-many-arguments
@@ -222,10 +222,10 @@ class TupleParser(object):
                 conn_id=self.conn_id)
 
         if allowed_children is not None:
-            invalid_children = set()  # Eliminate duplicates
+            invalid_children = []
             for child in kids(tup_tree):
                 if name(child) not in allowed_children:
-                    invalid_children.add(name(child))
+                    invalid_children.append(name(child))
             if invalid_children:
                 if not allowed_children:
                     allow_txt = "no child elements are allowed"
@@ -235,7 +235,7 @@ class TupleParser(object):
                 raise CIMXMLParseError(
                     _format("Element {0!A} has invalid child element(s) "
                             "{1!A} ({2})",
-                            name(tup_tree), list(invalid_children), allow_txt),
+                            name(tup_tree), set(invalid_children), allow_txt),
                     conn_id=self.conn_id)
 
         if not allow_pcdata:
@@ -2137,7 +2137,7 @@ class TupleParser(object):
           CIMXMLParseError: There is an error in the XML.
         """
 
-        if isinstance(val, list):
+        if type(val) == list:  # pylint: disable=unidiomatic-typecheck
             return [self.parse_embeddedObject(obj) for obj in val]
         if val is None:
             return None
@@ -2181,7 +2181,7 @@ class TupleParser(object):
 
         raw_val = raw_val[0]
 
-        if isinstance(raw_val, list):
+        if type(raw_val) == list:  # pylint: disable=unidiomatic-typecheck
             return [self.unpack_single_value(data, valtype)
                     for data in raw_val]
 
