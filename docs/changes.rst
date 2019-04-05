@@ -16,27 +16,13 @@ Change log
 pywbem 0.14.1
 -------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-04-05
 
 **Bug fixes:**
 
 * Change history: Removed incorrect statement about commenting out
   server-specific functionality from the tuple parser from the change history
   of pywbem 0.14.0.
-
-**Enhancements:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.0
