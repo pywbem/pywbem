@@ -29,6 +29,8 @@ Released: not yet
 * Test: Temporary fix for pytest option `--pythonwarnings` in end2end tests
   (issue #1714).
 
+* Test: Fixed AttributeError in end2end assertion functions (Issue #1714)
+
 **Enhancements:**
 
 **Known issues:**
