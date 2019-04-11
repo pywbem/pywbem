@@ -143,6 +143,15 @@
   scoping_class: CIM_ComputerSystem
   scoping_path: null
   doc: SMI-S Fabric
+-
+  registered_org: SNIA
+  registered_name: Cascading
+  type: component
+  central_class: CIM_ComputerSystem
+  scoping_class: CIM_ComputerSystem
+  scoping_path: CIM_Dependency
+  doc: SMI-S Common Profiles  # In SMI-S 1.4 only
+
 # Note: History on all SNIA indications related profiles:
 #       * The SNIA 'Indication' profile already existed in SMI.S 1.2 as stable.
 #       * SMI-S 1.5 (or 1.4?) introduced a SNIA 'Experimental Indication'
@@ -161,6 +170,7 @@
 # Note: The profile definitions below do not include the SNIA 'Experimental
 #       Indication' profile and the SNIA 'Indications' profile because they
 #       were removed while still being experimental.
+
 -
   # Note: Special case: Discussion with Mike Walker revealed that the central
   #       class is probably CIM_ListenerDestinationCIMXML, but since it is not
@@ -824,7 +834,7 @@
   doc: SMI-S File Systems
 -
   registered_org: SNIA
-  registered_name: Masking And Mapping
+  registered_name: Masking and Mapping
   type: component
   central_class: CIM_ControllerConfigurationService
   scoping_class: CIM_ComputerSystem
