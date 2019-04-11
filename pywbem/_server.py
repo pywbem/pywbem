@@ -724,7 +724,8 @@ class WBEMServer(object):
 
     def get_central_instances(self, profile_path, central_class=None,
                               scoping_class=None, scoping_path=None,
-                              reference_direction='dmtf'):
+                              reference_direction='dmtf',
+                              try_gci_method=False):
         """
         Return the instance paths of the central instances of a management
         profile.
@@ -732,7 +733,8 @@ class WBEMServer(object):
         DMTF defines the following profile advertisement methodologies
         in :term:`DSP1033`:
 
-        * GetCentralInstances methodology (new in :term:`DSP1033` 1.1)
+        * GetCentralInstances methodology (new in :term:`DSP1033` 1.1, only
+          when explicitly requested by the caller)
         * Central class methodology
         * Scoping class methodology
 
@@ -839,6 +841,13 @@ class WBEMServer(object):
             * All profiles scoped by the DMTF SMASH wrapper specification
               should be assumed to implement the 'dmtf' reference direction.
 
+          try_gci_method (:class:`py:bool`):
+            Flag indicating that the GetCentralInstances methodology should be
+            attempted. This methodology is not expected to be implemented by
+            WBEM servers at this point, and causes undesirable behavior with
+            some WBEM servers, so it is not attempted by default. Note that
+            WBEM servers are required to support the scoping class methodology.
+
         Returns:
 
           :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
@@ -866,68 +875,72 @@ class WBEMServer(object):
                 _format("The profile_path argument must be a CIMInstanceName, "
                         "but has type: {0}", type(profile_path)))
 
-        # Try GetCentralInstances() method:
-        try:
-            (ret_val, out_params) = self._conn.InvokeMethod(
-                MethodName="GetCentralInstances",
-                ObjectName=profile_path)
-        except CIMError as exc:
-            if exc.status_code in (CIM_ERR_FAILED,
-                                   CIM_ERR_METHOD_NOT_FOUND,
-                                   CIM_ERR_METHOD_NOT_AVAILABLE,
-                                   CIM_ERR_NOT_SUPPORTED):
-                # Method is not implemented.
-                # CIM_ERR_NOT_SUPPORTED is not an official status code for this
-                # situation, but is used by some implementations.
-                pass  # try next approach
-            else:
-                raise
-        except (CIMXMLParseError, XMLParseError) as exc:
-            # The EMC server returns XMLParseError due to ill-formed XML.
-            # The Dell server returns CIMXMLParseError due to INSTANCE element
-            # with missing CLASSNAME attribute.
-            # In both cases the ERROR element is parseable in the CIM-XML
-            # string. Tolerate that behavior if the error is that the
-            # method is not implemented, and try next approach.
-            reply_oneline = self._conn.last_raw_reply.replace(b'\n', b'')
-            m = re.search(b'<ERROR CODE="([0-9]+)"', reply_oneline)
-            if m:
-                try:
-                    status_code = int(m.group(1))
-                except ValueError:
-                    status_code = None
-                if status_code in (CIM_ERR_FAILED,
-                                   CIM_ERR_METHOD_NOT_FOUND,
-                                   CIM_ERR_METHOD_NOT_AVAILABLE,
-                                   CIM_ERR_NOT_SUPPORTED):
-                    warnings.warn(
-                        _format("Tolerating {0} raised when parsing "
-                                "CIM-XML response of invoking CIM method "
-                                "GetCentralInstances, with a CIM status code "
-                                "{1}: {2}",
-                                exc.__class__.__name__, status_code, exc),
-                        ToleratedServerIssueWarning, 1)
-                    # try next approach
+        if try_gci_method:
+
+            # Try GetCentralInstances() method:
+            try:
+                (ret_val, out_params) = self._conn.InvokeMethod(
+                    MethodName="GetCentralInstances",
+                    ObjectName=profile_path)
+            except CIMError as exc:
+                if exc.status_code in (CIM_ERR_FAILED,
+                                       CIM_ERR_METHOD_NOT_FOUND,
+                                       CIM_ERR_METHOD_NOT_AVAILABLE,
+                                       CIM_ERR_NOT_SUPPORTED):
+                    # Method is not implemented.
+                    # CIM_ERR_NOT_SUPPORTED is not an official status code for
+                    # this situation, but is used by some implementations.
+                    pass  # try next approach
                 else:
-                    # It would be nice to extend the exception message to
-                    # indicate that a CIM status code was detectable, but
-                    # it is not possible to do that if we want to maintain
-                    # standard exception semantics w.r.t. the message.
-                    # So we just re-raise the original CIMXMLParseError or
+                    raise
+            except (CIMXMLParseError, XMLParseError) as exc:
+                # The EMC server returns XMLParseError due to ill-formed XML.
+                # The Dell server returns CIMXMLParseError due to INSTANCE
+                # element with missing CLASSNAME attribute.
+                # In both cases the ERROR element is parseable in the CIM-XML
+                # string. Tolerate that behavior if the error is that the
+                # method is not implemented, and try next approach.
+                reply_oneline = self._conn.last_raw_reply.replace(b'\n', b'')
+                m = re.search(b'<ERROR CODE="([0-9]+)"', reply_oneline)
+                if m:
+                    try:
+                        status_code = int(m.group(1))
+                    except ValueError:
+                        status_code = None
+                    if status_code in (CIM_ERR_FAILED,
+                                       CIM_ERR_METHOD_NOT_FOUND,
+                                       CIM_ERR_METHOD_NOT_AVAILABLE,
+                                       CIM_ERR_NOT_SUPPORTED):
+                        warnings.warn(
+                            _format("Tolerating {0} raised when parsing "
+                                    "CIM-XML response of invoking CIM method "
+                                    "GetCentralInstances, with a CIM status "
+                                    "code {1}: {2}",
+                                    exc.__class__.__name__, status_code, exc),
+                            ToleratedServerIssueWarning, 1)
+                        # try next approach
+                    else:
+                        # It would be nice to extend the exception message to
+                        # indicate that a CIM status code was detectable, but
+                        # it is not possible to do that if we want to maintain
+                        # standard exception semantics w.r.t. the message.
+                        # So we just re-raise the original CIMXMLParseError or
+                        # XMLParseError.
+                        raise
+                else:
+                    # In this case, the ERROR element is not recognizable, so
+                    # we just re-raise the original CIMXMLParseError or
                     # XMLParseError.
                     raise
             else:
-                # In this case, the ERROR element is not recognizable, so we
-                # just re-raise the original CIMXMLParseError or XMLParseError.
-                raise
-        else:
-            if ret_val != 0:
-                raise ModelError(
-                    _format("The GetCentralInstances() method is implemented "
-                            "but failed with rc={0} for profile {1!A}",
-                            ret_val, profile_path.to_wbem_uri()))
-            central_inst_paths = out_params['CentralInstances']
-            return central_inst_paths
+                if ret_val != 0:
+                    raise ModelError(
+                        _format("The GetCentralInstances() method is "
+                                "implemented but failed with rc={0} for "
+                                "profile {1!A}",
+                                ret_val, profile_path.to_wbem_uri()))
+                central_inst_paths = out_params['CentralInstances']
+                return central_inst_paths
 
         # Try central methodology
         try:

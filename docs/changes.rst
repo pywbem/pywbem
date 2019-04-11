@@ -33,6 +33,13 @@ Released: not yet
 
 **Enhancements:**
 
+* Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
+  to be bypassed by default, because (1) WBEM servers do not implement it at
+  this point, and (2) there are WBEM servers that do not behave gracefully
+  when unknown CIM methods are invoked. Because WBEM servers are required to
+  implement one of the other methodologies, this change is not incompatible for
+  pywbem users.
+
 **Known issues:**
 
 * See `list of open issues`_.
