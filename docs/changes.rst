@@ -37,6 +37,8 @@ Released: not yet
   server-specific functionality from the tuple parser from the change history
   of pywbem 0.14.0.
 
+* Test: Added and fixed profile definitions for end2end tests. (Issue #1714)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
