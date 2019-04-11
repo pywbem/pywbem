@@ -31,6 +31,8 @@ Released: not yet
 
 * Test: Fixed AttributeError in end2end assertion functions (Issue #1714)
 
+* Test: Added and fixed profile definitions for end2end tests. (Issue #1714)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
