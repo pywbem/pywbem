@@ -153,11 +153,10 @@ class ServerObjectCache(object):
 ENUM_INST_CACHE = ServerObjectCache()
 
 
-def instance_of(conn, path_list, classname):
+def instance_of(conn, obj_list, classname):
     """
-    Return whether all of a set of CIM instances (identified by their instance
-    paths) are of a particular CIM class, i.e. that the creation class of the
-    CIM instances or one of its superclasses has the specified class name.
+    Return whether all of a set of CIM instances and/or CIM instance paths are
+    of a particular CIM class (including subclasses).
 
     Because there are WBEM servers without support for class operations,
     this is implemented without relying on class operations. The function
@@ -167,29 +166,27 @@ def instance_of(conn, path_list, classname):
 
     Parameters:
 
-        path_list (CIMInstanceName or CIMInstance or tuple/list
-          thereof): The CIM instance paths. The instance paths must have a
-          namespace and classname set. The namespace must be the same
-          across all instance paths. The host portion of the instance
-          paths is treated specially when comparing them, as described
-          in path_equal().
+        obj_list (CIMInstanceName or CIMInstance or tuple/list thereof):
+          The CIM instances and CIM instance paths to be evaluated.
 
         classname (string): The CIM class name.
     """
 
-    # Check and transform parameters
-    assert path_list is not None
-    if not isinstance(path_list, (tuple, list)):
-        path_list = [path_list]
+    assert obj_list is not None
+    if not isinstance(obj_list, (tuple, list)):
+        obj_list = [obj_list]
+
     paths = []
-    for obj in path_list:
+    for obj in obj_list:
         if isinstance(obj, CIMInstance):
-            obj = obj.path
-        assert isinstance(obj, CIMInstanceName)
-        assert obj.namespace is not None
-        assert obj.classname is not None
-        paths.append(obj)
-    del path_list
+            path = obj.path
+        else:
+            path = obj
+        assert isinstance(path, CIMInstanceName)  # ensured by CIMInstance
+        assert path.classname is not None  # ensured by CIMInstanceName
+        assert path.namespace is not None
+        paths.append(path)
+
     assert len(paths) >= 1
     namespace = paths[0].namespace
     for path in paths:
