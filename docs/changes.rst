@@ -28,6 +28,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Test: Temporary fix for pytest option `--pythonwarnings` in end2end tests
+  (issue #1714).
+
 **Enhancements:**
 
 **Known issues:**

@@ -269,14 +269,16 @@ pytest_end2end_opts := -v --tb=short $(pytest_opts)
 
 ifeq ($(python_m_version),3)
   pytest_warnings := --pythonwarnings=default
-  pytest_end2end_warnings_opts := --pythonwarnings=default,ignore::DeprecationWarning,ignore::PendingDeprecationWarning,ignore::ResourceWarning
+  pytest_end2end_warnings_opts := --pythonwarnings=default
+  # TODO: Add "ignore::DeprecationWarning,ignore::PendingDeprecationWarning,ignore::ResourceWarning"
 else
   ifeq ($(python_mn_version),2.6)
     pytest_warnings :=
     pytest_end2end_warnings_opts :=
   else
     pytest_warnings := --pythonwarnings=default
-    pytest_end2end_warnings_opts := --pythonwarnings=default,ignore::DeprecationWarning,ignore::PendingDeprecationWarning
+    pytest_end2end_warnings_opts := --pythonwarnings=default
+    # TODO: Add "ignore::DeprecationWarning,ignore::PendingDeprecationWarning"
   endif
 endif
 
