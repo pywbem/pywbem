@@ -64,11 +64,10 @@ def assert_number_of_instances_minimum(
                     inst_list_msg, exp_number, len(inst_list)))
 
 
-def assert_instance_of(conn, path_list, classname):
+def assert_instance_of(conn, obj_list, classname):
     """
-    Assert that a set of CIM instances (identified by its instance paths)
-    is of a particular CIM class, i.e. that the creation class of the CIM
-    instances or one of its superclasses has the specified class name.
+    Assert that a set of CIM instances and/or CIM instance paths are of a
+    particular CIM class (including subclasses).
 
     Because there are WBEM servers without support for class operations,
     this is implemented without relying on class operations. The function
@@ -80,22 +79,31 @@ def assert_instance_of(conn, path_list, classname):
 
         conn (WBEMConnection with 'server_definition' attribute)
 
-        path_list (CIMInstanceName or CIMInstance or tuple/list
-          thereof): The CIM instance paths. The instance paths must have a
-          namespace and classname set. The namespace must be the same
-          across all instance paths. The host portion of the instance
-          paths is treated specially when comparing them, as described
-          in path_equal().
+        obj_list (CIMInstanceName or CIMInstance or tuple/list thereof):
+          The CIM instances and CIM instance paths to be evaluated.
 
         classname (string): The CIM class name.
     """
 
-    # Parameters are checked and transformed in instance_of()
-
     # TODO 2018-12 AM: Improve performance by avoiding EI on each path
-    if not isinstance(path_list, (tuple, list)):
-        path_list = [path_list]
-    for path in path_list:
+    if not isinstance(obj_list, (tuple, list)):
+        obj_list = [obj_list]
+
+    for obj in obj_list:
+        if isinstance(obj, CIMInstance):
+            path = obj.path
+            assert isinstance(path, CIMInstanceName)  # Ensured by CIMInstance
+            assert path.namespace is not None  # Ensured by WBEMConnection ops
+            if path.classname != obj.classname:
+                raise AssertionError(
+                    _format("Server {0} at {1}: Inconsistent class name in "
+                            "CIMInstance object: obj.classname={2!A}, "
+                            "obj.path.classname={3!A}, obj.path={4!A}",
+                            conn.server_definition.nickname, conn.url,
+                            obj.classname, path.classname, path.to_wbem_uri()))
+        else:
+            path = obj
+            assert isinstance(path, CIMInstanceName)
         if not instance_of(conn, path, classname):
             raise AssertionError(
                 _format("Server {0} at {1}: Instance at {2!A} is not of "
