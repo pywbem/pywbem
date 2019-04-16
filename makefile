@@ -307,12 +307,6 @@ dist_dependent_files := \
 .PHONY: help
 help:
 	@echo "Makefile for $(package_name) package"
-	@echo "Platform: $(PLATFORM)"
-	@echo "Shell used for commands: $(SHELL)"
-	@echo "Shell flags: $(.SHELLFLAGS)"
-	@echo "Make version: $(MAKE_VERSION)"
-	@echo "Python location: $(shell $(WHICH) python)"
-	@echo "Python version: $(python_version)"
 	@echo "$(package_name) package version: $(package_version)"
 	@echo ""
 	@echo "Make targets:"
@@ -330,6 +324,7 @@ help:
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
 	@echo "  clobber    - Remove everything created to ensure clean start - use after setting git tag"
+	@echo "  pip_list   - Display the Python packages as seen by make"
 	@echo "  platform   - Display the information about the platform as seen by make"
 	@echo "  env        - Display the environment as seen by make"
 	@echo ""
@@ -359,17 +354,27 @@ help:
 
 .PHONY: platform
 platform:
+	@echo "makefile: Platform related information as seen by make:"
 	@echo "Platform: $(PLATFORM)"
 	@echo "Shell used for commands: $(SHELL)"
 	@echo "Shell flags: $(.SHELLFLAGS)"
+	@echo "Make command location: $(MAKE)"
 	@echo "Make version: $(MAKE_VERSION)"
-	@echo "Python location: $(shell $(WHICH) python)"
+	@echo "Python command name: $(PYTHON_CMD)"
+	@echo "Python command location: $(shell $(WHICH) $(PYTHON_CMD))"
 	@echo "Python version: $(python_version)"
+	@echo "Pip command name: $(PIP_CMD)"
+	@echo "Pip command location: $(shell $(WHICH) $(PIP_CMD))"
 	@echo "$(package_name) package version: $(package_version)"
+
+.PHONY: pip_list
+pip_list:
+	@echo "makefile: Python packages as seen by make:"
+	$(PIP_CMD) list
 
 .PHONY: env
 env:
-	@echo "Environment as seen by make:"
+	@echo "makefile: Environment as seen by make:"
 	$(ENV)
 
 .PHONY: _check_version
@@ -412,7 +417,6 @@ install_os: install_os_$(pymn).done
 
 install_os_$(pymn).done: makefile pip_upgrade_$(pymn).done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "makefile: Installing OS-level installation and runtime requirements"
-	@echo "Debug: PATH=$(PATH)"
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
 	pywbem_os_setup.bat install

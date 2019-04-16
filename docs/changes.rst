@@ -50,6 +50,9 @@ Released: not yet
   property name in the returned instance. Works in the conn_lite=True mode but
   fails in conn_lite=False mode because the test was case insensitive.
 
+* Test: Fixed Appveyor CI setup for UNIX-like environments under Windows
+  (Issue #1729)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
