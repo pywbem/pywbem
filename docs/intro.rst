@@ -305,7 +305,7 @@ present in the PATH.
   * ``tar``
 
   These commands can be made available in the PATH via a UNIX-like environment
-  such as `CygWin`_, `MSYS2`_, Babun, or Gow. If they are not all available in
+  such as `CygWin`_, MSYS2, Babun, or Gow. If they are not all available in
   the PATH, the `Chocolatey package manager`_ must be installed and its
   ``choco`` command must be available in the PATH.
 
@@ -328,8 +328,6 @@ present in the PATH.
 
 .. _`CygWin`: https://cygwin.org/
 
-.. _`MSYS2`: https://www.msys2.org/
-
 
 .. _`Installing to a UNIX-like environment under Windows`:
 
@@ -337,7 +335,7 @@ Installing to a UNIX-like environment under Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This section describes the installation of pywbem into a *UNIX-like environment
-under Windows* (such as `CygWin`_, `MSYS2`_, Babun, or Gow). That is an
+under Windows* (such as `CygWin`_, MSYS2, Babun, or Gow). That is an
 environment where the UNIX/Linux shell of the UNIX-like environment (such as
 ``bash`` or ``sh``) is used to run any commands.
 
@@ -355,16 +353,26 @@ Windows.
     - wheel (<0.30.0 on Python 2.6)
     - pip
 
-  - Prerequisite OS-level packages must be available in the UNIX-like
-    environment.
+* For `CygWin`_, the ``pywbem_os_setup.sh`` script supports
+  installation of the OS-level packages that are needed for using pywbem.
 
-    For CygWin, these packages can be installed using the CygWin setup
-    program and are listed in
-    :ref:`Prerequisite operating system packages for install`.
+  - Download the ``pywbem_os_setup.sh`` script from one of these sources:
 
-    For other UNIX-like environments, we did not compile a list of the required
-    packages. If you can help out here by providing the package names, please
-    tell us by `opening an issue <https://github.com/pywbem/pywbem/issues>`_).
+    - :download:`pywbem_os_setup.sh <../pywbem_os_setup.sh>` on this site
+    - `pywbem_os_setup.sh <https://raw.githubusercontent.com/pywbem/pywbem/master/pywbem_os_setup.sh>`_
+      on the `master` branch of the pywbem Git repository
+
+  - Execute the ``pywbem_os_setup.sh`` script:
+
+    .. code-block:: bash
+
+        $ ./pywbem_os_setup.sh
+
+* For other UNIX-like environments under Windows, the prerequisite OS-level
+  packages must be installed manually.
+
+  If you can help out here by providing the package names, please
+  tell us by `opening an issue <https://github.com/pywbem/pywbem/issues>`_).
 
 * Install pywbem (and its other prerequisite Python packages) into the active
   Python environment, by running in the UNIX/Linux shell of the UNIX-like
@@ -373,9 +381,6 @@ Windows.
   .. code-block:: bash
 
       $ pip install pywbem
-
-  If the Swig compilation during installation of ``M2Crypto`` fails, there may
-  be components of the UNIX-like environment missing (see first item).
 
 
 .. _`Installing into a different Python environment`:
@@ -553,11 +558,17 @@ in this table; you can find them in section
 +--------------------------+--------------------+----------------------+-------+
 | Windows (native)         | None               |                      |       |
 +--------------------------+--------------------+----------------------+-------+
-| Windows (CygWin)         | openssl-devel      |                      | py2   |
+| Windows (CygWin)         | openssl            |                      | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | libssl-devel       |                      | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | openssl-devel      |                      | py2   |
 |                          +--------------------+----------------------+-------+
 |                          | python2-devel      |                      | py2   |
 |                          +--------------------+----------------------+-------+
-|                          | gcc-g++            |                      | py2   |
+|                          | python2-cython     |                      | py2   |
+|                          +--------------------+----------------------+-------+
+|                          | gcc                |                      | py2   |
 |                          +--------------------+----------------------+-------+
 |                          | swig               |                      | py2   |
 +--------------------------+--------------------+----------------------+-------+
