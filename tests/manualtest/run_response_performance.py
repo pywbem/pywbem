@@ -18,7 +18,7 @@ from pyinstrument import Profiler
 import six
 
 
-from pywbem import tupletree, tupleparse
+from pywbem import tupletree, __version__
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
 if six.PY2:
@@ -36,6 +36,20 @@ PROFILE_OUT_PREFIX = 'perf'
 PROFILE_DUMP_SUFFIX = 'profile'
 PROFILE_LOG_SUFFIX = 'out'
 
+# The parser call is dependent on pywbem version. Changed from direct function
+# call in 0.13 to a method in a class.
+ver_tuple = __version__.split('.')
+if ver_tuple[0] == 0 and ver_tuple[1] <= 12:
+    from pywbem.tupleparse import parse_cim
+
+    def test_tuple_parse(tt):
+        parse_cim(tt)
+else:
+    from pywbem.tupleparse import TupleParser
+
+    def test_tuple_parse(tt):
+        tp = TupleParser()
+        tp.parse_cim(tt)
 
 STDOUT_ENCODING = getattr(_sys.stdout, 'encoding', None)
 if not STDOUT_ENCODING:
@@ -204,8 +218,8 @@ def execute_test_code(xml_string, profiler):
 
     # The code to be tested
     tt_ = tupletree.xml_to_tupletree_sax(xml_string, "TestData")
-    tp = tupleparse.TupleParser()
-    tp.parse_cim(tt_)
+    # call method dependent on pywbem version
+    test_tuple_parse(tt_)
 
     if profiler:
         if isinstance(profiler, cProfile.Profile):
@@ -242,6 +256,7 @@ class ExecuteTests(object):
         self.verbose = args.verbose
         self.log = args.log
         self.runid = args.runid or DEFAULT_RUNID
+        self.runid = self.runid + ": " + __version__
         # insure no blanks in the text
         self.runid.replace(" ", "-")
         self.tbl_output_format = 'simple'
@@ -554,7 +569,7 @@ Examples:
         metavar='text', type=str,
         action='store', default=DEFAULT_RUNID,
         help='R|A string that is concatenated into each filename\n'
-             'created by the script.\n'
+             'created by the script. It is suffixed with pywbem version.\n'
              'Default: %s' % DEFAULT_RUNID)
 
     tests_arggroup.add_argument(
