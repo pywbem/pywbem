@@ -20,14 +20,14 @@
 #
 
 # Script that installs OS-level prerequisites for pywbem on Linux, MacOS, and
-# Windows with UNIX-like environments.
+# Windows with UNIX-like environments (Cygwin).
 #
 # Prerequisite commands for running this script:
 #     python (This script uses the active Python environment, virtual Python
 #       environments are supported)
 #     pip (with support for download subcommand, is installed by makefile)
 #     uname
-#     The package installer for your OS (yum, dnf, apt, zypper, brew)
+#     The package installer for your OS (yum, dnf, apt, zypper, brew, ...)
 
 arg1="${1:-install}"
 arg2="${2:-}"
@@ -58,29 +58,55 @@ if [[ "$purpose" != "install" && "$purpose" != "develop" ]]; then
   exit 2
 fi
 
+function run_cmd() {
+  cmd="$1"
+  echo "$cmd"
+  eval "$cmd"
+  rc=$?
+  if [[ $rc != 0 ]]; then
+    echo "$myname: Error: Command failed with rc=$rc: $cmd"
+    exit 2
+  fi
+}
+
 function install_redhat() {
   installer="$1"
   pkg="$2"
   echo "$myname: Installing package: $pkg"
-  sudo $installer -y install $pkg
+  run_cmd "sudo $installer -y install $pkg"
+  echo "$myname: Done installing package: $pkg"
 }
 
 function install_debian() {
   pkg="$1"
   echo "$myname: Installing package: $pkg"
-  sudo apt-get --yes install $pkg
+  run_cmd "sudo apt-get --yes install $pkg"
+  echo "$myname: Done installing package: $pkg"
 }
 
 function install_suse() {
   pkg="$1"
   echo "$myname: Installing package: $pkg"
-  sudo zypper install -y $pkg
+  run_cmd "sudo zypper install -y $pkg"
+  echo "$myname: Done installing package: $pkg"
 }
 
 function install_osx() {
   pkg="$1"
   echo "$myname: Upgrading or installing package: $pkg"
-  brew upgrade $pkg || brew install $pkg
+  run_cmd "brew upgrade $pkg || brew install $pkg"
+  echo "$myname: Done installing package: $pkg"
+}
+
+function install_cygwin() {
+  pkg="$1"
+  echo "$myname: Installing package: $pkg"
+  if [[ "$(uname -m)" == "x86_64" ]]; then
+    run_cmd "/cygdrive/c/cygwin64/setup-x86_64.exe --no-shortcuts --quiet-mode --packages $pkg"
+  else
+    run_cmd "/cygdrive/c/cygwin/setup-x86.exe --no-shortcuts --quiet-mode --packages $pkg"
+  fi
+  echo "$myname: Done installing package: $pkg"
 }
 
 if [[ "$OS" == "Windows_NT" ]]; then
@@ -89,17 +115,15 @@ if [[ "$OS" == "Windows_NT" ]]; then
   # both platforms. If the CygWin make is used on native Windows, most of the
   # CygWin behavior is then visible in context of that make (e.g. a SHELL envvar
   # is set, the PATH envvar gets converted to UNIX syntax, execution of batch
-  # files requires execute permission, etc.). The check below with
-  # :/usr/local/bin: being in PATH was found to work even when using the CygWin
-  # make on native Windows.
-  if [[ $PATH == *:/usr/local/bin:* ]]; then
+  # files requires execute permission, etc.).
+  if [[ -n $PWD ]]; then
     distro_id="cygwin"
     distro_family="cygwin"
-    platform="CygWin"
+    platform="Windows_CygWin"
   else
     distro_id="windows"
     distro_family="windows"
-    platform="Windows"
+    platform="Windows_native"
   fi
 # If you need support for more Unix-like environments on Windows (e.g. MinGW)
 # please provide the code for detecting them here.
@@ -242,8 +266,39 @@ elif [[ "$distro_family" == "windows" ]]; then
     cmd /d /c pywbem_os_setup.bat develop
   fi
 
-else
+elif [[ "$distro_family" == "cygwin" ]]; then
 
+  if [[ "$purpose" == "install" ]]; then
+    if [[ "$py_m" == "2" ]]; then
+      # For M2Crypto:
+      install_cygwin openssl
+      install_cygwin libssl-devel
+      install_cygwin openssl-devel
+      install_cygwin gcc
+      install_cygwin swig
+      # For M2Crypto, pyzmq (used by Jupyter), lxml:
+      install_cygwin python2-devel
+      install_cygwin python2-cython
+    fi
+  fi
+
+  if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
+    install_cygwin libxml2
+    install_cygwin libxslt
+    install_cygwin libxml2-devel
+    install_cygwin libxslt-devel
+    install_cygwin libcrypt-devel
+    # For pyzmq (used by Jupyter):
+    install_cygwin libzmq-devel
+    if [[ "$py_m" == "3" ]]; then
+      # For pyzmq, lxml:
+      install_cygwin python3-devel
+      install_cygwin python3-cython
+    fi
+  fi
+
+else
   echo "$myname: Warning: Installation of OS-level packages not supported on platform ${platform}." >&2
   echo ". The equivalent packages for the Linux RedHat family are:" >&2
   echo ". For installing pywbem:" >&2
