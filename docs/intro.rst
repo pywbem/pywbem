@@ -304,10 +304,10 @@ present in the PATH.
   * ``chmod``
   * ``tar``
 
-  These commands can be made available in the PATH via a UNIX-like environment
-  such as `CygWin`_, MSYS2, Babun, or Gow. If they are not all available in
-  the PATH, the `Chocolatey package manager`_ must be installed and its
-  ``choco`` command must be available in the PATH.
+  These commands can either be made available via a UNIX-like environment
+  such as `CygWin`_, MSYS2, Babun, or Gow, or if they are not available
+  in the PATH, they will be installed using the
+  `Chocolatey package manager`_ by invoking its ``choco`` command.
 
   This script will also install the ``M2Crypto`` Python package into the active
   Python environment, so it must be run with the desired Python environment
