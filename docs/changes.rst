@@ -59,6 +59,9 @@ Released: not yet
   handling path, and by replacing some isinstance() calls with type()
   comparison.
 
+* Improved the quality of the information in TypeError exceptions that are raised
+  due to invalid types passed in WBEMConnection operation arguments. (Issue #1736)
+
 **Known issues:**
 
 * See `list of open issues`_.
