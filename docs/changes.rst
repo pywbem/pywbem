@@ -39,6 +39,12 @@ Released: not yet
 
 * Test: Added and fixed profile definitions for end2end tests. (Issue #1714)
 
+* Fix issue in the Jupyter notebook iterablecimoperations where the
+  IterQueryInstance example did not correctly processthe return from the
+  operation.  It attempted to itereate the returned object and should have
+  been iterating the generator property in that object.  Documentation of
+  that example and the example were corrected. (see issue #1741)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
