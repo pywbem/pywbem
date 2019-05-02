@@ -371,6 +371,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self._methodcall = Mock(side_effect=self._mock_methodcall)
 
     @property
+    def repo_lite(self):
+        """
+        Boolean indicating whether the connection was established in the
+        lite mode. (`True`) if the lite mode is set
+        """
+        return self._repo_lite
+
+    @property
     def response_delay(self):
         """
         :term:`number`:
@@ -798,7 +806,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                     cc.classname, cc.superclass))
                 class_repo = self._get_class_repo(namespace)
 
-                # TODO this sort of kills off the conn_lite for classes
+                # TODO: Future, this kills off the conn_lite for classes
                 # since we are resolving the classes.
                 qualifier_repo = None if self._repo_lite else \
                     self._get_qualifier_repo(namespace)
@@ -2521,7 +2529,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 if pl is None:
                     pl = class_pl
                 else:      # reduce pl to properties in class_properties
-                    pl = [pc for pc in class_pl if pc in pl]
+                    pl_lower = [pc.lower() for pc in pl]
+                    pl = [pc for pc in class_pl if pc.lower in pl_lower]
 
         clns_dict = self._get_subclass_list_for_enums(cname, namespace)
         insts = [self._get_instance(inst.path, namespace,

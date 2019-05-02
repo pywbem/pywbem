@@ -45,6 +45,11 @@ Released: not yet
   been iterating the generator property in that object.  Documentation of
   that example and the example were corrected. (see issue #1741)
 
+* Fix issue in pywbem_mock/_wbemconnection_mock.py with EnumerateInstances that
+  includes a property list with a property name that differs in case from the
+  property name in the returned instance. Works in the conn_lite=True mode but
+  fails in conn_lite=False mode because the test was case insensitive.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
