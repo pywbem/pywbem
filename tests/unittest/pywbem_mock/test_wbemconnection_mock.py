@@ -812,6 +812,17 @@ def conn_lite():
     return FakedWBEMConnection(repo_lite=True)
 
 
+@ pytest.fixture(params=[True, False])
+def conn_both(request):
+    """
+    Create the FakedWBEMConnection. This fixture returns the connection twice,
+    one with repo_lite True and the other with repo_lite False.  It can be
+    used to test both variations if the test can handle both variations.
+    """
+    FakedWBEMConnection._reset_logging_config()
+    return FakedWBEMConnection(repo_lite=request.param)
+
+
 #########################################################################
 #
 #            Pytest Test Classes
@@ -2977,23 +2988,26 @@ class TestInstanceOperations(object):
             ['CIM_Foo_sub', 'CIM_Foo_sub4', "blah", []],
             ['CIM_Foo_sub', 'CIM_Foo_sub4', 'InstanceID', ['InstanceID']],
             ['CIM_Foo_sub', 'CIM_Foo_sub4', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub4', ['instanceid'], ['InstanceID']],
             ['CIM_Foo_sub', 'CIM_Foo_sub4', ['InstanceID', 'cimfoo_sub'],
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
-    def test_getinstance_pl(self, conn, ns, cln, inst_id, pl, props_exp,
+    def test_getinstance_pl(self, conn_both, ns, cln, inst_id, pl, props_exp,
                             tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test the variations of property list against what is returned by
-        GetInstance.
+        GetInstance. This tests both the normal and lite mode for the
+        WBEM_Connection
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
+        if conn_both.repo_lite is False:
+            conn_both.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+        conn_both.add_cimobjects(tst_instances, namespace=ns)
         request_inst_path = CIMInstanceName(
             cln, {'InstanceID': inst_id}, namespace=ns)
 
-        inst = conn.GetInstance(request_inst_path, PropertyList=pl)
+        inst = conn_both.GetInstance(request_inst_path, PropertyList=pl)
 
         inst.path.namespace = ns
         assert inst.path == request_inst_path
@@ -3003,65 +3017,36 @@ class TestInstanceOperations(object):
         assert set([x.lower() for x in props_exp]) ==  \
             set([x.lower() for x in inst.keys()])
 
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    @pytest.mark.parametrize(
-        "cln", ['cim_foo', 'CIM_Foo'])
-    def test_enumerateinstnames_lite(self, conn_lite, ns, cln, tst_instances):
-        # pylint: disable=no-self-use
-        """
-        Test mock EnumerateInstanceNames against instances in tst_instances
-        fixture. This test builds an instance only repository and uses
-        conn_lite.
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-
-        # since we do not have classes in the repository, we get back only
-        # instances of the defined class
-        rtn_inst_names = conn_lite.EnumerateInstanceNames(cln, ns)
-
-        nsx = conn_lite.default_namespace if ns is None else ns
-
-        # pylint: disable=protected-access
-        request_inst_names = [i.path for i in conn_lite._get_instance_repo(nsx)
-                              if i.classname.lower() == cln.lower()]
-
-        assert len(rtn_inst_names) == len(request_inst_names)
-
-        for inst_name in rtn_inst_names:
-            assert isinstance(inst_name, CIMInstanceName)
-            assert inst_name in request_inst_names
-            assert inst_name.classname.lower() == cln.lower()
-
     # TODO KS add error test to this group. cln, exp_cond  and test for
     # bad class, no class should pull in at least test below.
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln", ['cim_foo', 'CIM_Foo'])
-    def test_enumerateinstnames(self, conn, ns, cln, tst_classeswqualifiers,
-                                tst_instances):
+    def test_enumerateinstnames(self, conn_both, ns, cln,
+                                tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
         fixture with both classes and instances in the repo.  This does not
         use repo_lite
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
+        if conn_both.repo_lite is False:
+            conn_both.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+        conn_both.add_cimobjects(tst_instances, namespace=ns)
 
-        rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
+        rtn_inst_names = conn_both.EnumerateInstanceNames(cln, ns)
 
-        nsx = conn.default_namespace if ns is None else ns
+        nsx = conn_both.default_namespace if ns is None else ns
 
         # pylint: disable=protected-access
-        exp_subclasses = conn._get_subclass_names(cln, nsx, True)
+        exp_subclasses = conn_both._get_subclass_names(cln, nsx, True)
         exp_subclasses.append(cln)
         sub_class_dict = NocaseDict()
         for name in exp_subclasses:
             sub_class_dict[name] = name
 
-        request_inst_names = [i.path for i in conn._get_instance_repo(nsx)
+        request_inst_names = [i.path for i in conn_both._get_instance_repo(nsx)
                               if i.classname in sub_class_dict]
 
         assert len(rtn_inst_names) == len(request_inst_names)
@@ -3158,14 +3143,15 @@ class TestInstanceOperations(object):
             ['CIM_Foo', True,
              ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2', 'CIM_Foo_sub_sub'],
              ['InstanceID', 'cimfoo_sub', 'cimfoo_sub2', 'cimfoo_sub_sub']],
+
+            # di false, expect only one property.
             ['CIM_Foo', False,
              ['CIM_Foo', 'CIM_Foo_sub', 'CIM_Foo_sub2', 'CIM_Foo_sub_sub'],
              ['InstanceID']],
         ]
     )
-    def test_enumerateinstances_nolite(self, conn, tst_classeswqualifiers,
-                                       tst_instances,
-                                       ns, cln, di, exp_cln, exp_prop):
+    def test_enumerateinstances(self, conn, tst_classeswqualifiers,
+                                tst_instances, ns, cln, di, exp_cln, exp_prop):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstances without repo_lite. Returns instances
@@ -3232,18 +3218,20 @@ class TestInstanceOperations(object):
             ['CIM_Foo', 'InstanceID', ['InstanceID']],
             ['CIM_Foo', ['InstanceID'], ['InstanceID']],
             ['CIM_Foo', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo', ['instanceid'], ['InstanceID']],
             ['CIM_Foo_sub', None, ['InstanceID', 'cimfoo_sub']],
             ['CIM_Foo_sub', "", []],
             ['CIM_Foo_sub', 'cimfoo_sub', ['cimfoo_sub']],
             ['CIM_Foo_sub', "blah", []],
             ['CIM_Foo_sub', 'InstanceID', ['InstanceID']],
             ['CIM_Foo_sub', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', ['instanceid'], ['InstanceID']],
             ['CIM_Foo_sub', ['InstanceID', 'cimfoo_sub'],
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
-    def test_enumerateinstances_pl(self, conn_lite, ns, cln, pl, props_exp,
-                                   tst_instances):
+    def test_enumerateinstances_pl_lite(self, conn_lite, ns, cln, pl, props_exp,
+                                        tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstances with namespace as an input
@@ -3259,7 +3247,6 @@ class TestInstanceOperations(object):
         for inst in rtn_insts:
             assert isinstance(inst, CIMInstance)
             assert inst.classname == cln
-            # TODO Test actual instance returned
 
         # Assert p_exp(expected returned properties) matches returned
         # properties.
@@ -3267,13 +3254,58 @@ class TestInstanceOperations(object):
             assert set([x.lower() for x in props_exp]) ==  \
                 set([x.lower() for x in inst.keys()])
 
-    # TODO repeat pl test with conn rather than connlite
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "cln, pl, props_exp",
+        [
+            #  cln       pl     props_exp
+            ['CIM_Foo', None, ['InstanceID']],
+            ['CIM_Foo', "", []],
+            ['CIM_Foo', "blah", []],
+            ['CIM_Foo', 'InstanceID', ['InstanceID']],
+            ['CIM_Foo', ['InstanceID'], ['InstanceID']],
+            ['CIM_Foo', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo', ['instanceid'], ['InstanceID']],
+            ['CIM_Foo_sub', None, ['InstanceID', 'cimfoo_sub']],
+            ['CIM_Foo_sub', "", []],
+            ['CIM_Foo_sub', 'cimfoo_sub', ['cimfoo_sub']],
+            ['CIM_Foo_sub', "blah", []],
+            ['CIM_Foo_sub', 'InstanceID', ['InstanceID']],
+            ['CIM_Foo_sub', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', ['instanceid'], ['InstanceID']],
+            ['CIM_Foo_sub', ['InstanceID', 'cimfoo_sub'],
+             ['InstanceID', 'cimfoo_sub']],
+        ]
+    )
+    def test_enumerateinstances_pl(self, conn, ns, cln, pl, props_exp,
+                                   tst_classeswqualifiers, tst_instances):
+        # pylint: disable=no-self-use
+        """
+        Test mock EnumerateInstances with namespace as an input
+        optional parameter and a defined property list.
+
+        """
+        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+        conn.add_cimobjects(tst_instances, namespace=ns)
+
+        rtn_insts = conn.EnumerateInstances(cln, namespace=ns,
+                                            PropertyList=pl)
+
+        # Can only test for properties in the return here since
+        # the tests return properties different for each subclass.
+        for inst in rtn_insts:
+            assert isinstance(inst, CIMInstance)
+            props_exp = [x.lower() for x in props_exp]
+            props_act = [x.lower() for x in inst.keys()]
+            for pn in props_exp:
+                assert pn in props_act
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "di", [None, True])
-    def test_enumerateinstances_di(self, conn_lite, tst_instances, ns, di):
+    def test_enumerateinstances_di_lite(self, conn_lite, tst_instances, ns, di):
         # pylint: disable=no-self-use
         """
         Test EnumerateInstances with DeepInheritance options.
@@ -3301,9 +3333,9 @@ class TestInstanceOperations(object):
             [False, None, ['InstanceID'], 8],
         ]
     )
-    def test_enumerateinstances_di2(self, conn, tst_classeswqualifiers,
-                                    tst_instances, ns,
-                                    di, pl, exp_p, exp_inst):
+    def test_enumerateinstances_di(self, conn, tst_classeswqualifiers,
+                                   tst_instances, ns,
+                                   di, pl, exp_p, exp_inst):
         # pylint: disable=no-self-use,unused-argument
         """
         Test EnumerateInstances with DeepInheritance and propertylist opetions.
@@ -3722,9 +3754,9 @@ class TestInstanceOperations(object):
     def test_deleteinstance_lite(self, conn_lite, tst_instances, ns, cln):
         # pylint: disable=no-self-use
         """
-        Test delete instance by inserting instances into the repository
-        and then deleting them. Deletes all instances that are CIM_Foo and
-        subclasses
+        Test delete instance in con_lite mode by inserting instances into the
+        repository and then deleting them. Deletes all instances that are
+        CIM_Foo and subclasses
         """
         conn_lite.add_cimobjects(tst_instances, namespace=ns)
 
