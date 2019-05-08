@@ -13,10 +13,30 @@ Change log
       :revisions: 1
 
 
-pywbem 0.14.2
+pywbem 0.14.3
 -------------
 
 This version is currently in development and is shown as |version|.
+
+Released: not yet
+
+**Incompatible changes:**
+
+**Deprecations:**
+
+**Bug fixes:**
+
+**Enhancements:**
+
+**Known issues:**
+
+* See `list of open issues`_.
+
+.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+
+
+pywbem 0.14.2
+-------------
 
 Released: 2019-05-08
 
