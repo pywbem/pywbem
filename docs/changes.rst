@@ -18,7 +18,7 @@ pywbem 1.0.0
 
 This version is currently in development and is shown as |version|.
 
-This version contains all fixes up to pywbem 0.14.0.
+This version contains all fixes up to pywbem 0.14.2.
 
 Released: not yet
 
