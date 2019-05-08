@@ -18,11 +18,7 @@ pywbem 0.14.2
 
 This version is currently in development and is shown as |version|.
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-05-08
 
 **Bug fixes:**
 
@@ -63,12 +59,6 @@ Released: not yet
 
 * Improved the quality of the information in TypeError exceptions that are raised
   due to invalid types passed in WBEMConnection operation arguments. (Issue #1736)
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.1
