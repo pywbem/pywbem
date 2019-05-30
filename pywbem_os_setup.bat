@@ -45,6 +45,11 @@ if not %PYTHON_M_VERSION%==2 goto install_no_py2
 
 where swig >nul
 if %errorlevel%==0 (
+    echo %myname%: Swig is already installed ... showing details
+    echo where swig
+    where swig
+    echo swig -version
+    swig -version
     echo %myname%: Swig is already installed ... skipping
     goto done_swig
 )
@@ -78,6 +83,11 @@ echo %myname%: Done installing Swig
 
 where curl >nul
 if %errorlevel%==0 (
+    echo %myname%: Curl is already installed ... showing details
+    echo where curl
+    where curl
+    echo curl --version
+    curl --version
     echo %myname%: Curl is already installed ... skipping
     goto done_curl
 )
@@ -103,6 +113,11 @@ echo %myname%: Done installing Curl
 
 where grep >nul
 if %errorlevel%==0 (
+    echo %myname%: Grep is already installed ... showing details
+    echo where grep
+    where grep
+    echo grep --version
+    grep --version
     echo %myname%: Grep is already installed ... skipping
     goto done_grep
 )
@@ -126,56 +141,69 @@ if not "%_RC%"=="0" goto error1
 echo %myname%: Done installing Grep
 :done_grep
 
-:: The bit size of Win32/64OpenSSL must match the bit size of the Python env.
-set _WINOPENSSL_BITSIZE=%PYTHON_ARCH%
-set _WINOPENSSL_BASENAME=Win%_WINOPENSSL_BITSIZE%OpenSSL-1_1_0j
-set _WINOPENSSL_INSTALL_DIR=C:\OpenSSL-1-1-0j-Win%_WINOPENSSL_BITSIZE%
-if exist %_WINOPENSSL_INSTALL_DIR% (
-    echo %myname%: %_WINOPENSSL_BASENAME% is already installed in %_WINOPENSSL_INSTALL_DIR% ... skipping
+echo %myname%: Installing Win32OpenSSL ...
+
+:: The version of Win32OpenSSL to be downloaded.
+:: Note that the Win32OpenSSL project at https://slproweb.com/ removes
+:: the previously available version when a new version is released. Whenever
+:: that happens, this version here must be updated.
+set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0k
+set _WIN32OPENSSL_VERSION_DASHED=1-1-0k
+
+:: The bit size of Win32OpenSSL must match the bit size of the Python env.
+set _WIN32OPENSSL_BITSIZE=%PYTHON_ARCH%
+set _WIN32OPENSSL_BASENAME=Win%_WIN32OPENSSL_BITSIZE%OpenSSL-%_WIN32OPENSSL_VERSION_UNDERSCORED%
+set _WIN32OPENSSL_INSTALL_DIR=C:\OpenSSL-%_WIN32OPENSSL_VERSION_DASHED%-Win%_WIN32OPENSSL_BITSIZE%
+if exist %_WIN32OPENSSL_INSTALL_DIR% (
+    echo %myname%: %_WIN32OPENSSL_BASENAME% is already installed in %_WIN32OPENSSL_INSTALL_DIR% ... skipping
     goto done_winopenssl
 )
 
-echo %myname%: Installing %_WINOPENSSL_BASENAME% ...
-
-set _CMD=curl -o %_WINOPENSSL_BASENAME%.exe -sSL https://slproweb.com/download/%_WINOPENSSL_BASENAME%.exe --retry 3 --retry-connrefused --retry-delay 10
+set _CMD=curl -o %_WIN32OPENSSL_BASENAME%.exe -sSL https://slproweb.com/download/%_WIN32OPENSSL_BASENAME%.exe --retry 3 --retry-connrefused --retry-delay 10
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
 if not "%_RC%"=="0" goto error1
 
-:: If the web site does not know the file, it returns a HTML page showing an error, and curl succeeds downloading that
-set _CMD=grep "^<html>" %_WINOPENSSL_BASENAME%.exe
+:: If the web site does not know the file, it returns an HTML page showing an
+:: error, and curl succeeds downloading that HTML page.
+:: Note: The desired regexp would be "^<html>", but grep 3.0 on Appveyor does
+::       not support "^" and the Windows command shell has difficulties with
+::       the angle brackets in "<html>".
+set _CMD=grep ".html." %_WIN32OPENSSL_BASENAME%.exe
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
 if "%_RC%"=="0" (
-    echo %myname%: Error: The %_WINOPENSSL_BASENAME%.exe file does not exist on https://slproweb.com:
-    cat %_WINOPENSSL_BASENAME%.exe
-    rm %_WINOPENSSL_BASENAME%.exe
+    echo %myname%: Error: The %_WIN32OPENSSL_BASENAME%.exe file does not exist on https://slproweb.com.
+    echo %myname%: The https://slproweb.com web site says:
+    cat %_WIN32OPENSSL_BASENAME%.exe
+    echo %myname%: End of https://slproweb.com web site
+    rm %_WIN32OPENSSL_BASENAME%.exe
     set _RC=1
     goto error1
 )
 
 :: Downloaded files may not have the execution right.
 rem TODO: Find a way to set RX with the built-in icacls to remove dependency on chmod
-rem set _CMD=icacls %_WINOPENSSL_BASENAME%.exe /grant "*S-1-1-0":F
-set _CMD=chmod 755 %_WINOPENSSL_BASENAME%.exe
+rem set _CMD=icacls %_WIN32OPENSSL_BASENAME%.exe /grant "*S-1-1-0":F
+set _CMD=chmod 755 %_WIN32OPENSSL_BASENAME%.exe
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
 if not "%_RC%"=="0" goto error1
 
-echo %myname%: ACL permissions of %_WINOPENSSL_BASENAME%.exe:
-icacls %_WINOPENSSL_BASENAME%.exe
+echo %myname%: ACL permissions of %_WIN32OPENSSL_BASENAME%.exe:
+icacls %_WIN32OPENSSL_BASENAME%.exe
 
 :: The installer has a GUI which is suppressed by /silent /verysilent
-set _CMD=%_WINOPENSSL_BASENAME%.exe /silent /verysilent /suppressmsgboxes /dir="%_WINOPENSSL_INSTALL_DIR%"
+set _CMD=%_WIN32OPENSSL_BASENAME%.exe /silent /verysilent /suppressmsgboxes /dir="%_WIN32OPENSSL_INSTALL_DIR%"
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
 if not "%_RC%"=="0" goto error1
 
-echo %myname%: Done installing %_WINOPENSSL_BASENAME%
+echo %myname%: Done installing Win32OpenSSL
 :done_winopenssl
 
 pip show M2Crypto >nul 2>nul
@@ -201,7 +229,7 @@ if not "%_RC%"=="0" goto error1
 
 pushd M2Crypto-%_M2CRYPTO_VERSION%
 
-set _CMD=python setup.py build --openssl=%_WINOPENSSL_INSTALL_DIR%
+set _CMD=python setup.py build --openssl=%_WIN32OPENSSL_INSTALL_DIR%
 echo %_CMD%
 call %_CMD%
 set _RC=%errorlevel%
@@ -248,6 +276,11 @@ echo %myname%: Installing OS-level prerequisite packages for develop on platform
 
 where xmllint >nul
 if %errorlevel%==0 (
+    echo %myname%: xmllint is already installed ... showing details
+    echo where xmllint
+    where xmllint
+    echo xmllint --version
+    xmllint --version
     echo %myname%: xmllint is already installed ... skipping
     goto done_xmllint
 )

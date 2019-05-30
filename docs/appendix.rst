@@ -540,6 +540,39 @@ To fix this, install the Python "wheel" package::
 
     pip install wheel
 
+Installation on Windows fails downloading or executing Win64OpenSSL-1_1_0j.exe
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The installation of M2Crypto on Windows requires an OpenSSL package, which is
+provided by Win32OpenSSL from https://slproweb.com/. The maintainer of
+that project has decided to remove the previous version of Win32OpenSSL
+whenever he releases a new version. Whenever such a release happens, this
+breaks the installation of pywbem on Windows (and of any other project that
+downloads Win32OpenSSL automatically).
+
+The symptom is that the installation of pywbem fails inside of
+pywbem_os_setup.bat with an error message like this::
+
+    pywbem_os_setup.bat: Error: The Win64OpenSSL-1_1_0j.exe file does not exist on https://slproweb.com.
+
+In the past, this issue has surfaced with a different symptom::
+
+    Win64OpenSSL-1_1_0j.exe /silent /verysilent /suppressmsgboxes /dir="C:\OpenSSL-1-1-0j-Win64"
+    The system cannot execute the specified program.
+    pywbem_os_setup.bat: Error: Command returned rc=1
+
+This issue will be fixed by the pywbem project by upgrading the version number
+of Win32OpenSSL relatively shortly (because we have regular test runs on the
+Appveyor CI), but in case you have run into this issue, here is how to get over
+it by yourself:
+
+Edit the file `pywbem_os_setup.bat`, and change the following versions to
+the latest released version of Win32OpenSSL on
+https://slproweb.com/products/Win32OpenSSL.html::
+
+    set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0j
+    set _WIN32OPENSSL_VERSION_DASHED=1-1-0j
+
 
 .. _'Glossary`:
 
