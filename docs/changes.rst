@@ -53,6 +53,16 @@ Released: not yet
 * Test: Fixed Appveyor CI setup for UNIX-like environments under Windows
   (Issue #1729)
 
+* Windows install: Upgraded version of Win32/64OpenSSL.exe that is downloaded
+  during installation on native Windows, from 1.1.0j to 1.1.0k. This became
+  necessary because the maintainer of the Win32OpenSSL project at
+  https://slproweb.com/products/Win32OpenSSL.html removes the previous version
+  from the web site whenever a new version is released, causing the pywbem
+  installation to fail during invocation of pywbem_os_setup.bat on Windows.
+  Related to that, fixed the way pywbem_os_setup.bat recognizes that the
+  version does not exist.
+  (see issue #1754)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -69,6 +79,12 @@ Released: not yet
 
 * Improved the quality of the information in TypeError exceptions that are raised
   due to invalid types passed in WBEMConnection operation arguments. (Issue #1736)
+
+* Docs: Updated the trouble shooting section with an entry that explains
+  how a user can resolve the installation failure that is caused on Windows
+  when the Win32OpenSSL project at
+  https://slproweb.com/products/Win32OpenSSL.html removes the previous version
+  from their web site when a new version is released.
 
 **Known issues:**
 
