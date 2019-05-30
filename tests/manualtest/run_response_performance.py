@@ -39,7 +39,7 @@ PROFILE_LOG_SUFFIX = 'out'
 # The parser call is dependent on pywbem version. Changed from direct function
 # call in 0.13 to a method in a class.
 ver_tuple = __version__.split('.')
-if ver_tuple[0] == 0 and ver_tuple[1] <= 12:
+if int(ver_tuple[0]) == 0 and int(ver_tuple[1]) <= 12:
     from pywbem.tupleparse import parse_cim
 
     def test_tuple_parse(tt):
