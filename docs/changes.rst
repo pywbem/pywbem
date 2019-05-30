@@ -109,6 +109,9 @@ Released: not yet
 
   These packages are only used for development of pywbem.
 
+* Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
+  using a predictable URL, for automated downloads.
+
 **Known issues:**
 
 * See `list of open issues`_.
