@@ -19,10 +19,7 @@ import threading
 import logging
 import datetime
 from socket import getfqdn
-if sys.version_info >= (3, 0):
-    from urllib.parse import urlparse
-if sys.version_info < (3, 0) and sys.version_info >= (2, 5):
-    from urlparse import urlparse
+from six.moves import urllib
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
                    Error, ConnectionError, Uint32, WBEMSubscriptionManager
 
@@ -310,7 +307,7 @@ def main():
         requested_indications = int(sys.argv[5])
         repeat_loop = int(sys.argv[6])
 
-    listener_addr = urlparse(server_url).netloc
+    listener_addr = urllib.parse(server_url).netloc
 
     print('url=%s listener=%s port=%s usr=%s pw=%s cnt=%s repeat=%s' % \
           (server_url, listener_addr, http_listener_port, \

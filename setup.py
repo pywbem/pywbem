@@ -33,6 +33,6 @@ setuptools.setup(
     # setuptools=33.1.1 and pip=9.0.1.
     # !!! Make sure to keep the supported Python versions in sync
     # between setup.py, setup.cfg and pywbem/__init__.py !!!
-    python_requires='>=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
 
     pbr=True)

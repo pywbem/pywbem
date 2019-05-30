@@ -66,19 +66,13 @@ _python_n = sys.version_info[1]  # pylint: disable=invalid-name
 
 # !!! Make sure to keep the supported Python versions in sync
 # between setup.py, setup.cfg and pywbem/__init__.py !!!
-if _python_m == 2 and _python_n < 6:   # pylint: disable=no-else-raise
-    raise RuntimeError('On Python 2, pywbem requires Python 2.6 or higher')
+if _python_m == 2 and _python_n < 7:   # pylint: disable=no-else-raise
+    raise RuntimeError('On Python 2, pywbem requires Python 2.7 or higher')
 elif _python_m == 3 and _python_n < 4:
     raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')
 
 # On Python 2, add a NullHandler to suppress the warning "No handlers could be
 # found for logger ...".
 if _python_m == 2:
-    try:  # Python 2.7+ includes logging.NullHandler
-        from logging import NullHandler
-    except ImportError:
-        class NullHandler(logging.Handler):
-            """Implement logging NullHandler for Python 2.6"""
-            def emit(self, record):
-                pass
+    from logging import NullHandler
     logging.getLogger('pywbem').addHandler(NullHandler())

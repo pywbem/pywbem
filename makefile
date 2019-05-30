@@ -395,18 +395,8 @@ endif
 install_basic_$(pymn).done: makefile pip_upgrade_$(pymn).done
 	@echo "makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
-ifeq ($(python_mn_version),2.6)
-	$(PIP_CMD) install importlib
-endif
 	$(PYTHON_CMD) remove_duplicate_setuptools.py
-# Keep the condition for the 'wheel' package consistent with the requirements & constraints files.
-# The approach with "python -m pip" is needed for Windows because pip.exe may be locked,
-# but it is not supported on Python 2.6 (which is not supported with pywbem on Windows).
-ifeq ($(python_mn_version),2.6)
-	$(PIP_CMD) install $(pip_level_opts) setuptools 'wheel<0.30.0'
-else
 	$(PIP_CMD) install $(pip_level_opts) setuptools wheel
-endif
 	$(PIP_CMD) install $(pip_level_opts) pbr
 	echo "done" >$@
 	@echo "makefile: Done installing/upgrading basic Python packages"

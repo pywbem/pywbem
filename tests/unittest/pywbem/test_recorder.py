@@ -16,7 +16,7 @@ import logging
 import logging.handlers
 from io import open as _open
 
-import unittest2 as unittest  # we use @skip introduced in py27
+import unittest
 import six
 from testfixtures import LogCapture, log_capture
 # Enabled only to display a tree of loggers

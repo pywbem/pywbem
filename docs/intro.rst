@@ -98,27 +98,12 @@ Pywbem is supported in these environments:
 * Operating Systems: Linux, Windows (native, and with UNIX-like environments),
   OS-X
 
-* Python: 2.6, 2.7, 3.4, and higher
+* Python: 2.7, 3.4, and higher
 
 * WBEM servers: Any WBEM server that conforms to the DMTF specifications listed
   in :ref:`Standards conformance`. WBEM servers supporting older versions of
   these standards are also supported, but may have limitations.
   See :ref:`WBEM servers` for more details.
-
-Limitations:
-
-* On Windows (native), pywbem is not supported on Python 2.6, because the
-  M2Crypto package does not support Python 2.6.
-
-Announcement of removal of Python 2.6 support:
-
-* The Python Software Foundation has stopped supporting Python 2.6 with the
-  2.6.9 release in october 2013. Since then, many Python package projects have
-  continued releasing versions for Python 2.6, and so has pywbem. In 2017 and
-  2018, a number of Python package projects have actively removed support for
-  Python 2.6 and it has become an increasingly difficult task for pywbem to
-  keep supporting Python 2.6. For this reason, Python 2.6 support will be
-  removed from pywbem in its future 1.0.0 version.
 
 
 .. _`Installing to Linux`:
@@ -133,7 +118,7 @@ Installing to Linux
     installed:
 
     - setuptools
-    - wheel (<0.30.0 on Python 2.6)
+    - wheel
     - pip
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
@@ -170,27 +155,6 @@ Installing to Linux
   please `open an issue <https://github.com/pywbem/pywbem/issues>`_ so we can
   add support for that Linux distribution to the script.
 
-* Only on Python 2.6 on Linux Debian family systems with multi-architecture
-  support (e.g. Ubuntu 16.04 and higher):
-
-  Perform the following workaround to make the multi-architecture header files
-  of OpenSSL available in a compatible way (the example is for x86_64 systems):
-
-  .. code-block:: bash
-
-      $ sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h
-
-  Background: One of the packages needed by pywbem on Python 2 is ``M2Crypto``.
-  During its own installation as a Python package, ``M2Crypto`` needs the
-  OpenSSL header files. On Linux Debian family systems with multi-architecture
-  support, the structure of OpenSSL header files changed incompatibly (compared
-  to earlier versions of these distributions). The installation of ``M2Crypto``
-  tries to accomodate that incompatibility by detecting multi-architecture
-  support, but on Python 2.6 the interface for that was not yet supported. As a
-  result, the OpenSSL header files are not found. The workaround established in
-  this step makes the OpenSSL header files available in a compatible way, so
-  that the ``M2Crypto`` installation finds them.
-
 * Install pywbem (and its prerequisite Python packages) into the active Python
   environment:
 
@@ -211,7 +175,7 @@ Installing to OS-X
     installed:
 
     - setuptools
-    - wheel (<0.30.0 on Python 2.6)
+    - wheel
     - pip
 
 * Download the ``pywbem_os_setup.sh`` script from one of these sources:
@@ -350,7 +314,7 @@ Windows.
     installed:
 
     - setuptools
-    - wheel (<0.30.0 on Python 2.6)
+    - wheel
     - pip
 
 * For `CygWin`_, the ``pywbem_os_setup.sh`` script supports

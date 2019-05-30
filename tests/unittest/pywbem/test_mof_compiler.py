@@ -8,7 +8,7 @@
 from __future__ import print_function, absolute_import
 
 import os
-import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
+import unittest
 import six
 from ply import lex
 try:

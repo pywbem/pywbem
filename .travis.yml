@@ -30,26 +30,16 @@ sudo: required
 # to install Python.
 matrix:
   include:
-#    - os: linux
-#      language: python
-#      python: "2.6"
-#      env:
-#        - PACKAGE_LEVEL=minimum
-    - os: linux
-      language: python
-      python: "2.6"
-      env:
-        - PACKAGE_LEVEL=latest
     - os: linux
       language: python
       python: "2.7"
       env:
         - PACKAGE_LEVEL=minimum
-#    - os: linux
-#      language: python
-#      python: "2.7"
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "2.7"
+      env:
+        - PACKAGE_LEVEL=latest
 #    - os: linux
 #      language: python
 #      python: "3.4"
@@ -198,16 +188,6 @@ install:
       export CFLAGS="-I$openssl_dir/include $CFLAGS";
       export SWIG_FEATURES="-I$openssl_dir/include $SWIG_FEATURES";
     fi
-# Begin of m2crypto quick fix.
-# The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
-# TODO: Replace the following quick fix for installing M2Crypto with a real fix.
-  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "2.6" ]]; then
-      if [[ -f /usr/include/x86_64-linux-gnu/openssl/opensslconf.h && ! -f /usr/include/openssl/opensslconf.h ]]; then
-        echo "Quickfix for M2Crypto swig run - Linking openssl/opensslconf.h";
-        sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h;
-      fi
-    fi
-# End of m2crypto quick fix.
   - pip list
   - make platform env
   - make install

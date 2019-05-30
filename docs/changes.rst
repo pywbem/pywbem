@@ -24,6 +24,20 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Removed Python 2.6 support.
+
+  The Python Software Foundation stopped supporting Python 2.6 with the
+  2.6.9 release in October 2013. Since then, many Python package projects have
+  continued releasing versions for Python 2.6, including pywbem. In 2017 and
+  2018, a number of Python package projects have actively removed support for
+  Python 2.6 and it has become an increasingly difficult task for pywbem to
+  keep supporting Python 2.6. For this reason, Python 2.6 support has been
+  removed from pywbem in its 1.0.0 version.
+
+  This allowed eliminating a lot of Python version dependent code,
+  eliminating the dependency to the unittest2 package, and lifting a number
+  of restrictions in test code.
+
 **Deprecations:**
 
 **Bug fixes:**

@@ -443,47 +443,6 @@ Troubleshooting
 
 Here are some trouble shooting hints for the installation of pywbem.
 
-AttributeError for NullHandler during mkvirtualenv on Python 2.6
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If the `mkvirtualenv` command fails on Python 2.6 with this error::
-
-    File "/usr/lib/python2.6/site-packages/stevedore/__init__.py", line 23,
-      in <module> LOG.addHandler(logging.NullHandler())
-    AttributeError: 'module' object has no attribute 'NullHandler'
-
-then the `stevedore` PyPI package is too recent(!) The owners of that
-package spent effort to remove the previously existing Python 2.6 support in
-some steps, starting with stevedore v1.10.
-
-The solution is to use stevedore v1.9. Note that for virtualenvwrapper to use
-it, it must be installed into the system Python:
-
-    $ sudo pip install stevedore==1.9
-
-TypeError about StreamHandler argument 'stream' during mkvirtualenv on Python 2.6
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If the `mkvirtualenv` command fails on Python 2.6 with this error::
-
-    File "/usr/lib/python2.6/site-packages/virtualenvwrapper/hook_loader.py",
-      line 101, in main
-    console = logging.StreamHandler(stream=sys.stderr)
-    TypeError: __init__() got an unexpected keyword argument 'stream'
-
-then the `virtualenvwrapper` PyPI package is too old. As of its released
-version v4.7.1, a fix for that is in the master branch of its repository and
-has not been released yet.
-
-While a new version of `virtualenvwrapper` with the fix is not yet released,
-a solution is to clone the `virtualenvwrapper` repository and to install it
-from its working directory. Note that it must be installed into the system
-Python::
-
-    $ git clone https://bitbucket.org/dhellmann/virtualenvwrapper.git virtualenvwrapper
-    $ cd virtualenvwrapper
-    $ sudo python setup.py install
-
 Swig error 'Unrecognized option -builtin' during M2Crypto install
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
