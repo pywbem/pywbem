@@ -62,7 +62,8 @@ httpretty==0.8.14; python_version == '2.6'
 httpretty==0.9.5; python_version > '2.6'
 lxml==4.2.4; python_version == '2.6'
 lxml==4.2.4; python_version > '2.6'
-requests==2.19.1
+requests==2.19.1; python_version == '2.6'
+requests==2.20.1; python_version > '2.6'
 decorator==4.0.11
 yamlordereddictloader==0.4.0
 funcsigs==1.0.2
@@ -124,7 +125,7 @@ alabaster==0.7.9
 appnope==0.1.0
 args==0.1.0
 Babel==2.3.4
-bleach==2.1.0
+bleach==2.1.4
 chardet==3.0.2
 clint==0.5.1
 coverage==4.0.3
@@ -175,7 +176,7 @@ toml==0.10.0
 tornado==4.4.2
 traceback2==1.4.0
 traitlets==4.3.1
-urllib3==1.22
+urllib3==1.23
 virtualenv==14.0.0
 wcwidth==0.1.7
 widgetsnbextension==1.2.6

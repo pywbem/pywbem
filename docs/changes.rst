@@ -44,6 +44,18 @@ Released: not yet
   https://slproweb.com/products/Win32OpenSSL.html removes the previous version
   from their web site when a new version is released.
 
+* Increased versions of the following packages to address security
+  vulnerabilities:
+
+  * requests from 2.19.1 to 2.20.1 (when on Python 2.7 or higher)
+  * urllib3 from 1.22 to 1.23
+  * bleach from 2.1.0 to 2.1.4
+
+  These packages are only used for development of pywbem.
+
+  Note that requests 2.19.1 has a security issue that is fixed in 2.20.0.
+  However, requests 2.20.0 has dropped support for Python 2.6. 
+
 **Known issues:**
 
 * See `list of open issues`_.
