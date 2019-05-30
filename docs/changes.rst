@@ -16,13 +16,7 @@ Change log
 pywbem 0.14.3
 -------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-05-30
 
 **Bug fixes:**
 
@@ -55,12 +49,6 @@ Released: not yet
 
   Note that requests 2.19.1 has a security issue that is fixed in 2.20.0.
   However, requests 2.20.0 has dropped support for Python 2.6. 
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.2
