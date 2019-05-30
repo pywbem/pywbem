@@ -28,6 +28,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
+  using a predictable URL, for automated downloads.
+
 **Known issues:**
 
 * See `list of open issues`_.
