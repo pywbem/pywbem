@@ -9,11 +9,10 @@ from __future__ import absolute_import, print_function
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
-import sys
 import re
 from datetime import timedelta, datetime
 import warnings
-import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
+import unittest
 from mock import patch
 try:
     from collections import OrderedDict
@@ -3778,7 +3777,7 @@ class Test_CIMInstanceName_to_wbem_uri_str(object):
             'kmin32=1.175494351e-38,'
             'kmax64=1.7976931348623157e+308,'
             'kmin64=2.2250738585072014e-308',
-            None, CHECK_0_12_0 and sys.version_info[0:2] >= (2, 7)
+            None, CHECK_0_12_0
         ),
         (
             "float key with special value INF (allowed by extension)",

@@ -26,7 +26,6 @@ using a set of local mock qualifiers, classes, and instances.
 """
 from __future__ import absolute_import, print_function
 
-import sys
 import os
 import shutil
 from datetime import datetime
@@ -861,9 +860,7 @@ class TestFakedWBEMConnection(object):
 
         start_time = datetime.now()
         conn.GetClass('CIM_Foo')
-        diff = datetime.now() - start_time
-        # Did this because python 2.6 does not support total_seconds())
-        exec_time = float(diff.seconds) + (float(diff.microseconds) / 1000000)
+        exec_time = (datetime.now() - start_time).total_seconds()
 
         if delay:
             assert delay * .8 < exec_time < delay * 2.0
@@ -1259,54 +1256,48 @@ class TestRepoMethods(object):
         # Test basic display repo output
         conn.display_repository()
         captured = capsys.readouterr()
-        # python 2.6 does not include the .out
-        if sys.version_info[0:2] != (2, 6):
-            result = captured.out
-            assert result.startswith(
-                "# ========Mock Repo Display fmt=mof namespaces=all")
-            assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
-            assert "instance of CIM_Foo {" in result
-            for ns in namespaces:
-                assert _format("# Namespace {0!A}: contains 9 Qualifier "
-                               "Declarations", ns) \
-                    in result
-                assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
-                    in result
-                assert _format("# Namespace {0!A}: contains 9 Instances", ns) \
-                    in result
-            assert "Qualifier Abstract : boolean = false," in result
 
-            # Confirm that the display formats work
-            for param in ('xml', 'mof', 'repr'):
-                conn.display_repository(output_format=param)
-                captured = capsys.readouterr()
-                if sys.version_info[0:2] != (2, 6):
-                    assert captured.out
+        result = captured.out
+        assert result.startswith(
+            "# ========Mock Repo Display fmt=mof namespaces=all")
+        assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
+        assert "instance of CIM_Foo {" in result
+        for ns in namespaces:
+            assert _format("# Namespace {0!A}: contains 9 Qualifier "
+                           "Declarations", ns) \
+                in result
+            assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
+                in result
+            assert _format("# Namespace {0!A}: contains 9 Instances", ns) \
+                in result
+        assert "Qualifier Abstract : boolean = false," in result
 
-            # confirm that the two repositories exist
-            conn.display_repository(namespaces=namespaces)
+        # Confirm that the display formats work
+        for param in ('xml', 'mof', 'repr'):
+            conn.display_repository(output_format=param)
             captured = capsys.readouterr()
-            if sys.version_info[0:2] != (2, 6):
-                assert captured.out
+            assert captured.out
 
-            # test with a defined namespace
-            ns = namespaces[0]
-            conn.display_repository(namespaces=[ns])
+        # confirm that the two repositories exist
+        conn.display_repository(namespaces=namespaces)
+        captured = capsys.readouterr()
+        assert captured.out
+
+        # test with a defined namespace
+        ns = namespaces[0]
+        conn.display_repository(namespaces=[ns])
+        captured = capsys.readouterr()
+        assert captured.out
+
+        conn.display_repository(namespaces=ns)
+        captured = capsys.readouterr()
+        assert captured.out
+
+        # test for invalid output_format
+        with pytest.raises(ValueError):
+            conn.display_repository(output_format='blah')
             captured = capsys.readouterr()
-            if sys.version_info[0:2] != (2, 6):
-                assert captured.out
-
-            conn.display_repository(namespaces=ns)
-            captured = capsys.readouterr()
-            if sys.version_info[0:2] != (2, 6):
-                assert captured.out
-
-            # test for invalid output_format
-            with pytest.raises(ValueError):
-                conn.display_repository(output_format='blah')
-                captured = capsys.readouterr()
-                if sys.version_info[0:2] != (2, 6):
-                    assert captured.out
+            assert captured.out
 
     def test_display_repo_tofile(self, conn, tst_instances_mof):
         # pylint: disable=no-self-use

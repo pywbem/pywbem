@@ -59,7 +59,7 @@ This follows best practices recommended in `Configuring logging for a library
 and in several articles, for example in `this article
 <http://pieces.openpolitics.com/2012/04/python-logging-best-practices/>`_.
 Because this warning is no longer issued on Python 3.4 and higher, pywbem
-adds a null handler only on Python 2.6 and 2.7.
+adds a null handler only on Python 2.7.
 
 Because pywbem logs only at the :attr:`py:logging.DEBUG` logging level, these
 log events will not be printed by the Python root logger by default, and

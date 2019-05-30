@@ -12,11 +12,9 @@
 # On Windows, M2Crypto must be installed via pywbem_os_setup.bat
 M2Crypto>=0.31.0; python_version < '3.0' and sys_platform != 'win32'
 mock>=2.0.0
-ordereddict>=1.1; python_version == '2.6'
 pbr>=1.10.0
 ply>=3.10
-PyYAML==3.11; python_version == '2.6'  # yaml package
-PyYAML>=3.13; python_version >= '2.7'  # yaml package
+PyYAML>=3.13
 six>=1.10.0
 
 

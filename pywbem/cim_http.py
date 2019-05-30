@@ -35,7 +35,6 @@ from __future__ import print_function, absolute_import
 
 import re
 import os
-import sys
 import errno
 import socket
 import getpass
@@ -468,8 +467,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
               32 (EPIPE), by not doing that (If the connection gets closed,
               getresponse() fails). This problem was reported as Python issue
               #5542, and the same fix we do here was integrated into Python
-              2.7 and 3.1 or 3.2, but not into Python 2.6 (so we still need
-              our fix here).
+              2.7 and 3.1 or 3.2.
 
             * Ensure that the data are bytes, not unicode.
             """
@@ -540,13 +538,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 # on to the socket call, because that does not work with
                 # M2Crypto.
 
-                if sys.version_info[0:2] >= (2, 7):
-                    # the source_address parameter was added in Python 2.7
-                    self.sock = socket.create_connection(
-                        (self.host, self.port), None, self.source_address)
-                else:
-                    self.sock = socket.create_connection(
-                        (self.host, self.port), None)
+                self.sock = socket.create_connection(
+                    (self.host, self.port), None, self.source_address)
 
                 # Removed code for tunneling support.
 

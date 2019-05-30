@@ -10,23 +10,14 @@
 # Direct dependencies:
 
 # Unit test (imports into testcases):
-unittest2>=1.1.0
-pytest>=3.0.7,<3.3.0; python_version == '2.6'
-pytest>=3.3.0,!=3.9.2; python_version > '2.6'
-# testfixtures 6.0.0 no longer supports py26 and fails on py26 with syntax error
+pytest>=3.3.0,!=3.9.2
 testfixtures>=4.3.3,<6.0.0
-httpretty>=0.8.14,<0.9.1; python_version == '2.6'
-httpretty>=0.9.5; python_version > '2.6'
-lxml>=4.2.4,<4.3.0; python_version == '2.6'
-lxml>=4.2.4; python_version > '2.6'
+httpretty>=0.9.5
+lxml>=4.2.4
 requests>=2.19.1
 decorator>=4.0.11
 yamlordereddictloader>=0.4.0
 funcsigs>=1.0.2
-
-# Indirect dependencies that are needed due to version pinning
-PyYAML==3.11; python_version == '2.6'  # yaml package, used by yamlordereddictloader
-PyYAML>=3.13; python_version >= '2.7'  # yaml package, used by yamlordereddictloader
 
 # Coverage reporting (no imports, invoked via coveralls script, only used on py27):
 # Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore
@@ -51,33 +42,32 @@ pytest-cov>=2.4.0,<2.6
 # Tox
 tox>=2.0.0
 
-# Sphinx (no imports, invoked via sphinx-build script, issues on py26):
-Sphinx>=1.7.6,<2.0.0; python_version >= '2.7' and python_version < '3.5'  # BSD
+# Sphinx (no imports, invoked via sphinx-build script):
+Sphinx>=1.7.6,<2.0.0; python_version < '3.5'  # BSD
 Sphinx>=1.7.6,<2.0.0; python_version >= '3.5'  # BSD
-# TODO: On py3.5+, Sphinx currently fails, see issue
+# TODO: On Python 3.5 and higher, Sphinx currently fails, see issue
 #       https://github.com/sphinx-doc/sphinx/issues/6246. Therefore, Sphinx has
-#       been pinned to below 2.0.0 also for py3.5+.
-sphinx-git>=10.1.1; python_version >= '2.7'
-GitPython>=2.1.1; python_version >= '2.7'
+#       been pinned to below 2.0.0 also for those Python versions.
+sphinx-git>=10.1.1
+GitPython>=2.1.1
 
 # PyLint (no imports, invoked via pylint script)
 # Pylint requires astroid
-# Pylint 1.x supports py2.7 and py3.4/5/6 but not py3.7+
-# Pylint 2.x supports py3.4+
+# Pylint 1.x supports py27 and py34/35/36 but not py37+
+# Pylint 2.x supports py34+
 pylint>=1.6.4,<2.0.0; python_version == '2.7'
 pylint>=2.2.2; python_version >= '3.4'
 astroid>=1.4.9,<2.0.0; python_version == '2.7'
 astroid>=2.1.0; python_version >= '3.4'
 
 # Flake8 (no imports, invoked via flake8 script):
-flake8>=2.6.2,<3.0.0; python_version == '2.6'
-flake8>=3.2.1; python_version > '2.6'
+flake8>=3.2.1
 
 # Twine (no imports, invoked via twine script):
-twine>=1.8.1; python_version >= '2.7'
+twine>=1.8.1
 
-# Jupyter Notebook (no imports, invoked via jupyter script, some deps do not support py26):
-jupyter>=1.0.0; python_version >= '2.7'
+# Jupyter Notebook (no imports, invoked via jupyter script):
+jupyter>=1.0.0
 
 # The tornado package is used by ipykernel which is used by jupyter.
 # Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module

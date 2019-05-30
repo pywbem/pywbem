@@ -42,9 +42,6 @@ class RegexpMixin(object):
         """Assert that a string text matches a particular regular expression
         pattern.
 
-        Note: This method is provided by unittest starting from Python 2.7.
-        For Python 2.6, we need this function here.
-
         Parameters:
             text         string: string text to be matched
             pattern      string: regular expression
