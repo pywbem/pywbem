@@ -26,6 +26,7 @@ Without this, wbemcli would drop into the interactive loop after starting.
 from __future__ import absolute_import, print_function
 
 import os
+import sys
 import re
 from subprocess import Popen, PIPE
 import pytest
@@ -366,6 +367,8 @@ def assert_lines(exp_lines, act_lines, meaning):
       meaning (string): A short descriptive text that identifies the meaning
         of the lines that are matched, e.g. 'stderr'.
     """
+    if sys.platform == 'win32':
+        act_lines.replace("\n\n", "\n")
     assert len(act_lines) == len(exp_lines), \
         "Unexpected number of lines in {0}:\n" \
         "Expected lines cnt={1}:\n" \
