@@ -112,6 +112,10 @@ Released: not yet
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
   using a predictable URL, for automated downloads.
 
+**Bug fixes:**
+
+* Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
+
 **Known issues:**
 
 * See `list of open issues`_.

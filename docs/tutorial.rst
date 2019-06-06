@@ -32,6 +32,7 @@ Tutorial                              Short description
 :nbview:`iterablecimoperations.ipynb` The Iterable Operation Extensions
 :nbview:`wbemserverclass.ipynb`       Pywbem WBEMServer Class
 :nbview:`subscriptionmanager.ipynb`   Subscription Manager
+:nbview:`pywbemmock.ipynb`            Using the pywbem_mock module
 ===================================== ==========================================
 
 For the following topics, tutorials are not yet available:
