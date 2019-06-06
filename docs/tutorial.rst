@@ -15,6 +15,9 @@ and are shown using the online
 This allows viewing the tutorials without having Jupyter Notebook installed
 locally.
 
+Table of Jupyter tutorials
+--------------------------
+
 In order to view a tutorial, just click on a link in this table:
 
 ===================================== ==========================================
@@ -32,6 +35,7 @@ Tutorial                              Short description
 :nbview:`iterablecimoperations.ipynb` The Iterable Operation Extensions
 :nbview:`wbemserverclass.ipynb`       Pywbem WBEMServer Class
 :nbview:`subscriptionmanager.ipynb`   Subscription Manager
+:nbview:`pywbemmock.ipynb`            Using the pywbem_mock module
 ===================================== ==========================================
 
 For the following topics, tutorials are not yet available:
@@ -41,7 +45,6 @@ For the following topics, tutorials are not yet available:
 * Class Operations
 * Qualifier Operations
 * WBEMListener
-* Iter* Operations
 
 Executing code in the tutorials
 -------------------------------
