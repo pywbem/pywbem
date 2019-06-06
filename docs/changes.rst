@@ -30,6 +30,8 @@ Released: not yet
   (14.04) because the default distro version on Travis changed to xenial
   (16.04) which no longer has Python 2.6.
 
+* Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
