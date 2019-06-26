@@ -26,10 +26,20 @@ Released: not yet
 
 **Bug fixes:**
 
+* Test: For Python 2.6 on Travis, pinned the distro version to Ubuntu trusty
+  (14.04) because the default distro version on Travis changed to xenial
+  (16.04) which no longer has Python 2.6.
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
   using a predictable URL, for automated downloads.
+
+**Cleanup:**
+
+* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04) 
+  for Python 3.7, because that is now the default distro version, in order to
+  pick up a future increase of the default distro version automatically.
 
 **Known issues:**
 
