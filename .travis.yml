@@ -17,9 +17,11 @@ notifications:
 
 sudo: required
 
-# Disabling the distro, so we get the latest:
+# Disabling the distro, so we get the latest.
+# Note that for Python 3.7 and higher, at least Ubuntu xenial is required,
+# which is the default on Travis since 6/2019.
 # dist:
-#   - trusty
+#   - xenial
 
 # We define the job matrix explicitly, in order to be able to minimize the
 # combinations of runtime environments.
@@ -73,13 +75,11 @@ matrix:
     - os: linux
       language: python
       python: "3.7"
-      dist: xenial
       env:
         - PACKAGE_LEVEL=minimum
 #    - os: linux
 #      language: python
 #      python: "3.7"
-#      dist: xenial
 #      env:
 #        - PACKAGE_LEVEL=latest
 # Note: pywbem does not install on pypy, because M2Crypto does not install.

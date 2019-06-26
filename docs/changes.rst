@@ -77,6 +77,8 @@ Released: not yet
   version does not exist.
   (see issue #1754)
 
+* Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -112,9 +114,11 @@ Released: not yet
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
   using a predictable URL, for automated downloads.
 
-**Bug fixes:**
+**Cleanup:**
 
-* Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
+* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04) 
+  for Python 3.7, because that is now the default distro version, in order to
+  pick up a future increase of the default distro version automatically.
 
 **Known issues:**
 
