@@ -25,6 +25,7 @@ wbemcli.log
 /blah.yaml
 .coverage
 /coverage_html/
+*.py,cover
 cprofilerstats*.profile
 /build/
 /build_doc/
