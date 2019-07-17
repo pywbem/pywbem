@@ -79,6 +79,10 @@ Released: not yet
 
 * Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
 
+* Fix issue with Python 3 and WBEMconnection certificate handling. pywbem
+  was getting AttributeError: 'SSLContext' object has no attribute 'load_cert'
+  because incorrect method called. (See issue # 1769)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -116,7 +120,7 @@ Released: not yet
 
 **Cleanup:**
 
-* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04) 
+* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
   for Python 3.7, because that is now the default distro version, in order to
   pick up a future increase of the default distro version automatically.
 
