@@ -32,6 +32,10 @@ Released: not yet
 
 * Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
 
+* Fix issue with Python 3 and WBEMconnection certificate handling. pywbem
+  was getting AttributeError: 'SSLContext' object has no attribute 'load_cert'
+  because incorrect method called. (See issue # 1769)
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded

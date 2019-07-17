@@ -621,7 +621,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 ctx = SSL.SSLContext(SSL.PROTOCOL_SSLv23)
 
                 if self.cert_file:
-                    ctx.load_cert(self.cert_file, keyfile=self.key_file)
+                    ctx.load_cert_chain(self.cert_file, keyfile=self.key_file)
                 if self.ca_certs:
                     # We need to use CERT_REQUIRED to require that the server
                     # certificate is being validated by the client (against the
