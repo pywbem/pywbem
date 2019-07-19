@@ -36,6 +36,17 @@ Released: not yet
   was getting AttributeError: 'SSLContext' object has no attribute 'load_cert'
   because incorrect method called. (See issue # 1769)
 
+* Fixed that the `WBEMConnection.Open...()` operations incorrectly supported
+  an `IncludeQualifiers` parameter, that was never supported as per DSP0200.
+  Specifying that parameter as `True` on these operations caused properly
+  implemented WBEM servers to reject the operation. The parameter is now
+  ignored on these operations. Since this parameter was documented as
+  deprecated in DSP0200 and documented that users could not rely on qualifiers
+  to be returned, this fix should not break user code. The
+  `WBEMConnection.Iter...()` operations now also ignore that parameter if the
+  pull operations are used, and the documentation has been updated accordingly.
+  (See issue #1780)
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
