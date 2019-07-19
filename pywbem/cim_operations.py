@@ -4352,17 +4352,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           IncludeQualifiers (:class:`py:bool`):
             Indicates that qualifiers are to be included in the returned
-            instance, as follows:
+            instances, as follows:
 
             * If `False`, qualifiers are not included.
-            * If `True`, qualifiers are included if the WBEM server implements
-              support for this parameter.
+            * If `True`, qualifiers are included if this method uses
+              traditional operations and the WBEM server implements support for
+              this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be returned in this operation.
+            If this method uses pull operations, this parameter will be ignored,
+            not passed to the WBEM server, and the returned instances will not
+            contain any qualifiers.
+            If this method uses traditional operations, clients cannot rely
+            on returned instances containing qualifiers, as described in
+            :term:`DSP0200`.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -4498,7 +4503,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = self.OpenEnumerateInstances(
                         ClassName, namespace=namespace, LocalOnly=LocalOnly,
                         DeepInheritance=DeepInheritance,
-                        IncludeQualifiers=IncludeQualifiers,
                         IncludeClassOrigin=IncludeClassOrigin,
                         PropertyList=PropertyList,
                         FilterQueryLanguage=FilterQueryLanguage,
@@ -4961,22 +4965,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           IncludeQualifiers (:class:`py:bool`):
             Indicates that qualifiers are to be included in the returned
-            instances (or classes), as follows:
+            instances, as follows:
 
             * If `False`, qualifiers are not included.
-            * If `True`, qualifiers are included if the WBEM server implements
-              support for this parameter.
+            * If `True`, qualifiers are included if this method uses
+              traditional operations and the WBEM server implements support for
+              this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be returned in this operation.
+            If this method uses pull operations, this parameter will be ignored
+            and the returned instances will not contain any qualifiers.
+            If this method uses traditional operations, clients cannot rely
+            on returned instances containing qualifiers, as described in
+            :term:`DSP0200`.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
-            property or method in the returned instances (or classes), as
-            follows:
+            property or method in the returned instances, as follows:
 
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
@@ -5114,7 +5121,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         ResultClass=ResultClass,
                         Role=Role,
                         ResultRole=ResultRole,
-                        IncludeQualifiers=IncludeQualifiers,
                         IncludeClassOrigin=IncludeClassOrigin,
                         PropertyList=PropertyList,
                         FilterQueryLanguage=FilterQueryLanguage,
@@ -5557,22 +5563,25 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           IncludeQualifiers (:class:`py:bool`):
             Indicates that qualifiers are to be included in the returned
-            instances (or classes), as follows:
+            instances, as follows:
 
             * If `False`, qualifiers are not included.
-            * If `True`, qualifiers are included if the WBEM server implements
-              support for this parameter.
+            * If `True`, qualifiers are included if this method uses
+              traditional operations and the WBEM server implements support for
+              this parameter.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be returned in this operation.
+            If this method uses pull operations, this parameter will be ignored
+            and the returned instances will not contain any qualifiers.
+            If this method uses traditional operations, clients cannot rely
+            on returned instances containing qualifiers, as described in
+            :term:`DSP0200`.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
-            property or method in the returned instances (or classes), as
-            follows:
+            property or method in the returned instances, as follows:
 
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
@@ -5701,7 +5710,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         InstanceName,
                         ResultClass=ResultClass,
                         Role=Role,
-                        IncludeQualifiers=IncludeQualifiers,
                         IncludeClassOrigin=IncludeClassOrigin,
                         PropertyList=PropertyList,
                         FilterQueryLanguage=FilterQueryLanguage,
@@ -6386,18 +6394,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             is different.
 
           IncludeQualifiers (:class:`py:bool`):
-            Indicates that qualifiers are to be included in the returned
-            instance, as follows:
+            **Deprecated:** Indicates that qualifiers are to be included in the
+            returned instances.
 
-            * If `False`, qualifiers are not included.
-            * If `True`, qualifiers are included if the WBEM server implements
-              support for this parameter.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `False`.
+            *Deprecated since pywbem 0.14.*
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be returned in this operation.
+            This parameter has been deprecated in pywbem and will be ignored
+            and not passed on to the WBEM server, because this parameter was
+            never defined in :term:`DSP0200` and thus will be rejected by WBEM
+            servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -6562,7 +6567,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
-                IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -6592,7 +6596,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ClassName=classname,
                 LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
-                IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -6920,18 +6923,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` means that no such filtering is peformed.
 
           IncludeQualifiers (:class:`py:bool`):
-            Indicates that qualifiers are to be included in the returned
-            instances, as follows:
+            **Deprecated:** Indicates that qualifiers are to be included in the
+            returned instances.
 
-            * If `False`, qualifiers are not included.
-            * If `True`, qualifiers are included if the WBEM server implements
-              support for this parameter.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `False`.
+            *Deprecated since pywbem 0.14.*
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be returned in this operation.
+            This parameter has been deprecated in pywbem and will be ignored
+            and not passed on to the WBEM server, because this parameter was
+            never defined in :term:`DSP0200` and thus will be rejected by WBEM
+            servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -7083,7 +7083,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultClass=ResultClass,
                 Role=Role,
                 ResultRole=ResultRole,
-                IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -7109,7 +7108,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
                 Role=Role,
                 ResultRole=ResultRole,
-                IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -7435,23 +7433,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` means that no such filtering is peformed.
 
           IncludeQualifiers (:class:`py:bool`):
-            Indicates that qualifiers are to be included in the returned
-            instances (or classes), as follows:
+            **Deprecated:** Indicates that qualifiers are to be included in the
+            returned instances.
 
-            * If `False`, qualifiers are not included.
-            * If `True`, qualifiers are included if the WBEM server implements
-              support for this parameter.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `False`.
+            *Deprecated since pywbem 0.14.*
 
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be returned in this operation.
+            This parameter has been deprecated in pywbem and will be ignored
+            and not passed on to the WBEM server, because this parameter was
+            never defined in :term:`DSP0200` and thus will be rejected by WBEM
+            servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
-            property or method in the returned instances (or classes), as
-            follows:
+            property or method in the returned instances, as follows:
 
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
@@ -7599,7 +7593,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 InstanceName=InstanceName,
                 ResultClass=ResultClass,
                 Role=Role,
-                IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -7623,7 +7616,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 InstanceName=instancename,
                 ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
                 Role=Role,
-                IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
                 FilterQueryLanguage=FilterQueryLanguage,
