@@ -652,7 +652,6 @@
             FilterQueryLanguage: WQL
             OperationTimeout: 40
             LocalOnly: true
-            IncludeQualifiers: true
     pywbem_response:
         pullresult:
             context:
@@ -700,9 +699,6 @@
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="FilterQueryLanguage">
                                  <VALUE>WQL</VALUE>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="IncludeQualifiers">
-                                 <VALUE>TRUE</VALUE>
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="OperationTimeout">
                                  <VALUE>40</VALUE>
@@ -754,7 +750,6 @@
             FilterQueryLanguage:
             OperationTimeout:
             LocalOnly:
-            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         pullresult:
@@ -834,7 +829,6 @@
             FilterQueryLanguage:
             OperationTimeout:
             LocalOnly:
-            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         pullresult:
@@ -914,7 +908,6 @@
             FilterQueryLanguage:
             OperationTimeout:
             LocalOnly:
-            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         request_len: 408
@@ -996,7 +989,6 @@
             OperationTimeout: null
             LocalOnly: null
             PropertyList: null
-            IncludeQualifiers: null
     pywbem_response:
         cim_status: 2
     http_request:
@@ -1120,7 +1112,6 @@
             OperationTimeout: null
             LocalOnly: null
             PropertyList: null
-            IncludeQualifiers: null
     pywbem_response:
         cim_status: 3
     http_request:

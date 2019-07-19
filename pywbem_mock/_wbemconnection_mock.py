@@ -2512,6 +2512,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         pl = params['PropertyList']
         lo = params['LocalOnly']
+        ico = params['IncludeClassOrigin']
+        iq = params.get('IncludeQualifiers', None)
 
         if not self._repo_lite:
             # gets class propertylist which is may be localonly or all
@@ -2536,8 +2538,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         insts = [self._get_instance(inst.path, namespace,
                                     pl,
                                     None,  # LocalOnly never gets passed
-                                    params['IncludeClassOrigin'],
-                                    params['IncludeQualifiers'])
+                                    ico,
+                                    iq)
                  for inst in instance_repo if inst.path.classname in clns_dict]
 
         return self._make_tuple(insts)
@@ -2900,7 +2902,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         classname = obj_name.classname
         pl = params['PropertyList']
         ico = params['IncludeClassOrigin']
-        iq = params['IncludeQualifiers']
+        iq = params.get('IncludeQualifiers', None)
 
         if isinstance(obj_name, CIMClassName):
             rtn_classnames = self._get_reference_classnames(
@@ -2916,9 +2918,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         for path in ref_paths:
             rtn_insts.append(self._get_instance(
                 path, namespace, None,
-                params['PropertyList'],
-                params['IncludeClassOrigin'],
-                params['IncludeQualifiers']))
+                pl, ico, iq))
 
         for inst in rtn_insts:
             if inst.path.host is None:
@@ -2987,7 +2987,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         classname = obj_name.classname
         pl = params['PropertyList']
         ico = params['IncludeClassOrigin']
-        iq = params['IncludeQualifiers']
+        iq = params.get('IncludeQualifiers', None)
 
         if isinstance(obj_name, CIMClassName):
             rtn_classnames = self._get_associated_classnames(classname,
@@ -3007,9 +3007,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         for obj_name in assoc_names:
             results.append(self._get_instance(
                 obj_name, namespace, None,
-                params['PropertyList'],
-                params['IncludeClassOrigin'],
-                params['IncludeQualifiers']))
+                pl, ico, iq))
 
         return self._return_assoc_tuple(results)
 
