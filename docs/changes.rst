@@ -16,13 +16,7 @@ Change log
 pywbem 0.14.4
 -------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-07-20
 
 **Bug fixes:**
 
@@ -57,12 +51,6 @@ Released: not yet
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04) 
   for Python 3.7, because that is now the default distro version, in order to
   pick up a future increase of the default distro version automatically.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.3
