@@ -4326,14 +4326,23 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             instances, as follows:
 
             * If `False`, inherited properties are not excluded.
-            * If `True`, inherited properties are basically excluded, but the
-              behavior may be WBEM server specific.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `True`.
+            * If `True`, the behavior depends on the underlying operation:
+              If pull operations are used, inherited properties are not
+              excluded. If traditional operations are used, inherited
+              properties are basically excluded, but the behavior may be
+              WBEM server specific.
+            * If `None`, the behavior depends on the underlying operation:
+              If pull operations are used, inherited properties are not
+              excluded. If traditional operations are used, this parameter is
+              not passed to the WBEM server, and causes the server-implemented
+              default to be used. :term:`DSP0200` defines that the
+              server-implemented default is `True`, i.e. to exclude inherited
+              properties.
 
-            This parameter has been deprecated in :term:`DSP0200` and should be
-            set to `False` by the caller.
+            :term:`DSP0200` has deprecated this parameter for the traditional
+            operation and does not support it for the pull operation.
+
+            This parameter should be set to `False` by the caller.
 
           DeepInheritance (:class:`py:bool`):
             Indicates that properties added by subclasses of the specified
@@ -4501,7 +4510,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
                 try:        # operation try block
                     pull_result = self.OpenEnumerateInstances(
-                        ClassName, namespace=namespace, LocalOnly=LocalOnly,
+                        ClassName, namespace=namespace,
                         DeepInheritance=DeepInheritance,
                         IncludeClassOrigin=IncludeClassOrigin,
                         PropertyList=PropertyList,
@@ -6365,18 +6374,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             also `None`, the default namespace of the connection will be used.
 
           LocalOnly (:class:`py:bool`):
-            Controls the exclusion of inherited properties from the returned
-            instances, as follows:
+            **Deprecated:** Controls the exclusion of inherited properties from
+            the returned instances.
 
-            * If `False`, inherited properties are not excluded.
-            * If `True`, inherited properties are basically excluded, but the
-              behavior may be WBEM server specific.
-            * If `None`, this parameter is not passed to the WBEM server, and
-              causes the server-implemented default to be used. :term:`DSP0200`
-              defines that the server-implemented default is `True`.
+            *Deprecated since pywbem 0.14.*
 
-            This parameter has been deprecated in :term:`DSP0200` and should be
-            set to `False` by the caller.
+            This parameter has been deprecated in pywbem and will be ignored
+            and not passed on to the WBEM server, because this parameter was
+            never defined in :term:`DSP0200` and thus will be rejected by WBEM
+            servers.
 
           DeepInheritance (:class:`py:bool`):
             Indicates that properties added by subclasses of the specified
@@ -6565,7 +6571,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 ClassName=ClassName,
                 namespace=namespace,
-                LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
@@ -6594,7 +6599,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 ClassName=classname,
-                LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
