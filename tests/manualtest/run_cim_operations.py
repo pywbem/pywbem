@@ -4601,16 +4601,14 @@ class IterEnumerateInstances(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_instances = []
-        for inst in generator:
-            iter_instances.append(inst)
+        iter_instances = [inst for inst in generator]
 
         if expected_response_count is not None:
             self.assertEqual(len(iter_instances), expected_response_count)
 
         # execute open/pull sequence
         result = self.cimcall(self.conn.OpenEnumerateInstances, ClassName,
-                              namespace=namespace, LocalOnly=LocalOnly,
+                              namespace=namespace,
                               DeepInheritance=DeepInheritance,
                               IncludeQualifiers=IncludeQualifiers,
                               IncludeClassOrigin=IncludeClassOrigin,
@@ -4650,9 +4648,15 @@ class IterEnumerateInstances(PegasusServerTestBase):
 
         # compare with original instances. Ignore host here because
         # EnumerateInstances does NOT return host info
-        self.assertInstancesEqual(pulled_instances, orig_instances,
-                                  ignore_host=True,
-                                  ignore_value_diff=ignore_value_diff)
+        # ignore where LocalOnly or IncludeQualifiers set because these
+        # act differently between pull and original operations
+        if not LocalOnly or not IncludeQualifiers:
+            self.assertInstancesEqual(pulled_instances, orig_instances,
+                                      ignore_host=True,
+                                      ignore_value_diff=ignore_value_diff)
+        else:
+            self.assertEqual(len(orig_instances), len(pulled_instances))
+            self.assertEqual(len(orig_instances), len(iter_instances))
 
     def test_simple_iter_enum(self):
         """
@@ -4782,8 +4786,18 @@ class IterEnumerateInstances(PegasusServerTestBase):
                            namespace=TEST_PEG_STRESS_NAMESPACE,
                            MaxObjectCount=100, PropertyList=property_list)
 
+    def test_localonly(self):
+        """
+        Test with includequalifiers set. Only tests that the same
+        number of insances returned
+        """
+        test_class = 'CIM_ComputerSystem'
+        self.run_enum_test(test_class, MaxObjectCount=100, LocalOnly=True)
+
     def test_includequalifiers(self):
-        """Test without extra request parameters"""
+        """Test witho includequalifiers set True. Only tests that same
+        number of instances returned
+        """
         expected_response_count = 200
         self.set_stress_provider_parameters(expected_response_count, 200)
 
@@ -4794,7 +4808,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                            IncludeQualifiers=True)
 
     def test_IncludeClassOrigin(self):  # pylint: disable=invalid-name
-        """Test without extra request parameters"""
+        """Test with IncludeClassOrigin True"""
         expected_response_count = 200
         self.set_stress_provider_parameters(expected_response_count, 200)
 
@@ -4805,7 +4819,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                            IncludeClassOrigin=True)
 
     def test_minMaxObjectCount(self):  # pylint: disable=invalid-name
-        """Test without extra request parameters"""
+        """Test with that svr rtns correct # objects"""
         expected_response_count = 200
         self.set_stress_provider_parameters(expected_response_count, 200)
 
@@ -4909,9 +4923,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_paths = []
-        for path in generator:
-            iter_paths.append(path)
+        iter_paths = [path for path in generator]
 
         # execute open/pull operation sequence
         result = self.cimcall(self.conn.OpenEnumerateInstancePaths, ClassName,
@@ -5042,7 +5054,8 @@ class IterReferenceInstances(PegasusServerTestBase):
 
     def get_source_name(self):
         """
-        Get a reference source path
+        Get a reference source path based on TEST_CLASS. Tests fail if
+        there are no instances returned.
         """
         inst_names = self.cimcall(self.conn.EnumerateInstanceNames,
                                   TEST_CLASS)
@@ -5074,9 +5087,7 @@ class IterReferenceInstances(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_instances = []
-        for instance in generator:
-            iter_instances.append(instance)
+        iter_instances = [instance for instance in generator]
 
         # execute pull operation
         result = self.cimcall(self.conn.OpenReferenceInstances,
@@ -5100,16 +5111,21 @@ class IterReferenceInstances(PegasusServerTestBase):
             self.assertInstancesValid(result.instances)
             pulled_instances.extend(result.instances)
 
-        self.assertInstancesEqual(iter_instances, pulled_instances,
-                                  ignore_host=pull_disabled)
-
         # execute original enumerate instance paths operation
         orig_instances = self.cimcall(self.conn.References, InstanceName,
                                       ResultClass=ResultClass, Role=Role,
                                       IncludeQualifiers=IncludeQualifiers,
                                       IncludeClassOrigin=IncludeClassOrigin,
                                       PropertyList=PropertyList)
-        self.assertInstancesEqual(pulled_instances, orig_instances)
+
+        # cannot depend on equal instances when IncludeQualifiers set
+        if not IncludeQualifiers:
+            self.assertInstancesEqual(pulled_instances, orig_instances)
+            self.assertInstancesEqual(iter_instances, pulled_instances,
+                                      ignore_host=pull_disabled)
+        else:
+            self.assertEqual(len(orig_instances), len(pulled_instances))
+            self.assertEqual(len(orig_instances), len(iter_instances))
 
     def test_compare_returns(self):
         """Test without extra request parameters"""
@@ -5166,6 +5182,12 @@ class IterReferenceInstances(PegasusServerTestBase):
         self.assertEqual(self.conn._use_assoc_inst_pull_operations, None)
         self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
         self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_includequalifier(self):
+        """Test with IncludeQualifier set"""
+        property_list = ['CreationClassName', 'Name', 'PrimaryOwnerName']
+        self.run_enum_test(self.get_source_name(),
+                           MaxObjectCount=100, PropertyList=property_list)
 
     def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
         """
@@ -5240,9 +5262,7 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_paths = []
-        for path in generator:
-            iter_paths.append(path)
+        iter_paths = [path for path in generator]
 
         # execute open/pull operation sequence
         result = self.cimcall(self.conn.OpenReferenceInstancePaths,
@@ -5408,16 +5428,13 @@ class IterAssociatorInstances(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_instances = []
-        for instance in generator:
-            iter_instances.append(instance)
+        iter_instances = [instance for instance in generator]
 
         # execute pull operation
         result = self.cimcall(self.conn.OpenAssociatorInstances,
                               InstanceName, AssocClass=AssocClass,
                               ResultClass=ResultClass, Role=Role,
                               ResultRole=ResultRole,
-                              IncludeQualifiers=IncludeQualifiers,
                               IncludeClassOrigin=IncludeClassOrigin,
                               PropertyList=PropertyList,
                               FilterQueryLanguage=FilterQueryLanguage,
@@ -5436,9 +5453,6 @@ class IterAssociatorInstances(PegasusServerTestBase):
             self.assertInstancesValid(result.instances)
             pulled_instances.extend(result.instances)
 
-        self.assertInstancesEqual(iter_instances, pulled_instances,
-                                  ignore_host=pull_disabled)
-
         # execute original enumerate instance paths operation
         orig_instances = self.cimcall(self.conn.Associators, InstanceName,
                                       ResultClass=ResultClass, Role=Role,
@@ -5447,7 +5461,14 @@ class IterAssociatorInstances(PegasusServerTestBase):
                                       IncludeClassOrigin=IncludeClassOrigin,
                                       PropertyList=PropertyList)
 
-        self.assertInstancesEqual(pulled_instances, orig_instances)
+        # cannot depend on equal instances if IncludeQualifiers set.
+        if not IncludeQualifiers:
+            self.assertInstancesEqual(pulled_instances, orig_instances)
+            self.assertInstancesEqual(iter_instances, pulled_instances,
+                                      ignore_host=pull_disabled)
+        else:
+            self.assertEqual(len(orig_instances), len(pulled_instances))
+            self.assertEqual(len(orig_instances), len(iter_instances))
 
     def test_compare_returns(self):
         """
@@ -5507,6 +5528,13 @@ class IterAssociatorInstances(PegasusServerTestBase):
         self.assertEqual(self.conn._use_assoc_inst_pull_operations, True)
         self.assertEqual(self.conn._use_assoc_path_pull_operations, None)
         self.assertEqual(self.conn._use_query_pull_operations, None)
+
+    def test_includequalifier(self):
+        """Test with IncludeQualifier set"""
+        property_list = ['CreationClassName', 'Name', 'PrimaryOwnerName']
+        self.run_enum_test(self.get_source_name(),
+                           MaxObjectCount=100, IncludeQualifiers=True,
+                           PropertyList=property_list)
 
     def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
         """
@@ -5585,9 +5613,7 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_paths = []
-        for path in generator:
-            iter_paths.append(path)
+        iter_paths = [path for path in generator]
 
         # execute pull operation
         result = self.cimcall(self.conn.OpenAssociatorInstancePaths,
