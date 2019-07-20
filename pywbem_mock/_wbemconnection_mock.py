@@ -2511,7 +2511,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             di = DEFAULT_DEEP_INHERITANCE
 
         pl = params['PropertyList']
-        lo = params['LocalOnly']
+        lo = params.get('LocalOnly', None)
         ico = params['IncludeClassOrigin']
         iq = params.get('IncludeQualifiers', None)
 

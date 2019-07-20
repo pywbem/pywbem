@@ -92,9 +92,6 @@
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>FALSE</VALUE>
-                             </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
                  </MESSAGE>
@@ -276,9 +273,6 @@
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>TRUE</VALUE>
-                             </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
                  </MESSAGE>
@@ -433,9 +427,6 @@
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
                              </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>TRUE</VALUE>
-                             </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
                  </MESSAGE>
@@ -531,9 +522,6 @@
                              </LOCALNAMESPACEPATH>
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>TRUE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -652,6 +640,7 @@
             FilterQueryLanguage: WQL
             OperationTimeout: 40
             LocalOnly: true
+            IncludeQualifiers: true
     pywbem_response:
         pullresult:
             context:
@@ -684,9 +673,6 @@
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="IncludeClassOrigin">
                                  <VALUE>TRUE</VALUE>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                               <VALUE>TRUE</VALUE>
                              </IPARAMVALUE>
                              <IPARAMVALUE NAME="ContinueOnError">
                                  <VALUE>TRUE</VALUE>
@@ -750,6 +736,7 @@
             FilterQueryLanguage:
             OperationTimeout:
             LocalOnly:
+            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         pullresult:
@@ -829,6 +816,7 @@
             FilterQueryLanguage:
             OperationTimeout:
             LocalOnly:
+            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         pullresult:
@@ -908,6 +896,7 @@
             FilterQueryLanguage:
             OperationTimeout:
             LocalOnly:
+            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         request_len: 408
@@ -989,6 +978,7 @@
             OperationTimeout: null
             LocalOnly: null
             PropertyList: null
+            IncludeQualifiers: null
     pywbem_response:
         cim_status: 2
     http_request:
@@ -1112,6 +1102,7 @@
             OperationTimeout: null
             LocalOnly: null
             PropertyList: null
+            IncludeQualifiers: null
     pywbem_response:
         cim_status: 3
     http_request:
