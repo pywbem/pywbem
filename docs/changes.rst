@@ -97,6 +97,10 @@ Released: not yet
   operations are used.
   (See issue #1780)
 
+* Added test to tests/manual/cim_operations.py specifically to test the iter and
+  pull operations for the IncludeQualifier and LocalOnly parameters based on
+  issue #1780.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
