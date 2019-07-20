@@ -83,15 +83,18 @@ Released: not yet
   was getting AttributeError: 'SSLContext' object has no attribute 'load_cert'
   because incorrect method called. (See issue # 1769)
 
-* Fixed that the `WBEMConnection.Open...()` operations incorrectly supported
-  an `IncludeQualifiers` parameter, that was never supported as per DSP0200.
-  Specifying that parameter as `True` on these operations caused properly
-  implemented WBEM servers to reject the operation. The parameter is now
-  ignored on these operations. Since this parameter was documented as
-  deprecated in DSP0200 and documented that users could not rely on qualifiers
-  to be returned, this fix should not break user code. The
-  `WBEMConnection.Iter...()` operations now also ignore that parameter if the
-  pull operations are used, and the documentation has been updated accordingly.
+* Fixed that the `OpenAssociatorInstances()` and `OpenReferenceInstances()`
+  methods of `WBEMConnections` incorrectly supported an `IncludeQualifiers`
+  parameter, and that the `OpenEnumerateInstances()` method of
+  `WBEMConnections` incorrectly supported an `IncludeQualifiers` and a
+  `LocalOnly` parameter, that were never supported as per DSP0200.
+  Specifying these parameters as `True` or `False` on these methods caused
+  properly implemented WBEM servers to reject the operation. These parameters
+  now still exist on these operations but are ignored and are not passed on to
+  WBEM servers.
+  The corresponding `Iter...()` methods now also ignore these parameters if the
+  pull operations are used; they are still passed on if the traditional
+  operations are used.
   (See issue #1780)
 
 * Pinned the docutils package to version 0.14, because its newly released
