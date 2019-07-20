@@ -232,7 +232,6 @@ class TestIterEnumerateInstances(object):
         conn.OpenEnumerateInstances.assert_called_with(
             'CIM_Foo',
             namespace=ns,
-            LocalOnly=lo,
             DeepInheritance=di,
             IncludeClassOrigin=ico,
             PropertyList=pl,
