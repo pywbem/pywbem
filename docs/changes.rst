@@ -26,6 +26,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Added test to tests/manual/cim_operations.py specifically to test the iter and
+  pull operations for the IncludeQualifier and LocalOnly parameters based on
+  issue #1780.
+
 **Enhancements:**
 
 **Known issues:**
