@@ -1,5 +1,5 @@
 -   name: OpenEnumerateInstances1
-    description: OpenEnumerateInstances with localonly False parameters rtns EOS=true and succeeds
+    description: OpenEnumerateInstances; succeeds with eos=t and 2 result objects
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -11,7 +11,6 @@
         operation:
             pywbem_method: OpenEnumerateInstances
             ClassName: PyWBEM_Person
-            LocalOnly: false
     pywbem_response:
         pullresult:
             context: null
@@ -180,7 +179,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances2
-    description: OpenEnumerateInstances with LocalOnly True, EOS=true succeeds. Same response as 1
+    description: OpenEnumerateInstances; succeeds with eos=t and 2 result objects
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -192,7 +191,6 @@
         operation:
             pywbem_method: OpenEnumerateInstances
             ClassName: PyWBEM_Person
-            LocalOnly: true
     pywbem_response:
         pullresult:
             context: null
@@ -361,7 +359,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances3
-    description: OpenEnumerateInstances with LocalOnly True, EOS=true  and 1 response object succeeds.
+    description: OpenEnumerateInstances; succeeds with eos=t and 1 response object
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -373,7 +371,6 @@
         operation:
             pywbem_method: OpenEnumerateInstances
             ClassName: PyWBEM_Person
-            LocalOnly: true
     pywbem_response:
         pullresult:
             context: null
@@ -485,7 +482,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances4
-    description: OpenEnumerateInstances with LocalOnly True, returns eos=t and 0 response object succeeds.
+    description: OpenEnumerateInstances; succeeds with eos=t and 0 response objects
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -497,7 +494,6 @@
         operation:
             pywbem_method: OpenEnumerateInstances
             ClassName: PyWBEM_Person
-            LocalOnly: true
     pywbem_response:
         pullresult:
             context: null
@@ -550,7 +546,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances5
-    description: OpenEnumerateInstances with maxobjcount=0; returns succeeds with context, eos=f, and 0 response objects.
+    description: OpenEnumerateInstances with maxobjcount=0; succeeds with context, eos=f, and 0 response objects
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -619,7 +615,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances6
-    description: OpenEnumerateInstances with all parameters; returns succeeds with context, eos=f, and 0 response objects.
+    description: OpenEnumerateInstances with all parameters; succeeds with context, eos=f, and 0 response objects
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -639,8 +635,6 @@
             FilterQuery: "Some Filter"
             FilterQueryLanguage: WQL
             OperationTimeout: 40
-            LocalOnly: true
-            IncludeQualifiers: true
     pywbem_response:
         pullresult:
             context:
@@ -715,7 +709,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances7
-    description: OpenEnumerateInstances with all parameters to default; returns succeeds with context, eos=f, and 0 response objects.
+    description: OpenEnumerateInstances with all parameters to default; succeeds with context, eos=f, and 0 response objects
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -735,8 +729,6 @@
             FilterQuery:
             FilterQueryLanguage:
             OperationTimeout:
-            LocalOnly:
-            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         pullresult:
@@ -795,7 +787,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances8
-    description: OpenEnumerateInstances with all parameters to default and extra parameter. succeeds
+    description: OpenEnumerateInstances with all parameters to default and extra parameter; succeeds
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -815,8 +807,6 @@
             FilterQuery:
             FilterQueryLanguage:
             OperationTimeout:
-            LocalOnly:
-            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         pullresult:
@@ -874,7 +864,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstances9
-    description: OpenEnumerateInstances with all parameters to default and extra parameter. succeeds. Test statistics
+    description: OpenEnumerateInstances with all parameters to default and extra parameter; succeeds. Test statistics
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -895,8 +885,6 @@
             FilterQuery:
             FilterQueryLanguage:
             OperationTimeout:
-            LocalOnly:
-            IncludeQualifiers:
             ExtraParam: false
     pywbem_response:
         request_len: 408
@@ -956,7 +944,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesF1
-    description: OpenEnumerateInstances fails with CIM_ERR_ACCESS_DENIED
+    description: OpenEnumerateInstances; fails with CIM_ERR_ACCESS_DENIED
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -976,9 +964,7 @@
             FilterQuery: null
             FilterQueryLanguage: null
             OperationTimeout: null
-            LocalOnly: null
             PropertyList: null
-            IncludeQualifiers: null
     pywbem_response:
         cim_status: 2
     http_request:
@@ -1025,7 +1011,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesF2
-    description: OpenEnumerateInstances, server fails with CIM_ERR_NOT_SUPPORTED
+    description: OpenEnumerateInstances; fails with CIM_ERR_NOT_SUPPORTED
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1080,7 +1066,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesF3
-    description: OpenEnumerateInstances fails with CIM_ERR_INVALID_NAMESPACE
+    description: OpenEnumerateInstances; fails with CIM_ERR_INVALID_NAMESPACE
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1100,9 +1086,7 @@
             FilterQuery: null
             FilterQueryLanguage: null
             OperationTimeout: null
-            LocalOnly: null
             PropertyList: null
-            IncludeQualifiers: null
     pywbem_response:
         cim_status: 3
     http_request:
@@ -1149,7 +1133,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesF4
-    description: OpenEnumerateInstances, server fails with CIM_ERR_INVALID_PARAMETER due to extra parm
+    description: OpenEnumerateInstances; fails with CIM_ERR_INVALID_PARAMETER due to extra parm
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1208,7 +1192,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesF5
-    description: OpenEnumerateInstances, server fails with CIM_ERR_INVALID_CLASS
+    description: OpenEnumerateInstances; fails with CIM_ERR_INVALID_CLASS
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1263,7 +1247,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesF6
-    description: OpenEnumerateInstances, server fails with CIM_ERR_FAILED
+    description: OpenEnumerateInstances; fails with CIM_ERR_FAILED
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1318,7 +1302,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesNS1
-    description: OpenEnumerateInstances, with leading/trailing slashes in default namespace
+    description: OpenEnumerateInstances with leading/trailing slashes in default namespace
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1441,7 +1425,7 @@
             </CIM>
 
 -   name: OpenEnumerateInstancesNS2
-    description: OpenEnumerateInstances, with leading/trailing slashes in operation namespace
+    description: OpenEnumerateInstances with leading/trailing slashes in operation namespace
     pywbem_request:
         url: http://acme.com:80
         creds:
