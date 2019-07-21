@@ -1,4 +1,4 @@
-- name: AssociatorsClass1
+- name: Associators_Classes1
   description: Associator with classname PyWBEM. Returns one class
   pywbem_request:
     url: http://acme.com:80
@@ -151,7 +151,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorsClassNS1
+- name: Associators_ClassesNS1
   description: Associators on class, providing class name and default namespace with leading/trailing slashes
   pywbem_request:
     url: http://acme.com:80
@@ -244,7 +244,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorsClassNS2
+- name: Associators_ClassesNS2
   description: Associators on class, providing CIMClassName object with leading/trailing slashes in its namespace
   pywbem_request:
     url: http://acme.com:80

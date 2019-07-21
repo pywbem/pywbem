@@ -1,4 +1,4 @@
-- name: ReferenceInstances1
+- name: References_Instances1
   description: Return reference instances for PyWBEM_Person
   pywbem_request:
     url: http://acme.com:80
@@ -180,7 +180,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferenceInstances2
+- name: References_Instances2
   description: Suceeds Return reference instances for PyWBEM_Person without reference_class
   pywbem_request:
     url: http://acme.com:80
@@ -359,7 +359,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferenceInstancesE1
+- name: References_InstancesE1
   description: ReferenceInstance request fails bad namespace
   pywbem_request:
     url: http://acme.com:80
@@ -426,8 +426,8 @@
               </MESSAGE>
             </CIM>
 
-- name: ReferenceInstancesNS1
-  description: ReferenceInstances, with leading/trailing slashes in default namespace
+- name: References_InstancesNS1
+  description: References_Instances, with leading/trailing slashes in default namespace
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -559,8 +559,8 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferenceInstancesNS2
-  description: ReferenceInstances, with leading/trailing slashes in object namespace
+- name: References_InstancesNS2
+  description: References_Instances, with leading/trailing slashes in object namespace
   pywbem_request:
     url: http://acme.com:80
     creds:

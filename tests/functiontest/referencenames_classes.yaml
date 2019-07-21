@@ -1,4 +1,4 @@
-- name: ReferenceNamesClasses1
+- name: ReferenceNames_Classes1
   description: ReferenceNames request on PyWBEM_Person with ResultClass and role. Returns 1 instance
   pywbem_request:
     url: http://acme.com:80
@@ -76,7 +76,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferenceNamesClassesF1
+- name: ReferenceNames_ClassesF1
   description: ReferenceNames request fails, invalid namespace
   pywbem_request:
     url: http://acme.com:80
@@ -137,4 +137,3 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
-

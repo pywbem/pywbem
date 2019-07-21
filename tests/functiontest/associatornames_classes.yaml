@@ -1,4 +1,4 @@
-- name: AssociatorNamesClass1
+- name: AssociatorNames_Classes1
   description: Associator Names on Class PyWBEM with AssocClass, ResultClass, Role, ResultRole. Returns 1 instance
   pywbem_request:
     url: http://acme.com:80
@@ -84,7 +84,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorNamesClass2
+- name: AssociatorNames_Classes2
   description: AssociatorName on class PyWBEM no filter params. Returns multiple classnames
   pywbem_request:
     url: http://acme.com:80
@@ -750,7 +750,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorNamesClassF1
+- name: AssociatorNames_ClassesF1
   description: Associator Names on class PyWBEM with AssocClass,ResultClass, Role, and ResultRole Bad Namespace returns Invalid namespace
   pywbem_request:
     url: http://acme.com:80
@@ -817,7 +817,7 @@
               </MESSAGE>
             </CIM>
 
-- name: AssociatorNamesClassNS1
+- name: AssociatorNames_ClassesNS1
   description: AssociatorNames on class, providing class name and default namespace with leading/trailing slashes
   pywbem_request:
     url: http://acme.com:80
@@ -903,7 +903,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorNamesClassNS2
+- name: AssociatorNames_ClassesNS2
   description: AssociatorNames on class, providing CIMClassName object with leading/trailing slashes in its namespace
   pywbem_request:
     url: http://acme.com:80
