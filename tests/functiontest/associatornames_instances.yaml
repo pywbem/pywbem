@@ -1,4 +1,4 @@
-- name: AssociatorNamesInst1
+- name: AssociatorNames_Instances1
   description: AssociatorNames on inst of PyWBEM_Person with no other parameters. Returns 1 Instance
   pywbem_request:
     url: http://acme.com:80
@@ -91,7 +91,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorNamesInst1x
+- name: AssociatorNames_Instances1x
   description: AssociatorNames on inst of PyWBEM_Person with no other parameters. Returns one Instance
   pywbem_request:
     url: http://acme.com:80
@@ -184,7 +184,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorNamesInst2
+- name: AssociatorNames_Instances2
   description: AssociatorNames Inst of PyWBEM_Person with
   pywbem_request:
     url: http://acme.com:80
@@ -372,7 +372,7 @@
               </MESSAGE>
             </CIM>
 
-- name: AssociatorNamesInstNS1
+- name: AssociatorNames_InstancesNS1
   description: AssociatorNames on instance, with leading/trailing slashes in default namespace
   pywbem_request:
     url: http://acme.com:80
@@ -465,7 +465,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorNamesInstNS2
+- name: AssociatorNames_InstancesNS2
   description: AssociatorNames on instance, with leading/trailing slashes in ObjectName namespace
   pywbem_request:
     url: http://acme.com:80
