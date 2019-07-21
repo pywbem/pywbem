@@ -1,4 +1,4 @@
-- name: ReferenceNamesInst1
+- name: ReferenceNames_Instances1
   description: ReferenceNames Request on PyWbem_Person instance
   pywbem_request:
     url: http://acme.com:80
@@ -125,7 +125,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferenceNamesInstNS1
+- name: ReferenceNames_InstancesNS1
   description: ReferenceNames on instances, with leading/trailing slashes in default namespace
   pywbem_request:
     url: http://acme.com:80
@@ -252,7 +252,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferenceNamesInstNS2
+- name: ReferenceNames_InstancesNS2
   description: ReferenceNames on instances, with leading/trailing slashes in object namespace
   pywbem_request:
     url: http://acme.com:80

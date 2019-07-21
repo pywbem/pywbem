@@ -1,5 +1,5 @@
-- name: OpenReferenceInstancesWithPath1
-  description: OpenReferenceInstancesWithPath request with default parameters returns instances
+- name: OpenReferenceInstances1
+  description: OpenReferenceInstances request with default parameters returns instances
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -205,8 +205,8 @@
 
 # TODO: add error test.
 
-- name: OpenReferenceInstancesWithPathNS1
-  description: OpenReferenceInstancesWithPath, with leading/trailing slashes in default namespace
+- name: OpenReferenceInstancesNS1
+  description: OpenReferenceInstances, with leading/trailing slashes in default namespace
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -345,8 +345,8 @@
       </MESSAGE>
       </CIM>'
 
-- name: OpenReferenceInstancesWithPathNS2
-  description: OpenReferenceInstancesWithPath, with leading/trailing slashes in object namespace
+- name: OpenReferenceInstancesNS2
+  description: OpenReferenceInstances, with leading/trailing slashes in object namespace
   pywbem_request:
     url: http://acme.com:80
     creds:
