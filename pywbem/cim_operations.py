@@ -6328,8 +6328,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.CloseEnumeration(pull_result.context)
                 pull_result = None
 
-    def OpenEnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
-                               DeepInheritance=None, IncludeQualifiers=None,
+    def OpenEnumerateInstances(self, ClassName, namespace=None,
+                               DeepInheritance=None,
                                IncludeClassOrigin=None, PropertyList=None,
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
@@ -6340,6 +6340,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         (including instances of its subclasses) in a namespace.
 
         *New in pywbem 0.9.*
+
+        *The incorrectly supported parameters `LocalOnly` and
+       `IncludeQualifiers` were removed in pywbem 1.0.0.*
 
         This method performs the OpenEnumerateInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6373,17 +6376,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
-          LocalOnly (:class:`py:bool`):
-            **Deprecated:** Controls the exclusion of inherited properties from
-            the returned instances.
-
-            *Deprecated since pywbem 0.14.*
-
-            This parameter has been deprecated in pywbem and will be ignored
-            and not passed on to the WBEM server, because this parameter was
-            never defined in :term:`DSP0200` and thus will be rejected by WBEM
-            servers.
-
           DeepInheritance (:class:`py:bool`):
             Indicates that properties added by subclasses of the specified
             class are to be included in the returned instances, as follows:
@@ -6398,17 +6390,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :meth:`~pywbem.WBEMConnection.EnumerateClasses` and
             :meth:`~pywbem.WBEMConnection.EnumerateClassNames`
             is different.
-
-          IncludeQualifiers (:class:`py:bool`):
-            **Deprecated:** Indicates that qualifiers are to be included in the
-            returned instances.
-
-            *Deprecated since pywbem 0.14.*
-
-            This parameter has been deprecated in pywbem and will be ignored
-            and not passed on to the WBEM server, because this parameter was
-            never defined in :term:`DSP0200` and thus will be rejected by WBEM
-            servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -6861,7 +6842,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def OpenAssociatorInstances(self, InstanceName, AssocClass=None,
                                 ResultClass=None, Role=None, ResultRole=None,
-                                IncludeQualifiers=None,
                                 IncludeClassOrigin=None,
                                 PropertyList=None, FilterQueryLanguage=None,
                                 FilterQuery=None, OperationTimeout=None,
@@ -6874,6 +6854,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         to a source instance.
 
         *New in pywbem 0.9.*
+
+        *The incorrectly supported parameter `IncludeQualifiers` was removed
+        in pywbem 1.0.0.*
 
         This method does not support retrieving classes.
 
@@ -6925,17 +6908,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             role.
 
             `None` means that no such filtering is peformed.
-
-          IncludeQualifiers (:class:`py:bool`):
-            **Deprecated:** Indicates that qualifiers are to be included in the
-            returned instances.
-
-            *Deprecated since pywbem 0.14.*
-
-            This parameter has been deprecated in pywbem and will be ignored
-            and not passed on to the WBEM server, because this parameter was
-            never defined in :term:`DSP0200` and thus will be rejected by WBEM
-            servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -7385,8 +7357,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(result_tuple, exc)
 
-    def OpenReferenceInstances(self, InstanceName, ResultClass=None,
-                               Role=None, IncludeQualifiers=None,
+    def OpenReferenceInstances(self, InstanceName,
+                               ResultClass=None, Role=None,
                                IncludeClassOrigin=None, PropertyList=None,
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
@@ -7398,6 +7370,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         that reference a source instance.
 
         *New in pywbem 0.9.*
+
+        *The incorrectly supported parameter `IncludeQualifiers` was removed
+        in pywbem 1.0.0.*
 
         This method does not support retrieving classes.
 
@@ -7435,17 +7410,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             role.
 
             `None` means that no such filtering is peformed.
-
-          IncludeQualifiers (:class:`py:bool`):
-            **Deprecated:** Indicates that qualifiers are to be included in the
-            returned instances.
-
-            *Deprecated since pywbem 0.14.*
-
-            This parameter has been deprecated in pywbem and will be ignored
-            and not passed on to the WBEM server, because this parameter was
-            never defined in :term:`DSP0200` and thus will be rejected by WBEM
-            servers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
