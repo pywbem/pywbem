@@ -1,4 +1,4 @@
-- name: AssociatorInsts1
+- name: Associators_Instances1
   description: Simple associator instances request, zero responses, succeeds
   pywbem_request:
     url: http://acme.com:80
@@ -69,7 +69,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInsts2
+- name: Associators_Instances2
   description: Associators on instance request with most parameters, zero responses, succeeds
   pywbem_request:
     url: http://acme.com:80
@@ -157,7 +157,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInsts3
+- name: Associators_Instances3
   description: Associators on instance Request, zero responses, succeeds
   pywbem_request:
     url: http://acme.com:80
@@ -232,7 +232,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInsts4
+- name: Associators_Instances4
   description: Associator instances Request with most parameters, zero responses, succeeds
   pywbem_request:
     url: http://acme.com:80
@@ -324,7 +324,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInsts5
+- name: Associators_Instances5
   description: Return Associated Instances to PyWBEM_Person Instance
   pywbem_request:
     url: http://acme.com:80
@@ -489,7 +489,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInsts6
+- name: Associators_Instances6
   description: Associator instances Request with most parameters, zero responses, succeeds. Statistics enabled
   pywbem_request:
     url: http://acme.com:80
@@ -584,7 +584,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInstsF1
+- name: Associators_InstancesF1
   description: associator Instance Fails with invalid Namespace
   pywbem_request:
     url: http://acme.com:80
@@ -648,7 +648,7 @@
             </MESSAGE>
           </CIM>
 
-- name: AssociatorInstsNS1
+- name: Associators_InstancesNS1
   description: Associator instances, with leading/trailing slashes in default namespace
   pywbem_request:
     url: http://acme.com:80
@@ -716,7 +716,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: AssociatorInstsNS2
+- name: Associators_InstancesNS2
   description: Associator instances, with leading/trailing slashes in ObjectName namespace
   pywbem_request:
     url: http://acme.com:80

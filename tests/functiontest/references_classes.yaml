@@ -1,4 +1,4 @@
-- name: ReferencesClass1
+- name: References_Classes1
   description: Class References on PyWBEM test classes with ResultClass
   pywbem_request:
     url: http://acme.com:80
@@ -118,7 +118,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferencesClassNS1
+- name: References_ClassesNS1
   description: References on class, providing classname string and with leading/trailing slashes in default namespace
   pywbem_request:
     url: http://acme.com:80
@@ -206,7 +206,7 @@
       </MESSAGE>
       </CIM>'
 
-- name: ReferencesClassNS2
+- name: References_ClassesNS2
   description: References on class, providing CIMClassName object with leading/trailing slashes in object namespace
   pywbem_request:
     url: http://acme.com:80
