@@ -11,7 +11,6 @@
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Person
-            LocalOnly: false
     pywbem_response:
         pullresult:
             context: null
@@ -60,9 +59,6 @@
                              </LOCALNAMESPACEPATH>
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -155,7 +151,6 @@
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Person
-            LocalOnly: false
     pywbem_response:
         pullresult:
             context:
@@ -206,9 +201,6 @@
                              </LOCALNAMESPACEPATH>
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -301,7 +293,6 @@
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Person
-            LocalOnly: false
     pywbem_response:
         pullresult:
             context: null
@@ -326,9 +317,6 @@
                              </LOCALNAMESPACEPATH>
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -370,7 +358,6 @@
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Person
-            LocalOnly: false
     pywbem_response:
         pullresult:
             context:
@@ -397,9 +384,6 @@
                              </LOCALNAMESPACEPATH>
                              <IPARAMVALUE NAME="ClassName">
                                  <CLASSNAME NAME="PyWBEM_Person"/>
-                             </IPARAMVALUE>
-                             <IPARAMVALUE NAME="LocalOnly">
-                                 <VALUE>FALSE</VALUE>
                              </IPARAMVALUE>
                          </IMETHODCALL>
                      </SIMPLEREQ>
@@ -449,7 +433,6 @@
             FilterQuery: null
             FilterQueryLanguage: null
             OperationTimeout: null
-            LocalOnly: null
             PropertyList: null
     pywbem_response:
         cim_status: 2
@@ -572,7 +555,6 @@
             FilterQuery: null
             FilterQueryLanguage: null
             OperationTimeout: null
-            LocalOnly: null
             PropertyList: null
     pywbem_response:
         cim_status: 3
