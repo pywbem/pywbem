@@ -91,7 +91,3 @@ pyinstrument >=3.0.1
 
 # Indirect dependencies are no longer specified here, but for testing with a
 # minimum version, they are listed in the minimum-constraints.txt file.
-
-# TODO: docutils pinned to 0.14, see https://github.com/pywbem/pywbem/issues/1788. Remove pinning once fixed.
-docutils<=0.14
-

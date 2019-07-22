@@ -97,9 +97,6 @@ Released: not yet
   operations are used.
   (See issue #1780)
 
-* Pinned the docutils package to version 0.14, because its newly released
-  version 0.15 causes a SyntaxError on Python 2.7 (issue #1788).
-
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
