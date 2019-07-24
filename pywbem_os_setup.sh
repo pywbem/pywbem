@@ -246,12 +246,12 @@ elif [[ "$distro_family" == "osx" ]]; then
   brew update
 
   if [[ "$purpose" == "install" ]]; then
+    # Python devel seems to be part of the python package.
     if [[ "$py_m" == "2" ]]; then
       # For M2Crypto:
       install_osx openssl
       install_osx gcc
       install_osx swig
-      # Python devel seems to be there already. Not clear about package name.
     fi
   fi
 
