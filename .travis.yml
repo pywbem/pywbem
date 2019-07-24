@@ -149,8 +149,8 @@ install:
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       if [[ "${PYTHON:0:1}" == "2" ]]; then
-        export PYTHON_CMD=python;
-        export PIP_CMD=pip;
+        export PYTHON_CMD=python2;
+        export PIP_CMD=pip2;
       else
         export PYTHON_CMD=python3;
         export PIP_CMD=pip3;
@@ -165,14 +165,16 @@ install:
       if [[ "${PYTHON:0:1}" == "2" ]]; then
         OSX_PYTHON_PKG=python@2;
       else
-        OSX_PYTHON_PKG=python;
+        OSX_PYTHON_PKG=python@3;
       fi;
       echo "OSX_PYTHON_PKG=$OSX_PYTHON_PKG";
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      echo "travis.yml Updating package metadata";
       brew update;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      echo "travis.yml Installing/upgrading Python";
       brew ls --versions $OSX_PYTHON_PKG;
       rc=$?;
       if [[ $rc == 0 ]]; then
@@ -191,16 +193,20 @@ install:
       which $PYTHON_CMD && which $PIP_CMD;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      echo "travis.yml Installing Python virtualenv";
       $PIP_CMD install virtualenv;
       virtualenv $HOME/venv -p $PYTHON_CMD && source $HOME/venv/bin/activate;
     fi
   - env |sort
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      echo "travis.yml Setting Python development env.vars";
       openssl_dir=$(brew --prefix openssl);
-      echo "Setting LDFLAGS/CFLAGS/SWIG_FEATURES env.vars to $openssl_dir/...";
-      export LDFLAGS="-L$openssl_dir/lib $LDFLAGS";
-      export CFLAGS="-I$openssl_dir/include $CFLAGS";
+      export LDFLAGS="-L$openssl_dir/lib -I/usr/lib $LDFLAGS";
+      echo "LDFLAGS=$LDFLAGS";
+      export CFLAGS="-I$openssl_dir/include -I/usr/include $CFLAGS";
+      echo "CFLAGS=$CFLAGS";
       export SWIG_FEATURES="-I$openssl_dir/include $SWIG_FEATURES";
+      echo "SWIG_FEATURES=$SWIG_FEATURES";
     fi
 # Begin of m2crypto quick fix.
 # The problem happens only with Python 2.6 on Ubuntu 16.04, see pywbem issue #750.
