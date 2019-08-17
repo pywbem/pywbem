@@ -9,6 +9,9 @@ from __future__ import absolute_import, print_function
 import six
 import pytest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
     ParseError, CIMXMLParseError, XMLParseError, VersionError, CIMError, \
     ModelError, CIMInstance

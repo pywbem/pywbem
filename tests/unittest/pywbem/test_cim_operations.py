@@ -10,6 +10,10 @@ from __future__ import print_function, absolute_import
 import os
 import pytest
 
+from ...utils import import_installed, skip_if_moftab_regenerated
+pywbem = import_installed('pywbem')  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, CIMError
 
 from pywbem._recorder import LogOperationRecorder
@@ -309,6 +313,9 @@ def test_is_subclass(testcase, init_args, exp_attrs):
     """
     Test the method is_subclass(ch, ns, super_class, sub).
     """
+
+    skip_if_moftab_regenerated()
+
     conn = build_repo()   # we wanted this to be fixture.
     # The code to be tested
     result = is_subclass(conn, conn.default_namespace, *init_args)

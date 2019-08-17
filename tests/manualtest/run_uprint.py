@@ -37,6 +37,9 @@ import locale
 import traceback
 import six
 
+from ..utils import import_installed
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+
 from pywbem_mock._wbemconnection_mock import _uprint
 
 from tests.unittest.utils.unichr2 import unichr2
