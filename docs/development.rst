@@ -155,13 +155,13 @@ The top-level document to open with a web browser will be
 Testing
 -------
 
-
 All of the following `make` commands run the tests in the currently active
-Python environment. Depending on how the `pywbem` package is installed in that
-Python environment, either the `pywbem` and `pywbem_mock` directories in the
-main repository directory are used, or the installed `pywbem` package.
-The test case files and any utility functions they use are always used from
-the `tests` directory in the main repository directory.
+Python environment, and need to be invoked in the Git repo work directory.
+
+By default, the tests use the `pywbem` and `pywbem_mock` modules from the
+respective directories in the Git repo work directory.
+Pywbem 0.14.5 introduced a way to test installed versions of the pywbem
+package. For details, see :ref:`Testing installed versions of pywbem`.
 
 The `tests` directory has the following subdirectory structure:
 
@@ -266,6 +266,120 @@ active, as long as the Python `tox` package is installed in it:
 
     $ tox                              # Run tests on all supported Python versions
     $ tox -e py27                      # Run tests on Python 2.7
+
+
+.. _`Testing installed versions of pywbem`:
+
+Testing installed versions of pywbem
+------------------------------------
+
+By default, the tests use the pywbem and pywbem_mock modules from the
+respective directories in the Git repo work directory.
+
+Pywbem 0.14.5 introduced a way to test installed versions of the pywbem
+package. This is useful for example for testing a version of pywbem that has
+been packaged as an OS-level package. Typically, such a version would be
+installed into the system Python.
+
+Some words of caution:
+
+* Testing an installed version of pywbem with test cases from a pywbem repo
+  of a different version can result in failing test cases for several reasons:
+
+  - If a new version of pywbem has added functionality, its test cases are also
+    extended accordingly. Running such newer test cases against an older
+    installed version of pywbem may fail simply because the installed version
+    does not yet have the added functionality.
+
+  - Fixes in pywbem or in the test cases may change behavior in a subtle way
+    that causes test cases to fail.
+
+  - Unit test cases are particularly vulnerable to version mismatches because
+    they test at the module level, including module interfaces that are
+    internal to pywbem and thus can legally change incompatibly between
+    versions.
+
+* If the version of the installed pywbem is before 0.14.5, some test cases
+  that compile MOF will be skipped to avoid permission denied errors when
+  ply attempts to re-generate its parsing table files in the pywbem
+  installation directory in case of ply version mismatches. Starting with
+  pywbem 0.14.5, it has tolerance against ply version mismatches.
+
+In order to not clutter up the system Python with Python packages needed for
+running the pywbem tests, the following steps use a virtual Python environment
+that uses the packages of the system Python. That way, the installed version of
+pywbem becomes available to the virtual Python environment from the system
+Python, while any additional packages that are needed but not yet available
+that way, will be installed into the virtual Python environment.
+
+Follow these steps to run pywbem tests against a version of pywbem that is
+installed into the system Python:
+
+1. Verify that the following commands are available when the system Python
+   is active:
+
+   ::
+
+       $ virtualenv --version   # Python virtualenv package
+       $ pip --version
+
+2. Create and activate a virtual Python environment of the intended Python
+   version, that is based on the system Python:
+
+   ::
+
+       $ virtualenv --system-site-packages --no-setuptools --no-pip --no-wheel .virtualenv/test
+       $ source .virtualenv/test/bin/activate
+
+   The pywbem project is set up so that Git ignores the ``.virtualenv``
+   directory, so use that directory name for ease of Git handling.
+
+3. Verify that in that virtual Python environment, pywbem comes from the
+   intended installation:
+
+   ::
+
+       $ pip show pywbem
+
+4. Ensure a fresh start of the make process. This should be done whenever
+   switching between the installed version of pywbem and the local directories:
+
+   ::
+
+       $ make clobber
+
+5. Some distributions install the 'wbemcli' command of pywbem under a different
+   command name than ``wbemcli``. Find out what that name is, and if it is
+   different, set the ``TEST_WBEMCLI_NAME`` environment variable to that
+   command name (e.g for a command name of ``pywbemcli``):
+
+   ::
+
+       $ export TEST_WBEMCLI_NAME=pywbemcli
+
+6. Run the pywbem tests with environment variable ``TEST_INSTALLED`` being set:
+
+   ::
+
+       $ TEST_INSTALLED=1 make test
+
+   This will skip installation of the pywbem package, and will ignore the
+   current directory when importing pywbem into the tests, thus using the
+   installed version of pywbem.
+
+   Setting ``TEST_INSTALLED=DEBUG`` causes some debug messages to be printed
+   that allow verifying from where the pywbem and pywbem_mock modules
+   are loaded.
+
+   This also works for the pywbem end2end tests:
+
+   ::
+
+       $ TEST_INSTALLED=1 make end2end
+
+Note that tox does not support creating its virtual Python environments
+based on the system Python, so at this point, tox cannot be used for this
+approach.
 
 
 .. _`Updating the DMTF MOF Test Schema`:

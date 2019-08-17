@@ -17,6 +17,8 @@ from tabulate import tabulate
 from pyinstrument import Profiler
 import six
 
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
 
 from pywbem import tupletree, __version__
 from pywbem._cliutils import SmartFormatter as _SmartFormatter

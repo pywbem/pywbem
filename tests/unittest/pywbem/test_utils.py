@@ -14,6 +14,9 @@ import random
 import pytest
 import six
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem._utils import _ascii2, _format, _integerValue_to_int
 from pywbem.cim_obj import NocaseDict
 

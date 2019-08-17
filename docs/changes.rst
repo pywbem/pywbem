@@ -35,6 +35,12 @@ Released: not yet
 
 **Enhancements:**
 
+* Test: Added support for running the pywbem tests against an installed version
+  of pywbem, ignoring the version of pywbem that exists in the respective
+  directories of the repo work directory. This is useful for testing a
+  version of pywbem that has been installed as an OS-level package.
+  (See issue #1803)
+
 **Known issues:**
 
 * See `list of open issues`_.
@@ -80,7 +86,7 @@ Released: 2019-07-20
 
 **Cleanup:**
 
-* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04) 
+* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
   for Python 3.7, because that is now the default distro version, in order to
   pick up a future increase of the default distro version automatically.
 
@@ -120,7 +126,7 @@ Released: 2019-05-30
   These packages are only used for development of pywbem.
 
   Note that requests 2.19.1 has a security issue that is fixed in 2.20.0.
-  However, requests 2.20.0 has dropped support for Python 2.6. 
+  However, requests 2.20.0 has dropped support for Python 2.6.
 
 
 pywbem 0.14.2

@@ -10,6 +10,9 @@ from datetime import timedelta, datetime
 import pytest
 import six
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
     Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
     MinutesFromUTC, CIMClass, CIMInstance, CIMInstanceName, CIMClassName, \

@@ -226,6 +226,10 @@ def execute_wbemcli(args, verbose=False):
     """
     Invoke the 'wbemcli' command as a child process.
 
+    In order to test the wbemcli command with distributions that provide it
+    under a different command name, the 'TEST_WBEMCLI_NAME' environment
+    variable can be used to override the default command name 'wbemcli'.
+
     This requires that the 'wbemcli' command is installed in the current
     Python environment.
 
@@ -250,8 +254,11 @@ def execute_wbemcli(args, verbose=False):
           as a unicode string with newlines represented as '\\n'.
           An empty string, if there was no data.
     """
-
-    cli_cmd = u'wbemcli.bat' if os.name == 'nt' else u'wbemcli'
+    cli_name = os.getenv('TEST_WBEMCLI_NAME', 'wbemcli')
+    if os.name == 'nt':
+        cli_cmd = u'{0}.bat'.format(cli_name)
+    else:
+        cli_cmd = u'{0}'.format(cli_name)
 
     assert isinstance(args, (list, tuple))
     cmd_args = [cli_cmd]

@@ -9,6 +9,9 @@ from __future__ import absolute_import, print_function
 import time
 import unittest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import Statistics
 
 from ..utils.unittest_extensions import RegexpMixin

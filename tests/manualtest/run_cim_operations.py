@@ -30,6 +30,9 @@ import traceback
 from six.moves.urllib.parse import urlparse
 import six
 
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \

@@ -7,6 +7,10 @@ from __future__ import print_function, absolute_import
 
 import os
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+
 from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
     CIMInstanceName
 from pywbem_mock import FakedWBEMConnection

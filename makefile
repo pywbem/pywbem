@@ -342,6 +342,11 @@ help:
 	@echo "  TEST_SCHEMA_DOWNLOAD - When set, enables test cases in test_wbemconnection_mock"
 	@echo "      to test downloading of DMTF schema from the DMTF web site."
 	@echo "      Optional, defaults to disabling these test cases."
+	@echo "  TEST_INSTALLED - When set, run any tests using the installed version instead of"
+	@echo "      using the version in the current directory. When set to value 'DEBUG',"
+	@echo "      print the location from where pywbem and pywbenm_mock are loaded."
+	@echo "  TEST_WBEMCLI_NAME - Specifies the name of the wbemcli command, in case a distributor"
+	@echo "      packages it under a different name. Defaults to 'wbemcli'."
 	@echo "  PACKAGE_LEVEL - Package level to be used for installing dependent Python"
 	@echo "      packages in 'install' and 'develop' targets:"
 	@echo "        latest - Latest package versions available on Pypi"
@@ -433,15 +438,21 @@ _show_bitsize:
 	@echo "makefile: Done determining bit size of Python executable"
 
 install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py setup.cfg
-	@echo "makefile: Installing pywbem (editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
+ifdef TEST_INSTALLED
+	@echo "makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
+	@echo "makefile: Checking whether pywbem is actually installed:"
+	$(PIP_CMD) show $(package_name)
+else
+	@echo "makefile: Installing pywbem (as editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,PKG-INFO)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info .eggs)
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
 	$(PIP_CMD) install $(pip_level_opts) -e .
 	$(call CP_FUNC,$(package_name).egg-info/PKG-INFO,.)
-	echo "done" >$@
 	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
+endif
+	echo "done" >$@
 
 .PHONY: install
 install: install_$(pymn).done
@@ -628,6 +639,10 @@ $(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependen
 	@echo "makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
+# Note: Because the current directory is by default in front of the Python module
+# search path, the pywbem module will be imported from ./pywbem even
+# when an installed version of pywbem is tested. This is correct, because the
+# purpose of this rule is to build the mof*tab files in ./pywbem.
 $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 	@echo "makefile: Creating the LEX/YACC table modules"
 	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)

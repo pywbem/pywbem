@@ -27,6 +27,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from ...utils import import_installed, skip_if_moftab_regenerated
+pywbem = import_installed('pywbem')  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+
 from pywbem import CIMInstanceName, CIMInstance, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
@@ -1759,6 +1763,8 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
     def build_repo(self, namespace):
         """Build a fake repo and FakeWBEMConnection so we get responses back"""
+        skip_if_moftab_regenerated()
+
         schema = install_test_dmtf_schema()
         partial_schema = """
             #pragma locale ("en_US")
@@ -1778,6 +1784,8 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         :class:`~pywbem.WBEMConnection` objects.
         NOTE: We changed from example to log to file and use log_captyre
         """
+        skip_if_moftab_regenerated()
+
         # setup schema in test because we configure before we create the
         # connection in this test.
         namespace = 'root/blah'
