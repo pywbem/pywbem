@@ -16,6 +16,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+from ...utils import import_installed, skip_if_moftab_regenerated
+
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
@@ -125,6 +129,8 @@ class TestInstancesUnicode(MOFTest):
         Test compile of string property with literal Unicode characters
         """
 
+        skip_if_moftab_regenerated()
+
         repo = self.mofcomp.handle
 
         class_mof = \
@@ -158,6 +164,8 @@ class TestInstancesUnicode(MOFTest):
         """
         Test compile of string property with MOF escaped Unicode characters
         """
+
+        skip_if_moftab_regenerated()
 
         repo = self.mofcomp.handle
 
@@ -193,6 +201,8 @@ class TestInstancesUnicode(MOFTest):
         Test compile of string property with Unicode escape with no hex chars
         """
 
+        skip_if_moftab_regenerated()
+
         class_mof = \
             'class PyWBEM_TestUnicode {\n' \
             '    string uprop;\n' \
@@ -214,6 +224,8 @@ class TestFlavors(MOFTest):
     def test_valid_flavors(self):
         """Valid flavor combinations compile"""
 
+        skip_if_moftab_regenerated()
+
         mof_str = "Qualifier testoneflavor : boolean = false, scope(class), " \
             "Flavor(DisableOverride);\n"
 
@@ -232,6 +244,8 @@ class TestFlavors(MOFTest):
     def test_valid_flavor2(self):
         """Test for case independence of flavor keywords"""
 
+        skip_if_moftab_regenerated()
+
         mof_str = "Qualifier test1 : scope(class),\n" \
             "Flavor(enableoverride, RESTRICTED, Translatable);"
         try:
@@ -242,6 +256,8 @@ class TestFlavors(MOFTest):
 
     def test_conflicting_flavors1(self):
         """Conflicting flavors should cause exception"""
+
+        skip_if_moftab_regenerated()
 
         mof_str = "Qualifier test1 : scope(class),\n" \
                   "Flavor(DisableOverride, EnableOverride);"
@@ -254,6 +270,8 @@ class TestFlavors(MOFTest):
     def test_conflicting_flavors2(self):
         """Conflicting flavors should cause exception"""
 
+        skip_if_moftab_regenerated()
+
         mof_str = "Qualifier test1 : scope(class),\n" \
                   "Flavor(Restricted, ToSubclass);"
         try:
@@ -265,6 +283,8 @@ class TestFlavors(MOFTest):
     def test_invalid_flavor1(self):
         """Invalid flavor should cause exception"""
 
+        skip_if_moftab_regenerated()
+
         mof_str = "Qualifier test1 : scope(class),\n" \
                   "Flavor(Restricted, ToSubclass, invalidflavor);"
         try:
@@ -275,6 +295,8 @@ class TestFlavors(MOFTest):
 
     def test_invalid_flavor2(self):
         """Invalid flavor should cause exception"""
+
+        skip_if_moftab_regenerated()
 
         mof_str = "Qualifier test1 : scope(class),\n" \
                   "Flavor(invalidflavor);"
@@ -297,6 +319,9 @@ class TestAliases(MOFTest):
         This was easier than trying to create a test case in memory since that
         would involve 3 classes and multiple instances.
         """
+
+        skip_if_moftab_regenerated()
+
         # compile the mof. The DMTF schema mof is installed by the setup
         self.mofcomp.compile_file(
             os.path.join(TEST_DIR, 'test.mof'), NAME_SPACE)
@@ -398,6 +423,8 @@ class TestAliases(MOFTest):
                     return True
             return False
 
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
         repo = self.mofcomp.handle
 
@@ -437,6 +464,9 @@ class TestSchemaError(MOFTest):
         """Test multiple errors. Each test tries to compile a
            specific mof and should result in a specific error
         """
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.parser.search_paths = []
         try:
             self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
@@ -487,6 +517,9 @@ class TestSchemaSearch(MOFTest):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
         """
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                'System',
                                                'CIM_ComputerSystem.mof'),
@@ -510,6 +543,8 @@ class TestSchemaSearch(MOFTest):
         def moflog(msg):
             """Display message to moflog"""
             print(msg, file=self.logfile)
+
+        skip_if_moftab_regenerated()
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         open(moflog_file, 'w')
@@ -535,6 +570,8 @@ class TestSchemaSearch(MOFTest):
             """Display message to moflog"""
             print(msg, file=self.logfile)
 
+        skip_if_moftab_regenerated()
+
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         open(moflog_file, 'w')
         mofcomp = MOFCompiler(
@@ -559,6 +596,8 @@ class TestParseError(MOFTest):
     def test_error01(self):
         """Test missing statement end comment"""
 
+        skip_if_moftab_regenerated()
+
         _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error01.mof')
@@ -575,6 +614,9 @@ class TestParseError(MOFTest):
 
     def test_error02(self):
         """Test invalid instance def TODO what is error? ks 6/16"""
+
+        skip_if_moftab_regenerated()
+
         _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error02.mof')
@@ -591,6 +633,8 @@ class TestParseError(MOFTest):
     def test_error03(self):
         """Test invalid mof, extra } character"""
 
+        skip_if_moftab_regenerated()
+
         _file = os.path.join(TEST_DIR,
                              'testmofs',
                              'parse_error03.mof')
@@ -606,6 +650,8 @@ class TestParseError(MOFTest):
 
     def test_error04(self):
         """Test invalid mof, Pragmas with invalid file definitions."""
+
+        skip_if_moftab_regenerated()
 
         # TODO ks 6/16why does this generate end-of-file rather than more
         # logical error
@@ -654,6 +700,9 @@ class TestParseError(MOFTest):
             member = $Mike;
         };
         """
+
+        skip_if_moftab_regenerated()
+
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Exception expected.")
@@ -669,6 +718,9 @@ class TestParseError(MOFTest):
         class PyWBEM_Person : CIM_Blah {
         };
         """
+
+        skip_if_moftab_regenerated()
+
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Exception expected.")
@@ -699,6 +751,9 @@ class TestParseError(MOFTest):
             size = 2;
         };
         """
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
     def test_instance_wo_class(self):
@@ -711,6 +766,9 @@ class TestParseError(MOFTest):
             size = 1;
         };
         """
+
+        skip_if_moftab_regenerated()
+
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Exception expected.")
@@ -727,6 +785,9 @@ class TestParseError(MOFTest):
             Scope(property, reference),
             Flavor(DisableOverride, ToSubclass);
         """
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
 
@@ -737,6 +798,8 @@ class TestPropertyAlternatives(MOFTest):
 
     def test_array_type(self):
         """ Test compile of class with array property"""
+
+        skip_if_moftab_regenerated()
 
         mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[];\n};"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
@@ -749,6 +812,9 @@ class TestPropertyAlternatives(MOFTest):
 
     def test_array_type_w_size(self):
         """ Test compile of class with array property with size"""
+
+        skip_if_moftab_regenerated()
+
         mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[9];\n};"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
         cl = self.mofcomp.handle.GetClass(
@@ -767,6 +833,9 @@ class TestRefs(MOFTest):
 
     def test_all(self):
         """Execute test"""
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_refs.mof'),
@@ -778,6 +847,8 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_good_compile(self):
         """Execute test with file containing class and two instances."""
+
+        skip_if_moftab_regenerated()
 
         self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
@@ -869,6 +940,9 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_invalid_property(self):
         """Test compile of instance with duplicated property fails"""
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
@@ -893,6 +967,9 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_dup_property(self):
         """Test compile of instance with duplicated property fails"""
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
@@ -918,6 +995,9 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
 
     def test_mismatch_property(self):
         """Test compile of instance with duplicated property fails"""
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_instance.mof'),
@@ -948,6 +1028,9 @@ class TestTypes(MOFTest, CIMObjectMixin):
 
     def test_all(self):
         """Execute test"""
+
+        skip_if_moftab_regenerated()
+
         self.mofcomp.compile_file(os.path.join(TEST_DIR,
                                                'testmofs',
                                                'test_types.mof'),
@@ -1062,6 +1145,8 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
             compiler in qualifier decl or in class creation from that
             qualifier.  """
 
+        skip_if_moftab_regenerated()
+
         mof_str = 'Qualifier Tst: boolean = true, Scope(class),'\
                   ' Flavor(ToSubclass);\n' \
                   '[Tst]\n' \
@@ -1091,6 +1176,8 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
         """ Test that this is not attached to tosubclass flavor by
             compiler in qualifier decl or in class creation from that
             qualifier.  """
+
+        skip_if_moftab_regenerated()
 
         mof_str = 'Qualifier Tst: boolean = true, Scope(class),'\
                   ' Flavor(ToSubclass, ToInstance);\n' \
@@ -1253,10 +1340,12 @@ class TestLexerSimple(BaseTestLexer):
 
     def test_empty(self):
         """Test an empty input."""
+        skip_if_moftab_regenerated()
         self.run_assert_lexer("", [])
 
     def test_simple(self):
         """Test a simple list of tokens."""
+        skip_if_moftab_regenerated()
         input_data = "a 42"
         exp_tokens = [
             self.lex_token('IDENTIFIER', 'a', 1, 0),
@@ -1266,6 +1355,7 @@ class TestLexerSimple(BaseTestLexer):
 
     def test_no_ws_delimiter(self):
         """Test that no whitespace is needed to delimit tokens."""
+        skip_if_moftab_regenerated()
         input_data = "0f"
         exp_tokens = [
             self.lex_token('decimalValue', 0, 1, 0),
@@ -1275,6 +1365,7 @@ class TestLexerSimple(BaseTestLexer):
 
     def test_ignore_space(self):
         """Test that space is ignored, but triggers new token."""
+        skip_if_moftab_regenerated()
         input_data = "a b"
         exp_tokens = [
             self.lex_token('IDENTIFIER', 'a', 1, 0),
@@ -1284,6 +1375,7 @@ class TestLexerSimple(BaseTestLexer):
 
     def test_ignore_cr(self):
         """Test that CR is ignored, but triggers new token."""
+        skip_if_moftab_regenerated()
         input_data = "a\rb"
         exp_tokens = [
             self.lex_token('IDENTIFIER', 'a', 1, 0),
@@ -1293,6 +1385,7 @@ class TestLexerSimple(BaseTestLexer):
 
     def test_ignore_tab(self):
         """Test that TAB is ignored, but triggers new token."""
+        skip_if_moftab_regenerated()
         input_data = "a\tb"
         exp_tokens = [
             self.lex_token('IDENTIFIER', 'a', 1, 0),
@@ -1302,6 +1395,7 @@ class TestLexerSimple(BaseTestLexer):
 
     def test_invalid_token(self):
         """Test that an invalid token is recognized as error."""
+        skip_if_moftab_regenerated()
         input_data = "a%b cd"
         exp_tokens = [
             self.lex_token('IDENTIFIER', 'a', 1, 0),
@@ -1319,6 +1413,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_0(self):
         """Test a decimal number 0."""
+        skip_if_moftab_regenerated()
         input_data = "0"
         exp_data = 0
         exp_tokens = [
@@ -1328,6 +1423,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_plus_0(self):
         """Test a decimal number +0."""
+        skip_if_moftab_regenerated()
         input_data = "+0"
         exp_data = 0
         exp_tokens = [
@@ -1337,6 +1433,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_minus_0(self):
         """Test a decimal number -0."""
+        skip_if_moftab_regenerated()
         input_data = "-0"
         exp_data = 0
         exp_tokens = [
@@ -1346,6 +1443,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_small(self):
         """Test a small decimal number."""
+        skip_if_moftab_regenerated()
         input_data = "12345"
         exp_data = 12345
         exp_tokens = [
@@ -1355,6 +1453,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_small_plus(self):
         """Test a small decimal number with +."""
+        skip_if_moftab_regenerated()
         input_data = "+12345"
         exp_data = 12345
         exp_tokens = [
@@ -1364,6 +1463,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_small_minus(self):
         """Test a small decimal number with -."""
+        skip_if_moftab_regenerated()
         input_data = "-12345"
         exp_data = -12345
         exp_tokens = [
@@ -1373,6 +1473,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_decimal_long(self):
         """Test a decimal number that is long."""
+        skip_if_moftab_regenerated()
         input_data = "12345678901234567890"
         exp_data = 12345678901234567890
         exp_tokens = [
@@ -1384,6 +1485,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_0b(self):
         """Test a binary number 0b."""
+        skip_if_moftab_regenerated()
         input_data = "0b"
         exp_data = 0
         exp_tokens = [
@@ -1394,6 +1496,7 @@ class TestLexerNumber(BaseTestLexer):
     def test_binary_0B(self):
         # pylint: disable=invalid-name
         """Test a binary number 0B (upper case B)."""
+        skip_if_moftab_regenerated()
         input_data = "0B"
         exp_data = 0
         exp_tokens = [
@@ -1403,6 +1506,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_small(self):
         """Test a small binary number."""
+        skip_if_moftab_regenerated()
         input_data = "101b"
         exp_data = 0b101
         exp_tokens = [
@@ -1412,6 +1516,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_small_plus(self):
         """Test a small binary number with +."""
+        skip_if_moftab_regenerated()
         input_data = "+1011b"
         exp_data = 0b1011
         exp_tokens = [
@@ -1421,6 +1526,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_small_minus(self):
         """Test a small binary number with -."""
+        skip_if_moftab_regenerated()
         input_data = "-1011b"
         exp_data = -0b1011
         exp_tokens = [
@@ -1430,6 +1536,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_long(self):
         """Test a binary number that is long."""
+        skip_if_moftab_regenerated()
         input_data = "1011001101001011101101101010101011001011111001101b"
         exp_data = 0b1011001101001011101101101010101011001011111001101
         exp_tokens = [
@@ -1439,6 +1546,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_leadingzero(self):
         """Test a binary number with a leading zero."""
+        skip_if_moftab_regenerated()
         input_data = "01b"
         exp_data = 0b01
         exp_tokens = [
@@ -1448,6 +1556,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_binary_leadingzeros(self):
         """Test a binary number with two leading zeros."""
+        skip_if_moftab_regenerated()
         input_data = "001b"
         exp_data = 0b001
         exp_tokens = [
@@ -1459,6 +1568,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_00(self):
         """Test octal number 00."""
+        skip_if_moftab_regenerated()
         input_data = "00"
         exp_data = 0
         exp_tokens = [
@@ -1468,6 +1578,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_01(self):
         """Test octal number 01."""
+        skip_if_moftab_regenerated()
         input_data = "01"
         exp_data = 0o01
         exp_tokens = [
@@ -1477,6 +1588,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_small(self):
         """Test a small octal number."""
+        skip_if_moftab_regenerated()
         input_data = "0101"
         exp_data = 0o0101
         exp_tokens = [
@@ -1486,6 +1598,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_small_plus(self):
         """Test a small octal number with +."""
+        skip_if_moftab_regenerated()
         input_data = "+01011"
         exp_data = 0o1011
         exp_tokens = [
@@ -1495,6 +1608,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_small_minus(self):
         """Test a small octal number with -."""
+        skip_if_moftab_regenerated()
         input_data = "-01011"
         exp_data = -0o1011
         exp_tokens = [
@@ -1504,6 +1618,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_long(self):
         """Test an octal number that is long."""
+        skip_if_moftab_regenerated()
         input_data = "07051604302011021104151151610403031021011271071701"
         exp_data = 0o7051604302011021104151151610403031021011271071701
         exp_tokens = [
@@ -1513,6 +1628,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_octal_leadingzeros(self):
         """Test an octal number with two leading zeros."""
+        skip_if_moftab_regenerated()
         input_data = "001"
         exp_data = 0o001
         exp_tokens = [
@@ -1524,6 +1640,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_0x0(self):
         """Test hex number 0x0."""
+        skip_if_moftab_regenerated()
         input_data = "0x0"
         exp_data = 0o0
         exp_tokens = [
@@ -1534,6 +1651,7 @@ class TestLexerNumber(BaseTestLexer):
     def test_hex_0X0(self):
         # pylint: disable=invalid-name
         """Test hex number 0X0."""
+        skip_if_moftab_regenerated()
         input_data = "0X0"
         exp_data = 0x0
         exp_tokens = [
@@ -1543,6 +1661,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_0x1(self):
         """Test hex number 0x1."""
+        skip_if_moftab_regenerated()
         input_data = "0x1"
         exp_data = 0x1
         exp_tokens = [
@@ -1552,6 +1671,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_0x01(self):
         """Test hex number 0x01."""
+        skip_if_moftab_regenerated()
         input_data = "0x01"
         exp_data = 0x01
         exp_tokens = [
@@ -1561,6 +1681,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_small(self):
         """Test a small hex number."""
+        skip_if_moftab_regenerated()
         input_data = "0x1F2a"
         exp_data = 0x1f2a
         exp_tokens = [
@@ -1570,6 +1691,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_small_plus(self):
         """Test a small hex number with +."""
+        skip_if_moftab_regenerated()
         input_data = "+0x1F2a"
         exp_data = 0x1f2a
         exp_tokens = [
@@ -1579,6 +1701,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_small_minus(self):
         """Test a small hex number with -."""
+        skip_if_moftab_regenerated()
         input_data = "-0x1F2a"
         exp_data = -0x1f2a
         exp_tokens = [
@@ -1588,6 +1711,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_long(self):
         """Test a hex number that is long."""
+        skip_if_moftab_regenerated()
         input_data = "0x1F2E3D4C5B6A79801f2e3d4c5b6a79801F2E3D4C5B6A7980"
         exp_data = 0x1F2E3D4C5B6A79801f2e3d4c5b6a79801F2E3D4C5B6A7980
         exp_tokens = [
@@ -1597,6 +1721,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_hex_leadingzeros(self):
         """Test a hex number with two leading zeros."""
+        skip_if_moftab_regenerated()
         input_data = "0x00F"
         exp_data = 0x00F
         exp_tokens = [
@@ -1608,6 +1733,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_dot0(self):
         """Test a float number '.0'."""
+        skip_if_moftab_regenerated()
         input_data = ".0"
         exp_data = 0.0
         exp_tokens = [
@@ -1617,6 +1743,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_0dot0(self):
         """Test a float number '0.0'."""
+        skip_if_moftab_regenerated()
         input_data = "0.0"
         exp_data = 0.0
         exp_tokens = [
@@ -1626,6 +1753,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_plus_0dot0(self):
         """Test a float number '+0.0'."""
+        skip_if_moftab_regenerated()
         input_data = "+0.0"
         exp_data = 0.0
         exp_tokens = [
@@ -1635,6 +1763,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_minus_0dot0(self):
         """Test a float number '-0.0'."""
+        skip_if_moftab_regenerated()
         input_data = "-0.0"
         exp_data = 0.0
         exp_tokens = [
@@ -1644,6 +1773,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_small(self):
         """Test a small float number."""
+        skip_if_moftab_regenerated()
         input_data = "123.45"
         exp_data = 123.45
         exp_tokens = [
@@ -1653,6 +1783,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_small_plus(self):
         """Test a small float number with +."""
+        skip_if_moftab_regenerated()
         input_data = "+123.45"
         exp_data = 123.45
         exp_tokens = [
@@ -1662,6 +1793,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_small_minus(self):
         """Test a small float number with -."""
+        skip_if_moftab_regenerated()
         input_data = "-123.45"
         exp_data = -123.45
         exp_tokens = [
@@ -1671,6 +1803,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_float_long(self):
         """Test a float number that is long."""
+        skip_if_moftab_regenerated()
         input_data = "1.2345678901234567890"
         exp_data = 1.2345678901234567890
         exp_tokens = [
@@ -1682,6 +1815,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_error_09(self):
         """Test '09' (decimal: no leading zeros; octal: digit out of range)."""
+        skip_if_moftab_regenerated()
         input_data = "09 bla"
         exp_tokens = [
             self.lex_token('error', '09', 1, 0),
@@ -1691,6 +1825,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_error_008(self):
         """Test '008' (decimal: no leading zeros; octal: digit out of range)."""
+        skip_if_moftab_regenerated()
         input_data = "008 bla"
         exp_tokens = [
             self.lex_token('error', '008', 1, 0),
@@ -1700,6 +1835,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_error_2b(self):
         """Test '2b' (decimal: b means binary; binary: digit out of range)."""
+        skip_if_moftab_regenerated()
         input_data = "2b bla"
         exp_tokens = [
             self.lex_token('error', '2b', 1, 0),
@@ -1709,6 +1845,7 @@ class TestLexerNumber(BaseTestLexer):
 
     def test_error_9b(self):
         """Test '9b' (decimal: b means binary; binary: digit out of range)."""
+        skip_if_moftab_regenerated()
         input_data = "9b bla"
         exp_tokens = [
             self.lex_token('error', '9b', 1, 0),
@@ -1720,6 +1857,7 @@ class TestLexerNumber(BaseTestLexer):
         # pylint: disable=invalid-name
         """Test '02B' (decimal: B means binary; binary: digit out of range;
         octal: B means binary)."""
+        skip_if_moftab_regenerated()
         input_data = "02B bla"
         exp_tokens = [
             self.lex_token('error', '02B', 1, 0),
@@ -1730,6 +1868,7 @@ class TestLexerNumber(BaseTestLexer):
     def test_error_0dot(self):
         """Test '0.' (not a valid float, is parsed as a decimal '0' followed by
         an illegal character '.' which is skipped in t_error()."""
+        skip_if_moftab_regenerated()
         input_data = "0. bla"
         exp_tokens = [
             self.lex_token('decimalValue', 0, 1, 0),
@@ -1744,6 +1883,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_empty(self):
         """Test an empty string."""
+        skip_if_moftab_regenerated()
         input_data = '""'
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1752,6 +1892,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_onechar(self):
         """Test a string with one character."""
+        skip_if_moftab_regenerated()
         input_data = '"a"'
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1760,6 +1901,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_long(self):
         """Test a long string with ASCII chars (no backslash or quotes)."""
+        skip_if_moftab_regenerated()
         input_data = '"abcdefghijklmnopqrstuvwxyz 0123456789_.,:;?=()[]{}/&%$!"'
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1768,6 +1910,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_one_sq(self):
         """Test a string with a single quote."""
+        skip_if_moftab_regenerated()
         input_data = "\"'\""
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1776,6 +1919,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_two_sq(self):
         """Test a string with two single quotes."""
+        skip_if_moftab_regenerated()
         input_data = "\"''\""
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1784,6 +1928,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_two_sq_char(self):
         """Test a string with two single quotes and a char."""
+        skip_if_moftab_regenerated()
         input_data = "\"'a'\""
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1792,6 +1937,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_one_dq(self):
         """Test a string with an escaped double quote."""
+        skip_if_moftab_regenerated()
         input_data = "\"\\\"\""
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1800,6 +1946,7 @@ class TestLexerString(BaseTestLexer):
 
     def test_string_two_dq_char(self):
         """Test a string with two escaped double quotes and a char."""
+        skip_if_moftab_regenerated()
         input_data = "\"\\\"a\\\"\""
         exp_tokens = [
             self.lex_token('stringValue', input_data, 1, 0),
@@ -1812,6 +1959,7 @@ class TestLexerChar(BaseTestLexer):
 
     def test_char_char(self):
         """Test a char16 with one character."""
+        skip_if_moftab_regenerated()
         input_data = "'a'"
         exp_tokens = [
             self.lex_token('charValue', input_data, 1, 0),
@@ -1820,6 +1968,7 @@ class TestLexerChar(BaseTestLexer):
 
     def test_char_space(self):
         """Test a char16 with one space."""
+        skip_if_moftab_regenerated()
         input_data = "' '"
         exp_tokens = [
             self.lex_token('charValue', input_data, 1, 0),
@@ -1828,6 +1977,7 @@ class TestLexerChar(BaseTestLexer):
 
     def test_char_dquote(self):
         """Test a char16 with a double quote."""
+        skip_if_moftab_regenerated()
         input_data = '\'"\''
         exp_tokens = [
             self.lex_token('charValue', input_data, 1, 0),
@@ -1836,6 +1986,7 @@ class TestLexerChar(BaseTestLexer):
 
     def test_char_esquote(self):
         """Test a char16 with an escaped single quote."""
+        skip_if_moftab_regenerated()
         input_data = '\'\\\'\''
         exp_tokens = [
             self.lex_token('charValue', input_data, 1, 0),
@@ -1871,6 +2022,8 @@ class TestFullSchema(MOFTest):
         """ Test compile, of the schema, write of a new mof output file
             and recompile of that file
         """
+
+        skip_if_moftab_regenerated()
 
         # original compile and write of output mof
         # start_time = time()
@@ -1980,6 +2133,9 @@ class TestPartialSchema(MOFTest):
         include file since the compiler finds the files for qualifiers
         and dependent classes.
         """
+
+        skip_if_moftab_regenerated()
+
         schema_mof = self.define_partial_schema()
 
         # write the schema to a file in the schema directory
@@ -2014,6 +2170,9 @@ class TestPartialSchema(MOFTest):
         a mof file defined as a string. This uses the same input data as
         test_build_from_partial_schema above.
         """
+
+        skip_if_moftab_regenerated()
+
         schema_mof = self.define_partial_schema()
 
         self.mofcomp.compile_string(schema_mof, NAME_SPACE)
@@ -2033,11 +2192,13 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(cln in clsrepo)
 
     def test_compile_class_withref(self):
-
         """
         Test compile a single class with reference properties that are not
         listed in pragma.
         """
+
+        skip_if_moftab_regenerated()
+
         schema_mof = """
             #pragma locale ("en_US")
             #pragma include ("Interop/CIM_ElementConformsToProfile.mof")
@@ -2053,11 +2214,13 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(cln in clsrepo)
 
     def test_compile_classmethod_ref(self):
-
         """
         Test compile a single class with reference properties that are not
         listed in pragma. This test installs the dependent classes
         """
+
+        skip_if_moftab_regenerated()
+
         schema_mof = """
            class My_ClassWithRef {
                   [Key]
@@ -2078,11 +2241,13 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(cln in clsrepo)
 
     def test_compile_class_ref_err(self):
-
         """
         Test compile a single class with reference properties where the
         reference class does not exist. Results in exception.
         """
+
+        skip_if_moftab_regenerated()
+
         schema_mof = """
             class My_BadAssoc
             {
@@ -2104,6 +2269,8 @@ class TestPartialSchema(MOFTest):
         Test compile a single class with property and method param containing
         embedded instance.
         """
+
+        skip_if_moftab_regenerated()
 
         schema_mof = """
             class My_ClassWithEmbeddedInst {
@@ -2134,6 +2301,9 @@ class TestPartialSchema(MOFTest):
         Test finding class for EmbeddedInstance qualifier where
         class does not exist.
         """
+
+        skip_if_moftab_regenerated()
+
         schema_mof = """
             class My_ClassWithEmbeddedInst {
                   [Key]
@@ -2154,11 +2324,12 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(ce.status_code == CIM_ERR_INVALID_PARAMETER)
 
     def test_compile_class_circular(self):
-
         """
         Test compile a class that itself contains a circular reference, in this
         case a reference to itself through the EmbeddedInstance qualifier.
         """
+
+        skip_if_moftab_regenerated()
 
         schema_mof = """
             class My_ClassWithEmbeddedInst {
@@ -2208,6 +2379,7 @@ class TestFileErrors(MOFTest):
         """
             Test for case where compile file does not exist.
         """
+        skip_if_moftab_regenerated()
         self.create_mofcompiler()
         try:
             self.mofcomp.compile_file('NoSuchFile.mof', NAME_SPACE)
@@ -2229,7 +2401,7 @@ class TestFileErrors(MOFTest):
             Test for file not found in search path where search path is
             schema dir.
         """
-
+        skip_if_moftab_regenerated()
         try:
             self.mofcomp.compile_file(
                 os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR, 'System',

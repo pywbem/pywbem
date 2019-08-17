@@ -22,6 +22,9 @@ import datetime
 from random import randint
 import requests
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import WBEMListener
 
 RCV_COUNT = 0

@@ -7,6 +7,9 @@ so the class CIM_Foo exists.
 
 from __future__ import absolute_import, print_function
 
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import CIMInstance, CIMInstanceName
 
 _INAME = 'CIM_Foo%s' % 'wbemcli_tst-1'

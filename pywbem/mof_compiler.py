@@ -79,6 +79,7 @@ from __future__ import print_function, absolute_import
 import sys
 import os
 import re
+import tempfile
 # import logging
 from abc import ABCMeta, abstractmethod
 try:
@@ -2545,8 +2546,9 @@ class MOFCompiler(object):
         self.handle.rollback(verbose=verbose)
 
 
-def _build(verbose=False):
-    """Build the LEX and YACC table modules for the MOF compiler, if they do
+def _build(verbose=False, out_dir=_tabdir):
+    """
+    Build the LEX and YACC table modules for the MOF compiler, if they do
     not exist yet, or if their table versions do not match the installed
     version of the `ply` package.
     """
@@ -2554,19 +2556,32 @@ def _build(verbose=False):
     if verbose:
         print(
             _format("Building LEX/YACC modules for MOF compiler in: {0}",
-                    _tabdir))
+                    out_dir))
 
-    _yacc(verbose)
-    _lex(verbose)
+    _yacc(verbose, out_dir=out_dir)
+    _lex(verbose, out_dir=out_dir)
 
 
-def _yacc(verbose=False):
-    """Return YACC parser object for the MOF compiler.
-
-    As a side effect, the YACC table module for the MOF compiler gets created
-    if it does not exist yet, or updated if its table version does not match
-    the installed version of the `ply` package.
+def _yacc(verbose=False, out_dir=None):
     """
+    Return YACC parser object for the MOF compiler.
+
+    Parameters:
+
+      verbose (bool): Print messages while creating the parser object.
+
+      out_dir (string): Path name of the directory in which the YACC table
+        module source file (mofparsetab.py) for the MOF compiler will be
+        generated. If None, that file will not be generated.
+
+    Returns:
+
+      yacc.Parser: YACC parser object for the MOF compiler.
+    """
+
+    # The write_tables argument controls whether the YACC parser writes
+    # the YACC table module file.
+    write_tables = (out_dir is not None)
 
     # In yacc(), the 'debug' parameter controls the main error
     # messages to the 'errorlog' in addition to the debug messages
@@ -2576,26 +2591,42 @@ def _yacc(verbose=False):
     # (ex. PlyLogger(sys.stdout) to generate log output.
     return yacc.yacc(optimize=_optimize,
                      tabmodule=_tabmodule,
-                     outputdir=_tabdir,
+                     outputdir=out_dir,
+                     write_tables=write_tables,
                      debug=True,
                      debuglog=yacc.NullLogger(),
                      errorlog=yacc.PlyLogger(sys.stdout))
 
 
-def _lex(verbose=False):
-    """Return LEX analyzer object for the MOF Compiler.
+def _lex(verbose=False, out_dir=None):
+    """
+    Return LEX analyzer object for the MOF Compiler.
 
-    As a side effect, the LEX table module for the MOF compiler gets created
-    if it does not exist yet, or updated if its table version does not match
-    the installed version of the `ply` package.
+    Parameters:
 
-    To debug lex you may set debug=True and enable the debuglog statement.
-    or other logger definition.
+      verbose (bool): Print messages while creating the parser object.
+
+      out_dir (string): Path name of the directory in which the LEX table
+        module source file (moflextab.py) for the MOF compiler will be
+        generated. If None, that file will not be generated.
+
+    Returns:
+
+      lex.Lexer: LEX analyzer object for the MOF compiler.
     """
 
+    # Unfortunately, lex() does not support a write_tables argument. It
+    # always tries to write the tables if optimize=True, so we supply a dummy
+    # output directory. Always setting optimize=False is also not a good
+    # solution because that causes the input table not to be used.
+    if out_dir is None:
+        out_dir = tempfile.gettempdir()
+
+    # To debug lex you may set debug=True and enable the debuglog statement.
+    # or other logger definition.
     return lex.lex(optimize=_optimize,
                    lextab=_lextab,
-                   outputdir=_tabdir,
+                   outputdir=out_dir,
                    debug=False,
                    # debuglog = lex.PlyLogger(sys.stdout),
                    errorlog=lex.PlyLogger(sys.stdout))

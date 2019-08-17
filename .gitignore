@@ -4,6 +4,7 @@
 /.pytest_cache
 /.cache/
 /.tox/
+/.virtualenv/
 .ipynb_checkpoints/
 *.pyc
 *.pyo

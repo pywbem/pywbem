@@ -6,6 +6,9 @@ from __future__ import absolute_import
 
 import unittest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import cim_http
 
 

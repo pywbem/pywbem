@@ -9,6 +9,9 @@ from __future__ import absolute_import, print_function
 import six
 import pytest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import Warning, ToleratedServerIssueWarning
 
 # Test connection ID used for showing connection information in exception

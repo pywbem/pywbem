@@ -40,6 +40,9 @@ import pytest
 
 from testfixtures import LogCapture, compare, TempDirectory
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import WBEMConnection, ConnectionError
 from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME

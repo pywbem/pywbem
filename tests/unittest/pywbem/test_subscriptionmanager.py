@@ -29,6 +29,9 @@ import os
 import re
 from socket import getfqdn
 
+from ...utils import import_installed, skip_if_moftab_regenerated
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
     CIMInstance
 
@@ -58,6 +61,8 @@ class BaseMethodsForTests(object):
         method first initialized the WbemServerMock and then suplements
         it with the classes required for the subscription manager.
         """
+        skip_if_moftab_regenerated()
+
         server = WbemServerMock(interop_ns='interop')
         # pylint: disable=attribute-defined-outside-init
         self.conn = server.wbem_server.conn

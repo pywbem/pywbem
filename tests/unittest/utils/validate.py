@@ -67,6 +67,9 @@ import os.path
 import re
 from subprocess import Popen, PIPE, STDOUT
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem._utils import _ensure_bytes, _ensure_unicode
 
 # CIM-XML DTD file to validate against
