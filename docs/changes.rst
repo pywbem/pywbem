@@ -60,6 +60,12 @@ Released: not yet
 * Improved handling of missing WinOpenSSL on Windows by recommending manual
   download of next version.
 
+* Test: Added support for running the pywbem tests against an installed version
+  of pywbem, ignoring the version of pywbem that exists in the respective
+  directories of the repo work directory. This is useful for testing a
+  version of pywbem that has been installed as an OS-level package.
+  (See issue #1803)
+
 **Known issues:**
 
 * See `list of open issues`_.

@@ -144,7 +144,9 @@ from httpretty.core import HTTPrettyRequestEmpty, fakesock
 from lxml import etree, doctestcompare
 import six
 
-import pywbem
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem._utils import _ensure_unicode
 from pywbem._nocasedict import NocaseDict
 

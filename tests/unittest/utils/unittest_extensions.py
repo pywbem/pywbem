@@ -10,6 +10,9 @@ from __future__ import absolute_import
 import re
 import os
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem._nocasedict import NocaseDict
 
 

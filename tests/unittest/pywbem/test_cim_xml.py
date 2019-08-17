@@ -12,6 +12,9 @@ import unittest
 import six
 import pytest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import cim_xml
 
 from ..utils.validate import validate_cim_xml, CIMXMLValidationError

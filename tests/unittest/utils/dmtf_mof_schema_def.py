@@ -36,6 +36,9 @@ from __future__ import absolute_import, print_function
 
 import os
 
+from ...utils import import_installed
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+
 from pywbem_mock import DMTFCIMSchema
 
 

@@ -22,6 +22,9 @@ except ImportError:
 import pytest
 import six
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \

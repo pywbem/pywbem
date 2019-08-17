@@ -9,6 +9,9 @@ import re
 import pytest
 from mock import Mock
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import CIMClass, CIMProperty, CIMMethod, CIMParameter, \
     CIMQualifier, WBEMServer, WBEMConnection, ValueMapping
 from pywbem.cim_types import type_from_name

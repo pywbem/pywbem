@@ -26,6 +26,9 @@ import six
 
 from mock import Mock
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import WBEMConnection, CIMInstance, CIMClass, CIMInstanceName, \
     CIMProperty, CIMError, CIM_ERR_NOT_SUPPORTED
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
