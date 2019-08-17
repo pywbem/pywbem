@@ -6,6 +6,9 @@ from __future__ import absolute_import, print_function
 
 import warnings
 
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import ToleratedServerIssueWarning
 from pywbem._utils import _format
 

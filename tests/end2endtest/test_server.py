@@ -5,6 +5,10 @@ End2end tests for WBEMServer class.
 from __future__ import absolute_import, print_function
 
 import re
+
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import WBEMServer
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and

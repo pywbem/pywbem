@@ -18,8 +18,11 @@ import getpass as _getpass
 
 import argparse as _argparse
 from tabulate import tabulate
-from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
+from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem import WBEMConnection, Error, Uint64, __version__
 
 # Pegasus class/namespace to use for test

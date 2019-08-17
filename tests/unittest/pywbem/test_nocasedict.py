@@ -13,6 +13,9 @@ except ImportError:
     from ordereddict import OrderedDict
 import pytest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 

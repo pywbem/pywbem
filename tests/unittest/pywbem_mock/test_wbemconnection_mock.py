@@ -37,6 +37,10 @@ import six
 import pytest
 from testfixtures import OutputCapture
 
+from ...utils import import_installed, skip_if_moftab_regenerated
+pywbem = import_installed('pywbem')  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
@@ -917,6 +921,7 @@ class TestRepoMethods(object):
         # pylint: disable=no-self-use
         """ Test the _class_exists() method"""
         if mof:
+            skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -949,6 +954,7 @@ class TestRepoMethods(object):
         add_cimobjects and compiled objects
         """
         if mof:
+            skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -974,6 +980,7 @@ class TestRepoMethods(object):
             Test the _get_superclassnames method
         """
         if mof:
+            skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -1014,6 +1021,7 @@ class TestRepoMethods(object):
         from the repository, creates a copy  and filters it.
         """
         if mof:
+            skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_classes_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -1098,6 +1106,7 @@ class TestRepoMethods(object):
         of propertylist, include qualifiers, include class origin.
         """
         if mof:
+            skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -1154,6 +1163,7 @@ class TestRepoMethods(object):
         creation of the repo.
         """
         if mof:
+            skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -1205,6 +1215,7 @@ class TestRepoMethods(object):
         Test method used only for manual tests.
         TODO: This test can be removed before we finalize mock
         """
+        skip_if_moftab_regenerated()
         namespaces = ['interop']
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
@@ -1244,6 +1255,7 @@ class TestRepoMethods(object):
         Test the display of the repository with it various options.
         This is done in a single test method for simplicity
         """
+        skip_if_moftab_regenerated()
         # Create the objects in all namespaces
         namespaces = INITIAL_NAMESPACES
         for ns in namespaces:
@@ -1304,6 +1316,7 @@ class TestRepoMethods(object):
         """
         Test output of the display_repository method to a file.
         """
+        skip_if_moftab_regenerated()
         conn.compile_mof_string(tst_instances_mof, namespace=DEFAULT_NAMESPACE)
 
         tst_file_name = 'test_wbemconnection_mock_repo.txt'
@@ -1372,6 +1385,7 @@ class TestRepoMethods(object):
         """
         Test compile qualifiers with namespace from mof
         """
+        skip_if_moftab_regenerated()
         conn.compile_mof_string(tst_qualifiers_mof, ns)
 
         assert conn.GetQualifier(
@@ -1487,6 +1501,7 @@ class TestRepoMethods(object):
             string InstanceID;
         };
         """
+        skip_if_moftab_regenerated()
 
         conn.compile_mof_string(qmof, ns)
         conn.compile_mof_string(cmof, ns)
@@ -1553,6 +1568,8 @@ class TestRepoMethods(object):
         i4 = """
         instance of CIM_Foo as $foo4 { InstanceID = "CIM_Foo4"; };
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(q1, ns)
         qual_repo = \
             conn._get_qualifier_repo(exp_ns)  # pylint: disable=protected-access
@@ -1604,6 +1621,8 @@ class TestRepoMethods(object):
         """
         Test compile of classes into the repository
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_classes_mof, namespace=ns)
 
         assert conn.GetClass('CIM_Foo', namespace=ns).classname == 'CIM_Foo'
@@ -1630,6 +1649,8 @@ class TestRepoMethods(object):
         Test compile of instance MOF into the repository in single file with
         classes.
         """
+
+        skip_if_moftab_regenerated()
 
         tst_ns = ns or conn.default_namespace
         insts_mof = """
@@ -1667,6 +1688,9 @@ class TestRepoMethods(object):
         Test the  tst_assoc_mof compiled MOF to confirm compiled correct
         classes and instances.
         """
+
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
@@ -1712,6 +1736,8 @@ class TestRepoMethods(object):
         Test Compiling DMTF CIM schema. This is a test commpiles the
         complete DMTF schema that is defined in the test suite.
         """
+        skip_if_moftab_regenerated()
+
         ns = 'root/cimv2'
         # install the schema if necessary.
         dmtf_schema = install_test_dmtf_schema()
@@ -1904,6 +1930,8 @@ class TestRepoMethods(object):
         if not run_tst:
             pytest.skip("This test marked to be skipped")
 
+        skip_if_moftab_regenerated()
+
         ns = 'root/cimv2'
         conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                                  class_names=classnames, verbose=False)
@@ -1933,6 +1961,7 @@ class TestRepoMethods(object):
                 Scope(associations),
                 Flavor(DisableOverride, ToSubclass);
         """
+        skip_if_moftab_regenerated()
 
         with pytest.raises(MOFParseError):
             conn.compile_mof_string(q1)
@@ -2668,6 +2697,7 @@ class TestClassOperations(object):
         """
         if not run_tst:
             pytest.skip("This test marked to be skipped")
+        skip_if_moftab_regenerated()
 
         # preinstall required qualifiers
         conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
@@ -4147,6 +4177,7 @@ class TestPullOperations(object):
             Test openenueratepaths where the open is the complete response
             and all parameters are default
         """
+        skip_if_moftab_regenerated()
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         source_inst_name = CIMInstanceName(src_inst[0],
@@ -4228,6 +4259,7 @@ class TestPullOperations(object):
             Test openenueratepaths where the open is the complete response
             and all parameters are default
         """
+        skip_if_moftab_regenerated()
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         source_inst_name = CIMInstanceName(src_inst[0],
@@ -4314,6 +4346,7 @@ class TestPullOperations(object):
             Test openenueratepaths where the open is the complete response
             and all parameters are default
         """
+        skip_if_moftab_regenerated()
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         source_inst_name = CIMInstanceName(src_inst[0],
@@ -4633,6 +4666,7 @@ class TestReferenceOperations(object):
         Test the tst_assoc_mof compilation and verify number of instances
         created.
         """
+        skip_if_moftab_regenerated()
         if ns is None:
             ns = conn.default_namespace
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
@@ -4691,6 +4725,8 @@ class TestReferenceOperations(object):
         Test getting reference classnames with no options on call and default
         namespace. Tests for both string and CIMClassName input
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         # account for api where string classname only allowed with default
@@ -4740,6 +4776,8 @@ class TestReferenceOperations(object):
         """
         Test getting reference instnames with no options
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof)
 
         inst_name = CIMInstanceName('TST_Person',
@@ -4796,6 +4834,8 @@ class TestReferenceOperations(object):
         """
         Test getting reference classnames
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
         targ_iname.namespace = ns
 
@@ -4854,6 +4894,8 @@ class TestReferenceOperations(object):
         Test getting reference instances from default namespace with
         detault parameters
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof)
 
         inst_name = CIMInstanceName('TST_Person',
@@ -4906,6 +4948,8 @@ class TestReferenceOperations(object):
         """
         Test getting reference instance names with rc and role options.
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         inst_name = CIMInstanceName('TST_Person',
@@ -4986,6 +5030,8 @@ class TestAssociationOperations(object):
         Test getting reference classnames with no options on call and default
         namespace. Tests for both string and CIMClassName input
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         if ns is not None:
@@ -5079,6 +5125,8 @@ class TestAssociationOperations(object):
         including role, etc.
         TODO add tests for IncludeQualifiers, PropertyList, IncludeClassOrigin
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         exp_ns = ns or conn.default_namespace
@@ -5157,6 +5205,8 @@ class TestAssociationOperations(object):
         including role, etc.
         TODO add tests for IncludeQualifiers, PropertyList, IncludeClassOrigin
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         exp_ns = ns or conn.default_namespace
@@ -5230,6 +5280,8 @@ class TestAssociationOperations(object):
         Test getting reference classnames with no options on call and default
         namespace. Tests for both string and CIMClassName input
         """
+        skip_if_moftab_regenerated()
+
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         if ns is not None:
@@ -5562,6 +5614,7 @@ class TestInvokeMethod(object):
         """
         if not run_tst:
             pytest.skip("This test marked to be skipped")
+        skip_if_moftab_regenerated()
 
         conn.compile_mof_string(tst_instances_mof, namespace=ns)
 

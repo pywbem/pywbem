@@ -25,6 +25,9 @@ from getpass import getpass
 
 import six
 
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import WBEMConnection, Uint32, ConnectionError, TimeoutError
 
 # Identity of the OpenPegasus namespace, class, and method that implements

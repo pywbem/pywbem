@@ -28,6 +28,9 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+
 from pywbem import ValueMapping, CIMInstanceName, CIMError, \
     CIMQualifierDeclaration, CIMClass
 from pywbem._nocasedict import NocaseDict
