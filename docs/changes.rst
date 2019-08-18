@@ -42,6 +42,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Dev/Test: Pinned lxml to <4.4.0 because that version removed Python 3.4
+  support.
+
 * Test: Temporary fix for pytest option `--pythonwarnings` in end2end tests
   (issue #1714).
 
