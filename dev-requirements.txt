@@ -18,7 +18,7 @@ testfixtures>=4.3.3,<6.0.0
 httpretty>=0.8.14,<0.9.1; python_version == '2.6'
 httpretty>=0.9.5; python_version > '2.6'
 lxml>=4.2.4,<4.3.0; python_version == '2.6'
-lxml>=4.2.4; python_version > '2.6'
+lxml>=4.2.4,<4.4.0; python_version > '2.6'
 # Note: requests 2.19.1 has a security issue that is fixed in 2.20.0. However,
 #       requests 2.20.0 has dropped support for Python 2.6.
 requests>=2.19.1; python_version == '2.6'

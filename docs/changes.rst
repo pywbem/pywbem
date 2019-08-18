@@ -30,6 +30,9 @@ Released: not yet
   pull operations for the IncludeQualifier and LocalOnly parameters based on
   issue #1780.
 
+* Dev/Test: Pinned lxml to <4.4.0 because that version removed Python 3.4
+  support.
+
 **Enhancements:**
 
 **Known issues:**
