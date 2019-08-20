@@ -39,7 +39,13 @@ def skip_if_moftab_regenerated():
     """
 
     pywbem = import_installed('pywbem')  # noqa: E402
-    from pywbem import mofparsetab, moflextab
+
+    try:
+        # If you cannot write to the directory you can't make these files, thus they don't exist
+        # and you cannot import them.
+        from pywbem import mofparsetab, moflextab
+    except ImportError:
+        pytest.skip("We have no mofparsetab or moflextab to import!")
 
     test_installed = os.getenv('TEST_INSTALLED', False)
 
