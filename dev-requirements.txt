@@ -10,7 +10,9 @@
 # Direct dependencies:
 
 # Unit test (imports into testcases):
-pytest>=3.3.0,!=3.9.2
+# pytest 5.0.0 has removed support for Python < 3.5
+pytest>=3.3.0,!=3.9.2,<5.0.0; python_version < '3.5'
+pytest>=3.3.0,!=3.9.2; python_version >= '3.5'
 testfixtures>=4.3.3,<6.0.0
 httpretty>=0.9.5
 # Pinning lxml to <4.4.0 because it started removing Python 3.4 support

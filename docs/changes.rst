@@ -45,6 +45,9 @@ Released: not yet
 * Dev/Test: Pinned lxml to <4.4.0 because that version removed Python 3.4
   support.
 
+* Dev/Test: Pinned pytest to <5.0.0 for Python < 3.5 because that version
+  requires Python >= 3.5.
+
 * Test: Temporary fix for pytest option `--pythonwarnings` in end2end tests
   (issue #1714).
 
