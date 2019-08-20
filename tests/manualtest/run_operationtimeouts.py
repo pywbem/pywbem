@@ -91,7 +91,7 @@ class ClientTest(unittest.TestCase):
 
     def connect(self, url, timeout=None):
 
-        self.log('setup connection {} timeout {}'.format(url, timeout))
+        self.log('setup connection {0} timeout {1}'.format(url, timeout))
         conn = WBEMConnection(
             url,
             (args['username'], args['password']),
@@ -102,13 +102,13 @@ class ClientTest(unittest.TestCase):
 
         # enable saving of xml for display
         conn.debug = args['debug']
-        self.log('Connected {}'.format(url))
+        self.log('Connected {0}'.format(url))
         return conn
 
     def log(self, data_):
         """Display log entry if verbose"""
         if self.debug:
-            print('{}'.format(data_))
+            print('{0}'.format(data_))
 
 
 class ServerTimeoutTest(ClientTest):

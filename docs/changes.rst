@@ -107,6 +107,8 @@ Released: not yet
   pull operations for the IncludeQualifier and LocalOnly parameters based on
   issue #1780.
 
+* Test: Fixed errors on Python 2.6 about unnamed format replacements.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
