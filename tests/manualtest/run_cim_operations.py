@@ -132,8 +132,8 @@ class ClientTest(unittest.TestCase):
             # pylint: disable=undefined-variable
             warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
-        self.log('setup connection {} ns {}'.format(self.system_url,
-                                                    self.namespace))
+        self.log('setup connection {0} ns {1}'.
+                 format(self.system_url, self.namespace))
 
         self.conn = WBEMConnection(
             self.system_url,
@@ -158,8 +158,8 @@ class ClientTest(unittest.TestCase):
             self.yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
             self.conn.add_operation_recorder(TestClientRecorder(self.yamlfp))
 
-        self.log('Connected {}, ns {}'.format(self.system_url,
-                                              CLI_ARGS['namespace']))
+        self.log('Connected {0}, ns {1}'.
+                 format(self.system_url, CLI_ARGS['namespace']))
 
     def tearDown(self):
         """Close the test_client YAML file and display stats."""
@@ -181,7 +181,7 @@ class ClientTest(unittest.TestCase):
            Returns result of request to caller
         """
 
-        self.log('cimcall fn {} args *pargs {} **kwargs {}'.
+        self.log('cimcall fn {0} args *pargs {1} **kwargs {2}'.
                  format(fn, pargs, kwargs))
         try:
             result = fn(*pargs, **kwargs)
@@ -225,7 +225,7 @@ class ClientTest(unittest.TestCase):
         """Display log entry if verbose."""
         # TODO ks aug 17. FUTURE This should be integrated into logging
         if self.verbose:
-            print('{}'.format(data_))
+            print('{0}'.format(data_))
 
     def pywbem_person_class_exists(self):
         """

@@ -36,6 +36,8 @@ Released: not yet
 * Dev/Test: Pinned pytest to <5.0.0 for Python < 3.5 because that version
   requires Python >= 3.5.
 
+* Test: Fixed errors on Python 2.6 about unnamed format replacements.
+
 **Enhancements:**
 
 **Known issues:**
@@ -83,7 +85,7 @@ Released: 2019-07-20
 
 **Cleanup:**
 
-* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04) 
+* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
   for Python 3.7, because that is now the default distro version, in order to
   pick up a future increase of the default distro version automatically.
 
@@ -123,7 +125,7 @@ Released: 2019-05-30
   These packages are only used for development of pywbem.
 
   Note that requests 2.19.1 has a security issue that is fixed in 2.20.0.
-  However, requests 2.20.0 has dropped support for Python 2.6. 
+  However, requests 2.20.0 has dropped support for Python 2.6.
 
 
 pywbem 0.14.2
