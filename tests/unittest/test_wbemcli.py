@@ -50,7 +50,7 @@ def create_abs_path(filename):
     return os.path.join(script_dir, filename)
 
 
-WBEMCLI_HELP = """usage: wbemcli [options] server
+WBEMCLI_HELP = """usage: ~CMDLINE_EXE~ [options] server
 
 Provide an interactive shell for issuing operations against a WBEM server.
 
@@ -155,12 +155,15 @@ General options:
   -h, --help            Show this help message and exit
 
 Examples:
-  wbemcli https://localhost:15345 -n vendor -u sheldon -p penny
+  ~CMDLINE_EXE~ https://localhost:15345 -n vendor -u sheldon -p penny
           - (https localhost, port=15345, namespace=vendor user=sheldon
          password=penny)
 
-  wbemcli http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
-"""  # noqa=E501
+  ~CMDLINE_EXE~ http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+""" # noqa=E501
+
+exe = os.getenv('TEST_WBEMCLI_NAME', 'wbemcli')
+WBEMCLI_HELP = WBEMCLI_HELP.replace("~CMDLINE_EXE~", exe)
 
 # pylint: disable=line-too-long
 
@@ -172,7 +175,7 @@ TEST_SCRIPT = """
 #  results.  This script tests the enumerate and get for class, instance, and
 #  qualifier operations.
 #
-from wbemcli import CONN, gc, ecn, ei, iei, oei, piwp, ein, ieip, oeip, pip, \
+from ~LIB_IMPORT~ import CONN, gc, ecn, ei, iei, oei, piwp, ein, ieip, oeip, pip, \
     a, iai, oai, an, iaip, oaip, iri, ori, rn, irip, orip, ec, gq, eq
 
 print('CONN %s' % CONN)
@@ -209,6 +212,8 @@ quit()
 
 """
 
+TEST_SCRIPT = TEST_SCRIPT.replace("~LIB_IMPORT~", exe)
+
 
 # Script that contains a syntax error
 TEST_SCRIPT_ERR = 'printx("TEST"); quit()'
@@ -219,7 +224,7 @@ import sys
 # The following is required because wbemcli executes the scripts before
 # generating the infomation about connections.  This allows that info to
 # be tested as part of stdout return.
-from wbemcli import _get_connection_info
+from ~LIB_IMPORT~ import _get_connection_info
 print(_get_connection_info())
 
 sys.stdout.flush()
@@ -227,6 +232,8 @@ sys.stderr.flush()
 quit()
 
 """
+
+QUIT_SCRIPT = QUIT_SCRIPT.replace("~LIB_IMPORT~", exe)
 
 OK = True  # mark tests OK when they execute correctly
 RUN = True  # Mark OK = False and current test case being created RUN
