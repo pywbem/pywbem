@@ -450,9 +450,10 @@ class TestSchemaError(MOFTest):
                              os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                           'System',
                                           'CIM_ComputerSystem.mof'))
-            if ce.file_line[1] != 2:
-                print('assert {}'.format(ce.file_line))
-            self.assertEqual(ce.file_line[1], 2)
+            self.assertEqual(ce.file_line[1], 2,
+                             msg="Unexpected line number in CIMError: {0!r}: "
+                             "got {1}, expected {2}".
+                             format(ce, ce.file_line[1], 2))
 
         self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                'qualifiers.mof'),
@@ -471,10 +472,10 @@ class TestSchemaError(MOFTest):
                                  'System',
                                  'CIM_ComputerSystem.mof'))
             # TODO The following is cim version dependent.
-            if ce.file_line[1] != 179:
-                print('assertEqual {} line {}'.format(ce,
-                                                      ce.file_line[1]))
-            self.assertEqual(ce.file_line[1], 179)
+            self.assertEqual(ce.file_line[1], 179,
+                             msg="Unexpected line number in CIMError: {0!r}: "
+                             "got {1}, expected {2}".
+                             format(ce, ce.file_line[1], 179))
 
 
 class TestSchemaSearch(MOFTest):
