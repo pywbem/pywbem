@@ -38,6 +38,9 @@ Released: not yet
 
 * Test: Fixed errors on Python 2.6 about unnamed format replacements.
 
+* Fixed incorrect format specifiers in exceptions raised in pywbem_mock.
+  (See issue #1817)
+
 **Enhancements:**
 
 **Known issues:**
