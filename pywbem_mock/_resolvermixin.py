@@ -107,22 +107,24 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             if qname not in qual_repo:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Qualifier {0!A} in new_class {1!A} in "
-                            "CreateClass not in repository.",
+                    _format("Qualifier {0!A} used in new class {1!A} "
+                            "has no qualifier declaration in repository.",
                             qname, new_class.classname))
             q_decl = qual_repo[qname]
             if qvalue.type != q_decl.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Qualifier {0!A} in new_class {1!A} override type "
-                            "mismatch {2!A} with qualifier declaration {3!A}.",
+                    _format("Qualifier {0!A} used in new class {1!A} has "
+                            "invalid type {2!A} (Qualifier declaration type: "
+                            "{3!A}).",
                             qname, new_class.classname, qvalue.type,
                             q_decl.type))
-            if scope not in q_decl.scopes:
+            if scope not in q_decl.scopes and 'ANY' not in q_decl.scopes:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Qualifier {0!A} in new class {1!A} scope {2!A} "
-                            "invalid. Not in qualifier decl scopes {3}",
+                    _format("Qualifier {0!A} in new class {1!A} is used in "
+                            "invalid scope {2!A} (Qualifier declaration "
+                            "scopes: {3})",
                             qname, new_class.classname, scope, q_decl.scopes))
 
     @staticmethod
