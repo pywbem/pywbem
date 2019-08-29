@@ -107,23 +107,23 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             if qname not in qual_repo:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Qualifier {0|A} in new_class {1|A} in "
+                    _format("Qualifier {0!A} in new_class {1!A} in "
                             "CreateClass not in repository.",
-                            (qname, new_class.classnam)))
+                            qname, new_class.classname))
             q_decl = qual_repo[qname]
             if qvalue.type != q_decl.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Qualifier {0|A} in new_class {1|A} override type "
-                            "mismatch {2|A} with qualifier declaration {3|A}.",
-                            (qname, new_class.classname, qvalue.type,
-                             q_decl.type)))
+                    _format("Qualifier {0!A} in new_class {1!A} override type "
+                            "mismatch {2!A} with qualifier declaration {3!A}.",
+                            qname, new_class.classname, qvalue.type,
+                            q_decl.type))
             if scope not in q_decl.scopes:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Qualifier {0|A} in new class {1|A} scope {2|A} "
+                    _format("Qualifier {0!A} in new class {1!A} scope {2!A} "
                             "invalid. Not in qualifier decl scopes {3}",
-                            (qname, new_class.classname, scope, q_decl.scopes)))
+                            qname, new_class.classname, scope, q_decl.scopes))
 
     @staticmethod
     def _init_qualifier(qualifier, qual_repo):
@@ -259,7 +259,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                     raise CIMError(
                         CIM_ERR_INVALID_PARAMETER,
                         _format("Invalid new_class parameter "
-                                "{0!A} param {1|A}. "
+                                "{0!A} param {1!A}. "
                                 "Does not match signature of "
                                 "overridden method parameters "
                                 "in class {2!A}.", mname, oname,
@@ -448,7 +448,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             if 'Association' not in superclass.qualifiers:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("New class {0|A} derived from superclass {1!A} "
+                    _format("New class {0!A} derived from superclass {1!A} "
                             "in namespace {3!A} which is not Association "
                             "Class .",
                             new_class.classname, new_class.superclass,
