@@ -41,6 +41,8 @@ Released: not yet
 * Fixed incorrect format specifiers in exceptions raised in pywbem_mock.
   (See issue #1817)
 
+* Fixed missing suport for the ANY scope in pywbem_mock. (See issue #1820)
+
 **Enhancements:**
 
 **Known issues:**
