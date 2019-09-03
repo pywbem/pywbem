@@ -2532,7 +2532,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     pl = class_pl
                 else:      # reduce pl to properties in class_properties
                     pl_lower = [pc.lower() for pc in pl]
-                    pl = [pc for pc in class_pl if pc.lower in pl_lower]
+                    pl = [pc for pc in class_pl if pc.lower() in pl_lower]
 
         clns_dict = self._get_subclass_list_for_enums(cname, namespace)
         insts = [self._get_instance(inst.path, namespace,
