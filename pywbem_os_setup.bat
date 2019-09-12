@@ -147,8 +147,8 @@ echo %myname%: Installing Win32OpenSSL ...
 :: Note that the Win32OpenSSL project at https://slproweb.com/ removes
 :: the previously available version when a new version is released. Whenever
 :: that happens, this version here must be updated.
-set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0k
-set _WIN32OPENSSL_VERSION_DASHED=1-1-0k
+set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0L
+set _WIN32OPENSSL_VERSION_DASHED=1-1-0L
 
 :: The bit size of Win32OpenSSL must match the bit size of the Python env.
 set _WIN32OPENSSL_BITSIZE=%PYTHON_ARCH%
@@ -157,6 +157,11 @@ set _WIN32OPENSSL_INSTALL_DIR=C:\OpenSSL-%_WIN32OPENSSL_VERSION_DASHED%-Win%_WIN
 if exist %_WIN32OPENSSL_INSTALL_DIR% (
     echo %myname%: %_WIN32OPENSSL_BASENAME% is already installed in %_WIN32OPENSSL_INSTALL_DIR% ... skipping
     goto done_winopenssl
+)
+
+if exist %_WIN32OPENSSL_BASENAME%.exe (
+    echo %myname%: %_WIN32OPENSSL_BASENAME% has already been downloaded - using it.
+    goto install_winopenssl
 )
 
 set _CMD=curl -o %_WIN32OPENSSL_BASENAME%.exe -sSL https://slproweb.com/download/%_WIN32OPENSSL_BASENAME%.exe --retry 3 --retry-connrefused --retry-delay 10
@@ -177,12 +182,21 @@ set _RC=%errorlevel%
 if "%_RC%"=="0" (
     echo %myname%: Error: The %_WIN32OPENSSL_BASENAME%.exe file does not exist on https://slproweb.com.
     echo %myname%: The https://slproweb.com web site says:
-    cat %_WIN32OPENSSL_BASENAME%.exe
+    type %_WIN32OPENSSL_BASENAME%.exe
     echo %myname%: End of https://slproweb.com web site
+    echo %myname%: The most likely reason for this is that a new version of WinOpenSSL has been released.
+    echo %myname%: You can deal with this as follows:
+    echo %myname%: - Go to https://slproweb.com - Products - Win32/Win64 OpenSSL
+    echo %myname%: - Download the latest fix version of %_WIN32OPENSSL_BASENAME%.exe into the current directory.
+    echo %myname%:   That is the version with the same numeric version but a different fix letter.
+    echo %myname%: - Re-run the pywbem_os_setup.bat script
+    echo %myname%: Please also open an issue on https://github.com/pywbem/pywbem/issues
     rm %_WIN32OPENSSL_BASENAME%.exe
     set _RC=1
     goto error1
 )
+
+:install_winopenssl
 
 :: Downloaded files may not have the execution right.
 rem TODO: Find a way to set RX with the built-in icacls to remove dependency on chmod

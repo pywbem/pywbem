@@ -43,7 +43,12 @@ Released: not yet
 
 * Fixed missing suport for the ANY scope in pywbem_mock. (See issue #1820)
 
+* Increased version of WinOpenSSL used on Windows from 1.1.0k to 1.1.0L.
+
 **Enhancements:**
+
+* Improved handling of missing WinOpenSSL on Windows by recommending manual
+  download of next version.
 
 **Known issues:**
 
