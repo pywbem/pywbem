@@ -114,6 +114,8 @@ Released: not yet
 
 * Fixed missing suport for the ANY scope in pywbem_mock. (See issue #1820)
 
+* Increased version of WinOpenSSL used on Windows from 1.1.0k to 1.1.0L.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -148,6 +150,9 @@ Released: not yet
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
   using a predictable URL, for automated downloads.
+
+* Improved handling of missing WinOpenSSL on Windows by recommending manual
+  download of next version.
 
 **Cleanup:**
 
