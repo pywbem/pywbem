@@ -3280,11 +3280,11 @@ Examples:
         help='Enable gathering of statistics on operations.')
     general_arggroup.add_argument(
         '--mock-server', dest='mock_server', metavar='file name', nargs='*',
-        help='R|Activate pywbem_mock in place of a live WBEMConnection and\n'
-             'compile/build the files defined (".mof" suffix or "py" suffix.\n'
-             'MOF files are compiled and python files are executed assuming\n'
-             'that they include mock_pywbem methods that add objects to the\n'
-             'repository.')
+        help='R|Activate pywbem_mock in place of a live WBEMConnection\n'
+             'and compile/build the files defined (".mof" suffix or\n'
+             '"py" suffix. MOF files are compiled and python files\n'
+             'are executed assuming that they include mock_pywbem\n'
+             'methods that add objects to the repository.')
     general_arggroup.add_argument(
         '-l', '--log', dest='log', metavar='log_spec[,logspec]',
         action='store', default=None,
