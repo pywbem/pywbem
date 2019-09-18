@@ -3113,7 +3113,7 @@ class TestInstanceOperations(object):
         for inst in tst_instances:
             tst_inst_dict[str(model_path(inst.path))] = inst
 
-        # TODO compute number expected be in returned. This is number with
+        # TODO compute number expected be returned. This is number with
         # CIM_Foo as classname
         assert len(rtn_insts) == 2
         for inst in rtn_insts:
@@ -3248,29 +3248,62 @@ class TestInstanceOperations(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "cln, pl, props_exp",
+        "cln, di, pl, props_exp",
+        # props_exp - list of properties or dict of properties per class exp
         [
-            #  cln       pl     props_exp
-            ['CIM_Foo', None, ['InstanceID']],
-            ['CIM_Foo', "", []],
-            ['CIM_Foo', "blah", []],
-            ['CIM_Foo', 'InstanceID', ['InstanceID']],
-            ['CIM_Foo', ['InstanceID'], ['InstanceID']],
-            ['CIM_Foo', ['INSTANCEID'], ['InstanceID']],
-            ['CIM_Foo', ['instanceid'], ['InstanceID']],
-            ['CIM_Foo_sub', None, ['InstanceID', 'cimfoo_sub']],
-            ['CIM_Foo_sub', "", []],
-            ['CIM_Foo_sub', 'cimfoo_sub', ['cimfoo_sub']],
-            ['CIM_Foo_sub', "blah", []],
-            ['CIM_Foo_sub', 'InstanceID', ['InstanceID']],
-            ['CIM_Foo_sub', ['INSTANCEID'], ['InstanceID']],
-            ['CIM_Foo_sub', ['instanceid'], ['InstanceID']],
-            ['CIM_Foo_sub', ['InstanceID', 'cimfoo_sub'],
+            #  cln      di    pl      props_exp
+            ['CIM_Foo', False, None, ['InstanceID']],
+            ['CIM_Foo', False, "", []],
+            ['CIM_Foo', False, "blah", []],
+            ['CIM_Foo', False, 'InstanceID', ['InstanceID']],
+            ['CIM_Foo', False, ['InstanceID'], ['InstanceID']],
+            ['CIM_Foo', False, ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo', False, ['instanceid'], ['InstanceID']],
+            ['CIM_Foo_sub', False, None, ['InstanceID', 'cimfoo_sub']],
+            ['CIM_Foo_sub', False, "", []],
+            ['CIM_Foo_sub', False, 'cimfoo_sub', ['cimfoo_sub']],
+            ['CIM_Foo_sub', False, "blah", []],
+            ['CIM_Foo_sub', False, 'InstanceID', ['InstanceID']],
+            ['CIM_Foo_sub', False, ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', False, ['instanceid'], ['InstanceID']],
+            ['CIM_Foo_sub', False, ['InstanceID', 'cimfoo_sub'],
+             ['InstanceID', 'cimfoo_sub']],
+            ['CIM_Foo', True, None, {'CIM_Foo': ['InstanceID'],
+                                     'CIM_Foo_sub': ['InstanceID',
+                                                     'cimfoo_sub'],
+                                     'CIM_Foo_sub2': ['InstanceID',
+                                                      'cimfoo_sub2'],
+                                     'CIM_Foo_sub_sub': ['InstanceID',
+                                                         'cimfoo_sub',
+                                                         'cimfoo_sub_sub']}],
+            ['CIM_Foo', True, "", []],
+            ['CIM_Foo', True, "blah", []],
+            ['CIM_Foo', True, 'InstanceID', ['InstanceID']],
+            ['CIM_Foo', True, ['InstanceID'], ['InstanceID']],
+            ['CIM_Foo', True, ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo', True, ['instanceid'], ['InstanceID']],
+            ['CIM_Foo', True, ['cimfoo_sub2'],
+                {'CIM_Foo': [],
+                 'CIM_Foo_sub': [],
+                 'CIM_Foo_sub2': ['cimfoo_sub2'],
+                 'CIM_Foo_sub_sub': []}],
+            ['CIM_Foo_sub', True, None,
+                {'CIM_Foo_sub': ['InstanceID', 'cimfoo_sub'],
+                 'CIM_Foo_sub_sub': ['InstanceID',
+                                     'cimfoo_sub',
+                                     'cimfoo_sub_sub']}],
+            ['CIM_Foo_sub', True, "", []],
+            ['CIM_Foo_sub', True, 'cimfoo_sub', ['cimfoo_sub']],
+            ['CIM_Foo_sub', True, "blah", []],
+            ['CIM_Foo_sub', True, 'InstanceID', ['InstanceID']],
+            ['CIM_Foo_sub', True, ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', True, ['instanceid'], ['InstanceID']],
+            ['CIM_Foo_sub', True, ['InstanceID', 'cimfoo_sub'],
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
-    def test_enumerateinstances_pl(self, conn, ns, cln, pl, props_exp,
-                                   tst_classeswqualifiers, tst_instances):
+    def test_enumerateinstances_pl_di(self, conn, ns, cln, di, pl, props_exp,
+                                      tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstances with namespace as an input
@@ -3281,16 +3314,20 @@ class TestInstanceOperations(object):
         conn.add_cimobjects(tst_instances, namespace=ns)
 
         rtn_insts = conn.EnumerateInstances(cln, namespace=ns,
+                                            DeepInheritance=di,
                                             PropertyList=pl)
 
-        # Can only test for properties in the return here since
-        # the tests return properties different for each subclass.
+        # If props_exp is dict, test for returned properties by class in
+        # dict.  All rtnd classes must be in dict
         for inst in rtn_insts:
             assert isinstance(inst, CIMInstance)
-            props_exp = [x.lower() for x in props_exp]
+            if isinstance(props_exp, dict):
+                props_expi = props_exp[inst.classname]
+            else:
+                props_expi = props_exp
+            props_expi = [x.lower() for x in props_expi]
             props_act = [x.lower() for x in inst.keys()]
-            for pn in props_exp:
-                assert pn in props_act
+            assert set(props_expi) == set(props_act)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])

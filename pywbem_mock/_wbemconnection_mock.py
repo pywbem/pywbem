@@ -2528,7 +2528,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # by the PropertyList
         if not self._repo_lite:
             if not di:
-                if pl is None:
+                if pl is None:  # properties in class form property list
                     pl = class_pl
                 else:      # reduce pl to properties in class_properties
                     pl_lower = [pc.lower() for pc in pl]
