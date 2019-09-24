@@ -107,9 +107,6 @@ exp_type_reference = u'reference' if CHECK_0_12_0 else 'reference'
 exp_eo_object = u'object' if CHECK_0_12_0 else 'object'
 exp_eo_instance = u'instance' if CHECK_0_12_0 else 'instance'
 
-print("Debug: CHECK_0_12_0 = %s, __version__ = %s" %
-      (CHECK_0_12_0, __version__))
-
 
 def swapcase2(text):
     """Returns text, where every other character has been changed to swap
