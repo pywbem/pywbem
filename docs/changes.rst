@@ -116,6 +116,11 @@ Released: not yet
 
 * Increased version of WinOpenSSL used on Windows from 1.1.0k to 1.1.0L.
 
+* Fixed the issue that EnumerateInstances did not return instances without
+  properties unless DeepInheritance was set (see issue #1802).
+
+* Fixed bad formatting on --mock-server option in wbemcli.py.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
