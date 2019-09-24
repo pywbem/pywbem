@@ -5794,8 +5794,8 @@ class TestDMTFCIMSchema(object):
         compilation into a new directory. This should completely clean the
         directory before the test.
         """
-        if 'TEST_SCHEMA_DOWNLOAD' not in os.environ:
-            pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD set.")
+        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
+            pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, test_schema_root_dir,
                                verbose=False)
@@ -5844,8 +5844,8 @@ class TestDMTFCIMSchema(object):
         TESTSUITE_SCHEMA_DIR directory and then removes it.  It should not
         touch the existing schema.
         """
-        if 'TEST_SCHEMA_DOWNLOAD' not in os.environ:
-            pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD set.")
+        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
+            pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                                use_experimental=True, verbose=False)
@@ -5876,8 +5876,8 @@ class TestDMTFCIMSchema(object):
         Test loading a second schema. This test loads a second schema
         into the TESTSUITE_SCHEMA_DIR directory and then removes it.
         """
-        if 'TEST_SCHEMA_DOWNLOAD' not in os.environ:
-            pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD set.")
+        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
+            pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
         schema = DMTFCIMSchema((2, 50, 0), TESTSUITE_SCHEMA_DIR, verbose=False)
 
