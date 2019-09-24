@@ -67,16 +67,15 @@ def import_installed(module_name):
 
     The TEST_INSTALLED environment variable controls this as follows:
 
-      * If not set (or set to an empty string), the normal Python module search
-        path is used. Because that search path contains the current directory
-        in front of the list, this will cause a module directory in the current
-        directory to have precedence over any installed versions of the module.
+      * If not set or empty, the normal Python module search path is used.
+        Because that search path contains the current directory in front of the
+        list, this will cause a module directory in the current directory to
+        have precedence over any installed versions of the module.
 
-      * If set (to a value other than empty string), the current directory is
-        removed from the Python module search path, and an installed version
-        of the module is thus used, even when a module directory exists in the
-        current directory. This can be used for testing an OS-installed version
-        of the module.
+      * If non-empty, the current directory is removed from the Python module
+        search path, and an installed version of the module is thus used, even
+        when a module directory exists in the current directory. This can be
+        used for testing an OS-installed version of the module.
 
     Example usage, e.g. in a pywbem test program::
 
