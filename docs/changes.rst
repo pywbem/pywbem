@@ -55,6 +55,11 @@ Released: not yet
   pull operations are used; it is still passed on if the traditional
   operations are used. (See issue #1780)
 
+* Fixed the issue that EnumerateInstances did not return instances without
+  properties unless DeepInheritance was set (see issue #1802).
+
+* Fixed bad formatting on --mock-server option in wbemcli.py.
+
 **Enhancements:**
 
 * Improved handling of missing WinOpenSSL on Windows by recommending manual
