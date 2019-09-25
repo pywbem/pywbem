@@ -185,7 +185,11 @@ if [[ "$distro_family" == "redhat" ]]; then
   fi
   echo "$myname: Using installer: $installer"
 
-  sudo $installer makecache fast
+  if [[ "$installer" == "dnf" ]]; then
+    sudo $installer makecache
+  else
+    sudo $installer makecache fast
+  fi
 
   if [[ "$purpose" == "install" ]]; then
     if [[ "$py_m" == "2" ]]; then
