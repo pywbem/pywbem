@@ -259,6 +259,8 @@ present in the PATH.
 
   - Windows command prompt in administrator mode.
 
+  - `Chocolatey package manager`_ installed (providing the ``choco`` command).
+
 * Download the ``pywbem_os_setup.bat`` script from one of these sources:
 
   - :download:`pywbem_os_setup.bat <../pywbem_os_setup.bat>` - this version of
@@ -274,18 +276,15 @@ present in the PATH.
     script. Because the script is not expected to change much, this version
     should work also for older versions of pywbem.
 
-* Execute the ``pywbem_os_setup.bat`` script in a Windows command prompt in
-  administrator mode:
+* Execute the ``pywbem_os_setup.bat`` script:
 
   .. code-block:: bash
 
      > pywbem_os_setup.bat
 
-  This script checks whether the commands needed for installing and using
-  pywbem are available in the PATH. If not, it installs them via the
-  `Chocolatey package manager`_.
-
-  The following commands are needed for installing and using pywbem:
+  This script checks whether the following commands that are needed for
+  installing and using pywbem are available in the PATH. If not, it installs
+  them via ``choco``:
 
   * ``swig``
   * ``curl``
@@ -293,21 +292,14 @@ present in the PATH.
   * ``chmod``
   * ``tar``
 
-  These commands can either be made available via a UNIX-like environment
-  such as `CygWin`_, MSYS2, Babun, or Gow, or if they are not available
-  in the PATH, they will be installed using the
-  `Chocolatey package manager`_ by invoking its ``choco`` command.
-
   This script will also install the ``M2Crypto`` Python package into the active
-  Python environment, so it must be run with the desired Python environment
-  active.
+  Python environment.
 
   This script will also download and install Win32 OpenSSL from
   https://slproweb.com/products/Win32OpenSSL.html.
 
 * Install pywbem (and its other prerequisite Python packages) into the active
-  Python environment by running in a Windows command prompt in administrator
-  mode:
+  Python environment:
 
   .. code-block:: bash
 
