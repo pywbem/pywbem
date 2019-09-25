@@ -168,6 +168,9 @@ Released: not yet
   version of pywbem that has been installed as an OS-level package.
   (See issue #1803)
 
+* Docs: Improved the section about installing to a native Windows environment
+  (See issue #1804)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
