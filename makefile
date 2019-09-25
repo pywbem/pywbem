@@ -342,9 +342,9 @@ help:
 	@echo "  TEST_SCHEMA_DOWNLOAD - When non-empty, enables test cases in test_wbemconnection_mock"
 	@echo "      to test downloading of DMTF schema from the DMTF web site."
 	@echo "      Optional, defaults to disabling these test cases."
-	@echo "  TEST_INSTALLED - When non-empty, run any tests using the installed version instead of"
-	@echo "      using the version in the current directory. When set to value 'DEBUG',"
-	@echo "      print the location from where pywbem and pywbenm_mock are loaded."
+	@echo "  TEST_INSTALLED - When non-empty, run any tests using the installed version of pywbem"
+	@echo "      and assume all Python and OS-level prerequisites are already installed."
+	@echo "      When set to 'DEBUG', print location from where pywbem and pywbem_mock are loaded."
 	@echo "  TEST_WBEMCLI_NAME - Specifies the name of the wbemcli command, in case a distributor"
 	@echo "      packages it under a different name. Defaults to 'wbemcli'."
 	@echo "  PACKAGE_LEVEL - Package level to be used for installing dependent Python"
@@ -691,8 +691,14 @@ safety_$(pymn).done: develop_$(pymn).done makefile minimum-constraints.txt
 	echo "done" >$@
 	@echo "makefile: Done running pyup.io safety check"
 
+ifdef TEST_INSTALLED
+  test_deps =
+else
+  test_deps = develop_$(pymn).done $(moftab_files)
+endif
+
 .PHONY: test
-test: develop_$(pymn).done $(moftab_files)
+test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
 	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warnings_opts) $(pytest_opts) tests/unittest tests/functiontest -s
 	@echo "makefile: Done running tests"

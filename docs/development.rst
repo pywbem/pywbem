@@ -363,9 +363,12 @@ installed into the system Python:
 
        $ TEST_INSTALLED=1 make test
 
-   This will skip installation of the pywbem package, and will ignore the
-   current directory when importing pywbem into the tests, thus using the
-   installed version of pywbem.
+   This will assume that the pywbem package and any prerequisite Python
+   packages and OS-level packages are already installed.
+
+   This will also move the current directory (i.e. the repo working directory)
+   to the end of the module search path, so that the installed version of
+   pywbem is used when importing it into the test scripts.
 
    Setting ``TEST_INSTALLED=DEBUG`` causes some debug messages to be printed
    that allow verifying from where the pywbem and pywbem_mock modules
