@@ -121,6 +121,9 @@ Released: not yet
 
 * Fixed bad formatting on --mock-server option in wbemcli.py.
 
+* Fixed the issue with 'dnf makecache fast' during pywbem_os_setup.sh on Fedora
+  (See issue #1844)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
