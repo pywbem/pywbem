@@ -94,14 +94,42 @@ def import_installed(module_name):
     """
     test_installed = os.getenv('TEST_INSTALLED', False)
     if test_installed:
+
+        # Remove '' directory.
+        dirpath = ''
         try:
-            sys.path.remove('')
+            ix = sys.path.index(dirpath)
         except ValueError:
-            pass
-        try:
-            sys.path.remove(os.getcwd())
-        except ValueError:
-            pass
+            ix = None
+        if ix is not None:
+            if test_installed == 'DEBUG':
+                print("Debug: Removing {0} at index {1} from module search "
+                      "path".format(dirpath, ix))
+            del sys.path[ix]
+
+        # Move CWD to end. Reason is that when testing with an editable
+        # installation, the CWD is needed, but when testing with a non-editable
+        # installation, the package should not be found inthe CWD.
+        # Note that somehow the CWD gets inserted at the begin of the search
+        # path every time, so we need a loop.
+        dirpath = os.getcwd()
+        while True:
+            try:
+                ix = sys.path.index(dirpath)
+            except ValueError:
+                if test_installed == 'DEBUG':
+                    print("Debug: Appending {0} to end of module search "
+                          "path".format(dirpath))
+                sys.path.append(dirpath)
+                break
+            if ix == len(sys.path) - 1:
+                # it exists once at the end
+                break
+            if test_installed == 'DEBUG':
+                print("Debug: Removing {0} at index {1} from module search "
+                      "path".format(dirpath, ix))
+            del sys.path[ix]
+
     if module_name not in sys.modules:
         module = __import__(module_name, level=0)  # only absolute imports
         if test_installed == 'DEBUG':
