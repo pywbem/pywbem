@@ -349,8 +349,9 @@ TEST_CASES = [
 
     ['Validate load invalid mock file fails.',
      ['httpx://localhost', '--mock-server', 'blah.mof'],
-     {'stderr': ['error: Build Repository failed: File name blah.mof'],
-      'rc': 2,
+     {'stderr': ['Error: Building the mock repository failed: Mock file '
+      'not found: blah.mof'],
+      'rc': 1,
       'test': 'in'},
      None, None, OK],
 
