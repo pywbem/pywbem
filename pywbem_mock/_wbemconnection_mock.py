@@ -3349,7 +3349,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         The return is espected to be the same as the return defined by
         WBEMConnection.InvokeMethod (ReturnValue, OutputParameters).
-
         """
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
             localobject = deepcopy(objectname)
@@ -3364,8 +3363,11 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         else:
             raise TypeError(
-                _format("FakedWBEMConnection InvokeMethod invalid type for "
-                        "objectname: {0!A}", type(objectname)))
+                _format("InvokeMethod of method {0!A} on object {1!A}: "
+                        "Objectname argument has incorrect Python type {2} "
+                        "- expected one of pywbem.CIMInstanceName, "
+                        "pywbem.CIMClassName, or string",
+                        methodname, objectname, type(objectname)))
 
         namespace = localobject.namespace
 
@@ -3454,11 +3456,13 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                                          cimtype(param[1]),
                                                          value=param[1])
                 else:
-                    raise CIMError(
-                        CIM_ERR_INVALID_PARAMETER,
-                        _format("InvokeMethod Param {0!A} invalid type, "
-                                "{1}. Expected tuple or CIMParameter",
-                                param, type(param)))
+                    raise TypeError(
+                        _format("InvokeMethod of method {0!A} on object {1!A}: "
+                                "A parameter in the Params argument has "
+                                "incorrect Python type {2} "
+                                "- expected one of tuple (name, value) or "
+                                "pywbem.CIMParameter",
+                                methodname, localobject, type(param)))
 
         if params:
             for param in params:
@@ -3473,31 +3477,45 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         except CIMError:
             raise
 
-        except Exception as ex:
+        except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            tb = repr(traceback.format_exception(exc_type, exc_value,
-                                                 exc_traceback))
-
+            tb = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            method_code = bound_method.func_code
             raise CIMError(
                 CIM_ERR_FAILED,
-                _format("Exception failure of invoked method {0!A} in "
-                        "namespace {1!A} with input localobject {2!A}, "
-                        "parameters {3!A}. Exception: {4}\n"
-                        "Traceback\n{5}",
-                        methodname, namespace, localobject, params, ex, tb))
+                _format("Error in implementation of mocked method {0!A} of "
+                        "class {1!A} (File {2} line {3}): "
+                        "Unhandled Python exception:\n"
+                        "{4}",
+                        methodname, localobject.classname,
+                        method_code.co_filename, method_code.co_firstlineno,
+                        "\n".join(tb)))
 
         # test for valid data in response.
         if not isinstance(result, (list, tuple)):
+            method_code = bound_method.func_code
             raise CIMError(
                 CIM_ERR_FAILED,
-                _format("Callback method returned {0} response type. "
-                        "Expected list or tuple", type(result)))
+                _format("Error in implementation of mocked method {0!A} of "
+                        "class {1!A} (File {2} line {3}): "
+                        "Object returned by mock function has incorrect type "
+                        "{4} - expected list/tuple (CIM value, list/tuple "
+                        "(pywbem.CIMParameter))",
+                        methodname, localobject.classname,
+                        method_code.co_filename, method_code.co_firstlineno,
+                        type(result)))
         for param in result[1]:
             if not isinstance(param, CIMParameter):
+                method_code = bound_method.func_code
                 raise CIMError(
                     CIM_ERR_FAILED,
-                    _format("Callback method returned {0} response type. "
-                            "Expected CIMParameter.", type(param)))
+                    _format("Error in implementation of mocked method {0!A} "
+                            "of class {1!A} (File {2} line {3}): "
+                            "Output parameter has incorrect type {4} "
+                            "- expected pywbem.CIMParameter",
+                            methodname, localobject.classname,
+                            method_code.co_filename, method_code.co_firstlineno,
+                            type(param)))
 
         # Map output params to NocaseDict to be compatible with return
         # from _methodcall. The input list is just CIMParameters
