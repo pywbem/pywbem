@@ -77,6 +77,9 @@ Released: not yet
 * Docs: Improved the section about installing to a native Windows environment
   (See issue #1804)
 
+* Improved error messages and error handling in wbemcli and in the pywbem
+  mock support.
+
 **Known issues:**
 
 * See `list of open issues`_.

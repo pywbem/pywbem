@@ -82,7 +82,7 @@ as its current Python namespace, so the functions shown below can directly be
 invoked (e.g. ``ei(...)``).
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 # We make any global symbols private, in order to keep the namespace of the
 # interactive sheel as clean as possible.
@@ -108,7 +108,7 @@ try:
 except ImportError:
     _HAVE_READLINE = False
 
-from pywbem import WBEMConnection
+from pywbem import WBEMConnection, MOFParseError
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
@@ -129,7 +129,7 @@ ARGS = None
 WBEMCLI_LOG_FILENAME = 'wbemcli.log'
 
 
-def build_mock_repository(conn_, file_path_list, verbose):
+def _build_mock_repository(conn_, file_path_list, verbose):
     """
     Build the mock repository from the file_path list and fake connection
     instance.  This allows both mof files and python files to be used to
@@ -141,30 +141,40 @@ def build_mock_repository(conn_, file_path_list, verbose):
     for file_path in file_path_list:
         ext = _os.path.splitext(file_path)[1]
         if not _os.path.exists(file_path):
-            raise ValueError('File name %s does not exist' % file_path)
+            raise ValueError("Mock file not found: %s" % file_path)
         if ext == '.mof':
-            conn_.compile_mof_file(file_path)
+            try:
+                conn_.compile_mof_file(file_path)
+                # any MOF parse errors have already been displayed.
+            except MOFParseError:
+                raise ValueError(
+                    "Mock MOF file %r failed compiling (see above)" %
+                    file_path)
         elif ext == '.py':
             try:
                 with open(file_path) as fp:
                     # the exec includes CONN and VERBOSE
                     globalparams = {'CONN': conn_, 'VERBOSE': verbose}
                     # pylint: disable=exec-used
-                    exec(fp.read(), globalparams, None)
-
-            except Exception as ex:
-                exc_type, exc_value, exc_traceback = _sys.exc_info()
-                tb = repr(traceback.format_exception(exc_type, exc_value,
-                                                     exc_traceback))
+                    file_source = fp.read()
+                    try:
+                        file_code = compile(file_source, file_path, 'exec')
+                        # pylint: disable=exec-used
+                        exec(file_code, globalparams, None)
+                    except Exception:
+                        exc_type, exc_value, exc_traceback = _sys.exc_info()
+                        tb = traceback.format_exception(exc_type, exc_value,
+                                                        exc_traceback)
+                        raise ValueError(
+                            "Mock script %r failed during execution.\n"
+                            "%s" % (file_path, "\n".join(tb)))
+            except IOError as exc:
                 raise ValueError(
-                    'Exception failure of "--mock-server" python script %r '
-                    'with conn %r Exception: %r\nTraceback\n%s' %
-                    (file_path, conn, ex, tb))
-
+                    "Mock script %r cannot be opened: %s" % (file_path, exc))
         else:
-            raise ValueError('Invalid suffix %s on "--mock-server" '
-                             'global parameter %s. Must be "py" or "mof".'
-                             % (ext, file_path))
+            raise ValueError(
+                "Mock file %r has invalid suffix %r "
+                "(must be '.py' or '.mof')" % (file_path, ext))
 
     if verbose:
         conn_.display_repository()
@@ -180,7 +190,9 @@ def _remote_connection(server, opts, argparser_):
 
     if opts.timeout is not None:
         if opts.timeout < 0 or opts.timeout > 300:
-            argparser_.error('timeout option(%s) out of range' % opts.timeout)
+            argparser_.error(
+                "--timeout value out of range: %s (range is 0 to 300)" %
+                opts.timeout)
 
     # mock only uses the namespace timeout and statistics options from the
     # original set of options. It ignores the url
@@ -191,29 +203,30 @@ def _remote_connection(server, opts, argparser_):
             stats_enabled=opts.statistics)
 
         try:
-            build_mock_repository(CONN, opts.mock_server, opts.verbose)
+            _build_mock_repository(CONN, opts.mock_server, opts.verbose)
         except ValueError as ve:
-            argparser_.error('Build Repository failed: %s' % ve)
+            _error("Building the mock repository failed: %s" % ve)
 
         return CONN
 
     if server[0] == '/':
         url = server
-
-    elif re.match(r"^https{0,1}://", server) is not None:
-        url = server
-
-    elif re.match(r"^[a-zA-Z0-9]+://", server) is not None:
-        argparser_.error('Invalid scheme on server argument.'
-                         ' Use "http" or "https"')
-
     else:
-        url = '%s://%s' % ('https', server)
+        m = re.match(r"^([a-zA-Z0-9]+)://", server)
+        if m is not None:
+            scheme = m.group(1)
+            if scheme not in ('http', 'https'):
+                argparser_.error(
+                    "Invalid scheme on server argument: %s "
+                    "(Valid schemes are 'http' or 'https')" % scheme)
+            url = server
+        else:
+            url = '%s://%s' % ('https', server)
 
     creds = None
 
     if opts.key_file is not None and opts.cert_file is None:
-        argparser_.error('keyfile option requires certfile option')
+        argparser_.error('--keyfile option requires --certfile option')
 
     if opts.user is not None and opts.password is None:
         opts.password = _getpass.getpass('Enter password for %s: '
@@ -3146,6 +3159,17 @@ class _WbemcliCustomFormatter(_SmartFormatter,
     pass
 
 
+def _error(msg):
+    """
+    Error exit from wbemcli.
+
+    Prints the specified message, prefixed with "Error: " and terminates
+    the program with exit code 1.
+    """
+    print("Error: %s" % msg, file=_sys.stderr)
+    _sys.exit(1)
+
+
 def _main():
     """
     Parse command line arguments, connect to the WBEM server and open the
@@ -3341,15 +3365,31 @@ Examples:
             _readline.read_history_file(histfile)
         except NotFoundError as exc:
             if exc.errno != _errno.ENOENT:
-                raise
+                _error("History file %r cannot be read: %s" % (histfile, exc))
 
     # Execute any python script defined by the script argument
     if args.scripts:
-        for script in args.scripts:
+        for script_file in args.scripts:
             if args.verbose:
-                print('script %s executed' % script)
-            with open(script) as fp:
-                exec(fp.read(), globals(), None)  # pylint: disable=exec-used
+                print("Executing wbemcli script %r" % script_file)
+            try:
+                with open(script_file) as fp:
+                    script_source = fp.read()
+                    try:
+                        script_code = compile(script_source, script_file,
+                                              'exec')
+                        # pylint: disable=exec-used
+                        exec(script_code, globals(), None)
+                    except Exception:
+                        exc_type, exc_value, exc_traceback = _sys.exc_info()
+                        tb = traceback.format_exception(exc_type, exc_value,
+                                                        exc_traceback)
+                        _error("Wbemcli script %r failed during execution.\n"
+                               "%s" %
+                               (script_file, "\n".join(tb)))
+            except IOError as exc:
+                _error("Wbemcli script %r cannot be opened: %s" %
+                       (script_file, exc))
 
     # Interact
     i = _code.InteractiveConsole(globals())
