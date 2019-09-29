@@ -16,13 +16,7 @@ Change log
 pywbem 0.14.5
 -------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-09-29
 
 **Bug fixes:**
 
@@ -79,12 +73,6 @@ Released: not yet
 
 * Improved error messages and error handling in wbemcli and in the pywbem
   mock support.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.4
