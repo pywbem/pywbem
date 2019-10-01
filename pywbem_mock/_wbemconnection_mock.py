@@ -2249,7 +2249,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                         "CIMInstance. Rcvd type={0}", type(modified_instance)))
 
         # Classnames in instance and path must match
-        if modified_instance.classname != modified_instance.path.classname:
+        if modified_instance.classname.lower() != \
+                modified_instance.path.classname.lower():
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("ModifyInstance classname in path and instance do "
