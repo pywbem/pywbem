@@ -124,6 +124,9 @@ Released: not yet
 * Fixed the issue with 'dnf makecache fast' during pywbem_os_setup.sh on Fedora
   (See issue #1844)
 
+* Fixed case sensitive class name check in mock support of ModifyInstance
+  (See issue #1859)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
