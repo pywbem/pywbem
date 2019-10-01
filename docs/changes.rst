@@ -26,6 +26,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed case sensitive class name check in mock support of ModifyInstance
+  (See issue #1859)
+
 **Enhancements:**
 
 **Known issues:**
