@@ -2308,8 +2308,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def EnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                            DeepInheritance=None, IncludeQualifiers=None,
-                           IncludeClassOrigin=None, PropertyList=None,
-                           **extra):
+                           IncludeClassOrigin=None, PropertyList=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the instances of a class (including instances of its
@@ -2405,12 +2404,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A list of :class:`~pywbem.CIMInstance` objects that are
@@ -2444,8 +2437,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 DeepInheritance=DeepInheritance,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
         try:
             stats = self.statistics.start_timer(method_name)
@@ -2463,8 +2455,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 DeepInheritance=DeepInheritance,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
             if result is None:
                 instances = []
@@ -2503,7 +2494,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(instances, exc)
 
-    def EnumerateInstanceNames(self, ClassName, namespace=None, **extra):
+    def EnumerateInstanceNames(self, ClassName, namespace=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the instance paths of instances of a class (including
@@ -2533,12 +2524,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A list of :class:`~pywbem.CIMInstanceName` objects that are the
@@ -2564,8 +2549,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 ClassName=ClassName,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
             stats = self.statistics.start_timer(method_name)
@@ -2577,8 +2561,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
-                **extra)
+                ClassName=classname)
 
             if result is None:
                 instancenames = []
@@ -2618,7 +2601,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.operation_recorder_stage_result(instancenames, exc)
 
     def GetInstance(self, InstanceName, LocalOnly=None, IncludeQualifiers=None,
-                    IncludeClassOrigin=None, PropertyList=None, **extra):
+                    IncludeClassOrigin=None, PropertyList=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Retrieve an instance.
@@ -2689,12 +2672,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :class:`~pywbem.CIMInstance` object that is a representation of
@@ -2724,8 +2701,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
         try:
 
@@ -2743,8 +2719,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
             if result is None:
                 raise CIMXMLParseError(
@@ -2791,7 +2766,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.operation_recorder_stage_result(instance, exc)
 
     def ModifyInstance(self, ModifiedInstance, IncludeQualifiers=None,
-                       PropertyList=None, **extra):
+                       PropertyList=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Modify the property values of an instance.
@@ -2908,12 +2883,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stating that all properties exposed by the instance are designated
             to be modified.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -2928,8 +2897,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 ModifiedInstance=ModifiedInstance,
                 IncludeQualifiers=IncludeQualifiers,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
         try:
 
@@ -2964,8 +2932,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ModifiedInstance=instance,
                 IncludeQualifiers=IncludeQualifiers,
                 PropertyList=PropertyList,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -2983,7 +2950,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(None, exc)
 
-    def CreateInstance(self, NewInstance, namespace=None, **extra):
+    def CreateInstance(self, NewInstance, namespace=None):
         # pylint: disable=invalid-name
         """
         Create an instance in a namespace.
@@ -3035,12 +3002,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Leading and trailing slash characters will be stripped. The lexical
             case will be preserved.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :class:`~pywbem.CIMInstanceName` object that is the instance
@@ -3061,8 +3022,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 NewInstance=NewInstance,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -3081,8 +3041,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             result = self._imethodcall(
                 method_name,
                 namespace,
-                NewInstance=instance,
-                **extra)
+                NewInstance=instance)
 
             if result is None:
                 raise CIMXMLParseError(
@@ -3125,7 +3084,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(instancename, exc)
 
-    def DeleteInstance(self, InstanceName, **extra):
+    def DeleteInstance(self, InstanceName):
         # pylint: disable=invalid-name
         """
         Delete an instance.
@@ -3145,12 +3104,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             of the connection is used.
             Its `host` attribute will be ignored.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -3163,8 +3116,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                InstanceName=InstanceName,
-                **extra)
+                InstanceName=InstanceName)
 
         try:
 
@@ -3177,8 +3129,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 InstanceName=instancename,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -3198,7 +3149,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def Associators(self, ObjectName, AssocClass=None, ResultClass=None,
                     Role=None, ResultRole=None, IncludeQualifiers=None,
-                    IncludeClassOrigin=None, PropertyList=None, **extra):
+                    IncludeClassOrigin=None, PropertyList=None):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the instances associated to a source instance, or the classes
@@ -3300,12 +3251,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             : The returned list of objects depend on the usage:
@@ -3364,8 +3309,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultRole=ResultRole,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
         try:
 
@@ -3385,8 +3329,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultRole=ResultRole,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
             # instance-level invocation: list of CIMInstance
             # class-level invocation: list of CIMClass
@@ -3436,7 +3379,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.operation_recorder_stage_result(objects, exc)
 
     def AssociatorNames(self, ObjectName, AssocClass=None, ResultClass=None,
-                        Role=None, ResultRole=None, **extra):
+                        Role=None, ResultRole=None):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the instance paths of the instances associated to a source
@@ -3502,12 +3445,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             `None` means that no such filtering is peformed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             : The returned list of objects depend on the usage:
@@ -3550,8 +3487,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 AssocClass=AssocClass,
                 ResultClass=ResultClass,
                 Role=Role,
-                ResultRole=ResultRole,
-                **extra)
+                ResultRole=ResultRole)
 
         try:
 
@@ -3567,8 +3503,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 AssocClass=self._iparam_classname(AssocClass, 'AssocClass'),
                 ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
                 Role=Role,
-                ResultRole=ResultRole,
-                **extra)
+                ResultRole=ResultRole)
 
             if result is None:
                 objects = []
@@ -3615,7 +3550,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def References(self, ObjectName, ResultClass=None, Role=None,
                    IncludeQualifiers=None, IncludeClassOrigin=None,
-                   PropertyList=None, **extra):
+                   PropertyList=None):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the association instances that reference a source instance,
@@ -3703,12 +3638,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             : The returned list of objects depend on the usage:
@@ -3765,8 +3694,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Role=Role,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
         try:
 
@@ -3784,8 +3712,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Role=Role,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
             if result is None:
                 objects = []
@@ -3832,7 +3759,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(objects, exc)
 
-    def ReferenceNames(self, ObjectName, ResultClass=None, Role=None, **extra):
+    def ReferenceNames(self, ObjectName, ResultClass=None, Role=None):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve the instance paths of the association instances that reference
@@ -3884,12 +3811,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             `None` means that no such filtering is peformed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             : The returned list of objects depend on the usage:
@@ -3931,8 +3852,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 ObjectName=ObjectName,
                 ResultClass=ResultClass,
-                Role=Role,
-                **extra)
+                Role=Role)
 
         try:
 
@@ -3946,8 +3866,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace,
                 ObjectName=objectname,
                 ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
-                Role=Role,
-                **extra)
+                Role=Role)
 
             if result is None:
                 objects = []
@@ -4118,7 +4037,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(result_tuple, exc)
 
-    def ExecQuery(self, QueryLanguage, Query, namespace=None, **extra):
+    def ExecQuery(self, QueryLanguage, Query, namespace=None):
         # pylint: disable=invalid-name
         """
         Execute a query in a namespace.
@@ -4150,12 +4069,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A list of :class:`~pywbem.CIMInstance` objects that represents
@@ -4180,8 +4093,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 QueryLanguage=QueryLanguage,
                 Query=Query,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -4192,8 +4104,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 QueryLanguage=QueryLanguage,
-                Query=Query,
-                **extra)
+                Query=Query)
 
             if result is None:
                 instances = []
@@ -4233,8 +4144,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                IncludeClassOrigin=None, PropertyList=None,
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
-                               MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                               **extra):
+                               MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the instances of a class (including instances of its
@@ -4469,12 +4379,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             between 100 and 1000 typically do not have a significant impact on
             either memory or overall efficiency.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -4518,7 +4422,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         FilterQuery=FilterQuery,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set has_pull flag
                     self._use_enum_inst_pull_operations = True
@@ -4564,7 +4468,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 DeepInheritance=DeepInheritance,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList, **extra)
+                PropertyList=PropertyList)
 
             # Complete namespace and host components of the path
             # pylint: disable=unused-variable
@@ -4594,8 +4498,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def IterEnumerateInstancePaths(self, ClassName, namespace=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
-                                   MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                                   **extra):
+                                   MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         """
         Enumerate the instance paths of instances of a class (including
         instances of its subclasses) in a namespace, using the
@@ -4754,12 +4657,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             between 100 and 1000 typically do not have a significant impact on
             either memory or overall efficiency.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -4794,7 +4691,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         FilterQuery=FilterQuery,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set has_pull flag
                     self._use_enum_path_pull_operations = True
@@ -4835,7 +4732,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                  'ContinueOnError.')
 
             enum_rslt = self.EnumerateInstanceNames(
-                ClassName, namespace=namespace, **extra)
+                ClassName, namespace=namespace)
 
             # pylint: disable=unused-variable
             host, port, ssl = parse_url(self.url)
@@ -4868,8 +4765,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                 IncludeClassOrigin=None, PropertyList=None,
                                 FilterQueryLanguage=None, FilterQuery=None,
                                 OperationTimeout=None, ContinueOnError=None,
-                                MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                                **extra):
+                                MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         # pylint: disable=invalid-name,line-too-long
         """
         Retrieve the instances associated to a source instance, using the
@@ -5083,12 +4979,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
           :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
@@ -5136,7 +5026,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         FilterQuery=FilterQuery,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set has_pull flag
                     self._use_assoc_inst_pull_operations = True
@@ -5185,7 +5075,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultRole=ResultRole,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList, **extra)
+                PropertyList=PropertyList)
 
             for inst in enum_rslt:
                 yield inst
@@ -5202,8 +5092,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     Role=None, ResultRole=None,
                                     FilterQueryLanguage=None, FilterQuery=None,
                                     OperationTimeout=None, ContinueOnError=None,
-                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                                    **extra):
+                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         # pylint: disable=invalid-name
         """
         Retrieve the instance paths of the instances associated to a source
@@ -5376,12 +5265,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
           :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
@@ -5418,7 +5301,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         FilterQuery=FilterQuery,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set use_pull flag
                     self._use_assoc_path_pull_operations = True
@@ -5463,7 +5346,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 AssocClass=AssocClass,
                 ResultClass=ResultClass,
                 Role=Role,
-                ResultRole=ResultRole, **extra)
+                ResultRole=ResultRole)
 
             for inst in enum_rslt:
                 yield inst
@@ -5480,8 +5363,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                IncludeClassOrigin=None, PropertyList=None,
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
-                               MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                               **extra):
+                               MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         # pylint: disable=invalid-name,line-too-long
         """
         Retrieve the association instances that reference a source instance,
@@ -5675,12 +5557,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
           :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
@@ -5725,7 +5601,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         FilterQuery=FilterQuery,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set has_pull flag
                     self._use_ref_inst_pull_operations = True
@@ -5770,7 +5646,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Role=Role,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList, **extra)
+                PropertyList=PropertyList)
 
             for inst in enum_rslt:
                 yield inst
@@ -5786,8 +5662,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    Role=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
-                                   MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                                   **extra):
+                                   MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         # pylint: disable=invalid-name
         """
         Retrieve the instance paths of the association instances that reference
@@ -5946,12 +5821,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
           :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
@@ -5986,7 +5855,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         FilterQuery=FilterQuery,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set use_pull flag
                     self._use_ref_path_pull_operations = True
@@ -6029,8 +5898,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             enum_rslt = self.ReferenceNames(
                 InstanceName,
                 ResultClass=ResultClass,
-                Role=Role,
-                **extra)
+                Role=Role)
 
             for inst in enum_rslt:
                 yield inst
@@ -6045,8 +5913,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def IterQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
-                           MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT,
-                           **extra):
+                           MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
         # pylint: disable=line-too-long
         """
         Execute a query in a namespace, using the Python :term:`py:generator`
@@ -6179,12 +6046,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * The default is defined as a system config variable.
             * `None` is not allowed.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
           :class:`~pywbem.IterQueryInstancesReturn`: An object with the
@@ -6266,7 +6127,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         ReturnQueryResultClass=ReturnQueryResultClass,
                         OperationTimeout=OperationTimeout,
                         ContinueOnError=ContinueOnError,
-                        MaxObjectCount=MaxObjectCount, **extra)
+                        MaxObjectCount=MaxObjectCount)
 
                     # Open operation succeeded; set has_pull flag
                     self._use_query_pull_operations = True
@@ -6316,7 +6177,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # The parameters are QueryLanguage and Query for ExecQuery
             _instances = self.ExecQuery(FilterQueryLanguage,
                                         FilterQuery,
-                                        namespace=namespace, **extra)
+                                        namespace=namespace)
 
             rtn = IterQueryInstancesReturn(_instances)
             return rtn
@@ -6333,7 +6194,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                IncludeClassOrigin=None, PropertyList=None,
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
-                               MaxObjectCount=None, **extra):
+                               MaxObjectCount=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to enumerate the instances of a class
@@ -6469,12 +6330,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -6559,8 +6414,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         if MaxObjectCount is not None and MaxObjectCount < 0:
             raise ValueError(
@@ -6588,8 +6442,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_inst_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -6613,7 +6466,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def OpenEnumerateInstancePaths(self, ClassName, namespace=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
-                                   MaxObjectCount=None, **extra):
+                                   MaxObjectCount=None):
         # pylint: disable=invalid-name
 
         """
@@ -6715,12 +6568,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -6799,8 +6646,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
             stats = self.statistics.start_timer(method_name)
@@ -6818,8 +6664,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_path_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -6845,8 +6690,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                 IncludeClassOrigin=None,
                                 PropertyList=None, FilterQueryLanguage=None,
                                 FilterQuery=None, OperationTimeout=None,
-                                ContinueOnError=None, MaxObjectCount=None,
-                                **extra):
+                                ContinueOnError=None, MaxObjectCount=None):
         # pylint: disable=invalid-name
         # pylint: disable=invalid-name,line-too-long
         """
@@ -6987,12 +6831,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -7065,8 +6903,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -7091,8 +6928,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_inst_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -7118,7 +6954,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     ResultRole=None,
                                     FilterQueryLanguage=None, FilterQuery=None,
                                     OperationTimeout=None, ContinueOnError=None,
-                                    MaxObjectCount=None, **extra):
+                                    MaxObjectCount=None):
         # pylint: disable=invalid-name
         """
         Open an enumeration session to retrieve the instance paths of the
@@ -7238,12 +7074,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               to return zero instances.
 
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -7312,8 +7142,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -7335,8 +7164,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_path_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -7362,7 +7190,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                IncludeClassOrigin=None, PropertyList=None,
                                FilterQueryLanguage=None, FilterQuery=None,
                                OperationTimeout=None, ContinueOnError=None,
-                               MaxObjectCount=None, **extra):
+                               MaxObjectCount=None):
         # pylint: disable=invalid-name
         # pylint: disable=invalid-name,line-too-long
         """
@@ -7490,12 +7318,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               to return zero instances.
 
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -7567,8 +7389,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -7591,8 +7412,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_inst_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -7617,7 +7437,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    Role=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
-                                   MaxObjectCount=None, **extra):
+                                   MaxObjectCount=None):
         # pylint: disable=invalid-name
         """
         Open an enumeration session to retrieve the instance paths of
@@ -7722,12 +7542,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -7793,8 +7607,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         if MaxObjectCount is not None and MaxObjectCount < 0:
             raise ValueError(
@@ -7818,8 +7631,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_path_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -7843,7 +7655,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def OpenQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
-                           MaxObjectCount=None, **extra):
+                           MaxObjectCount=None):
         # pylint: disable=invalid-name
         """
         Open an enumeration session to execute a query in a namespace and to
@@ -7937,12 +7749,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               to return zero instances.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :func:`~py:collections.namedtuple` object containing the following
@@ -8030,8 +7836,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ReturnQueryResultClass=ReturnQueryResultClass,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -8047,8 +7852,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             insts, eos, enum_ctxt = self._get_rslt_params(result, namespace)
 
@@ -8074,7 +7878,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(result_tuple, exc)
 
-    def PullInstancesWithPath(self, context, MaxObjectCount, **extra):
+    def PullInstancesWithPath(self, context, MaxObjectCount):
         # pylint: disable=invalid-name
 
         """
@@ -8124,12 +7928,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to reset the interoperation timer
             * `None` is not allowed.
-
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
 
         Returns:
 
@@ -8194,8 +7992,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 context=context,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -8209,8 +8006,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_inst_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -8231,7 +8027,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(result_tuple, exc)
 
-    def PullInstancePaths(self, context, MaxObjectCount, **extra):
+    def PullInstancePaths(self, context, MaxObjectCount):
         # pylint: disable=invalid-name
         """
         Retrieve the next set of instance paths from an open enumeration
@@ -8280,12 +8076,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to reset the interoperation timer.
             * `None` is not allowed.
-
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
 
         Returns:
 
@@ -8347,8 +8137,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 context=context,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -8362,8 +8151,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_path_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -8384,7 +8172,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(result_tuple, exc)
 
-    def PullInstances(self, context, MaxObjectCount, **extra):
+    def PullInstances(self, context, MaxObjectCount):
         # pylint: disable=invalid-name
         """
         Retrieve the next set of instances (without instance paths) from an
@@ -8431,12 +8219,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * If zero, the WBEM server is to return no instances. This may
               be used by a client to reset the interoperation timer.
             * `None` is not allowed.
-
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
 
         Returns:
 
@@ -8494,8 +8276,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 context=context,
-                MaxObjectCount=MaxObjectCount,
-                **extra)
+                MaxObjectCount=MaxObjectCount)
 
         try:
 
@@ -8509,8 +8290,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 EnumerationContext=context[0],
                 MaxObjectCount=MaxObjectCount,
-                has_out_params=True,
-                **extra)
+                has_out_params=True)
 
             result_tuple = pull_inst_result_tuple(
                 *self._get_rslt_params(result, namespace))
@@ -8531,7 +8311,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(result, exc)
 
-    def CloseEnumeration(self, context, **extra):
+    def CloseEnumeration(self, context):
         # pylint: disable=invalid-name
         """
         Close an open enumeration session, causing an early termination of an
@@ -8565,12 +8345,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * namespace (:term:`string`):
               Name of the CIM namespace being used for this enumeration session.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -8583,8 +8357,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                context=context,
-                **extra)
+                context=context)
 
         try:
 
@@ -8600,8 +8373,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace=context[1],
                 EnumerationContext=context[0],
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -8621,8 +8393,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def EnumerateClasses(self, namespace=None, ClassName=None,
                          DeepInheritance=None, LocalOnly=None,
-                         IncludeQualifiers=None, IncludeClassOrigin=None,
-                         **extra):
+                         IncludeQualifiers=None, IncludeClassOrigin=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the subclasses of a class, or the top-level classes in a
@@ -8704,12 +8475,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               causes the server-implemented default to be used. :term:`DSP0200`
               defines that the server-implemented default is `False`.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A list of :class:`~pywbem.CIMClass` objects that are
@@ -8734,8 +8499,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 DeepInheritance=DeepInheritance,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
-                IncludeClassOrigin=IncludeClassOrigin,
-                **extra)
+                IncludeClassOrigin=IncludeClassOrigin)
 
         try:
 
@@ -8752,8 +8516,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 DeepInheritance=DeepInheritance,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
-                IncludeClassOrigin=IncludeClassOrigin,
-                **extra)
+                IncludeClassOrigin=IncludeClassOrigin)
 
             if result is None:
                 classes = []
@@ -8795,7 +8558,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 self.operation_recorder_stage_result(classes, exc)
 
     def EnumerateClassNames(self, namespace=None, ClassName=None,
-                            DeepInheritance=None, **extra):
+                            DeepInheritance=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Enumerate the names of subclasses of a class, or of the top-level
@@ -8847,12 +8610,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Note, the semantics of the `DeepInheritance` parameter in
             :meth:`~pywbem.WBEMConnection.EnumerateInstances` is different.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A list of :term:`unicode string` objects that are the class names
@@ -8873,8 +8630,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 namespace=namespace,
                 ClassName=ClassName,
-                DeepInheritance=DeepInheritance,
-                **extra)
+                DeepInheritance=DeepInheritance)
 
         try:
 
@@ -8888,8 +8644,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 ClassName=classname,
-                DeepInheritance=DeepInheritance,
-                **extra)
+                DeepInheritance=DeepInheritance)
 
             if result is None:
                 classpaths = []
@@ -8930,7 +8685,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def GetClass(self, ClassName, namespace=None, LocalOnly=None,
                  IncludeQualifiers=None, IncludeClassOrigin=None,
-                 PropertyList=None, **extra):
+                 PropertyList=None):
         # pylint: disable=invalid-name, line-too-long
         """
         Retrieve a class.
@@ -8999,12 +8754,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             If `None`, all properties are included.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :class:`~pywbem.CIMClass` object that is a representation of the
@@ -9028,8 +8777,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
         try:
 
@@ -9047,8 +8795,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList,
-                **extra)
+                PropertyList=PropertyList)
 
             if result is None:
                 raise CIMXMLParseError(
@@ -9093,7 +8840,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(klass, exc)
 
-    def ModifyClass(self, ModifiedClass, namespace=None, **extra):
+    def ModifyClass(self, ModifiedClass, namespace=None):
         # pylint: disable=invalid-name
         """
         Modify a class.
@@ -9126,12 +8873,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -9145,8 +8886,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 ModifiedClass=ModifiedClass,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9160,8 +8900,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 ModifiedClass=klass,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -9179,7 +8918,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(None, exc)
 
-    def CreateClass(self, NewClass, namespace=None, **extra):
+    def CreateClass(self, NewClass, namespace=None):
         # pylint: disable=invalid-name
         """
         Create a class in a namespace.
@@ -9211,12 +8950,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -9229,8 +8962,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 NewClass=NewClass,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9244,8 +8976,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 NewClass=klass,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -9263,7 +8994,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(None, exc)
 
-    def DeleteClass(self, ClassName, namespace=None, **extra):
+    def DeleteClass(self, ClassName, namespace=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Delete a class.
@@ -9293,12 +9024,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if specified as a :class:`~pywbem.CIMClassName` object. If that is
             also `None`, the default namespace of the connection will be used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -9312,8 +9037,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 ClassName=ClassName,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9327,8 +9051,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 ClassName=classname,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -9346,7 +9069,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(None, exc)
 
-    def EnumerateQualifiers(self, namespace=None, **extra):
+    def EnumerateQualifiers(self, namespace=None):
         # pylint: disable=invalid-name
         """
         Enumerate the qualifier types (= qualifier declarations) in a
@@ -9371,12 +9094,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A list of :class:`~pywbem.CIMQualifierDeclaration` objects that are
@@ -9395,8 +9112,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9405,8 +9121,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             result = self._imethodcall(
                 method_name,
-                namespace,
-                **extra)
+                namespace)
 
             if result is None:
                 qualifierdecls = []
@@ -9438,7 +9153,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(qualifiers, exc)
 
-    def GetQualifier(self, QualifierName, namespace=None, **extra):
+    def GetQualifier(self, QualifierName, namespace=None):
         # pylint: disable=invalid-name
         """
         Retrieve a qualifier type (= qualifier declaration).
@@ -9466,12 +9181,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Returns:
 
             A :class:`~pywbem.CIMQualifierDeclaration` object that is a
@@ -9491,8 +9200,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 QualifierName=QualifierName,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9502,8 +9210,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             result = self._imethodcall(
                 method_name,
                 namespace,
-                QualifierName=QualifierName,
-                **extra)
+                QualifierName=QualifierName)
 
             if result is None:
                 raise CIMXMLParseError(
@@ -9540,7 +9247,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(qualifiername, exc)
 
-    def SetQualifier(self, QualifierDeclaration, namespace=None, **extra):
+    def SetQualifier(self, QualifierDeclaration, namespace=None):
         # pylint: disable=invalid-name
         """
         Create or modify a qualifier type (= qualifier declaration) in a
@@ -9569,12 +9276,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -9588,8 +9289,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 QualifierDeclaration=QualifierDeclaration,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9600,8 +9300,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 QualifierDeclaration=QualifierDeclaration,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
@@ -9619,7 +9318,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(None, exc)
 
-    def DeleteQualifier(self, QualifierName, namespace=None, **extra):
+    def DeleteQualifier(self, QualifierName, namespace=None):
         # pylint: disable=invalid-name
         """
         Delete a qualifier type (= qualifier declaration).
@@ -9646,12 +9345,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             If `None`, the default namespace of the connection object will be
             used.
 
-          **extra :
-            Additional keyword arguments are passed as additional operation
-            parameters to the WBEM server.
-            Note that :term:`DSP0200` does not define any additional parameters
-            for this operation.
-
         Raises:
 
             Exceptions described in :class:`~pywbem.WBEMConnection`.
@@ -9665,8 +9358,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
                 QualifierName=QualifierName,
-                namespace=namespace,
-                **extra)
+                namespace=namespace)
 
         try:
 
@@ -9677,8 +9369,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method_name,
                 namespace,
                 QualifierName=QualifierName,
-                has_return_value=False,
-                **extra)
+                has_return_value=False)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:

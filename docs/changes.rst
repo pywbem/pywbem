@@ -38,6 +38,12 @@ Released: not yet
   eliminating the dependency to the unittest2 package, and lifting a number
   of restrictions in test code.
 
+* Removed the `**extra` keyword arguments from `WBEMOperation` methods
+  Such arguments were passed on to the WBEM server, but they are not needed
+  because all parameters defined by the CIM-XML protocol are supported as
+  named arguments to these methods. This is only incompatible when the WBEM
+  server supports non-standard parameters. (See issue #1415)
+
 **Deprecations:**
 
 **Bug fixes:**
