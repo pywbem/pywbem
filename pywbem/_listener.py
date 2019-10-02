@@ -26,7 +26,6 @@ Examples
 
 The following example creates and runs a listener::
 
-    import sys
     import logging
     from socket import getfqdn
     from pywbem import WBEMListener
@@ -34,20 +33,21 @@ The following example creates and runs a listener::
     def process_indication(indication, host):
         '''This function gets called when an indication is received.'''
 
-        print("Received CIM indication from {host}: {ind!r}". \\
-            format(host=host, ind=indication))
+        print("Received CIM indication from {host}: {ind!r}".
+              format(host=host, ind=indication))
 
     def main():
 
         # Configure logging of the listener via the Python root logger
-        logging.basicConfig(filename='listener.log', level=logging.WARNING,
-            format='%(asctime)s - %(levelname)s - %(message)s)
+        logging.basicConfig(
+            filename='listener.log', level=logging.WARNING,
+            format='%(asctime)s - %(levelname)s - %(message)s')
 
         certkeyfile = 'listener.pem'
 
-        listener = WBEMListener(host=getfqdn()
-                                http_port=5988,
-                                https_port=5989,
+        listener = WBEMListener(host=getfqdn(),
+                                http_port=5990,
+                                https_port=5991,
                                 certfile=certkeyfile,
                                 keyfile=certkeyfile)
         listener.add_callback(process_indication)
@@ -57,7 +57,7 @@ The following example creates and runs a listener::
 
             # process_indication() will be called for each received indication
 
-            ... # wait for some condition to end listening
+            . . .  # wait for some condition to end listening
 
         finally:
             listener.stop()
