@@ -89,12 +89,10 @@ The following example code demonstrates the use of a subscription manager
 to subscribe for a CIM alert indication on a WBEM server. The WBEM listener
 is assumed to exist somewhere and is identified by its URL::
 
-    import sys
-    from socket import getfqdn
     from pywbem import WBEMConnection, WBEMServer, WBEMSubscriptionManager
 
     server_url = 'http://myserver'
-    server_credentials = (user, password)
+    server_credentials = ('myuser', 'mypassword')
 
     listener_url = 'http://mylistener'
 
@@ -122,9 +120,9 @@ is assumed to exist somewhere and is identified by its URL::
                     "WHERE OwningEntity = 'DMTF' " \\
                     "AND MessageID LIKE 'SVPC0123|SVPC0124|SVPC0125'"
     filter2_language = "DMTF:CQL"
-    filter2_inst = subscription_manager.add_filter(server_id,
-        filter2_source_ns, filter2_query, filter2_language, owned=True,
-        filter_id="myalert")
+    filter2_inst = sub_mgr.add_filter(
+        server_id, filter2_source_ns, filter2_query, filter2_language,
+        owned=True, filter_id="myalert")
     sub_mgr.add_subscriptions(server_id, filter2_inst.path, dest_inst.path)
 
 The following example code briefly shows how to use a subscription manager

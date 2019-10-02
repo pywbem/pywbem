@@ -127,6 +127,9 @@ Released: not yet
 * Fixed case sensitive class name check in mock support of ModifyInstance
   (See issue #1859)
 
+* Docs: Fixed issues in Listener and SubscriptionManager examples
+  (See issue #1768)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
