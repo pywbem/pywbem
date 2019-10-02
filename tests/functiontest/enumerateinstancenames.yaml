@@ -624,7 +624,7 @@
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
     pywbem_response:
-        request_len: 408
+        request_len: 343
         reply_len: 280
         result: []
     http_request:
