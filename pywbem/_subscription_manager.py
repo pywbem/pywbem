@@ -746,7 +746,7 @@ class WBEMSubscriptionManager(object):
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
 
-          filter_id (:term:`string`)
+          filter_id (:term:`string`):
             A filter ID string that is used as a component in the value of the
             `Name` property of filter instances to help the user identify
             these instances in a WBEM server, or `None` if the `name`
@@ -760,7 +760,7 @@ class WBEMSubscriptionManager(object):
             used to identify groups of filters by using the same value for
             multiple filters.
 
-          name (:term:`string`)
+          name (:term:`string`):
             *New in pywbem 0.10.*
 
             The filter name to be used directly for the `Name` property of the

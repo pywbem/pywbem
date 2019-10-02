@@ -4452,7 +4452,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -4738,7 +4738,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -5070,7 +5070,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -5363,7 +5363,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -5662,7 +5662,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -5933,7 +5933,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -6166,7 +6166,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return for each of
             the open and pull requests issued during the iterations over the
             returned generator object.
@@ -6342,7 +6342,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         *New in pywbem 0.9.*
 
         *The incorrectly supported parameters `LocalOnly` and
-       `IncludeQualifiers` were removed in pywbem 1.0.0.*
+        `IncludeQualifiers` were removed in pywbem 1.0.0.*
 
         This method performs the OpenEnumerateInstances operation
         (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of all
@@ -6455,7 +6455,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -6701,7 +6701,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -6973,7 +6973,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -7223,7 +7223,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -7475,7 +7475,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -7708,7 +7708,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -7923,7 +7923,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`DSP0200` defines that the server-implemented default is
               `False`.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server may return
             for this request.
 
@@ -8100,7 +8100,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace)
+          context (:func:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this
@@ -8114,7 +8114,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * namespace (:term:`string`):
               Name of the CIM namespace being used for this enumeration session.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server shall return
             for this request. This parameter is required for each
             Pull request.
@@ -8256,7 +8256,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace)
+          context (:func:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this
@@ -8270,7 +8270,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * namespace (:term:`string`):
               Name of the CIM namespace being used for this enumeration session.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server shall return
             for this request. This parameter is required for each
             Pull request.
@@ -8407,7 +8407,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace)
+          context (:func:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this
@@ -8421,7 +8421,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             * namespace (:term:`string`):
               Name of the CIM namespace being used for this enumeration session.
 
-          MaxObjectCount (:class:`~pywbem.Uint32`)
+          MaxObjectCount (:class:`~pywbem.Uint32`):
             Maximum number of instances the WBEM server shall return
             for this request. This parameter is required for each
             Pull request.
@@ -8551,7 +8551,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace)
+          context (:func:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this

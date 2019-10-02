@@ -431,7 +431,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         List of enabled operation recorders, into which the HTTP request and
         HTTP response will be staged as attributes.
 
-      conn_id (:term:`string`)
+      conn_id (:term:`string`):
         string that uniquely defines a connection.  Used as part of any
         logs created.
 

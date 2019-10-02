@@ -405,17 +405,17 @@ class OperationStatistic(object):
 
         Parameters:
 
-          request_len (:term:`integer`)
+          request_len (:term:`integer`):
             Size of the HTTP body of the CIM-XML request message, in Bytes.
 
-          reply_len (:term:`integer`)
+          reply_len (:term:`integer`):
             Size of the HTTP body of the CIM-XML response message, in Bytes.
 
-          exception (:class:`py:bool`)
+          exception (:class:`py:bool`):
             Boolean that specifies whether an exception was raised while
             processing the operation.
 
-          server_time (:class:`py:bool`)
+          server_time (:class:`py:bool`):
             Time in seconds that the server optionally returns to the
             client in the HTTP response defining the time from when the
             server received the request to when it started sending the
