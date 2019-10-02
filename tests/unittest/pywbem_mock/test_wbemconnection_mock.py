@@ -2330,7 +2330,6 @@ class TestClassOperations(object):
 
             # Confirm get_class returns the same set of properties
             rtn_getclass = conn.GetClass(rtn_class.classname, namespace=ns,
-                                         DeepInheritance=di,
                                          LocalOnly=lo,
                                          IncludeQualifiers=iq,
                                          IncludeClassOrigin=ico)
@@ -2984,7 +2983,7 @@ class TestInstanceOperations(object):
             'CIM_Foo', {'InstanceID': 'CIM_Foo1'}, namespace=ns)
 
         inst = conn.GetInstance(request_inst_path, LocalOnly=lo,
-                                IncludClassOrigin=ico, IncludQualifiers=iq)
+                                IncludeClassOrigin=ico, IncludeQualifiers=iq)
 
         inst.path.namespace = ns
         assert inst.path == request_inst_path

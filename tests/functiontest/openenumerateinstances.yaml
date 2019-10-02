@@ -878,7 +878,7 @@
             FilterQueryLanguage:
             OperationTimeout:
     pywbem_response:
-        request_len: 408
+        request_len: 343
         reply_len: 530
         pullresult:
             context:

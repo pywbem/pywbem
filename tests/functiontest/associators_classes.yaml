@@ -17,7 +17,6 @@
       ResultRole: null
       IncludeClassOrigin: null
       Role: null
-      role: member
       AssocClass: PyWBEM_MemberOfPersonCollection
   pywbem_response:
     result:
@@ -102,9 +101,6 @@
       </LOCALNAMESPACEPATH>
       <IPARAMVALUE NAME="ObjectName">
       <CLASSNAME NAME="PyWBEM_Person"/>
-      </IPARAMVALUE>
-      <IPARAMVALUE NAME="role">
-      <VALUE>member</VALUE>
       </IPARAMVALUE>
       <IPARAMVALUE NAME="AssocClass">
       <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>

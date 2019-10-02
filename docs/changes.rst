@@ -136,6 +136,8 @@ Released: not yet
 * Docs: Fixed issues in Listener and SubscriptionManager examples
   (See issue #1768)
 
+* Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

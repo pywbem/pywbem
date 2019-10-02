@@ -425,15 +425,12 @@
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: CIM_ComputerSystem
-            IncludeClassOrigin: null
             ContinueOnError: null
             MaxObjectCount: 1000
             namespace: root/cimv2
-            DeepInheritance: null
             FilterQuery: null
             FilterQueryLanguage: null
             OperationTimeout: null
-            PropertyList: null
     pywbem_response:
         cim_status: 2
     http_request:
@@ -547,15 +544,12 @@
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: CIM_ComputerSystem
-            IncludeClassOrigin: null
             ContinueOnError: null
             MaxObjectCount: 1000
             namespace: root/bad
-            DeepInheritance: null
             FilterQuery: null
             FilterQueryLanguage: null
             OperationTimeout: null
-            PropertyList: null
     pywbem_response:
         cim_status: 3
     http_request:
