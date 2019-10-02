@@ -29,6 +29,8 @@ Released: not yet
 * Fixed case sensitive class name check in mock support of ModifyInstance
   (See issue #1859)
 
+* Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
+
 **Enhancements:**
 
 **Known issues:**
