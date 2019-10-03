@@ -268,17 +268,15 @@ endif
 pytest_end2end_opts := -v --tb=short $(pytest_opts)
 
 ifeq ($(python_m_version),3)
-  pytest_warnings := --pythonwarnings=default
-  pytest_end2end_warnings_opts := --pythonwarnings=default
-  # TODO: Add "ignore::DeprecationWarning,ignore::PendingDeprecationWarning,ignore::ResourceWarning"
+  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning -W ignore::ResourceWarning
+  pytest_end2end_warning_opts := $(pytest_warning_opts)
 else
   ifeq ($(python_mn_version),2.6)
-    pytest_warnings :=
-    pytest_end2end_warnings_opts :=
+    pytest_warning_opts := -W default
+    pytest_end2end_warning_opts := $(pytest_warning_opts)
   else
-    pytest_warnings := --pythonwarnings=default
-    pytest_end2end_warnings_opts := --pythonwarnings=default
-    # TODO: Add "ignore::DeprecationWarning,ignore::PendingDeprecationWarning"
+    pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
+    pytest_end2end_warning_opts := $(pytest_warning_opts)
   endif
 endif
 
@@ -700,13 +698,13 @@ endif
 .PHONY: test
 test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
-	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warnings_opts) $(pytest_opts) tests/unittest tests/functiontest -s
+	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warning_opts) $(pytest_opts) tests/unittest tests/functiontest -s
 	@echo "makefile: Done running tests"
 
 .PHONY: end2end
 end2end: develop_$(pymn).done $(moftab_files)
 	@echo "makefile: Running end2end tests"
-	py.test --color=yes $(pytest_end2end_warnings_opts) $(pytest_end2end_opts) tests/end2endtest -s
+	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) tests/end2endtest -s
 	@echo "makefile: Done running end2end tests"
 
 $(doc_conf_dir)/wbemcli.help.txt: wbemcli wbemcli.py
