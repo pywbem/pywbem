@@ -40,7 +40,7 @@ mock==2.0.0
 ordereddict==1.1
 pbr==1.10.0
 ply==3.10
-PyYAML==3.13
+PyYAML==5.1
 six==1.10.0
 
 
