@@ -186,6 +186,10 @@ Released: not yet
   for Python 3.7, because that is now the default distro version, in order to
   pick up a future increase of the default distro version automatically.
 
+* Test: Enabled Python warning suppression for PendingDeprecationWarning
+  and ResourceWarning (py3 only), and fixed incorrect make variable for that.
+  (See issue #1720)
+
 **Known issues:**
 
 * See `list of open issues`_.
