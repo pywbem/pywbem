@@ -56,8 +56,9 @@ typing==3.6.1  # from M2Crypto
 # Unit test (imports into testcases):
 unittest2==1.1.0
 pytest==3.0.7; python_version == '2.6'
-pytest==3.3.0; python_version > '2.6'
-testfixtures==4.3.3
+pytest==4.3.1; python_version > '2.6'
+testfixtures==4.3.3; python_version == '2.6'
+testfixtures==6.9.0; python_version > '2.6'
 httpretty==0.8.14; python_version == '2.6'
 httpretty==0.9.5; python_version > '2.6'
 lxml==4.2.4; python_version == '2.6'
