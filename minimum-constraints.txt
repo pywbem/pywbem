@@ -41,7 +41,7 @@ ordereddict==1.1
 pbr==1.10.0
 ply==3.10
 PyYAML==3.11; python_version == '2.6'
-PyYAML==3.13; python_version >= '2.7'
+PyYAML==5.1; python_version >= '2.7'
 six==1.10.0
 
 

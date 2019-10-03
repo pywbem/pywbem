@@ -47,6 +47,9 @@ Released: not yet
   it fixed an issue that surfaced with pywbem minimum package levels
   on Python 3.7.
 
+* Increased minimum version of PyYAML from 3.13 to 5.1 due to deprecation issue
+  announced for Python 3.8.
+
 **Known issues:**
 
 * See `list of open issues`_.
