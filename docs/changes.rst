@@ -39,6 +39,14 @@ Released: not yet
   and ResourceWarning (py3 only), and fixed incorrect make variable for that.
   (See issue #1720)
 
+* Test: Removed pinning of testfixtures to <6.0.0 for Python 2.7/3.x due
+  to deprecation issue announced for Python 3.8, and increased its minimum
+  version from 4.3.3 to 6.9.0.
+
+* Test: Increased minimum version of pytest from 3.3.0 to 4.3.1 because
+  it fixed an issue that surfaced with pywbem minimum package levels
+  on Python 3.7.
+
 **Known issues:**
 
 * See `list of open issues`_.
