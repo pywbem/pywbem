@@ -37,7 +37,12 @@ import re
 from xml.dom import minidom
 from mock import Mock
 import six
-
+try:
+    # time.perf_counter() was added in Python 3.3
+    from time import perf_counter as delta_time
+except ImportError:
+    # time.clock() was deprecated in Python 3.3
+    from time import clock as delta_time
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMQualifierDeclaration, \
@@ -3063,10 +3068,13 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             # user could timeout pulls. This means adding timer test to
             # pulls and close. Timer should be used to close old contexts
             # also.
+            # The 'time' item contains elapsed time in fractional seconds
+            # since an undefined point in time, so it is only useful for
+            # calculating deltas.
             self.enumeration_contexts[context_id] = {'pull_type': pull_type,
                                                      'data': objects,
                                                      'namespace': namespace,
-                                                     'time': time.clock(),
+                                                     'time': delta_time(),
                                                      'interoptimeout': timeout}
             rtn_inst_names = objects[0:max_obj_cnt]
             del objects[0: max_obj_cnt]
