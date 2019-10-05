@@ -1,15 +1,9 @@
 # Control file for Travis CI (https://travis-ci.org)
 # Must be located in the root directory of the Git repository.
 
-# Pywbemn uses pbr to determine its version, which uses the newest tag
-# it finds back in the commit history. We need to make sure that tag
-# gets cloned, so we increase the depth of the shallow repo clone Travis
-# creates, beyond its default of 50.
-# Note that it is not clear whether the depth flag really counts number
-# of commits. For pywbem, it started failing with the default depth 50
-# when the number of commits since the last tag exceeded about 150.
+# Commit depth that is checked out.
 git:
-  depth: 400
+  depth: 50
 
 # By default, notification emails are sent to the PR creator and commiter.
 notifications:
