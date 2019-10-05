@@ -147,12 +147,9 @@ endif
 # Directory for coverage html output. Must be in sync with the one in coveragerc.
 coverage_html_dir := coverage_html
 
-# Package version (full version, including any pre-release suffixes, e.g. "0.1.0-dev1")#
-# Note: Some make actions (such as clobber) cause the package version to change,
-# e.g. because the pywbem.egg-info directory or the PKG-INFO file are deleted,
-# when a new version tag has been assigned. Therefore, this variable is assigned with
-# "=" so that it is evaluated every time it is used.
-package_version = $(shell $(PYTHON_CMD) tools/package_version.py $(package_name))
+# Package version (full version, including any pre-release suffixes, e.g. "0.1.0.dev1").
+# Note: The package version is defined in pywbem/_version.py.
+package_version := $(shell $(PYTHON_CMD) setup.py --version)
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) tools/python_version.py 3)
@@ -383,7 +380,7 @@ env:
 .PHONY: _check_version
 _check_version:
 ifeq (,$(package_version))
-	$(error Package version could not be determined - requires pbr - run "make install")
+	$(error Package version could not be determined)
 endif
 
 pip_upgrade_$(pymn).done: makefile
@@ -400,7 +397,6 @@ install_basic_$(pymn).done: makefile pip_upgrade_$(pymn).done
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) remove_duplicate_setuptools.py
 	$(PIP_CMD) install $(pip_level_opts) setuptools wheel
-	$(PIP_CMD) install $(pip_level_opts) pbr
 	echo "done" >$@
 	@echo "makefile: Done installing/upgrading basic Python packages"
 
@@ -425,19 +421,17 @@ _show_bitsize:
 	$(PYTHON_CMD) tools/python_bitsize.py
 	@echo "makefile: Done determining bit size of Python executable"
 
-install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py setup.cfg
+install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py
 	-$(call RM_FUNC,$@)
 ifdef TEST_INSTALLED
 	@echo "makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
 	@echo "makefile: Checking whether pywbem is actually installed:"
 	$(PIP_CMD) show $(package_name)
 else
-	@echo "makefile: Installing pywbem (as editable) and its Python runtime prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
-	-$(call RM_FUNC,PKG-INFO)
+	@echo "makefile: Installing pywbem (as editable) and its Python installation prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RMDIR_FUNC,build $(package_name).egg-info .eggs)
 	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
 	$(PIP_CMD) install $(pip_level_opts) -e .
-	$(call CP_FUNC,$(package_name).egg-info/PKG-INFO,.)
 	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
 endif
 	echo "done" >$@
@@ -501,7 +495,7 @@ all: install develop build builddoc check pylint test
 .PHONY: clobber
 clobber: clean
 	@echo "makefile: Removing everything for a fresh start"
-	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) pywbem/*cover pywbem_mock/*cover wbemcli.log)
+	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover wbemcli.log)
 	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir))
 	@echo "makefile: Done removing everything for a fresh start"
 	@echo "makefile: Target $@ done."
@@ -620,10 +614,9 @@ endif
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
 $(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "makefile: Creating the distribution archive files"
-	-$(call RM_FUNC,MANIFEST PKG-INFO)
+	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
-	$(call CP_FUNC,$(package_name).egg-info/PKG-INFO,.)
 	@echo "makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)

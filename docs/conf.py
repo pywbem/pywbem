@@ -16,8 +16,6 @@ import sys
 import os
 import re
 
-from pbr.version import VersionInfo
-
 # Imports used by code for autoautosummary
 import inspect
 from sphinx.ext.autosummary import Autosummary
@@ -27,6 +25,23 @@ from sphinx.util.inspect import safe_getattr
 from sphinx.util import logging
 
 from pywbem.cim_constants import DEFAULT_NAMESPACE
+
+
+def get_version(version_file):
+    """
+    Execute the specified version file and return the value of the __version__
+    global variable that is set in the version file.
+
+    Note: Make sure the version file does not depend on any packages in the
+    requirements list of this package (otherwise it cannot be executed in
+    a fresh Python environment).
+    """
+    with open(version_file, 'r') as fp:
+        version_source = fp.read()
+    globals = {}
+    exec(version_source, globals)
+    return globals['__version__']
+
 
 # RST variable substitutions
 rst_prolog = """
@@ -93,7 +108,7 @@ _short_description = u'Pywbem - a WBEM client written in pure Python'
 
 # The short X.Y version.
 # Note: We use the full version in both cases (e.g. 'M.N.U' or 'M.N.U.dev0').
-version = VersionInfo('pywbem').release_string()
+version = get_version(os.path.join('..', 'pywbem', '_version.py'))
 
 # The full version, including alpha/beta/rc tags.
 release = version
