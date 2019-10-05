@@ -188,6 +188,10 @@ Released: not yet
 * Improved error messages and error handling in wbemcli and in the pywbem
   mock support.
 
+* Removed the use of the 'pbr' package because it caused too many undesirable
+  side effects. As part of that, removed PKG-FILE and setup.cfg and went back
+  to a simple setup.py file. (See issues #1875, #1245, #1408, #1410)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)

@@ -20,27 +20,13 @@
 
 """
 Version of the pywbem package.
-
-Note: The package version is not defined here, but determined dynamically by
-the `pbr` package from Git information.
 """
-
-# A note on the approach for importing pbr and invoking its VersionInfo():
-# The documentation shows the __version__ variable defined below. For
-# unknown reasons, the variable is not shown in the documentation when
-# VersionInfo() is invoked without specifying a module path. Also, just
-# importing pbr does not work because of the way the pbr package makes its
-# submodules available.
-
-import pbr.version
-
 
 #: The full version of this package including any development levels, as a
 #: :term:`string`.
 #:
 #: Possible formats for this version string are:
 #:
-#: * "M.N.P.devNNN": Development level NNN of a not yet released assumed M.N.P
-#:   version
-#: * "M.N.P": A released M.N.P version
-__version__ = pbr.version.VersionInfo('pywbem').release_string()
+#: * "M.N.P.devD": Development level D of a not yet released version M.N.P
+#: * "M.N.P": A released version M.N.P
+__version__ = '1.0.0.dev1'
