@@ -3,7 +3,6 @@
 # The order of packages is significant, because pip processes them in the order
 # of appearance.
 
-pbr>=1.10.0
 six>=1.10.0
 ply>=3.10
 PyYAML==3.11; python_version == '2.6'  # yaml package
