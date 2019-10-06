@@ -5,6 +5,7 @@ Extensions for pytest module.
 from __future__ import absolute_import
 
 import functools
+import warnings
 from collections import namedtuple
 try:
     from inspect import Signature, Parameter
@@ -12,7 +13,7 @@ except ImportError:  # py2
     from funcsigs import Signature, Parameter
 import pytest
 
-__all__ = ['simplified_test_function']
+__all__ = ['simplified_test_function', 'ignore_warnings']
 
 
 # Pytest determines the signature of the test function by unpacking any
@@ -169,3 +170,36 @@ def simplified_test_function(test_func):
     wrapper_func.__signature__ = TESTFUNC_SIGNATURE
 
     return functools.update_wrapper(wrapper_func, test_func)
+
+
+class ignore_warnings(warnings.catch_warnings):
+    """
+    Context manager that ignores the specified warning categories in its body.
+
+    The current warnings filters are saved upon entry and restored upon exit
+    of the context manager.
+    """
+
+    def __init__(self, categories=None):
+        """
+        Parameters:
+
+            categories:
+                The warning class(es) that are to be ignored.
+                Must be a single class, a list/tuple of classes, or None.
+                The classes must be subclasses of Warning.
+        """
+        super(ignore_warnings, self).__init__()
+        if categories is None:
+            categories = []
+        elif not isinstance(categories, (list, tuple)):
+            categories = [categories]
+        for category in categories:
+            assert issubclass(category, Warning)
+        self.categories = categories
+
+    def __enter__(self):
+        ret = super(ignore_warnings, self).__enter__()  # saves current filters
+        for category in self.categories:
+            warnings.simplefilter('ignore', category=category)
+        return ret
