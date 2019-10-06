@@ -182,6 +182,8 @@ Released: 2019-07-20
   pull operations are used, and the documentation has been updated accordingly.
   (See issue #1780)
 
+* Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
