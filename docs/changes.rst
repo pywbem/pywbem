@@ -159,6 +159,8 @@ Released: not yet
   but depending on the implementation of ModifyInstance for the compiler,
   it can simply lose the instance. See issue #1890
 
+* Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

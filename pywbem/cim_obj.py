@@ -4842,6 +4842,7 @@ class CIMProperty(_CIMComparisonMixin):
             propagated=self.propagated,
             is_array=self.is_array,
             reference_class=self.reference_class,
+            embedded_object=self.embedded_object,
             qualifiers=self.qualifiers)  # setter copies
 
     def __str__(self):
