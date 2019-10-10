@@ -3484,18 +3484,48 @@ class TestInstanceOperations(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "tst, new_inst, exp_status", [
+        "tst, new_inst, exp_rslt", [
+            # TODO: This is a badly designed set of test parameters.
+            # TODO: it only allows testing against tst_classeswqualifiers
             # tst: integer that defines special modification within test
-            #      execution. 0 means no modification
-            # new_instance: New instance to be tested. If integer it is the
-            #      index into tst_instances that is to be created. Otherwise
-            #      it is a CIMInstance definition.
-            # exp_status: None or expected CIMError status code
+            #      execution. 0. Use new_instance as defined,
+            #                 1. Set namespace to bad namespace,
+            #                 2. Use the tst_instances list index defined in
+            #                    new_inst parameter for new_instance param
+            #                    with CreateInstance
+            # new_inst: New instance to be passed to CreateInstance
+            #           Integer: index into tst_instances.
+            #           CIMInstance: CIMInstance to be passed to CreateInstance.
+            # exp_rslt:    None: Compare based on tst parameter
+            #                    CIMInstance expected to be created. Tested by
+            #                    doing GetInstance on the instance returned from
+            #                    CreateInstance
+            #              CIMError: status code expected
+
+            # The following test new_instance against specific instances
+            # in exp_rslt using tst definition # 2 and expecting good return
+            # I.e. They compare the results to previously defined tests.
             [2, 0, None],
             [2, 1, None],
             [2, 4, None],
             [2, 5, None],
             [2, 7, None],
+
+            # test simple new instance against predefined instance.
+            [0, CIMInstance('CIM_Foo_sub',
+                            properties={'InstanceID': 'inst1',
+                                        'cimfoo_sub': 'blah'}),
+             CIMInstance('CIM_Foo_sub',
+                         properties={'InstanceID': 'inst1',
+                                     'cimfoo_sub': 'blah'})],
+
+            # test new instance has correct case on property names.
+            [0, CIMInstance('CIM_Foo_sub',
+                            properties={'instanceid': 'inst1',
+                                        'CIMFOO_SUB': 'blah'}),
+             CIMInstance('CIM_Foo_sub',
+                         properties={'InstanceID': 'inst1',
+                                     'cimfoo_sub': 'blah'})],
 
             # test invalid namespace
             [1, CIMInstance('CIM_Foo_sub',
@@ -3536,7 +3566,7 @@ class TestInstanceOperations(object):
             [0, CIMClass('CIM_Foo_sub'), CIM_ERR_INVALID_PARAMETER],
         ]
     )
-    def test_createinstance(self, conn, ns, tst, new_inst, exp_status,
+    def test_createinstance(self, conn, ns, tst, new_inst, exp_rslt,
                             tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
@@ -3560,20 +3590,39 @@ class TestInstanceOperations(object):
         else:  # Error. Test not defined.
             assert False, "The tst parameter %s not defined" % tst
 
-        if not exp_status:
+        if exp_rslt is None:   # exp_status is None
             for inst in new_insts:
                 rtn_inst_name = conn.CreateInstance(inst, ns)
                 rtn_inst = conn.GetInstance(rtn_inst_name)
-
+                cls = conn.GetClass(inst.classname, LocalOnly=False,
+                                    IncludeQualifiers=True)
                 inst.path.namespace = rtn_inst.path.namespace
                 assert rtn_inst.path == inst.path
                 assert rtn_inst == inst
+                # Execute case sensitive equality test on all properties in
+                # returned instance against class properties
+                for prop_name in rtn_inst:
+                    c_prop_name = cls.properties[prop_name].name
+                    assert c_prop_name == prop_name
+        elif isinstance(exp_rslt, CIMInstance):
+            inst = new_insts[0]   # assumes only a single instance to test.
+            exp_inst = exp_rslt
+            rtn_inst_name = conn.CreateInstance(inst, ns)
+            rtn_inst = conn.GetInstance(rtn_inst_name)
+            inst.path = rtn_inst.path
+            assert rtn_inst.path == inst.path
+            assert rtn_inst == inst
+            for prop_name in inst:
+                exp_prop = exp_inst.properties[prop_name]
+                rtn_prop = rtn_inst.properties[prop_name]
+                # assert case-sensitive match
+                assert(rtn_prop.name == exp_prop.name)
 
         else:
             with pytest.raises(CIMError) as exec_info:
                 conn.CreateInstance(new_insts[0], ns)
             exc = exec_info.value
-            assert exc.status_code == exp_status
+            assert exc.status_code == exp_rslt
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
