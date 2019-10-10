@@ -184,6 +184,9 @@ Released: 2019-07-20
 
 * Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
 
+* Fixed that inconsistent names (between key and object name) were not detected
+  when setting CIMMethod.parameters from an input dictionary.
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
