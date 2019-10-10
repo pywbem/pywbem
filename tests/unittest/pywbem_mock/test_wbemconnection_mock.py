@@ -41,6 +41,8 @@ from ...utils import import_installed, skip_if_moftab_regenerated
 pywbem = import_installed('pywbem')  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 
+# The two statements above cause pylint errors which we disable
+# pylint: disable=wrong-import-position, wrong-import-order
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
@@ -97,7 +99,8 @@ def model_path(inst_path):
 
 def equal_model_path(p1, p2):
     """
-    Compare the model path component of CIMNamespaces for equality.
+    Compare the model path component of CIMInstanceNames for equality. The model
+    path is the classname and keybindings components of CIMInstanceName
 
     Return True if equal, otherwise return False
     """
@@ -113,33 +116,51 @@ def equal_model_path(p1, p2):
     return False
 
 
-def equal_ciminstname_lists(l1, l2, model=False):
+def fix_instname_namespace_keys(inst_name, ns):
     """
-    Compare two lists of instance names for equality. Returns True
-    if they are equal or False if not
+    Set the namespace component of any keys  in the instance
+    to the value defined by ns.  This is used to fix the keybindings in
+    association CIMInstanceNames to match the repository which includes the
+    namespace as part of the keys.
     """
-    l1.sort(key=lambda x: x.classname)
-    l2.sort(key=lambda x: x.classname)
-    if len(l1) != len(l2):
-        print('List lengths not equal %s vs %s' % (len(l1), len(l2)))
-        return False
-    for i, lx in enumerate(l1):
-        if model:
-            return equal_model_path(lx, l2[i])
-        if not equal_model_path(lx, l2[i]):
-            return False
-        if lx.namespace != l2[i].namespace:
-            print(_format('Match failure ns1=%s, ns2=%s', lx.namespace,
-                          l2[i].namespace))
-            return False
-        if lx.host != l2[i].host:
-            print('Match failure nhost1=%s, host2=%s' % (lx.host, l2[i].host))
-            return False
-        return True
+    assert isinstance(inst_name, CIMInstanceName)
+    inst_name = inst_name.copy()  # copy so we do not change original
+    # iterate through the keybindings for any that are CIMInstanceName
+    # If the namespace component is None, modify to the value of ns
+    for value in six.itervalues(inst_name.keybindings):
+        if isinstance(value, CIMInstanceName):
+            if value.namespace is None:
+                value.namespace = ns
+    return inst_name
 
 
-def assert_equal_ciminstname_lists(l1, l2, model=False):
-    assert equal_ciminstname_lists(l1, l2, model=model)
+def assert_equal_ciminstancenames(l1, l2, model=False):
+    """
+    Assert if the two iterables of CIMInstanceNames are not equal except
+    for order
+    """
+    def set_model_path(cin):
+        """Return model path component of CIMInstanceName"""
+        assert isinstance(cin, CIMInstanceName)
+        mp = cin.copy()
+        mp.host = None
+        mp.namespace = None
+        return mp
+
+    if model:
+        l1 = [set_model_path(cin) for cin in l1]
+        l2 = [set_model_path(cin) for cin in l2]
+
+    assert set(l1) == set(l2)
+
+
+def assert_equal_ciminstances(l1, l2, model=False):
+    """
+    Test if instances in two iterables equal. For now just test paths
+    """
+    def _rtn_paths(insts):
+        return [inst.path for inst in insts]
+    assert_equal_ciminstancenames(_rtn_paths(l1), _rtn_paths(l2))
 
 
 def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
@@ -822,6 +843,8 @@ def conn_both(request):
     one with repo_lite True and the other with repo_lite False.  It can be
     used to test both variations if the test can handle both variations.
     """
+
+    # pylint: disable=protected-access
     FakedWBEMConnection._reset_logging_config()
     return FakedWBEMConnection(repo_lite=request.param)
 
@@ -1169,7 +1192,7 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        inst_repo = \
+        instance_repo = \
             conn._get_instance_repo(ns)  # pylint: disable=protected-access
 
         iname = CIMInstanceName(cln,
@@ -1177,16 +1200,13 @@ class TestRepoMethods(object):
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst_tup = conn._find_instance(iname, inst_repo)
-        assert isinstance(inst_tup, tuple)
+        inst = conn._find_instance(iname, instance_repo)
 
         if exp_ok:
-            assert isinstance(inst_tup[0], six.integer_types)
-            assert isinstance(inst_tup[1], CIMInstance)
-            assert equal_model_path(iname, inst_tup[1].path)
+            assert isinstance(inst, CIMInstance)
+            assert equal_model_path(iname, inst.path)
         else:
-            assert inst_tup[0] is None
-            assert inst_tup[1] is None
+            assert inst is None
 
     @staticmethod
     def method2_callback(conn, methodname, object_name, **params):
@@ -1354,8 +1374,8 @@ class TestRepoMethods(object):
         class_repo = conn._get_class_repo(exp_ns)
         assert len(class_repo) == len(tst_classes)
 
-        inst_repo = conn._get_instance_repo(exp_ns)
-        assert len(inst_repo) == len(tst_instances) + len(tst_insts_big)
+        instance_repo = conn._get_instance_repo(exp_ns)
+        assert len(instance_repo) == len(tst_instances) + len(tst_insts_big)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -1968,6 +1988,37 @@ class TestRepoMethods(object):
 
         captured_out = capsys.readouterr()[0]
         assert "Scope(associations)" in captured_out
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    def test_compile_instances_fail_dup(self, conn, ns, tst_classes_mof,
+                                        capsys):
+        # pylint: disable=no-self-use
+        """
+        Test compile of instance MOF  with duplicate keys into the repository
+        fails
+        """
+
+        skip_if_moftab_regenerated()
+
+        tst_ns = ns or conn.default_namespace
+        insts_mof = """
+            instance of CIM_Foo as $Alice {
+            InstanceID = "Alice";
+            };
+            instance of CIM_Foo as $Alice1 {
+                InstanceID = "Alice";
+            };
+            """
+        # compile as single unit by combining classes and instances
+        # The compiler builds the instance paths.
+        conn.compile_mof_string(tst_classes_mof, namespace=tst_ns)
+
+        with pytest.raises(CIMError):
+            conn.compile_mof_string(insts_mof, namespace=tst_ns)
+
+        captured_out = capsys.readouterr()[0]
+        assert "CreateInstance failed." in captured_out
 
 
 def resolve_class(conn, cls, ns):
@@ -3066,7 +3117,7 @@ class TestInstanceOperations(object):
         for name in exp_subclasses:
             sub_class_dict[name] = name
 
-        request_inst_names = [i.path for i in conn_both._get_instance_repo(nsx)
+        request_inst_names = [i for i in conn_both._get_instance_repo(nsx)
                               if i.classname in sub_class_dict]
 
         assert len(rtn_inst_names) == len(request_inst_names)
@@ -3110,7 +3161,7 @@ class TestInstanceOperations(object):
                         'CIM_Foo_sub_sub']
 
             # pylint: disable=protected-access
-            request_inst_names = [i.path for i in conn._get_inst_repo(ns)
+            request_inst_names = [i for i in conn._get_inst_repo(ns)
                                   if i.classname in exp_clns]
 
             assert len(rtn_inst_names) == len(request_inst_names)
@@ -3251,7 +3302,7 @@ class TestInstanceOperations(object):
         ]
     )
     def test_enumerateinstances_pl_lite(self, conn_lite, ns, cln, pl, props_exp,
-                                        tst_classeswqualifiers, tst_instances):
+                                        tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstances with namespace as an input
@@ -3312,15 +3363,15 @@ class TestInstanceOperations(object):
             ['CIM_Foo', True, ['INSTANCEID'], ['InstanceID']],
             ['CIM_Foo', True, ['instanceid'], ['InstanceID']],
             ['CIM_Foo', True, ['cimfoo_sub2'],
-                {'CIM_Foo': [],
-                 'CIM_Foo_sub': [],
-                 'CIM_Foo_sub2': ['cimfoo_sub2'],
-                 'CIM_Foo_sub_sub': []}],
+             {'CIM_Foo': [],
+              'CIM_Foo_sub': [],
+              'CIM_Foo_sub2': ['cimfoo_sub2'],
+              'CIM_Foo_sub_sub': []}],
             ['CIM_Foo_sub', True, None,
-                {'CIM_Foo_sub': ['InstanceID', 'cimfoo_sub'],
-                 'CIM_Foo_sub_sub': ['InstanceID',
-                                     'cimfoo_sub',
-                                     'cimfoo_sub_sub']}],
+             {'CIM_Foo_sub': ['InstanceID', 'cimfoo_sub'],
+              'CIM_Foo_sub_sub': ['InstanceID',
+                                  'cimfoo_sub',
+                                  'cimfoo_sub_sub']}],
             ['CIM_Foo_sub', True, "", []],
             ['CIM_Foo_sub', True, 'cimfoo_sub', ['cimfoo_sub']],
             ['CIM_Foo_sub', True, "blah", []],
@@ -3415,6 +3466,7 @@ class TestInstanceOperations(object):
         for inst in rtn_insts:
             assert isinstance(inst, CIMInstance)
             assert inst.classname in tst_class_names
+            # pylint: disable=unnecessary-comprehension
             inst_props = list(set([p for p in inst]))
             if di is not True:   # inst props should match cl_props
                 if len(inst_props) != len(cl_props):
@@ -4067,14 +4119,12 @@ class TestPullOperations(object):
         result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo')
         assert result_tuple.eos is True
         assert result_tuple.context is None
-        tst_paths = [i.path for i in tst_instances
+        exp_paths = [i.path for i in tst_instances
                      if i.classname == 'CIM_Foo']
         exp_ns = conn_lite.default_namespace
-        for p in tst_paths:
+        for p in exp_paths:
             p.namespace = exp_ns
-        tst_paths = [str(p) for p in tst_paths]
-        rslt_paths = [str(i) for i in result_tuple.paths]
-        assert rslt_paths == tst_paths
+        assert_equal_ciminstancenames(exp_paths, result_tuple.paths)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4092,14 +4142,12 @@ class TestPullOperations(object):
         assert result_tuple.eos is True
         assert result_tuple.context is None
 
-        tst_paths = [i.path for i in tst_instances
+        exp_paths = [i.path for i in tst_instances
                      if i.classname == 'CIM_Foo']
         exp_ns = ns or conn_lite.default_namespace
-        for p in tst_paths:
+        for p in exp_paths:
             p.namespace = exp_ns
-        tst_paths = [str(p) for p in tst_paths]
-        rslt_paths = [str(i) for i in result_tuple.paths]
-        assert rslt_paths == tst_paths
+        assert_equal_ciminstancenames(exp_paths, result_tuple.paths)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4127,8 +4175,7 @@ class TestPullOperations(object):
         conn_lite.add_cimobjects(tst_instances, namespace=ns)
 
         # expected returns are only CIM_Foo instances
-        exp_total_paths = [i.path for i in tst_instances
-                           if i.classname == 'CIM_Foo']
+        exp_paths = [i.path for i in tst_instances if i.classname == 'CIM_Foo']
         result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo', ns,
                                                             MaxObjectCount=omoc)
 
@@ -4142,14 +4189,21 @@ class TestPullOperations(object):
         else:
             assert isinstance(result_tuple.context[0], six.string_types)
             assert isinstance(result_tuple.context[1], six.string_types)
+        rslt_paths = result_tuple.paths
 
         # open response incomplete, execute a pull
         if not result_tuple.eos:
             result_tuple = conn_lite.PullInstancePaths(result_tuple.context,
                                                        pmoc)
-            assert len(result_tuple.paths) == len(exp_total_paths) - opn_rtn_len
+            assert len(result_tuple.paths) == len(exp_paths) - opn_rtn_len
             assert result_tuple.eos
             assert result_tuple.context is None
+            rslt_paths.extend(result_tuple.paths)
+
+        exp_ns = ns or conn_lite.default_namespace
+        for p in exp_paths:
+            p.namespace = exp_ns
+        assert_equal_ciminstancenames(exp_paths, rslt_paths)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4160,8 +4214,8 @@ class TestPullOperations(object):
             [1, 200, 1, False],  # return 1 with open; others with pull
         ]
     )
-    def test_openenumeratepaths3(self, conn_lite, tst_instances, ns, omoc, pmoc,
-                                 exp_ortn, exp_ooc_eos):
+    def test_openenumeratepaths_lite(self, conn_lite, tst_instances, ns, omoc,
+                                     pmoc, exp_ortn, exp_ooc_eos):
         # pylint: disable=no-self-use,unused-argument
         """
         Test openenumeratepaths where we only test for totals at the end
@@ -4169,22 +4223,21 @@ class TestPullOperations(object):
         """
         conn_lite.add_cimobjects(tst_instances, namespace=ns)
         # expected returns are only CIM_Foo instances
-        exp_total_paths = [i.path for i in tst_instances
-                           if i.classname == 'CIM_Foo']
+        exp_paths = [i.path for i in tst_instances if i.classname == 'CIM_Foo']
+        for p in exp_paths:
+            p.namespace = ns or conn_lite.default_namespace
 
         result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo',
                                                             namespace=ns,
                                                             MaxObjectCount=omoc)
-        paths = result_tuple.paths
+        rslt_paths = result_tuple.paths
 
         while not result_tuple.eos:
             result_tuple = conn_lite.PullInstancePaths(result_tuple.context,
                                                        pmoc)
-            paths.extend(result_tuple.paths)
+            rslt_paths.extend(result_tuple.paths)
 
-        assert len(paths) == len(exp_total_paths)
-        # TODO fix common test for path equality
-        # assert paths == exp_total_paths
+        assert_equal_ciminstancenames(rslt_paths, exp_paths)
 
     def test_openenumerateinstances(self, conn_lite, tst_instances):
         # pylint: disable=no-self-use
@@ -4202,9 +4255,9 @@ class TestPullOperations(object):
         for p in tst_insts:
             p.path.namespace = exp_ns
 
-        tst_paths = [str(i.path) for i in tst_insts]
-        rslt_paths = [str(i.path) for i in result_tuple.instances]
-        assert rslt_paths == tst_paths
+        tst_paths = [i.path for i in tst_insts]
+        rslt_paths = [i.path for i in result_tuple.instances]
+        assert_equal_ciminstancenames(tst_paths, rslt_paths)
         # TODO test actual instances
 
     @pytest.mark.parametrize(
@@ -4262,7 +4315,7 @@ class TestPullOperations(object):
 
             rslt_paths = result_tuple.paths
 
-            assert_equal_ciminstname_lists(rslt_paths, exp_paths)
+            assert_equal_ciminstancenames(rslt_paths, exp_paths)
         else:
             exp_status = exp_rslt
             if exp_status == CIM_ERR_INVALID_NAMESPACE:
@@ -4346,7 +4399,7 @@ class TestPullOperations(object):
 
             rslt_paths = result_tuple.paths
 
-            assert_equal_ciminstname_lists(rslt_paths, exp_paths)
+            assert_equal_ciminstancenames(rslt_paths, exp_paths)
 
         else:
             exp_status = exp_rslt
@@ -4432,7 +4485,7 @@ class TestPullOperations(object):
 
             rslt_paths = [inst.path for inst in result_tuple.instances]
 
-            assert_equal_ciminstname_lists(rslt_paths, exp_paths)
+            assert_equal_ciminstancenames(rslt_paths, exp_paths)
             # TODO test instances returned rather than just paths and
             # test for propertylist specifically
 
@@ -4843,7 +4896,26 @@ class TestReferenceOperations(object):
         assert isinstance(inames, list)
         assert len(inames) == 3
         assert isinstance(inames[0], CIMInstanceName)
-        assert inames[0].classname == 'TST_Lineage'
+        exp_rslt = [
+            CIMInstanceName(classname='TST_Lineage',
+                            keybindings=NocaseDict({'InstanceID': 'MikeSofi'}),
+                            namespace='root/cimv2', host=conn.host),
+            CIMInstanceName(classname='TST_Lineage',
+                            keybindings=NocaseDict({'InstanceID': 'MikeGabi'}),
+                            namespace='root/cimv2', host='FakedUrl'),
+            CIMInstanceName(
+                classname='TST_MemberOfFamilyCollection',
+                keybindings=NocaseDict({
+                    'family': CIMInstanceName(
+                        classname='TST_FamilyCollection',
+                        keybindings=NocaseDict({'name': 'Family2'}),
+                        namespace='root/cimv2', host=None),
+                    'member': CIMInstanceName(
+                        classname='TST_Person',
+                        keybindings=NocaseDict({'name': 'Mike'}),
+                        namespace='root/cimv2', host=None)}),
+                namespace='root/cimv2', host=conn.host)]
+        assert_equal_ciminstancenames(inames, exp_rslt)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4917,24 +4989,26 @@ class TestReferenceOperations(object):
 
                 exp_inames.append(local_iname.to_wbem_uri('canonical'))
 
-            inames = conn.ReferenceNames(targ_iname, ResultClass=rc, Role=ro)
+            rslt_paths = conn.ReferenceNames(targ_iname, ResultClass=rc,
+                                             Role=ro)
 
-            assert isinstance(inames, list)
+            assert isinstance(rslt_paths, list)
 
-            assert len(inames) == len(exp_rslt)
+            assert len(rslt_paths) == len(exp_rslt)
 
             # test if inames returned in exp_inames.
             # We remove host because the return is scheme + url and when we
             # expand exp_inames it expands only to url (i.e. the htp:// missing)
-            for iname in inames:
-                assert isinstance(iname, CIMInstanceName)
-                iname.host = None
-                assert iname.to_wbem_uri('canonical') in exp_inames
+            for path in rslt_paths:
+                assert isinstance(path, CIMInstanceName)
+                path.host = None
+                assert path.to_wbem_uri('canonical') in exp_inames
 
-        else:
+        else:  # expecting error
             assert isinstance(exp_rslt, CIMError)
             exp_exc = exp_rslt
             if exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
+                targ_iname = targ_iname.copy()   # copy to not mod original
                 targ_iname.namespace = 'non_existent_namespace'
 
             with pytest.raises(CIMError) as exec_info:
@@ -4945,7 +5019,9 @@ class TestReferenceOperations(object):
     # TODO not sure we really need this testcase? Combine with next case
     # The only thing special about this test is it sets all parameters to
     # default
-    def test_reference_instances_min(self, conn, tst_assoc_mof):
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    def test_reference_instances_min(self, conn, tst_assoc_mof, ns):
         # pylint: disable=no-self-use
         """
         Test getting reference instances from default namespace with
@@ -4955,16 +5031,28 @@ class TestReferenceOperations(object):
 
         conn.compile_mof_string(tst_assoc_mof)
 
+        # Build the expected result instance list
+        # the paths for association instances must include the correct
+        # namespace for each key that is a CIMInstanceName
+        ns = ns or conn.default_namespace
+        fam2mike = fix_instname_namespace_keys(MEMBER_FAM2MIKE_NME, ns)
+        exp_rslt = [conn.GetInstance(path) for path in (LINEAGE_MIKESOFI_NME,
+                                                        LINEAGE_MIKEGABI_NME,
+                                                        fam2mike)]
+        # set the server name in the expected response
+        for inst in exp_rslt:
+            if inst.path.host is None:
+                inst.path.host = conn.host
+        assert len(exp_rslt) == 3
+
         inst_name = CIMInstanceName('TST_Person',
                                     keybindings=dict(name='Mike'))
 
-        insts = conn.References(inst_name)
+        act_rslt = conn.References(inst_name)
 
-        assert isinstance(insts, list)
-        assert len(insts) == 3
-        assert isinstance(insts[0], CIMInstance)
-        assert insts[0].classname == 'TST_Lineage'
-        # TODO test for specific instance.
+        assert isinstance(act_rslt, list)
+
+        assert_equal_ciminstances(exp_rslt, act_rslt)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -5042,7 +5130,7 @@ class TestReferenceOperations(object):
                                    keybindings=kbs, host=conn.host)
             exp_paths.append(path)
 
-        assert set(paths) == set(exp_paths)
+        assert_equal_ciminstancenames(exp_paths, paths)
 
     # TODO test for references propertylist.
 
@@ -5287,7 +5375,7 @@ class TestAssociationOperations(object):
                              for p in exp_rslt]
                 rtn_paths = [inst.path for inst in rtn_insts]
 
-                assert_equal_ciminstname_lists(rtn_paths, exp_paths)
+                assert_equal_ciminstancenames(rtn_paths, exp_paths)
 
         else:
             assert isinstance(exp_rslt, CIMError)
