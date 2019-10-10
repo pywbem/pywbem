@@ -2166,32 +2166,39 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Key property {0!A} not in NewInstance ", pn))
 
-        # If property not in instance, add it from class and use default value
-        # from class
-        for cprop_name in target_class.properties:
-            if cprop_name not in new_instance:
-                default_value = target_class.properties[cprop_name]
-                new_instance[cprop_name] = default_value
-
         # Exception if property in instance but not class or types do not
         # match
-        for ipname in new_instance:
-            if ipname not in target_class.properties:
+        for iprop_name in new_instance:
+            if iprop_name not in target_class.properties:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Property {0!A} specified in NewInstance is not "
                             "exposed by class {1!A} in namespace {2!A}",
-                            ipname, target_class.classname, namespace))
+                            iprop_name, target_class.classname, namespace))
 
-            cprop = target_class.properties[ipname]
-            iprop = new_instance.properties[ipname]
+            cprop = target_class.properties[iprop_name]
+            iprop = new_instance.properties[iprop_name]
             if iprop.is_array != cprop.is_array or \
                     iprop.type != cprop.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Instance and class property {0!A} types "
                             "do not match: instance={1!A}, class={2!A}",
-                            ipname, iprop, cprop))
+                            iprop_name, iprop, cprop))
+
+            # The class and instnames are the same except for possible case
+            # sensitivity. If case different, set cprop_name into new instance
+            # to maintain case equality
+            cprop_name = cprop.name
+            if cprop_name != iprop_name:
+                new_instance.properties[iprop_name].name = cprop_name
+
+        # If property not in instance, add it from class and use default value
+        # from class
+        for cprop_name in target_class.properties:
+            if cprop_name not in new_instance:
+                default_value = target_class.properties[cprop_name]
+                new_instance[cprop_name] = default_value
 
         # Build instance path. We build the complete instance path
         new_instance.path = CIMInstanceName.from_instance(
