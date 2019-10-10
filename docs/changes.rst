@@ -34,6 +34,11 @@ Released: not yet
   side effects. As part of that, removed PKG-FILE and setup.cfg and went back
   to a simple setup.py file. (See issues #1875, #1245, #1408, #1410)
 
+* Code: Fixed pywbem_mock issue where CreateInstance was not handling the case
+  sensitivityof property cases if the instance property name case was different than the
+  class property name case. While not legally incorrect the created instance
+  looks bad. See issue #1883
+
 **Known issues:**
 
 * See `list of open issues`_.
