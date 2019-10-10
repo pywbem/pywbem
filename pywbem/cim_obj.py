@@ -1059,6 +1059,32 @@ def _cim_method(key, value):
     return value
 
 
+def _cim_parameter(key, value):
+    """
+    Return a CIMParameter object, from dict item input (key+value), after
+    performing some checks.
+
+    The input value must be a CIMParameter object, which is returned.
+    """
+
+    if key is None:
+        raise ValueError("Parameter name must not be None")
+
+    try:
+        assert isinstance(value, CIMParameter)
+    except AssertionError:
+        raise TypeError(
+            _format("Parameter must be a CIMParameter object, but is: {0}",
+                    type(value)))
+
+    if value.name.lower() != key.lower():
+        raise ValueError(
+            _format("CIMParameter.name must be dictionary key {0!A}, but is ",
+                    "{1!A}", key, value.name))
+
+    return value
+
+
 def _cim_qualifier(key, value):
     """
     Return a CIMQualifier object, from dict item input (key+value), after
@@ -5423,7 +5449,7 @@ class CIMMethod(_CIMComparisonMixin):
                     raise TypeError(
                         _format("Input object for parameters has invalid item "
                                 "in iterable: {0!A}", item))
-                self.parameters[key] = value
+                self.parameters[key] = _cim_parameter(key, value)
 
     @property
     def qualifiers(self):
