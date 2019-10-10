@@ -51,6 +51,10 @@ Released: not yet
   but depending on the implementation of ModifyInstance for the compiler,
   it can simply lose the instance. See issue #1890
 
+* Code: Fix issue with pywbem_mock that allows duplicate instances to be
+  inserted into the mock repository when mof instances are compiled. Duplicate
+  instances (CIMInstanceName) will now cause an exception.  See issue #1852
+
 **Known issues:**
 
 * See `list of open issues`_.

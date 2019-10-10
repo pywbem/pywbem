@@ -345,14 +345,16 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self.qualifiers = NocaseDict()
 
         # The CIM instances in the mock repository.
-        # Because instances do not have a name, the format is slightly
-        # different: This is a dictionary of lists where the top level key is
-        # the CIM namespace name and the value is a list of CIM instances in
-        # that namespace, represented as CIMInstance objects.
+        # This is a dictionary of dictionaries where the top level key is the
+        # CIM namespace name, the keys for each dictionary in a
+        # namespace are CIM instance names, and the values in each dictionary
+        # are the CIM instances in that namespace, represented as CIMInstance
+        # should be objects. The namespace dictionaris is NocaseDict since
+        # namespaces case insensitive but the instance dictionaries are not
+        # NocaseDict since they use CIMInstanceName as the key.
         # The namespaces are added to the outer dictionary as needed (if
         # permitted as per self.namesaces).
-        # TODO: ks. FUTURE maybe we should really have a subdict per class but
-        #           it is not important for initial release.
+
         self.instances = NocaseDict()
 
         # The CIM methods with callback in the mock repository.
@@ -573,6 +575,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         namespace = namespace or self.default_namespace
         self._validate_namespace(namespace)
 
+        # TODO fix this also so there is cleaner interface to WBEMConnection
         mofcomp = MOFCompiler(_MockMOFWBEMConnection(self),
                               search_paths=search_paths,
                               verbose=verbose)
@@ -630,6 +633,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
           :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
           :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
             not exist.
+          :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS Entity already exists.
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
             mock repository.
         """
@@ -833,8 +837,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     inst.path.host = None
                 instance_repo = self._get_instance_repo(namespace)
                 try:
-                    if self._find_instance(inst.path, instance_repo)[1] \
-                            is not None:
+                    if self._find_instance(inst.path, instance_repo):
                         raise ValueError(
                             _format("The instance {0!A} already exists in "
                                     "namespace {1!A}", inst, namespace))
@@ -843,7 +846,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                         CIM_ERR_FAILED,
                         _format("Internal failure of add_cimobject operation. "
                                 "Rcvd CIMError {0}", ce))
-                instance_repo.append(inst)
+                self._add_instance(inst, instance_repo)
 
             elif isinstance(obj, CIMQualifierDeclaration):
                 qual = deepcopy(obj)
@@ -1028,7 +1031,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     return
 
                 # TODO:ks Future: Possibly sort insts by path order.
-                for inst in insts:
+                for inst in six.itervalues(insts):
                     if output_format == 'xml':
                         _uprint(dest,
                                 _format(u"{0} Path={1} {2}\n{3}",
@@ -1248,8 +1251,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     def _get_instance_repo(self, namespace):
         """
         Returns the instance repository for the specified CIM namespace
-        within the mock repository. This is the original instance variable,
-        so any modifications will change the mock repository.
+        within the mock repository.
 
         Validates that the namespace exists in the mock repository.
 
@@ -1271,7 +1273,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         """
         self._validate_namespace(namespace)
         if namespace not in self.instances:
-            self.instances[namespace] = []
+            self.instances[namespace] = {}
         return self.instances[namespace]
 
     def _get_qualifier_repo(self, namespace):
@@ -1550,8 +1552,65 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 yield cl
         return
 
+    #
+    #   The following static methods provide access to an instance repo for
+    #   a single namespace.  They should be the basis for access to the
+    #   instance repo until we convert to using a class that cleanly provides
+    #   access to the repo.
+    #
     @staticmethod
-    def _find_instance(iname, instance_repo):
+    def _iter_instance_repo(instance_repo):
+        """
+        Return an iterator for the defined instance repository (instance_repo)
+        """
+        assert isinstance(instance_repo, dict)
+        return six.itervalues(instance_repo)
+
+    @staticmethod
+    def _add_instance(new_instance, instance_repo):
+        """
+        Add a completely verified instance (new_instance) to the instance
+        repository defined by instance_repo.
+        This is a completely internal method and does no validation
+        """
+        assert isinstance(instance_repo, dict)
+        assert isinstance(new_instance, CIMInstance)
+        assert isinstance(new_instance.path, CIMInstanceName)
+        instance_repo[new_instance.path] = new_instance
+
+    @staticmethod
+    def _modify_instance(modified_instance, instance_repo):
+        """
+        Modify a single instance (modified_instance) in the instance_repo
+        defined by instance_repo.
+        This method does not validate before changing values.
+        """
+        assert isinstance(instance_repo, dict)
+        assert isinstance(modified_instance, CIMInstance)
+        assert isinstance(modified_instance.path, CIMInstanceName)
+        try:
+            inst = instance_repo[modified_instance.path]
+        except KeyError:
+            print("Instance %s not in repo" % modified_instance.path)
+            for iname in instance_repo:
+                print('NAME %s' % iname)
+            raise
+        # Modify the value of properties in the repo with those from
+        # modified instance
+        inst.update(modified_instance.properties)
+        instance_repo[modified_instance.path] = inst
+
+    @staticmethod
+    def _delete_instance(inst_name, instance_repo):
+        """
+        Delete an instance with name iname from the instance repo instance_repo
+        """
+        assert isinstance(instance_repo, dict)
+        assert isinstance(inst_name, CIMInstanceName)
+        del instance_repo[inst_name]
+
+    @staticmethod
+    def _find_instance(iname, instance_repo, copy_inst=None):
         """
         Find an instance in the instance repo by iname and return the
         index of that instance.
@@ -1562,28 +1621,24 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
           instance_repo: the instance repo to search
 
-        Return (None, None if not found. Otherwise return tuple of
-               index, instance
+          copy_inst: boolean.
+            If True do deep copy of the instance and return the copy. Otherwise
+            return the instance in the repository
+
+        Return (None, None if not found. Otherwise return instance or
+        copy of instance
 
         Raises:
 
           CIMError: Failed if repo invalid.
         """
+        assert isinstance(instance_repo, dict)
+        if iname in instance_repo:
+            if copy_inst:
+                return deepcopy(instance_repo[iname])
+            return instance_repo[iname]
 
-        rtn_inst = None
-        rtn_index = None
-        for index, inst in enumerate(instance_repo):
-            if iname == inst.path:
-                if rtn_inst is not None:
-                    # TODO:ks Future Remove dup test since we should be
-                    # insuring no dups on instance creation
-                    raise CIMError(
-                        CIM_ERR_FAILED,
-                        _format("Invalid Repository. Multiple instances with "
-                                "same path {0!A}.", rtn_inst.path))
-                rtn_inst = inst
-                rtn_index = index
-        return(rtn_index, rtn_inst)
+        return None
 
     def _get_instance(self, iname, namespace, property_list, local_only,
                       include_class_origin, include_qualifiers):
@@ -1605,22 +1660,20 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         instance_repo = self._get_instance_repo(namespace)
 
-        rtn_tup = self._find_instance(iname, instance_repo)
-        inst = rtn_tup[1]
+        rtn_inst = self._find_instance(iname, instance_repo, copy_inst=True)
 
-        if inst is None:
+        if rtn_inst is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Instance not found in repository namespace {0!A}. "
                         "Path={1!A}", namespace, iname))
-        rtn_inst = deepcopy(inst)
 
         # If local_only remove properties where class_origin
         # differs from class of target instance
         if local_only:
             for p in rtn_inst:
                 class_origin = rtn_inst.properties[p].class_origin
-                if class_origin and class_origin != inst.classname:
+                if class_origin and class_origin != rtn_inst.classname:
                     del rtn_inst[p]
 
         # if not repo_lite test against class properties
@@ -2157,7 +2210,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         # Test all key properties in instance. This is our repository limit
         # since the repository cannot add values for key properties. We do
-        # no allow creating key properties from class defaults.
+        # not allow creating key properties from class defaults.
         key_props = [p.name for p in six.itervalues(target_class.properties)
                      if 'key' in p.qualifiers]
         for pn in key_props:
@@ -2207,19 +2260,18 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             namespace=namespace)
 
         # Check for duplicate instances
-        for inst in instance_repo:
-            if inst.path == new_instance.path:
-                raise CIMError(
-                    CIM_ERR_ALREADY_EXISTS,
-                    _format("NewInstance {0!A} already exists in namespace "
-                            "{1!A}.", new_instance.path, namespace))
+        if new_instance.path in instance_repo:
+            raise CIMError(
+                CIM_ERR_ALREADY_EXISTS,
+                _format("NewInstance {0!A} already exists in namespace "
+                        "{1!A}.", new_instance.path, namespace))
 
         # Reflect the new namespace in the mock repository
         if ns_classname:
             self.add_namespace(new_namespace)
 
         # Store the new instance in the mock repository
-        instance_repo.append(new_instance)
+        self._add_instance(new_instance, instance_repo)
 
         # Create instance returns model path, path relative to namespace
         return self._make_tuple([deepcopy(new_instance.path)])
@@ -2287,17 +2339,18 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             raise
 
         # Get original instance in repo.  Does not copy the orig instance.
-        mod_inst_path = modified_instance.path.copy()
         if modified_instance.path.namespace is None:
-            mod_inst_path.namespace = namespace
+            modified_instance.path.namespace = namespace
 
-        orig_instance_tup = self._find_instance(mod_inst_path, instance_repo)
-        if orig_instance_tup[0] is None:
+        # TODO_FIX validate that we should copy
+        orig_instance = self._find_instance(modified_instance.path,
+                                            instance_repo,
+                                            copy_inst=True)
+        if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Original Instance {0!A} not found in namespace {1!A}",
                         modified_instance.path, namespace))
-        original_instance = orig_instance_tup[1]
 
         # Remove duplicate properties from property_list
         if property_list:
@@ -2333,7 +2386,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # Remove all properties that do not change value between original
         # instance and modified instance
         for p in list(modified_instance):
-            if original_instance[p] == modified_instance[p]:
+            if orig_instance[p] == modified_instance[p]:
                 del modified_instance[p]
 
         # Confirm no key properties in remaining modified instance
@@ -2378,10 +2431,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             if iprop.name != cprop.name:
                 modified_instance.properties[iprop.name].name = cprop.name
 
-        # Modify the value of properties in the repo with those from
-        # modified instance
-        index = orig_instance_tup[0]
-        instance_repo[index].update(modified_instance.properties)
+        # Modify the instance in the instance repository
+        self._modify_instance(modified_instance, instance_repo)
         return
 
     def _fake_getinstance(self, namespace, **params):
@@ -2456,20 +2507,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                             "Cannot delete instance {2!A}",
                             iname.classname, namespace, iname))
 
-        del_index = None
-        for i, inst in enumerate(instance_repo):
-            if iname == inst.path:
-                if del_index is not None:
-                    raise CIMError(
-                        CIM_ERR_FAILED,
-                        _format("Internal Error: Invalid Repository. "
-                                "Multiple instances with same path {0!A}",
-                                inst.path))
-                # TODO:ks Future remove this test for duplicate inst paths since
-                #       we test for dups on insertion
-                del_index = i
-
-        if del_index is None:
+        if iname not in instance_repo:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Instance {0!A} not found in repository namespace "
@@ -2491,8 +2529,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             # This will check the namespace for being empty.
             self._remove_namespace(namespace)
 
-        # Reflect the instance deletion in the mock repository
-        del instance_repo[del_index]
+        # Delete the instance from the repository
+        self._delete_instance(iname, instance_repo)
 
     def _fake_enumerateinstances(self, namespace, **params):
         """
@@ -2550,12 +2588,12 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     pl = [pc for pc in class_pl if pc.lower() in pl_lower]
 
         clns_dict = self._get_subclass_list_for_enums(cname, namespace)
-        insts = [self._get_instance(inst.path, namespace,
-                                    pl,
+
+        insts = [self._get_instance(inst.path, namespace, pl,
                                     None,  # LocalOnly never gets passed
-                                    ico,
-                                    iq)
-                 for inst in instance_repo if inst.path.classname in clns_dict]
+                                    ico, iq)
+                 for inst in self._iter_instance_repo(instance_repo)
+                 if inst.path.classname in clns_dict]
 
         return self._make_tuple(insts)
 
@@ -2576,8 +2614,9 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         clns = self._get_subclass_list_for_enums(cname, namespace)
 
-        inst_paths = [inst.path for inst in instance_repo
-                      if inst.path.classname in clns]
+        inst_paths = \
+            [inst.path for inst in self._iter_instance_repo(instance_repo)
+             if inst.path.classname in clns]
 
         rtn_paths = [deepcopy(path) for path in inst_paths]
 
@@ -2774,7 +2813,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # TODO:ks FUTURE: Make list from _get_reference_classnames if classes
         #       exist. Otherwise set list to instance_repo to search every
         #       instance.
-        for inst in instance_repo:
+        for inst in six.itervalues(instance_repo):
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     # does this prop instance name match target inst name
@@ -2851,7 +2890,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                                   assoc_class, role)
         # Get associated instance names
         for ref_path in ref_paths:
-            inst = self._find_instance(ref_path, instance_repo)[1]
+            inst = self._find_instance(ref_path, instance_repo)
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     if prop.value == inst_name:
