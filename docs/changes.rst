@@ -149,6 +149,10 @@ Released: not yet
   the case of property names did not match. Fixed the case test error and
   put the class defined proerty name into the modified instance. See issue #1887
 
+* Code: Fix issue with pywbem_mock that allows duplicate instances to be
+  inserted into the mock repository when mof instances are compiled. Duplicate
+  instances (CIMInstanceName) will now cause an exception.  See issue #1852
+
 * Fix issue in mof compiler where mof instance that duplicates existing instance
   path can get lost with no warning. NOTE: This does not happen in the
   standalone compiler because it creates a duplicate instance issue # 1852

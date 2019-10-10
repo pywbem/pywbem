@@ -28,7 +28,7 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import MOFWBEMConnection, CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND
+    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS
 from pywbem._nocasedict import NocaseDict
 
 from pywbem._utils import _format
@@ -55,15 +55,14 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
           Parameters:
 
-            conn (BaseRepositoryConnection):
-              The underlying repository connection.
-
-              `None` means that there is no underlying repository and all
-              operations performed through this object will fail.
+            faked_conn_object (FakedWBEMConnection):
+              The instance of _FakeWBEMConnection to which this is attached.
+              This allows us to use the same objects for qualifiers, instances
+              and classes as that object
         """
         super(_MockMOFWBEMConnection, self).__init__(conn=faked_conn_object)
 
-        # Reassign the variables the represent the repository to the
+        # Reassign the variables that represent the repository to the
         # faked_conn_object so that we have a common repository
         self.qualifiers = faked_conn_object.qualifiers
         self.instances = faked_conn_object.instances
@@ -71,7 +70,10 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
     def CreateClass(self, *args, **kwargs):
         """
-        Override the CreateClass method in MOFWBEMConnection
+        Override the CreateClass method in MOFWBEMConnection. NOTE: This is
+        currently only used by the compiler.  The methods of Fake_WBEMConnectin
+        go directly to the repository, not through this method.
+        This modifies the overridden method to add validation.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateClass`.
@@ -143,6 +145,54 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
             self.class_names[namespace].append(ccr.classname)
         except KeyError:
             self.class_names[namespace] = [ccr.classname]
+
+    def CreateInstance(self, *args, **kwargs):
+        """
+        Create a CIM instance in the local repository of this class.
+        This method is derived from the the same method in the pywbem
+        mof compiler but modified to:
+        1. Use a dictionary as the container for instances where the
+           key is the path. This means that all instances must have a
+           path component to be inserted into the repository. Normally
+           the path component is built within the compiler by using the
+           instance alias.
+        2. Fail with a CIMError exception if the instance already exists
+           in the repository.
+           TODO: Determine if the logic should be to fail or replace.
+           See pywbem issue #1890
+
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        """
+
+        inst = args[0] if args else kwargs['NewInstance']
+
+        # TODO build path if does not exist. For now simply abort
+        # NOTE: compiler does not build path unless the instance alias is
+        # defined for the instance
+        if inst.path is None:
+            raise CIMError(
+                CIM_ERR_FAILED,
+                _format('CreateInstance failed. No path in new_instance. ',
+                        'Use compiler instance alias to set path on '
+                        'instance declaration. inst: {0!A}'.inst))
+
+        if self.default_namespace not in self.instances:
+            self.instances[self.default_namespace] = {}
+
+        if inst.path in self.instances[self.default_namespace]:
+            raise CIMError(
+                CIM_ERR_ALREADY_EXISTS,
+                _format('CreateInstance failed. Instance with path {0!A} '
+                        'already exists in mock repository', inst.path))
+        try:
+            self.instances[self.default_namespace][inst.path] = inst
+        except KeyError:
+            self.instances[self.default_namespace] = {}
+            self.instances[self.default_namespace][inst.path] = inst
+
+        return inst.path
 
     def _get_class(self, superclass, namespace=None,
                    local_only=False, include_qualifiers=True,
