@@ -16,13 +16,7 @@ Change log
 pywbem 0.14.6
 -------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2019-10-10
 
 **Bug fixes:**
 
@@ -30,8 +24,6 @@ Released: not yet
   (See issue #1859)
 
 * Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
-
-**Enhancements:**
 
 **Cleanup:**
 
@@ -49,12 +41,6 @@ Released: not yet
 
 * Increased minimum version of PyYAML from 3.13 to 5.1 due to deprecation issue
   announced for Python 3.8.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.5
