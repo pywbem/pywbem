@@ -161,6 +161,9 @@ Released: not yet
 
 * Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
 
+* Fixed that inconsistent names (between key and object name) were not detected
+  when setting CIMMethod.parameters from an input dictionary.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
