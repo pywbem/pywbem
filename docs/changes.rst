@@ -138,6 +138,11 @@ Released: not yet
 
 * Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
 
+* Code: Fixed pywbem_mock issue where CreateInstance was not handling the case 
+  sensitivityof property cases if the instance property name case was different than the
+  class property name case. While not legally incorrect the created instance
+  looks bad. See issue #1883
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
