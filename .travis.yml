@@ -233,6 +233,8 @@ after_success:
 # Note: In case of error 422 (Couldn't find a repository matching this job),
 #       log on to https://coveralls.io to refresh the OAuth token, and
 #       make sure this project is enabled there.
+# Make sure the Python version matches the one specified for python-coveralls
+# in dev-requirements.txt.
   - if [[ "$TRAVIS_EVENT_TYPE" == "push" && "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.4" && "$PACKAGE_LEVEL" == "latest" && -z $_MANUAL_CI_RUN ]]; then
       coveralls;
     fi
