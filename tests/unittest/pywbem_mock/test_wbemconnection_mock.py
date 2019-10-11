@@ -3744,6 +3744,8 @@ class TestInstanceOperations(object):
 
             # change any property that is different
             [0, ['cimfoo_sub', 'newval'], None, True],
+            # change any property that is different with prop case different
+            [0, ['CIMFOO_SUB', 'newval'], None, True],
             # change this property only
             [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub'], True],
             # Duplicate in property list
@@ -3766,11 +3768,10 @@ class TestInstanceOperations(object):
             # change any property that is different, no prop list
             [0, [('cimfoo_sub', 'newval'),
                  ('cimfoo_sub_sub', 'newval2'), ], None, True],
+            # change any property that is different, no prop list, p case diff
+            [0, [('CIMFOO_SUB', 'newvalx'),
+                 ('CIMFOO_SUB_sub', 'newval2x'), ], None, True],
             # Invalid change, Key property
-            # change any property that is different, no prop list
-            [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND)],
-            # Invalid change, Key property
-            # change any property that is different, no prop list
             [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND)],
             # Bad namespace. Depends on special code in path
             [2, ['cimfoo_sub', 'newval'], None,
@@ -3838,12 +3839,20 @@ class TestInstanceOperations(object):
             conn.ModifyInstance(modify_instance, PropertyList=pl)
 
             rtn_instance = conn.GetInstance(modify_instance.path)
+            tst_class = conn.GetClass(modify_instance.path.classname,
+                                      LocalOnly=False)
             if exp_resp:
                 for p in rtn_instance:
-                    assert rtn_instance[p] == modify_instance[p]
+                    assert rtn_instance.properties[p] == \
+                        modify_instance.properties[p]
+                    assert rtn_instance.properties[p].name == \
+                        tst_class.properties[p].name
             else:
                 for p in rtn_instance:
-                    assert rtn_instance[p] == orig_instance[p]
+                    assert rtn_instance.properties[p] == \
+                        orig_instance.properties[p]
+                    assert rtn_instance.properties[p].name == \
+                        tst_class.properties[p].name
 
     def test_modifyinstance_lite(self, conn_lite, tst_instances):
         # pylint: disable=no-self-use

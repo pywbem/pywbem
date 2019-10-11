@@ -138,10 +138,16 @@ Released: not yet
 
 * Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
 
-* Code: Fixed pywbem_mock issue where CreateInstance was not handling the case 
-  sensitivityof property cases if the instance property name case was different than the
+* Code: Fixed pywbem_mock issue where CreateInstance was not handling the case
+  sensitivity of property cases if the instance property name case was different than the
   class property name case. While not legally incorrect the created instance
   looks bad. See issue #1883
+
+* Code: Fixed pywbem_mock issue where ModifyInstance not handling case
+  sensitivity of property cases if the instance property name case was
+  different than the class property name case. Modify failed if
+  the case of property names did not match. Fixed the case test error and
+  put the class defined proerty name into the modified instance. See issue #1887
 
 **Enhancements:**
 

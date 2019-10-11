@@ -2286,11 +2286,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                             modified_instance.classname, namespace))
             raise
 
-        # get key properties and all class props
-        cl_props = [p.name for p in six.itervalues(target_class.properties)]
-        key_props = [p.name for p in six.itervalues(target_class.properties)
-                     if 'key' in p.qualifiers]
-
         # Get original instance in repo.  Does not copy the orig instance.
         mod_inst_path = modified_instance.path.copy()
         if modified_instance.path.namespace is None:
@@ -2313,13 +2308,13 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # are in the class
         if property_list:
             for p in property_list:
-                if p not in cl_props:
+                if p not in target_class.properties:
                     raise CIMError(
                         CIM_ERR_INVALID_PARAMETER,
                         _format("Property {0!A} in PropertyList not in class "
                                 "{1!A}", p, modified_instance.classname))
         for p in modified_instance:
-            if p not in cl_props:
+            if p not in target_class.properties:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Property {0!A} in ModifiedInstance not in class "
@@ -2327,12 +2322,13 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         # Set the class value for properties in the property list but not
         # in the modified_instance. This sets just the value component.
-        mod_inst_props = set(modified_instance.keys())
-        new_props = mod_inst_props.difference(set(cl_props))
-        if new_props:
-            for new_prop in new_props:
-                modified_instance[new_prop] = \
-                    target_class.properties[new_prop].value
+        mod_inst_props = set([k.lower() for k in modified_instance.keys()])
+        cl_props = [pn.lower() for pn in target_class.properties]
+        chngd_props = mod_inst_props.difference(set(cl_props))
+        if chngd_props:
+            for prop in chngd_props:
+                modified_instance[prop] = \
+                    target_class.properties[prop].value
 
         # Remove all properties that do not change value between original
         # instance and modified instance
@@ -2341,6 +2337,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 del modified_instance[p]
 
         # Confirm no key properties in remaining modified instance
+        key_props = [p.name for p in six.itervalues(target_class.properties)
+                     if 'key' in p.qualifiers]
         for p in key_props:
             if p in modified_instance:
                 raise CIMError(
@@ -2350,7 +2348,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         # Remove any properties from modified instance not in the property_list
         if property_list:
-            for p in list(modified_instance):
+            for p in list(modified_instance):  # create list before loop
                 if p not in property_list:
                     del modified_instance[p]
 
@@ -2375,6 +2373,10 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                             "or other attributes do not match: "
                             "instance={1!A}, class={2!A}",
                             pname, iprop, cprop))
+            # If case of modified_instance property != case of class property
+            # change the name in the modified_instance
+            if iprop.name != cprop.name:
+                modified_instance.properties[iprop.name].name = cprop.name
 
         # Modify the value of properties in the repo with those from
         # modified instance
