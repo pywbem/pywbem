@@ -23,11 +23,12 @@ decorator>=4.0.11
 yamlordereddictloader>=0.4.0
 funcsigs>=1.0.2
 
-# Coverage reporting (no imports, invoked via coveralls script, only used on py27):
+# Coverage reporting (no imports, invoked via coveralls script).
+# Make sure the Python version matches the one used in .travis.yml.
 # Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore
 # must be stated before pytest-cov, whose 2.5.1 specifies requirement
 # coverage>=3.7.1 and thus would get coverage 4.5 1 if processed first.
-python-coveralls>=2.8.0; python_version == '2.7'
+python-coveralls>=2.8.0; python_version == '3.4'
 
 # Safety CI by pyup.io
 safety>=1.8.4
