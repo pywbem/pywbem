@@ -631,8 +631,8 @@ def p_mp_createInstance(p):
                             "Modifying...", inst.classname))
             try:
                 p.parser.handle.ModifyInstance(inst)
-            except CIMError as ce:
-                if ce.status_code == CIM_ERR_NOT_SUPPORTED:
+            except CIMError as ce2:
+                if ce2.status_code == CIM_ERR_NOT_SUPPORTED:
                     if p.parser.verbose:
                         p.parser.log(
                             _format("ModifyInstance not supported. "
@@ -644,6 +644,9 @@ def p_mp_createInstance(p):
                             _format("Creating instance of {0!A}.",
                                     inst.classname))
                     p.parser.handle.CreateInstance(inst)
+                else:  # modify failed unknown error, output original error
+                    ce.file_line = (p.parser.file, p.lexer.lineno)
+                    raise ce
         else:
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
