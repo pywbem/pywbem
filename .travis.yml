@@ -66,14 +66,24 @@ matrix:
 #      python: "3.6"
 #      env:
 #        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "3.7"
+#      env:
+#        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "3.7"
+#      env:
+#        - PACKAGE_LEVEL=latest
     - os: linux
       language: python
-      python: "3.7"
+      python: "3.8"
       env:
         - PACKAGE_LEVEL=minimum
 #    - os: linux
 #      language: python
-#      python: "3.7"
+#      python: "3.8"
 #      env:
 #        - PACKAGE_LEVEL=latest
 # Note: pywbem does not install on pypy, because M2Crypto does not install.
