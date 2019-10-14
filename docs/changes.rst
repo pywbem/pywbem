@@ -233,6 +233,8 @@ Released: not yet
 * Added support for byte string values in keybindings of CIMInstanceName
   method to_wbem_uri(), consistent with other methods.
 
+* Test: Added Python 3.8 to the tested environments. (See issue #1879)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
