@@ -149,6 +149,12 @@ Released: not yet
   the case of property names did not match. Fixed the case test error and
   put the class defined proerty name into the modified instance. See issue #1887
 
+* Fix issue in mof compiler where mof instance that duplicates existing instance
+  path can get lost with no warning. NOTE: This does not happen in the
+  standalone compiler because it creates a duplicate instance issue # 1852
+  but depending on the implementation of ModifyInstance for the compiler,
+  it can simply lose the instance. See issue #1890
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
