@@ -75,6 +75,8 @@ Released: not yet
 * Added support for byte string values in keybindings of CIMInstanceName
   method to_wbem_uri(), consistent with other methods.
 
+* Test: Added Python 3.8 to the tested environments. (See issue #1879)
+
 **Cleanup:**
 
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed

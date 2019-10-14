@@ -47,6 +47,16 @@ environment:
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
 
+## TODO: Enable Python 3.8 once available on Appveyor
+##    - TOX_ENV: win64_py38_32
+##      UNIX_PATH: none
+##      PYTHON_CMD: python
+
+## TODO: Enable Python 3.8 once available on Appveyor
+##    - TOX_ENV: win64_py38_64
+##      UNIX_PATH: none
+##      PYTHON_CMD: python
+
 # TODO: Disabled because python2.7 with cygwin 32-bit fails with:
 #       "virtualenv is not compatible with this system or executable"
 #    - TOX_ENV: cygwin32_py27
@@ -63,6 +73,18 @@ environment:
       UNIX_PATH: C:\cygwin64\bin
       PYTHON_CMD: python3.6m
       PIP_CMD: pip
+
+## TODO: Enable Python 3.7 once available on Appveyor in Cygwin
+##    - TOX_ENV: cygwin64_py37
+##      UNIX_PATH: C:\cygwin64\bin
+##      PYTHON_CMD: python3.7m
+##      PIP_CMD: pip
+
+## TODO: Enable Python 3.8 once available on Appveyor in Cygwin
+##    - TOX_ENV: cygwin64_py38
+##      UNIX_PATH: C:\cygwin64\bin
+##      PYTHON_CMD: python3.8m
+##      PIP_CMD: pip
 
 configuration:
 # These values will become the values of the PACKAGE_LEVEL env.var.
