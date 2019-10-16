@@ -17,7 +17,8 @@ pytest>=4.3.1; python_version >= '3.5'
 testfixtures>=6.9.0
 httpretty>=0.9.5
 # Pinning lxml to <4.4.0 because it started removing Python 3.4 support
-lxml>=4.2.4,<4.4.0
+lxml>=4.2.4; python_version != '3.4'
+lxml>=4.2.4,<4.4.0; python_version == '3.4'
 requests>=2.20.1
 decorator>=4.0.11
 yamlordereddictloader>=0.4.0
@@ -72,7 +73,10 @@ flake8>=3.2.1
 twine>=1.8.1
 
 # Jupyter Notebook (no imports, invoked via jupyter script):
-jupyter>=1.0.0
+# The jupyter package is not installed on Python 3.4 on Windows, because its
+# (indirectly) dependent pywin32 package is not available on Pypi for
+# Python 3.4.
+jupyter>=1.0.0; python_version != '3.4' or sys_platform != 'win32'
 
 # The tornado package is used by ipykernel which is used by jupyter.
 # Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
@@ -93,6 +97,10 @@ tabulate >= 0.8.3
 
 # Performance profiling tools
 pyinstrument >=3.0.1
+
+# Pinning typed-ast to <1.4.0 because it started removing Python 3.4 support
+typed-ast>=1.3.0,<1.4.0; python_version == '3.4'
+typed-ast>=1.3.0; python_version > '3.4'
 
 # Indirect dependencies are no longer specified here, but for testing with a
 # minimum version, they are listed in the minimum-constraints.txt file.
