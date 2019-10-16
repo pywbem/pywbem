@@ -363,6 +363,7 @@ platform:
 	@echo "Python command name: $(PYTHON_CMD)"
 	@echo "Python command location: $(shell $(WHICH) $(PYTHON_CMD))"
 	@echo "Python version: $(python_version)"
+	@$(PYTHON_CMD) tools/python_bitsize.py
 	@echo "Pip command name: $(PIP_CMD)"
 	@echo "Pip command location: $(shell $(WHICH) $(PIP_CMD))"
 	@echo "$(package_name) package version: $(package_version)"
@@ -424,12 +425,6 @@ else
 endif
 	echo "done" >$@
 	@echo "makefile: Done installing OS-level installation and runtime requirements"
-
-.PHONY: _show_bitsize
-_show_bitsize:
-	@echo "makefile: Determining bit size of Python executable"
-	$(PYTHON_CMD) tools/python_bitsize.py
-	@echo "makefile: Done determining bit size of Python executable"
 
 install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py
 	-$(call RM_FUNC,$@)
