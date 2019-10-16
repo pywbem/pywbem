@@ -24,7 +24,7 @@ httpretty>=0.9.5; python_version > '2.6'
 # Pinning lxml to <4.4.0 because it started removing Python 3.4 support
 lxml>=4.2.4,<4.3.0; python_version == '2.6'
 lxml>=4.2.4,<4.4.0; python_version > '2.6' and python_version <= '3.4'
-lxml>=4.2.4; python_version >= '3.4'
+lxml>=4.2.4; python_version > '3.4'
 # Note: requests 2.19.1 has a security issue that is fixed in 2.20.0. However,
 #       requests 2.20.0 has dropped support for Python 2.6.
 requests>=2.19.1; python_version == '2.6'
