@@ -10,10 +10,15 @@ environment:
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
 
+# Note: Python 3.4 is disabled on Windows because lxml does not install anymore,
+#       it fails with missing include files from libxml2 and libxslt, although
+#       these packages are installed viy choco (and work with Python 3.5 and
+#       higher). Even if the include file paths are added via INCLUDE, it fails
+#       at the link step because libxslt.lib etc are needed but not part of
+#       the choco installation of libxml2 etc.
 #    - TOX_ENV: win64_py34_32
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
-
 #    - TOX_ENV: win64_py34_64
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
