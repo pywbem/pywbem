@@ -25,105 +25,50 @@ https://github.com/pywbem/pywbem
 Setting up the development environment
 --------------------------------------
 
-It is recommended to use Linux as the development environment for pywbem.
-OS-X should work as well, but Windows requires a number of manual setup steps.
+You may use any supported OS platform as the development environment for
+pywbem. On native Windows, you need to use a Windows command prompt in
+administrator mode.
 
-1. Clone the Git repo of this project and switch to its working directory:
+1. It is recommended that you set up a `virtual Python environment`_.
+   Have the virtual Python environment active for all remaining steps.
+
+2. Make sure the following commands are available:
+
+   - ``git``
+   - ``make`` (GNU make)
+   - ``choco`` on native Windows (`Chocolatey package manager`_)
+
+3. Clone the Git repo of this project and switch to its working directory:
 
    .. code-block:: bash
 
-        $ git clone git@github.com:pywbem/pywbem.git
-        $ cd pywbem
+       $ git clone git@github.com:pywbem/pywbem.git
+       $ cd pywbem
 
-2. It is recommended that you set up a `virtual Python environment`_.
-   Have the virtual Python environment active for all remaining steps.
-
-3. Install pywbem and its prerequisites for installing and running it
-   as described in :ref:`Installation`.
-   This will install Python packages into the active Python environment,
-   and OS-level packages.
-
-4. On Windows, perform the setup steps described in
-   :ref:`Manual setup on Windows`. On Linux and OS-X, the corresponding
-   setup is performed automatically as part of the next step.
-
-5. Install the prerequsites for pywbem development.
+4. Install the prerequsites for pywbem development.
    This will install Python packages into the active Python environment,
    and OS-level packages:
 
    .. code-block:: bash
 
-        $ make develop
+       $ make develop
 
-6. This project uses Make to do things in the currently active Python
+   On Python 3.4 on native Windows, this may fail during installation of the
+   ``lxml`` Python package. If so, see :ref:`Troubleshooting` for details.
+
+5. This project uses Make to do things in the currently active Python
    environment. The command:
 
    .. code-block:: bash
 
-        $ make
+       $ make
 
    displays a list of valid Make targets and a short description of what each
-   target does.
+   target does. See the next sections for details.
 
 .. _virtual Python environment: https://docs.python-guide.org/en/latest/dev/virtualenvs/
 
-
-.. _`Manual setup on Windows`:
-
-Manual setup on Windows
-^^^^^^^^^^^^^^^^^^^^^^^
-
-For development of pywbem, it is recommended to use one of the Unix-like
-environments on Windows (such as CygWin, MinGW, Babun, or Gow). The pywbem
-tests that run on the Appveyor CI use CygWin.
-
-Note that Unix-like environments on Windows bring their own Python, so double
-check that the active Python environment is the one you want to install to.
-
-The development environment needs the ``xmllint`` utility and the ``lxml``
-Python package.
-
-The ``lxml`` Python package for Windows meanwhile comes as a binary wheel
-archive that includes all of its dependencies, so it has no additional
-dependencies you would need to take care about.
-
-The ``xmllint`` utility is part of CygWin and likely also part of the other
-Unix-like environments.
-
-
-.. _`Prerequisite operating system packages for development`:
-
-Prerequisite operating system packages for development
-------------------------------------------------------
-
-The following table lists the prerequisite operating system packages along with
-their version requirements for development of pywbem, for the supported
-operating systems and Linux distributions.
-
-The prerequisite operating system packages for installing and running pywbem
-are also needed for development, and can be found in section
-:ref:`Prerequisite operating system packages for install`.
-
-This section is just for information. These packages will be installed as part
-of the steps described in :ref:`Setting up the development environment`.
-
-+--------------------------+--------------------+----------------------+-------+
-| Op.system / Distribution | Package name       | Version requirements | Notes |
-+==========================+====================+======================+=======+
-| Linux RedHat family      |                    |                      |       |
-| (RHEL, CentOS, Fedora)   |                    |                      |       |
-+--------------------------+--------------------+----------------------+-------+
-| Linux Debian family      |                    |                      |       |
-| (Ubuntu, Debian,         |                    |                      |       |
-| LinuxMint)               |                    |                      |       |
-+--------------------------+--------------------+----------------------+-------+
-| Linux SUSE family        |                    |                      |       |
-| (SLES, openSUSE)         |                    |                      |       |
-+--------------------------+--------------------+----------------------+-------+
-| OS-X                     |                    |                      |       |
-+--------------------------+--------------------+----------------------+-------+
-| Windows                  | xmllint            |                      |       |
-+--------------------------+--------------------+----------------------+-------+
+.. _`Chocolatey package manager`: https://chocolatey.org/
 
 
 .. _`Building the documentation`:
@@ -140,7 +85,7 @@ changes the branch from which this documentation is built.
 In order to build the documentation locally from the Git work directory,
 execute:
 
-::
+.. code-block:: bash
 
     $ make builddoc
 
@@ -199,7 +144,7 @@ There are multiple types of tests in pywbem:
 
    They are run by executing:
 
-   ::
+   .. code-block:: bash
 
        $ make test
 
@@ -219,7 +164,7 @@ There are multiple types of tests in pywbem:
 
    from the provided example, and by executing:
 
-   ::
+   .. code-block:: bash
 
        $ make end2end
 
@@ -251,7 +196,7 @@ There are multiple types of tests in pywbem:
    repository of the WBEM server that is used for the test. This can be done
    using the MOF compiler of pywbem:
 
-   ::
+   .. code-block:: bash
 
        $ mof_compiler -s <target_url> tests/unittest/pywbem/test.mof
 
@@ -262,7 +207,7 @@ executes `make test` (i.e. the unit and function tests) in each of them.
 For running Tox, it does not matter which Python environment is currently
 active, as long as the Python `tox` package is installed in it:
 
-::
+.. code-block:: bash
 
     $ tox                              # Run tests on all supported Python versions
     $ tox -e py27                      # Run tests on Python 2.7
@@ -318,7 +263,7 @@ installed into the system Python:
 1. Verify that the following commands are available when the system Python
    is active:
 
-   ::
+   .. code-block:: bash
 
        $ virtualenv --version   # Python virtualenv package
        $ pip --version
@@ -326,7 +271,7 @@ installed into the system Python:
 2. Create and activate a virtual Python environment of the intended Python
    version, that is based on the system Python:
 
-   ::
+   .. code-block:: bash
 
        $ virtualenv --system-site-packages --no-setuptools --no-pip --no-wheel .virtualenv/test
        $ source .virtualenv/test/bin/activate
@@ -337,14 +282,14 @@ installed into the system Python:
 3. Verify that in that virtual Python environment, pywbem comes from the
    intended installation:
 
-   ::
+   .. code-block:: bash
 
        $ pip show pywbem
 
 4. Ensure a fresh start of the make process. This should be done whenever
    switching between the installed version of pywbem and the local directories:
 
-   ::
+   .. code-block:: bash
 
        $ make clobber
 
@@ -353,13 +298,13 @@ installed into the system Python:
    different, set the ``TEST_WBEMCLI_NAME`` environment variable to that
    command name (e.g for a command name of ``pywbemcli``):
 
-   ::
+   .. code-block:: bash
 
        $ export TEST_WBEMCLI_NAME=pywbemcli
 
 6. Run the pywbem tests with environment variable ``TEST_INSTALLED`` being set:
 
-   ::
+   .. code-block:: bash
 
        $ TEST_INSTALLED=1 make test
 
@@ -376,7 +321,7 @@ installed into the system Python:
 
    This also works for the pywbem end2end tests:
 
-   ::
+   .. code-block:: bash
 
        $ TEST_INSTALLED=1 make end2end
 
@@ -423,13 +368,13 @@ jupyter server by:
 1. Install ipython or Jupyter software using pip or pip3. The notebook server
 may be installed as root or within a python virtual environment. For example:
 
-::
+.. code-block:: bash
 
-   $ sudo pip install ipython
-   or
-   $ sudo pip3 install ipython
-   or
-   $ sudo pip install jupyter
+    $ sudo pip install ipython
+    or
+    $ sudo pip3 install ipython
+    or
+    $ sudo pip install jupyter
 
 The notebook server may be installed as root or within a python virtual
 environment.
@@ -438,11 +383,11 @@ environment.
 (`pywbem/docs/notebooks`) referencing that directory in the command line
 call:
 
-::
+.. code-block:: bash
 
-  $ ipython notebook docs/notebooks
-  or
-  $ jupyter notebook docs/notebooks
+    $ ipython notebook docs/notebooks
+    or
+    $ jupyter notebook docs/notebooks
 
 This will start the local ipython/juypter notebook server and on the first page
 displayed in your web browser all existing pywbem ipython notebooks will be
@@ -451,6 +396,7 @@ ipython server web page.
 
 New and changed notebooks must go through the same contribution process as other
 components of pywbem to be integrated into the github repository.
+
 
 .. _`Contributing`:
 
