@@ -518,7 +518,7 @@ The installation of pywbem with OS-level prereqs (see :ref:`Installation`)
 installs the necessary Python SDK package for C/C++ (or displays its package
 name). On RHEL, the missing package is `python-dev`.
 For more details, see
-:ref:`Prerequisite operating system packages for development`.
+:ref:`Prerequisite operating system packages for install`.
 
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -572,6 +572,21 @@ https://slproweb.com/products/Win32OpenSSL.html::
 
     set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0j
     set _WIN32OPENSSL_VERSION_DASHED=1-1-0j
+
+Installation of lxml misses include files on Python 3.4 on native Windows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On Python 3.4 on native Windows, the installation of the ``lxml`` Python
+package may fail during installation of the development prerequisites
+(i.e. during ``make develop``), reporting missing include files such as
+``libxml/xmlversion.h``.
+
+It has not been investigated what causes this on Python 3.4 (it works on other
+Python versions). If this issue shows up, try installing the
+`Binary lxml package for Windows`_ manually, with the lxml version >=4.2.4 and
+<4.4.0.
+
+.. _Binary lxml package for Windows: https://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml
 
 
 .. _'Glossary`:

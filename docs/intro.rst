@@ -545,10 +545,6 @@ supported operating systems and Linux distributions. This list is for
 reference only, because the installation steps in the previous sections already
 take care of getting these packages installed.
 
-The prerequisite operating system packages for developing pywbem are not listed
-in this table; you can find them in section
-:ref:`Prerequisite operating system packages for development`.
-
 +--------------------------+--------------------+----------------------+-------+
 | Op.system / Distribution | Package name       | Version requirements | Notes |
 +==========================+====================+======================+=======+
