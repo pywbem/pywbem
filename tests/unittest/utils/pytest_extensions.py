@@ -13,7 +13,7 @@ except ImportError:  # py2
     from funcsigs import Signature, Parameter
 import pytest
 
-__all__ = ['simplified_test_function', 'ignore_warnings']
+__all__ = ['simplified_test_function', 'ignore_warnings', 'expect_warnings']
 
 
 # Pytest determines the signature of the test function by unpacking any
@@ -203,3 +203,18 @@ class ignore_warnings(warnings.catch_warnings):
         for category in self.categories:
             warnings.simplefilter('ignore', category=category)
         return ret
+
+
+def expect_warnings(testcase, warnings):
+    """
+    Return whether a particular warning or one or more from a list of warnings
+    is expected in the testcase.
+    """
+    if testcase.exp_warn_types is None:
+        return False
+    exp_warnings = testcase.exp_warn_types
+    if not isinstance(exp_warnings, (tuple, list)):
+        exp_warnings = [exp_warnings]
+    if not isinstance(warnings, (tuple, list)):
+        warnings = [warnings]
+    return any(w in warnings for w in exp_warnings)
