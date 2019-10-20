@@ -164,6 +164,8 @@ Released: not yet
 * Fixed that inconsistent names (between key and object name) were not detected
   when setting CIMMethod.parameters from an input dictionary.
 
+* Docs: Fixed errors in description of CIMInstance.update_existing().
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
