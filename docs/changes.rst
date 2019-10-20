@@ -187,6 +187,8 @@ Released: 2019-07-20
 * Fixed that inconsistent names (between key and object name) were not detected
   when setting CIMMethod.parameters from an input dictionary.
 
+* Docs: Fixed errors in description of CIMInstance.update_existing().
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
