@@ -2759,28 +2759,40 @@ class CIMInstance(_CIMComparisonMixin):
 
     def update_existing(self, *args, **kwargs):
         """
-        Update already existing properties of this CIM instance.
+        Update the values of already existing properties of this CIM instance.
 
-        Existing properties will be updated, and new properties will be
-        ignored without further notice.
+        From the specified new properties, only those properties will be
+        updated that already exist in the instance. No new properties will
+        be added to the instance, ignoring their specified new properties
+        without further notice.
 
         Parameters:
 
            *args (list):
-             Properties for updating the properties of the instance, specified
-             as positional arguments. Each positional argument must be a tuple
-             (key, value), where key and value are described for setting the
-             :attr:`~pywbem.CIMInstance.properties` property.
+             New properties, specified as positional arguments. Each
+             positional argument must be one of:
+
+             - an iterable of tuple (name, value), where each tuple specifies
+               the name of the property to be updated and its new value.
+
+             - an object with an ``items()`` method that iterates through
+               tuple (name, value), where each tuple specifies the name of the
+               property to be updated and its new value.
+
+               Examples of such objects are :attr:`~pywbem.CIMInstanceName`
+               (where its keybindings will be used as new properties) or
+               :attr:`~pywbem.CIMInstance` (where its properties will be used
+               as new properties).
 
            **kwargs (dict):
-             Properties for updating the properties of the instance, specified
-             as keyword arguments. The name and value of the keyword arguments
-             are described as key and value for setting the
-             :attr:`~pywbem.CIMInstance.properties` property.
+             New properties, specified as keyword arguments. Each keyword
+             argument specifies one new property, where the argument name is
+             the name of the property to be updated and the argument value is
+             its new value.
         """
 
         for mapping in args:
-            if hasattr(mapping, 'items'):
+            if hasattr(mapping, 'items'):  # CIMInstanceName, etc.
                 for key, value in mapping.items():
                     try:
                         prop = self.properties[key]
