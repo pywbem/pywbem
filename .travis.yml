@@ -235,6 +235,6 @@ after_success:
 #       make sure this project is enabled there.
 # Make sure the Python version matches the one specified for python-coveralls
 # in dev-requirements.txt.
-  - if [[ "$TRAVIS_EVENT_TYPE" == "push" && "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.4" && "$PACKAGE_LEVEL" == "latest" && -z $_MANUAL_CI_RUN ]]; then
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.4" && "$PACKAGE_LEVEL" == "latest" ]]; then
       coveralls;
     fi
