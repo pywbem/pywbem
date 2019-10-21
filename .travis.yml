@@ -211,6 +211,10 @@ after_success:
 #       make sure this project is enabled there.
 # Make sure the Python version matches the one specified for python-coveralls
 # in dev-requirements.txt.
-  - if [[ "$TRAVIS_EVENT_TYPE" == "push" && "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.4" && "$PACKAGE_LEVEL" == "latest" && -z $_MANUAL_CI_RUN ]]; then
+# On TRAVIS_EVENT_TYPE values: "pull_request" is important because it compares
+# the branch to its merge target. It creates/updates a single comment with the
+# results. "push" seems to compare to previous pushes and thus not always has
+# a reasonable result.
+  - if [[ "$TRAVIS_EVENT_TYPE" == "pull_request" && "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.4" && "$PACKAGE_LEVEL" == "latest" && -z $_MANUAL_CI_RUN ]]; then
       coveralls;
     fi
