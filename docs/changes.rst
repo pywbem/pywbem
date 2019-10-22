@@ -28,6 +28,13 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
+
+* Fixed that inconsistent names (between key and object name) were not detected
+  when setting CIMMethod.parameters from an input dictionary.
+
+* Docs: Fixed errors in description of CIMInstance.update_existing().
+
 **Enhancements:**
 
 * Removed the use of the 'pbr' package because it caused too many undesirable
@@ -54,6 +61,12 @@ Released: not yet
 * Code: Fix issue with pywbem_mock that allows duplicate instances to be
   inserted into the mock repository when mof instances are compiled. Duplicate
   instances (CIMInstanceName) will now cause an exception.  See issue #1852
+
+**Cleanup:**
+
+* Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
+  native Python types int, long, float. These types cannot occur in this
+  function, so no tests could be written that test that code.
 
 **Known issues:**
 
@@ -181,13 +194,6 @@ Released: 2019-07-20
   `WBEMConnection.Iter...()` operations now also ignore that parameter if the
   pull operations are used, and the documentation has been updated accordingly.
   (See issue #1780)
-
-* Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
-
-* Fixed that inconsistent names (between key and object name) were not detected
-  when setting CIMMethod.parameters from an input dictionary.
-
-* Docs: Fixed errors in description of CIMInstance.update_existing().
 
 **Enhancements:**
 
