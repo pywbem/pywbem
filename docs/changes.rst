@@ -241,6 +241,10 @@ Released: not yet
 * Increased minimum version of PyYAML from 3.13 to 5.1 due to deprecation issue
   announced for Python 3.8.
 
+* Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
+  native Python types int, long, float. These types cannot occur in this
+  function, so no tests could be written that test that code.
+
 **Known issues:**
 
 * See `list of open issues`_.

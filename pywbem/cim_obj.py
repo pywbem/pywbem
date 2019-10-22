@@ -779,7 +779,7 @@ def _scalar_value_tomof(
 
     Parameters:
 
-      value (:term:`CIM data type`, :term:`number`, :class:`~pywbem.CIMInstance`, :class:`~pywbem.CIMClass`):
+      value (:term:`CIM data type`, :class:`~pywbem.CIMInstance`, :class:`~pywbem.CIMClass`):
         The scalar CIM-typed value. May be `None`.
 
         Must not be an array/list/tuple. Must not be a :ref:`CIM object` other
@@ -837,15 +837,12 @@ def _scalar_value_tomof(
     elif type == 'reference':
         val = value.to_wbem_uri()
         return mofstr(val, indent, maxline, line_pos, end_space, avoid_splits)
-    elif isinstance(value, (CIMFloat, CIMInt, int, _Longint)):
-        val = six.text_type(value)
-        return mofval(val, indent, maxline, line_pos, end_space)
     else:
-        assert isinstance(value, float), \
+        assert isinstance(value, (CIMFloat, CIMInt)), \
             _format("Scalar value of CIM type {0} has invalid Python type {1} "
                     "for conversion to a MOF string",
                     type, builtin_type(value))
-        val = repr(value)
+        val = six.text_type(value)
         return mofval(val, indent, maxline, line_pos, end_space)
 
 
