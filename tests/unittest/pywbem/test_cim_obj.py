@@ -897,7 +897,21 @@ TESTCASES_CIMINSTANCENAME_INIT = [
         ValueError, None, True
     ),
     (
-        "Verify that keybinding with name None fails (before 0.12",
+        "Verify that keybindings with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Verify that keybinding with name None fails (before 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -2199,6 +2213,66 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
 
     # Classname with one keybinding tests
     (
+        "Classname with one keybinding with value of unicode string type",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': u'Birds'}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of byte string type",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': b'Birds'}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of boolean True",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': True}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="boolean">TRUE</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of boolean False",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': False}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
         "Classname with one keybinding, with implied default args",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
@@ -2715,6 +2789,85 @@ def test_CIMInstanceName_tocimxmlstr_indent_str(
     assert obj_xml_str == exp_xml_str, \
         "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
         format(obj.__class__.__name__, indent_str)
+
+
+TESTCASES_CIMINSTANCENAME_TOCIMXML_SPECIAL_KB = [
+
+    # Testcases for CIMInstanceName.tocimxml(), where the value of an
+    # existing keybinding is set to a special value before the test.
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: CIMInstanceName object to be tested.
+    #   * kb_name: Name of the keybinding to be set.
+    #   * kb_value: New value for the keybinding to be set.
+    #   * exp_xml_str: Expected CIM-XML string, as a tuple/list of parts.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Keybinding with invalid type CIMParameter",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', keybindings=[('K1', 'V1')]),
+            kb_name='K1',
+            kb_value=CIMParameter('C2', type='string'),  # invalid type
+            exp_xml_str=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Keybinding with binary string",
+        # Note: This testcase cannot be specified in the standard testcases
+        # for tocimxml(), because CIMInstanceName.__init__() ensures
+        # that the keybinding values get converted to unicode. The
+        # tocimxml() method still needs to handle this case because the
+        # keybindng values can be set via the mutable dictionary.
+        dict(
+            obj=CIMInstanceName('CIM_Foo', keybindings=[('K1', 'V1')]),
+            kb_name='K1',
+            kb_value=b'V2',
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="K1">',
+                '<KEYVALUE VALUETYPE="string">V2</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_TOCIMXML_SPECIAL_KB)
+@simplified_test_function
+def test_CIMInstanceName_tocimxml_special_kb(
+        testcase, obj, kb_name, kb_value, exp_xml_str):
+    """
+    Test function for CIMInstanceName.tocimxml(), where the value of an
+    existing keybinding is set to a special value before the test.
+    """
+
+    # Set existing keybinding to the new value. Any invalid types etc. are
+    # not checked, because this simply modifies the (mutable) keybindings
+    # dictionary.
+    obj.keybindings[kb_name] = kb_value
+    assert obj.keybindings[kb_name] == kb_value
+
+    # The code to be tested
+    obj_xml = obj.tocimxml()
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    obj_xml_str = obj_xml.toxml()
+    exp_xml_str = ''.join(exp_xml_str)
+    validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
 TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
@@ -3970,6 +4123,21 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         None, None, CHECK_0_12_0
     ),
     (
+        "all components, invalid format",
+        dict(
+            obj=CIMInstanceName(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(K1=u'V1'),
+                namespace=u'root/CIMv2',
+                host=u'MyHost:5989'),
+            kwargs=dict(
+                format='xxx_invalid_format',
+            ),
+            exp_uri=None,
+        ),
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
         "no authority, standard format",
         dict(
             obj=CIMInstanceName(
@@ -4586,6 +4754,78 @@ def test_CIMInstanceName_to_wbem_uri(testcase, obj, kwargs, exp_uri):
 
     # The code to be tested
     uri = obj.to_wbem_uri(**kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert isinstance(uri, six.text_type)
+    assert uri == exp_uri
+
+
+TESTCASES_CIMINSTANCENAME_TO_WBEM_URI_SPECIAL_KB = [
+
+    # Testcases for CIMInstanceName.to_wbem_uri(), where the value of an
+    # existing keybinding is set to a special value before the test.
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: CIMInstanceName object to be tested.
+    #   * kb_name: Name of the keybinding to be set.
+    #   * kb_value: New value for the keybinding to be set.
+    #   * exp_uri: Expected WBEM URI string, or None if failed.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Keybinding with invalid type CIMParameter",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', keybindings=[('K1', 'V1')]),
+            kb_name='K1',
+            kb_value=CIMParameter('C2', type='string'),  # invalid type
+            exp_uri=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Keybinding with binary string",
+        # Note: This testcase cannot be specified in the standard testcases
+        # for to_wbem_uri(), because CIMInstanceName.__init__() ensures
+        # that the keybinding values get converted to unicode. The
+        # to_wbem_uri() method still needs to handle this case because the
+        # keybindng values can be set via the mutable dictionary.
+        dict(
+            obj=CIMInstanceName('CIM_Foo', keybindings=[('K1', 'V1')]),
+            kb_name='K1',
+            kb_value=b'V2',
+            exp_uri='/:CIM_Foo.K1="V2"',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMINSTANCENAME_TO_WBEM_URI_SPECIAL_KB)
+@simplified_test_function
+def test_CIMInstanceName_to_wbem_uri_special_kb(
+        testcase, obj, kb_name, kb_value, exp_uri):
+    """
+    Test function for CIMInstanceName.to_wbem_uri(), where the value of an
+    existing keybinding is set to a special value before the test.
+    """
+
+    # Set existing keybinding to the new value. Any invalid types etc. are
+    # not checked, because this simply modifies the (mutable) keybindings
+    # dictionary.
+    obj.keybindings[kb_name] = kb_value
+    assert obj.keybindings[kb_name] == kb_value
+
+    # The code to be tested
+    uri = obj.to_wbem_uri()
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -5523,7 +5763,7 @@ TESTCASES_CIMINSTANCE_INIT = [
         TypeError, None, not CHECK_0_12_0
     ),
     (
-        "Verify that property with float value fails (on Python 2 only, "
+        "Verify that property with long value fails (on Python 2 only, "
         "with ValueError since 0.12)",
         dict(
             init_args=[],
@@ -5536,7 +5776,7 @@ TESTCASES_CIMINSTANCE_INIT = [
         ValueError, None, six.PY2 and CHECK_0_12_0
     ),
     (
-        "Verify that property with float value fails (on Python 2 only, "
+        "Verify that property with long value fails (on Python 2 only, "
         "with TypeError before 0.12)",
         dict(
             init_args=[],
@@ -5547,6 +5787,20 @@ TESTCASES_CIMINSTANCE_INIT = [
             exp_attrs=None
         ),
         TypeError, None, six.PY2 and not CHECK_0_12_0
+    ),
+    (
+        "Verify that properties with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                properties=[
+                    'xxx_invalid_type',
+                ],
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
     ),
     (
         "Verify that qualifier with name None fails (with TypeError "
@@ -5586,6 +5840,20 @@ TESTCASES_CIMINSTANCE_INIT = [
             exp_attrs=None
         ),
         ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that qualifiers with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    'xxx_invalid_type',
+                ],
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
     ),
 ]
 
@@ -8482,8 +8750,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         ValueError, None, OK
     ),
     (
-        "Verify no input properties with include_path True and "
-        "include_missing_properties False returns empty instance",
+        "Verify no input properties via empty dict",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
             inst_prop_vals={},
@@ -8494,13 +8761,24 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         None, None, OK
     ),
     (
-        "Verify invalid_type for property_values cause exception",
+        "Verify no input properties via None",
+        dict(
+            cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
+            inst_prop_vals=None,
+            kwargs={'include_path': False,
+                    'include_missing_properties': False},
+            exp_props={},
+        ),
+        None, None, OK
+    ),
+    (
+        "Verify invalid type for property_values causes exception",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
             inst_prop_vals='blah',
             kwargs={'include_path': False,
                     'include_missing_properties': False},
-            exp_props={},
+            exp_props=None,
         ),
         TypeError, None, OK
     ),
@@ -10555,6 +10833,20 @@ TESTCASES_CIMPROPERTY_INIT = [
     ),
 
     # Qualifiers tests
+    (
+        "Verify that qualifiers with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                name='Prop1', value=None, type='string',
+                qualifiers=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
+    ),
     (
         "Verify qualifiers order preservation with list of CIMQualifier",
         dict(
@@ -24000,6 +24292,34 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         None, None, CHECK_0_12_0
     ),
     (
+        "all components, canonical format",
+        dict(
+            obj=CIMClassName(
+                classname=u'CIM_Foo',
+                namespace=u'Root/CIMv2',
+                host=u'MyServer:5989'),
+            kwargs=dict(
+                format='canonical',
+            ),
+            exp_uri='//myserver:5989/root/cimv2:cim_foo',
+        ),
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "all components, invalid format",
+        dict(
+            obj=CIMClassName(
+                classname=u'CIM_Foo',
+                namespace=u'root/cimv2',
+                host=u'10.11.12.13:5989'),
+            kwargs=dict(
+                format='xxx_invalid_format',
+            ),
+            exp_uri=None,
+        ),
+        ValueError, None, CHECK_0_12_0
+    ),
+    (
         "no authority, standard format",
         dict(
             obj=CIMClassName(
@@ -24715,6 +25035,20 @@ TESTCASES_CIMCLASS_INIT = [
         ValueError, None, CHECK_0_12_0
     ),
     (
+        "Verify that properties with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                properties=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
+    ),
+    (
         "Verify that property with key None fails",
         dict(
             init_args=[],
@@ -24753,6 +25087,20 @@ TESTCASES_CIMCLASS_INIT = [
         TypeError, None, CHECK_0_12_0
     ),
     (
+        "Verify that methods with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                methods=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
+    ),
+    (
         "Verify that method with key None fails",
         dict(
             init_args=[],
@@ -24776,6 +25124,48 @@ TESTCASES_CIMCLASS_INIT = [
             exp_attrs=None
         ),
         ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that method with invalid type CIMParameter fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                methods=[
+                    CIMParameter('P1', type='string'),
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Verify that method with invalid type string fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                methods=[
+                    'invalid',
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Verify that qualifiers with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                qualifiers=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
     ),
     (
         "Verify that qualifier with key None fails",
@@ -25113,6 +25503,16 @@ TESTCASES_CIMCLASS_SETATTR = [
 
     # Tests that set the properties attribute
     (
+        "Set properties to new dict with invalid type instead of CIMProperty",
+        dict(
+            obj_kwargs=CIMCLASS_SETATTR_C1_KWARGS,
+            item='properties',
+            new_value=dict(P2='xxx_invalid_type'),
+            exp_attrs=None,
+        ),
+        TypeError, None, True
+    ),
+    (
         "Set properties to new dict with CIMProperty with correct name",
         dict(
             obj_kwargs=CIMCLASS_SETATTR_C1_KWARGS,
@@ -25239,6 +25639,16 @@ TESTCASES_CIMCLASS_SETATTR = [
     ),
 
     # Tests that set the methods attribute
+    (
+        "Set methods to new dict with invalid type instead of CIMMethod",
+        dict(
+            obj_kwargs=CIMCLASS_SETATTR_C1_KWARGS,
+            item='methods',
+            new_value=dict(M2='xxx_invalid_type'),
+            exp_attrs=None,
+        ),
+        TypeError, None, True
+    ),
     (
         "Set methods to new dict with CIMMethod with correct name",
         dict(
@@ -27142,6 +27552,21 @@ TESTCASES_CIMMETHOD_INIT = [
         TypeError, DeprecationWarning, not CHECK_0_12_0
     ),
     (
+        "Verify that parameters with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                name='M',
+                return_type='string',
+                parameters=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
+    ),
+    (
         "Verify that parameter with inconsistent name fails (since 0.12)",
         dict(
             init_args=[],
@@ -27155,6 +27580,21 @@ TESTCASES_CIMMETHOD_INIT = [
             exp_attrs=None
         ),
         ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that qualifiers with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                name='M',
+                return_type='string',
+                qualifiers=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
     ),
     (
         "Verify that qualifier with inconsistent name fails (since 0.12)",
@@ -27615,6 +28055,16 @@ TESTCASES_CIMMETHOD_SETATTR = [
     ),
 
     # Tests that set the parameters attribute
+    (
+        "Set parameters to new dict with invalid type instead of CIMParameter",
+        dict(
+            obj_kwargs=CIMMETHOD_SETATTR_M1_KWARGS,
+            item='parameters',
+            new_value=dict(P2='xxx_invalid_type'),
+            exp_attrs=None,
+        ),
+        TypeError, None, True
+    ),
     (
         "Set parameters to new dict with CIMParameter with correct name",
         dict(
@@ -29922,6 +30372,21 @@ TESTCASES_CIMPARAMETER_INIT = [
             exp_attrs=None
         ),
         ValueError, None, CHECK_0_12_0
+    ),
+    (
+        "Verify that qualifiers with item of invalid type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                name='M',
+                type='string',
+                qualifiers=[
+                    'xxx_invalid_type'
+                ]
+            ),
+            exp_attrs=None
+        ),
+        TypeError, None, True
     ),
     (
         "Verify that qualifier with inconsistent key / name fails "
@@ -34106,6 +34571,62 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         None, None, True
     ),
 
+    # Scalar parameters with embedded object type
+    (
+        "Scalar parameter as value with embedded instance type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', embedded_object='instance',
+                value=CIMInstance('CIM_Foo')
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE EmbeddedObject="instance" NAME="Foo" '
+                'PARAMTYPE="string">',
+                '<VALUE>&lt;INSTANCE CLASSNAME=&quot;CIM_Foo&quot;/&gt;'
+                '</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with embedded object type that is instance",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', embedded_object='object',
+                value=CIMInstance('CIM_Foo'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE EmbeddedObject="object" NAME="Foo" '
+                'PARAMTYPE="string">',
+                '<VALUE>&lt;INSTANCE CLASSNAME=&quot;CIM_Foo&quot;/&gt;'
+                '</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Scalar parameter as value with embedded object type that is class",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', embedded_object='object',
+                value=CIMClass('CIM_Foo'),
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE EmbeddedObject="object" NAME="Foo" '
+                'PARAMTYPE="string">',
+                '<VALUE>&lt;CLASS NAME=&quot;CIM_Foo&quot;/&gt;'
+                '</VALUE>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
     # Array parameters with boolean type
     (
         "Array parameter as declaration with boolean type",
@@ -35804,6 +36325,71 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
                 '</VALUE.REFERENCE>',
                 '</VALUE.REFARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+
+    # Array parameters with embedded object type
+    (
+        "Array parameter as value with embedded instance type",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', embedded_object='instance',
+                value=[CIMInstance('CIM_Foo')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE EmbeddedObject="instance" NAME="Foo" '
+                'PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>&lt;INSTANCE CLASSNAME=&quot;CIM_Foo&quot;/&gt;'
+                '</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with embedded object type that is instance",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', embedded_object='object',
+                value=[CIMInstance('CIM_Foo')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE EmbeddedObject="object" NAME="Foo" '
+                'PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>&lt;INSTANCE CLASSNAME=&quot;CIM_Foo&quot;/&gt;'
+                '</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Array parameter as value with embedded object type that is class",
+        dict(
+            obj=CIMParameter(
+                'Foo', type='string', embedded_object='object',
+                value=[CIMClass('CIM_Foo')],
+                is_array=True,
+            ),
+            kwargs=dict(as_value=True),
+            exp_xml_str=(
+                '<PARAMVALUE EmbeddedObject="object" NAME="Foo" '
+                'PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>&lt;CLASS NAME=&quot;CIM_Foo&quot;/&gt;'
+                '</VALUE>',
+                '</VALUE.ARRAY>',
                 '</PARAMVALUE>',
             )
         ),
