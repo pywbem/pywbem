@@ -636,17 +636,12 @@ def p_mp_createInstance(p):
                     if p.parser.verbose:
                         p.parser.log(
                             _format("ModifyInstance not supported. "
-                                    "Deleting instance of {0!A}: {1}",
+                                    "Create instance of {0!A}: {1} failed",
                                     inst.classname, inst.path))
-                    p.parser.handle.DeleteInstance(inst.path)
-                    if p.parser.verbose:
-                        p.parser.log(
-                            _format("Creating instance of {0!A}.",
-                                    inst.classname))
-                    p.parser.handle.CreateInstance(inst)
-                else:  # modify failed unknown error, output original error
-                    ce.file_line = (p.parser.file, p.lexer.lineno)
-                    raise ce
+
+                # modify failed unknown error, output original error
+                ce.file_line = (p.parser.file, p.lexer.lineno)
+                raise ce2
         else:
             ce.file_line = (p.parser.file, p.lexer.lineno)
             raise
@@ -1915,6 +1910,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     This class implements the
     :class:`~pywbem.BaseRepositoryConnection` interface.
 
+    This implementation does not force paths on instances and just appends
+    each new createinstance to the instance repository
+
     Raises:
 
       : The methods of this class may raise any exceptions described for
@@ -2005,6 +2003,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         handling CIM_ERR_ALREADY_EXISTS after trying to create an instance.
         Because :meth:`CreateInstance` overwrites existing instances, this
         method is never called, and is therefore not implemented.
+        NOTE: This error means that the mof compiler logic to attempt
+        modifyinstance if createinstance fails does not attempt the
+        modifyinstance.
         """
 
         raise CIMError(
@@ -2012,7 +2013,10 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             conn_id=self.conn_id)
 
     def CreateInstance(self, *args, **kwargs):
-        """Create a CIM instance in the local repository of this class.
+        """
+        Create a CIM instance in the local repository of this class. This
+        implementation does not test for duplicate instances but appends
+        each new instance to the repository.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateInstance`.
@@ -2021,7 +2025,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         inst = args[0] if args else kwargs['NewInstance']
         try:
             self.instances[self.default_namespace].append(inst)
-        except KeyError:
+        except KeyError:  # default_namespace does not exist. Create it
             self.instances[self.default_namespace] = [inst]
         return inst.path
 

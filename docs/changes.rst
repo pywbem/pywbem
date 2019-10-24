@@ -157,7 +157,17 @@ Released: not yet
   path can get lost with no warning. NOTE: This does not happen in the
   standalone compiler because it creates a duplicate instance issue # 1852
   but depending on the implementation of ModifyInstance for the compiler,
-  it can simply lose the instance. See issue #1890
+  it can simply lose the instance. See issue #1894
+
+* Fix issue in pywbem_mock where instances with duplicate paths defined in mof and
+  put into the mocker repository were originally accepted as separate instances
+  but fixed to cause an exception in issue #1852, conform to the DMTF spec
+  definition that requires that the second instance modify the first.
+  Fix issue in the mof_compiler where the CreateInstance retry logic was
+  first doing a ModifyInstance and if that failed then trying a DeleteInstance
+  and CreateInstance.  We removed the DeleteInstance/CreateInstance logic and
+  insured that an exception would occur if the ModifyInstance failed.
+  See issue #1890
 
 **Enhancements:**
 

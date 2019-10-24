@@ -242,13 +242,13 @@ if there are classes in the repository.
   setting key properties as a dynamic provider for the class in a real WBEM
   server might have. This operation requires that the mock repository is in
   full mode and that the class of the new instance exists in the mock
-  repository. It fails with not supported if the mock repository is in lite
+  repository. It fails with NOT_SUPPORTED if the mock repository is in lite
   mode.
 
 - **ModifyInstance**: Behaves like
   :meth:`~pywbem.WBEMConnection.ModifyInstance`. This operation requires that
   the mock repository is in full mode and that the class of the instance exists
-  in the mock repository. It fails with not supported if the mock repository is
+  in the mock repository. It fails with NOT_SUPPORTED if the mock repository is
   in lite mode.
 
 - **DeleteInstance**: Behaves like
@@ -600,6 +600,11 @@ There are two ways to build a mock repository:
   * Build from MOF definitions of the objects which are compiled into the
     repository. See :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_string`
     and See :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_file`.
+    If instances are to be compiled "instance of ..." they must be compiled
+    with the instance alias (ex:"instance of CIM_xxx as $xxx {") which adds
+    the CIMInstanceName with keybindings from the key properties to the
+    instance path. If compiled instances have duplicate paths, each new
+    instance will modify the already created instance.
 
   * Build MOF qualifier declarations and classes directly from the DMTF
     CIM schema by downloading the schema from the DMTF and selecting all
