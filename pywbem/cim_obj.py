@@ -2134,7 +2134,10 @@ class CIMInstanceName(_CIMComparisonMixin):
             ret.append(key)
             ret.append('=')
 
-            if isinstance(value, six.string_types):
+            if isinstance(value, six.binary_type):
+                value = _to_unicode(value)
+
+            if isinstance(value, six.text_type):
                 # string, char16
                 ret.append('"')
                 ret.append(value.

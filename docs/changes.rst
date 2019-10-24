@@ -62,6 +62,9 @@ Released: not yet
   inserted into the mock repository when mof instances are compiled. Duplicate
   instances (CIMInstanceName) will now cause an exception.  See issue #1852
 
+* Added support for byte string values in keybindings of CIMInstanceName
+  method to_wbem_uri(), consistent with other methods.
+
 **Cleanup:**
 
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
