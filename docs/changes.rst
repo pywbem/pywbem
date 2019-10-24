@@ -220,6 +220,9 @@ Released: not yet
   side effects. As part of that, removed PKG-FILE and setup.cfg and went back
   to a simple setup.py file. (See issues #1875, #1245, #1408, #1410)
 
+* Added support for byte string values in keybindings of CIMInstanceName
+  method to_wbem_uri(), consistent with other methods.
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
