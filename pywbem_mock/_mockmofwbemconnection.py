@@ -28,7 +28,8 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import MOFWBEMConnection, CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS
+    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_INVALID_NAMESPACE
 from pywbem._nocasedict import NocaseDict
 
 from pywbem._utils import _format
@@ -207,14 +208,14 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
         if self.default_namespace not in self.instances:
             raise CIMError(
-                CIM_ERR_FAILED,
+                CIM_ERR_INVALID_NAMESPACE,
                 _format('ModifyInstance failed. No instance repo exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
         if mod_inst.path not in self.instances[self.default_namespace]:
             raise CIMError(
-                CIM_ERR_FAILED,
+                CIM_ERR_NOT_FOUND,
                 _format('ModifyInstance failed. No instance exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))

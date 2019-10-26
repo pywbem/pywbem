@@ -23,7 +23,8 @@ pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
 from pywbem import mof_compiler
@@ -2453,14 +2454,14 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
         if self.default_namespace not in self.instances:
             raise CIMError(
-                CIM_ERR_FAILED,
+                CIM_ERR_INVALID_NAMESPACE,
                 _format('ModifyInstance failed. No instance repo exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
         if mod_inst.path not in self.instances[self.default_namespace]:
             raise CIMError(
-                CIM_ERR_FAILED,
+                CIM_ERR_NOT_FOUND,
                 _format('ModifyInstance failed. No instance exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))

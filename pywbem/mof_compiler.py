@@ -632,14 +632,7 @@ def p_mp_createInstance(p):
             try:
                 p.parser.handle.ModifyInstance(inst)
             except CIMError as ce2:
-                if ce2.status_code == CIM_ERR_NOT_SUPPORTED:
-                    if p.parser.verbose:
-                        p.parser.log(
-                            _format("ModifyInstance not supported. "
-                                    "Create instance of {0!A}: {1} failed",
-                                    inst.classname, inst.path))
-
-                # modify failed unknown error, output original error
+                # modify failed, output original error
                 ce.file_line = (p.parser.file, p.lexer.lineno)
                 raise ce2
         else:
@@ -1911,7 +1904,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     :class:`~pywbem.BaseRepositoryConnection` interface.
 
     This implementation does not force paths on instances and just appends
-    each new createinstance to the instance repository
+    each new instance to the instance repository
 
     Raises:
 
