@@ -2761,10 +2761,9 @@ class CIMInstance(_CIMComparisonMixin):
         """
         Update the values of already existing properties of this CIM instance.
 
-        From the specified new properties, only those properties will be
-        updated that already exist in the instance. No new properties will
-        be added to the instance, ignoring their specified new properties
-        without further notice.
+        From the specified new properties, only properties that already exist
+        in the instance will be updated. New properties will not be added to
+        the instance; they will be ignored without further notice.
 
         Parameters:
 
