@@ -35,8 +35,10 @@ import locale
 import traceback
 import re
 from xml.dom import minidom
+from collections import Counter
 from mock import Mock
 import six
+
 try:
     # time.perf_counter() was added in Python 3.3
     from time import perf_counter as delta_time
@@ -1462,6 +1464,26 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             rtn_classnames.extend(subclass_names)
         return rtn_classnames
 
+    def _exists_class(self, classname, namespace):
+        """
+        Test if the class defined by classname exists in the namespace
+
+        Parameters:
+
+          classname (:term:`string`):
+            Name of class to retrieve
+
+          namespace (:term:`string`):
+            Namespace from which to retrieve the class
+
+        Returns:
+
+            True if exists. False if does not exist
+
+        """
+        class_repo = self._get_class_repo(namespace)
+        return classname in class_repo
+
     def _get_class(self, classname, namespace, local_only=None,
                    include_qualifiers=None, include_classorigin=None,
                    property_list=None):
@@ -1537,9 +1559,9 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             self._remove_classorigin(cc)
         return cc
 
-    def _get_association_classes(self, namespace):
+    def _iter_association_classes(self, namespace):
         """
-        Return iterator of associator classes from the class repo
+        Return iterator of association classes from the class repo
 
         Returns the classes that have associations qualifier.
         Does NOT copy so these are what is in repository. User functions
@@ -1550,7 +1572,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         """
 
         class_repo = self._get_class_repo(namespace)
-        # associator_classes = []
         for cl in six.itervalues(class_repo):
             if 'Association' in cl.qualifiers:
                 yield cl
@@ -1558,7 +1579,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
     #
     #   The following static methods provide access to an instance repo for
-    #   a single namespace.  They should be the basis for access to the
+    #   a single namespace. They should be the basis for access to the
     #   instance repo until we convert to using a class that cleanly provides
     #   access to the repo.
     #
@@ -2656,6 +2677,24 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 return
         list_.append(path)
 
+    def _validate_class_exists(self, cln, namespace, req_param="TargetClass"):
+        """
+        Common test for the references and associators to test for the
+        existence of the class named cln  in namespace.
+
+        Returns if the class exists.
+
+        If the class does not exist, executes an INVALID_PARAMETER
+        exception which is the specified exception for invalid classes for
+        the TargetClass, AssocClass, and ResultClass for reference and
+        associator operations
+        """
+        if not self._exists_class(cln, namespace):
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format('Class {0!A} {1} parameter not found in namespace '
+                        '{2!A}.', cln, req_param, namespace))
+
     def _return_assoc_tuple(self, objects):
         """
         Create the property tuple for _imethod return of references,
@@ -2692,32 +2731,19 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                              property_list=pl)))
         return self._return_assoc_tuple(rtn_tups)
 
-    def _classnamelist(self, classname, namespace):
-        """Build a list of this class and its subclasses if classname is
-           a string/CIMClassName or an empty list if classname is None.
-
-           Differs from _get_subclass_names in that it includes classname and
-           that it returns None if there is no classname
+    def _subclasses_lc(self, classname, namespace):
+        """
+        Return a list of this class and it subclasses in lower case.
+        Exception of class is not in repository.
         """
         if not classname:
             return []
-
-        cn = classname.classname if isinstance(classname, CIMClassName) \
-            else classname
-        result = self._get_subclass_names(cn, namespace, True)
-        result.append(classname)
-        return result
-
-    def _classnamedict(self, classname, namespace):
-        """Get from _classnamelist and cvt to NocaseDict"""
-        clns = self._classnamelist(classname, namespace)
-        rtn_dict = NocaseDict()
-        for cln in clns:
-            rtn_dict[cln] = cln
-        return rtn_dict
+        clns = [classname]
+        clns.extend(self._get_subclass_names(classname, namespace, True))
+        return [cln.lower() for cln in clns]
 
     @staticmethod
-    def _ref_prop_matches(prop, target_classname, ref_classname,
+    def _ref_prop_matches(prop, target_classnames, ref_classname,
                           resultclass_names, role):
         """
         Test filters for a reference property
@@ -2726,12 +2752,12 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Returns `False` if it does not match.
 
         The match criteria are:
-          - target_classname == prop_reference_class
+          - target_classnames includes prop_reference_class
           - if result_classes are not None, ref_classname is in result_classes
           - If role is not None, prop name matches role
         """
         assert prop.type == 'reference'
-        if prop.reference_class.lower() == target_classname.lower():
+        if prop.reference_class.lower() in target_classnames:
             if resultclass_names and ref_classname not in resultclass_names:
                 return False
             if role and prop.name.lower() != role:
@@ -2748,20 +2774,20 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         match.
 
         Matches if ref_classname in assoc_classes, and result_role matches
-        property name
+        property name  and reference_class
         """
         assert prop.type == 'reference'
-
-        if assoc_classes and ref_classname not in assoc_classes:
+        if assoc_classes and ref_classname.lower() not in assoc_classes:
             return False
-        if result_classes and prop.reference_class not in result_classes:
+        if result_classes and  \
+                prop.reference_class.lower() not in result_classes:
             return False
         if result_role and prop.name.lower() != result_role:
             return False
         return True
 
     def _get_reference_classnames(self, classname, namespace,
-                                  resultclass_name, role):
+                                  result_class, role):
         """
         Get list of classnames that are references for which this classname
         is a target filtered by the result_class and role parameters if they
@@ -2775,23 +2801,41 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         self._validate_namespace(namespace)
 
-        result_classes = self._classnamedict(resultclass_name, namespace)
+        self._validate_class_exists(classname, namespace, "TargetClass")
 
+        if result_class:
+            self._validate_class_exists(result_class, namespace,
+                                        "ResultClass")
+
+        # get list of subclasses in lower case.
+        result_classes = self._subclasses_lc(result_class, namespace)
+
+        # Get the set of superclasses for the target classname and set
+        # lower case
+        target_classlist = self._get_superclassnames(classname, namespace)
+        target_classlist.append(classname)
+        target_classlist = [cn.lower() for cn in target_classlist]
+
+        # add results to set to avoid any duplicates
         rtn_classnames_set = set()
+        # set role to lowercase if it exists
         role = role.lower() if role else role
 
-        for cl in self._get_association_classes(namespace):
-            for prop in six.itervalues(cl.properties):
+        # Iterate through class repo getting association classes for namespace
+        # TODO: Future, Save assoc classes result in Repo so only has to
+        # be done once.
+        for assoc_cl in self._iter_association_classes(namespace):
+            for prop in six.itervalues(assoc_cl.properties):
                 if prop.type == 'reference' and \
-                        self._ref_prop_matches(prop, classname,
-                                               cl.classname,
+                        self._ref_prop_matches(prop, target_classlist,
+                                               assoc_cl.classname.lower(),
                                                result_classes,
                                                role):
-                    rtn_classnames_set.add(cl.classname)
+                    rtn_classnames_set.add(assoc_cl.classname)
+
         return list(rtn_classnames_set)
 
-    def _get_reference_instnames(self, instname, namespace, resultclass_name,
-                                 role):
+    def _get_reference_instnames(self, instname, namespace, result_class, role):
         """
         Get the reference instances from the repository for the target
         instname and filtered by the result_class and role parameters.
@@ -2801,33 +2845,41 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         """
         instance_repo = self._get_instance_repo(namespace)
 
-        if resultclass_name:
-            # if there is a class repository get subclasses
-            if self._get_class_repo(namespace):
-                resultclass_dict = self._classnamedict(resultclass_name,
-                                                       namespace)
-            else:
-                resultclass_dict = NocaseDict(resultclass_name=resultclass_name)
-        else:
-            resultclass_dict = NocaseDict()
+        if not self._exists_class(instname.classname, namespace):
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Class {0!A} not found in namespace {1!A}.",
+                        instname.classname, namespace))
+
+        # Get list of class and subclasses lower case
+        # TODO not sure why we do this other than to have a name independent
+        # set of subclass names.
+        if result_class:
+            self._validate_class_exists(result_class, namespace,
+                                        "ResultClass")
+        # get subclasses or empty list
+        resultclasses = self._subclasses_lc(result_class, namespace)
 
         instname.namespace = namespace
+        # TODO MAKE THIS SET
         rtn_instpaths = []
         role = role.lower() if role else role
         # TODO:ks FUTURE: Make list from _get_reference_classnames if classes
         #       exist. Otherwise set list to instance_repo to search every
         #       instance.
+
+        # TODO: Search way to wide here.  Not isolating to associations and
+        # not limiting to expected result_classes
         for inst in six.itervalues(instance_repo):
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     # does this prop instance name match target inst name
                     if prop.value == instname:
-                        if resultclass_name:
-                            if inst.classname not in resultclass_dict:
+                        if result_class:
+                            if inst.classname.lower() not in resultclasses:
                                 continue
                         if role and prop.name.lower() != role:
                             continue
-
                         self._appendpath_unique(rtn_instpaths, inst.path)
 
         return rtn_instpaths
@@ -2846,9 +2898,15 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             list of classnames that satisfy the criteria.
         """
         class_repo = self._get_class_repo(namespace)
+        if assoc_class:
+            self._validate_class_exists(assoc_class, namespace, "AssocClass")
 
-        result_classes = self._classnamedict(result_class, namespace)
-        assoc_classes = self._classnamedict(assoc_class, namespace)
+        if result_class:
+            self._validate_class_exists(result_class, namespace, "ResultClass")
+
+        # Get list of subclasses for result and assoc classes (lower case)
+        result_classes = self._subclasses_lc(result_class, namespace)
+        assoc_classes = self._subclasses_lc(assoc_class, namespace)
 
         rtn_classnames_set = set()
 
@@ -2858,8 +2916,18 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         ref_clns = self._get_reference_classnames(classname, namespace,
                                                   assoc_class, role)
 
-        cls = [class_repo[cln] for cln in ref_clns]
-        for cl in cls:
+        # TODO creating this list may be inefficient.
+        # Should be iteration.
+        # find reference properties that have multiple use of
+        # same reference_class
+        klasses = [class_repo[cln] for cln in ref_clns]
+        for cl in klasses:
+            # Count reference property usage.
+            pd = Counter([p.reference_class for p in
+                          six.itervalues(cl.properties)
+                          if p.type == 'reference'])
+            single_use = [p for p, v in pd.items() if v == 1]
+
             for prop in six.itervalues(cl.properties):
                 if prop.type == 'reference':
                     if self._assoc_prop_matches(prop,
@@ -2867,8 +2935,12 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                                 assoc_classes,
                                                 result_classes,
                                                 result_role):
-
-                        rtn_classnames_set.add(prop.reference_class)
+                        # Test of referemce cln same as source class
+                        if prop.reference_class == classname and \
+                                prop.reference_class in single_use:
+                            continue
+                        else:
+                            rtn_classnames_set.add(prop.reference_class)
 
         return list(rtn_classnames_set)
 
@@ -2881,9 +2953,17 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Returns a list of the reference instance names. The returned list is
         the original, not a copy so the user must copy them
         """
+
         instance_repo = self._get_instance_repo(namespace)
-        result_classes = self._classnamedict(result_class, namespace)
-        assoc_classes = self._classnamedict(assoc_class, namespace)
+
+        if assoc_class:
+            self._validate_class_exists(assoc_class, namespace, "AssocClass")
+
+        if result_class:
+            self._validate_class_exists(result_class, namespace, "ResultClass")
+
+        result_classes = self._subclasses_lc(result_class, namespace)
+        assoc_classes = self._subclasses_lc(assoc_class, namespace)
 
         inst_name.namespace = namespace
         rtn_instpaths = []
@@ -2892,24 +2972,25 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         ref_paths = self._get_reference_instnames(inst_name, namespace,
                                                   assoc_class, role)
+
         # Get associated instance names
         for ref_path in ref_paths:
             inst = self._find_instance(ref_path, instance_repo)
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     if prop.value == inst_name:
-                        if assoc_class and inst.classname not in assoc_classes:
+                        if assoc_class \
+                                and inst.classname.lower() not in assoc_classes:
                             continue
                         if role and prop.name.lower() != role:
                             continue
                     else:
-                        if result_class and (prop.value.classname
+                        if result_class and (prop.value.classname.lower()
                                              not in result_classes):
                             continue
                         if result_role and prop.name.lower() != result_role:
                             continue
                         self._appendpath_unique(rtn_instpaths, prop.value)
-
         return rtn_instpaths
 
     def _fake_referencenames(self, namespace, **params):
@@ -2917,6 +2998,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.ReferenceNames`
         """
+
         assert params['ResultClass'] is None or \
             isinstance(params['ResultClass'], CIMClassName)
 
@@ -2990,7 +3072,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.AssociatorNames`
         """
-
         self._validate_namespace(namespace)
 
         rc = None if params['ResultClass'] is None else \
