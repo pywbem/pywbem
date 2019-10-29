@@ -52,6 +52,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_INVALID_ENUMERATION_CONTEXT, CIM_ERR_METHOD_NOT_FOUND, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS
 
+
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from pywbem.cim_operations import pull_path_result_tuple
@@ -65,8 +66,9 @@ VERBOSE = False
 
 # test variables to allow selectively executing tests.
 OK = True
-FAIL = False
 RUN = True
+FAIL = False
+
 
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.
@@ -270,6 +272,12 @@ def assert_classes_equal(cls1, cls2):
     """
     classes_equal(cls1, cls2)
     assert(cls1 == cls2)
+
+###################################################################
+#
+#  Fixtures for testing pywbem_mock
+#
+###################################################################
 
 
 @ pytest.fixture
@@ -516,50 +524,6 @@ def tst_insts_big():
     for i in six.moves.range(3, list_size + 1):
         big_list.append(build_cimfoo_instance(i))
     return big_list
-
-
-@pytest.fixture
-def tst_qualifiers_mof():
-    """
-    Mof string defining qualifier declarations for tests.
-    """
-    return """
-        Qualifier Association : boolean = false,
-            Scope(association),
-            Flavor(DisableOverride, ToSubclass);
-
-        Qualifier Indication : boolean = false,
-            Scope(class, indication),
-            Flavor(DisableOverride, ToSubclass);
-
-        Qualifier Abstract : boolean = false,
-            Scope(class, association, indication),
-            Flavor(EnableOverride, Restricted);
-
-        Qualifier Aggregate : boolean = false,
-            Scope(reference),
-            Flavor(DisableOverride, ToSubclass);
-
-        Qualifier Description : string = null,
-            Scope(any),
-            Flavor(EnableOverride, ToSubclass, Translatable);
-
-        Qualifier In : boolean = true,
-            Scope(parameter),
-            Flavor(DisableOverride, ToSubclass);
-
-        Qualifier Key : boolean = false,
-            Scope(property, reference),
-            Flavor(DisableOverride, ToSubclass);
-
-        Qualifier Out : boolean = false,
-            Scope(parameter),
-            Flavor(DisableOverride, ToSubclass);
-
-        Qualifier Override : string = null,
-            Scope(property, reference, method),
-            Flavor(EnableOverride, Restricted);
-        """
 
 
 @pytest.fixture
@@ -812,16 +776,6 @@ TST_PERSON_INST_COUNT = 4                                 # num TST_PERSON
 TST_PERSON_SUB_INST_COUNT = 4                             # num SUB
 TST_PERSONWITH_SUB_INST_COUNT = TST_PERSON_INST_COUNT + \
     TST_PERSON_SUB_INST_COUNT                             # num both
-
-
-@pytest.fixture
-def conn():
-    """
-    Create the FakedWBEMConnection and return it
-    """
-    # pylint: disable=protected-access
-    FakedWBEMConnection._reset_logging_config()
-    return FakedWBEMConnection()
 
 
 @pytest.fixture
@@ -4783,12 +4737,6 @@ class TestReferenceOperations(object):
             ns = conn.default_namespace
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
-        # pylint: disable=protected-access
-        assocclns = [cl.classname for cl in conn._get_association_classes(ns)]
-
-        assert set(assocclns) == set([u'TST_Lineage',
-                                      u'TST_MemberOfFamilyCollection'])
-
         classes = [u'TST_Lineage', u'TST_MemberOfFamilyCollection',
                    u'TST_Person', u'TST_Personsub', u'TST_FamilyCollection']
         assert set(classes) == set(
@@ -4826,7 +4774,8 @@ class TestReferenceOperations(object):
              ['TST_MemberOfFamilyCollection']],
             [None, 'member', ['TST_MemberOfFamilyCollection']],
             [None, 'family', ['TST_MemberOfFamilyCollection']],
-            ['TST_BLAH', None, []],
+            [None, 'family', ['TST_MemberOfFamilyCollection']],
+            ['TST_Lineagexxx', None, CIMError(CIM_ERR_INVALID_PARAMETER)],
             [None, None, CIMError(CIM_ERR_INVALID_NAMESPACE)],
         ]
     )
@@ -4854,7 +4803,6 @@ class TestReferenceOperations(object):
 
         if isinstance(exp_rslt, list):    # if list exp OK result
             clns = conn.ReferenceNames(cim_cln, ResultClass=rc, Role=ro)
-
             exp_ns = ns or conn.default_namespace
             assert isinstance(clns, list)
             assert len(clns) == len(exp_rslt)
@@ -4872,9 +4820,10 @@ class TestReferenceOperations(object):
         else:
             assert isinstance(exp_rslt, CIMError)
             exp_exc = exp_rslt
-            # we have to fix the targetclassname for some of the tests
+            # Fix the targetclassname for some of the tests
             if isinstance(cim_cln, six.string_types):
-                cim_cln = CIMInstanceName(classname=cln)
+                cim_cln = CIMClassName(classname=cln)
+
             if exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                 cim_cln.namespace = 'non_existent_namespace'
 
@@ -4954,7 +4903,7 @@ class TestReferenceOperations(object):
             # Verify role name not in class return nothing
             ['TST_Lineage', 'blah', []],
             # Verify ResultClass not in environment returns nothing
-            ['TST_BLAH', None, []],
+            ['TST_LineageXXX', None, CIMError(CIM_ERR_INVALID_PARAMETER)],
             # Specific test that generates error
             ['TST_Lineage', None, CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")]
         ]
@@ -5136,10 +5085,30 @@ class TestReferenceOperations(object):
 
     # TODO test for references propertylist.
 
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "targ_obj", ['XXX_Blan',
+                     CIMInstanceName('XXX_Blah',
+                                     keybindings={'InstanceID': 3})])
+    def test_reference_target_err(self, conn, ns, targ_obj, tst_assoc_mof):
+        # pylint: disable=no-self-use
+        """
+        Test getting reference classnames with no options on call and default
+        namespace. Tests for both string and CIMClassName input
+        """
+        skip_if_moftab_regenerated()
 
-class TestAssociationOperations(object):
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+        with pytest.raises(CIMError) as exec_info:
+            conn.ReferenceNames(targ_obj)
+        exc = exec_info.value
+        assert exc.status_code == CIM_ERR_INVALID_PARAMETER
+
+
+class TestAssociatorOperations(object):
     """
-    Tests of References class and instance operations
+    Tests of Associator class and instance operations
     """
 
     @pytest.mark.parametrize(
@@ -5154,8 +5123,6 @@ class TestAssociationOperations(object):
             # rc: resultclass attribute
             # exp_result: Either list of names of expected classes returned
             #             or string defining error response
-            # TODO: ks Review all these tests and results. I am uncomfortable
-            #       with results.
             [None, None, None, None, ['TST_Person']],
             [None, 'TST_Lineage', None, None, ['TST_Person']],
             ['Parent', 'TST_Lineage', None, None, ['TST_Person']],
@@ -5166,6 +5133,10 @@ class TestAssociationOperations(object):
             ['parent', 'TST_Lineage', 'Child', 'TST_Person', ['TST_Person']],
             ['PARENT', 'TST_Lineage', 'CHILD', 'TST_Person', ['TST_Person']],
             [None, None, 'child', 'TST_Person', ['TST_Person']],
+            ['Parent', 'TST_Lineagexxx', 'child', 'TST_Person',
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
+            ['Parent', 'TST_Lineage', 'child', 'TST_Personxxx',
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
             ['Parent', 'TST_Lineage', 'child', 'TST_Person',
              CIMError(CIM_ERR_INVALID_NAMESPACE)],
         ]
@@ -5258,6 +5229,10 @@ class TestAssociationOperations(object):
              (PERSON_SOFI_NME, PERSON_GABI_NME,)],
             ['PARENT', 'tst_lineage', 'CHILD', 'tst_person',
              (PERSON_SOFI_NME, PERSON_GABI_NME,)],
+            ['PARENT', 'tst_lineagexxx', 'CHILD', 'tst_person',
+             CIMError(CIM_ERR_INVALID_PARAMETER, "blah")],
+            ['PARENT', 'tst_lineage', 'CHILD', 'tst_personxxx',
+             CIMError(CIM_ERR_INVALID_PARAMETER, "blah")],
             # Execute invalid namespace test
             ['Parent', 'TST_Lineage', 'child', 'TST_Person',
              CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")],
@@ -5305,7 +5280,6 @@ class TestAssociationOperations(object):
 
             if exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                 targ_iname.namespace = 'BadNameSpaceName'
-
             with pytest.raises(CIMError) as exec_info:
                 conn.AssociatorNames(targ_iname, AssocClass=ac, Role=role,
                                      ResultRole=rr, ResultClass=rc)
@@ -5464,6 +5438,26 @@ class TestAssociationOperations(object):
 
         # TODO expand associator classes test to test for correct properties
         # in response
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "targ_obj", ['XXX_Blan',
+                     CIMInstanceName('XXX_Blah',
+                                     keybindings={'InstanceID': 3})])
+    def test_associator_target_err(self, conn, ns, targ_obj, tst_assoc_mof):
+        # pylint: disable=no-self-use
+        """
+        Test getting reference classnames with no options on call and default
+        namespace. Tests for both string and CIMClassName input
+        """
+        skip_if_moftab_regenerated()
+
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+        with pytest.raises(CIMError) as exec_info:
+            conn.AssociatorNames(targ_obj)
+        exc = exec_info.value
+        assert exc.status_code == CIM_ERR_INVALID_PARAMETER
 
 
 class TestInvokeMethod(object):
