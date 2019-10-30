@@ -249,6 +249,8 @@ class MinutesFromUTC(tzinfo):
         """
         self._offset = offset
 
+    __str__ = tzinfo.__repr__
+
     def __repr__(self):
         return _format(
             "MinutesFromUTC("
@@ -295,6 +297,8 @@ class CIMType(object):  # pylint: disable=too-few-public-methods
     #: The name of the CIM datatype, as a :term:`string`. See
     #: :ref:`CIM data types` for details.
     cimtype = None
+
+    __str__ = object.__repr__
 
     def __repr__(self):
         """Return a string representation suitable for debugging."""
@@ -796,6 +800,8 @@ class CIMInt(CIMType, _Longint):
     #: integer data types.
     maxvalue = None
 
+    __str__ = _Longint.__repr__
+
     def __new__(cls, *args, **kwargs):
 
         # Python 3.7 removed support for passing the value for int() as a
@@ -964,6 +970,8 @@ class CIMFloat(CIMType, float):
     subclasses of this class, or to use them as dictionary keys or as members
     in sets.
     """
+
+    __str__ = float.__repr__
 
 
 class Real32(CIMFloat):
