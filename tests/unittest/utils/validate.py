@@ -67,6 +67,9 @@ import os.path
 import re
 from subprocess import Popen, PIPE, STDOUT
 
+from formencode import doctest_xml_compare
+import xml.etree.ElementTree as ET
+
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 
@@ -135,6 +138,16 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
         raise CIMXMLValidationError(output)
 
 
+def _xml_semantic_compare(l, r):
+    """
+    Compare XML to ensure the content is the same.
+    """
+    left_xml = ET.fromstring(l)
+    right_xml = ET.fromstring(r)
+
+    return doctest_xml_compare.xml_compare(left_xml, right_xml)
+
+
 def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
     """
     Validate a CIM-XML string of a CIM object against an expected CIM-XML
@@ -150,7 +163,7 @@ def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
       exp_xml_str (string): The expected CIM-XML string.
     """
 
-    assert obj_xml_str == exp_xml_str
+    assert _xml_semantic_compare(obj_xml_str, exp_xml_str)
 
     m = re.match(r'^<([^ >]+)', exp_xml_str)
     assert m is not None, \
