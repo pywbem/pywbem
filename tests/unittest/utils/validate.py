@@ -62,7 +62,6 @@ Note: Changes in DSP0203 2.4.0, compared to 2.3.1:
 
 from __future__ import print_function, absolute_import
 
-import os
 import os.path
 import re
 from subprocess import Popen, PIPE, STDOUT
