@@ -28,7 +28,8 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import MOFWBEMConnection, CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS
+    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_INVALID_NAMESPACE
 from pywbem._nocasedict import NocaseDict
 
 from pywbem._utils import _format
@@ -171,12 +172,13 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         # TODO build path if does not exist. For now simply abort
         # NOTE: compiler does not build path unless the instance alias is
         # defined for the instance
-        if inst.path is None:
+        if inst.path is None or not inst.path.keybindings:
             raise CIMError(
                 CIM_ERR_FAILED,
-                _format('CreateInstance failed. No path in new_instance. ',
+                _format('CreateInstance failed. No path in new_instance or '
+                        'keybindings in path. ',
                         'Use compiler instance alias to set path on '
-                        'instance declaration. inst: {0!A}'.inst))
+                        'instance declaration. inst: {0!A}', inst))
 
         if self.default_namespace not in self.instances:
             self.instances[self.default_namespace] = {}
@@ -193,6 +195,34 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
             self.instances[self.default_namespace][inst.path] = inst
 
         return inst.path
+
+    def ModifyInstance(self, *args, **kwargs):
+        """This method is used by the MOF compiler only in the course of
+        handling CIM_ERR_ALREADY_EXISTS after trying to create an instance.
+
+        NOTE: It does NOT support the propertylist attribute that is part
+        of the CIM/XML defintion of ModifyInstance and it requires that
+        each created instance include the instance path which means that
+        the MOF must include the instance alias on each created instance.
+        """
+        mod_inst = args[0] if args else kwargs['ModifiedInstance']
+        if self.default_namespace not in self.instances:
+            raise CIMError(
+                CIM_ERR_INVALID_NAMESPACE,
+                _format('ModifyInstance failed. No instance repo exists. '
+                        'Use compiler instance alias to set path on '
+                        'instance declaration. inst: {0!A}', mod_inst))
+
+        if mod_inst.path not in self.instances[self.default_namespace]:
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                _format('ModifyInstance failed. No instance exists. '
+                        'Use compiler instance alias to set path on '
+                        'instance declaration. inst: {0!A}', mod_inst))
+
+        orig_instance = self.instances[self.default_namespace][mod_inst.path]
+        orig_instance.update(mod_inst.properties)
+        self.instances[self.default_namespace][mod_inst.path] = orig_instance
 
     def _get_class(self, superclass, namespace=None,
                    local_only=False, include_qualifiers=True,
