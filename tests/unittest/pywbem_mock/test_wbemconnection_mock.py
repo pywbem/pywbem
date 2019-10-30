@@ -666,8 +666,6 @@ def tst_instances_mof(tst_classes_mof):
             InstanceID = "CIM_Foo_sub_sub22";
             cimfoo_sub = "data sub 11";
             cimfoo_sub_sub = "data sub_sub22";};
-
-        instance of CIM_Foo_nokey as $foonokey { cimfoo = "none"; };
     """
     return tst_classes_mof + '\n\n' + inst_str + '\n\n'
 
@@ -1304,7 +1302,7 @@ class TestRepoMethods(object):
                     in result
                 assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
                     in result
-                assert _format("# Namespace {0!A}: contains 9 Instances", ns) \
+                assert _format("# Namespace {0!A}: contains 8 Instances", ns) \
                     in result
             assert "Qualifier Abstract : boolean = false," in result
 
@@ -2000,8 +1998,7 @@ class TestRepoMethods(object):
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
-    def test_compile_instances_fail_dup(self, conn, ns, tst_classes_mof,
-                                        capsys):
+    def test_compile_instances_dup(self, conn, ns, tst_classes_mof, capsys):
         # pylint: disable=no-self-use
         """
         Test compile of instance MOF  with duplicate keys into the repository
@@ -2012,22 +2009,27 @@ class TestRepoMethods(object):
 
         tst_ns = ns or conn.default_namespace
         insts_mof = """
-            instance of CIM_Foo as $Alice {
+            instance of CIM_Foo_sub as $Alice {
             InstanceID = "Alice";
+            cimfoo_sub = "one";
             };
-            instance of CIM_Foo as $Alice1 {
+            instance of CIM_Foo_sub as $Alice1 {
                 InstanceID = "Alice";
+                cimfoo_sub = "two";
             };
             """
         # compile as single unit by combining classes and instances
         # The compiler builds the instance paths.
         conn.compile_mof_string(tst_classes_mof, namespace=tst_ns)
+        conn.compile_mof_string(insts_mof, namespace=tst_ns)
+        insts = conn.EnumerateInstances('CIM_Foo_sub')
 
-        with pytest.raises(CIMError):
-            conn.compile_mof_string(insts_mof, namespace=tst_ns)
-
-        captured_out = capsys.readouterr()[0]
-        assert "CreateInstance failed." in captured_out
+        # test replacement occurred.
+        assert len(insts) == 1
+        assert insts[0].get('cimfoo_sub') == 'two'
+        conn.GetInstance(CIMInstanceName('CIM_Foo_sub',
+                                         {'InstanceID': 'Alice'},
+                                         namespace=tst_ns))
 
 
 def resolve_class(conn, cls, ns):
