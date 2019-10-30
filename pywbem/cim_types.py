@@ -802,7 +802,7 @@ class CIMInt(CIMType, _Longint):
                 raise ValueError(
                     _format("Integer value {0} is out of range for CIM "
                             "datatype {1}", value, cls.cimtype))
-        # The value needs to be processed here, because int/long is unmutable
+        # The value needs to be processed here, because int/long is immutable
         return super(CIMInt, cls).__new__(cls, *args, **kwargs)
 
     # Note: __str__() is added later, for Python 3.
