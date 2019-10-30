@@ -23,10 +23,12 @@ pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
 from pywbem import mof_compiler
+from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
 from pywbem_mock import FakedWBEMConnection
 
@@ -2355,7 +2357,7 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(cln in clsrepo)
 
 
-class TestFileErrors(MOFTest):
+class TestFileErrors():
     """
         Test for IO errors in compile where file does not exist either
         direct compile or expected in search path.
@@ -2402,6 +2404,7 @@ class TestFileErrors(MOFTest):
             schema dir.
         """
         skip_if_moftab_regenerated()
+        self.create_mofcompiler()
         try:
             self.mofcomp.compile_file(
                 os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR, 'System',
@@ -2409,6 +2412,177 @@ class TestFileErrors(MOFTest):
                 NAME_SPACE)
         except IOError:
             pass
+
+
+######################################################################
+#
+#  Test for duplicate inst in CreateInstance mof compiler logic
+#
+######################################################################
+class MOFWBEMConnectionInstDups(MOFWBEMConnection):
+    """
+    An adaptation of MOFWBEMConnection class that changes the instance to test
+    the compiler CreateInstance duplicate instance logic.
+
+    It changes the instance repository to a dictionary, adds a tests for
+    duplicate instance names in CreateInstance, and enables a very simple
+    ModifyInstance.
+
+    """
+    def __init__(self, conn=None):
+        """
+        Parameters:
+
+          conn (BaseRepositoryConnection):
+            The underlying repository connection.
+
+            `None` means that there is no underlying repository and all
+            operations performed through this object will fail.
+        """
+
+        super(MOFWBEMConnectionInstDups, self).__init__(conn=conn)
+
+    def ModifyInstance(self, *args, **kwargs):
+        """This method is used by the MOF compiler only in the course of
+        handling CIM_ERR_ALREADY_EXISTS after trying to create an instance.
+
+        NOTE: It does NOT support the propertylist attribute that is part
+        of the CIM/XML defintion of ModifyInstance and it requires that
+        each created instance include the instance path which means that
+        the MOF must include the instance alias on each created instance.
+        """
+        mod_inst = args[0] if args else kwargs['ModifiedInstance']
+        if self.default_namespace not in self.instances:
+            raise CIMError(
+                CIM_ERR_INVALID_NAMESPACE,
+                _format('ModifyInstance failed. No instance repo exists. '
+                        'Use compiler instance alias to set path on '
+                        'instance declaration. inst: {0!A}', mod_inst))
+
+        if mod_inst.path not in self.instances[self.default_namespace]:
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                _format('ModifyInstance failed. No instance exists. '
+                        'Use compiler instance alias to set path on '
+                        'instance declaration. inst: {0!A}', mod_inst))
+
+        orig_instance = self.instances[self.default_namespace][mod_inst.path]
+        orig_instance.update(mod_inst.properties)
+        self.instances[self.default_namespace][mod_inst.path] = orig_instance
+
+    def CreateInstance(self, *args, **kwargs):
+        """
+        Create a CIM instance in the local repository of this class. This
+        implementation tests for duplicate instances and returns an error if
+        they exist.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        """
+
+        inst = args[0] if args else kwargs['NewInstance']
+
+        if inst.path is None or not inst.path.keybindings:
+            raise CIMError(
+                CIM_ERR_FAILED,
+                _format('CreateInstance failed. No path in new_instance. '
+                        'Use compiler instance alias to set path on '
+                        'instance declaration. inst: {0!A}', inst))
+
+        if self.default_namespace in self.instances:
+            if inst.path in self.instances[self.default_namespace]:
+                raise CIMError(
+                    CIM_ERR_ALREADY_EXISTS,
+                    _format('CreateInstance failed. Instance with path {0!A} '
+                            'already exists in mock repository', inst.path))
+        try:
+            self.instances[self.default_namespace][inst.path] = inst
+        except KeyError:
+            self.instances[self.default_namespace] = {}
+            self.instances[self.default_namespace][inst.path] = inst
+        return inst.path
+
+
+class Test_CreateInstanceWithDups(unittest.TestCase):
+
+    def setUp(self):
+        """Create the MOF compiler."""
+
+        def moflog(msg):
+            """Display message to moflog"""
+            print(msg, file=self.logfile)
+
+        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        self.logfile = open(moflog_file, 'w')
+        self.mofcomp = MOFCompiler(
+            MOFWBEMConnectionInstDups(),
+            search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
+            verbose=True,
+            log_func=moflog)
+
+        self.partial_schema_file = None
+
+    def tearDown(self):
+        """Close the log file and any partial schema file."""
+        self.logfile.close()
+        if self.partial_schema_file:
+            if os.path.exists(self.partial_schema_file):
+                os.remove(self.partial_schema_file)
+
+    def test_nopath(self):
+        """Test that dup instance logic works"""
+
+        mof_str = """
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        class TST_Person{
+            [Key] string name;
+            Uint32 value;
+        };
+
+        instance of TST_Person { name = "Mike"; value = 1;};
+        """
+        skip_if_moftab_regenerated()
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Test must generate exception")
+        except CIMError:
+            pass
+
+    def test_dup(self):
+        """Test that dup instance logic works"""
+
+        mof_str = """
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+
+        class TST_Person{
+            [Key] string name;
+            Uint32 value;
+        };
+
+        instance of TST_Person as $Mike { name = "Mike"; value = 1;};
+
+        instance of TST_Person as $Fred { name = "Fred"; value = 2;};
+
+        // Duplicate instance path
+        instance of TST_Person as $Mike2 { name = "Mike"; value = 3;};
+
+        """
+        skip_if_moftab_regenerated()
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        repo = self.mofcomp.handle
+
+        cl = repo.GetClass(
+            'TST_Person',
+            LocalOnly=False, IncludeQualifiers=True)
+        self.assertEqual(cl.properties['name'].type, 'string')
+        instances = repo.instances[NAME_SPACE]
+
+        self.assertEqual(len(instances), 2)
 
 
 if __name__ == '__main__':
