@@ -6,6 +6,7 @@ Test CIM types.
 
 from __future__ import absolute_import, print_function
 
+import re
 from datetime import timedelta, datetime
 import pytest
 import six
@@ -219,6 +220,50 @@ def test_real_init_str(real_tuple):
     obj_type = real_tuple[0]
     obj = obj_type('42.0')
     assert obj == 42.0
+
+
+#
+# repr() and str() tests for CIMInt/CIMFloat
+#
+
+@pytest.fixture(params=[
+
+    # Each list item is a tuple of:
+    # (obj_type, init_arg, exp_str, exp_repr_pattern)
+    (Uint8, 42, u'42', r'^Uint8\(.*, 42\)'),
+    (Uint16, 42, u'42', r'^Uint16\(.*, 42\)'),
+    (Uint32, 42, u'42', r'^Uint32\(.*, 42\)'),
+    (Uint64, 42, u'42', r'^Uint64\(.*, 42\)'),
+    (Sint8, -42, u'-42', r'^Sint8\(.*, -42\)'),
+    (Sint16, -42, u'-42', r'^Sint16\(.*, -42\)'),
+    (Sint32, -42, u'-42', r'^Sint32\(.*, -42\)'),
+    (Sint64, -42, u'-42', r'^Sint64\(.*, -42\)'),
+    (Real32, -42.1, u'-42.1', r'^Real32\(.*, -42.1\)'),
+    (Real64, -42.1, u'-42.1', r'^Real64\(.*, -42.1\)'),
+], scope='module')
+def number_str_repr_tuple(request):
+    """Utility function to return param from request"""
+    return request.param
+
+
+def test_number_str(number_str_repr_tuple):
+    obj_type, init_arg, exp_str, _ = number_str_repr_tuple
+    obj = obj_type(init_arg)
+
+    # The code to be tested
+    act_str = str(obj)
+
+    assert act_str == exp_str
+
+
+def test_number_repr(number_str_repr_tuple):
+    obj_type, init_arg, _, exp_repr_pattern = number_str_repr_tuple
+    obj = obj_type(init_arg)
+
+    # The code to be tested
+    act_repr = repr(obj)
+
+    assert re.match(exp_repr_pattern, act_repr)
 
 
 #
