@@ -26,24 +26,15 @@ funcsigs>=1.0.2
 
 # Coverage reporting (no imports, invoked via coveralls script).
 # Make sure the Python version matches the one used in .travis.yml.
-# Note: python-coveralls 2.9.1 has requirement coverage==4.0.3, and therefore
-# must be stated before pytest-cov, whose 2.5.1 specifies requirement
-# coverage>=3.7.1 and thus would get coverage 4.5 1 if processed first.
-python-coveralls>=2.8.0; python_version == '3.4'
+coverage>=4.5.3; python_version == '3.8'
+python-coveralls>=2.9.2; python_version == '3.8'
 
 # Safety CI by pyup.io
 safety>=1.8.4
 
 # Unit test (no imports, invoked via py.test script):
 
-# TODO: Remove the pinning of the pytest-cov version again once issue
-#       https://github.com/z4r/python-coveralls/issues/66
-#       is resolved.
-#       Background: pytest-cov 2.6.0 has increased the version
-#       requirement for the coverage package from >=3.7.1 to
-#       >=4.4, which is in conflict with the version requirement
-#       defined by the python-coveralls package for coverage==4.0.3.
-pytest-cov>=2.4.0,<2.6
+pytest-cov>=2.4.0
 
 # Tox
 tox>=2.0.0
