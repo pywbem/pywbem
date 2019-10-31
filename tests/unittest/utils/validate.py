@@ -68,7 +68,7 @@ import re
 from subprocess import Popen, PIPE, STDOUT
 
 from formencode import doctest_xml_compare
-import xml.etree.ElementTree as ET
+from lxml import etree
 
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
@@ -138,13 +138,19 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
         raise CIMXMLValidationError(output)
 
 
-def _xml_semantic_compare(l, r):
+def _xml_semantic_compare(left_xml_str, right_xml_str):
     """
-    Compare XML to ensure the content is the same.
+    Compare two XML strings semantically to ensure the content is the same.
     """
-    left_xml = ET.fromstring(l)
-    right_xml = ET.fromstring(r)
-
+    # Reasons for using lxml.etree instead of Python's xml.etree.ElementTree:
+    # - The XML strings do not contain an XML directive specifying the
+    #   encoding, and the encoding parameter of ElementTree.XMLParser() does
+    #   not seem to work.
+    # - ET.fromstring() and ET.XML() do not handle byte strings in Python 2.x
+    #   (see bugs.python.org/issue11033), so a manual conversion to unicode
+    #   would be needed.
+    left_xml = etree.fromstring(left_xml_str)
+    right_xml = etree.fromstring(right_xml_str)
     return doctest_xml_compare.xml_compare(left_xml, right_xml)
 
 
@@ -163,7 +169,10 @@ def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
       exp_xml_str (string): The expected CIM-XML string.
     """
 
-    assert _xml_semantic_compare(obj_xml_str, exp_xml_str)
+    assert _xml_semantic_compare(obj_xml_str, exp_xml_str), \
+        "Unexpected XML string (comparing at XML level):\n" \
+        "Actual:   {0!r}\n" \
+        "Expected: {1!r}\n".format(obj_xml_str, exp_xml_str)
 
     m = re.match(r'^<([^ >]+)', exp_xml_str)
     assert m is not None, \
