@@ -98,9 +98,13 @@ tabulate >= 0.8.3
 # Performance profiling tools
 pyinstrument >=3.0.1
 
-# Pinning typed-ast to <1.4.0 because it started removing Python 3.4 support
+# Pinning typed-ast to <1.4.0 for Python 3.4 because it started removing
+# Python 3.4 support.
+# Requiring typed-ast>=1.4.0 for Python 3.8 since it addresses compile errors
+# with missing pgenheaders.h and duplicate definition of a struct.
 typed-ast>=1.3.0,<1.4.0; python_version == '3.4'
-typed-ast>=1.3.0; python_version > '3.4'
+typed-ast>=1.3.0; python_version > '3.4' and python_version < '3.8'
+typed-ast>=1.4.0; python_version >= '3.8'
 
 # Used for xml comparisons in unit test
 FormEncode>=1.3.1
