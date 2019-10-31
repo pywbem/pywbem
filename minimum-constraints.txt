@@ -67,8 +67,8 @@ funcsigs==1.0.2
 FormEncode==1.3.1
 
 # Coverage reporting (no imports, invoked via coveralls script):
-python-coveralls==2.8.0
-coverage==4.0.3
+python-coveralls==2.9.2
+coverage>=4.5.3
 
 # Safety CI by pyup.io
 safety==1.8.4
