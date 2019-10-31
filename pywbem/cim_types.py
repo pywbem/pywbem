@@ -249,8 +249,6 @@ class MinutesFromUTC(tzinfo):
         """
         self._offset = offset
 
-    __str__ = tzinfo.__repr__
-
     def __repr__(self):
         return _format(
             "MinutesFromUTC("
@@ -291,22 +289,9 @@ class MinutesFromUTC(tzinfo):
 class CIMType(object):  # pylint: disable=too-few-public-methods
     """Base type for all CIM data types defined in this package."""
 
-    # Note: __str__() is not needed; the inherited method is used,
-    # even though there is a __repr__() method here.
-
     #: The name of the CIM datatype, as a :term:`string`. See
     #: :ref:`CIM data types` for details.
     cimtype = None
-
-    __str__ = object.__repr__
-
-    def __repr__(self):
-        """Return a string representation suitable for debugging."""
-        return _format(
-            "{s.__class__.__name__}("
-            "cimtype={s.cimtype!A}, "
-            "{s})",
-            s=self)
 
 
 class CIMDateTime(CIMType, _CIMComparisonMixin):
@@ -800,8 +785,6 @@ class CIMInt(CIMType, _Longint):
     #: integer data types.
     maxvalue = None
 
-    __str__ = _Longint.__repr__
-
     def __new__(cls, *args, **kwargs):
 
         # Python 3.7 removed support for passing the value for int() as a
@@ -821,6 +804,8 @@ class CIMInt(CIMType, _Longint):
                             "datatype {1}", value, cls.cimtype))
         # The value needs to be processed here, because int/long is unmutable
         return super(CIMInt, cls).__new__(cls, *args, **kwargs)
+
+    # Note: __str__() is added later, for Python 3.
 
     def __repr__(self):
         """
@@ -971,7 +956,15 @@ class CIMFloat(CIMType, float):
     in sets.
     """
 
-    __str__ = float.__repr__
+    # Note: __str__() is added later, for Python 3.
+
+    def __repr__(self):
+        """Return a string representation suitable for debugging."""
+        return _format(
+            "{s.__class__.__name__}("
+            "cimtype={s.cimtype!A}, "
+            "{s})",
+            s=self)
 
 
 class Real32(CIMFloat):
@@ -1000,6 +993,20 @@ class Real64(CIMFloat):
 
 # Python number types listed in :term:`number`.
 number_types = six.integer_types + (float,)  # pylint: disable=invalid-name
+
+
+# Python 3.8 removed __str__() on int and float and thereby caused an infinite
+# recursion for the CIMInt and CIMFloat classes whose __repr__() calls
+# __str__() on itself.
+# The following addresses that by implementing __str__() on these classes,
+# representing the values using int/float.__repr__(). In Python 3, these
+# methods return exactly what is needed for a string representation. Note that
+# in Python 2, repr(long) has a trailing 'L' which would not be suitable.
+if six.PY3:  # all Python 3.x, for simplicity.
+    CIMInt.__str__ = int.__repr__
+    CIMFloat.__str__ = float.__repr__
+    # MinutesFromUTC.__repr__() does not call str() on itself
+    # CIMDatetime has its own __str__()
 
 
 def cimtype(obj):
