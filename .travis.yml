@@ -81,11 +81,11 @@ matrix:
       python: "3.8"
       env:
         - PACKAGE_LEVEL=minimum
-#    - os: linux
-#      language: python
-#      python: "3.8"
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "3.8"
+      env:
+        - PACKAGE_LEVEL=latest
 # Note: pywbem does not install on pypy, because M2Crypto does not install.
 #    - os: linux
 #      language: python
@@ -221,6 +221,6 @@ after_success:
 #       make sure this project is enabled there.
 # Make sure the Python version matches the one specified for python-coveralls
 # in dev-requirements.txt.
-  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.4" && "$PACKAGE_LEVEL" == "latest" && -z $_MANUAL_CI_RUN ]]; then
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PYTHON_VERSION" == "3.8" && "$PACKAGE_LEVEL" == "latest" && -z $_MANUAL_CI_RUN ]]; then
       coveralls;
     fi
