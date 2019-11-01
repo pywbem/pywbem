@@ -3238,6 +3238,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -3245,6 +3247,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -3478,6 +3482,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -3485,6 +3491,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -3655,6 +3663,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -3874,6 +3884,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -4948,6 +4960,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -4955,6 +4969,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -5283,6 +5299,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -5290,6 +5308,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -5560,6 +5580,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -5867,6 +5889,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -6902,6 +6926,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -6909,6 +6935,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -7181,6 +7209,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -7188,6 +7218,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an associated class (case independent),
             to filter the result to include only traversals to that associated
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -7426,6 +7458,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -7688,6 +7722,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
+            If specified as a :class:`~pywbem.CIMClassName` object, its
+            `host` and `namespace` attributes will be ignored.
 
             `None` means that no such filtering is peformed.
 
@@ -8687,7 +8723,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class whose subclasses are to be retrieved
             (case independent).
-            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            If specified as a :class:`~pywbem.CIMClassName` object, its `host`
             attribute will be ignored.
 
             If `None`, the top-level classes in the namespace will be
@@ -8860,7 +8896,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           ClassName (:term:`string` or :class:`~pywbem.CIMClassName`):
             Name of the class whose subclasses are to be retrieved
             (case independent).
-            If specified as a :class:`~pywbem.CIMClassName` object, its host
+            If specified as a :class:`~pywbem.CIMClassName` object, its `host`
             attribute will be ignored.
 
             If `None`, the top-level classes in the namespace will be
