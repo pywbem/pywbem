@@ -46,16 +46,17 @@ class Test_SNIA_Server_Profile(ProfileTest):
 
         central_inst_paths = server_func_asserted(
             self.server, 'get_central_instances',
-            self.profile_inst.path,
+            profile_path=self.profile_inst.path,
             central_class=self.profile_definition['central_class'],
             scoping_class=self.profile_definition['scoping_class'],
             scoping_path=self.profile_definition['scoping_path'],
             reference_direction=self.profile_definition['reference_direction'])
 
         central_insts_msg = _format(
-            "central instances of profile {0} {1!A}",
+            "central instances of profile {0} {1!A} (version: {2})",
             self.profile_definition['registered_org'],
-            self.profile_definition['registered_name'])
+            self.profile_definition['registered_name'],
+            self.profile_definition['registered_version'] or 'any')
 
         # Check that there is just one central instance for this profile
         assert_number_of_instances_equal(
@@ -109,9 +110,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
         far_insts_msg = _format(
             "CIM_Namespace instances associated via "
             "CIM_NamespaceInManager to "
-            "central instance of profile {0} {1!A}",
+            "central instance of profile {0} {1!A} (version {2})",
             self.profile_definition['registered_org'],
-            self.profile_definition['registered_name'])
+            self.profile_definition['registered_name'],
+            self.profile_definition['registered_version'] or 'any')
 
         for inst in far_insts:
 
@@ -164,9 +166,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
         far_insts_msg = _format(
             "CIM_ObjectManagerCommunicationMechanism instances associated via "
             "CIM_CommMechanismForManager to "
-            "central instance of profile {0} {1!A}",
+            "central instance of profile {0} {1!A} (version {2})",
             self.profile_definition['registered_org'],
-            self.profile_definition['registered_name'])
+            self.profile_definition['registered_name'],
+            self.profile_definition['registered_version'] or 'any')
 
         for inst in far_insts:
 
@@ -237,9 +240,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
 
         far_insts_msg = _format(
             "CIM_System instances associated via CIM_HostedService to "
-            "central instance of profile {0} {1!A}",
+            "central instance of profile {0} {1!A} (version {2})",
             self.profile_definition['registered_org'],
-            self.profile_definition['registered_name'])
+            self.profile_definition['registered_name'],
+            self.profile_definition['registered_version'] or 'any')
 
         for inst in far_insts:
 

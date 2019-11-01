@@ -35,7 +35,8 @@ def test_snia_smis_to_profile_not_swapped(wbem_connection):  # noqa: F811
 
     spec_insts = server_func_asserted(
         server, 'get_selected_profiles',
-        SPEC_ORG, SPEC_NAME)
+        registered_org=SPEC_ORG,
+        registered_name=SPEC_NAME)
     if not spec_insts:
         pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
                     "advertised".
@@ -71,7 +72,8 @@ def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
 
     spec_insts = server_func_asserted(
         server, 'get_selected_profiles',
-        SPEC_ORG, SPEC_NAME)
+        registered_org=SPEC_ORG,
+        registered_name=SPEC_NAME)
     if not spec_insts:
         pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
                     "advertised".
@@ -108,7 +110,8 @@ def test_snia_smis_profile_tree_not_circular(wbem_connection):  # noqa: F811
 
     spec_insts = server_func_asserted(
         server, 'get_selected_profiles',
-        SPEC_ORG, SPEC_NAME)
+        registered_org=SPEC_ORG,
+        registered_name=SPEC_NAME)
     if not spec_insts:
         pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
                     "advertised".

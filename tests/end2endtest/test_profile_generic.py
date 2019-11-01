@@ -17,7 +17,7 @@ from pywbem import WBEMServer, ValueMapping
 # pylint: disable=unused-import, line-too-long
 from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
 from .utils.pytest_extensions import profile_definition  # noqa: F401, E501
-from .utils.pytest_extensions import PROFILE_DEFINITION_DICT
+from .utils.pytest_extensions import single_profile_definition
 from .utils.utils import latest_profile_inst, server_func_asserted, \
     server_prop_asserted
 # pylint: enable=unused-import, line-too-long
@@ -32,20 +32,24 @@ def test_get_central_instances(
     """
     server = WBEMServer(wbem_connection)
 
+    profile_org = profile_definition['registered_org']
+    profile_name = profile_definition['registered_name']
+    profile_version = profile_definition['registered_version']  # May be None
+
     # Verify that the profile to be tested is advertised by the server
     # and skip the profile if not advertised.
     profile_insts = server_func_asserted(
         server, 'get_selected_profiles',
-        profile_definition['registered_org'],
-        profile_definition['registered_name'])
+        registered_org=profile_org,
+        registered_name=profile_name,
+        registered_version=profile_version)
 
     if not profile_insts:
-        pytest.skip("Server {0} at {1}: The {2} {3!r} profile is not "
-                    "advertised".
+        pytest.skip("Server {0} at {1}: The {2} {3!r} profile (version {4}) "
+                    "is not advertised".
                     format(wbem_connection.server_definition.nickname,
-                           wbem_connection.url,
-                           profile_definition['registered_org'],
-                           profile_definition['registered_name']))
+                           wbem_connection.url, profile_org,
+                           profile_name, profile_version or 'any'))
 
     # In case there is more than one version advertised, use only the latest
     # version.
@@ -55,9 +59,9 @@ def test_get_central_instances(
     if profile_definition['central_class'] is None:
         raise ValueError(
             "Profile definition error: The central_class attribute of "
-            "item {0} {1!r} with type {2} must be non-null".
-            format(profile_definition['registered_org'],
-                   profile_definition['registered_name'],
+            "the {0} {1!r} profile (version {2}) with type {3} must be "
+            "non-null".
+            format(profile_org, profile_name, profile_version or 'any',
                    profile_definition['type']))
     # Note: Even for component profiles, we allow scoping class and scoping
     # path to be unspecified (= None), because they do not matter if the
@@ -66,7 +70,7 @@ def test_get_central_instances(
     # Function to be tested
     server_func_asserted(
         server, 'get_central_instances',
-        profile_inst.path,
+        profile_path=profile_inst.path,
         central_class=profile_definition['central_class'],
         scoping_class=profile_definition['scoping_class'],
         scoping_path=profile_definition['scoping_path'],
@@ -96,8 +100,7 @@ def test_undefined_profiles(wbem_connection):  # noqa: F811
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         version = inst['RegisteredVersion']
-        pd_key = '{0}:{1}'.format(org, name)
-        if pd_key not in PROFILE_DEFINITION_DICT:
+        if not single_profile_definition(org, name, version):
             undefined_profile_ids.append(
                 "{0} {1!r} {2}".format(org, name, version))
 

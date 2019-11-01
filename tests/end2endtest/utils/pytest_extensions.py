@@ -34,17 +34,6 @@ with open(PROFILES_YAML_FILE, 'r') as _fp:
     PROFILE_DEFINITION_LIST = yaml.load(_fp)
 del _fp  # pylint: disable=undefined-loop-variable
 
-# Profile definition dictionary.
-# The dict key is 'org:name', for optimized direct access.
-# the dict values are profile definition items, as described in the profile
-# definition file.
-PROFILE_DEFINITION_DICT = dict()
-for _pd in PROFILE_DEFINITION_LIST:
-    _key = '{0}:{1}'.format(_pd['registered_org'],
-                            _pd['registered_name'])
-    PROFILE_DEFINITION_DICT[_key] = _pd
-del _pd, _key  # pylint: disable=undefined-loop-variable
-
 
 def fixtureid_server_definition(fixture_value):
     """
@@ -185,14 +174,17 @@ def fixtureid_profile_definition(fixture_value):
     assert isinstance(pd, dict)
     assert 'registered_name' in pd
     assert 'registered_org' in pd
-    return "profile_definition={0}:{1}". \
-        format(pd['registered_org'], pd['registered_name'])
+    return "profile_definition={0}:{1}:{2}". \
+        format(pd['registered_org'], pd['registered_name'],
+               pd.get('registered_version', 'any'))
 
 
 def _apply_profile_definition_defaults(pd):
-    """Set the reference_direction parameter"""
+    """Set the profile definition defaults"""
     if 'reference_direction' not in pd:
         pd['reference_direction'] = None
+    if 'registered_version' not in pd:
+        pd['registered_version'] = None
     if pd['reference_direction'] is None:
         org = pd['registered_org']
         if org == 'SNIA':
@@ -211,23 +203,57 @@ def _apply_profile_definition_defaults(pd):
     return pd
 
 
-def single_profile_definition(org, name):
+def single_profile_definition(org, name, version=None):
     """
     Return a single profile definition dictionary for the specified org and
-    name. If a profile definition does not exist, returns None.
-
+    name, and optionally version. If version is None, it matches the
+    profile definition with the latest version. Profile definitions that do
+    not specify a version always match.
     Optional items in the profile definition dictionary are generated with
     their default values.
+
+    If a profile definition does not exist, returns None.
     """
     assert org is not None
     assert name is not None
-    pd_key = "{0}:{1}".format(org, name)
-    try:
-        pd = PROFILE_DEFINITION_DICT[pd_key]
-    except KeyError:
-        return None
-    pd = _apply_profile_definition_defaults(pd.copy())
-    return pd
+
+    # Determine profile definitions with the specified org and name
+    pd_list = []
+    for pd in PROFILE_DEFINITION_LIST:
+        if org != pd['registered_org'] or name != pd['registered_name']:
+            continue
+        pd_list.append(pd)
+
+    # Determine profile definition with the specified version or latest
+    if version:
+        # Search profile definition with that version or without a version
+        version_info = version.split('.')
+        for pd in pd_list:
+            pd_version = pd.get('registered_version', None)
+            if not pd_version:
+                # A profile definition without a version always matches
+                return _apply_profile_definition_defaults(pd.copy())
+            pd_version_info = pd_version.split('.')
+            if pd_version_info == version_info:
+                return _apply_profile_definition_defaults(pd.copy())
+    else:
+        # Search profile definition with latest version or without a version
+        latest_pd_version_info = (-1, -1, -1)
+        latest_pd = None
+        for pd in pd_list:
+            pd_version = pd.get('registered_version', None)
+            if not pd_version:
+                # A profile definition without a version always matches
+                return _apply_profile_definition_defaults(pd.copy())
+            pd_version_info = pd_version.split('.')
+            if pd_version_info > latest_pd_version_info:
+                latest_pd_version_info = pd_version_info
+                latest_pd = pd
+        if latest_pd:
+            return _apply_profile_definition_defaults(latest_pd.copy())
+
+    # No such profile definition exists
+    return None
 
 
 @pytest.fixture(
@@ -289,7 +315,8 @@ class ProfileTest(object):
 
     object_cache = ServerObjectCache()
 
-    def init_profile(self, conn, profile_org=None, profile_name=None):
+    def init_profile(self, conn, profile_org, profile_name,
+                     profile_version=None):
         """
         Initialize attributes for the profile.
 
@@ -297,23 +324,31 @@ class ProfileTest(object):
           * conn: conn argument (WBEMConnection).
           * profile_org: profile_org argument (registered org string).
           * profile_name: profile_name argument (registered name string).
+          * profile_version: profile_version argument (registered version
+            string), may be None.
           * server: WBEMServer object created from the connection.
           * profile_definition: Profile definition dictionary for the profile.
-          * profile_id: org:name string to identify the profile
+          * profile_id: org:name:version string to identify the profile.
+            The version defaults to 'any' if profile_version is None.
           * profile_inst: CIMInstance for the CIM_RegisteredProfile object for
             the profile. If it does not exist, the testcase is skipped.
         """
         # pylint: disable=attribute-defined-outside-init
+        assert conn is not None
+        assert profile_org is not None
+        assert profile_name is not None
         self.conn = conn
         self.profile_org = profile_org
         self.profile_name = profile_name
+        self.profile_version = profile_version  # May be None
 
         self.server = WBEMServer(conn)
         self.profile_definition = single_profile_definition(
-            profile_org, profile_name)
+            self.profile_org, self.profile_name, self.profile_version)
         assert self.profile_definition is not None
 
-        self.profile_id = "{0}:{1}".format(profile_org, profile_name)
+        self.profile_id = "{0}:{1}:{2}".format(
+            self.profile_org, self.profile_name, self.profile_version or 'any')
         profile_insts_id = self.profile_id + ':profile_insts'
 
         try:
@@ -322,14 +357,17 @@ class ProfileTest(object):
         except KeyError:
             profile_insts = server_func_asserted(
                 self.server, 'get_selected_profiles',
-                profile_org, profile_name)
+                registered_org=self.profile_org,
+                registered_name=self.profile_name,
+                registered_version=self.profile_version)
             self.object_cache.add_list(
                 conn.url, profile_insts_id, profile_insts)
 
         if not profile_insts:
-            pytest.skip("{0} {1} profile is not advertised on server "
-                        "{2!r}".
-                        format(profile_org, profile_name, self.conn.url))
+            pytest.skip("{0} {1} profile (version {2}) is not advertised "
+                        "on server {3!r}".
+                        format(self.profile_org, self.profile_name,
+                               self.profile_version or 'any', self.conn.url))
 
         self.profile_inst = latest_profile_inst(profile_insts)
         # pylint: enable=attribute-defined-outside-init
@@ -354,7 +392,7 @@ class ProfileTest(object):
         except KeyError:
             central_paths = server_func_asserted(
                 self.server, 'get_central_instances',
-                self.profile_inst.path,
+                profile_path=self.profile_inst.path,
                 central_class=self.profile_definition['central_class'],
                 scoping_class=self.profile_definition['scoping_class'],
                 scoping_path=self.profile_definition['scoping_path'],

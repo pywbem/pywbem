@@ -235,6 +235,10 @@ Released: not yet
 
 * Test: Added Python 3.8 to the tested environments. (See issue #1879)
 
+* For the end2end tests, extended the definitions in
+  `tests/profiles/profiles.yml` by the ability to specify the profile version.
+  (See issue #1554)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
