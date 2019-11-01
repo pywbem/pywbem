@@ -77,6 +77,10 @@ Released: not yet
 
 * Test: Added Python 3.8 to the tested environments. (See issue #1879)
 
+* Clarified that namespace and host will be ignored when the `ResultClass` and
+  `AssocClass` parameters of association operations are specified using a
+  `CIMClassName` object. (See issue #1907)
+
 **Cleanup:**
 
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
