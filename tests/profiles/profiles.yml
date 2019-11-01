@@ -12,6 +12,8 @@
 # * registered_org: Registered organization of the profile or specification
 #   (as a string, e.g. 'SNIA').
 # * registered_name: Registered name of the profile or specification.
+# * registered_version: Registered version of the profile or specification
+#   that this item matches. Optional; defaults to match any version.
 # * type: Type of the profile or specification, as follows:
 #   - specification: Item is a specification (e.g. SNIA SMI-S).
 #   - autonomous: Item is an autonomous profile (e.g. SNIA Array).
@@ -31,8 +33,6 @@
 #   must support the central class methodology.
 #   Optional, defaults to null.
 # * doc: Informal reference to the standards document describing the profile.
-#
-# TODO #1554: Add support for representing profile versions.
 
 -
   # Note: Special case: The 'SMI-S' profile is actually a registered
