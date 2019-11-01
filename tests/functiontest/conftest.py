@@ -136,6 +136,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+import codecs
 import yaml
 import yamlordereddictloader
 import pytest
@@ -690,6 +691,34 @@ def assertXMLEqual(s_act, s_exp, entity=None):
                              (entity, diff))
 
 
+def utf8_with_surrogate_issues(unicode_str):
+    """
+    Convert a unicode string to UTF-8, tolerating issues with surrogate
+    characters (U+D800 to U+DFFF).
+
+    Background for having this function:
+
+    For testing purposes, the response body should support characters that are
+    illegal from as many different perspectives as possible. At this point, the
+    response body may specify anything that is legal in a Python unicode
+    string. Up to now, Python unicode strings allow for unpaired surrogates
+    (i.e. a surrogate code point followed by a non-surrogate code point), or
+    swapped surrogates (i.e. a high surrogate code point followed by a low
+    surrogate code point). However, httpretty converts a body presented as a
+    Python unicode string into a byte string using str.encode() which fails in
+    Python 3 in case of such surrogate issues (it tolerates that in Python 2).
+    In order to allow such invalid surrogates in responses to be tested, this
+    function converts the unicode body string to a UTF-8 byte string in a way
+    that tolerates surrogate issues in both Python 2 and Python 3.
+    """
+    if six.PY2:
+        utf8_str = codecs.encode(unicode_str, 'utf-8')
+        # does not support 'surrogatepass', but behaves like that
+    else:
+        utf8_str = codecs.encode(unicode_str, 'utf-8', 'surrogatepass')
+    return utf8_str
+
+
 @httpretty.activate
 def runtestcase(testcase):
     """Run a single test case."""
@@ -719,8 +748,10 @@ def runtestcase(testcase):
         exp_http_exception = tc_getattr(tc_name, http_response,
                                         "exception", None)
         if exp_http_exception is None:
+            body = tc_getattr(tc_name, http_response, "data")
+            body = utf8_with_surrogate_issues(body)
             params = {
-                "body": tc_getattr(tc_name, http_response, "data"),
+                "body": body,
                 "adding_headers": tc_getattr(tc_name, http_response,
                                              "headers", None),
                 "status": tc_getattr(tc_name, http_response, "status")
