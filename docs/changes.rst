@@ -239,6 +239,10 @@ Released: not yet
   `tests/profiles/profiles.yml` by the ability to specify the profile version.
   (See issue #1554)
 
+* Clarified that namespace and host will be ignored when the `ResultClass` and
+  `AssocClass` parameters of association operations are specified using a
+  `CIMClassName` object. (See issue #1907)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
