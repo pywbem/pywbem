@@ -343,15 +343,23 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     (3) The Python escapes ``\\u`` and ``\\U`` used in literal strings can
         represent the surrogate code points (as well as all other code points,
         regardless of whether they are assigned to Unicode characters).
+        That is the case in both Python 2 and Python 3.
 
-    (4) The Python `encode()` and `decode()` functions successfully
-        translate the surrogate code points back and forth for encoding UTF-8.
+    (4) In Python 2, the `unicode.encode()` and `str.decode()` methods
+        successfully translate surrogate code points back and forth for
+        encoding UTF-8, tolerating invalid surrogate sequences.
 
         For example, ``b'\\xed\\xb0\\x80'.decode("utf-8") = u'\\udc00'``.
 
-    (5) Because Python supports the encoding and decoding of UTF-8 sequences
+        In Python 3, the `str.encode()` and `bytes.decode()` methods raise
+        UnicodeEncodeError / UnicodeDecodeError for invalid surrogate
+        sequences. However, the `codecs.encode()` and `codecs.decode()`
+        methods have an error handler 'surrogatepass' which tolerates
+        invalid surrogate sequences.
+
+    (5) Because Python 2 supports the encoding and decoding of UTF-8 sequences
         also for the surrogate code points, the "narrow" Unicode build of
-        Python can be (mis-)used to transport each surrogate unit separately
+        Python 2 can be (mis-)used to transport each surrogate unit separately
         encoded in (ill-formed) UTF-8.
 
         For example, code point U+10122 can be (illegally) created from a
