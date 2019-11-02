@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClasses
       IncludeClassOrigin: null
@@ -64,7 +64,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     stats-enabled: true
     operation:
       pywbem_method: EnumerateClasses
@@ -124,7 +124,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClasses
       IncludeClassOrigin: true
@@ -193,7 +193,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClasses
       IncludeClassOrigin: null
@@ -251,7 +251,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClasses
       namespace: null
@@ -304,7 +304,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClasses
       namespace: //root/mycim//

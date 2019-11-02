@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClassNames
       ClassName: PyWBEM_Person
@@ -61,7 +61,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClassNames
       ClassName: null
@@ -318,7 +318,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClassNames
       ClassName: XXX_Blah
@@ -373,7 +373,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClassNames
       ClassName: PyWBEM_Person
@@ -426,7 +426,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: EnumerateClassNames
       ClassName: PyWBEM_Person

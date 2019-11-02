@@ -421,7 +421,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: CIM_ComputerSystem
@@ -485,7 +485,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Person
@@ -540,7 +540,7 @@
             - password
         namespace: root/bad
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: CIM_ComputerSystem
@@ -604,7 +604,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Bad
@@ -659,7 +659,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: OpenEnumerateInstancePaths
             ClassName: PyWBEM_Person

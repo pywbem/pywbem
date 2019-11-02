@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstances
       FilterQuery: null
@@ -214,7 +214,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstances
       MaxObjectCount: 100
@@ -354,7 +354,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstances
       MaxObjectCount: 100

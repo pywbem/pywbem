@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstancePaths
       FilterQuery: null
@@ -144,7 +144,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstancePaths
       FilterQuery: null
@@ -279,7 +279,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstancePaths
       FilterQuery: null
@@ -411,7 +411,7 @@
     - password
     namespace: root/blah
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstancePaths
       FilterQuery: null
@@ -488,7 +488,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstancePaths
       ResultClass: null
@@ -621,7 +621,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: OpenReferenceInstancePaths
       ResultClass: null

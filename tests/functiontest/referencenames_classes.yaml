@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ReferenceNames
       Role: member
@@ -85,7 +85,7 @@
     - password
     namespace: root/bad
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ReferenceNames
       Role: member

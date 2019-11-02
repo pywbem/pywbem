@@ -17,6 +17,9 @@ The following YAML is an example for one testcase in such a file:
     -
         name: demo1
         description: Demo #1, using GetInstance
+        ignore_test: false  # default
+        ignore_python_version: null  # default
+        ignore_debug_comparison: false  # default
         pywbem_request:
             url: http://acme.com:80
             creds:

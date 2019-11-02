@@ -368,7 +368,7 @@
     - password
     namespace: root/blah
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: References
       ObjectName:

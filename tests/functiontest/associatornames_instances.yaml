@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: AssociatorNames
       ResultClass: null
@@ -100,7 +100,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: AssociatorNames
       ResultClass: null
@@ -193,7 +193,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: AssociatorNames
       ResultClass: CIM_Collection
@@ -298,7 +298,7 @@
         - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
           pywbem_method: AssociatorNames
           ResultClass: CIM_Collection
@@ -381,7 +381,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: AssociatorNames
       ObjectName:
@@ -474,7 +474,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: AssociatorNames
       ObjectName:
