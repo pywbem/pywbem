@@ -8,7 +8,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -77,6 +77,7 @@
 -
     name: InvalidResponse2
     description: GetInstance response is invalid XML (begin and end tag not matching)
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -153,6 +154,7 @@
 -
     name: InvalidResponse3
     description: GetInstance response is invalid XML (tag delimiters invalid)
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -229,6 +231,7 @@
 -
     name: InvalidResponse4
     description: GetInstance response contains invalid character U+0000
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -304,6 +307,7 @@
 -
     name: InvalidResponse5
     description: GetInstance response contains illegal character U+0001
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -379,6 +383,7 @@
 -
     name: InvalidResponse6
     description: GetInstance response contains illegal character U+0002
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -454,6 +459,7 @@
 -
     name: InvalidResponse7
     description: GetInstance response contains illegal character U+0003
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -529,6 +535,7 @@
 -
     name: InvalidResponse8
     description: GetInstance response contains illegal character U+0004
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -604,6 +611,7 @@
 -
     name: InvalidResponse9
     description: GetInstance response contains illegal character U+0005
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -679,6 +687,7 @@
 -
     name: InvalidResponse10
     description: GetInstance response contains illegal character U+0006
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -754,6 +763,7 @@
 -
     name: InvalidResponse11
     description: GetInstance response contains illegal character U+0007
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -829,6 +839,7 @@
 -
     name: InvalidResponse12
     description: GetInstance response contains illegal character U+0008
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -904,6 +915,7 @@
 -
     name: InvalidResponse13
     description: GetInstance response contains illegal character U+000B
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -979,6 +991,7 @@
 -
     name: InvalidResponse14
     description: GetInstance response contains illegal character U+000C
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1054,6 +1067,7 @@
 -
     name: InvalidResponse15
     description: GetInstance response contains illegal character U+000E
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1129,6 +1143,7 @@
 -
     name: InvalidResponse16
     description: GetInstance response contains illegal character U+000F
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1204,6 +1219,7 @@
 -
     name: InvalidResponse17
     description: GetInstance response contains illegal character U+0010
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1279,6 +1295,7 @@
 -
     name: InvalidResponse18
     description: GetInstance response contains illegal character U+0011
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1354,6 +1371,7 @@
 -
     name: InvalidResponse19
     description: GetInstance response contains illegal character U+0012
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1429,6 +1447,7 @@
 -
     name: InvalidResponse20
     description: GetInstance response contains illegal character U+0013
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1504,6 +1523,7 @@
 -
     name: InvalidResponse21
     description: GetInstance response contains illegal character U+0014
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1579,6 +1599,7 @@
 -
     name: InvalidResponse22
     description: GetInstance response contains illegal character U+0015
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1654,6 +1675,7 @@
 -
     name: InvalidResponse23
     description: GetInstance response contains illegal character U+0016
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1729,6 +1751,7 @@
 -
     name: InvalidResponse24
     description: GetInstance response contains illegal character U+0017
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1804,6 +1827,7 @@
 -
     name: InvalidResponse25
     description: GetInstance response contains illegal character U+0018
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1879,6 +1903,7 @@
 -
     name: InvalidResponse26
     description: GetInstance response contains illegal character U+0019
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1954,6 +1979,7 @@
 -
     name: InvalidResponse27
     description: GetInstance response contains illegal character U+001A
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2029,6 +2055,7 @@
 -
     name: InvalidResponse28
     description: GetInstance response contains illegal character U+001B
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2104,6 +2131,7 @@
 -
     name: InvalidResponse29
     description: GetInstance response contains illegal character U+001C
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2179,6 +2207,7 @@
 -
     name: InvalidResponse30
     description: GetInstance response contains illegal character U+001D
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2254,6 +2283,7 @@
 -
     name: InvalidResponse31
     description: GetInstance response contains illegal character U+001E
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2329,6 +2359,7 @@
 -
     name: InvalidResponse32
     description: GetInstance response contains illegal character U+001F
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2497,7 +2528,8 @@
             </CIM>"
 -
     name: ValidResponse2
-    description: GetInstance response contains legal Unicode character U+000D as XML entity &#x0D;
+    description: GetInstance response contains legal Unicode character U+000D as XML entity &#x0D;, which becomes U+000A
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2592,6 +2624,7 @@
 -
     name: ValidResponse3
     description: GetInstance response contains legal Unicode character U+000D in CDATA section, which becomes U+000A
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2686,6 +2719,7 @@
 -
     name: ValidResponse4
     description: GetInstance response contains legal Unicode character U+000D (binary), which becomes U+000A
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2874,6 +2908,8 @@
 -
     name: InvalidResponse33
     description: GetInstance response contains illegal unpaired surrogate U+D800
+    ignore_python_version: 3
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -2949,6 +2985,8 @@
 -
     name: InvalidResponse34
     description: GetInstance response contains illegal unpaired surrogate U+DC00
+    ignore_python_version: 3
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -3024,6 +3062,85 @@
 -
     name: InvalidResponse35
     description: GetInstance response contains illegal swapped surrogate sequence U+DC00, U+D800
+    ignore_python_version: 3
+    ignore_debug_comparison: true
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: GetInstance
+            InstanceName:
+                pywbem_object: CIMInstanceName
+                classname: PyWBEM_Person
+                keybindings:
+                    Name: Fritz
+            LocalOnly: false
+    pywbem_response:
+        exception: XMLParseError
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: GetInstance
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+              <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                <SIMPLEREQ>
+                  <IMETHODCALL NAME="GetInstance">
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="root"/>
+                      <NAMESPACE NAME="cimv2"/>
+                    </LOCALNAMESPACEPATH>
+                    <IPARAMVALUE NAME="InstanceName">
+                      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                        <KEYBINDING NAME="Name">
+                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                        </KEYBINDING>
+                      </INSTANCENAME>
+                    </IPARAMVALUE>
+                    <IPARAMVALUE NAME="LocalOnly">
+                      <VALUE>FALSE</VALUE>
+                    </IPARAMVALUE>
+                  </IMETHODCALL>
+                </SIMPLEREQ>
+              </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: "<?xml version=\"1.0\" encoding=\"utf-8\" ?>
+            <CIM CIMVERSION=\"2.0\" DTDVERSION=\"2.0\">
+              <MESSAGE ID=\"1001\" PROTOCOLVERSION=\"1.0\">
+                <SIMPLERSP>
+                  <IMETHODRESPONSE NAME=\"GetInstance\">
+                    <IRETURNVALUE>
+                      <INSTANCE CLASSNAME=\"PyWBEM_Person\">
+                        <PROPERTY NAME=\"Name\" TYPE=\"string\">
+                          <VALUE>Fritz</VALUE>
+                        </PROPERTY>
+                        <PROPERTY NAME=\"Address\" TYPE=\"string\">
+                          <VALUE>Fritz \uDC00\uD800 Town</VALUE>
+                        </PROPERTY>
+                      </INSTANCE>
+                    </IRETURNVALUE>
+                  </IMETHODRESPONSE>
+                </SIMPLERSP>
+              </MESSAGE>
+            </CIM>"
+-
+    name: InvalidResponse36
+    description: GetInstance response contains surrogate sequence U+D800, U+DC00, still illegal in UTF-8
+    ignore_python_version: 3
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:

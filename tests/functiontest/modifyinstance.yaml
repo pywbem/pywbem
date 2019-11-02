@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ModifyInstance
       IncludeQualifiers: null
@@ -126,7 +126,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ModifyInstance
       IncludeQualifiers: null
@@ -248,7 +248,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ModifyInstance
       ModifiedInstance:
@@ -320,7 +320,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ModifyInstance
       ModifiedInstance:

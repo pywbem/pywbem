@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:
@@ -117,7 +117,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     stats-enabled: true
     operation:
       pywbem_method: CreateInstance
@@ -230,7 +230,7 @@
         - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: CreateInstance
             NewInstance:
@@ -600,7 +600,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:
@@ -696,7 +696,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:
@@ -784,7 +784,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:
@@ -874,7 +874,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:
@@ -966,7 +966,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:
@@ -1061,7 +1061,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: CreateInstance
       NewInstance:

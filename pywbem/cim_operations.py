@@ -194,7 +194,7 @@ def _to_pretty_xml(xml_item):
     if provided as a string. This processing uses a lot of memory and takes
     significant elapsed time.
     """
-    if isinstance(xml_item, six.string_types):
+    if isinstance(xml_item, (six.text_type, six.binary_type)):
         xml_item = minidom.parseString(xml_item)
 
     pretty_result = xml_item.toprettyxml(indent='  ')

@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ExecQuery
       QueryLanguage: WQL
@@ -272,7 +272,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ExecQuery
       QueryLanguage: WQL
@@ -330,7 +330,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ExecQuery
       QueryLanguage: wql
@@ -388,7 +388,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ExecQuery
       QueryLanguage: WQL
@@ -446,7 +446,7 @@
     - password
     namespace: //root/mycim//
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ExecQuery
       namespace: null
@@ -536,7 +536,7 @@
     - password
     namespace: null
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: ExecQuery
       namespace: //root/mycim//

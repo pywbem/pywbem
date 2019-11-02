@@ -8,7 +8,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:

@@ -7,7 +7,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -109,7 +109,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -180,7 +180,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Nothing
@@ -234,7 +234,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             namespace: root/interop
@@ -289,7 +289,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName:
@@ -346,7 +346,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             namespace: root/myspace
@@ -404,7 +404,7 @@
             - password
         namespace: root/interop
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             namespace: root/cimv2
@@ -491,7 +491,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             namespace:
@@ -564,7 +564,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -618,7 +618,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         stats-enabled: true
         operation:
             pywbem_method: EnumerateInstanceNames
@@ -675,7 +675,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -730,7 +730,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -785,7 +785,7 @@
             - password
         namespace: blah/blah
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -840,7 +840,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Bad
@@ -895,7 +895,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             ClassName: PyWBEM_Person
@@ -950,7 +950,7 @@
             - password
         namespace: //root/mycim//
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             namespace: null
@@ -1021,7 +1021,7 @@
             - password
         namespace: null
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: EnumerateInstanceNames
             namespace: //root/mycim//

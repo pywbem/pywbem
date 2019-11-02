@@ -8,7 +8,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -123,6 +123,7 @@
 -
     name: EmbeddedObjectClassXML2
     description: GetInstance with XML-escaped embedded object (class) in result and chars in strings that need escaping
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -130,7 +131,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -245,6 +246,7 @@
 -
     name: EmbeddedObjectClassXML3
     description: GetInstance with double nested XML-escaped embedded object (class) in result and chars in strings that need escaping
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -252,7 +254,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -400,7 +402,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: ModifyInstance
             ModifiedInstance:
@@ -507,7 +509,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: CreateInstance
             NewInstance:
@@ -613,7 +615,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetClass
             ClassName:
@@ -770,7 +772,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: CreateClass
             NewClass:
@@ -884,7 +886,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: SetAddress
@@ -979,7 +981,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: SetAddress
@@ -1077,7 +1079,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: GetAddress
@@ -1172,7 +1174,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: ReturnAddress
@@ -1266,7 +1268,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -1383,6 +1385,7 @@
 -
     name: EmbeddedObjectClassCDATA2
     description: GetInstance with CDATA-escaped embedded object (class) in result and chars in strings that need escaping
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1390,7 +1393,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -1507,6 +1510,7 @@
 -
     name: EmbeddedObjectClassCDATA3
     description: GetInstance with double nested CDATA-escaped embedded object (class) in result and chars in strings that need escaping
+    ignore_debug_comparison: true
     pywbem_request:
         url: http://acme.com:80
         creds:
@@ -1514,7 +1518,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetInstance
             InstanceName:
@@ -1666,7 +1670,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: ModifyInstance
             ModifiedInstance:
@@ -1775,7 +1779,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: CreateInstance
             NewInstance:
@@ -1883,7 +1887,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: GetClass
             ClassName:
@@ -2042,7 +2046,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: CreateClass
             NewClass:
@@ -2158,7 +2162,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: SetAddress
@@ -2255,7 +2259,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: SetAddress
@@ -2355,7 +2359,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: GetAddress
@@ -2452,7 +2456,7 @@
             - password
         namespace: root/cimv2
         timeout: 10
-        debug: false
+        debug: true
         operation:
             pywbem_method: InvokeMethod
             MethodName: ReturnAddress

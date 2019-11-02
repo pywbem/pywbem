@@ -7,7 +7,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: 100
@@ -239,7 +239,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: 100
@@ -542,7 +542,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: 100
@@ -602,7 +602,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: -1
@@ -621,7 +621,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: 1
@@ -638,7 +638,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: 1
@@ -654,7 +654,7 @@
     - password
     namespace: root/cimv2
     timeout: 10
-    debug: false
+    debug: true
     operation:
       pywbem_method: PullInstances
       MaxObjectCount: None

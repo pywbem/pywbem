@@ -41,6 +41,9 @@ using comment lines for informally stated conditions::
 
     - name: {tc_name}
       description: {tc_desc}
+      ignore_test: true/false  # default: false
+      ignore_python_version: 2/3/null  # default: null
+      ignore_debug_comparison: true/false  # default: false
       pywbem_request:
         {WBEMConnection_ctor_args}
         operation:
@@ -585,16 +588,18 @@ def xml_unescape(s):  # pylint: disable=invalid-name
     return s
 
 
-def assertXMLEqual(s_act, s_exp, entity=None):
+def assertXMLEqual(s_act, s_exp, entity):
     """
     Assert that the two XML fragments are equal, tolerating the following
     variations:
+
       * whitespace outside of element content and attribute values.
       * order of attributes.
       * order of certain child elements (see `sort_elements` in this
         function).
 
     Parameters:
+
       * s_act and s_exp are string representations of an XML fragment. The
         strings may be Unicode strings or UTF-8 encoded byte strings.
         The strings may contain an encoding declaration even when
@@ -603,7 +608,13 @@ def assertXMLEqual(s_act, s_exp, entity=None):
         Note: An encoding declaration is the `encoding` attribute in the
         XML declaration (aka XML processing statement), e.g.:
             <?xml version="1.0" encoding="utf-8" ?>
+
+      * entity (string): A human readable identification for what is compared.
     """
+
+    # Make sure that None values are already excluded by the caller
+    assert isinstance(s_act, (six.text_type, six.binary_type))
+    assert isinstance(s_exp, (six.text_type, six.binary_type))
 
     # Ensure Unicode strings and remove encoding from XML declaration
     encoding_pattern = re.compile(
@@ -614,8 +625,12 @@ def assertXMLEqual(s_act, s_exp, entity=None):
     s_exp = re.sub(encoding_pattern, encoding_repl, _ensure_unicode(s_exp))
 
     parser = etree.XMLParser(remove_blank_text=True)
-    x_act = etree.XML(s_act, parser=parser)
-    x_exp = etree.XML(s_exp, parser=parser)
+    try:
+        x_act = etree.XML(s_act, parser=parser)
+        x_exp = etree.XML(s_exp, parser=parser)
+    except etree.XMLSyntaxError as exc:
+        raise AssertionError("XML cannot be validated for %s: %s" %
+                             (entity, exc))
 
     def sort_embedded(root, sort_elements):
         """
@@ -725,14 +740,19 @@ def runtestcase(testcase):
 
     tc_name = tc_getattr("", testcase, "name")
     # tc_desc = tc_getattr(tc_name, testcase, "description", None)
-    tc_ignore = tc_getattr(tc_name, testcase, "ignore_python_version", None)
-    tc_ignore_test = tc_getattr(tc_name, testcase, "ignore_test", None)
+    tc_ignore_test = tc_getattr(
+        tc_name, testcase, "ignore_test", False)
+    tc_ignore_python_version = tc_getattr(
+        tc_name, testcase, "ignore_python_version", None)
+    tc_ignore_debug_comparison = tc_getattr(
+        tc_name, testcase, "ignore_debug_comparison", False)
 
     # Determine if this test case should be skipped
-    if tc_ignore_test is not None:
+    if tc_ignore_test:
         pytest.skip("Test case has 'ignore_test' set")
         return
-    if six.PY2 and tc_ignore == 2 or six.PY3 and tc_ignore == 3:
+    if six.PY2 and tc_ignore_python_version == 2 or \
+            six.PY3 and tc_ignore_python_version == 3:
         pytest.skip("Test case has 'ignore_python_version' set")
         return
 
@@ -924,8 +944,27 @@ def runtestcase(testcase):
                 "Value of %s header in HTTP request is: %s " \
                 "(expected: %s)" % (header_name, act_header, exp_header)
         exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
-        assertXMLEqual(http_request.body, exp_data,
-                       "Unexpected CIM-XML payload in HTTP request")
+        if exp_data:
+            assertXMLEqual(http_request.body, exp_data, "HTTP request")
+            if not tc_ignore_debug_comparison and conn.debug:
+                if conn.last_raw_request:
+                    assertXMLEqual(conn.last_raw_request, exp_data,
+                                   "conn.last_raw_request")
+                if conn.last_request:
+                    assertXMLEqual(conn.last_request, exp_data,
+                                   "conn.last_request")
+
+    if http_response is not None:
+        exp_response_data = tc_getattr(tc_name, http_response, "data", None)
+        if exp_response_data:
+            if not tc_ignore_debug_comparison and conn.debug:
+                if conn.last_raw_reply:
+                    assertXMLEqual(conn.last_raw_reply, exp_response_data,
+                                   "conn.last_raw_reply")
+                if conn.last_reply:
+                    assertXMLEqual(conn.last_reply, exp_response_data,
+                                   "conn.last_reply")
+
     if exp_request_len is not None:
         assert exp_request_len == conn.last_request_len
 

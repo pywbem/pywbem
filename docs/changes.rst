@@ -243,6 +243,9 @@ Released: not yet
   `AssocClass` parameters of association operations are specified using a
   `CIMClassName` object. (See issue #1907)
 
+* Improved test coverage of function tests by verifying the last_request,
+  last_raw_request, last_reply, and last_raw_reply attributes of a connection.
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
