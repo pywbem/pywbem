@@ -184,17 +184,20 @@ pull_query_result_tuple = namedtuple("pull_query_result_tuple",
                                       "query_result_class"])
 
 
-def _to_pretty_xml(xml_string):
+def _to_pretty_xml(xml_item):
     """
-    Common function to produce pretty xml string from an input xml_string.
+    Common function to produce a prettified XML string from an input XML item
+    that can be a string or a minidom.Element object.
 
-    This function is NOT intended to be used in major code paths since it
-    uses the minidom to produce the prettified xml and that uses a lot
-    of memory
+    This function is NOT intended to be used in major code paths since it uses
+    the minidom module to produce the prettified XML and to parse the input XML
+    if provided as a string. This processing uses a lot of memory and takes
+    significant elapsed time.
     """
+    if isinstance(xml_item, six.string_types):
+        xml_item = minidom.parseString(xml_item)
 
-    result_dom = minidom.parseString(xml_string)
-    pretty_result = result_dom.toprettyxml(indent='  ')
+    pretty_result = xml_item.toprettyxml(indent='  ')
 
     # remove extra empty lines
     return re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<', pretty_result)
@@ -650,7 +653,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_raw_request = None
         self._last_raw_reply = None
         self._last_request = None
+        self._last_request_xml_item = None
         self._last_reply = None
+        self._last_reply_xml_item = None
 
         # Time statistics
         self._last_request_len = 0
@@ -1119,6 +1124,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Prior to sending the very first request on this connection object,
         this property is `None`.
         """
+        if self._last_request_xml_item is None:
+            return None
+        if self._last_request is None:
+            self._last_request = _to_pretty_xml(self._last_request_xml_item)
         return self._last_request
 
     @property
@@ -1157,6 +1166,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Prior to sending the very first request on this connection object,
         this property is `None`.
         """
+        if self._last_reply_xml_item is None:
+            return None
+        if self._last_reply is None:
+            self._last_reply = _to_pretty_xml(self._last_reply_xml_item)
         return self._last_reply
 
     @property
@@ -1721,8 +1734,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_reply_len = 0
         self._last_server_response_time = None
         if self.debug:
-            self._last_request = req_xml.toprettyxml(indent='  ')
+            self._last_request = None  # will be set upon access
+            self._last_request_xml_item = req_xml
             self._last_reply = None
+            self._last_reply_xml_item = None
 
         # Send request and receive response
         reply_data, self._last_server_response_time = wbem_request(
@@ -1749,7 +1764,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Set attributes recording the response, part 2.
         if self.debug:
-            self._last_reply = _to_pretty_xml(reply_data)
+            self._last_reply = None  # will be set upon access
+            self._last_reply_xml_item = reply_data
 
         # Check the tuple tree
 
@@ -2031,8 +2047,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._last_reply_len = 0
         self._last_server_response_time = None
         if self.debug:
-            self._last_request = req_xml.toprettyxml(indent='  ')
+            self._last_request = None  # will be set upon access
+            self._last_request_xml_item = req_xml
             self._last_reply = None
+            self._last_reply_xml_item = None
 
         # Send request and receive response
         reply_data, self._last_server_response_time = wbem_request(
@@ -2059,7 +2077,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Set attributes recording the response, part 2.
         if self.debug:
-            self._last_reply = _to_pretty_xml(reply_data)
+            self._last_reply = None  # will be set upon access
+            self._last_reply_xml_item = reply_data
 
         # Check the tuple tree
 

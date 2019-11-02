@@ -260,6 +260,9 @@ Released: not yet
   native Python types int, long, float. These types cannot occur in this
   function, so no tests could be written that test that code.
 
+* Improved performance when setting WBEMConnection.debug by prettifying the
+  request and reply XML only when actually accessed. (See issue #1572)
+
 **Known issues:**
 
 * See `list of open issues`_.
