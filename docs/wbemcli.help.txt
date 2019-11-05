@@ -7,6 +7,11 @@ input requests as soon as the interactive shell is started.
 
 Use h() in thenteractive shell for help for wbemcli methods and variables.
 
+Deprecated: The wbemcli command has been deprecated in pywbem 0.15.0.
+Version 1.0.0 of pywbem will remove the wbemcli command.
+The recommended replacement is to use the pywbemcli command from the
+pywbemtools package on Pypi.
+
 Positional arguments:
   server                Host name or url of the WBEM server in this format:
                             [{scheme}://]{host}[:{port}]
