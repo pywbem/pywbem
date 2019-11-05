@@ -195,7 +195,6 @@ doc_opts := -v -d $(doc_build_dir)/doctrees -c $(doc_conf_dir) -D latex_elements
 
 # File names of automatically generated utility help message text output
 doc_utility_help_files := \
-    $(doc_conf_dir)/wbemcli.help.txt \
     $(doc_conf_dir)/mof_compiler.help.txt \
 
 # Dependents for Sphinx documentation build
@@ -225,7 +224,6 @@ doc_dependent_files := \
     $(mock_package_name)/__init__.py \
     $(mock_package_name)/_wbemconnection_mock.py\
     $(mock_package_name)/_dmtf_cim_schema.py\
-    wbemcli.py \
 
 # PyLint config file
 pylint_rc_file := pylintrc
@@ -241,8 +239,6 @@ py_src_files := \
     $(wildcard tests/*/*.py) \
     $(wildcard tests/*/*/*.py) \
     $(wildcard tests/*/*/*/*.py) \
-    wbemcli \
-    wbemcli.py \
     mof_compiler \
     $(wildcard $(mock_package_name)/*.py) \
 
@@ -340,8 +336,6 @@ help:
 	@echo "  TEST_INSTALLED - When non-empty, run any tests using the installed version of pywbem"
 	@echo "      and assume all Python and OS-level prerequisites are already installed."
 	@echo "      When set to 'DEBUG', print location from where pywbem and pywbem_mock are loaded."
-	@echo "  TEST_WBEMCLI_NAME - Specifies the name of the wbemcli command, in case a distributor"
-	@echo "      packages it under a different name. Defaults to 'wbemcli'."
 	@echo "  PACKAGE_LEVEL - Package level to be used for installing dependent Python"
 	@echo "      packages in 'install' and 'develop' targets:"
 	@echo "        latest - Latest package versions available on Pypi"
@@ -490,7 +484,7 @@ all: install develop build builddoc check pylint test
 .PHONY: clobber
 clobber: clean
 	@echo "makefile: Removing everything for a fresh start"
-	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover wbemcli.log)
+	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover)
 	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir))
 	@echo "makefile: Done removing everything for a fresh start"
 	@echo "makefile: Target $@ done."
@@ -684,15 +678,6 @@ end2end: develop_$(pymn).done $(moftab_files)
 	@echo "makefile: Running end2end tests"
 	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) tests/end2endtest -s
 	@echo "makefile: Done running end2end tests"
-
-$(doc_conf_dir)/wbemcli.help.txt: wbemcli wbemcli.py
-	@echo "makefile: Creating wbemcli script help message file"
-ifeq ($(PLATFORM),Windows_native)
-	wbemcli.bat --help >$@
-else
-	./wbemcli --help >$@
-endif
-	@echo "makefile: Done creating wbemcli script help message file: $@"
 
 $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler.py
 	@echo "makefile: Creating mof_compiler script help message file"

@@ -293,16 +293,7 @@ installed into the system Python:
 
        $ make clobber
 
-5. Some distributions install the 'wbemcli' command of pywbem under a different
-   command name than ``wbemcli``. Find out what that name is, and if it is
-   different, set the ``TEST_WBEMCLI_NAME`` environment variable to that
-   command name (e.g for a command name of ``pywbemcli``):
-
-   .. code-block:: bash
-
-       $ export TEST_WBEMCLI_NAME=pywbemcli
-
-6. Run the pywbem tests with environment variable ``TEST_INSTALLED`` being set:
+5. Run the pywbem tests with environment variable ``TEST_INSTALLED`` being set:
 
    .. code-block:: bash
 

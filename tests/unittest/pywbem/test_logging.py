@@ -51,7 +51,7 @@ from ..utils.pytest_extensions import simplified_test_function
 
 VERBOSE = False
 
-# Location of any test scripts for testing wbemcli.py
+# Location of any test scripts
 TEST_DIR = os.path.dirname(__file__)
 
 LOG_FILE_NAME = 'test_logging.log'
