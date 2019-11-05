@@ -49,6 +49,23 @@ Released: not yet
   on Python 3, and for Python 2 it had been deprecated since pywbem 0.12.0.
   (See issue #1926).
 
+* The wbemcli command of pywbem has been removed. The recommended replacement
+  is the pywbemcli command from the pywbemtools package on Pypi:
+  https://pypi.org/project/pywbemtools/. Some of the reasons for the
+  removal are: (See issue #1932)
+
+  - Wbemcli did not have a command line mode (i.e. a non-interactive mode), but
+    pywbemcli does.
+  - The interactive mode of wbemcli was more of a programming environment than
+    an interactive CLI, and that makes it harder to use than necessary.
+    Pywbemcli has an interactive mode that uses the same commands as in the
+    command line mode. If you need an interactive programming prompt e.g. for
+    demonstrating the pywbem API, use the interactive mode of the python
+    command, or Python's IDLE.
+  - Pywbemcli provides more functionality than wbemcli, e.g. server commands,
+    persistent connections, class find, instance count, or multiple output
+    formats.
+
 **Deprecations:**
 
 **Bug fixes:**

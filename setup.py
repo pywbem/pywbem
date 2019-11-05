@@ -89,7 +89,6 @@ setuptools.setup(
     ],
     include_package_data=True,  # as specified in MANIFEST.in
     scripts=[
-        'wbemcli', 'wbemcli.py', 'wbemcli.bat',
         'mof_compiler', 'mof_compiler.bat'
     ],
     install_requires=install_requires,

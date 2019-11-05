@@ -17,10 +17,12 @@ The following commands are provided:
   A MOF compiler that takes MOF files as input and updates the CIM repository
   of a WBEM server with the result.
 
-* :ref:`wbemcli`
+Versions of pywbem before 1.0.0 provided a command ``wbemcli`` as an
+interactive command line environment. It is recommended to use the
+``pywbemcli`` command from the
+`pywbemtools package on Pypi <https://pypi.org/project/pywbemtools/>`_
+as a replacement.
 
-  A WBEM client in the form of a shell that provides an interactive Python
-  environment for issuing WBEM operations to a WBEM server.
 
 .. _`mof_compiler`:
 
@@ -42,29 +44,3 @@ Here is the help text of the command:
 .. include:: mof_compiler.help.txt
    :literal:
    :code: text
-
-.. _`wbemcli`:
-
-wbemcli
--------
-
-The ``wbemcli`` command is a WBEM client in the form of a shell that provides
-an interactive Python environment for issuing WBEM operations to a WBEM
-server.
-
-See :ref:`Python functions in wbemcli` for details on the Python functions
-available in that environment.
-
-Here is the help text of the command:
-
-.. include:: wbemcli.help.txt
-   :literal:
-   :code: text
-
-.. _`Python functions in wbemcli`:
-
-Python functions in wbemcli
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: wbemcli
-   :members:

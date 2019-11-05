@@ -48,11 +48,6 @@ Pywbem supports the following functionality:
     of a WBEM server with the result. See :term:`DSP0004` for a definition of
     MOF.
 
-  * :ref:`wbemcli`
-
-    A WBEM client in the form of a shell that provides an interactive Python
-    environment for issuing WBEM operations to a WBEM server.
-
 
 .. _`Installation`:
 

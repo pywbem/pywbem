@@ -22,7 +22,6 @@ parser.out
 moflog*.txt
 test_recorder.yaml
 pylint_done
-wbemcli.log
 /blah.yaml
 .coverage
 /coverage_html/

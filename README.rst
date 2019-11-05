@@ -168,12 +168,6 @@ Command line tools
 
 Pywbem includes two command line tools:
 
-*  `wbemcli`_ - An interactive shell for issuing WBEM operations against a WBEM
-   server. In addition to executing the WBEM operations directly, simple
-   scripts can be created to be executed within `wbemcli`.
-
-.. _wbemcli: https://pywbem.readthedocs.io/en/stable/utilities.html#wbemcli
-
 *  `mof_compiler`_ - A MOF compiler to compile MOF into repositories (e.g.
    WBEM servers) or to test compile MOF.
 
