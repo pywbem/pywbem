@@ -3121,7 +3121,7 @@ def _get_connection_info():
     return fill(info, 78, subsequent_indent='    ')
 
 
-def _get_banner():
+def _get_banner(prog):
     """Return a banner message for the interactive console."""
 
     result = ''
@@ -3137,7 +3137,12 @@ def _get_banner():
     else:
         result += '\nPress Ctrl-D or enter quit() or exit() to exit'
     result += '\nEnter h() for help'
-
+    result += '\n\n-----------------------------------------------------------'
+    result += '\nThe %s command has been deprecated in pywbem 0.15.0.' % prog
+    result += '\nVersion 1.0.0 of pywbem will remove the %s command.' % prog
+    result += '\nThe recommended replacement is to use the pywbemcli command'
+    result += '\nfrom the pywbemtools package on Pypi.'
+    result += '\n-----------------------------------------------------------\n'
     return result
 
 
@@ -3187,7 +3192,12 @@ wbemcli executes the WBEMConnection as part of initialization so the user can
 input requests as soon as the interactive shell is started.
 
 Use h() in thenteractive shell for help for wbemcli methods and variables.
-"""
+
+Deprecated: The %s command has been deprecated in pywbem 0.15.0.
+Version 1.0.0 of pywbem will remove the %s command.
+The recommended replacement is to use the pywbemcli command from the
+pywbemtools package on Pypi.
+""" % (prog, prog)
     epilog = """
 Examples:
   %s https://localhost:15345 -n vendor -u sheldon -p penny
@@ -3393,7 +3403,7 @@ Examples:
 
     # Interact
     i = _code.InteractiveConsole(globals())
-    i.interact(_get_banner())
+    i.interact(_get_banner(prog))
 
     # Save command line history
     if _HAVE_READLINE:

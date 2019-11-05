@@ -52,6 +52,11 @@ The ``wbemcli`` command is a WBEM client in the form of a shell that provides
 an interactive Python environment for issuing WBEM operations to a WBEM
 server.
 
+**Deprecated:** The ``wbemcli`` command has been deprecated in pywbem 0.15.0.
+Version 1.0.0 of pywbem will remove the ``wbemcli`` command. The recommended
+replacement is to use the ``pywbemcli`` command from the
+`pywbemtools package on Pypi <https://pypi.org/project/pywbemtools/>`_`.
+
 See :ref:`Python functions in wbemcli` for details on the Python functions
 available in that environment.
 
