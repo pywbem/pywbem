@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 import sys
 import re
-import six
 try:
     from collections import OrderedDict
 except ImportError:
@@ -2250,7 +2249,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Empty dicts with >=",
@@ -2260,7 +2259,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>=',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Empty dicts with <",
@@ -2270,7 +2269,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Empty dicts with <=",
@@ -2280,7 +2279,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<=',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
 
     # Equal dicts
@@ -2292,7 +2291,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Equal dicts with >=",
@@ -2302,7 +2301,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>=',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Equal dicts with <",
@@ -2312,7 +2311,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Equal dicts with <=",
@@ -2322,7 +2321,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<=',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
 
     # Dicts that compare less (obj1 < obj2)
@@ -2334,7 +2333,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Less-comparing dicts with >=",
@@ -2344,7 +2343,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>=',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Less-comparing dicts with <",
@@ -2354,7 +2353,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Less-comparing dicts with <=",
@@ -2364,7 +2363,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<=',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
 
     # Dicts that compare greater (obj1 > obj2)
@@ -2376,7 +2375,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Greater-comparing dicts with >=",
@@ -2386,7 +2385,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='>=',
             exp_result=True,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Greater-comparing dicts with <",
@@ -2396,7 +2395,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
     (
         "Greater-comparing dicts with <=",
@@ -2406,7 +2405,7 @@ TESTCASES_NOCASEDICT_ORDERING = [
             op='<=',
             exp_result=False,
         ),
-        TypeError if six.PY3 else None, DeprecationWarning, True
+        TypeError, None, True
     ),
 
     # Note: More subtle cases of less- or greater-comparing dicts are not

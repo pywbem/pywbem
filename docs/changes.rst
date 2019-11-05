@@ -44,6 +44,11 @@ Released: not yet
   named arguments to these methods. This is only incompatible when the WBEM
   server supports non-standard parameters. (See issue #1415)
 
+* Removed support for ordering NocaseDict, CIMInstanceName, CIMInstance
+  and CIMClass objects. The ordering of such dictionaries is not supported
+  on Python 3, and for Python 2 it had been deprecated since pywbem 0.12.0.
+  (See issue #1926).
+
 **Deprecations:**
 
 **Bug fixes:**
