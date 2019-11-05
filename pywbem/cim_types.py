@@ -75,12 +75,10 @@ from __future__ import absolute_import
 
 from datetime import tzinfo, datetime, timedelta
 import re
-import warnings
 import copy
-import traceback
 import six
 
-from .config import DEBUG_WARNING_ORIGIN, ENFORCE_INTEGER_RANGE
+from .config import ENFORCE_INTEGER_RANGE
 from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode
 
 if six.PY2:
@@ -128,49 +126,26 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
         """
         return self._cmp(other) != 0
 
-    def __ordering_deprecated(self):
-        """Deprecated warning for pywbem CIM Objects"""
-        msg = _format("Ordering comparisons involving {0} objects are "
-                      "deprecated.", self.__class__.__name__)
-        if DEBUG_WARNING_ORIGIN:
-            msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-        warnings.warn(msg, DeprecationWarning, stacklevel=3)
+    def __raise_ordering_not_supported(self, other, op):
+        """
+        Function to raise a TypeError indicating that ordering of this class
+        is not supported.
+        """
+        raise TypeError(
+            "'{}' not supported between instances of '{}' and '{}'".
+            format(op, type(self), type(other)))
 
     def __lt__(self, other):
-        """
-        Invoked when two CIM objects are compared with the `<` operator.
-
-        The comparison is delegated to the `_cmp()` method.
-        """
-        self.__ordering_deprecated()
-        return self._cmp(other) < 0
+        self.__raise_ordering_not_supported(other, '<')
 
     def __gt__(self, other):
-        """
-        Invoked when two CIM objects are compared with the `>` operator.
-
-        The comparison is delegated to the `_cmp()` method.
-        """
-        self.__ordering_deprecated()
-        return self._cmp(other) > 0
-
-    def __le__(self, other):
-        """
-        Invoked when two CIM objects are compared with the `<=` operator.
-
-        The comparison is delegated to the `_cmp()` method.
-        """
-        self.__ordering_deprecated()
-        return self._cmp(other) <= 0
+        self.__raise_ordering_not_supported(other, '>')
 
     def __ge__(self, other):
-        """
-        Invoked when two CIM objects are compared with the `>=` operator.
+        self.__raise_ordering_not_supported(other, '>=')
 
-        The comparison is delegated to the `_cmp()` method.
-        """
-        self.__ordering_deprecated()
-        return self._cmp(other) >= 0
+    def __le__(self, other):
+        self.__raise_ordering_not_supported(other, '<=')
 
     def _cmp(self, other):
         """

@@ -45,7 +45,6 @@ from __future__ import print_function, absolute_import
 
 import sys
 import warnings
-import traceback
 try:
     from collections import OrderedDict
 except ImportError:
@@ -54,7 +53,6 @@ except ImportError:
 import six
 
 from ._utils import _stacklevel_above_module, _format
-from .config import DEBUG_WARNING_ORIGIN
 
 __all__ = []
 
@@ -464,50 +462,26 @@ class NocaseDict(object):
         """
         return not self == other
 
-    def __ordering_deprecated(self):
-        """Function to issue deprecation warning for ordered comparisons
+    def __raise_ordering_not_supported(self, other, op):
         """
-        msg = _format("Ordering comparisons involving {0} objects are "
-                      "deprecated.", self.__class__.__name__)
-        if DEBUG_WARNING_ORIGIN:
-            msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-        warnings.warn(msg, DeprecationWarning,
-                      stacklevel=_stacklevel_above_module(__name__))
+        Function to raise a TypeError indicating that ordering of this class
+        is not supported.
+        """
+        raise TypeError(
+            "'{}' not supported between instances of '{}' and '{}'".
+            format(op, type(self), type(other)))
 
     def __lt__(self, other):
-        self.__ordering_deprecated()
-        # Delegate to the underlying standard dictionary. This will result in
-        # a case sensitive comparison, but that will be better than the faulty
-        # algorithm that was used before. It will raise TypeError "unorderable
-        # types" in Python 3.
-        return self._data < other._data  # pylint: disable=protected-access
+        self.__raise_ordering_not_supported(other, '<')
 
     def __gt__(self, other):
-        """
-        Invoked when two dictionaries are compared with the `>` operator.
-
-        Implemented by delegating to the `<` operator.
-        """
-        self.__ordering_deprecated()
-        return other < self
+        self.__raise_ordering_not_supported(other, '>')
 
     def __ge__(self, other):
-        """
-        Invoked when two dictionaries are compared with the `>=` operator.
-
-        Implemented by delegating to the `>` and `==` operators.
-        """
-        self.__ordering_deprecated()
-        return (self > other) or (self == other)
+        self.__raise_ordering_not_supported(other, '>=')
 
     def __le__(self, other):
-        """
-        Invoked when two dictionaries are compared with the `<=` operator.
-
-        Implemented by delegating to the `<` and `==` operators.
-        """
-        self.__ordering_deprecated()
-        return (self < other) or (self == other)
+        self.__raise_ordering_not_supported(other, '<=')
 
     def __hash__(self):
         """
