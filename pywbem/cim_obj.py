@@ -5209,8 +5209,7 @@ class CIMMethod(_CIMComparisonMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, name=None, return_type=None, parameters=None,
-                 class_origin=None, propagated=None, qualifiers=None,
-                 methodname=None):
+                 class_origin=None, propagated=None, qualifiers=None):
         """
         The init method stores the input parameters as-is and does not infer
         unspecified parameters from the others (like
@@ -5219,12 +5218,8 @@ class CIMMethod(_CIMComparisonMixin):
         Parameters:
 
           name (:term:`string`):
-            **Deprecated:** Name of this CIM method (just the method name,
-            without class name or parenthesis).
-
-            This argument has been named `methodname` before pywbem 0.9.
-            Using `methodname` as a named argument still works, but has been
-            deprecated in pywbem 0.9.
+            Name of this CIM method (just the method name, without class name
+            or parenthesis).
 
             Must not be `None`.
 
@@ -5283,19 +5278,6 @@ class CIMMethod(_CIMComparisonMixin):
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the method.
         """
-
-        if methodname is not None:
-            msg = "The 'methodname' init parameter and attribute of " \
-                "CIMMethod is deprecated; use 'name' instead."
-            if DEBUG_WARNING_ORIGIN:
-                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-            warnings.warn(msg, DeprecationWarning,
-                          stacklevel=_stacklevel_above_module(__name__))
-
-            if name is not None:
-                raise ValueError("CIMMethod 'name' and 'methodname' "
-                                 "parameters cannot be specified both")
-            name = methodname
 
         # We use the respective setter methods:
         self.name = name
