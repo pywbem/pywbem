@@ -16,6 +16,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
+import packaging
 import pytest
 import six
 
@@ -79,8 +80,21 @@ from ..utils.pytest_extensions import simplified_test_function, ignore_warnings
 
 unimplemented = pytest.mark.skipif(True, reason="test not implemented")
 
+# Tuple with pywbem version info (M, N, P), without any dev version.
+# Can be used in testcase conditions for version specific tests.
+# Note for dev versions (e.g. '0.15.0.dev12'):
+# - Before 0.15.0, dev versions of an upcoming version always showed
+#   the next patch version, which was not always the intended next version.
+# - Starting with 0.15.0, dev versions of an upcoming version always show the
+#   intended next version.
+version_info = packaging.version.parse(__version__).release
+
 # Controls whether the new behavior for CIM objects in 0.12 is checked.
-CHECK_0_12_0 = (__version__.split('.') > ['0', '11', '0'])
+# Because of the behavior for dev versions described above, a dev version of
+# 0.12.0 appeared as 0.11.1.devN (when 0.11.0 was the last released version),
+# which made it necessary to check for >(0,11,0) instead of >=(0,12,0).
+# Note that there is no released pywbem version of 0.11 other than 0.11.0.
+CHECK_0_12_0 = (version_info > (0, 11, 0))
 
 # Values for expected 'type' property; since 0.12 they are converted to unicode
 exp_type_char16 = u'char16' if CHECK_0_12_0 else 'char16'
@@ -27184,7 +27198,8 @@ TESTCASES_CIMMETHOD_INIT = [
         None, None, True
     ),
     (
-        "Verify that bytes methodname is converted to unicode",
+        "Verify that bytes methodname is converted to unicode "
+        "(removed in 1.0)",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -27196,10 +27211,10 @@ TESTCASES_CIMMETHOD_INIT = [
                 return_type=u'string'
             )
         ),
-        None, DeprecationWarning, True  # methodname deprecated
+        None, DeprecationWarning, version_info < (1, 0, 0)
     ),
     (
-        "Verify that unicode methodname remains unicode",
+        "Verify that unicode methodname remains unicode (removed in 1.0)",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -27211,7 +27226,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 return_type=u'string'
             )
         ),
-        None, DeprecationWarning, True  # methodname deprecated
+        None, DeprecationWarning, version_info < (1, 0, 0)
     ),
 
     # Parameters tests
@@ -27534,13 +27549,15 @@ TESTCASES_CIMMETHOD_INIT = [
         TypeError, None, not CHECK_0_12_0
     ),
     (
-        "Verify that name and methodname fails (ValueError since 0.12)",
+        "Verify that name and methodname fails (ValueError since 0.12, "
+        "removed in 1.0)",
         dict(
             init_args=[],
             init_kwargs=dict(name='M', methodname='M', return_type='string'),
             exp_attrs=None
         ),
-        ValueError, DeprecationWarning, CHECK_0_12_0
+        ValueError, DeprecationWarning,
+        CHECK_0_12_0 and version_info < (1, 0, 0)
     ),
     (
         "Verify that name and methodname fails (TypeError before 0.12)",
