@@ -66,6 +66,10 @@ Released: not yet
     persistent connections, class find, instance count, or multiple output
     formats.
 
+* Removed the `verify_callback` parameter of `WBEMConnection`. It has been
+  deprecated in pywbem 0.9.0, and was not supported on Python 3.
+  (See issue #1928)
+
 **Deprecations:**
 
 **Bug fixes:**

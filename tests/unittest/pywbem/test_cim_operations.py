@@ -46,7 +46,6 @@ class TestCreateConnection(object):
             ('url', 'http:/myserver'),
             ('creds', ('x', 'y')),
             ('x509', dict(cert_file='c', key_file='k')),
-            ('verify_callback', lambda a, b, c, d, e: True),
             ('ca_certs', 'xxx'),
             ('no_verification', True),
             ('timeout', 30),
