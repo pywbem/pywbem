@@ -47,15 +47,13 @@ environment:
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
 
-## TODO: Enable Python 3.8 once available on Appveyor
-##    - TOX_ENV: win64_py38_32
-##      UNIX_PATH: none
-##      PYTHON_CMD: python
+    - TOX_ENV: win64_py38_32
+      UNIX_PATH: none
+      PYTHON_CMD: python
 
-## TODO: Enable Python 3.8 once available on Appveyor
-##    - TOX_ENV: win64_py38_64
-##      UNIX_PATH: none
-##      PYTHON_CMD: python
+    - TOX_ENV: win64_py38_64
+      UNIX_PATH: none
+      PYTHON_CMD: python
 
 # TODO: Disabled because python2.7 with cygwin 32-bit fails with:
 #       "virtualenv is not compatible with this system or executable"
