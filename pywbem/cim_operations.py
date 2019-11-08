@@ -395,7 +395,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     _activate_logging = False
 
     def __init__(self, url, creds=None, default_namespace=None,
-                 x509=None, verify_callback=None, ca_certs=None,
+                 x509=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=False,
                  stats_enabled=False):
         # pylint: disable=line-too-long
@@ -497,58 +497,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             See :ref:`Authentication types` for an overview.
 
-          verify_callback (:term:`callable`):
-            Registers a callback function that will be called to verify the
-            X.509 server certificate returned by the WBEM server during the
-            TLS/SSL handshake, in addition to the validation already performed
-            by the TLS/SSL support.
-
-            This parameter is ignored when HTTP is used.
-
-            Note that the validation performed by the TLS/SSL support already
-            includes the usual validation, so that normally a callback function
-            does not need to be used. See
-            :ref:`Verification of the X.509 server certificate` for details.
-
-            Warning: This parameter is not used when the python environment
-            is Python 3 because the ssl module does not support it.
-
-            If `None`, no such callback function will be registered.
-
-            The specified function will be called for the returned certificate,
-            and for each of the certificates in its chain of trust.
-
-            See `M2Crypto.SSL.Context.set_verify` for details, as well as
-            https://blog.san-ss.com.ar/2012/05/validating-ssl-certificate-in-python.html):
-
-            The callback function must take five parameters:
-
-            * the `M2Crypto.SSL.Connection` object that triggered the
-              verification.
-
-            * an `OpenSSL.crypto.X509` object representing the certificate
-              to be validated (the returned certificate or one of the
-              certificates in its chain of trust).
-
-            * an integer containing the error number (0 in case no error) of
-              any validation error detected by `M2Crypto`.
-              You can find their meaning in the OpenSSL documentation.
-
-            * an integer indicating the depth (=position) of the certificate to
-              be validated (the one in the second parameter) in the chain of
-              trust of the returned certificate. A value of 0 indicates
-              that the returned certificate is currently validated; any other
-              value indicates the distance of the currently validated
-              certificate to the returned certificate in its chain of trust.
-
-            * an integer that indicates whether the validation of the
-              certificate specified in the second parameter passed or did not
-              pass the validation by `M2Crypto`. A value of 1 indicates a
-              successful validation and 0 an unsuccessful one.
-
-            The callback function must return `True` if the verification
-            passes and `False` otherwise.
-
           ca_certs (:term:`string`):
             Location of CA certificates (trusted certificates) for
             verifying the X.509 server certificate returned by the WBEM server.
@@ -573,9 +521,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
-            the WBEM server during TLS/SSL handshake, disables verification of
-            the hostname, and disables the invocation of a verification function
-            specified in `verify_callback`.
+            the WBEM server during TLS/SSL handshake, and disables verification
+            of the hostname.
 
             If `True`, verification is disabled; otherwise, verification is
             enabled.
@@ -643,7 +590,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._set_creds(creds)
         self._set_default_namespace(default_namespace)
         self._set_x509(x509)
-        self._set_verify_callback(verify_callback)
         self._set_ca_certs(ca_certs)
         self._set_no_verification(no_verification)
         self._set_timeout(timeout)
@@ -794,33 +740,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def _set_x509(self, x509):
         """Internal setter function."""
         self._x509 = x509
-
-    @property
-    def verify_callback(self):
-        """
-        :term:`callable`: Callback function that will be called to verify the
-        X.509 server certificate returned by the WBEM server during the
-        TLS/SSL handshake, in addition to the validation already performed
-        by the TLS/SSL support.
-
-        For details, see the description of the same-named init
-        parameter of :class:`this class <pywbem.WBEMConnection>`.
-
-        This attribute is settable, but setting it has been deprecated.
-        """
-        return self._verify_callback
-
-    @verify_callback.setter
-    def verify_callback(self, verify_callback):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.verify_callback property is deprecated",
-            DeprecationWarning, 2)
-        self._set_verify_callback(verify_callback)
-
-    def _set_verify_callback(self, verify_callback):
-        """Internal setter function."""
-        self._verify_callback = verify_callback
 
     @property
     def ca_certs(self):
@@ -1293,7 +1212,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             "conn_id={s.conn_id!A}, "
             "default_namespace={s.default_namespace!A}, "
             "x509={x509}, "
-            "verify_callback={s.verify_callback!A}, "
             "ca_certs={s.ca_certs!A}, "
             "no_verification={s.no_verification!A}, "
             "timeout={s.timeout!A}, "
@@ -1743,7 +1661,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         reply_data, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
             x509=self.x509,
-            verify_callback=self.verify_callback,
             ca_certs=self.ca_certs,
             no_verification=self.no_verification,
             timeout=self.timeout,
@@ -2056,7 +1973,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         reply_data, self._last_server_response_time = wbem_request(
             self.url, request_data, self.creds, cimxml_headers,
             x509=self.x509,
-            verify_callback=self.verify_callback,
             ca_certs=self.ca_certs,
             no_verification=self.no_verification,
             timeout=self.timeout,

@@ -356,9 +356,8 @@ def get_default_ca_certs():
 
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments
 def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
-                 verify_callback=None, ca_certs=None,
-                 no_verification=False, timeout=None, recorders=None,
-                 conn_id=None):
+                 ca_certs=None, no_verification=False, timeout=None,
+                 recorders=None, conn_id=None):
     # pylint: disable=too-many-arguments,unused-argument
     # pylint: disable=too-many-locals
     """
@@ -396,15 +395,6 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
       x509:
         Used for HTTPS with certificates.
         For details, see the `x509` parameter of
-        :meth:`~pywbem.WBEMConnection.__init__`.
-
-      verify_callback:
-        Used for HTTPS with certificates but only for python 2. Ignored with
-        python 3 since the  python 3 ssl implementation does not implement
-        any callback mechanism so setting this variable gains the
-        user nothing.
-
-        For details, see the `verify_callback` parameter of
         :meth:`~pywbem.WBEMConnection.__init__`.
 
       ca_certs:
@@ -508,7 +498,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         """ Execute client connection with ssl using httplib."""
         # pylint: disable=R0913,too-many-arguments
         def __init__(self, host, port=None, key_file=None, cert_file=None,
-                     ca_certs=None, verify_callback=None, timeout=None):
+                     ca_certs=None, timeout=None):
             # Note: We do not use strict=True in the following call, because it
             # is not clear what side effects that would have, and if no status
             # line comes back we'll certainly find out about that.
@@ -517,12 +507,6 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                              cert_file=cert_file,
                                              timeout=timeout)
             self.ca_certs = ca_certs
-            self.verify_callback = verify_callback
-            # issue 297: Verify_callback is  not used in py 3
-            if verify_callback is not None and six.PY3:
-                warnings.warn("The 'verify_callback' parameter was specified "
-                              "on WBEMConnection() but is not used on "
-                              "Python 3", UserWarning)
 
         def connect(self):
             # pylint: disable=too-many-branches
@@ -552,7 +536,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 if self.ca_certs:
                     ctx.set_verify(
                         SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-                        depth=9, callback=verify_callback)
+                        depth=9)
                     if os.path.isdir(self.ca_certs):
                         ctx.load_verify_locations(capath=self.ca_certs)
                     else:
@@ -703,7 +687,6 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                  key_file=key_file,
                                  cert_file=cert_file,
                                  ca_certs=ca_certs,
-                                 verify_callback=verify_callback,
                                  timeout=timeout)
     else:
         if url.startswith('http'):

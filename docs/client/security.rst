@@ -155,8 +155,6 @@ by the WBEM server:
 * Validation of the hostname, by comparing the Subject attribute of the server
   certificate with the hostname specified in the `url` parameter.
   This is done by pywbem itself.
-* Calling the validation function specified in the `verify_callback` parameter,
-  if any, and looking at its validation result.
 
 If any of these validations fails, the WBEM operation methods of the
 :class:`~pywbem.WBEMConnection` object raise a :exc:`pywbem.AuthError`.
