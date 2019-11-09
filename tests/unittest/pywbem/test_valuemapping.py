@@ -13,7 +13,7 @@ from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 
 from pywbem import CIMClass, CIMProperty, CIMMethod, CIMParameter, \
-    CIMQualifier, WBEMServer, WBEMConnection, ValueMapping
+    CIMQualifier, WBEMServer, WBEMConnection, ValueMapping, ModelError
 from pywbem.cim_types import type_from_name
 
 CLASSNAME = 'C1'
@@ -296,7 +296,7 @@ class Test_ValueMapping(object):
             self.setup_for_element(element_kind, server_arg, integer_type,
                                    valuemap, values)
         exc = exc_info.value
-        assert isinstance(exc, ValueError)
+        assert isinstance(exc, ModelError)
         exc_msg = exc.args[0]
         assert re.match(".*has an invalid integer representation in a "
                         "ValueMap entry.*",
@@ -312,7 +312,7 @@ class Test_ValueMapping(object):
             self.setup_for_element(element_kind, server_arg, 'string',
                                    valuemap, values)
         exc = exc_info.value
-        assert isinstance(exc, TypeError)
+        assert isinstance(exc, ModelError)
         exc_msg = exc.args[0]
         assert re.match(".*is not integer-typed.*",
                         exc_msg) is not None
@@ -856,7 +856,7 @@ class Test_ValueMapping(object):
             ['a'],
             ['B'],
             None,
-            ValueError, None,
+            ModelError, None,
             True
         ),
     ]

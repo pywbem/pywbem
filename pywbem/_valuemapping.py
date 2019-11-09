@@ -34,6 +34,7 @@ import six
 from .cim_types import CIMInt, type_from_name
 from .cim_obj import CIMProperty, CIMMethod, CIMParameter
 from ._utils import _format, _integerValue_to_int
+from .exceptions import ModelError
 
 __all__ = ['ValueMapping']
 
@@ -238,9 +239,9 @@ class ValueMapping(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             KeyError: The CIM property does not exist in the CIM class.
-            TypeError: The CIM property is not integer-typed.
+            ModelError: The CIM property is not integer-typed.
             ValueError: No `Values` qualifier defined on the CIM property.
-            ValueError: Invalid integer representation in `ValueMap` qualifier
+            ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM property.
         """  # noqa: E501
 
@@ -303,9 +304,9 @@ class ValueMapping(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             KeyError: The CIM method does not exist in the CIM class.
-            TypeError: The CIM method is not integer-typed.
+            ModelError: The CIM method is not integer-typed.
             ValueError: No `Values` qualifier defined on the CIM method.
-            ValueError: Invalid integer representation in `ValueMap` qualifier
+            ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM method.
         """  # noqa: E501
 
@@ -373,9 +374,9 @@ class ValueMapping(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             KeyError: The CIM method does not exist in the CIM class.
             KeyError: The CIM parameter does not exist in the CIM method.
-            TypeError: The CIM parameter is not integer-typed.
+            ModelError: The CIM parameter is not integer-typed.
             ValueError: No `Values` qualifier defined on the CIM parameter.
-            ValueError: Invalid integer representation in `ValueMap` qualifier
+            ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM parameter.
         """  # noqa: E501
 
@@ -431,7 +432,7 @@ class ValueMapping(object):
 
         Raises:
 
-            ValueError: Invalid integer representation in `ValueMap` qualifier
+            ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM element.
         """
         values_str = values_list[i]
@@ -466,10 +467,12 @@ class ValueMapping(object):
         return (lo, hi, values_str)
 
     def _to_int(self, val_str):
-        """Conver val_str to an integer or raise ValueError"""
+        """
+        Convert val_str to an integer or raise ModelError
+        """
         val = _integerValue_to_int(val_str)
         if val is None:
-            raise ValueError(
+            raise ModelError(
                 _format("The value-mapped {0} has an invalid integer "
                         "representation in a ValueMap entry: {1!A}",
                         self._element_str(), val_str))
@@ -520,9 +523,9 @@ class ValueMapping(object):
 
         Raises:
 
-            TypeError: The CIM element is not integer-typed.
+            ModelError: The CIM element is not integer-typed.
             ValueError: No `Values` qualifier defined on the CIM element.
-            ValueError: Invalid integer representation in `ValueMap` qualifier
+            ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM element.
         """  # noqa: E501
         # pylint: enable=line-too-long
@@ -546,7 +549,7 @@ class ValueMapping(object):
         cimtype = type_from_name(typename)
 
         if not issubclass(cimtype, CIMInt):
-            raise TypeError(
+            raise ModelError(
                 _format("The value-mapped {0} is not integer-typed, but "
                         "has CIM type: {1}", vm._element_str(), typename))
 

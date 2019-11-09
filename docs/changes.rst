@@ -70,6 +70,25 @@ Released: not yet
   deprecated in pywbem 0.9.0, and was not supported on Python 3.
   (See issue #1928)
 
+* Changed the type of exceptions that are raised by methods of
+  `pywbem.ValueMapping` for cases where the value-mapped CIM element has
+  issues, as follows:
+
+  - From `TypeError` to `pywbem.ModelError`, if the value-mapped CIM element is
+    not integer-typed.
+  - From `ValueError` to `pywbem.ModelError, if an item of the `ValueMap`
+    qualifier is not an integer.
+
+  These cases are all invalid model definitions according to DSP0004, and
+  do not happen in the CIM Schema published by DMTF.
+
+  Raising `pywbem.ModelError` in these cases improves the ability for users to
+  distinguish their own errors from model errors.
+
+  This change is incompatible for users that handle these cases specifically
+  in their code. Such users need to adjust the type of exception that is
+  handled, accordingly. (See issue #1429)
+
 **Deprecations:**
 
 **Bug fixes:**
