@@ -39,6 +39,12 @@ from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler
 from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem import __version__
 
+from pywbem._logging import LOG_DESTINATIONS, \
+    LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES, DEFAULT_LOG_DETAIL_LEVEL, \
+    DEFAULT_LOG_DESTINATION, configure_loggers_from_string
+
+MOFCOMP_LOG_FILENAME = 'mofcompServer.log'
+
 
 def main():
     """
@@ -190,6 +196,26 @@ Example:
         '--search', dest='outdated_search',
         nargs='?', action='store', const=True, default=False,
         help=argparse.SUPPRESS)
+    general_arggroup.add_argument(
+        '--log', dest='log', metavar='log_spec[,logspec]',
+        action='store', default=None,
+        help='R|Log_spec defines characteristics of the various named\n'
+             'loggers. It is the form:\n COMP=[DEST[:DETAIL]] where:\n'
+             '   COMP:   Logger component name:[{c}].\n'
+             '           (Default={cd})\n'
+             '   DEST:   Destination for component:[{d}].\n'
+             '           (Default={dd})\n'
+             '   DETAIL: Detail Level to log: [{dl}] or\n'
+             '           an integer that defines the maximum length of\n'
+             '           of each log record.\n'
+             '           (Default={dll})\n'
+             # pylint: disable=bad-continuation
+             .format(c='|'.join(LOGGER_SIMPLE_NAMES),
+                     cd='all',
+                     d='|'.join(LOG_DESTINATIONS),
+                     dd=DEFAULT_LOG_DESTINATION,
+                     dl='|'.join(LOG_DETAIL_LEVELS),
+                     dll=DEFAULT_LOG_DETAIL_LEVEL))
 
     args = argparser.parse_args()
 
@@ -243,6 +269,9 @@ Example:
                           no_verification=args.no_verify_cert,
                           x509=x509_dict, ca_certs=args.ca_certs)
 
+    if args.log:
+        configure_loggers_from_string(args.log, MOFCOMP_LOG_FILENAME, conn)
+
     if args.remove or args.dry_run:
 
         conn_mof = MOFWBEMConnection(conn=conn)
@@ -276,6 +305,10 @@ Example:
 
     # If removing, we'll be verbose later when we actually remove stuff.
     # We don't want MOFCompiler to be verbose, as that would be confusing.
+
+    # Remove works by recompiling the mof into MOFWBEMConnection and
+    # using the instances and classes defined in that local repository to
+    # drive the removal
     verbose = args.verbose and not args.remove
 
     mofcomp = MOFCompiler(handle=conn, search_paths=include_dirs,
@@ -291,8 +324,6 @@ Example:
         return 1
 
     if args.remove and not args.dry_run:
-        # Removal works by recording the changes but not doing them, and then
-        # rolling back and doing them.
         try:
             conn.rollback(verbose=args.verbose)
         except Error as exc:

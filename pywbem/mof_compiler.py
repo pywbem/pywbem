@@ -2256,6 +2256,52 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         # Issue #990: Also roll back changes to qualifier declarations
 
 
+class MOFWBEMConnectionRollback(MOFWBEMConnection):
+    """
+    A CIM repository connection to an in-memory repository on top of an
+    underlying repository, adapts MOFWBEMConnection by modifying
+    CreateInstance to set CIMInstanceName on each created instance from
+    the properties in the instance. This is required for rollback
+    because the rollback uses the instance path to tell the server
+    delete each instance.
+
+    This class implements the
+    :class:`~pywbem.BaseRepositoryConnection` interface.
+
+    Raises:
+
+      : The methods of this class may raise any exceptions described for
+        class :class:`~pywbem.WBEMConnection`.
+    """
+    def CreateInstance(self, *args, **kwargs):
+        """
+        Extend CreateInstance to set instancePath on the instance so that
+        there is a path to be used in rollback.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
+        """
+
+        inst = args[0] if args else kwargs['NewInstance']
+
+        # If the path or keybindings do not exist, create the path from
+        # the class and instance and set it into NewInstance
+        print('CreateInstanceBefore\n%s\n%s' % (inst.path, inst.tomof()))
+        if not inst.path or not inst.path.keybindings:
+
+            cls = self.GetClass(inst.classname,
+                                LocalOnly=False,
+                                IncludeQualifiers=True)
+            inst.path = CIMInstanceName.from_instance(cls, inst)
+            print('CreateInstanceAfter path %s\nInst\n%r' % (inst.path, inst))
+        try:
+            self.instances[self.default_namespace].append(inst)
+        except KeyError:  # default_namespace does not exist. Create it
+            self.instances[self.default_namespace] = [inst]
+
+        return inst.path
+
+
 def _print_logger(msg):
     """Print the `msg` parameter to stdout."""
     print(msg)
