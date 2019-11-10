@@ -291,6 +291,9 @@ Released: not yet
   `AssocClass` parameters of association operations are specified using a
   `CIMClassName` object. (See issue #1907)
 
+* Added capability to log calls to WBEM server from mof_compile script. AAdds
+  an option to the cmd line options to enable logging.
+
 * Improved test coverage of function tests by verifying the last_request,
   last_raw_request, last_reply, and last_raw_reply attributes of a connection.
 
