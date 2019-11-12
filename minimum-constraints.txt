@@ -109,6 +109,9 @@ twine==1.8.1
 # Jupyter Notebook (no imports, invoked via jupyter script):
 jupyter==1.0.0
 
+# Pywin32 is used (at least?) by jupyter.
+pywin32==222; sys_platform == 'win32'
+
 # Table output formatter used by the manual performance tests to display
 # timing results
 tabulate >= 0.8.3

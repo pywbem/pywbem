@@ -52,6 +52,9 @@ Released: not yet
 
 * Docs: Fixed errors in description of CIMInstance.update_existing().
 
+* Added dependency to pywin32 package for Windows, and pinned it to version 225
+  to work around an issue in its version 226. (See issue ##1946)
+
 **Enhancements:**
 
 * Removed the use of the 'pbr' package because it caused too many undesirable
