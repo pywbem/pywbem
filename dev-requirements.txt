@@ -69,6 +69,10 @@ twine>=1.8.1
 # Python 3.4.
 jupyter>=1.0.0; python_version != '3.4' or sys_platform != 'win32'
 
+# Pywin32 is used (at least?) by jupyter.
+# TODO: Workaround for issue #1946 is to pin pywin32 to version 225.
+pywin32>=222,<=225; sys_platform == 'win32'
+
 # The tornado package is used by ipykernel which is used by jupyter.
 # Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
 # does not have certain symbols required by Tornado. This issue exists for
