@@ -130,6 +130,16 @@ install:
   - if "%UNIX_PATH%"=="none" where make
   - if "%UNIX_PATH%"=="none" make --version
 
+  # Install Python 2.7 on CygWin
+  # TODO: Verify whether python2 has again been installed by default
+  - if not "%UNIX_PATH%"=="none" ( bash --noprofile --norc -c "which %PYTHON_CMD%; echo which %PYTHON_CMD% returns rc=\$?" )
+  - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( C:\cygwin\setup-x86.exe -qnNdO -R C:/cygwin -P python2 )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -P python2 )'
+
+  # Verify that Python command is available, and fail if not
+  - if "%UNIX_PATH%"=="none" ( where %PYTHON_CMD% )
+  - if not "%UNIX_PATH%"=="none" ( bash --noprofile --norc -c "which %PYTHON_CMD%" )
+
   # Install Pip, where needed
   - if "%UNIX_PATH%"=="C:\cygwin\bin" ( bash --noprofile --norc -c "set -e; %PYTHON_CMD% -m ensurepip; %PYTHON_CMD% -m pip install --upgrade pip setuptools wheel" )
   - if "%UNIX_PATH%"=="C:\cygwin64\bin" ( bash --noprofile --norc -c "set -e; %PYTHON_CMD% -m ensurepip; %PYTHON_CMD% -m pip install --upgrade pip setuptools wheel" )
