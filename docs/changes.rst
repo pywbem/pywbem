@@ -231,6 +231,9 @@ Released: not yet
 * Fixed that local tests (i.e. TEST_INSTALLED=False) skipped MOF tests if
   the mofparsetab or moflextab files did not exist. (See issue #1933)
 
+* Circumvented removal of Python 2.7 in Appveyor's CygWin installation
+  by manually installing the python2 CygWin package. (See issue #1949)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
