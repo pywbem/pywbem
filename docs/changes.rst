@@ -224,6 +224,10 @@ Released: not yet
 * Added dependency to pywin32 package for Windows, and pinned it to version 225
   to work around an issue in its version 226. (See issue ##1946)
 
+* pywbem_mock display_repository() comment defintion that surrounds comments
+  in the output was defined as # but mof comments are // so changed. (see
+  issue #1951)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
