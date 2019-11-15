@@ -237,6 +237,10 @@ Released: 2019-07-20
   pull operations are used, and the documentation has been updated accordingly.
   (See issue #1780)
 
+* pywbem_mock display_repository() comment defintion that surrounds comments
+  in the output was defined as # but mof comments are // so changed. (see
+  issue #1951)
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded

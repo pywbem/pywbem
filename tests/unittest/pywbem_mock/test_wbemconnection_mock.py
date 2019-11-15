@@ -1293,16 +1293,16 @@ class TestRepoMethods(object):
         if sys.version_info[0:2] != (2, 6):
             result = captured.out
             assert result.startswith(
-                "# ========Mock Repo Display fmt=mof namespaces=all")
+                "// ========Mock Repo Display fmt=mof namespaces=all")
             assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
             assert "instance of CIM_Foo {" in result
             for ns in namespaces:
-                assert _format("# Namespace {0!A}: contains 9 Qualifier "
+                assert _format("// Namespace {0!A}: contains 9 Qualifier "
                                "Declarations", ns) \
                     in result
-                assert _format("# Namespace {0!A}: contains 5 Classes", ns) \
+                assert _format("// Namespace {0!A}: contains 5 Classes", ns) \
                     in result
-                assert _format("# Namespace {0!A}: contains 8 Instances", ns) \
+                assert _format("// Namespace {0!A}: contains 8 Instances", ns) \
                     in result
             assert "Qualifier Abstract : boolean = false," in result
 
@@ -1353,7 +1353,7 @@ class TestRepoMethods(object):
         with open(tst_file, 'r') as f:
             data = f.read()
         assert data.startswith(
-            "# ========Mock Repo Display fmt=mof namespaces=all")
+            "// ========Mock Repo Display fmt=mof namespaces=all")
         assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in data
         assert 'instance of CIM_Foo {' in data
         assert 'Qualifier Abstract : boolean = false,' in data

@@ -945,8 +945,10 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
           output_format (:term:`string`):
             Output format, one of: 'mof', 'xml', or 'repr'.
         """
+
+        # The comments are line oriented.
         if output_format == 'mof':
-            cmt_begin = '# '
+            cmt_begin = '// '
             cmt_end = ''
         elif output_format == 'xml':
             cmt_begin = '<!-- '
@@ -994,7 +996,9 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
 
-        _uprint(dest, u'============End Repository=================')
+        _uprint(dest,
+                _format(u'{0}============End Repository================={1}',
+                        cmt_begin, cmt_end))
 
     @staticmethod
     def _display_objects(obj_type, object_repo, namespace, cmt_begin, cmt_end,
