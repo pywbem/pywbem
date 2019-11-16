@@ -101,6 +101,9 @@ Released: not yet
   `AssocClass` parameters of association operations are specified using a
   `CIMClassName` object. (See issue #1907)
 
+* Added capability to log calls to WBEM server from mof_compile script. AAdds
+  an option to the cmd line options to enable logging.
+
 **Cleanup:**
 
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
