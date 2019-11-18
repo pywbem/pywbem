@@ -283,6 +283,7 @@ instance of TST_A3Sub as $A3Sub511 {
 };
 """
 
+
 @pytest.mark.parametrize(
     "ns", INITIAL_NAMESPACES + [None])
 @pytest.mark.parametrize(
@@ -471,6 +472,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
               exp_instnames_str)
 
     assert set(exp_instnames) == set(rtn_instnames)
+
 
 @pytest.mark.parametrize(
     "ns", INITIAL_NAMESPACES + [None])
