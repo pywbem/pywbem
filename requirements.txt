@@ -17,6 +17,7 @@ ply>=3.10
 PyYAML>=3.11,<3.12; python_version == '2.6'  # yaml package
 PyYAML>=5.1; python_version >= '2.7'  # yaml package
 six>=1.10.0
+backport_collections>=0.1; python_version == '2.6'
 
 
 # Indirect dependencies are no longer specified here, but for testing with a

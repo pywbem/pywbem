@@ -35,7 +35,11 @@ import locale
 import traceback
 import re
 from xml.dom import minidom
-from collections import Counter
+try:
+    # collections.Counter was added in Python 2.7
+    from collections import Counter
+except ImportError:
+    from backport_collections import Counter
 from mock import Mock
 import six
 
