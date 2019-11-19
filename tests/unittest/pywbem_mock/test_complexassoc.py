@@ -347,8 +347,8 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
     exp_clns = [CIMClassName(classname=n, namespace=exp_ns, host=conn.host)
                 for n in exp_rslt]
 
-    request = "pywbemcli class references {} --role {} --result_class {}" \
-        .format(target, r, rc)
+    request = "pywbemcli class references {0} --role {1} --result_class {2}". \
+        format(target, r, rc)
     response = [c.classname for c in exp_clns]
     exp_response = [c.classname for c in exp_clns]
     save_data(conn, complex_assoc_mof, request, response, exp_response)
@@ -466,8 +466,8 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
         print('\nACT:\n%s\nEXP:\n%s' % ("\n".join(rtn_instnames_str),
                                         "\n".join(exp_instnames_str)))
 
-    request = "pywbemcli class references {} --role {} --result_class {}" \
-        .format(target_inst, r, rc)
+    request = "pywbemcli class references {0} --role {1} --result_class {2}". \
+        format(target_inst, r, rc)
     save_data(conn, complex_assoc_mof, request, rtn_instnames_str,
               exp_instnames_str)
 
@@ -580,9 +580,9 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
         print('\nACT %s\nEXP %s' % ([c.classname for c in rtn_clns],
                                     [c.classname for c in exp_clns]))
 
-    request = "pywbemcli class associators {} --role {} --assoc-class {} " \
-        "--result-role {} --result-class {}" \
-        .format(target, r, ac, rr, rc)
+    request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
+        "--result-role {3} --result-class {4}". \
+        format(target, r, ac, rr, rc)
     save_data(conn, complex_assoc_mof, request, rtn_clns, exp_clns)
 
     assert set(cln.classname.lower() for cln in exp_clns) == \
@@ -754,8 +754,9 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
         print('\nACT:\n%s\nEXP:\n%s' % ("\n".join(rtn_instnames_str),
                                         "\n".join(exp_instnames_str)))
 
-    request = "pywbemcli class associators {} --role {} --assoc-class {} " \
-        "--result-role {} --result-class {}" .format(target_inst, r, ac, rr, rc)
+    request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
+        "--result-role {3} --result-class {4}". \
+        format(target_inst, r, ac, rr, rc)
     save_data(conn, complex_assoc_mof, request, rtn_instnames_str,
               exp_instnames_str)
 
