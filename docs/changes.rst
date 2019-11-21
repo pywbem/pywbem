@@ -234,6 +234,11 @@ Released: not yet
 * Circumvented removal of Python 2.7 in Appveyor's CygWin installation
   by manually installing the python2 CygWin package. (See issue #1949)
 
+* Fix issue with MOFCompiler class where mof_compilersscript was not writing
+  the new classes and instances to the remote repository defined with the -s
+  parameter. (see issue #1956 )
+
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

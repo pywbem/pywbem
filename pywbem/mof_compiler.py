@@ -1897,8 +1897,15 @@ BaseRepositoryConnection.register(WBEMConnection)  # pylint: disable=no-member
 class MOFWBEMConnection(BaseRepositoryConnection):
     """
     A CIM repository connection to an in-memory repository on top of an
-    underlying repository, that is used by the MOF compiler to provide rollback
-    support.
+    underlying repository API, that is used by the MOF compiler to provide
+    rollback support.  It only implementats the BaseRepositoryConnection
+    methods required to implement the mof compiler rollback functionality and a
+    minimal repository for tests within the pywbem tests suite..
+
+    MOFWBEMConnection gets CIM objects from a repository defined
+    as the in-memory repository if the constructor parameter conn is None
+    or, if conn is defined, from the repository defined by conn.  It always
+    writes qualifiers, instances, and classes to the in-memory repository.
 
     This class implements the
     :class:`~pywbem.BaseRepositoryConnection` interface.
@@ -2089,14 +2096,21 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         cc = args[0] if args else kwargs['NewClass']
         if cc.superclass:
             try:
-                _ = self.GetClass(cc.superclass, LocalOnly=True,  # noqa: F841
-                                  IncludeQualifiers=False)
+                # Since this may cause recursive GetClass calls
+                # IncludeQualifiers = True to insure reference properties on
+                # instances with aliases get built correctly.
+                self.GetClass(cc.superclass, LocalOnly=True,
+                              IncludeQualifiers=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
                     raise
                 raise
 
+        # TODO: Not sure why this code puts cc in local repo here and then
+        # again at the end. Note that it executes tests on the class
+        # before again inserting it into the repo and these can cause
+        # exceptions.
         try:
             self.compile_ordered_classnames.append(cc.classname)
 
@@ -2295,10 +2309,8 @@ class MOFCompiler(object):
 
             If the provided object is a WBEM connection (i.e.
             :class:`~pywbem.WBEMConnection` or
-            :class:`~pywbem_mock.FakedWBEMConnection`), a
-            :class:`~pywbem.MOFWBEMConnection` object is created from the
-            provided object, and used by the MOF compiler to interface with
-            the repository.
+            :class:`~pywbem_mock.FakedWBEMConnection`),  the MOF compiler
+            connects directly to interface defined by handle.
 
             `None` means that no CIM repository will be associated. In this
             case, the MOF compiler can only process standalone MOF that does
@@ -2340,7 +2352,6 @@ class MOFCompiler(object):
 
         if isinstance(handle, WBEMConnection):
             conn = handle
-            handle = MOFWBEMConnection(conn)
         elif handle is None:
             conn = None
         elif isinstance(handle, BaseRepositoryConnection):
@@ -2452,6 +2463,8 @@ class MOFCompiler(object):
 
         except CIMError as ce:
             if hasattr(ce, 'file_line'):
+                # pylint: disable=no-member
+                # file_line, attribute dynamically added by error code
                 self.parser.log(
                     _format("Fatal Error: {0}:{1}",
                             ce.file_line[0], ce.file_line[1]))
