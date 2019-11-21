@@ -73,6 +73,12 @@ Released: not yet
   the new classes and instances to the remote repository defined with the -s
   parameter. (see issue #1956 )
 
+* Fixed issue with mof_compiler and mof rollback where instances were
+  not removed when rollback was executed.  This was caused by MOFWBEMConnection
+  code that did not put correct paths on the instances when they were
+  inserted into the local repository so the rollback delete of the instances
+  could not identify the instances. (see issue #1158)
+
 **Enhancements:**
 
 * Removed the use of the 'pbr' package because it caused too many undesirable

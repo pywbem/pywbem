@@ -308,6 +308,75 @@ class TestFlavors(MOFTest):
             pass
 
 
+class TestRemove(MOFTest):
+    """Test rollback using test.mof"""
+
+    def test_remove(self):
+        """
+        Test create mof and rollback using mocker as remote repository
+        """
+
+        def moflog(msg):
+            """Display message to moflog"""
+            print(msg, file=self.logfile)
+
+        skip_if_moftab_regenerated()
+
+        # compile the mof. The DMTF schema mof is installed by the setup
+
+        ns = 'root/test'
+
+        conn = FakedWBEMConnection(default_namespace=ns)
+
+        # compile the file against the mocker
+        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        self.logfile = open(moflog_file, 'w')
+
+        # Create compiler using FakedWBEMConnection as conn
+        # This compiler writes new classes and instances to conn
+        self.mofcomp = MOFCompiler(
+            conn,
+            search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
+            verbose=False,
+            log_func=moflog)
+
+        # Classes in the test class file
+        clns = ['PyWBEM_AllTypes', 'PyWBEM_MemberOfPersonCollection',
+                'PyWBEM_PersonCollection', 'PyWBEM_Person']
+
+        # Compile the file to the conn destination
+        self.mofcomp.compile_file(
+            os.path.join(TEST_DIR, 'test.mof'), ns)
+
+        for cln in clns:
+            conn.GetClass(cln)
+            assert conn.EnumerateInstances(cln) is not None
+
+        # Remove the mof defined by the testfile
+        # create rollback definition
+        conn_mof = MOFWBEMConnection(conn=conn)
+        conn_mof.default_namespace = conn.default_namespace
+        conn_mof.url = conn.url
+
+        conn_mof_mofcomp = MOFCompiler(
+            conn_mof,
+            search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
+            verbose=False,
+            log_func=moflog)
+
+        # recompile for to MOFWBEMConnection for remove
+        conn_mof_mofcomp.compile_file(
+            os.path.join(TEST_DIR, 'test.mof'), ns)
+
+        conn_mof_mofcomp.rollback(verbose=False)
+
+        for cln in clns:
+            try:
+                conn.GetClass(cln)
+            except CIMError as ce:
+                assert ce.status_code == CIM_ERR_NOT_FOUND
+
+
 class TestAliases(MOFTest):
     """Test of a mof file that contains aliases"""
 

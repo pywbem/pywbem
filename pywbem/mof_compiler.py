@@ -1915,7 +1915,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     This class implements the
     :class:`~pywbem.BaseRepositoryConnection` interface.
 
-    This implementation sets the path component of instances including
+    This implementation sets the path component of instances created including
     keybindings using property values in the instance. It does NOT confirm that
     all key properties are included in the path.
 
@@ -2029,6 +2029,16 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         inst = args[0] if args else kwargs['NewInstance']
+
+        # If the path or keybindings do not exist, create the path from
+        # the class and instance and set it into NewInstance
+        if not inst.path or not inst.path.keybindings:
+            cls = self.GetClass(inst.classname,
+                                LocalOnly=False,
+                                IncludeQualifiers=True)
+            inst.path = CIMInstanceName.from_instance(
+                cls, inst, namespace=self.default_namespace)
+
         try:
             self.instances[self.default_namespace].append(inst)
         except KeyError:  # default_namespace does not exist. Create it
@@ -2116,8 +2126,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         self.compile_ordered_classnames.append(cc.classname)
 
         # Class created in local repo before tests because that allows
-        # tests that may actually include this class to succeed in succeeding
-        # code.
+        # tests that may actually include this class to succeed in
+        # the test code below.
         this_ns = self.default_namespace
         try:
             # The following generates an exception for each new ns
@@ -2251,8 +2261,19 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         Remove classes and instances from the underlying repository, that have
         been created in the local repository of this class.
 
-        Limitation: At this point, only classes and instances will be removed,
+        Limitations:
+
+        1. At this point, only classes and instances will be removed,
         but not qualifiers.
+
+        2. This may not work with instances created by other means, ex.
+        other mof_compilers because of amgiguity in the definition of
+        instance names for associations (ex. The namespace component
+        in reference properties)
+
+        3. This only removes the classes specifically defined in the compiled
+        mof and not any classes installed as prerquisits as part of the
+        compile (ex. superclasses, classes defined by references)
         """
         for ns, insts in self.instances.items():
             insts.reverse()
