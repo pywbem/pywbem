@@ -84,6 +84,18 @@ General options:
   -v, --verbose         Print more messages while processing
   -V, --version         Display pywbem version and exit.
   -h, --help            Show this help message and exit
+  --log log_spec[,logspec]
+                        Log_spec defines characteristics of the various named
+                        loggers. It is the form:
+                         COMP=[DEST[:DETAIL]] where:
+                           COMP:   Logger component name:[api|http|all].
+                                   (Default=all)
+                           DEST:   Destination for component:[file|stderr].
+                                   (Default=file)
+                           DETAIL: Detail Level to log: [all|paths|summary] or
+                                   an integer that defines the maximum length of
+                                   of each log record.
+                                   (Default=all)
 
 Example: mof_compiler CIM_Schema_2.45.mof -s https://localhost -n root/cimv2
 -u sheldon -p p42
