@@ -329,6 +329,17 @@ Released: not yet
 * Improved performance when setting WBEMConnection.debug by prettifying the
   request and reply XML only when actually accessed. (See issue #1572)
 
+* Modified pywbem_mock to create the instance path of new instances
+  created by the compiler.  Previously, the mocker generated an exception
+  if the path for a compiler created new instance was not set by the
+  compiler using the instance alias. That requirement has been removed so
+  the mock repository will attempt to create the path (which is required
+  for the mock repository) from properties provided in the new instance.
+  If any key properties of the class are not in the instance it will generate
+  an exception.  This is backward compatible since the mocker will accept
+  paths created by the compiler.  The incompatibility is that the mocker
+  tests for the existance of all key properties. (see issue # 1958)
+
 **Known issues:**
 
 * See `list of open issues`_.
