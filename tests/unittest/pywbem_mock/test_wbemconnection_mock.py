@@ -641,11 +641,10 @@ def tst_person_instance_names():
 
 
 @pytest.fixture
-def tst_assoc_mof():
+def tst_assoc_qualdecl_mof():
     """
-    Complete MOF definition of a simple set of classes and association class
-    to test associations and references. Includes qualifiers, classes,
-    and instances.
+    Set of qualifier declarations used in definition of a set of
+    classes to test associations
     """
     return """
         Qualifier Association : boolean = false,
@@ -667,7 +666,17 @@ def tst_assoc_mof():
         Qualifier Out : boolean = false,
             Scope(parameter),
             Flavor(DisableOverride, ToSubclass);
+    """
 
+
+@pytest.fixture
+def tst_assoc_class_mof():
+    """
+    Target, destination, and association classes used to define an
+    association test model. This fixture assumes that qualifier declarations
+    consistent with tst_assoc_qualdelc fixture above.
+    """
+    return """
         class TST_Person{
                 [Key, Description ("This is key prop")]
             string name;
@@ -698,7 +707,17 @@ def tst_assoc_mof():
                 [Key, Description ("This is key prop and family name")]
             string name;
         };
+    """
 
+
+@pytest.fixture
+def tst_assoc_mof(tst_assoc_qualdecl_mof, tst_assoc_class_mof):
+    """
+    Complete MOF definition of a simple set of classes and association class
+    to test associations and references. Includes qualifiers, classes,
+    and instances.
+    """
+    instances = """
         instance of TST_Person as $Mike { name = "Mike"; };
         instance of TST_Person as $Saara { name = "Saara"; };
         instance of TST_Person as $Sofi { name = "Sofi"; };
@@ -770,9 +789,10 @@ def tst_assoc_mof():
             member = $Mike;
         };
     """
+    return tst_assoc_qualdecl_mof + tst_assoc_class_mof + instances
 
 
-# Counts of instances for tests.
+# Counts of instances for tests of tst_assoc_mof fixture.
 TST_PERSON_INST_COUNT = 4                                 # num TST_PERSON
 TST_PERSON_SUB_INST_COUNT = 4                             # num SUB
 TST_PERSONWITH_SUB_INST_COUNT = TST_PERSON_INST_COUNT + \
@@ -3719,7 +3739,6 @@ class TestInstanceOperations(object):
             conn.add_namespace(ns)
 
         if not exp_exc:
-
             # The code to be tested
             new_path = conn.CreateInstance(new_inst, namespace=interop_ns)
 
@@ -3735,6 +3754,102 @@ class TestInstanceOperations(object):
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES)  # TODO  + [None]
+    @pytest.mark.parametrize(
+        "tst_mof, exp_rtn, exp_excp",
+        [
+            # Compiler builds path
+            ['instance of TST_Person as $Mike { name = "Mike"; };',
+             ('TST_Person', {'name': "Mike"}), None],
+            # Mocker builds path
+            ['instance of TST_Person { name = "Mike"; };',
+             ('TST_Person', {'name': "Mike"}), None],
+            # Works because mock repo allows modification of existing instance
+            ['instance of TST_Person { name = "Mike"; };\n'
+             'instance of TST_Person { name = "Mike"; };',
+             ('TST_Person', {'name': "Mike"}), None],
+            # Fails, because key property not in new instance
+            ['instance of TST_Person {extraProperty = "Blah"; };',
+             ('TST_Person', {}), CIMError(CIM_ERR_INVALID_PARAMETER)],
+
+            # Test assoc class with ref props as keys, mocker builds path
+            ['instance of TST_Person as $Sofi { name = "Sofi"; };\n'
+             'instance of TST_FamilyCollection as $Family1 '
+             '{ name = "family1"; };\n'
+             'instance of TST_MemberOfFamilyCollection '
+             '{ family = $Family1; member = $Sofi; };\n',
+             ('TST_MemberOfFamilyCollection',
+              {'family': CIMInstanceName('TST_FamilyCollection',
+                                         {'name': 'family1'}),
+               'member': CIMInstanceName('TST_Person', {'name': "Sofi"})}),
+             None],
+
+            # Test assoc class withref props as keys, compiler builds path
+            ['instance of TST_Person as $Sofi { name = "Sofi"; };\n'
+             'instance of TST_FamilyCollection as $Family1 '
+             '{ name = "family1"; };\n'
+             'instance of TST_MemberOfFamilyCollection as $Family1Sofi'
+             '{ family = $Family1; member = $Sofi; };\n',
+             ('TST_MemberOfFamilyCollection',
+              {'family': CIMInstanceName('TST_FamilyCollection',
+                                         {'name': 'family1'}),
+               'member': CIMInstanceName('TST_Person', {'name': "Sofi"})}),
+             None],
+
+            # Test assoc with one key reference property missing
+            ['instance of TST_Person as $Sofi { name = "Sofi"; };\n'
+             'instance of TST_FamilyCollection as $Family1 '
+             '{ name = "family1"; };\n'
+             'instance of TST_MemberOfFamilyCollection as $Family1Sofi'
+             '{ family = $Family1; };\n',
+             ('TST_MemberOfFamilyCollection',
+              {'family': CIMInstanceName('TST_FamilyCollection',
+                                         {'name': 'family1'}),
+               'member': CIMInstanceName('TST_Person', {'name': "Sofi"})}),
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
+        ]
+    )
+    def test_compile_instances_path(self, conn, ns, tst_assoc_qualdecl_mof,
+                                    tst_assoc_class_mof,
+                                    tst_mof, exp_rtn, exp_excp):
+        """
+        Test variations of compile of CIMInstances to validate the
+        implementation of setting path. Both the compiler and mocker allow
+        setting the path on CreateInstance.  This tests both
+        good compile and errors
+        """
+
+        classes_mof = tst_assoc_qualdecl_mof + tst_assoc_class_mof
+
+        skip_if_moftab_regenerated()
+
+        # Test with instance that does not include
+        if exp_excp is None:
+            conn.compile_mof_string(classes_mof + tst_mof, namespace=ns)
+
+            exp_ns = ns or conn.default_namespace
+            # Add namespace to any keybinding that is a CIMInstanceName
+            kbs = exp_rtn[1]
+            for kb, kbv in kbs.items():
+                if isinstance(kbv, CIMInstanceName):
+                    kbv.namespace = exp_ns
+                    kbs[kb] = kbv
+            exp_path = CIMInstanceName(exp_rtn[0], keybindings=exp_rtn[1],
+                                       namespace=exp_ns)
+
+            inst = conn.GetInstance(exp_path)
+            assert inst.path == exp_path
+
+        else:
+            with pytest.raises(exp_excp.__class__) as exec_info:
+                # The code to be tested
+                conn.compile_mof_string(classes_mof + tst_mof, namespace=ns)
+
+            exc = exec_info.value
+            if isinstance(exp_excp, CIMError):
+                assert exc.status_code == exp_excp.status_code
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
