@@ -22,6 +22,7 @@ The general pywbem web site is: https://pywbem.github.io/pywbem/index.html.
 .. toctree::
    :maxdepth: 2
    :numbered:
+   :name: mastertoc
 
    intro.rst
    concepts.rst
