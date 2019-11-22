@@ -28,8 +28,8 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import MOFWBEMConnection, CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
-    CIM_ERR_INVALID_NAMESPACE
+    CIM_ERR_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, \
+    CIM_ERR_INVALID_NAMESPACE, CIMInstanceName
 from pywbem._nocasedict import NocaseDict
 
 from pywbem._utils import _format
@@ -169,20 +169,32 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
         inst = args[0] if args else kwargs['NewInstance']
 
-        # TODO build path if does not exist. For now simply abort
-        # NOTE: compiler does not build path unless the instance alias is
-        # defined for the instance
+        # Get list of properties in class defined for this instance
+        cln = inst.classname
+        cls = self.GetClass(cln, IncludeQualifiers=True, LocalOnly=False)
+
+        cls_key_properties = [p for p, v in cls.properties.items()
+                              if 'key' in v.qualifiers]
+
+        # Validate all key properties are in instance
+        for pname in cls_key_properties:
+            if pname not in inst.properties:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format('CreateInstance failed. Key property {0!A}  in '
+                            'class {1!A} but not in new_instance: {2!A}',
+                            pname, cln, str(inst)))
+
+        # Build path from instance and class
         if inst.path is None or not inst.path.keybindings:
-            raise CIMError(
-                CIM_ERR_FAILED,
-                _format('CreateInstance failed. No path in new_instance or '
-                        'keybindings in path. ',
-                        'Use compiler instance alias to set path on '
-                        'instance declaration. inst: {0!A}', inst))
+            inst.path = CIMInstanceName.from_instance(
+                cls, inst, namespace=self.default_namespace)
 
         if self.default_namespace not in self.instances:
             self.instances[self.default_namespace] = {}
 
+        # exception if duplicate. NOTE: compiler overrides this with
+        # modify instance.
         if inst.path in self.instances[self.default_namespace]:
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
