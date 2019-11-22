@@ -61,6 +61,7 @@ Sphinx>=1.7.6,<2.0.0; python_version >= '3.5'  # BSD
 #       been pinned to below 2.0.0 also for py3.5+.
 sphinx-git>=10.1.1; python_version >= '2.7'
 GitPython>=2.1.1; python_version >= '2.7'
+sphinxcontrib-fulltoc>=1.2.0; python_version >= '2.7'
 
 # PyLint (no imports, invoked via pylint script)
 # Pylint requires astroid

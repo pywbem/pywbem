@@ -84,6 +84,7 @@ tox==2.0.0
 Sphinx==1.7.6
 sphinx-git==10.1.1
 GitPython==2.1.1
+sphinxcontrib-fulltoc>=1.2.0
 
 # PyLint (no imports, invoked via pylint script) - does not support py3:
 pylint==1.6.4; python_version == '2.7'
