@@ -38,16 +38,24 @@ def skip_if_moftab_regenerated():
     them out to the pywbem installation directory.
     """
 
+    test_installed = os.getenv('TEST_INSTALLED', False)
+
     pywbem = import_installed('pywbem')  # noqa: E402
 
     try:
-        # If you cannot write to the directory you can't make these files,
-        # thus they don't exist and you cannot import them.
         from pywbem import mofparsetab, moflextab
     except ImportError:
-        pytest.skip("We have no mofparsetab or moflextab to import!")
-
-    test_installed = os.getenv('TEST_INSTALLED', False)
+        if test_installed:
+            # The mofparsetab and moflextab files should not be auto-generated
+            # in this case.
+            pytest.fail("Cannot run this MOF testcase against an installed "
+                        "pywbem (version {0}, installed at {1}) "
+                        "because that installation does not contain the "
+                        "mofparsetab.py or moflextab.py files".
+                        format(pywbem.__version__, pywbem.__file__))
+        else:
+            # The mofparsetab and moflextab files will be auto-generated.
+            return
 
     pywbem_not_tolerant = version.parse(pywbem.__version__) <= \
         version.parse('0.14.4')  # This causes 0.14.5.devN to be tolerant
@@ -58,10 +66,15 @@ def skip_if_moftab_regenerated():
 
     if test_installed and pywbem_not_tolerant and \
             (mofparsetab_mismatch or moflextab_mismatch):
-        pytest.skip("The installed pywbem version {0} does not tolerate ply "
-                    "version mismatches, and there is a ply version mismatch: "
-                    "ply: {1}, mofparsetab: {2}, moflextab: {3}".
-                    format(pywbem.__version__, ply.__version__,
+        pytest.skip("Cannot run this MOF testcase against an installed "
+                    "pywbem (version {0}, installed at {1}) because that "
+                    "pywbem version does not tolerate version mismatches "
+                    "between the current ply version and the ply version that "
+                    "was used to create the pywbem mof*tab files: "
+                    "current ply: {2}, ply in mofparsetab.py: {3}, "
+                    "ply in moflextab.py: {4}".
+                    format(pywbem.__version__, pywbem.__file__,
+                           ply.__version__,
                            mofparsetab._tabversion, moflextab._tabversion))
 
 
