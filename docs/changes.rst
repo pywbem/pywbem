@@ -228,6 +228,9 @@ Released: not yet
   in the output was defined as # but mof comments are // so changed. (see
   issue #1951)
 
+* Fixed that local tests (i.e. TEST_INSTALLED=False) skipped MOF tests if
+  the mofparsetab or moflextab files did not exist. (See issue #1933)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
