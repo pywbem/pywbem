@@ -241,6 +241,9 @@ Released: 2019-07-20
   in the output was defined as # but mof comments are // so changed. (see
   issue #1951)
 
+* Fixed that local tests (i.e. TEST_INSTALLED=False) skipped MOF tests if
+  the mofparsetab or moflextab files did not exist. (See issue #1933)
+
 **Enhancements:**
 
 * Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
