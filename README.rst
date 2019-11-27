@@ -49,10 +49,10 @@ Pywbem - A WBEM client and related utilities, written in pure Python
     :target: https://coveralls.io/r/pywbem/pywbem
     :alt: Test coverage (master)
 
-.. image:: https://img.shields.io/badge/Liicense-LGPL 2.1-green.svg
+.. image:: https://img.shields.io/badge/License-LGPL%202.1-green.svg
 
 .. image:: https://img.shields.io/pypi/pyversions/pywbem.svg?color=brightgreen
-    :alt: PyPI - Python Version
+    :alt: Python versions supported by latest version released to Pypi
 
 .. # .. contents:: **Contents:**
 .. #    :local:

@@ -1,5 +1,9 @@
 .. # README file for Pypi
 
+.. # begin of customization for the current version
+.. |pywbem-version-mn| replace:: 0.14
+.. # end of customization for the current version
+
 Pywbem is a WBEM client, written in pure Python. It supports Python 2 and
 Python 3. Pywbem also contains a WBEM indication listener.
 
@@ -12,9 +16,40 @@ of systems management.
 CIM/WBEM infrastructure is used for a wide variety of systems management
 tasks in the industry.
 
-For more information on pywbem, see the `pywbem readme`_, and the
-`pywbem documentation`_.
+For more information on pywbem version |pywbem-version-mn|:
 
-.. _pywbem readme: https://github.com/pywbem/pywbem/blob/stable_0.14/README.rst
-.. _pywbem documentation: https://pywbem.readthedocs.io/en/stable_0.14/
+* |pywbem-readme-link|
+* |pywbem-docs-link|
+* |pywbem-changes-link|
+
+.. |pywbem-readme-link-1| raw:: html
+
+    <a href="https://github.com/pywbem/pywbem/blob/stable_
+
+.. |pywbem-readme-link-2| raw:: html
+
+    /README.rst">Readme file on GitHub</a>
+
+.. |pywbem-readme-link| replace:: |pywbem-readme-link-1|\ |pywbem-version-mn|\ |pywbem-readme-link-2|
+
+.. |pywbem-docs-link-1| raw:: html
+
+    <a href="https://pywbem.readthedocs.io/en/stable_
+
+.. |pywbem-docs-link-2| raw:: html
+
+    /">Documentation on RTD</a>
+
+.. |pywbem-docs-link| replace:: |pywbem-docs-link-1|\ |pywbem-version-mn|\ |pywbem-docs-link-2|
+
+.. |pywbem-changes-link-1| raw:: html
+
+    <a href="https://pywbem.readthedocs.io/en/stable_
+
+.. |pywbem-changes-link-2| raw:: html
+
+    /changes.html">Change log on RTD</a>
+
+.. |pywbem-changes-link| replace:: |pywbem-changes-link-1|\ |pywbem-version-mn|\ |pywbem-changes-link-2|
+
 .. _CIM/WBEM standards: https://www.dmtf.org/standards/wbem/
