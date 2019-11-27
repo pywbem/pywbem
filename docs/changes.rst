@@ -115,6 +115,11 @@ Released: not yet
 * Added capability to log calls to WBEM server from mof_compile script. AAdds
   an option to the cmd line options to enable logging.
 
+* Added SSL related issues to the Troubleshooting section in the
+  Appendix of the docs, and added the OpenSSL version to the
+  `pywbem.ConnectionError` exceptions raised due to SSL errors for better
+  diagnosis. (See issues #1950 and #1966)
+
 **Cleanup:**
 
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed

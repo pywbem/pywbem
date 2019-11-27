@@ -58,16 +58,18 @@ from ._utils import _ensure_unicode, _ensure_bytes, _format
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if six.PY2 and not _ON_RTD:  # RTD has no swig to install M2Crypto
-    # pylint: disable=wrong-import-order
-    from M2Crypto import SSL           # pylint: disable=wrong-import-position
-    from M2Crypto.Err import SSLError  # pylint: disable=wrong-import-position
+    # pylint: disable=wrong-import-order,wrong-import-position
+    from M2Crypto import SSL
+    from M2Crypto.Err import SSLError
+    from M2Crypto.m2 import OPENSSL_VERSION_TEXT as OPENSSL_VERSION
     _HAVE_M2CRYPTO = True
     # pylint: disable=invalid-name
     SocketErrors = (socket.error, socket.sslerror)
 else:
-    import ssl as SSL                  # pylint: disable=wrong-import-position
-    # pylint: disable=wrong-import-position
+    # pylint: disable=wrong-import-order,wrong-import-position
+    import ssl as SSL
     from ssl import SSLError, CertificateError
+    from ssl import OPENSSL_VERSION
     _HAVE_M2CRYPTO = False
     # pylint: disable=invalid-name
     SocketErrors = (socket.error,)
@@ -604,7 +606,8 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                 except (SSLError, SSL.SSLError,
                         SSL.Checker.SSLVerificationError) as arg:
                     raise ConnectionError(
-                        _format("SSL error {0}: {1}", arg.__class__, arg),
+                        _format("SSL error {0}: {1}; OpenSSL version: {2}",
+                                arg.__class__, arg, OPENSSL_VERSION),
                         conn_id=conn_id)
 
             # Connect using Python SSL module
@@ -647,12 +650,14 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
                 except SSLError as arg:
                     raise ConnectionError(
-                        _format("SSL error {0}: {1}", arg.__class__, arg),
+                        _format("SSL error {0}: {1}; OpenSSL version: {2}",
+                                arg.__class__, arg, OPENSSL_VERSION),
                         conn_id=conn_id)
                 except CertificateError as arg:
                     raise ConnectionError(
-                        _format("SSL certificate error {0}: {1}",
-                                arg.__class__, arg),
+                        _format("SSL certificate error {0}: {1}; "
+                                "OpenSSL version: {2}",
+                                arg.__class__, arg, OPENSSL_VERSION),
                         conn_id=conn_id)
 
     class FileHTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
