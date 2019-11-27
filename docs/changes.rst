@@ -66,6 +66,9 @@ Released: not yet
   paths created by the compiler.  The incompatibility is that the mocker
   tests for the existance of all key properties. (see issue # 1958)
 
+* Circumvented removal of Python 2.7 in Appveyor's CygWin installation
+  by manually installing the python2 CygWin package. (See issue #1949)
+
 **Enhancements:**
 
 * Removed the use of the 'pbr' package because it caused too many undesirable

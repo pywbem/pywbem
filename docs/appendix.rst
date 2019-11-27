@@ -609,15 +609,19 @@ Pywbem specifies SSL parameters such that the highest SSL/TLS protocol version
 is used that both the client and server support. Thus, pywbem does not put any
 additional restrictions on top of OpenSSL.
 
-On Debian buster, OpenSSL 1.1.1d increased the security settings to require at
-least TLS 1.2 (see https://stackoverflow.com/a/53065682/1424462). This means
-most likely that the WBEM server side does not yet support TLS 1.2 or higher.
+Debian buster includes OpenSSL 1.1.1d and increased its security settings to
+require at least TLS 1.2 (see https://stackoverflow.com/a/53065682/1424462).
+
+This error means most likely that the WBEM server side does not yet support
+TLS 1.2 or higher.
 
 This can be fixed for example by adding TLS 1.2 support to the server side
 (preferred) or by lowering the minimum TLS level OpenSSL requires on the client
 side (which lowers security). The latter can be done by changing the
-``MinProtocol`` parameter in the ``/etc/ssl/openssl.cnf`` config file on
-the client OS. At the end of the file there is::
+``MinProtocol`` parameter in the OpenSSL config file on the client OS
+(typically ``/etc/ssl/openssl.cnf`` on Linux and OS-X,
+and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
+At the end of the file there is::
 
     [system_default_sect]
     MinProtocol = TLSv1.2
