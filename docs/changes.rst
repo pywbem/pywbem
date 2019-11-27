@@ -307,6 +307,11 @@ Released: not yet
 * Improved test coverage of function tests by verifying the last_request,
   last_raw_request, last_reply, and last_raw_reply attributes of a connection.
 
+* Added SSL related issues to the Troubleshooting section in the
+  Appendix of the docs, and added the OpenSSL version to the
+  `pywbem.ConnectionError` exceptions raised due to SSL errors for better
+  diagnosis. (See issues #1950 and #1966)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)

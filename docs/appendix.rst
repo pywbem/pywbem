@@ -547,6 +547,59 @@ Python versions). If this issue shows up, try installing the
 
 .. _Binary lxml package for Windows: https://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml
 
+ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On newer versions of the operating system running the pywbem client,
+communication with the WBEM server may fail with::
+
+    pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
+      [SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1056)
+
+For example, this happened after an upgrade of the client OS to Debian buster
+using Python 3.7, with OpenSSL 1.1.1d.
+
+This is an error that is created by the OpenSSL library and handed back up to
+the SSL module of Python which hands it up to pywbem. The error indicates that
+OpenSSL and the WBEM server do not agree about which SSL/TLS protocol level to
+use.
+
+Pywbem specifies SSL parameters such that the highest SSL/TLS protocol version
+is used that both the client and server support. Thus, pywbem does not put any
+additional restrictions on top of OpenSSL.
+
+Debian buster includes OpenSSL 1.1.1d and increased its security settings to
+require at least TLS 1.2 (see https://stackoverflow.com/a/53065682/1424462).
+
+This error means most likely that the WBEM server side does not yet support
+TLS 1.2 or higher.
+
+This can be fixed for example by adding TLS 1.2 support to the server side
+(preferred) or by lowering the minimum TLS level OpenSSL requires on the client
+side (which lowers security). The latter can be done by changing the
+``MinProtocol`` parameter in the OpenSSL config file on the client OS
+(typically ``/etc/ssl/openssl.cnf`` on Linux and OS-X,
+and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
+At the end of the file there is::
+
+    [system_default_sect]
+    MinProtocol = TLSv1.2
+    CipherString = DEFAULT@SECLEVEL=2
+
+ConnectionError raised with [SSL] EC lib
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using pywbem on Python 3.5 with OpenSSL 1.0.1e-fips against an IBM DS8000
+raised the following exception::
+
+    pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
+      [SSL] EC lib (_ssl.c:728)
+
+This is an error that is created by the OpenSSL library and handed back up to
+the SSL module of Python which hands it up to pywbem. The error indicates that
+OpenSSL on the client side cannot deal with the cipher used by the server
+side. This was fixed by upgrading OpenSSL on the client OS to version 1.1.1.
+
 
 .. _'Glossary`:
 
