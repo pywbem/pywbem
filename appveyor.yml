@@ -69,15 +69,32 @@ environment:
 #      PYTHON_CMD: python2.7
 #      PIP_CMD: pip
 
+#    - TOX_ENV: cygwin32_py36
+#      UNIX_PATH: C:\cygwin\bin
+#      PYTHON_CMD: python3.6m
+#      PIP_CMD: pip
+
     - TOX_ENV: cygwin64_py36
       UNIX_PATH: C:\cygwin64\bin
       PYTHON_CMD: python3.6m
       PIP_CMD: pip
 
 ## TODO: Enable Python 3.7 once available on Appveyor in Cygwin
+##    - TOX_ENV: cygwin32_py37
+##      UNIX_PATH: C:\cygwin\bin
+##      PYTHON_CMD: python3.7m
+##      PIP_CMD: pip
+
+## TODO: Enable Python 3.7 once available on Appveyor in Cygwin
 ##    - TOX_ENV: cygwin64_py37
 ##      UNIX_PATH: C:\cygwin64\bin
 ##      PYTHON_CMD: python3.7m
+##      PIP_CMD: pip
+
+## TODO: Enable Python 3.8 once available on Appveyor in Cygwin
+##    - TOX_ENV: cygwin32_py38
+##      UNIX_PATH: C:\cygwin\bin
+##      PYTHON_CMD: python3.8m
 ##      PIP_CMD: pip
 
 ## TODO: Enable Python 3.8 once available on Appveyor in Cygwin
