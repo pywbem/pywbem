@@ -98,7 +98,16 @@ twine==1.8.1
 jupyter==1.0.0
 
 # Pywin32 is used (at least?) by jupyter.
-pywin32==222; sys_platform == 'win32'
+# Pywin32 version 226 needs to be excluded, see issue #1946.
+# Pywin32 version 222 is inconsistent in its 32-bit/64-bit support on py37
+# Pywin32 version 225+ provides wheel files for py38, but does not advertise
+# py38 on Pypi. That causes pip to fail with any use of it in the constraints
+# file.
+pywin32==222; sys_platform == 'win32' and python_version <= '3.6'
+pywin32==223; sys_platform == 'win32' and python_version == '3.7'
+# TODO: Re-enable once pywin32 fixes its Python version advertising on Pypi
+#       (see issue #1975).
+# pywin32==225; sys_platform == 'win32' and python_version >= '3.8'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
