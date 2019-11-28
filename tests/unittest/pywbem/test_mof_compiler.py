@@ -109,8 +109,7 @@ class Test_MOFCompiler_init(unittest.TestCase):
 
         mofcomp = MOFCompiler(conn)
 
-        self.assertIsInstance(mofcomp.handle, MOFWBEMConnection)
-        self.assertIs(mofcomp.handle.conn, conn)
+        self.assertIsInstance(mofcomp.handle, FakedWBEMConnection)
 
     def test_handle_invalid(self):
         """Test init with a handle that is an invalid type"""

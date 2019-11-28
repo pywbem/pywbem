@@ -1897,14 +1897,27 @@ BaseRepositoryConnection.register(WBEMConnection)  # pylint: disable=no-member
 class MOFWBEMConnection(BaseRepositoryConnection):
     """
     A CIM repository connection to an in-memory repository on top of an
-    underlying repository, that is used by the MOF compiler to provide rollback
-    support.
+    optional underlying WBEM connection.
+
+    If a WBEM connection is provided with the conn parameter, that connection
+    is the target for any operations that acquire CIM objects and the in-memory
+    store acts as a cache for CIM qualifiers declarations, CIM Classes, and CIM
+    Instances created and as a rollback log in support of rolling back the
+    operations. This is the mode in which the MOF compiler uses this class.
+
+    If the underlying WBEM connection is not provided, the in-memory repository
+    acts as a CIM repository that is targeted by the operations. This mode is
+    used for testing only.
+
+    MOFWBEMConnection only implements the BaseRepositoryConnection
+    methods required to implement the mof compiler rollback functionality.
 
     This class implements the
     :class:`~pywbem.BaseRepositoryConnection` interface.
 
-    This implementation does not force paths on instances and just appends
-    each new instance to the instance repository
+    This implementation sets the path component of instances including
+    keybindings using property values in the instance. It does NOT confirm that
+    all key properties are included in the path.
 
     Raises:
 
@@ -2089,22 +2102,28 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         cc = args[0] if args else kwargs['NewClass']
         if cc.superclass:
             try:
-                _ = self.GetClass(cc.superclass, LocalOnly=True,  # noqa: F841
-                                  IncludeQualifiers=False)
+                # Since this may cause additional GetClass calls
+                # IncludeQualifiers = True insures reference properties on
+                # instances with aliases get built correctly.
+                self.GetClass(cc.superclass, LocalOnly=True,
+                              IncludeQualifiers=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
                     raise
                 raise
 
-        try:
-            self.compile_ordered_classnames.append(cc.classname)
+        self.compile_ordered_classnames.append(cc.classname)
 
+        # Class created in local repo before tests because that allows
+        # tests that may actually include this class to succeed in succeeding
+        # code.
+        this_ns = self.default_namespace
+        try:
             # The following generates an exception for each new ns
-            self.classes[self.default_namespace][cc.classname] = cc
+            self.classes[this_ns][cc.classname] = cc
         except KeyError:
-            self.classes[self.default_namespace] = \
-                NocaseDict({cc.classname: cc})
+            self.classes[this_ns] = NocaseDict({cc.classname: cc})
 
         objects = list(cc.properties.values())
         for meth in cc.methods.values():
@@ -2120,12 +2139,14 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     if ce.status_code == CIM_ERR_NOT_FOUND:
                         raise CIMError(
                             CIM_ERR_INVALID_PARAMETER,
-                            _format("Class {0!A} referenced by element {1!A} "
-                                    "of class {2!A} in namespace {3!A} does "
-                                    "not exist",
+                            _format("Class {0!A} referenced by element "
+                                    "{1!A} of class {2!A} in namespace "
+                                    "{3!A} does not exist",
                                     obj.reference_class, obj.name,
                                     cc.classname, self.getns()),
                             conn_id=self.conn_id)
+                    # NOTE: Only delete when this is total failure
+                    del self.classes[this_ns][cc.classname]
                     raise
 
             elif obj.type == 'string':
@@ -2139,19 +2160,24 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
                                 _format("Class {0!A} specified by "
-                                        "EmbeddInstance qualifier on element "
-                                        "{1!A} of class {2!A} in namespace "
-                                        "{3!A} does not exist",
+                                        "EmbeddInstance qualifier on "
+                                        "element {1!A} of class {2!A} in "
+                                        "namespace {3!A} does not exist",
                                         eiqualifier.value, obj.name,
                                         cc.classname, self.getns()),
                                 conn_id=self.conn_id)
+                        # Only delete when total failure
+                        del self.classes[this_ns][cc.classname]
                         raise
 
         # Issue #991: CreateClass should reject if the class already exists
+
+        # Add the classname to the local class_names dictionary used by
+        # rollback
         try:
-            self.class_names[self.default_namespace].append(cc.classname)
+            self.class_names[this_ns].append(cc.classname)
         except KeyError:
-            self.class_names[self.default_namespace] = [cc.classname]
+            self.class_names[this_ns] = [cc.classname]
 
     def DeleteClass(self, *args, **kwargs):
         """This method is only invoked by :meth:`rollback` (on the underlying
@@ -2295,10 +2321,8 @@ class MOFCompiler(object):
 
             If the provided object is a WBEM connection (i.e.
             :class:`~pywbem.WBEMConnection` or
-            :class:`~pywbem_mock.FakedWBEMConnection`), a
-            :class:`~pywbem.MOFWBEMConnection` object is created from the
-            provided object, and used by the MOF compiler to interface with
-            the repository.
+            :class:`~pywbem_mock.FakedWBEMConnection`),  the MOF compiler
+            connects directly to interface defined by handle.
 
             `None` means that no CIM repository will be associated. In this
             case, the MOF compiler can only process standalone MOF that does
@@ -2339,8 +2363,7 @@ class MOFCompiler(object):
         """  # noqa: E501
 
         if isinstance(handle, WBEMConnection):
-            conn = handle
-            handle = MOFWBEMConnection(conn)
+            conn = handle  # handle will be the WBEMConnection object
         elif handle is None:
             conn = None
         elif isinstance(handle, BaseRepositoryConnection):
@@ -2452,6 +2475,8 @@ class MOFCompiler(object):
 
         except CIMError as ce:
             if hasattr(ce, 'file_line'):
+                # pylint: disable=no-member
+                # file_line, attribute dynamically added by error code
                 self.parser.log(
                     _format("Fatal Error: {0}:{1}",
                             ce.file_line[0], ce.file_line[1]))
