@@ -234,7 +234,7 @@ Released: not yet
 * Circumvented removal of Python 2.7 in Appveyor's CygWin installation
   by manually installing the python2 CygWin package. (See issue #1949)
 
-* Fix issue with MOFCompiler class where mof_compilersscript was not writing
+* Fixed issue with MOFCompiler class where mof_compiler script was not writing
   the new classes and instances to the remote repository defined with the -s
   parameter. (see issue #1956 )
 
