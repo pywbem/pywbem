@@ -43,7 +43,7 @@ from pywbem._logging import LOG_DESTINATIONS, \
     LOG_DETAIL_LEVELS, LOGGER_SIMPLE_NAMES, DEFAULT_LOG_DETAIL_LEVEL, \
     DEFAULT_LOG_DESTINATION, configure_loggers_from_string
 
-MOFCOMP_LOG_FILENAME = 'mofcompServer.log'
+MOFCOMP_LOG_FILENAME = 'mofcompserver.log'
 
 
 def main():
@@ -252,6 +252,9 @@ Example:
     if args.user and not passwd:
         passwd = getpass('Enter password for %s: ' % args.user)
 
+    if args.dry_run and args.remove:
+        argparser.error('--dry-run not allowed with --remove.')
+
     # if client cert and key provided, create dictionary for
     # wbem connection
     x509_dict = None
@@ -272,10 +275,15 @@ Example:
     if args.log:
         configure_loggers_from_string(args.log, MOFCOMP_LOG_FILENAME, conn)
 
+    # Define the connection to be use as the compile handle
+    # If remove or dry_run set new objects are not written to the
+    # repository defined by conn. However, if conn is defined, CIM
+    # objects needed for the compile are retrieved from the implementation
+    # defined by conn
     if args.remove or args.dry_run:
-
+        # Write classes/instances to local repo but get them from
+        # conn if it is defined.
         conn_mof = MOFWBEMConnection(conn=conn)
-
         # Make it simple for this script to use these attributes:
         conn_mof.default_namespace = conn.default_namespace
         conn_mof.url = conn.url

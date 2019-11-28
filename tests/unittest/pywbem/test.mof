@@ -165,6 +165,3 @@ instance of PyWBEM_AllTypes {
    arrayString = {"This is a test string", "Second String"};
    arrayDateTime = {"19991224120000.000000+360", "19991224120000.000000+360"};
 };
-
-
-
