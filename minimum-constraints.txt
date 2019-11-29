@@ -24,10 +24,33 @@
 #   pip         9.0.1     2016-11-06
 #   setuptools  33.1.1    2017-01-16
 #   wheel       0.29.0    2016-02-06
+# * Ubuntu 18.04:
+#   Python      2.7.15
+#   Python3     3.6.5
+#   pip         9.0.1     (py2+py3)
+#   setuptools  39.0.1    (py2+py3)
+#   wheel       0.30.0    (py2+py3)
+# * Ubuntu 19.04:
+#   Python      2.7.16
+#   Python3     3.7.3
+#   pip         18.1      (py2+py3)
+#   setuptools  40.8.0    (py2+py3)
+#   wheel       0.32.3    (py2+py3)
+# * Versions installed on Python 3.8 on Appveyor
+#   Python38    3.8.0
+#   pip         19.3.1
+#   setuptools  41.6.0
+#   wheel       0.33.6
 
-pip==9.0.1
-setuptools==33.1.1
-wheel==0.29.0
+# For Python up to Python 3.7, we use the versions from Ubuntu 17.04:
+pip==9.0.1; python_version <= '3.7'
+setuptools==33.1.1; python_version <= '3.7'
+wheel==0.29.0; python_version <= '3.7'
+
+# For Python 3.8 and above, we use the versions from Python 3.8.0:
+pip==19.3.1; python_version >= '3.8'
+setuptools==41.6.0; python_version >= '3.8'
+wheel==0.33.6; python_version >= '3.8'
 
 
 # Direct dependencies for install (must be consistent with requirements.txt)
