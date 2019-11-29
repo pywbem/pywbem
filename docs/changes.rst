@@ -266,9 +266,6 @@ Released: 2019-07-20
   pull operations are used, and the documentation has been updated accordingly.
   (See issue #1780)
 
-* Added dependency to pywin32 package for Windows (used by Jupyter Notebook),
-  and excluded its version 226 to address issue #1946.
-
 * pywbem_mock display_repository() comment defintion that surrounds comments
   in the output was defined as # but mof comments are // so changed. (see
   issue #1951)
