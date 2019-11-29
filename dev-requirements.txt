@@ -59,7 +59,7 @@ astroid>=1.4.9,<2.0.0; python_version == '2.7'
 astroid>=2.1.0; python_version >= '3.4'
 
 # Flake8 (no imports, invoked via flake8 script):
-flake8>=3.2.1
+flake8>=3.7.0
 
 # Twine (no imports, invoked via twine script):
 twine>=1.8.1
