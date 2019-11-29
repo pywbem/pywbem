@@ -295,6 +295,12 @@ dist_dependent_files := \
     $(wildcard $(package_name)/*.py) \
     $(wildcard $(mock_package_name)/*.py) \
 
+ifeq ($(python_mn_version),2.6)
+	PIP_INSTALL_CMD := $(PIP_CMD) install
+else
+	PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
+endif
+
 .PHONY: help
 help:
 	@echo "Makefile for $(package_name) package"
@@ -380,18 +386,14 @@ endif
 
 pip_upgrade_$(pymn).done: makefile
 	-$(call RM_FUNC,$@)
-ifeq ($(python_mn_version),2.6)
-	$(PIP_CMD) install $(pip_level_opts) pip
-else
-	$(PYTHON_CMD) -m pip install $(pip_level_opts) pip
-endif
+	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
 	echo "done" >$@
 
 install_basic_$(pymn).done: makefile pip_upgrade_$(pymn).done
 	@echo "makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) remove_duplicate_setuptools.py
-	$(PIP_CMD) install $(pip_level_opts) setuptools wheel
+	$(PIP_INSTALL_CMD) $(pip_level_opts) setuptools wheel
 	echo "done" >$@
 	@echo "makefile: Done installing/upgrading basic Python packages"
 
@@ -419,8 +421,8 @@ ifdef TEST_INSTALLED
 else
 	@echo "makefile: Installing pywbem (as editable) and its Python installation prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RMDIR_FUNC,build $(package_name).egg-info .eggs)
-	$(PIP_CMD) install $(pip_level_opts) -r requirements.txt
-	$(PIP_CMD) install $(pip_level_opts) -e .
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -r requirements.txt
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -e .
 	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
 endif
 	echo "done" >$@
@@ -457,7 +459,7 @@ develop: develop_$(pymn).done
 develop_$(pymn).done: pip_upgrade_$(pymn).done install_$(pymn).done develop_os_$(pymn).done install_basic_$(pymn).done dev-requirements.txt
 	@echo "makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
-	$(PIP_CMD) install $(pip_level_opts) -r dev-requirements.txt
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
 	echo "done" >$@
 	@echo "makefile: Done installing Python development requirements"
 
