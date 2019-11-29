@@ -79,6 +79,9 @@ Released: not yet
   inserted into the local repository so the rollback delete of the instances
   could not identify the instances. (see issue #1158)
 
+* Fixed several install issues with the lxml, flake8, pywin32, pip, setuptools,
+  and wheel packages on Python 3.8 on Windows. (See issues #1975, #1980).
+
 **Enhancements:**
 
 * Removed the use of the 'pbr' package because it caused too many undesirable
