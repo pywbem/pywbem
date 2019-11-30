@@ -1,7 +1,7 @@
 .. # README file for Pypi
 
 .. # begin of customization for the current version
-.. |pywbem-version-mn| replace:: 0.14
+.. |pywbem-version-mn| replace:: 0.15
 .. # end of customization for the current version
 
 Pywbem is a WBEM client, written in pure Python. It supports Python 2 and

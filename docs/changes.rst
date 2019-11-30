@@ -16,13 +16,9 @@ Change log
 pywbem 0.15.0
 -------------
 
-This version is currently in development and is shown as |version|.
-
 This version contains all fixes up to pywbem 0.14.6.
 
-Released: not yet
-
-**Incompatible changes:**
+Released: 2019-11-30
 
 **Deprecations:**
 
@@ -141,12 +137,6 @@ Released: not yet
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
   native Python types int, long, float. These types cannot occur in this
   function, so no tests could be written that test that code.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.14.6
