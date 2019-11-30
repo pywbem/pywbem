@@ -121,11 +121,10 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     To make the following changes:
 
-    * Update the pywbem version in the two links near the bottom of the file:
+    * Update the constants near the top of the file::
 
       ```
-      .. _README file: https://github.com/pywbem/pywbem/blob/stable_{M.N}/README.rst
-      .. _Documentation: https://pywbem.readthedocs.io/en/stable_{M.N}/
+      .. |pywbem-version-mn| replace:: {M.N}
       ```
 
       Where the items in curly braces are replaced with their actual values.
