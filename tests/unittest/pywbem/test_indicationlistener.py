@@ -22,10 +22,12 @@ import datetime
 from random import randint
 import requests
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import WBEMListener
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
 
 RCV_COUNT = 0
 RCV_FAIL = False

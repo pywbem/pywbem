@@ -11,15 +11,16 @@ from datetime import timedelta, datetime
 import pytest
 import six
 
+from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
     Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
     MinutesFromUTC, CIMClass, CIMInstance, CIMInstanceName, CIMClassName, \
     cimtype, type_from_name
-
-from ..utils.pytest_extensions import simplified_test_function
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 #
@@ -247,6 +248,8 @@ def number_str_repr_tuple(request):
 
 
 def test_number_str(number_str_repr_tuple):
+    # pylint: disable=redefined-outer-name
+    """Test __str__() for a number"""
     obj_type, init_arg, exp_str, _ = number_str_repr_tuple
     obj = obj_type(init_arg)
 
@@ -257,6 +260,8 @@ def test_number_str(number_str_repr_tuple):
 
 
 def test_number_repr(number_str_repr_tuple):
+    # pylint: disable=redefined-outer-name
+    """Test __repr__() for a number"""
     obj_type, init_arg, _, exp_repr_pattern = number_str_repr_tuple
     obj = obj_type(init_arg)
 
@@ -752,8 +757,7 @@ def test_datetime_repr(datetime_init_tuple):
     datetime_init_tuple pytest.fixture.
     """
     # pylint: disable=redefined-outer-name
-    (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_precision,
-     exp_minutesfromutc, exp_str) = datetime_init_tuple
+    (dtarg, exp_kind, _, _, _, _, _) = datetime_init_tuple
 
     if isinstance(exp_kind, type) and issubclass(exp_kind, Exception):
         pytest.skip("Testing repr() needs CIMDatetime object")
@@ -771,8 +775,7 @@ def test_datetime_str(datetime_init_tuple):
     datetime_init_tuple pytest.fixture.
     """
     # pylint: disable=redefined-outer-name
-    (dtarg, exp_kind, exp_datetime, exp_timedelta, exp_precision,
-     exp_minutesfromutc, exp_str) = datetime_init_tuple
+    (dtarg, exp_kind, _, _, _, _, _) = datetime_init_tuple
 
     if isinstance(exp_kind, type) and issubclass(exp_kind, Exception):
         pytest.skip("Testing str() needs CIMDatetime object")

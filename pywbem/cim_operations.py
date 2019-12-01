@@ -1888,6 +1888,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 _format("Method parameter {0!A} has type {1} which cannot "
                         "be used to infer a valid CIM data type{2}",
                         param_name, type(obj), hint))
+            # pylint: disable=inconsistent-return-statements
 
         def paramvalue(obj):
             """

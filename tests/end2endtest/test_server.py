@@ -6,18 +6,21 @@ from __future__ import absolute_import, print_function
 
 import re
 
-from ..utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-
-from pywbem import WBEMServer
+from .utils.utils import server_func_asserted, server_prop_asserted
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
-# pylint: disable=line-too-long,unused-import
-from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
-# pylint: enable=line-too-long
-from .utils.pytest_extensions import default_namespace  # noqa: F401, E501
-from .utils.utils import server_func_asserted, server_prop_asserted
+# pylint: disable=unused-import
+from .utils.pytest_extensions import wbem_connection  # noqa: F401
+from .utils.pytest_extensions import server_definition  # noqa: F401
+from .utils.pytest_extensions import default_namespace  # noqa: F401
+# pylint: enable=unused-import
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+from pywbem import WBEMServer
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 def test_namespace_consistency(

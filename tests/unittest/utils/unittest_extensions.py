@@ -10,10 +10,11 @@ from __future__ import absolute_import
 import re
 import os
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem._nocasedict import NocaseDict
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 class RegexpMixin(object):
@@ -81,8 +82,9 @@ class CIMObjectMixin(object):
     Mixin class for testing CIM objects.
     """
 
+    @staticmethod
     def assert_CIMInstanceName_attrs(
-            self, obj, classname, keybindings, host=None, namespace=None):
+            obj, classname, keybindings, host=None, namespace=None):
         """
         Verify the attributes of the CIMInstanceName object in `obj` against
         expected values passed as the remaining arguments.
@@ -92,8 +94,9 @@ class CIMObjectMixin(object):
         assert obj.host == host
         assert obj.namespace == namespace
 
+    @staticmethod
     def assert_CIMProperty_attrs(
-            self, obj, name, value, type_=None, class_origin=None,
+            obj, name, value, type_=None, class_origin=None,
             array_size=None, propagated=None, is_array=False,
             reference_class=None, qualifiers=None, embedded_object=None):
         """
@@ -256,7 +259,8 @@ class CIMObjectMixin(object):
         self.assert_CIMQualifier_dict(
             act_parameter.qualifiers, exp_parameter.qualifiers, context)
 
-    def assert_CIMQualifier_obj(self, act_qualifier, exp_qualifier, context):
+    @staticmethod
+    def assert_CIMQualifier_obj(act_qualifier, exp_qualifier, context):
         """
         Verify that two CIMQualifier objects are equal.
         """

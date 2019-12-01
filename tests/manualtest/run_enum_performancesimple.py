@@ -19,11 +19,23 @@ import getpass as _getpass
 import argparse as _argparse
 from tabulate import tabulate
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem import WBEMConnection, Error, Uint64, __version__
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+# In pywbem 0.13, parse_cim() changed from a function to a method:
+try:
+    from pywbem.tupleparse import parse_cim
+except ImportError:
+    from pywbem.tupleparse import TupleParser
+
+    def parse_cim(tt):
+        """Compatible parse_cim() function"""
+        tp = TupleParser()
+        return tp.parse_cim(tt)
 
 # Pegasus class/namespace to use for test
 TEST_NAMESPACE = "test/TestProvider"
@@ -81,7 +93,9 @@ class ElapsedTimer(object):
         Get the elapsed time as seconds
         """
         dt = self.elapsed_time
+        # pylint: disable=no-member
         return float(dt.seconds) + (float(dt.microseconds) / 1000000)
+        # pylint: enable=no-member
 
     def elapsed_time(self):
         """
@@ -148,6 +162,7 @@ def set_provider_parameters(conn, count, size):
 
 def record_response_times(conn, op, max_object_count, op_count, inst_count,
                           op_time):
+    # pylint: disable=unused-argument
     """
     Record the server and client response times from the last response
     by appending to a list.  Appends two calculations to the result (

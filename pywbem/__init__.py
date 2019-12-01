@@ -57,7 +57,7 @@ from ._listener import *  # noqa: F403,F401
 from ._recorder import *  # noqa: F403,F401
 from ._statistics import *  # noqa: F403,F401
 from ._logging import *  # noqa: F403,F401
-from ._warnings import *  # noqa: F403,F401
+from ._warnings import *  # noqa: F403,F401 pylint: disable=redefined-builtin
 
 from ._version import __version__  # noqa: F401
 
@@ -65,7 +65,7 @@ _python_m = sys.version_info[0]  # pylint: disable=invalid-name
 _python_n = sys.version_info[1]  # pylint: disable=invalid-name
 
 # Keep these Python versions in sync with setup.py
-if _python_m == 2 and _python_n < 7:   # pylint: disable=no-else-raise
+if _python_m == 2 and _python_n < 7:
     raise RuntimeError('On Python 2, pywbem requires Python 2.7 or higher')
 elif _python_m == 3 and _python_n < 4:
     raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')

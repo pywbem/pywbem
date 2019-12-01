@@ -38,9 +38,9 @@ def get_version(version_file):
     """
     with open(version_file, 'r') as fp:
         version_source = fp.read()
-    globals = {}
-    exec(version_source, globals)
-    return globals['__version__']
+    _globals = {}
+    exec(version_source, _globals)  # pylint: disable=exec-used
+    return _globals['__version__']
 
 
 def get_requirements(requirements_file):
@@ -59,15 +59,16 @@ def get_requirements(requirements_file):
     return reqs
 
 
-def read_file(file):
+def read_file(a_file):
     """
     Read the specified file and return its content as one string.
     """
-    with open(file, 'r') as fp:
+    with open(a_file, 'r') as fp:
         content = fp.read()
     return content
 
 
+# pylint: disable=invalid-name
 requirements = get_requirements('requirements.txt')
 install_requires = [req for req in requirements
                     if req and not re.match(r'[^:]+://', req)]

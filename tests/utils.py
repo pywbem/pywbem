@@ -6,9 +6,9 @@ from __future__ import absolute_import
 
 import sys
 import os
-from packaging import version
 import pytest
 import ply
+from packaging.version import parse as parse_version
 
 
 def skip_if_moftab_regenerated():
@@ -40,7 +40,7 @@ def skip_if_moftab_regenerated():
 
     test_installed = os.getenv('TEST_INSTALLED', False)
 
-    pywbem = import_installed('pywbem')  # noqa: E402
+    pywbem = import_installed('pywbem')
 
     try:
         from pywbem import mofparsetab, moflextab
@@ -57,12 +57,19 @@ def skip_if_moftab_regenerated():
             # The mofparsetab and moflextab files will be auto-generated.
             return
 
-    pywbem_not_tolerant = version.parse(pywbem.__version__) <= \
-        version.parse('0.14.4')  # This causes 0.14.5.devN to be tolerant
-    mofparsetab_mismatch = version.parse(mofparsetab._tabversion) != \
-        version.parse(ply.__version__)
-    moflextab_mismatch = version.parse(moflextab._tabversion) != \
-        version.parse(ply.__version__)
+    pywbem_not_tolerant = parse_version(pywbem.__version__) <= \
+        parse_version('0.14.4')  # This causes 0.14.5.devN to be tolerant
+
+    # pylint: disable=protected-access
+    mofparsetab_version = mofparsetab._tabversion
+    moflextab_version = moflextab._tabversion
+    # pylint: enable=protected-access
+    ply_version = ply.__version__
+
+    mofparsetab_mismatch = parse_version(mofparsetab_version) != \
+        parse_version(ply_version)
+    moflextab_mismatch = parse_version(moflextab_version) != \
+        parse_version(ply_version)
 
     if test_installed and pywbem_not_tolerant and \
             (mofparsetab_mismatch or moflextab_mismatch):
@@ -74,8 +81,8 @@ def skip_if_moftab_regenerated():
                     "current ply: {2}, ply in mofparsetab.py: {3}, "
                     "ply in moflextab.py: {4}".
                     format(pywbem.__version__, pywbem.__file__,
-                           ply.__version__,
-                           mofparsetab._tabversion, moflextab._tabversion))
+                           ply_version,
+                           mofparsetab_version, moflextab_version))
 
 
 def import_installed(module_name):
@@ -99,7 +106,7 @@ def import_installed(module_name):
     Example usage, e.g. in a pywbem test program::
 
         from ...utils import import_installed
-        pywbem = import_installed('pywbem')  # noqa: E402
+        pywbem = import_installed('pywbem')  # pylint: disable=invalid-name
         from pywbem import ...
 
     The number of dots in `from ..utils` depends on where the test program

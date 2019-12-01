@@ -6,9 +6,6 @@ Note that class `NocaseDict` is tested in test_nocasedict.py.
 
 from __future__ import absolute_import, print_function
 
-# Allows use of lots of single character variable names.
-# pylint: disable=invalid-name,missing-docstring,too-many-statements
-# pylint: disable=too-many-lines,no-self-use
 import re
 from datetime import timedelta, datetime
 from mock import patch
@@ -16,19 +13,21 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
-import packaging
 import pytest
 import six
+import packaging
 
+from ..utils.validate import validate_cim_xml_obj
+from ..utils.pytest_extensions import simplified_test_function, ignore_warnings
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, tocimobj, MinutesFromUTC, \
     __version__
-
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
 from pywbem.cim_obj import mofstr
@@ -37,9 +36,12 @@ try:
     from pywbem import cimvalue
 except ImportError:
     pass
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-from ..utils.validate import validate_cim_xml_obj
-from ..utils.pytest_extensions import simplified_test_function, ignore_warnings
+
+# Allows use of lots of single character variable names.
+# pylint: disable=invalid-name,missing-docstring,too-many-statements
+# pylint: disable=too-many-lines,no-self-use
 
 
 # A note on using pytest.warns:
@@ -239,6 +241,7 @@ TESTCASES_DICT = [
     TESTCASES_DICT)
 @simplified_test_function
 def test_dict(testcase, obj, exp_dict):
+    # pylint: disable=unused-argument
     """
     Test function for dictionary tests.
 
@@ -262,7 +265,7 @@ def test_dict(testcase, obj, exp_dict):
         assert obj[swapcase2(key)] == exp_dict[key]
 
     with pytest.raises(KeyError):
-        obj['undefined_Cheepy']  # undefined key
+        _ = obj['undefined_Cheepy']  # undefined key
 
     # Test __setitem__()
 
@@ -4030,6 +4033,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
 @simplified_test_function
 def test_CIMInstanceName_from_instance(
         testcase, cls_kwargs, inst_kwargs, exp_attrs, namespace, host, strict):
+    # pylint: disable=unused-argument
     """
     Test function for CIMInstanceName.from_instance()
     """
@@ -17324,7 +17328,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abcdef%02d' % i for i in range(0, 10)],
+                        value=['abcdef%02d' % _i for _i in range(0, 10)],
                         type='string'),
                 ],
             ),
@@ -17357,8 +17361,8 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abc def ' * 10 + 'z%02d' % i
-                               for i in range(0, 2)],
+                        value=['abc def ' * 10 + 'z%02d' % _i
+                               for _i in range(0, 2)],
                         type='string'),
                 ],
             ),
@@ -17652,7 +17656,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
         dict(
             obj=CIMProperty(
                 name='P1',
-                value=['abcdef%02d' % i for i in range(0, 10)],
+                value=['abcdef%02d' % _i for _i in range(0, 10)],
                 type='string',
             ),
             kwargs=dict(
@@ -22563,7 +22567,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
         dict(
             obj=CIMQualifier(
                 name='Q1',
-                value=['abcdef%02d' % i for i in range(0, 10)],
+                value=['abcdef%02d' % _i for _i in range(0, 10)],
                 type='string',
             ),
             kwargs=dict(
@@ -22583,7 +22587,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
         dict(
             obj=CIMQualifier(
                 name='Q1',
-                value=['abc def ' * 10 + 'z%02d' % i for i in range(0, 2)],
+                value=['abc def ' * 10 + 'z%02d' % _i for _i in range(0, 2)],
                 type='string',
             ),
             kwargs=dict(
@@ -29420,7 +29424,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abcdef%02d' % i for i in range(0, 10)],
+                        value=['abcdef%02d' % _i for _i in range(0, 10)],
                         type='string'),
                 ],
             ),
@@ -29450,8 +29454,8 @@ TESTCASES_CIMMETHOD_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abc def ' * 10 + 'z%02d' % i
-                               for i in range(0, 2)],
+                        value=['abc def ' * 10 + 'z%02d' % _i
+                               for _i in range(0, 2)],
                         type='string'),
                 ],
             ),
@@ -36717,7 +36721,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abcdef%02d' % i for i in range(0, 10)],
+                        value=['abcdef%02d' % _i for _i in range(0, 10)],
                         type='string'),
                 ],
             ),
@@ -36747,8 +36751,8 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abc def ' * 10 + 'z%02d' % i
-                               for i in range(0, 2)],
+                        value=['abc def ' * 10 + 'z%02d' % _i
+                               for _i in range(0, 2)],
                         type='string'),
                 ],
             ),

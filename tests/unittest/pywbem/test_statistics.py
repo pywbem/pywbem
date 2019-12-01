@@ -9,12 +9,13 @@ from __future__ import absolute_import, print_function
 import time
 import unittest
 
+from ..utils.unittest_extensions import RegexpMixin
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import Statistics
-
-from ..utils.unittest_extensions import RegexpMixin
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 def time_abs_delta(t1, t2):

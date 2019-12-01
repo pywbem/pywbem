@@ -40,14 +40,16 @@ import pytest
 
 from testfixtures import LogCapture, compare, TempDirectory
 
+from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import WBEMConnection, ConnectionError
 from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-from ..utils.pytest_extensions import simplified_test_function
 
 VERBOSE = False
 
