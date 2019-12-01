@@ -69,10 +69,12 @@ from subprocess import Popen, PIPE, STDOUT
 from formencode import doctest_xml_compare
 from lxml import etree
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem._utils import _ensure_bytes, _ensure_unicode
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
 
 # CIM-XML DTD file to validate against
 DTD_FILE = os.path.join('tests', 'dtd', 'DSP0203_2.3.1.dtd')

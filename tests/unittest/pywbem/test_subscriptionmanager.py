@@ -29,17 +29,18 @@ import os
 import re
 from socket import getfqdn
 
-from ...utils import import_installed, skip_if_moftab_regenerated
-pywbem = import_installed('pywbem')  # noqa: E402
-
-from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
-    CIMInstance
-
-from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
-    DESTINATION_CLASSNAME, FILTER_CLASSNAME
-
+from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from ..utils.wbemserver_mock import WbemServerMock
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
+    CIMInstance
+from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
+    DESTINATION_CLASSNAME, FILTER_CLASSNAME
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 # Location of DMTF schema directory used by all tests.

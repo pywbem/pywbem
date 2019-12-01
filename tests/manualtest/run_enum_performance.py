@@ -19,11 +19,12 @@ import getpass as _getpass
 import argparse as _argparse
 from tabulate import tabulate
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem import WBEMConnection, Error, Uint64, TestClientRecorder
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Pegasus class/namespace to use for test
 TEST_NAMESPACE = "test/TestProvider"

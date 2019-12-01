@@ -16,10 +16,14 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from ...utils import import_installed, skip_if_moftab_regenerated
+from ...utils import skip_if_moftab_regenerated
+from ..utils.unittest_extensions import CIMObjectMixin
+from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
+    TOTAL_QUALIFIERS, TOTAL_CLASSES
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem.cim_operations import CIMError
 from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
@@ -30,11 +34,9 @@ from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
 from pywbem import mof_compiler
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
-
-from ..utils.unittest_extensions import CIMObjectMixin
-from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
-    TOTAL_QUALIFIERS, TOTAL_CLASSES
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Location of the schema for use by test_mof_compiler.
 # This should not change unless you intend to use another schema directory
@@ -2425,11 +2427,15 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(cln in clsrepo)
 
 
-class TestFileErrors():
+class TestFileErrors(object):
     """
-        Test for IO errors in compile where file does not exist either
-        direct compile or expected in search path.
+    Test for IO errors in compile where file does not exist either
+    direct compile or expected in search path.
     """
+
+    def __init__(self):
+        self.logfile = None  # open log file
+        self.mofcomp = None  # MOFCompiler object
 
     def create_mofcompiler(self):
         """ Create the compiler with no search path """
@@ -2572,6 +2578,9 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
 
 
 class Test_CreateInstanceWithDups(unittest.TestCase):
+    """
+    Testcases for the MOF compiler with duplicate instances.
+    """
 
     def setUp(self):
         """Create the MOF compiler."""

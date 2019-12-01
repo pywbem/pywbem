@@ -17,11 +17,23 @@ from tabulate import tabulate
 from pyinstrument import Profiler
 import six
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import tupletree, __version__
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+# In pywbem 0.13, parse_cim() changed from a function to a method:
+try:
+    from pywbem.tupleparse import parse_cim
+except ImportError:
+    from pywbem.tupleparse import TupleParser
+
+    def parse_cim(tt):
+        """Compatible parse_cim() function"""
+        tp = TupleParser()
+        return tp.parse_cim(tt)
 
 if six.PY2:
     import codecs  # pylint: disable=wrong-import-order
@@ -37,21 +49,6 @@ DEFAULT_RUNID = 'default'
 PROFILE_OUT_PREFIX = 'perf'
 PROFILE_DUMP_SUFFIX = 'profile'
 PROFILE_LOG_SUFFIX = 'out'
-
-# The parser call is dependent on pywbem version. Changed from direct function
-# call in 0.13 to a method in a class.
-ver_tuple = __version__.split('.')
-if int(ver_tuple[0]) == 0 and int(ver_tuple[1]) <= 12:
-    from pywbem.tupleparse import parse_cim
-
-    def test_tuple_parse(tt):
-        parse_cim(tt)
-else:
-    from pywbem.tupleparse import TupleParser
-
-    def test_tuple_parse(tt):
-        tp = TupleParser()
-        tp.parse_cim(tt)
 
 STDOUT_ENCODING = getattr(_sys.stdout, 'encoding', None)
 if not STDOUT_ENCODING:
@@ -184,7 +181,7 @@ def create_xml_objs(count, size):
         obj = build_xml_obj(number, size)
         obj_size.append(len(obj))
         objstr += obj
-    global AVG_RESPONSE_SIZE
+    global AVG_RESPONSE_SIZE  # pylint: disable=global-statement
     AVG_RESPONSE_SIZE = sum(obj_size) / len(obj_size)
 
     return objstr
@@ -219,9 +216,9 @@ def execute_test_code(xml_string, profiler):
             profiler.start()
 
     # The code to be tested
-    tt_ = tupletree.xml_to_tupletree_sax(xml_string, "TestData")
-    # call method dependent on pywbem version
-    test_tuple_parse(tt_)
+    tt = tupletree.xml_to_tupletree_sax(xml_string, "TestData")
+
+    parse_cim(tt)
 
     if profiler:
         if isinstance(profiler, cProfile.Profile):

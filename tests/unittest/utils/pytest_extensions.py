@@ -173,6 +173,7 @@ def simplified_test_function(test_func):
 
 
 class ignore_warnings(warnings.catch_warnings):
+    # pylint: disable=invalid-name,too-few-public-methods
     """
     Context manager that ignores the specified warning categories in its body.
 
@@ -206,6 +207,7 @@ class ignore_warnings(warnings.catch_warnings):
 
 
 def expect_warnings(testcase, warnings):
+    # pylint: disable=redefined-outer-name
     """
     Return whether a particular warning or one or more from a list of warnings
     is expected in the testcase.

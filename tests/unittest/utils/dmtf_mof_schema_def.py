@@ -36,10 +36,11 @@ from __future__ import absolute_import, print_function
 
 import os
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-
 from pywbem_mock import DMTFCIMSchema
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 # Change the following variables when a new version of the CIM Schema is used

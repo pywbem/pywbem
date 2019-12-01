@@ -39,12 +39,14 @@ from collections import Counter
 from mock import Mock
 import six
 
+# pylint: disable=ungrouped-imports
 try:
     # time.perf_counter() was added in Python 3.3
     from time import perf_counter as delta_time
 except ImportError:
     # time.clock() was deprecated in Python 3.3
     from time import clock as delta_time
+# pylint: enable=ungrouped-imports
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMQualifierDeclaration, \

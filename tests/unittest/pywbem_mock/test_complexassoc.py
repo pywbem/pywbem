@@ -31,13 +31,14 @@ import os
 
 import pytest
 
-from ...utils import import_installed, skip_if_moftab_regenerated
-pywbem = import_installed('pywbem')  # noqa: E402
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+from ...utils import skip_if_moftab_regenerated
 
-# The two statements above cause pylint errors which we disable
-# pylint: disable=wrong-import-position, wrong-import-order
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMInstanceName, CIMClassName, DEFAULT_NAMESPACE
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # List of initially existing namespaces in the mock repository
 INITIAL_NAMESPACES = [DEFAULT_NAMESPACE]
@@ -316,6 +317,7 @@ instance of TST_A3Sub as $A3Sub511 {
 )
 def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
                                complex_assoc_mof, cond):
+    # pylint: disable=redefined-outer-name,invalid-name
     """
     Test referencenames class operations against a ternary model defined by
     the fixture complex_assoc_mof
@@ -331,7 +333,6 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
     if ns is not None:
         target = CIMClassName(target, namespace=ns)
     if cond == 'pdb':
-        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 
@@ -377,40 +378,98 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
         # cond: True; run test; 'pdb'; start debugger; False; skip test
         # Test TST_EP  and role as initiator
         # targcln, r, rc
-        # pylint: disable=line-too-long
-        [('TST_EP', 1), None, None, None, [('TST_A3', {'Initiator': ('TST_EP', 1),  # noqa 501
-                                                       'Target': ('TST_EP', 2),
-                                                      'LogicalUnit': ('TST_LD', 3)})], OK],  # noqa 501
-        [('TST_EP', 1), None, 'TST_A3', None, [('TST_A3', {'Initiator': ('TST_EP', 1),  # noqa 501
-                                                           'Target': ('TST_EP', 2),  # noqa 501
-                                                           'LogicalUnit': ('TST_LD', 3)})], OK],  # noqa 501
-        [('TST_EP', 1), 'Initiator', 'TST_A3', None, [('TST_A3', {'Initiator': ('TST_EP', 1),  # noqa 501
-                                                                  'Target': ('TST_EP', 2),  # noqa 501
-                                                                  'LogicalUnit': ('TST_LD', 3)})], OK],  # noqa 501
-        [('TST_EP', 1), 'Target', 'TST_A3', None, [], OK],
-        [('TST_EP', 1), 'LogicalUnit', 'TST_A3', None, [], OK],
-        [('TST_EPSub', 6), 'Initiator', 'TST_A3', None, [], OK],
-        [('TST_EPSub', 6), 'Initiator', 'TST_A3Sub', X3, [('TST_A3Sub', {'Initiator': ('TST_EPSub', 6),  # noqa 501
-                                                                         'Target': ('TST_EPSub', 7),  # noqa 501
-                                                                         'LogicalUnit': ('TST_LDSub', 4)})], OK],  # noqa 501
-
-        [('TST_LD', 3), None, None, None, [('TST_A3', {'Initiator': ('TST_EP', 1),  # noqa 501
-                                                       'Target': ('TST_EP', 2),
-                                                       'LogicalUnit': ('TST_LD', 3)})], OK],  # noqa 501
-        [('TST_LD', 3), None, 'TST_A3', None, [('TST_A3', {'Initiator': ('TST_EP', 1),  # noqa 501
-                                                           'Target': ('TST_EP', 2),  # noqa 501
-                                                           'LogicalUnit': ('TST_LD', 3)})], OK],  # noqa 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', None, [('TST_A3', {'Initiator': ('TST_EP', 1),  # noqa 501
-                                                                    'Target': ('TST_EP', 2),  # noqa 501
-                                                                    'LogicalUnit': ('TST_LD', 3)})], OK],  # noqa 501
-        [('TST_LDSub', 4), 'LogicalUnit', 'TST_A3Sub', X3, [('TST_A3Sub', {'Initiator': ('TST_EPSub', 6),  # noqa 501
-                                                                          'Target': ('TST_EPSub', 7),  # noqa 501
-                                                                          'LogicalUnit': ('TST_LDSub', 4)})], OK],  # noqa 501
-        # pylint: enable=line-too-long
+        (
+            ('TST_EP', 1), None, None, None,
+            [
+                ('TST_A3', {'Initiator': ('TST_EP', 1),
+                            'Target': ('TST_EP', 2),
+                            'LogicalUnit': ('TST_LD', 3)})
+            ],
+            OK
+        ),
+        (
+            ('TST_EP', 1), None, 'TST_A3', None,
+            [
+                ('TST_A3', {'Initiator': ('TST_EP', 1),
+                            'Target': ('TST_EP', 2),
+                            'LogicalUnit': ('TST_LD', 3)})
+            ],
+            OK
+        ),
+        (
+            ('TST_EP', 1), 'Initiator', 'TST_A3', None,
+            [
+                ('TST_A3', {'Initiator': ('TST_EP', 1),
+                            'Target': ('TST_EP', 2),
+                            'LogicalUnit': ('TST_LD', 3)})
+            ],
+            OK
+        ),
+        (
+            ('TST_EP', 1), 'Target', 'TST_A3', None,
+            [],
+            OK
+        ),
+        (
+            ('TST_EP', 1), 'LogicalUnit', 'TST_A3', None,
+            [],
+            OK
+        ),
+        (
+            ('TST_EPSub', 6), 'Initiator', 'TST_A3', None,
+            [],
+            OK
+        ),
+        (
+            ('TST_EPSub', 6), 'Initiator', 'TST_A3Sub', X3,
+            [
+                ('TST_A3Sub', {'Initiator': ('TST_EPSub', 6),
+                               'Target': ('TST_EPSub', 7),
+                               'LogicalUnit': ('TST_LDSub', 4)})
+            ],
+            OK
+        ),
+        (
+            ('TST_LD', 3), None, None, None,
+            [
+                ('TST_A3', {'Initiator': ('TST_EP', 1),
+                            'Target': ('TST_EP', 2),
+                            'LogicalUnit': ('TST_LD', 3)})
+            ],
+            OK
+        ),
+        (
+            ('TST_LD', 3), None, 'TST_A3', None,
+            [
+                ('TST_A3', {'Initiator': ('TST_EP', 1),
+                            'Target': ('TST_EP', 2),
+                            'LogicalUnit': ('TST_LD', 3)})
+            ],
+            OK
+        ),
+        (
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', None,
+            [
+                ('TST_A3', {'Initiator': ('TST_EP', 1),
+                            'Target': ('TST_EP', 2),
+                            'LogicalUnit': ('TST_LD', 3)})
+            ],
+            OK
+        ),
+        (
+            ('TST_LDSub', 4), 'LogicalUnit', 'TST_A3Sub', X3,
+            [
+                ('TST_A3Sub', {'Initiator': ('TST_EPSub', 6),
+                               'Target': ('TST_EPSub', 7),
+                               'LogicalUnit': ('TST_LDSub', 4)})
+            ],
+            OK
+        ),
     ]
 )
 def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
                               complex_assoc_mof, cond):
+    # pylint: disable=redefined-outer-name,invalid-name
     """
     Test referencenames class operations against a ternary model defined by
     the fixture complex_assoc_mof
@@ -425,7 +484,6 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
     conn.compile_mof_string(complex_assoc_mof + mof, namespace=ns)
 
     if cond == 'pdb':
-        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 
@@ -541,6 +599,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
 )
 def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
                                  rc, mof, exp_rslt, complex_assoc_mof, cond):
+    # pylint: disable=redefined-outer-name,invalid-name
     """
     Test associatornames class operations against a ternary model defined by
     the fixture complex_assoc_mof. We do not test the associator calls
@@ -557,7 +616,6 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
     if ns is not None:
         target = CIMClassName(target, namespace=ns)
     if cond == 'pdb':
-        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 
@@ -605,98 +663,475 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
         # cond: True; run test; 'pdb'; start debugger; False; skip test
         # targ, r, ac, rr, rc, exp_result, cond
         # pylint: disable=line-too-long
-        [('TST_EP', 1), None, None, None, None, None, [('TST_EP',2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 1), None, 'TST_A3', None, None, None, [('TST_EP',2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 1), 'Initiator', None, None, None, None, [('TST_EP',2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 1), 'Initiator', 'TST_A3', None, None, None, [('TST_EP',2), ('TST_LD',3)],  OK],  # noqa: 501
-        [('TST_EP', 1), None, 'TST_A3', 'Target', None, None, [('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', None, None, [('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_EP', 1), None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', None, None, [('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', 'TST_LD', None, [], OK],  # noqa: 501
+        [
+            ('TST_EP', 1), None, None, None, None, None,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', None, None, None, None,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, 'TST_A3', 'Target', None, None,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', None, None,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, 'TST_A3', 'Target', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', None, None,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', 'TST_A3', 'LogicalUnit', 'TST_LD', None,
+            [
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
 
-        [('TST_EP', 1), 'Initiator', 'TST_A3', 'LogicalUnit', 'TST_LD', None, [('TST_LD',3)], OK],  # noqa: 501
         # test source TST_EP and Target as role
-        [('TST_EP', 1), None, None, None, None, None, [('TST_EP', 2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 1), None, 'TST_A3', None, None, None, [('TST_EP', 2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 1), 'Target', None, None, None, None, [], OK],  # noqa: 501
-        [('TST_EP', 1), 'Target', 'TST_A3', None, None, None, [], OK],  # noqa: 501
-        [('TST_EP', 1), None, 'TST_A3', 'Initiator', None, None, [], OK],  # noqa: 501
-        [('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', None, None, [], OK],  # noqa: 501
-        [('TST_EP', 1), None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', None, None, [], OK],  # noqa: 501
-        [('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 1), 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None, [], OK],  # noqa: 501
+        [
+            ('TST_EP', 1), None, None, None, None, None,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Target', None, None, None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Target', 'TST_A3', None, None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, 'TST_A3', 'Initiator', None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, 'TST_A3', 'Initiator', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None,
+            [],
+            OK
+        ],
 
-        # # Repeat for second EP
-        [('TST_EP', 2), None, None, None, None, None, [('TST_EP',1), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), None, 'TST_A3', None, None, None, [('TST_EP',1), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), 'Initiator', None, None, None, None, [], OK],  # noqa: 501
-        [('TST_EP', 2), 'Initiator', 'TST_A3', None, None, None, [],  OK],  # noqa: 501
-        [('TST_EP', 2), None, 'TST_A3', 'Target', None, None, [], OK],  # noqa: 501
-        [('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', None, None, [], OK],  # noqa: 501
-        [('TST_EP', 2), None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', None, None, [], OK],  # noqa: 501
-        [('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 2), None, None, None, None, None, [('TST_EP', 1), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), None, 'TST_A3', None, None, None, [('TST_EP', 1), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), 'Target', None, None, None, None, [('TST_EP', 1), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), 'Target', 'TST_A3', None, None, None, [('TST_EP', 1), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), None, 'TST_A3', 'Initiator', None, None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', None, None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_EP', 2), None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', None, None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_EP', 2), 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None, [('TST_LD', 3)], OK],  # noqa: 501
+        # Repeat for second EP
+        [
+            ('TST_EP', 2), None, None, None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Initiator', None, None, None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Initiator', 'TST_A3', None, None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, 'TST_A3', 'Target', None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, 'TST_A3', 'Target', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', None, None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, None, None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Target', None, None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Target', 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, 'TST_A3', 'Initiator', None, None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', None, None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, 'TST_A3', 'Initiator', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', None, None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_EP', 2), 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None,
+            [
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
 
         # Test source TST_LD, Initiator as ResultRole
-        [('TST_LD', 3), None, None, None, None, None, [('TST_EP', 1), ('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_LD', 3), None, 'TST_A3', None, None, None, [('TST_EP', 1), ('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', None, None, None, None, [('TST_EP', 1), ('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', None, None, None, [('TST_EP', 1), ('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_LD', 3), None, 'TST_A3', 'Initiator', None, None, [('TST_EP', 1)], OK],  # noqa: 501
+        [
+            ('TST_LD', 3), None, None, None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), None, 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', None, None, None, None,
+            [('TST_EP', 1), ('TST_EP', 2)],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', None, None, None,
+            [
+                ('TST_EP', 1),
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), None, 'TST_A3', 'Initiator', None, None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
         # TODO did we miss this option with all params in tests above
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', None, None, [('TST_EP', 1)], OK],  # noqa: 501
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', None, None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
 
-        [('TST_LD', 3), None, 'TST_A3', 'Initiator', 'TST_EP', None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', None, None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, [('TST_EP', 1)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', None, None, [('TST_EP', 2)], OK],  # noqa: 501
-        #[('TST_LD', 3), None, 'TST_A3', 'Target', 'TST_LD', None, None, [], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', None, None, [('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', 'TST_EP', None, [('TST_EP', 2)], OK],  # noqa: 501
-        [('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', 'TST_LD', None, [], OK],  # noqa: 501
+        [
+            ('TST_LD', 3), None, 'TST_A3', 'Initiator', 'TST_EP', None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', None, None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None,
+            [
+                ('TST_EP', 1)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_LD', None,
+            [],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', None, None,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        # [
+        #     ('TST_LD', 3), None, 'TST_A3', 'Target', 'TST_LD', None, None,
+        #     [],
+        #     OK
+        # ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', None, None,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', 'TST_EP', None,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', 'TST_LD', None,
+            [],
+            OK
+        ],
 
         # add extra instance of association with subclass of LD
-        [('TST_EP', 1), None, None, None, None, X1, [('TST_EP',2), ('TST_LD',3), ('TST_LDSub',4)], OK],  # noqa: 501
-        [('TST_EP', 1), None, None, None, 'TST_LDSub', X1, [('TST_LDSub',4)], OK],  # noqa: 501
-
+        [
+            ('TST_EP', 1), None, None, None, None, X1,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3),
+                ('TST_LDSub', 4)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, None, None, 'TST_LDSub', X1,
+            [
+                ('TST_LDSub', 4)
+            ],
+            OK
+        ],
 
         # add extra instance of association with multiple instances of EP
-        [('TST_EP', 1), None, None, None, None, X2, [('TST_EP',2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 1), None, None, None, None, X2, [('TST_EP',2), ('TST_LD',3)], OK],  # noqa: 501
-        [('TST_EP', 2), None, None, None, None, X2, [('TST_EP',1), ('TST_LD',3), ('TST_EP',5)], OK],  # noqa: 501
-        [('TST_EP', 5), None, None, None, 'TST_EP', X2, [('TST_EP',2)], OK],  # noqa: 501
-        [('TST_EP', 1), None, None, None, 'TST_EPSub', X2, [], OK],  # noqa: 501
+        [
+            ('TST_EP', 1), None, None, None, None, X2,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, None, None, None, X2,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 2), None, None, None, None, X2,
+            [
+                ('TST_EP', 1),
+                ('TST_LD', 3),
+                ('TST_EP', 5)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 5), None, None, None, 'TST_EP', X2,
+            [
+                ('TST_EP', 2)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), None, None, None, 'TST_EPSub', X2,
+            [],
+            OK
+        ],
 
         # Test gets subclass of assoc class
-        [('TST_EP', 1), None, None, None, None, X4, [('TST_EP',2), ('TST_LD',3), ('TST_EPSub',7), ('TST_LDSub',4)], OK],  # noqa: 501
-        [('TST_EP', 1), 'Initiator', None, None, None, X4, [('TST_EP',2), ('TST_LD',3), ('TST_EPSub',7), ('TST_LDSub',4)], OK],  # noqa: 501
+        [
+            ('TST_EP', 1), None, None, None, None, X4,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3),
+                ('TST_EPSub', 7),
+                ('TST_LDSub', 4)
+            ],
+            OK
+        ],
+        [
+            ('TST_EP', 1), 'Initiator', None, None, None, X4,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3),
+                ('TST_EPSub', 7),
+                ('TST_LDSub', 4)
+            ],
+            OK
+        ],
 
         # TODO fails becuase of TST_A3 class.  Should this be class and
         # subclasses.
-        [('TST_EP', 1), 'Initiator', 'TST_A3', None, None, X4, [('TST_EP',2), ('TST_LD',3), ('TST_EPSub',7), ('TST_LDSub',4)], OK],  # noqa: 501
+        [
+            ('TST_EP', 1), 'Initiator', 'TST_A3', None, None, X4,
+            [
+                ('TST_EP', 2),
+                ('TST_LD', 3),
+                ('TST_EPSub', 7),
+                ('TST_LDSub', 4)
+            ],
+            OK
+        ],
 
         # Test with subclass as target instance
-        [('TST_EPSub', 6), None, None, None, None, X3, [('TST_EPSub',7), ('TST_LDSub',4)], FAIL],  # noqa: 501
-
-        # pylint: enable=line-too-long
+        [
+            ('TST_EPSub', 6), None, None, None, None, X3,
+            [
+                ('TST_EPSub', 7),
+                ('TST_LDSub', 4)
+            ],
+            FAIL
+        ],
     ]
 )
 def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
                                 rc, mof, exp_rslt, complex_assoc_mof, cond):
+    # pylint: disable=redefined-outer-name,invalid-name
     """
     Test associatornames class operations against a ternary model defined by
     the fixture complex_assoc_mof
@@ -705,7 +1140,6 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
         pytest.skip("Condition for test case not met")
 
     if cond == 'pdb':
-        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 

@@ -312,7 +312,7 @@ def t_stringValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({1}))*'.format(  # noqa E501 pylint: disable=W1308
+identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({1}))*'.format(
     utf8Char, utf8Char)
 
 

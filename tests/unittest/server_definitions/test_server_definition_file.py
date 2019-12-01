@@ -9,9 +9,9 @@ import six
 import pytest
 from testfixtures import TempDirectory
 
-from ..utils.pytest_extensions import simplified_test_function
 from tests.end2endtest.utils.server_definition_file import ServerDefinition, \
     ServerDefinitionFile, ServerDefinitionFileError
+from ..utils.pytest_extensions import simplified_test_function
 
 
 TESTCASES_SERVER_DEFINITION_INIT = [
@@ -243,7 +243,7 @@ def test_ServerDefinition_init(testcase, init_args, init_kwargs, exp_attrs):
             format(attr_name, exp_attr_value, act_attr_value)
 
 
-TESTCASES_SERVER_DEFINITION_FILE_INIT = [
+TESTCASES_SRV_DEF_FILE_INIT = [
 
     # Testcases for ServerDefinitionFile.__init__()
 
@@ -439,10 +439,10 @@ TESTCASES_SERVER_DEFINITION_FILE_INIT = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SERVER_DEFINITION_FILE_INIT)
+    TESTCASES_SRV_DEF_FILE_INIT)
 @simplified_test_function
-def test_ServerDefinitionFile_init(
-        testcase, sd_file_data):
+def test_ServerDefinitionFile_init(testcase, sd_file_data):
+    # pylint: disable=unused-argument
     """
     Test function for ServerDefinitionFile.__init__()
     """
@@ -460,7 +460,7 @@ def test_ServerDefinitionFile_init(
         ServerDefinitionFile(filepath=sd_filepath)
 
 
-TESTCASES_SERVER_DEFINITION_FILE_LIST_SERVERS = [
+TESTCASES_SRV_DEF_FILE_LIST_SERVERS = [
 
     # Testcases for ServerDefinitionFile.list_servers()
 
@@ -652,7 +652,7 @@ TESTCASES_SERVER_DEFINITION_FILE_LIST_SERVERS = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SERVER_DEFINITION_FILE_LIST_SERVERS)
+    TESTCASES_SRV_DEF_FILE_LIST_SERVERS)
 @simplified_test_function
 def test_ServerDefinitionFile_list_servers(
         testcase, sd_file_data, list_nickname, exp_sd_nick_list):
@@ -671,7 +671,7 @@ def test_ServerDefinitionFile_list_servers(
 
         try:
             sdf = ServerDefinitionFile(filepath=sd_filepath)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             pytest.fail(
                 "Unexpected exception from ServerDefinitionFile(): {0}: {1}".
                 format(exc.__class__.__name__, exc))
@@ -698,7 +698,7 @@ def test_ServerDefinitionFile_list_servers(
                 format(i, exp_sd_nick, sd.nickname)
 
 
-TESTCASES_SERVER_DEFINITION_FILE_LIST_ALL_SERVERS = [
+TESTCASES_SRV_DEF_FILE_LIST_ALL_SERVERS = [
 
     # Testcases for ServerDefinitionFile.list_all_servers()
 
@@ -774,10 +774,11 @@ TESTCASES_SERVER_DEFINITION_FILE_LIST_ALL_SERVERS = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SERVER_DEFINITION_FILE_LIST_ALL_SERVERS)
+    TESTCASES_SRV_DEF_FILE_LIST_ALL_SERVERS)
 @simplified_test_function
 def test_ServerDefinitionFile_list_all_servers(
         testcase, sd_file_data, exp_sd_nick_list):
+    # pylint: disable=invalid-name
     """
     Test function for ServerDefinitionFile.list_all_servers()
     """
@@ -793,7 +794,7 @@ def test_ServerDefinitionFile_list_all_servers(
 
         try:
             sdf = ServerDefinitionFile(filepath=sd_filepath)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             pytest.fail(
                 "Unexpected exception from ServerDefinitionFile(): {0}: {1}".
                 format(exc.__class__.__name__, exc))

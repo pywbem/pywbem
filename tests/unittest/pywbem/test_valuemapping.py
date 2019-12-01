@@ -9,12 +9,14 @@ import re
 import pytest
 from mock import Mock
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import CIMClass, CIMProperty, CIMMethod, CIMParameter, \
     CIMQualifier, WBEMServer, WBEMConnection, ValueMapping, ModelError
 from pywbem.cim_types import type_from_name
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
 
 CLASSNAME = 'C1'
 NAMESPACE = 'ns'
@@ -869,7 +871,7 @@ class Test_ValueMapping(object):
     def test_integer_representations(
             self, desc, integer_type, values_str_list, valuemap_str_list,
             exp_valuemap_list, exp_exc_type, exp_exc_msg_pattern, condition):
-        # pylint: disable=redefined-outer-name
+        # pylint: disable=redefined-outer-name,unused-argument
         """Test tobinary() in valuemap with different integer represent."""
 
         if not condition:

@@ -7,15 +7,17 @@ from __future__ import print_function, absolute_import
 
 import os
 
+from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-
 from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
     CIMInstanceName
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 
 # Location of DMTF schema directory used by all tests.
 # This directory is permanent and should not be removed.
