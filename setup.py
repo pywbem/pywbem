@@ -97,6 +97,7 @@ setuptools.setup(
 
     description='pywbem - A WBEM client',
     long_description=read_file('README_PYPI.rst'),
+    long_description_content_type='x-rst',
     license='LGPL version 2.1, or (at your option) any later version',
     author='Tim Potter',
     author_email='tpot@hp.com',
