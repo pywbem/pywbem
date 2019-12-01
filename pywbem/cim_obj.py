@@ -304,7 +304,6 @@ _KB_VAL = r'(?:{0}|{1}|{2})'.format(
 # To get all repetitions, capture a repeated group instead of repeating a
 # capturing group: https://www.regular-expressions.info/captureall.html
 WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
-    # pylint: disable=duplicate-string-formatting-argument
     r'^(\w+={0})((?:,\w+={1})*)$'.format(_KB_VAL, _KB_VAL),
     flags=(re.UNICODE | re.IGNORECASE))
 
@@ -811,7 +810,7 @@ def _scalar_value_tomof(
     if value is None:
         return mofval(u'NULL', indent, maxline, line_pos, end_space)
 
-    if type == 'string':  # pylint: disable=no-else-raise
+    if type == 'string':
         if isinstance(value, six.string_types):
             return mofstr(value, indent, maxline, line_pos, end_space,
                           avoid_splits)

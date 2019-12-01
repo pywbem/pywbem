@@ -25,10 +25,12 @@ from getpass import getpass
 
 import six
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import WBEMConnection, Uint32, ConnectionError, TimeoutError
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
 
 # Identity of the OpenPegasus namespace, class, and method that implements
 # the delayed response. NOTE: This is only available on OpenPegasus 2.15+.

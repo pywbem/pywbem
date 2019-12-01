@@ -28,15 +28,17 @@ from __future__ import absolute_import, print_function
 import os
 import pytest
 
+from ..utils.wbemserver_mock import WbemServerMock
+from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import ValueMapping, CIMInstanceName, CIMError, \
     CIMQualifierDeclaration, CIMClass
 from pywbem._nocasedict import NocaseDict
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-from ..utils.wbemserver_mock import WbemServerMock
-from ..utils.pytest_extensions import simplified_test_function
 
 VERBOSE = True
 

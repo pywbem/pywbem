@@ -6,18 +6,21 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from ..utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-
-from pywbem import WBEMServer
+from .utils.assertions import assert_instance_of, assert_profile_tree, std_uri
+from .utils.utils import server_func_asserted
 
 # Note: The wbem_connection fixture uses the server_definition fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
-# pylint: disable=unused-import, line-too-long
-from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
-from .utils.assertions import assert_instance_of, assert_profile_tree, std_uri
-from .utils.utils import server_func_asserted
-# pylint: enable=unused-import, line-too-long
+# pylint: disable=unused-import
+from .utils.pytest_extensions import wbem_connection  # noqa: F401
+from .utils.pytest_extensions import server_definition  # noqa: F401
+# pylint: enable=unused-import
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+from pywbem import WBEMServer
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Organization and name of the registered specification
 SPEC_ORG = 'SNIA'
@@ -26,6 +29,7 @@ REFERENCE_DIRECTION = 'snia'
 
 
 def test_snia_smis_to_profile_not_swapped(wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the SMI-S specification does not reference its profiles via
     CIM_ElementConformsToProfile with its ends incorrectly swapped.
@@ -62,6 +66,7 @@ def test_snia_smis_to_profile_not_swapped(wbem_connection):  # noqa: F811
 
 
 def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the SMI-S specification does not reference its profiles via
     CIM_ReferencedProfile.
@@ -98,6 +103,7 @@ def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
 
 
 def test_snia_smis_profile_tree_not_circular(wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test that the SMI-S specification has a profile tree without circular
     references, when navigating to referenced profiles in the SNIA reference

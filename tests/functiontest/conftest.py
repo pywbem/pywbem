@@ -144,11 +144,12 @@ from httpretty.core import HTTPrettyRequestEmpty, fakesock
 from lxml import etree, doctestcompare
 import six
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem._utils import _ensure_unicode
 from pywbem._nocasedict import NocaseDict
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 class ExcThread(threading.Thread):
@@ -832,7 +833,7 @@ def runtestcase(testcase):
         exp_exception = 'CIMError'
 
     if exp_exception is not None:
-        if raised_exception is None:   # pylint: disable=no-else-raise
+        if raised_exception is None:
             raise AssertionError("Testcase %s: A %s exception was "
                                  "expected to be raised by PyWBEM "
                                  "operation %s, but no exception was "
@@ -848,7 +849,8 @@ def runtestcase(testcase):
                                   raised_traceback_str))
         if isinstance(raised_exception,
                       (pywbem.CIMXMLParseError, pywbem.XMLParseError)):
-            if raised_exception.request_data != conn.last_raw_request:
+            req = raised_exception.request_data  # pylint: disable=no-member
+            if req != conn.last_raw_request:
                 raise AssertionError("Testcase %s: The %s exception raised by "
                                      "PyWBEM operation %s has unexpected "
                                      "CIM-XML request data:\n"
@@ -856,9 +858,9 @@ def runtestcase(testcase):
                                      "Expected CIM-XML request data:\n"
                                      "%s\n" %
                                      (tc_name, raised_exception, op_name,
-                                      raised_exception.request_data,
-                                      conn.last_raw_request))
-            if raised_exception.response_data != conn.last_raw_reply:
+                                      req, conn.last_raw_request))
+            resp = raised_exception.response_data  # pylint: disable=no-member
+            if resp != conn.last_raw_reply:
                 raise AssertionError("Testcase %s: The %s exception raised by "
                                      "PyWBEM operation %s has unexpected "
                                      "CIM-XML response data:\n"
@@ -866,8 +868,7 @@ def runtestcase(testcase):
                                      "Expected CIM-XML response data:\n"
                                      "%s\n" %
                                      (tc_name, raised_exception, op_name,
-                                      raised_exception.response_data,
-                                      conn.last_raw_reply))
+                                      resp, conn.last_raw_reply))
     else:
         if raised_exception is not None:
             raise AssertionError("Testcase %s: No exception was "

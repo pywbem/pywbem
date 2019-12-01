@@ -53,7 +53,7 @@ class ServerDefinitionFile(object):
                         format(self._filepath, exc.__class__.__name__,
                                exc))
         except IOError as exc:
-            if exc.errno == errno.ENOENT:  # pylint: disable=no-else-raise
+            if exc.errno == errno.ENOENT:
                 raise ServerDefinitionFileError(
                     "The WBEM server definition file {0!r} was not found; "
                     "copy it from {1!r}".

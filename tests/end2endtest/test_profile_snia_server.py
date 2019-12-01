@@ -6,26 +6,27 @@ from __future__ import absolute_import, print_function
 
 import warnings
 
-from ..utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-
-from pywbem import ToleratedServerIssueWarning
-from pywbem._utils import _format
-
-# Note: The wbem_connection fixture uses the server_definition fixture, and
-# due to the way py.test searches for fixtures, it also must be imported.
-
-# pylint: disable=line-too-long,unused-import
-from .utils.pytest_extensions import wbem_connection, server_definition  # noqa: F401, E501
-from .utils.pytest_extensions import assert_association_func  # noqa: F401
-# pylint: enable=line-too-long,unused-import
-
 from .utils.pytest_extensions import ProfileTest
 from .utils.assertions import assert_number_of_instances_equal, \
     assert_number_of_instances_minimum, assert_instance_of, \
     assert_instance_consistency, assert_mandatory_properties, \
     assert_property_one_of, assert_property_contains
 from .utils.utils import server_func_asserted, server_prop_asserted
+
+# Note: The wbem_connection fixture uses the server_definition fixture, and
+# due to the way py.test searches for fixtures, it also need to be imported.
+# pylint: disable=unused-import
+from .utils.pytest_extensions import wbem_connection  # noqa: F401
+from .utils.pytest_extensions import server_definition  # noqa: F401
+from .utils.pytest_extensions import assert_association_func  # noqa: F401
+# pylint: enable=unused-import
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ..utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+from pywbem import ToleratedServerIssueWarning
+from pywbem._utils import _format
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 class Test_SNIA_Server_Profile(ProfileTest):

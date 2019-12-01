@@ -13,13 +13,14 @@ except ImportError:
     from ordereddict import OrderedDict
 import pytest
 
+from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
-
-from ..utils.pytest_extensions import simplified_test_function
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 class NonComparable(object):

@@ -38,12 +38,13 @@ import six
 import pytest
 from testfixtures import OutputCapture
 
-from ...utils import import_installed, skip_if_moftab_regenerated
-pywbem = import_installed('pywbem')  # noqa: E402
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+from ...utils import skip_if_moftab_regenerated
+from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
+    install_test_dmtf_schema, DMTF_TEST_SCHEMA_VER
 
-# The two statements above cause pylint errors which we disable
-# pylint: disable=wrong-import-position, wrong-import-order
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, cimtype, Uint32, MOFParseError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
@@ -52,16 +53,13 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_ENUMERATION_CONTEXT, CIM_ERR_METHOD_NOT_FOUND, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS
-
-
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from pywbem.cim_operations import pull_path_result_tuple
-
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
-    install_test_dmtf_schema, DMTF_TEST_SCHEMA_VER
 
 VERBOSE = False
 
@@ -157,12 +155,15 @@ def assert_equal_ciminstancenames(l1, l2, model=False):
     assert set(l1) == set(l2)
 
 
-def assert_equal_ciminstances(l1, l2, model=False):
+def assert_equal_ciminstances(l1, l2):
     """
     Test if instances in two iterables equal. For now just test paths
     """
+
     def _rtn_paths(insts):
+        """Return the list of paths of a list of instances"""
         return [inst.path for inst in insts]
+
     assert_equal_ciminstancenames(_rtn_paths(l1), _rtn_paths(l2))
 
 
@@ -1973,7 +1974,7 @@ class TestRepoMethods(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_compile_instances_dup(self, conn, ns, tst_classes_mof, capsys):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test compile of instance MOF  with duplicate keys into the repository
         fails
@@ -2723,7 +2724,7 @@ class TestClassOperations(object):
     )
     def test_createclass(self, conn, desc, pre_tst_classes, tstcl, exp_rtn_cl,
                          exp_exc, tst_qualifiers_mof, tst_classes, ns, run_tst):
-        # pylint: disable=no-self-use,protected-access
+        # pylint: disable=no-self-use,protected-access,unused-argument
         """
             Test create class. Tests for namespace variable,
             correctly adding, and invalid add where class has superclass
@@ -3451,7 +3452,6 @@ class TestInstanceOperations(object):
         for inst in rtn_insts:
             assert isinstance(inst, CIMInstance)
             assert inst.classname in tst_class_names
-            # pylint: disable=unnecessary-comprehension
             inst_props = list(set([p for p in inst]))
             if di is not True:   # inst props should match cl_props
                 if len(inst_props) != len(cl_props):
@@ -3814,6 +3814,7 @@ class TestInstanceOperations(object):
     def test_compile_instances_path(self, conn, ns, tst_assoc_qualdecl_mof,
                                     tst_assoc_class_mof,
                                     tst_mof, exp_rtn, exp_excp):
+        # pylint: disable=no-self-use
         """
         Test variations of compile of CIMInstances to validate the
         implementation of setting path. Both the compiler and mocker allow

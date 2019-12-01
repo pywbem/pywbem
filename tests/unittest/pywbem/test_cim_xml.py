@@ -12,13 +12,14 @@ import unittest
 import six
 import pytest
 
-from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-
-from pywbem import cim_xml
-
 from ..utils.validate import validate_cim_xml, CIMXMLValidationError
 from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
+from pywbem import cim_xml
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 def iter_flattened(lst):
@@ -278,6 +279,7 @@ TESTCASES_CIM_XML_NODE = [
     TESTCASES_CIM_XML_NODE)
 @simplified_test_function
 def test_cim_xml_node(testcase, xml_node, exp_xml_str_list):
+    # pylint: disable=unused-argument
     """
     Test function for a cim_xml node.
 
