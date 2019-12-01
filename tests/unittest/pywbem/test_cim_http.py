@@ -6,10 +6,11 @@ from __future__ import absolute_import
 
 import unittest
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import cim_http
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name

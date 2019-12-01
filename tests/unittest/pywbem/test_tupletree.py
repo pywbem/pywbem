@@ -10,10 +10,11 @@ import re
 import six
 import pytest
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import tupletree, ParseError
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 # The following was originally the pywbem parser.  Now it is used simply as a
@@ -172,8 +173,7 @@ class Test_xml_to_tupletree_sax(object):
              {u'ATTR1': u'foo1'},
              [(u'TEXT2',
                {u'ATTR2': u'foo2'},
-               [u'bar'])
-              ]),
+               [u'bar'])]),
             None, None,
             True
         ),
@@ -435,32 +435,28 @@ class Test_xml_to_tupletree_sax(object):
                              [(u'KEYVALUE',
                                {u'TYPE': u'string',
                                 u'VALUETYPE': u'string'},
-                               [u'Symm_StorageVolume'])
-                              ]),
+                               [u'Symm_StorageVolume'])]),
                             u'\n',
                             (u'KEYBINDING',
                              {u'NAME': u'DeviceID'},
                              [(u'KEYVALUE',
                                {u'TYPE': u'string',
                                 u'VALUETYPE': u'string'},
-                               [u'00000'])
-                              ]),
+                               [u'00000'])]),
                             u'\n',
                             (u'KEYBINDING',
                              {u'NAME': u'SystemCreationClassName'},
                              [(u'KEYVALUE',
                                {u'TYPE': u'string',
                                 u'VALUETYPE': u'string'},
-                               [u'Symm_StorageSystem'])
-                              ]),
+                               [u'Symm_StorageSystem'])]),
                             u'\n',
                             (u'KEYBINDING',
                              {u'NAME': u'SystemName'},
                              [(u'KEYVALUE',
                                {u'TYPE': u'string',
                                 u'VALUETYPE': u'string'},
-                               [u'SYMMETRIX-+-000194900000'])
-                              ]),
+                               [u'SYMMETRIX-+-000194900000'])]),
                             u'\n']),
                           u'\n']),
                         u'\n',
@@ -476,11 +472,7 @@ class Test_xml_to_tupletree_sax(object):
                             u'\n']),
                           u'\n']),
                         u'\n']),
-                      u'\n\n'])
-                    ])
-                  ])
-                ])
-              ]),
+                      u'\n\n'])])])])]),
             None, None,
             True
         ),
@@ -498,7 +490,7 @@ class Test_xml_to_tupletree_sax(object):
     def test_xml_to_tupletree_sax(
             self, encoding, desc, xml_string, exp_tupletree, exp_exc_type,
             exp_exc_msg_pattern, condition):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test xml_to_tupletree_sax() against expected results and against
         DOM parser results.
@@ -689,7 +681,7 @@ class Test_get_failing_line(object):
     def test_get_failing_line(
             self, desc, xml_string, exc_msg, exp_result, exp_exc_type,
             condition):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """Tests for tupletree.get_failing_line()"""
 
         if not condition:

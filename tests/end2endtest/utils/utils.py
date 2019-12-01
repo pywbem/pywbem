@@ -142,6 +142,7 @@ class ServerObjectCache(object):
         return list_dict[list_name]
 
     def has_list(self, server_url, list_name):
+        """Return boolean indicating whether there is a list named list_name"""
         if server_url not in self._server_dict:
             return False
         list_dict = self._server_dict[server_url]
@@ -202,7 +203,6 @@ def instance_of(conn, obj_list, classname):
                 namespace=namespace, ClassName=classname,
                 asserted=False)
         except CIMError as exc:
-            # pylint: disable=no-else-raise
             if exc.status_code == CIM_ERR_INVALID_CLASS:
                 raise AssertionError(
                     "Server {0} at {1}: Class {2!r} does not exist in "
@@ -231,7 +231,13 @@ class WBEMConnectionAsserted(WBEMConnection):
     specifying keyword argument `asserted=True`.
     """
 
-    def _call_func(self, funcname, *args, **kwargs):
+    def _call_op(self, funcname, *args, **kwargs):
+        """
+        Call the specified operation function of the base class.
+
+        If keyword argument 'asserted' is True, raise any pywbem.Error
+        exceptions as AssertionError exceptions.
+        """
         if 'asserted' in kwargs:
             asserted = bool(kwargs['asserted'])
             del kwargs['asserted']
@@ -250,6 +256,9 @@ class WBEMConnectionAsserted(WBEMConnection):
             return func(*args, **kwargs)
 
     def raise_as_assertion_error(self, exc, funcname, *args, **kwargs):
+        """
+        Raise an AssertionError about the specified exception.
+        """
         parm_list = ["{0!r}".format(a) for a in args]
         parm_list.extend(["{0}={1!r}".format(k, kwargs[k]) for k in kwargs])
         parm_str = ", ".join(parm_list)
@@ -262,163 +271,163 @@ class WBEMConnectionAsserted(WBEMConnection):
 
     def EnumerateInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('EnumerateInstances', *args, **kwargs)
+        return self._call_op('EnumerateInstances', *args, **kwargs)
 
     def EnumerateInstanceNames(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('EnumerateInstanceNames', *args, **kwargs)
+        return self._call_op('EnumerateInstanceNames', *args, **kwargs)
 
     def GetInstance(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('GetInstance', *args, **kwargs)
+        return self._call_op('GetInstance', *args, **kwargs)
 
     def ModifyInstance(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('ModifyInstance', *args, **kwargs)
+        return self._call_op('ModifyInstance', *args, **kwargs)
 
     def CreateInstance(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('CreateInstance', *args, **kwargs)
+        return self._call_op('CreateInstance', *args, **kwargs)
 
     def DeleteInstance(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('DeleteInstance', *args, **kwargs)
+        return self._call_op('DeleteInstance', *args, **kwargs)
 
     def Associators(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('Associators', *args, **kwargs)
+        return self._call_op('Associators', *args, **kwargs)
 
     def AssociatorNames(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('AssociatorNames', *args, **kwargs)
+        return self._call_op('AssociatorNames', *args, **kwargs)
 
     def References(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('References', *args, **kwargs)
+        return self._call_op('References', *args, **kwargs)
 
     def ReferenceNames(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('ReferenceNames', *args, **kwargs)
+        return self._call_op('ReferenceNames', *args, **kwargs)
 
     def InvokeMethod(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('InvokeMethod', *args, **kwargs)
+        return self._call_op('InvokeMethod', *args, **kwargs)
 
     def ExecQuery(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('ExecQuery', *args, **kwargs)
+        return self._call_op('ExecQuery', *args, **kwargs)
 
     def IterEnumerateInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterEnumerateInstances', *args, **kwargs)
+        return self._call_op('IterEnumerateInstances', *args, **kwargs)
 
     def IterEnumerateInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterEnumerateInstancePaths', *args, **kwargs)
+        return self._call_op('IterEnumerateInstancePaths', *args, **kwargs)
 
     def IterAssociatorInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterAssociatorInstances', *args, **kwargs)
+        return self._call_op('IterAssociatorInstances', *args, **kwargs)
 
     def IterAssociatorInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterAssociatorInstancePaths', *args, **kwargs)
+        return self._call_op('IterAssociatorInstancePaths', *args, **kwargs)
 
     def IterReferenceInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterReferenceInstances', *args, **kwargs)
+        return self._call_op('IterReferenceInstances', *args, **kwargs)
 
     def IterReferenceInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterReferenceInstancePaths', *args, **kwargs)
+        return self._call_op('IterReferenceInstancePaths', *args, **kwargs)
 
     def IterQueryInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('IterQueryInstances', *args, **kwargs)
+        return self._call_op('IterQueryInstances', *args, **kwargs)
 
     def OpenEnumerateInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenEnumerateInstances', *args, **kwargs)
+        return self._call_op('OpenEnumerateInstances', *args, **kwargs)
 
     def OpenEnumerateInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenEnumerateInstancePaths', *args, **kwargs)
+        return self._call_op('OpenEnumerateInstancePaths', *args, **kwargs)
 
     def OpenAssociatorInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenAssociatorInstances', *args, **kwargs)
+        return self._call_op('OpenAssociatorInstances', *args, **kwargs)
 
     def OpenAssociatorInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenAssociatorInstancePaths', *args, **kwargs)
+        return self._call_op('OpenAssociatorInstancePaths', *args, **kwargs)
 
     def OpenReferenceInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenReferenceInstances', *args, **kwargs)
+        return self._call_op('OpenReferenceInstances', *args, **kwargs)
 
     def OpenReferenceInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenReferenceInstancePaths', *args, **kwargs)
+        return self._call_op('OpenReferenceInstancePaths', *args, **kwargs)
 
     def OpenQueryInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('OpenQueryInstances', *args, **kwargs)
+        return self._call_op('OpenQueryInstances', *args, **kwargs)
 
     def PullInstancesWithPath(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('PullInstancesWithPath', *args, **kwargs)
+        return self._call_op('PullInstancesWithPath', *args, **kwargs)
 
     def PullInstancePaths(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('PullInstancePaths', *args, **kwargs)
+        return self._call_op('PullInstancePaths', *args, **kwargs)
 
     def PullInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('PullInstances', *args, **kwargs)
+        return self._call_op('PullInstances', *args, **kwargs)
 
     def CloseEnumeration(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('CloseEnumeration', *args, **kwargs)
+        return self._call_op('CloseEnumeration', *args, **kwargs)
 
     def EnumerateClasses(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('EnumerateClasses', *args, **kwargs)
+        return self._call_op('EnumerateClasses', *args, **kwargs)
 
     def EnumerateClassNames(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('EnumerateClassNames', *args, **kwargs)
+        return self._call_op('EnumerateClassNames', *args, **kwargs)
 
     def GetClass(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('GetClass', *args, **kwargs)
+        return self._call_op('GetClass', *args, **kwargs)
 
     def ModifyClass(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('ModifyClass', *args, **kwargs)
+        return self._call_op('ModifyClass', *args, **kwargs)
 
     def CreateClass(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('CreateClass', *args, **kwargs)
+        return self._call_op('CreateClass', *args, **kwargs)
 
     def DeleteClass(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('DeleteClass', *args, **kwargs)
+        return self._call_op('DeleteClass', *args, **kwargs)
 
     def EnumerateQualifiers(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('EnumerateQualifiers', *args, **kwargs)
+        return self._call_op('EnumerateQualifiers', *args, **kwargs)
 
     def GetQualifier(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('GetQualifier', *args, **kwargs)
+        return self._call_op('GetQualifier', *args, **kwargs)
 
     def SetQualifier(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('SetQualifier', *args, **kwargs)
+        return self._call_op('SetQualifier', *args, **kwargs)
 
     def DeleteQualifier(self, *args, **kwargs):
         # pylint: disable=arguments-differ
-        return self._call_func('DeleteQualifier', *args, **kwargs)
+        return self._call_op('DeleteQualifier', *args, **kwargs)
 
 
 def server_func_asserted(server, funcname, *args, **kwargs):

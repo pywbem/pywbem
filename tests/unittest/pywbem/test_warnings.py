@@ -9,10 +9,14 @@ from __future__ import absolute_import, print_function
 import six
 import pytest
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+# pylint: disable=redefined-builtin
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import Warning, ToleratedServerIssueWarning
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+# pylint: enable=redefined-builtin
+
 
 # Test connection ID used for showing connection information in exception
 # messages

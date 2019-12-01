@@ -362,8 +362,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                  verify_callback=None, ca_certs=None,
                  no_verification=False, timeout=None, recorders=None,
                  conn_id=None):
-    # pylint: disable=too-many-arguments,unused-argument
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-arguments,unused-argument,too-many-locals
     """
     Send an HTTP or HTTPS request to a WBEM server and return the response.
 
@@ -457,11 +456,13 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
         :exc:`~pywbem.HTTPError`
     """
 
-    class HTTPBaseConnection:  # pylint: disable=no-init
-        """ Common base for specific connection classes. Implements
-            the send method
+    class HTTPBaseConnection:
+        # pylint: disable=no-init,old-style-class,too-few-public-methods
         """
-        # pylint: disable=too-few-public-methods
+        Common base for specific connection classes. Implements
+        the send() method.
+        """
+
         def send(self, strng):
             """
             A copy of `httplib.HTTPConnection.send()`, with these fixes:
@@ -501,6 +502,7 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
 
     class HTTPConnection(HTTPBaseConnection, httplib.HTTPConnection):
         """ Execute client connection without ssl using httplib. """
+
         def __init__(self, host, port=None, timeout=None):
             # Note: We do not use strict=True in the following call, because it
             # is not clear what side effects that would have, and if no status
@@ -509,8 +511,9 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                                             timeout=timeout)
 
     class HTTPSConnection(HTTPBaseConnection, httplib.HTTPSConnection):
-        """ Execute client connection with ssl using httplib."""
         # pylint: disable=R0913,too-many-arguments
+        """ Execute client connection with ssl using httplib."""
+
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      ca_certs=None, verify_callback=None, timeout=None):
             # Note: We do not use strict=True in the following call, because it

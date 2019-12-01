@@ -27,10 +27,12 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from ...utils import import_installed, skip_if_moftab_regenerated
-pywbem = import_installed('pywbem')  # noqa: E402
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+from ...utils import skip_if_moftab_regenerated
+from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
+pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMInstanceName, CIMInstance, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
@@ -39,9 +41,9 @@ from pywbem import CIMInstanceName, CIMInstance, \
 from pywbem import TestClientRecorder as _TestClientRecorder
 from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 from pywbem._utils import _format
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
-
-from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 TEST_DIR = os.path.dirname(__file__)
@@ -368,13 +370,13 @@ class ClientOperationStageTests(ClientRecorderTests):
         Emulates call to getInstance to test parameter processing.
         Currently creates the pywbem_request component.
         """
-        InstanceName = self.create_ciminstancename()
+        inst_name = self.create_ciminstancename()
 
         self.test_recorder.reset()
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=InstanceName,
+            InstanceName=inst_name,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
@@ -402,13 +404,13 @@ class ClientOperationStageTests(ClientRecorderTests):
     def test_create_instance(self):
         """Test record of create instance"""
 
-        NewInstance = self.create_ciminstance()
+        new_inst = self.create_ciminstance()
 
         self.test_recorder.reset()
 
         self.test_recorder.stage_pywbem_args(
             method='CreateInstance',
-            NewInstance=NewInstance,
+            NewInstance=new_inst,
             namespace='cim/blah')
 
         exc = None
@@ -425,11 +427,11 @@ class ClientOperationStageTests(ClientRecorderTests):
         operation = pywbem_request['operation']
         self.assertEqual(operation['pywbem_method'], 'CreateInstance')
         returned_new_inst = operation['NewInstance']
-        self.assertEqual(returned_new_inst['classname'], NewInstance.classname)
+        self.assertEqual(returned_new_inst['classname'], new_inst.classname)
         pd = returned_new_inst['properties']
 
         # compare all properties returned against original
-        self.assertEqual(len(pd), len(NewInstance.properties))
+        self.assertEqual(len(pd), len(new_inst.properties))
         for pn, pv in pd.items():
             prop = CIMProperty(pn, pv['value'], type=pv['type'],
                                array_size=pv['array_size'],
@@ -439,9 +441,9 @@ class ClientOperationStageTests(ClientRecorderTests):
                                qualifiers=pv['qualifiers'],
                                embedded_object=pv['embedded_object'])
 
-            self.assertEqual(NewInstance.properties[pn], prop,
+            self.assertEqual(new_inst.properties[pn], prop,
                              'Property compare failed orig %s, recreated %s' %
-                             (NewInstance.properties[pn], prop))
+                             (new_inst.properties[pn], prop))
 
     def test_open_enumerateInstancePaths(self):
         """Emulate staging of enumerateInstancePaths call. Tests building

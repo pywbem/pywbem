@@ -6,17 +6,18 @@ from __future__ import absolute_import
 
 import pytest
 
+from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-
 from pywbem import tupletree, tupleparse
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
     Real32, Real64, ParseError, ToleratedServerIssueWarning
-
-from ..utils.pytest_extensions import simplified_test_function
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 def qualifier_default_attrs(**overriding_attrs):

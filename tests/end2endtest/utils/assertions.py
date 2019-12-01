@@ -806,7 +806,10 @@ def _assert_association_consistency(
         assoc_class,
         far_insts, far_insts_msg, far_paths, far_paths_msg,
         far_class, far_role):
-
+    """
+    Internal function that asserts the consistency of the result of
+    navigating from a source instance across an association.
+    """
     if len(far_insts) != len(far_paths):
         raise AssertionError(
             _format("Server {0} at {1}: Number of far end instances {2} ({3}) "

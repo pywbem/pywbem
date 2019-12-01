@@ -10,19 +10,20 @@ from __future__ import print_function, absolute_import
 import os
 import pytest
 
-from ...utils import import_installed, skip_if_moftab_regenerated
+from ...utils import skip_if_moftab_regenerated
+from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
+from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, CIMError
-
 from pywbem._recorder import LogOperationRecorder
 from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
 from pywbem.cim_operations import is_subclass
+pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
-
-from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
-from ..utils.pytest_extensions import simplified_test_function
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 class TestCreateConnection(object):
