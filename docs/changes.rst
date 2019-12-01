@@ -136,6 +136,9 @@ Released: not yet
   `pywbem.ConnectionError` exceptions raised due to SSL errors for better
   diagnosis. (See issues #1950 and #1966)
 
+* Added 'twine check' when uploading a version to Pypi, in order to get
+  the README file checked before uploading.
+
 **Cleanup:**
 
 * Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
