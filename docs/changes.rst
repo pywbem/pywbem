@@ -325,6 +325,9 @@ Released: not yet
   `pywbem.ConnectionError` exceptions raised due to SSL errors for better
   diagnosis. (See issues #1950 and #1966)
 
+* Added 'twine check' when uploading a version to Pypi, in order to get
+  the README file checked before uploading.
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
