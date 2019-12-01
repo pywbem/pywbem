@@ -520,6 +520,8 @@ clean:
 
 .PHONY: upload
 upload: _check_version $(dist_files)
+	@echo "makefile: Checking files before uploading to PyPI"
+	twine check $(dist_files)
 	@echo "makefile: Uploading to PyPI: pywbem $(package_version)"
 	twine upload $(dist_files)
 	@echo "makefile: Done uploading to PyPI"
