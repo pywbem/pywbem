@@ -1181,7 +1181,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
           ValueError: An error in the provided argument values.
           ValueError: A keybinding value is `None` and the config variable
-            IGNORE_NULL_KEY_VALUE is `False`
+            pywbem.config.IGNORE_NULL_KEY_VALUE is `False`
           TypeError: An error in the provided argument types.
         """  # noqa: E501
 
@@ -1231,8 +1231,9 @@ class CIMInstanceName(_CIMComparisonMixin):
           preserved.
 
         * value (:term:`CIM data type` or :term:`number`): Keybinding value.
-          If the config variable IGNORE_NULL_KEY_VALUE is True, `None` is
-          allowed as a key value.
+          `None` is not allowed by default, consistent with :term:`DSP0004`.
+          This default behavior can be changed via the config variable
+          :attr:`pywbem.config.IGNORE_NULL_KEY_VALUE`.
 
         The order of keybindings in the instance path is preserved.
 
@@ -1301,9 +1302,11 @@ class CIMInstanceName(_CIMComparisonMixin):
                 if value is None and \
                         config.IGNORE_NULL_KEY_VALUE is False:
                     raise ValueError(
-                        _format("CIMInstance keybinding {0!A} key {1!A} value "
-                                "value is 'None' which is not allowed unless "
-                                "unless 'IGNORE_NULL_KEY_VALUE' is True.",
+                        _format("Key {1!A} in the new keybindings ({0!A}) is "
+                                "'None' and that is not allowed by default. "
+                                "This default behavior can be changed via "
+                                "config variable "
+                                "'pywbem.config.IGNORE_NULL_KEY_VALUE'.",
                                 keybindings, key))
                 self.keybindings[key] = _cim_keybinding(key, value)
 
