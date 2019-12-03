@@ -69,9 +69,24 @@ Repository connections
 Exceptions
 ----------
 
-The MOF compiler API may raise the exceptions that can be raised by the
-:ref:`WBEM client library API`, and in addition the
-:exc:`~pywbem.MOFParseError` exception.
+The MOF compiler API raises exceptions that are derived from the common base
+class :exc:`~pywbem.MOFCompileError`.
+
+.. autoclass:: pywbem.MOFCompileError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.MOFCompileError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.MOFCompileError
+      :attributes:
+
+   .. rubric:: Details
 
 .. autoclass:: pywbem.MOFParseError
    :members:
@@ -85,6 +100,38 @@ The MOF compiler API may raise the exceptions that can be raised by the
    .. rubric:: Attributes
 
    .. autoautosummary:: pywbem.MOFParseError
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem.MOFDependencyError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.MOFDependencyError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.MOFDependencyError
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem.MOFRepositoryError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.MOFRepositoryError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.MOFRepositoryError
       :attributes:
 
    .. rubric:: Details

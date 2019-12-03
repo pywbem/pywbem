@@ -89,6 +89,34 @@ Released: not yet
   in their code. Such users need to adjust the type of exception that is
   handled, accordingly. (See issue #1429)
 
+* Changed the logging behavior of the MOF compilation methods
+  `FakedWBEMConnection.compile_mof_string()`, `compile_mof_file()` and
+  `compile_dmtf_schema()` to do no logging at all. In support of that, `None`
+  is now a permitted value for the `log_func` init argument of `MOFCompiler`.
+
+  This change will cause any MOF compile errors to no longer be printed to
+  stdout by default. If you are using these MOF compilation methods and
+  want to continue having the MOF compile errors printed to stdout, you
+  need to print the exception in your code. See also the next item for which
+  exception class to catch. (See issue #1997)
+
+* Changed the exception behavior of the MOF compilation methods of the
+  `MOFCompiler` and `FakedWBEMConnection` classes to no longer raise
+  `CIMError`, but to raise the following exceptions which are all derived
+  from a new base class `MOFCompileError`:
+
+  - `MOFParseError` MOF parsing errors. This class already existed and was
+    already used for this purpose.
+  - `MOFDependencyError`: New class for MOF dependency errors (e.g. superclass
+    not found).
+  - `MOFRepositoryError`: New class for errors returned from target CIM
+    repository. The `CIMError` exception raised by the CIM repository is
+    attached to that exception in its attribute `cim_error`.
+
+  If you are using these MOF compilation methods, please change your catching
+  of exceptions to catch the new base class `MOFCompileError`.
+  (See issue #1235)
+
 **Deprecations:**
 
 **Bug fixes:**
