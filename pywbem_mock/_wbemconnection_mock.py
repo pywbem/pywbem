@@ -569,11 +569,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Raises:
 
           IOError: MOF file not found.
-          :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository.
+          :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
         namespace = namespace or self.default_namespace
@@ -582,7 +578,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # TODO fix this also so there is cleaner interface to WBEMConnection
         mofcomp = MOFCompiler(_MockMOFWBEMConnection(self),
                               search_paths=search_paths,
-                              verbose=verbose)
+                              verbose=verbose, log_func=None)
 
         mofcomp.compile_file(mof_file, namespace)
 
@@ -634,12 +630,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Raises:
 
           IOError: MOF file not found.
-          :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-          :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS Entity already exists.
-          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository.
+          :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
         namespace = namespace or self.default_namespace
 
@@ -649,7 +640,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         mofcomp = MOFCompiler(_MockMOFWBEMConnection(self),
                               search_paths=search_paths,
-                              verbose=verbose)
+                              verbose=verbose, log_func=None)
 
         mofcomp.compile_string(mof_str, namespace)
 
@@ -735,11 +726,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             be found in the defined DMTF CIM schema.
           TypeError: The 'schema_version' is not a valid tuple with 3
             integer components
-          :exc:`~pywbem.MOFParseError`: Compile error in the MOF.
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-          :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository.
+          :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
         schema = DMTFCIMSchema(schema_version, schema_root_dir,

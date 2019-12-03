@@ -9,6 +9,7 @@ from __future__ import print_function, absolute_import
 
 import os
 import unittest
+import re
 import six
 from ply import lex
 try:
@@ -25,9 +26,9 @@ from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem.cim_operations import CIMError
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
-from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
+from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError, \
+    MOFDependencyError, MOFRepositoryError
+from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
@@ -545,17 +546,20 @@ class TestSchemaError(MOFTest):
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
-            self.fail('Expected exception')
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_FAILED)
-            self.assertEqual(ce.file_line[0],
+            self.fail("Must fail with missing qualifier declaration")
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile element specifying qualifier .* "
+                r"qualifier declaration .* not exist",
+                pe.msg, re.IGNORECASE)
+            self.assertEqual(pe.file,
                              os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                           'System',
                                           'CIM_ComputerSystem.mof'))
-            self.assertEqual(ce.file_line[1], 2,
-                             msg="Unexpected line number in CIMError: {0!r}: "
-                             "got {1}, expected {2}".
-                             format(ce, ce.file_line[1], 2))
+            self.assertEqual(pe.lineno, 2,
+                             msg="Unexpected line number: "
+                             "got {0}, expected {1}, exception: {2!r}".
+                             format(pe.lineno, 2, pe))
 
         self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                'qualifiers.mof'),
@@ -565,19 +569,21 @@ class TestSchemaError(MOFTest):
                                                    'System',
                                                    'CIM_ComputerSystem.mof'),
                                       NAME_SPACE)
-            self.fail('Expected exception')
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_INVALID_SUPERCLASS)
-            self.assertEqual(ce.file_line[0],
+            self.fail("Must fail with missing superclass")
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile class .* superclass .* not exist",
+                pe.msg, re.IGNORECASE)
+            self.assertEqual(pe.file,
                              os.path.join(
                                  TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                  'System',
                                  'CIM_ComputerSystem.mof'))
             # TODO The following is cim version dependent.
-            self.assertEqual(ce.file_line[1], 179,
-                             msg="Unexpected line number in CIMError: {0!r}: "
-                             "got {1}, expected {2}".
-                             format(ce, ce.file_line[1], 179))
+            self.assertEqual(pe.lineno, 179,
+                             msg="Unexpected line number: "
+                             "got {0}, expected {1}, exception: {2!r}".
+                             format(pe.lineno, 179, pe))
 
 
 class TestSchemaSearch(MOFTest):
@@ -655,9 +661,12 @@ class TestSchemaSearch(MOFTest):
                                               'System',
                                               'CIM_ComputerSystem.mof'),
                                  NAME_SPACE)
-            self.fail("Exception expected")
-        except CIMError as ce:
-            self.assertTrue(ce.status_code == CIM_ERR_FAILED)
+            self.fail("Must fail with missing qualifier declaration")
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile element specifying qualifier .* "
+                r"qualifier declaration .* not exist",
+                pe.msg, re.IGNORECASE)
 
 
 class TestParseError(MOFTest):
@@ -734,7 +743,7 @@ class TestParseError(MOFTest):
             self.mofcomp.compile_file(_file, NAME_SPACE)
             self.fail("Exception expected.")
         except MOFParseError as pe:
-            self.assertEqual(pe.msg, 'Unexpected end of file')
+            self.assertEqual(pe.msg, 'Unexpected end of MOF')
 
     def test_missing_alias(self):
         """
@@ -778,13 +787,15 @@ class TestParseError(MOFTest):
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Exception expected.")
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_FAILED)
-            self.assertEqual(ce.status_description, "Unknown alias: '$Family1'")
+        except MOFParseError as pe:
+            assert re.search(
+                r"Cannot compile reference initialization .* instance alias "
+                r".* not previously defined",
+                pe.msg, re.IGNORECASE)
 
     def test_missing_superclass(self):
         """
-        Test for alias not defined
+        Test for missing superclass
         """
         mof_str = """
         class PyWBEM_Person : CIM_Blah {
@@ -796,8 +807,10 @@ class TestParseError(MOFTest):
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Exception expected.")
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_INVALID_SUPERCLASS)
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile class .* superclass",
+                pe.msg, re.IGNORECASE)
 
     def test_dup_instance(self):
         """Test Current behavior where dup instance gets put into repo"""
@@ -829,7 +842,7 @@ class TestParseError(MOFTest):
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
     def test_instance_wo_class(self):
-        """Test Current behavior where dup instance gets put into repo"""
+        """Test Current behavior for instance without class"""
         mof_str = """
 
         instance of ex_sampleClass
@@ -844,8 +857,10 @@ class TestParseError(MOFTest):
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Exception expected.")
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_INVALID_CLASS)
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile instance .* class .* not exist",
+                pe.msg, re.IGNORECASE)
 
     def test_dup_qualifiers(self):
         """Test Current behavior where set qualifierbehavior overrides."""
@@ -1007,11 +1022,11 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                 self.assertEqual(i['pr64'], 0.0)
 
             else:
-                self.fail('Cannot find required instance k1=%s, k2=%s' %
+                self.fail("Cannot find required instance k1=%s, k2=%s" %
                           (i['k1'], i['k2']))
 
     def test_invalid_property(self):
-        """Test compile of instance with duplicated property fails"""
+        """Test compile of instance with undeclared property fails"""
 
         skip_if_moftab_regenerated()
 
@@ -1033,9 +1048,11 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                          'blah = 0;\n};'
         try:
             self.mofcomp.compile_string(third_instance, NAME_SPACE)
-            self.fail('Must fail compile with invalid property name')
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_INVALID_PARAMETER)
+            self.fail("Must fail with undeclared property")
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile instance .* property .* not declared",
+                pe.msg, re.IGNORECASE)
 
     def test_dup_property(self):
         """Test compile of instance with duplicated property fails"""
@@ -1060,10 +1077,11 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                          'pui8 = 0;\n};'
         try:
             self.mofcomp.compile_string(third_instance, NAME_SPACE)
-            self.fail('Must fail compile with duplicate property name')
-        except CIMError as ce:
-            self.assertEqual(ce.status_code,
-                             CIM_ERR_INVALID_PARAMETER)
+            self.fail("Must fail with duplicate property name")
+        except MOFParseError as pe:
+            assert re.search(
+                r"Cannot compile instance .* property .* more than once",
+                pe.msg, re.IGNORECASE)
 
     def test_mismatch_property(self):
         """Test compile of instance with duplicated property fails"""
@@ -1088,9 +1106,11 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                          '};'
         try:
             self.mofcomp.compile_string(third_instance, NAME_SPACE)
-            self.fail('Must fail compile with mismatch property name')
-        except CIMError as ce:
-            self.assertEqual(ce.status_code, CIM_ERR_INVALID_PARAMETER)
+            self.fail("Must fail with invalid property value")
+        except MOFParseError as pe:
+            assert re.search(
+                r"Cannot compile instance .* property .* invalid value",
+                pe.msg, re.IGNORECASE)
 
     # TODO add test for array value in inst, not scalar
 
@@ -2332,9 +2352,11 @@ class TestPartialSchema(MOFTest):
             """
         try:
             self.mofcomp.compile_string(schema_mof, NAME_SPACE)
-            self.fail("Exception expected")
-        except CIMError as ce:
-            self.assertTrue(ce.status_code == CIM_ERR_INVALID_PARAMETER)
+            self.fail("Must fail with MOF file for dependent class not found")
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile class .* dependent class .* not exist",
+                pe.msg, re.IGNORECASE)
 
     def test_compile_class_embinst(self):
         """
@@ -2391,9 +2413,11 @@ class TestPartialSchema(MOFTest):
             """
         try:
             self.mofcomp.compile_string(schema_mof, NAME_SPACE)
-            self.fail("Exception expected")
-        except CIMError as ce:
-            self.assertTrue(ce.status_code == CIM_ERR_INVALID_PARAMETER)
+            self.fail("Must fail with MOF file for dependent class not found")
+        except MOFDependencyError as pe:
+            assert re.search(
+                r"Cannot compile class .* dependent class .* not exist",
+                pe.msg, re.IGNORECASE)
 
     def test_compile_class_circular(self):
         """
@@ -2607,7 +2631,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
                 os.remove(self.partial_schema_file)
 
     def test_nopath(self):
-        """Test that dup instance logic works"""
+        """Test missing alias on instance"""
 
         mof_str = """
         Qualifier Key : boolean = false,
@@ -2625,8 +2649,11 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
         try:
             self.mofcomp.compile_string(mof_str, NAME_SPACE)
             self.fail("Test must generate exception")
-        except CIMError:
-            pass
+        except MOFRepositoryError as pe:
+            assert re.search(
+                r"Cannot compile instance .* error for CreateInstance",
+                pe.msg, re.IGNORECASE)
+            assert pe.cim_error.status_code == CIM_ERR_FAILED
 
     def test_dup(self):
         """Test that dup instance logic works"""

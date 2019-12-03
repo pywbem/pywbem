@@ -28,6 +28,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import shutil
+import re
 from datetime import datetime
 try:
     from collections import OrderedDict
@@ -45,7 +46,7 @@ from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
-    CIMParameter, cimtype, Uint32, MOFParseError, \
+    CIMParameter, cimtype, Uint32, MOFCompileError, MOFRepositoryError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
     CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
@@ -1945,7 +1946,7 @@ class TestRepoMethods(object):
                                     LocalOnly=False)
             assert rtn_cls == exp_class
 
-    def test_compile_err(self, conn, capsys):
+    def test_compile_err(self, conn):
         # pylint: disable=no-self-use
         """
         Test compile that has an error
@@ -1957,16 +1958,16 @@ class TestRepoMethods(object):
         """
         skip_if_moftab_regenerated()
 
-        with pytest.raises(MOFParseError):
+        with pytest.raises(MOFCompileError) as exec_info:
             conn.compile_mof_string(q1)
 
-        captured_out = capsys.readouterr()[0]
-        assert "Scope(associations)" in captured_out
+        exc = exec_info.value
+        assert re.search(r"MOF grammar error", exc.msg, re.IGNORECASE)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
-    def test_compile_instances_dup(self, conn, ns, tst_classes_mof, capsys):
-        # pylint: disable=no-self-use,unused-argument
+    def test_compile_instances_dup(self, conn, ns, tst_classes_mof):
+        # pylint: disable=no-self-use
         """
         Test compile of instance MOF  with duplicate keys into the repository
         fails
@@ -3764,7 +3765,10 @@ class TestInstanceOperations(object):
              ('TST_Person', {'name': "Mike"}), None],
             # Fails, because key property not in new instance
             ['instance of TST_Person {extraProperty = "Blah"; };',
-             ('TST_Person', {}), CIMError(CIM_ERR_INVALID_PARAMETER)],
+             ('TST_Person', {}),
+             MOFRepositoryError(
+                 r"Cannot compile instance .* CreateInstance", None,
+                 CIMError(CIM_ERR_INVALID_PARAMETER))],
 
             # Test assoc class with ref props as keys, mocker builds path
             ['instance of TST_Person as $Sofi { name = "Sofi"; };\n'
@@ -3800,7 +3804,9 @@ class TestInstanceOperations(object):
               {'family': CIMInstanceName('TST_FamilyCollection',
                                          {'name': 'family1'}),
                'member': CIMInstanceName('TST_Person', {'name': "Sofi"})}),
-             CIMError(CIM_ERR_INVALID_PARAMETER)],
+             MOFRepositoryError(
+                 r"Cannot compile instance .* CreateInstance", None,
+                 CIMError(CIM_ERR_INVALID_PARAMETER))],
         ]
     )
     def test_compile_instances_path(self, conn, ns, tst_assoc_qualdecl_mof,
@@ -3843,6 +3849,8 @@ class TestInstanceOperations(object):
             exc = exec_info.value
             if isinstance(exp_excp, CIMError):
                 assert exc.status_code == exp_excp.status_code
+            elif isinstance(exp_excp, MOFCompileError):
+                assert re.search(exp_excp.msg, exc.msg, re.IGNORECASE)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])

@@ -99,11 +99,12 @@ from ._server import WBEMServer
 from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, _statuscode2string
+    CIM_ERR_NOT_SUPPORTED
 from .exceptions import Error, CIMError
 from ._utils import _format
 
-__all__ = ['MOFParseError', 'MOFWBEMConnection', 'MOFCompiler',
+__all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
+           'MOFRepositoryError', 'MOFWBEMConnection', 'MOFCompiler',
            'BaseRepositoryConnection']
 
 # The following pylint is applied for the complete file because invalid
@@ -341,36 +342,45 @@ def t_error(t):
     return t  # Return the error token for the YACC parser to handle
 
 
-class MOFParseError(Error):
+class MOFCompileError(Error):
     """
-        Exception raised when MOF cannot be parsed correctly, e.g. for
-        syntax errors. Derived from :exc:`~pywbem.Error`.
+    Base class for exceptions indicating issues with compiling MOF.
+
+    Derived from :exc:`~pywbem.Error`.
     """
 
+    error_kind = "MOF compile error"
+
     # pylint: disable=super-init-not-called
-    def __init__(self, parser_token=None, msg=None):
+    def __init__(self, msg, parser_token=None):
         """
         Parameters:
 
-          parser_token:
-            PLY parser token for the error (that is, the ``p`` argument
-            of a PLY parser function). This token contains information on
-            the location of the error in the MOF file, which is copied
-            into this object, and is accessible via properties.
-
           msg (:term:`string`):
-            Message text supplied by the creator of the error
-        """
+            Message text describing the error.
 
+          parser_token (lex.LexToken or yacc.YaccProduction):
+            PLY lex or yacc parser token (that is, the ``p`` argument of a yacc
+            parser function or the ``t`` argument of a lex parser function).
+            This token is used to obtain the MOF source text and location
+            information.
+
+            `None` will result in no MOF source text and location information
+            to be obtained.
+        """
+        assert msg is not None
+        self._msg = msg
         if parser_token is None:
             self.args = (None, None, None, None)
         else:
+            assert isinstance(
+                parser_token,
+                (lex.LexToken, yacc.YaccProduction))
             mof_ = parser_token.lexer.parser.mof
-            self.args = (parser_token.lineno,
+            self.args = (parser_token.lexer.lineno,
                          _find_column(mof_, parser_token),
                          parser_token.lexer.parser.file,
                          _get_error_context(mof_, parser_token))
-        self._msg = msg
 
     @property
     def lineno(self):
@@ -409,19 +419,12 @@ class MOFParseError(Error):
     @property
     def msg(self):
         """
-        :term:`string`: Brief description of the problem.
+        :term:`string`: Message text describing the error.
         """
         return self._msg
 
     def __str__(self):
-        ret_str = 'MOFParseError:\n'
-        if self.lineno is not None:
-            ret_str += _format('{0}:{1}:{2} msg={3}\n{4}',
-                               self.file, self.lineno, self.column,
-                               self.msg, self.context)
-        else:
-            ret_str += _format("{0}", self.msg)
-        return ret_str
+        return self.get_err_msg()
 
     def get_err_msg(self):
         """
@@ -431,7 +434,7 @@ class MOFParseError(Error):
 
         ::
 
-            Syntax error:<file>:<lineno>: <msg>
+            <error kind>:<file>:<lineno>:<colno>: <msg>
             <context - MOF line>
             <context - position indicator line>
 
@@ -439,8 +442,8 @@ class MOFParseError(Error):
 
           :term:`string`: Multi-line error message.
         """
-        ret_str = 'Syntax error:'
-        disp_file = 'NoFile' if self.file is None else self.file
+        ret_str = '{0}:'.format(self.error_kind)
+        disp_file = 'String' if not self.file else self.file
         if self.lineno is not None:
             ret_str += _format("{0}:{1}:{2}",
                                disp_file, self.lineno, self.column)
@@ -452,6 +455,91 @@ class MOFParseError(Error):
         return ret_str
 
 
+class MOFParseError(MOFCompileError):
+    """
+    Exception indicating that MOF cannot be parsed correctly, e.g. for
+    syntax errors.
+
+    Derived from :exc:`~pywbem.MOFCompileError`.
+    """
+
+    error_kind = "MOF parsing error"
+
+
+class MOFDependencyError(MOFCompileError):
+    """
+    Exception indicating that MOF cannot be compiled because of a missing
+    dependency. For example, the MOF to be compiled specifies a class but the
+    superclass of the class cannot be found.
+
+    Derived from :exc:`~pywbem.MOFCompileError`.
+    """
+
+    error_kind = "MOF dependency error"
+
+
+class MOFRepositoryError(MOFCompileError):
+    """
+    Exception indicating that MOF cannot be compiled because of a CIM error
+    returned by the target CIM repository. The CIM error is attached to this
+    exception and is part of the exception message.
+
+    Derived from :exc:`~pywbem.MOFCompileError`.
+    """
+
+    error_kind = "CIM repository error"
+
+    def __init__(self, msg, parser_token=None, cim_error=None):
+        """
+        Parameters:
+
+          msg (:term:`string`):
+            Message text describing the error.
+
+          parser_token (lex.LexToken or yacc.YaccProduction):
+            PLY lex or yacc parser token (that is, the ``p`` argument of a yacc
+            parser function or the ``t`` argument of a lex parser function).
+            This token is used to obtain the MOF source text and location
+            information.
+
+            `None` will result in no MOF source text and location information
+            to be obtained.
+
+          cim_error (:class:`~pywbem.CIMError`):
+            CIM error returned by the CIM repository.
+        """
+        super(MOFRepositoryError, self).__init__(msg, parser_token)
+        self._cim_error = cim_error
+
+    @property
+    def cim_error(self):
+        """
+        :class:`~pywbem.CIMError`: CIM error returned by the CIM repository.
+        """
+        return self._cim_error
+
+    def get_err_msg(self):
+        """
+        Return a multi-line error message for being printed, in the following
+        format. The text in angle brackets refers to the same-named properties
+        of the exception instance:
+
+        ::
+
+            <error kind>:<file>:<lineno>:<colno>: <msg>
+            <context - MOF line>
+            <context - position indicator line>
+            <CIM error>
+
+        Returns:
+
+          :term:`string`: Multi-line error message.
+        """
+        ret_str = super(MOFRepositoryError, self).get_err_msg()
+        ret_str += "\n{0}".format(self.cim_error)
+        return ret_str
+
+
 def p_error(p):
     """
         YACC Error Callback from the parser.  The parameter is the token
@@ -460,11 +548,13 @@ def p_error(p):
     """
 
     if p is None:
-        raise MOFParseError(msg='Unexpected end of file')
+        raise MOFParseError(msg='Unexpected end of MOF')
 
     msg = p.lexer.last_msg
     p.lexer.last_msg = None
-    raise MOFParseError(parser_token=p, msg=msg)
+    if not msg:
+        msg = "MOF grammar error"
+    raise MOFParseError(msg=msg, parser_token=p)
 
 
 # pylint: disable=unused-argument
@@ -509,63 +599,73 @@ def p_mp_createClass(p):
                 p.parser.classnames[ns].append(cc.classname.lower())
                 break
             except CIMError as ce:
-                ce.file_line = (p.parser.file, p.lexer.lineno)
                 errcode = ce.status_code
+
                 if errcode == CIM_ERR_INVALID_NAMESPACE:
-                    if fixedNS:
-                        raise
+                    assert not fixedNS  # Should not happen if we created it
                     if p.parser.verbose:
                         p.parser.log(
                             _format("Creating namespace {0!A}", ns))
                     p.parser.server.create_namespace(ns)
                     fixedNS = True
-                    continue
-                if not p.parser.search_paths:
-                    raise
+                    continue  # Try again to create the class
+
                 if errcode == CIM_ERR_INVALID_SUPERCLASS:
-                    if fixedSuper:
-                        raise
+                    assert not fixedSuper  # Should not happen if we fixed it
                     moffile = p.parser.mofcomp.find_mof(cc.superclass)
                     if not moffile:
-                        raise
+                        raise MOFDependencyError(
+                            msg=_format(
+                                "Cannot compile class {0!A} because its "
+                                "superclass {1!A} does not exist in the CIM "
+                                "repository and a MOF file for it was not "
+                                "found on the search path",
+                                cc.classname, cc.superclass),
+                            parser_token=p)
                     p.parser.mofcomp.compile_file(moffile, ns)
                     fixedSuper = True
-                elif errcode in [CIM_ERR_INVALID_PARAMETER,
-                                 CIM_ERR_NOT_FOUND,
-                                 CIM_ERR_FAILED]:
-                    if fixedRefs:
-                        raise
+                    continue  # Try again to create the class
+
+                if errcode in [CIM_ERR_INVALID_PARAMETER,
+                               CIM_ERR_NOT_FOUND,
+                               CIM_ERR_FAILED]:
+                    assert not fixedRefs  # Should not happen if we fixed it
                     if not p.parser.qualcache[ns]:
                         for fname in ['qualifiers', 'qualifiers_optional']:
                             qualfile = p.parser.mofcomp.find_mof(fname)
                             if qualfile:
                                 p.parser.mofcomp.compile_file(qualfile, ns)
                     if not p.parser.qualcache[ns]:
-                        # can't find qualifiers
-                        raise
+                        raise MOFDependencyError(
+                            msg=_format(
+                                "Cannot compile class {0!A} because the CIM "
+                                "repository does not contain any qualifiers "
+                                "and the qualifier files 'qualifiers.mof' and "
+                                "'qualifiers_optional.mof' were not found on "
+                                "the search path or did not specify any "
+                                "qualifiers",
+                                cc.classname),
+                            parser_token=p)
                     objects = list(cc.properties.values())
                     for meth in cc.methods.values():
                         objects += list(meth.parameters.values())
 
-                    dep_classes = NocaseDict()  # dict dep_class, ce
+                    dep_classnames = []
                     for obj in objects:
-                        if obj.type not in ['reference', 'string']:
-                            continue
+                        # TODO: The following does not process method parameters
                         if obj.type == 'reference':
-                            if obj.reference_class not in dep_classes:
-                                dep_classes[obj.reference_class] = ce
+                            if obj.reference_class not in dep_classnames:
+                                dep_classnames.append(obj.reference_class)
                         elif obj.type == 'string':
                             try:
                                 embedded_inst = \
                                     obj.qualifiers['embeddedinstance']
                             except KeyError:
                                 continue
-                            if embedded_inst.value not in dep_classes:
-                                dep_classes[embedded_inst.value] = ce
+                            if embedded_inst.value not in dep_classnames:
+                                dep_classnames.append(embedded_inst.value)
 
-                            continue
-
-                    for cln, err in dep_classes.items():
+                    for cln in dep_classnames:
                         if cln in p.parser.classnames[ns]:
                             continue
                         try:
@@ -577,32 +677,45 @@ def p_mp_createClass(p):
                             p.parser.handle.GetClass(cln,
                                                      LocalOnly=False,
                                                      IncludeQualifiers=True)
-                            p.parser.classnames[ns].append(cln)
                         except CIMError:
                             moffile = p.parser.mofcomp.find_mof(cln)
                             if not moffile:
-                                raise err
-                            try:
-                                if p.parser.verbose:
-                                    p.parser.log(
-                                        _format("Class {0!A} namespace {1!A} "
-                                                "depends on class {2!A} which "
-                                                "is not in repository.",
-                                                cc.classname, ns, cln))
-                                p.parser.mofcomp.compile_file(moffile, ns)
-                            except CIMError as ce:
-                                if ce.status_code == CIM_ERR_NOT_FOUND:
-                                    raise err
-                                raise
-                            p.parser.classnames[ns].append(cln)
+                                raise MOFDependencyError(
+                                    msg=_format(
+                                        "Cannot compile class {0!A} because "
+                                        "its dependent class {1!A} does not "
+                                        "exist in the CIM repository and a "
+                                        "MOF file for it was not found on the "
+                                        "search path",
+                                        cc.classname, cln),
+                                    parser_token=p)
+                            if p.parser.verbose:
+                                p.parser.log(
+                                    _format("Class {0!A} namespace {1!A} "
+                                            "depends on class {2!A} which "
+                                            "is not in repository.",
+                                            cc.classname, ns, cln))
+                            p.parser.mofcomp.compile_file(moffile, ns)
+
+                        p.parser.classnames[ns].append(cln)
                     fixedRefs = True
-                else:
-                    raise
+                    continue  # Try again to create the class
+
+                # The options for fixing dependency issues have been exhausted.
+                # Re-raise the CIMError from CreateClass.
+                raise
 
     except CIMError as ce:
-        ce.file_line = (p.parser.file, p.lexer.lineno)
+
         if ce.status_code != CIM_ERR_ALREADY_EXISTS:
-            raise
+            raise MOFRepositoryError(
+                msg=_format(
+                    "Cannot compile class {0!A} because the CIM repository "
+                    "returned an error for CreateClass",
+                    cc.classname),
+                parser_token=p,
+                cim_error=ce)
+
         if p.parser.verbose:
             p.parser.log(
                 _format("Class {0!A} already exist. Modifying...",
@@ -613,8 +726,14 @@ def p_mp_createClass(p):
             p.parser.log(
                 _format("Error modifying class {0!A}: {1}, {2}",
                         cc.classname, ce.status_code, ce.status_description))
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise
+            raise MOFRepositoryError(
+                msg=_format(
+                    "Cannot compile class {0!A} because the class already "
+                    "existed and the CIM repository returned an error for "
+                    "ModifyClass",
+                    cc.classname),
+                parser_token=p,
+                cim_error=ce)
 
 
 def p_mp_createInstance(p):
@@ -635,11 +754,21 @@ def p_mp_createInstance(p):
                 p.parser.handle.ModifyInstance(inst)
             except CIMError as ce2:
                 # modify failed, output original error
-                ce.file_line = (p.parser.file, p.lexer.lineno)
-                raise ce2
+                raise MOFRepositoryError(
+                    msg=_format(
+                        "Cannot compile instance of {0!A} because the CIM "
+                        "repository returned an error for ModifyInstance",
+                        inst.classname),
+                    parser_token=p,
+                    cim_error=ce2)
         else:
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise
+            raise MOFRepositoryError(
+                msg=_format(
+                    "Cannot compile instance of {0!A} because the CIM "
+                    "repository returned an error for CreateInstance",
+                    inst.classname),
+                parser_token=p,
+                cim_error=ce)
 
 
 def p_mp_setQualifier(p):
@@ -672,8 +801,13 @@ def p_mp_setQualifier(p):
                     _format("Setting qualifier {0!A}", qualdecl.name))
             p.parser.handle.SetQualifier(qualdecl)
         else:
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise
+            raise MOFRepositoryError(
+                msg=_format(
+                    "Cannot compile qualifier declaration {0!A} because the "
+                    "CIM repository returned an error for SetQualifier",
+                    qualdecl.name),
+                parser_token=p,
+                cim_error=ce)
     p.parser.qualcache[ns][qualdecl.name] = qualdecl
 
 
@@ -845,8 +979,14 @@ def p_qualifier(p):
             quals = p.parser.handle.EnumerateQualifiers()
         except CIMError as ce:
             if ce.status_code != CIM_ERR_INVALID_NAMESPACE:
-                ce.file_line = (p.parser.file, p.lexer.lineno)
-                raise
+                raise MOFRepositoryError(
+                    msg=_format(
+                        "Cannot compile element specifying qualifier {0!A} "
+                        "because the CIM repository returned an error for "
+                        "EnumerateQualifiers",
+                        qname),
+                    parser_token=p,
+                    cim_error=ce)
             if p.parser.verbose:
                 p.parser.log(
                     _format("Creating namespace {0!A}", ns))
@@ -864,13 +1004,17 @@ def p_qualifier(p):
     try:
         qualdecl = p.parser.qualcache[ns][qname]
     except KeyError:
-        ce = CIMError(
-            CIM_ERR_FAILED,
-            _format("Unknown Qualifier: {0!A}", qname))
-        ce.file_line = (p.parser.file, p.lexer.lineno)
-        raise ce
+        raise MOFDependencyError(
+            msg=_format(
+                "Cannot compile element specifying qualifier {0!A} because "
+                "its qualifier declaration does not exist in the "
+                "CIM repository and was not found in the qualifier files "
+                "'qualifiers.mof' and  'qualifiers_optional.mof' on the "
+                "search path",
+                qname),
+            parser_token=p)
 
-    flavors = _build_flavors(p[0], flavorlist, qualdecl)
+    flavors = _build_flavors(p, flavorlist, qualdecl, qualdecl.name)
     if qval is None:
         if qualdecl.type == 'boolean':
             qval = True
@@ -1241,9 +1385,9 @@ def _fixStringValue(s, p):
             if j == 0:
                 # DSP0004 requires 1..4 hex chars - we have 0
                 raise MOFParseError(
-                    parser_token=p,
                     msg="Unicode escape sequence (e.g. '\\x12AB') requires "
-                        "at least one hex character")
+                        "at least one hex character",
+                    parser_token=p)
             rv += six.unichr(hexc)
             i += j - 1
 
@@ -1292,11 +1436,12 @@ def p_referenceInitializer(p):
         try:
             p[0] = p.parser.aliases[p[1]]
         except KeyError:
-            ce = CIMError(
-                CIM_ERR_FAILED,
-                _format("Unknown alias: {0!A}", p[1]))
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise ce
+            raise MOFParseError(
+                msg=_format(
+                    "Cannot compile reference initialization because the "
+                    "instance alias {0!A} was not previously defined in "
+                    "in the MOF", p[1]),
+                parser_token=p)
     else:
         p[0] = p[1]
 
@@ -1320,14 +1465,14 @@ def p_qualifierDeclaration(p):
     else:
         flist = p[5]
 
-    flavors = _build_flavors(p[0], flist)
+    flavors = _build_flavors(p, flist, None, qualname)
 
     p[0] = CIMQualifierDeclaration(
         qualname, dt, value=value, is_array=is_array, array_size=array_size,
         scopes=scopes, **flavors)
 
 
-def _build_flavors(p, flist, qualdecl=None):
+def _build_flavors(p, flist, qualdecl, qualname):
     """
         Build and return a dictionary defining the flavors from the
         flist argument.
@@ -1349,12 +1494,14 @@ def _build_flavors(p, flist, qualdecl=None):
     """
 
     flavors = {}
-    if ('disableoverride' in flist and 'enableoverride' in flist) \
-        or \
-        ('restricted' in flist and 'tosubclass' in flist):  # noqa: E125
-
-        raise MOFParseError(parser_token=p, msg="Conflicting flavors are"
-                            "invalid")
+    if ('disableoverride' in flist and 'enableoverride' in flist) or \
+            ('restricted' in flist and 'tosubclass' in flist):  # noqa: E125
+        raise MOFParseError(
+            msg=_format(
+                "Cannot compile qualifier declaration {0!A} because it "
+                "specifies conflicting flavors: {1}",
+                qualname, flist),
+            parser_token=p)
 
     if qualdecl is not None:
         flavors = {'overridable': qualdecl.overridable,
@@ -1430,6 +1577,7 @@ def p_scope(p):
               'PARAMETER',
               'ANY'):
         scopes[i] = i in slist
+        # TODO: Check for invalid scopes
     p[0] = scopes
 
 
@@ -1517,24 +1665,33 @@ def p_instanceDeclaration(p):
                                       IncludeQualifiers=True)
         p.parser.classnames[ns].append(cc.classname.lower())
     except CIMError as ce:
-        ce.file_line = (p.parser.file, p.lexer.lineno)
         if ce.status_code == CIM_ERR_NOT_FOUND:
-            file_ = p.parser.mofcomp.find_mof(cname)
             if p.parser.verbose:
                 p.parser.log(
                     _format("Class {0!A} does not exist", cname))
-            if file_:
-                p.parser.mofcomp.compile_file(file_, ns)
-                cc = p.parser.handle.GetClass(cname, LocalOnly=False,
-                                              IncludeQualifiers=True)
-            else:
+            file_ = p.parser.mofcomp.find_mof(cname)
+            if not file_:
                 if p.parser.verbose:
                     p.parser.log("Can't find file to satisfy class")
-                ce = CIMError(CIM_ERR_INVALID_CLASS, cname)
-                ce.file_line = (p.parser.file, p.lexer.lineno)
-                raise ce
+                raise MOFDependencyError(
+                    msg=_format(
+                        "Cannot compile instance of {0!A} because its class "
+                        "does not exist in the CIM repository and a MOF file "
+                        "for that class cannot be found on the search path",
+                        cname),
+                    parser_token=p)
+            p.parser.mofcomp.compile_file(file_, ns)
+            cc = p.parser.handle.GetClass(cname, LocalOnly=False,
+                                          IncludeQualifiers=True)
         else:
-            raise
+            raise MOFRepositoryError(
+                msg=_format(
+                    "Cannot compile instance of {0!A} because the CIM "
+                    "repository returned an error for GetClass",
+                    cname),
+                parser_token=p,
+                cim_error=ce)
+
     path = CIMInstanceName(cname, namespace=ns)
     inst = CIMInstance(cname, qualifiers=quals, path=path)
     keybindings = NocaseDict()   # dictionary to build kb if alias exists
@@ -1545,19 +1702,21 @@ def p_instanceDeclaration(p):
         try:
             cprop = cc.properties[pname]
         except KeyError:
-            ce = CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Invalid property. Not in class: {0!A}", pname))
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise ce
+            raise MOFDependencyError(
+                msg=_format(
+                    "Cannot compile instance of {0!A} because its "
+                    "property {1!A} is not declared in the class",
+                    cname, pname),
+                parser_token=p)
 
         # confirm property name not duplicated.
         if pname in inst.properties:
-            ce = CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Duplicate property: {0!A}", pname))
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise ce
+            raise MOFParseError(
+                msg=_format(
+                    "Cannot compile instance of {0!A} because it specifies "
+                    "property {1!A} more than once",
+                    cname, pname),
+                parser_token=p)
 
         try:
             # build instance property from class property but without
@@ -1569,13 +1728,13 @@ def p_instanceDeclaration(p):
             # if alias and this is key property, add keybinding
             if alias and 'key' in cprop.qualifiers:
                 keybindings[pname] = pprop.value
-
         except ValueError as ve:
-            ce = CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Invalid value for property {0!A}: {1}", pname, ve))
-            ce.file_line = (p.parser.file, p.lexer.lineno)
-            raise ce
+            raise MOFParseError(
+                msg=_format(
+                    "Cannot compile instance of {0!A} because it specifies "
+                    "property {1!A} with an invalid value {2!r}: {3}",
+                    cname, pname, pval, ve),
+                parser_token=p)
 
     if alias:
         if keybindings:
@@ -1654,19 +1813,46 @@ def p_empty(p):
     pass
 
 
+def _lexpos(token):
+    """
+    Return the position in the (Lex or Yacc) token.
+    """
+    if isinstance(token, lex.LexToken):
+        lexpos = token.lexpos
+    else:
+        assert isinstance(token, yacc.YaccProduction)
+        lexpos = token.lexpos(1)  # always first item in grammar
+    assert isinstance(lexpos, int)
+    return lexpos
+
+
+def _value(token):
+    """
+    Return the value of the (Lex or Yacc) token.
+    """
+    if isinstance(token, lex.LexToken):
+        value = token.value
+    else:
+        assert isinstance(token, yacc.YaccProduction)
+        value = token[1]  # always first item in grammar
+    return value
+
+
 def _find_column(input_, token):
     """
-        Find the column in file where error occured. This is taken from
-        token.lexpos converted to the position on the current line by
-        finding the previous EOL.
+    Find the column in file where error occured. This is taken from the
+    position in the (Lex or Yacc) token, converted to the position on the
+    current line by finding the previous EOL.
     """
-
-    i = token.lexpos
+    lexpos = _lexpos(token)
+    i = lexpos
     while i > 0:
         if input_[i] == '\n':
             break
         i -= 1
-    column = token.lexpos - i - 1
+    column = lexpos - i - 1
+    if column < 0:
+        column = 0
     return column
 
 
@@ -1676,18 +1862,18 @@ def _get_error_context(input_, token):
         error occurs.  This consists of the characters ^ at the position
         and for the length defined by the lexer position and token length
     """
-
+    lexpos = _lexpos(token)
     try:
-        line = input_[token.lexpos: input_.index('\n', token.lexpos)]
+        line = input_[lexpos: input_.index('\n', lexpos)]
     except ValueError:
-        line = input_[token.lexpos:]
+        line = input_[lexpos]
 
-    i = input_.rfind('\n', 0, token.lexpos)
+    i = input_.rfind('\n', 0, lexpos)
     if i < 0:
         i = 0
-    line = input_[i:token.lexpos] + line
+    line = input_[i:lexpos] + line
     lines = [line.strip('\r\n')]
-    col = token.lexpos - i
+    col = lexpos - i
     while len(lines) < 5 and i > 0:
         end = i
         i = input_.rfind('\n', 0, i)
@@ -1695,7 +1881,7 @@ def _get_error_context(input_, token):
             i = 0
         lines.insert(0, input_[i:end].strip('\r\n'))
     pointer = ''
-    for dummy_ch in str(token.value):
+    for dummy_ch in str(_value(token)):
         pointer += '^'
     pointline = ''
     i = 0
@@ -2121,8 +2307,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                               IncludeQualifiers=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
-                    ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
-                    raise
+                    raise CIMError(CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
                 raise
 
         self.compile_ordered_classnames.append(cc.classname)
@@ -2383,6 +2568,7 @@ class MOFCompiler(object):
             A logger function that is invoked for each compiler message.
             The logger function must take one parameter of string type.
             The default logger function prints to stdout.
+            If `None`, compiler messages are not logged.
         """  # noqa: E501
 
         if isinstance(handle, WBEMConnection):
@@ -2417,6 +2603,8 @@ class MOFCompiler(object):
                 _format("search_paths parameter must be list or tuple, but "
                         "is: {0}", type(search_paths)))
 
+        self._log_func = log_func
+
         self.parser = _yacc(verbose)
 
         self.parser.search_paths = search_paths
@@ -2435,8 +2623,17 @@ class MOFCompiler(object):
             self.parser.classnames[default_namespace] = []
         self.parser.mofcomp = self
         self.parser.verbose = verbose
-        self.parser.log = log_func
         self.parser.aliases = {}
+        self.parser.log = self._log
+
+    def _log(self, msg):
+        """
+        Log a MOF compiler error message to the destination that was set
+        with the ``log_func`` argument when creating the
+        :class:`~pywbem.MOFCompiler` object.
+        """
+        if self._log_func:
+            self._log_func(msg)
 
     def compile_string(self, mof, ns, filename=None):
         """
@@ -2459,11 +2656,7 @@ class MOFCompiler(object):
 
         Raises:
 
-          IOError: MOF file not found.
-
-          MOFParseError: Syntax error in the MOF.
-
-          : Any exceptions that are raised by the repository connection class.
+          MOFCompileError: Error compiling the MOF.
         """
 
         lexer = self.lexer.clone()
@@ -2483,6 +2676,7 @@ class MOFCompiler(object):
             self.parser.qualcache[ns] = NocaseDict()
         if ns not in self.parser.classnames:
             self.parser.classnames[ns] = []
+
         try:
             # Call the parser.  To generate detailed output of states
             # add debug=... to following line where debug may be a
@@ -2493,28 +2687,9 @@ class MOFCompiler(object):
             self.parser.file = oldfile
             self.parser.mof = oldmof
             return rv
-
-        except MOFParseError as pe:
+        except MOFCompileError as pe:
             # Generate the error message into log and reraise error
             self.parser.log(pe.get_err_msg())
-            raise
-
-        except CIMError as ce:
-            if hasattr(ce, 'file_line'):
-                # pylint: disable=no-member
-                # file_line, attribute dynamically added by error code
-                self.parser.log(
-                    _format("Fatal Error: {0}:{1}",
-                            ce.file_line[0], ce.file_line[1]))
-            else:
-                self.parser.log("Fatal Error:")
-
-            description = _format(":{0}", ce.status_description) if \
-                ce.status_description else ""
-            self.parser.log(
-                _format("{0}{1}",
-                        _statuscode2string(ce.status_code), description))
-
             raise
 
     def compile_file(self, filename, ns):
@@ -2536,9 +2711,7 @@ class MOFCompiler(object):
 
           IOError: MOF file not found.
 
-          MOFParseError: Syntax error in the MOF.
-
-          : Any exceptions that are raised by the repository connection class.
+          MOFCompileError: Error compiling the MOF.
         """
         if self.parser.verbose:
             self.parser.log(
