@@ -40,6 +40,11 @@ Released: not yet
   a local repository. It was documented that way, but failed with
   AttributeError. (See issue #1998)
 
+* Fixed the error that the MOF compilation of a class could fail but the
+  error was not surfaced. This only happened when the MOF compiler was invoked
+  against a WBEM server, when the class already existed, and when the
+  ModifyClass operation that was attempted in this case, failed.
+
 **Enhancements:**
 
 * Test: Removed the dependency on unittest2 for Python 2.7 and higher.
