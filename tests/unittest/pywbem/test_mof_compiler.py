@@ -122,6 +122,55 @@ class Test_MOFCompiler_init(unittest.TestCase):
             MOFCompiler(invalid)
 
 
+class TestClasses(MOFTest):
+    """
+    Test compile of classes
+    """
+
+    def test_class_new(self):
+        """
+        Test compile of a simple class to an empty repository
+        """
+
+        skip_if_moftab_regenerated()
+
+        repo = self.mofcomp.handle
+
+        class_mof = \
+            'class PyWBEM_Test {\n' \
+            '    string Prop1;\n' \
+            '};'
+        self.mofcomp.compile_string(class_mof, NAME_SPACE)
+
+        repo_classnames = list(repo.classes[NAME_SPACE].keys())
+        assert repo_classnames == ['PyWBEM_Test']
+
+    def test_class_replace(self):
+        """
+        Test compile of a simple class to a repository that already contains it
+        """
+
+        skip_if_moftab_regenerated()
+
+        repo = self.mofcomp.handle
+
+        class1_mof = \
+            'class PyWBEM_Test {\n' \
+            '    string Prop1;\n' \
+            '};'
+        self.mofcomp.compile_string(class1_mof, NAME_SPACE)
+
+        class2_mof = \
+            'class PyWBEM_Test {\n' \
+            '    boolean Prop1;\n' \
+            '};'
+        # TODO: Provoke ModifyClass to fail
+        self.mofcomp.compile_string(class2_mof, NAME_SPACE)
+
+        repo_classnames = list(repo.classes[NAME_SPACE].keys())
+        assert repo_classnames == ['PyWBEM_Test']
+
+
 class TestInstancesUnicode(MOFTest):
     """
     Test compile of an instance with Unicode characters in string properties
