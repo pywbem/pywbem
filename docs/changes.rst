@@ -247,6 +247,11 @@ Released: not yet
 * Fixed several install issues with the lxml, flake8, pywin32, pip, setuptools,
   and wheel packages on Python 3.8 on Windows. (See issues #1975, #1980).
 
+* Fixed the error that the MOF compilation of a class when trying
+  ModifyInstance when the class already exists, ignored any error returned
+  from the CIM repository. It now re-raises the returned `CIMError` exception
+  in that case. (See issue #1996)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

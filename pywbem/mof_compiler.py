@@ -613,6 +613,8 @@ def p_mp_createClass(p):
             p.parser.log(
                 _format("Error modifying class {0!A}: {1}, {2}",
                         cc.classname, ce.status_code, ce.status_description))
+            ce.file_line = (p.parser.file, p.lexer.lineno)
+            raise
 
 
 def p_mp_createInstance(p):
