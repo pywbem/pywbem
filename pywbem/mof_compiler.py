@@ -2112,6 +2112,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         cc = args[0] if args else kwargs['NewClass']
+
         if cc.superclass:
             try:
                 # Since this may cause additional GetClass calls
@@ -2182,7 +2183,26 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         del self.classes[this_ns][cc.classname]
                         raise
 
-        # Issue #991: CreateClass should reject if the class already exists
+        # CreateClass should reject if the class already exists
+        exists = True
+        try:
+            self.GetClass(cc.classname, LocalOnly=True,
+                          IncludeQualifiers=False)
+        except CIMError as ce:
+            if ce.status_code == CIM_ERR_NOT_FOUND:
+                exists = False
+            else:
+                # Only delete when total failure
+                del self.classes[this_ns][cc.classname]
+                raise
+        if exists:
+            # Only delete when total failure
+            del self.classes[this_ns][cc.classname]
+            raise CIMError(
+                CIM_ERR_CLASS_ALREADY_EXISTS,
+                _format("Class {0!A} already exists in namespace {1!A}",
+                        cc.classname, self.getns()),
+                conn_id=self.conn_id)
 
         # Add the classname to the local class_names dictionary used by
         # rollback
