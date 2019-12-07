@@ -247,6 +247,14 @@ Released: not yet
 * Fixed several install issues with the lxml, flake8, pywin32, pip, setuptools,
   and wheel packages on Python 3.8 on Windows. (See issues #1975, #1980).
 
+* Silenced the MOFCompiler class for verbose=False. So far, it still printed
+  messages for generating the YACC parser table, causing one test to fail,
+  and others to issue useless prints. (Issue #2004)
+
+* Test: Fixed an error in testing the PLY table version in testcases that caused
+  the LEX/YACC parser table files to be written to the pywbem installation
+  when using TEST_INSTALLED. (Related to issue #2004)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
