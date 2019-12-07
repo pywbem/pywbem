@@ -30,6 +30,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Test: Removed the dependency on unittest2 for Python 2.7 and higher.
+  (See issue #2003)
+
 **Known issues:**
 
 * See `list of open issues`_.

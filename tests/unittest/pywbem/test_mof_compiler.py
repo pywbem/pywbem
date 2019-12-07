@@ -7,8 +7,8 @@
 
 from __future__ import print_function, absolute_import
 
+import sys
 import os
-import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
 import six
 from ply import lex
 try:
@@ -36,6 +36,11 @@ from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
+
+if sys.version_info[0:2] == (2, 6):
+    import unittest2 as unittest  # we use assertRaises(exc) introduced in py27
+else:
+    import unittest
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Location of the schema for use by test_mof_compiler.
