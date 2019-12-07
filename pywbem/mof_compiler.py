@@ -2639,9 +2639,10 @@ def _yacc(verbose=False, out_dir=None):
                      tabmodule=_tabmodule,
                      outputdir=out_dir,
                      write_tables=write_tables,
-                     debug=True,
+                     debug=verbose,
                      debuglog=yacc.NullLogger(),
-                     errorlog=yacc.PlyLogger(sys.stdout))
+                     errorlog=yacc.PlyLogger(sys.stdout) if verbose
+                     else yacc.NullLogger())
 
 
 def _lex(verbose=False, out_dir=None):
@@ -2675,4 +2676,5 @@ def _lex(verbose=False, out_dir=None):
                    outputdir=out_dir,
                    debug=False,
                    # debuglog = lex.PlyLogger(sys.stdout),
-                   errorlog=lex.PlyLogger(sys.stdout))
+                   errorlog=yacc.PlyLogger(sys.stdout) if verbose
+                   else yacc.NullLogger())

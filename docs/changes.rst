@@ -28,6 +28,14 @@ Released: not yet
 
 **Bug fixes:**
 
+* Silenced the MOFCompiler class for verbose=False. So far, it still printed
+  messages for generating the YACC parser table, causing one test to fail,
+  and others to issue useless prints. (Issue #2004)
+
+* Test: Fixed an error in testing the PLY table version in testcases that caused
+  the LEX/YACC parser table files to be written to the pywbem installation
+  when using TEST_INSTALLED. (Related to issue #2004)
+
 **Enhancements:**
 
 * Test: Removed the dependency on unittest2 for Python 2.7 and higher.
