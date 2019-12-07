@@ -79,7 +79,7 @@ class MOFTest(unittest.TestCase):
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
-            verbose=True,
+            verbose=False,
             log_func=moflog)
 
         self.partial_schema_file = None
@@ -623,7 +623,7 @@ class TestSchemaSearch(MOFTest):
         mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=TEST_DMTF_CIMSCHEMA_MOF_DIR,
-            verbose=True,
+            verbose=False,
             log_func=moflog)
         mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                           'System',
@@ -648,7 +648,7 @@ class TestSchemaSearch(MOFTest):
         open(moflog_file, 'w')
         mofcomp = MOFCompiler(
             MOFWBEMConnection(),
-            verbose=True,
+            verbose=False,
             log_func=moflog)
         try:
             mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
@@ -2594,7 +2594,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
         self.mofcomp = MOFCompiler(
             MOFWBEMConnectionInstDups(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
-            verbose=True,
+            verbose=False,
             log_func=moflog)
 
         self.partial_schema_file = None
