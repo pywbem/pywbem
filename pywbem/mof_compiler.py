@@ -2386,6 +2386,9 @@ class MOFCompiler(object):
         if isinstance(handle, WBEMConnection):
             conn = handle  # handle will be the WBEMConnection object
         elif handle is None:
+            # The compiler needs a place to store compiled elements, so it
+            # gets a local-only MOFWBEMConnection in this case.
+            handle = MOFWBEMConnection(conn=None)
             conn = None
         elif isinstance(handle, BaseRepositoryConnection):
             conn = getattr(handle, 'conn', None)
