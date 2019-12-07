@@ -10,13 +10,12 @@ from __future__ import absolute_import, print_function
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
+import sys
 import os
 import os.path
 import logging
 import logging.handlers
 from io import open as _open
-
-import unittest2 as unittest  # we use @skip introduced in py27
 import six
 from testfixtures import LogCapture, log_capture
 # Enabled only to display a tree of loggers
@@ -43,6 +42,11 @@ from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
 from pywbem._utils import _format
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
+
+if sys.version_info[0:2] == (2, 6):
+    import unittest2 as unittest  # we use @skip introduced in py27
+else:
+    import unittest
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
