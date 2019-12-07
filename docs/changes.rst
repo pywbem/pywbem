@@ -255,6 +255,10 @@ Released: not yet
   the LEX/YACC parser table files to be written to the pywbem installation
   when using TEST_INSTALLED. (Related to issue #2004)
 
+* Fixed that the MOFCompiler could be created with handle=None to work against
+  a local repository. It was documented that way, but failed with
+  AttributeError. (See issue #1998)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
