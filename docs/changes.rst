@@ -117,6 +117,9 @@ Released: not yet
   of exceptions to catch the new base class `MOFCompileError`.
   (See issue #1235)
 
+* Made the MOFWBEMConnection class internal and undocumented. It has an
+  inconsistent semantics and should not be used by users. (See issue #2001).
+
 **Deprecations:**
 
 **Bug fixes:**

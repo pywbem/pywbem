@@ -48,22 +48,6 @@ Repository connections
 
    .. rubric:: Details
 
-.. autoclass:: pywbem.MOFWBEMConnection
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.MOFWBEMConnection
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.MOFWBEMConnection
-      :attributes:
-
-   .. rubric:: Details
-
 .. _`MOF compiler exceptions`:
 
 Exceptions

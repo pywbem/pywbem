@@ -27,10 +27,11 @@ For documentation, see mocksupport.rst.
 
 from __future__ import absolute_import, print_function
 
-from pywbem import MOFWBEMConnection, CIMError, CIM_ERR_INVALID_PARAMETER, \
+from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIMInstanceName
 from pywbem._nocasedict import NocaseDict
+from pywbem.mof_compiler import MOFWBEMConnection
 
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
