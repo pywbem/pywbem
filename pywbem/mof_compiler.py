@@ -51,24 +51,17 @@ The pywbem MOF compiler will compile MOF files whose syntax complies with
    requirement is documented.
    (See `pywbem issue #1079 <https://github.com/pywbem/pywbem/issues/1079>`_).
 
-The MOF compiler API provides for invoking the MOF compiler, it supports
-plugging in a user-provided CIM repository (see
-:class:`~pywbem.BaseRepositoryConnection`), and it supports a rollback
-capability that undoes compilation effects (see
-:meth:`~pywbem.MOFCompiler.rollback`).
-
-The MOF compiler API consists of the following parts, which are described in the
-remaining sections of this chapter:
+The MOF compiler API provides for invoking the MOF compiler programmatically.
+It consists of the following parts, which are described in the remaining
+sections of this chapter:
 
 * :ref:`MOFCompiler Class` - Describes the :class:`~pywbem.MOFCompiler`
   class, which allows invoking the MOF compiler programmatically.
 
 * :ref:`Repository connections` - Describes the
   :class:`~pywbem.BaseRepositoryConnection` class that defines
-  the interface for connecting to a CIM repository, and the
-  :class:`~pywbem.MOFWBEMConnection` class that is a connection
-  to an in-memory repository on top of an underlying repository, and is used
-  by the MOF compiler to provide rollback support.
+  the interface for connecting to a CIM repository. This is an extension point
+  where users can implement a CIM repository for use by the MOF compiler.
 
 * :ref:`Exceptions <MOF compiler exceptions>` - Describes the exceptions
   that can be raised by the MOF compiler API.
@@ -104,8 +97,7 @@ from .exceptions import Error, CIMError
 from ._utils import _format
 
 __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
-           'MOFRepositoryError', 'MOFWBEMConnection', 'MOFCompiler',
-           'BaseRepositoryConnection']
+           'MOFRepositoryError', 'MOFCompiler', 'BaseRepositoryConnection']
 
 # The following pylint is applied for the complete file because invalid
 # names are used throughout the file and about 200 flags generated if
