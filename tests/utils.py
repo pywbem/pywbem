@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import sys
 import os
 import pytest
-import ply
+from ply import yacc, lex
 from packaging.version import parse as parse_version
 
 
@@ -64,25 +64,24 @@ def skip_if_moftab_regenerated():
     mofparsetab_version = mofparsetab._tabversion
     moflextab_version = moflextab._tabversion
     # pylint: enable=protected-access
-    ply_version = ply.__version__
 
     mofparsetab_mismatch = parse_version(mofparsetab_version) != \
-        parse_version(ply_version)
+        parse_version(yacc.__tabversion__)
     moflextab_mismatch = parse_version(moflextab_version) != \
-        parse_version(ply_version)
+        parse_version(lex.__tabversion__)
 
     if test_installed and pywbem_not_tolerant and \
             (mofparsetab_mismatch or moflextab_mismatch):
         pytest.skip("Cannot run this MOF testcase against an installed "
                     "pywbem (version {0}, installed at {1}) because that "
-                    "pywbem version does not tolerate version mismatches "
-                    "between the current ply version and the ply version that "
-                    "was used to create the pywbem mof*tab files: "
-                    "current ply: {2}, ply in mofparsetab.py: {3}, "
-                    "ply in moflextab.py: {4}".
+                    "pywbem version does not tolerate table version mismatches "
+                    "between the current ply package and the generated pywbem "
+                    "mof*tab files: yacc table version: current ply: {2}, "
+                    "mofparsetab.py: {3}, lex table version: current ply: {4}, "
+                    "moflextab.py: {5}".
                     format(pywbem.__version__, pywbem.__file__,
-                           ply_version,
-                           mofparsetab_version, moflextab_version))
+                           yacc.__tabversion__, mofparsetab_version,
+                           lex.__tabversion__, moflextab_version))
 
 
 def import_installed(module_name):

@@ -1263,6 +1263,7 @@ class TestRepoMethods(object):
         captured = capsys.readouterr()
 
         result = captured.out
+
         assert result.startswith(
             "// ========Mock Repo Display fmt=mof namespaces=all")
         assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
