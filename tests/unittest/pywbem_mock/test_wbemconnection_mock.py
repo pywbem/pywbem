@@ -864,7 +864,8 @@ class TestFakedWBEMConnection(object):
         exec_time = (datetime.now() - start_time).total_seconds()
 
         if delay:
-            assert delay * .8 < exec_time < delay * 2.0
+            assert exec_time > delay * .8
+            assert exec_time < delay * 2.5
         else:
             assert exec_time < 0.1
 
