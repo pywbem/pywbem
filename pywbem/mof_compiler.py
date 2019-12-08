@@ -2121,8 +2121,13 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                               IncludeQualifiers=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
-                    ce.args = (CIM_ERR_INVALID_SUPERCLASS, cc.superclass)
-                    raise
+                    raise CIMError(
+                        CIM_ERR_INVALID_SUPERCLASS,
+                        _format("Cannot create class {0!A} in namespace "
+                                "{1!A} because its superclass {2!A} does "
+                                "not exist",
+                                cc.classname, self.getns(), cc.superclass),
+                        conn_id=self.conn_id)
                 raise
 
         self.compile_ordered_classnames.append(cc.classname)
@@ -2151,11 +2156,11 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     if ce.status_code == CIM_ERR_NOT_FOUND:
                         raise CIMError(
                             CIM_ERR_INVALID_PARAMETER,
-                            _format("Class {0!A} referenced by element "
-                                    "{1!A} of class {2!A} in namespace "
-                                    "{3!A} does not exist",
-                                    obj.reference_class, obj.name,
-                                    cc.classname, self.getns()),
+                            _format("Cannot create class {0!A} in namespace "
+                                    "{1!A} because class {2!A} referenced by "
+                                    "its element {3!A} does not exist",
+                                    cc.classname, self.getns(),
+                                    obj.reference_class, obj.name),
                             conn_id=self.conn_id)
                     # NOTE: Only delete when this is total failure
                     del self.classes[this_ns][cc.classname]
@@ -2171,12 +2176,13 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         if ce.status_code == CIM_ERR_NOT_FOUND:
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
-                                _format("Class {0!A} specified by "
-                                        "EmbeddInstance qualifier on "
-                                        "element {1!A} of class {2!A} in "
-                                        "namespace {3!A} does not exist",
-                                        eiqualifier.value, obj.name,
-                                        cc.classname, self.getns()),
+                                _format("Cannot create class {0!A} in "
+                                        "namespace {1!A} because class {2!A} "
+                                        "specified by the EmbeddedInstance "
+                                        "qualifier on its element {3!A} does "
+                                        "not exist",
+                                        cc.classname, self.getns(),
+                                        eiqualifier.value, obj.name),
                                 conn_id=self.conn_id)
                         # Only delete when total failure
                         del self.classes[this_ns][cc.classname]
