@@ -50,6 +50,12 @@ Released: not yet
 * Test: Removed the dependency on unittest2 for Python 2.7 and higher.
   (See issue #2003)
 
+**Cleanup**:
+
+* For Python 2.7 and higher, replaced the yamlordereddictloader package with 
+  yamlloader, as it was deprecated. For Python 2.6, still using
+  yamlordereddictloader. (See issue #2008)
+
 **Known issues:**
 
 * See `list of open issues`_.
