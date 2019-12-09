@@ -126,6 +126,7 @@ Syntax elements:
 
 from __future__ import absolute_import, print_function
 
+import sys
 import doctest
 import socket
 import re
@@ -137,7 +138,6 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 import yaml
-import yamlordereddictloader
 import pytest
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty, fakesock
@@ -150,6 +150,13 @@ pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem._utils import _ensure_unicode
 from pywbem._nocasedict import NocaseDict
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+if sys.version_info[0:2] > (2, 6):
+    import yamlloader  # noqa: E402
+    yaml_loader = yamlloader.ordereddict.Loader
+else:
+    import yamlordereddictloader  # noqa: E402
+    yaml_loader = yamlordereddictloader.Loader
 
 
 class ExcThread(threading.Thread):
@@ -232,7 +239,10 @@ class YamlFile(pytest.File):
     def collect(self):
         with self.fspath.open(encoding='utf-8') as fp:
             filepath = self.fspath.relto(self.parent.fspath)
-            testcases = yaml.load(fp, Loader=yamlordereddictloader.Loader)
+            # We need to be able to load illegal Unicode sequences for testing,
+            # so we use the non-C loader. This causes the yaml parser to
+            # tolerate these sequences. The C loader rejects them.
+            testcases = yaml.load(fp, Loader=yaml_loader)
             for i, testcase in enumerate(testcases):
                 try:
                     tc_name = testcase['name']
