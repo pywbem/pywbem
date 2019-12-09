@@ -415,6 +415,9 @@ Released: not yet
   paths created by the compiler.  The incompatibility is that the mocker
   tests for the existance of all key properties. (see issue # 1958)
 
+* Replaced the yamlordereddictloader package with yamlloader, as it was
+  deprecated. (See issue #2008)
+
 **Known issues:**
 
 * See `list of open issues`_.

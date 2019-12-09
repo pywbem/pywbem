@@ -141,7 +141,7 @@ except ImportError:
     from ordereddict import OrderedDict
 import codecs
 import yaml
-import yamlordereddictloader
+import yamlloader
 import pytest
 import httpretty
 from httpretty.core import HTTPrettyRequestEmpty, fakesock
@@ -236,7 +236,11 @@ class YamlFile(pytest.File):
     def collect(self):
         with self.fspath.open(encoding='utf-8') as fp:
             filepath = self.fspath.relto(self.parent.fspath)
-            testcases = yaml.load(fp, Loader=yamlordereddictloader.Loader)
+            # We need to be able to load illegal Unicode sequences for testing,
+            # so we use the non-C loader. This causes the yaml parser to
+            # tolerate these sequences. The C loader rejects them.
+            testcases = yaml.load(
+                fp, Loader=yamlloader.ordereddict.Loader)
             for i, testcase in enumerate(testcases):
                 try:
                     tc_name = testcase['name']

@@ -12,7 +12,7 @@ except ImportError:
     from ordereddict import OrderedDict
 import errno
 import yaml
-import yamlordereddictloader
+import yamlloader
 
 SDF_DIR = os.path.join('tests', 'server_definitions')
 
@@ -44,7 +44,8 @@ class ServerDefinitionFile(object):
         try:
             with open(self._filepath) as fp:
                 try:
-                    data = yaml.load(fp, Loader=yamlordereddictloader.Loader)
+                    data = yaml.load(
+                        fp, Loader=yamlloader.ordereddict.CSafeLoader)
                 except (yaml.parser.ParserError,
                         yaml.scanner.ScannerError) as exc:
                     raise ServerDefinitionFileError(
@@ -65,7 +66,8 @@ class ServerDefinitionFile(object):
                 raise ServerDefinitionFileError(
                     "The WBEM server definition file {0!r} is empty".
                     format(self._filepath))
-            if not isinstance(data, OrderedDict):
+            if not isinstance(data, (dict, OrderedDict)):
+                # Starting with py38, this is a standard dict
                 raise ServerDefinitionFileError(
                     "The WBEM server definition file {0!r} must contain a "
                     "dictionary at the top level, but contains {1}".
@@ -77,7 +79,7 @@ class ServerDefinitionFile(object):
                     "'servers' item, but items: {1}".
                     format(self._filepath, data.keys()))
             servers = data.get('servers')
-            if not isinstance(servers, OrderedDict):
+            if not isinstance(servers, (dict, OrderedDict)):
                 raise ServerDefinitionFileError(
                     "'servers' in WBEM server definition file {0!r} "
                     "must be a dictionary, but is a {1}".
@@ -85,7 +87,7 @@ class ServerDefinitionFile(object):
             self._servers.update(servers)
 
             server_groups = data.get('server_groups', OrderedDict())
-            if not isinstance(server_groups, OrderedDict):
+            if not isinstance(server_groups, (dict, OrderedDict)):
                 raise ServerDefinitionFileError(
                     "'server_groups' in WBEM server definition file {0!r} "
                     "must be a dictionary, but is a {1}".
