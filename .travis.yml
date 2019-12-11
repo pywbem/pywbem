@@ -86,7 +86,6 @@ matrix:
       python: "3.8"
       env:
         - PACKAGE_LEVEL=latest
-# Note: pywbem does not install on pypy, because M2Crypto does not install.
 #    - os: linux
 #      language: python
 #      python: "pypy-5.3.1"  # Python 2.7.10
@@ -188,16 +187,6 @@ install:
       virtualenv $HOME/venv -p $PYTHON_CMD && source $HOME/venv/bin/activate;
     fi
   - env |sort
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      echo "travis.yml Setting Python development env.vars";
-      openssl_dir=$(brew --prefix openssl);
-      export LDFLAGS="-L$openssl_dir/lib -I/usr/lib $LDFLAGS";
-      echo "LDFLAGS=$LDFLAGS";
-      export CFLAGS="-I$openssl_dir/include -I/usr/include $CFLAGS";
-      echo "CFLAGS=$CFLAGS";
-      export SWIG_FEATURES="-I$openssl_dir/include $SWIG_FEATURES";
-      echo "SWIG_FEATURES=$SWIG_FEATURES";
-    fi
   - pip list
   - make platform env
   - make install

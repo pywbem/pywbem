@@ -13,20 +13,20 @@ WBEM operation along with its input parameters, the expected CIM-XML request,
 a mocked CIM-XML response, and the expected results of the operation. The
 test cases are run against a WBEMConnection object (i.e. not a
 FakedWBEMConnection object), whereby its http level transport is mocked using
-the Python 'httpretty' package. This allows asserting the HTTP request and
+the Python 'requests_mock' package. This allows asserting the HTTP request and
 injecting an HTTP response.
 
 When running such a test case, the WBEMConnection method for the operation that
 is specified in the test case will be invoked with the specified input
 parameters. Pywbem will process the operation and will at some point try to
-send the HTTP request. The HTTP request will be captured by httpretty and the
-test logic will be called back and will assert that the captured HTTP request
-matches the expected HTTP request that is specified in the test case. The HTTP
-response specified in the test case is then injected by httpretty and pywbem
-will process the HTTP response, and returns from the WBEMConnection method with
-the operation results. The test case logic finally asserts that the returned
-operation results match the expected results that are specified in the test
-case.
+send the HTTP request. The HTTP request will be captured by requests_mock and
+the test logic will be called back and will assert that the captured HTTP
+request matches the expected HTTP request that is specified in the test case.
+The HTTP response specified in the test case is then injected by requests_mock
+and pywbem will process the HTTP response, and returns from the WBEMConnection
+method with the operation results. The test case logic finally asserts that the
+returned operation results match the expected results that are specified in the
+test case.
 
 The test case syntax allows specifying error cases and success cases.
 
@@ -143,8 +143,8 @@ import codecs
 import yaml
 import yamlloader
 import pytest
-import httpretty
-from httpretty.core import HTTPrettyRequestEmpty, fakesock
+import requests_mock
+import requests
 from lxml import etree, doctestcompare
 import six
 
@@ -210,11 +210,6 @@ def patched_makefile(self, mode='r', bufsize=-1):
     return self.fd
 
 
-# Monkey-patching httpretty to pass exception raised in callbacks
-# back to the caller.
-fakesock.socket.makefile = patched_makefile
-
-
 def pytest_collect_file(parent, path):
     """
     py.test hook that is called for a directory to collect its test files.
@@ -236,11 +231,15 @@ class YamlFile(pytest.File):
     def collect(self):
         with self.fspath.open(encoding='utf-8') as fp:
             filepath = self.fspath.relto(self.parent.fspath)
+
             # We need to be able to load illegal Unicode sequences for testing,
             # so we use the non-C loader. This causes the yaml parser to
             # tolerate these sequences. The C loader rejects them.
             testcases = yaml.load(
                 fp, Loader=yamlloader.ordereddict.Loader)
+
+            # Note: All the strings in the testcases object are byte strings
+
             for i, testcase in enumerate(testcases):
                 try:
                     tc_name = testcase['name']
@@ -470,46 +469,72 @@ def tc_hasattr(dict_, key):
 
 class Callback(object):
     """
-    A class with static methods that are HTTPretty callback functions for
+    A class with static methods that are requests_mock callback functions for
     raising expected exceptions at the socket level.
 
-    HTTPretty callback functions follow this interface:
+    requests_mock callback functions follow this interface:
 
-        def my_callback(request, uri, headers):
+       def callback(request, context):
             ...
-            return (status, headers, body)
+            context.status_code = 200  # response status code
+            context.headers = { ... }  # response headers
+            return content  # response content
 
     Parameters:
-      * `request`: string with invoked HTTP method
-      * `uri`: string with target URI
-      * `headers`: list of strings with HTTP headers of request
+      * `request`: The requests.Request object that was provided.
+      * `context`: An object for putting the response details into attributes:
+        - headers: The dictionary of headers that are to be returned.
+        - status_code: The status code that is to be returned.
+        - reason: The string HTTP status code reason that is to be returned.
+        - cookies: A requests_mock.CookieJar of cookies that will be merged into
+          the response.
 
     Return value:
-      * `status`: numeric with HTTP status code for response
-      * `headers`: list of strings with HTTP headers for response
-      * `body`: response body / payload
+      byte string: response body.
 
     They can also raise an exception, which is passed to the caller of the
     socket send call.
     """
 
     @staticmethod
-    def socket_104(request, uri, headers):  # pylint: disable=unused-argument
-        """HTTPretty callback function that raises socket.error 104."""
-        raise socket.error(104, "Connection reset by peer.")
-
-    @staticmethod
-    def socket_32(request, uri, headers):  # pylint: disable=unused-argument
-        """HTTPretty callback function that raises socket.error 32."""
-        raise socket.error(32, "Broken pipe.")
-
-    @staticmethod
-    def socket_timeout(request, uri, headers):
+    def requests_connection_error(request, context):
         # pylint: disable=unused-argument
-        """HTTPretty callback function that raises socket.timeout error.
-           The socket.timeout is just a string, no status.
         """
-        raise socket.timeout("Socket timeout.")
+        Callback function that raises requests.ConnectionError.
+        """
+        raise requests.exceptions.ConnectionError("ConnectionError")
+
+    @staticmethod
+    def requests_read_timeout(request, context):
+        # pylint: disable=unused-argument
+        """
+        Callback function that raises requests.ReadTimeout.
+        """
+        raise requests.exceptions.ReadTimeout("ReadTimeout")
+
+    @staticmethod
+    def requests_retry_error(request, context):
+        # pylint: disable=unused-argument
+        """
+        Callback function that raises requests.RetryError.
+        """
+        raise requests.exceptions.RetryError("RetryError")
+
+    @staticmethod
+    def requests_http_error(request, context):
+        # pylint: disable=unused-argument
+        """
+        Callback function that raises requests.HTTPError.
+        """
+        raise requests.exceptions.HTTPError("HTTPError")
+
+    @staticmethod
+    def requests_ssl_error(request, context):
+        # pylint: disable=unused-argument
+        """
+        Callback function that raises requests.SSLError.
+        """
+        raise requests.exceptions.SSLError("SSLError")
 
 
 def xml_embed(tree_elem):
@@ -711,10 +736,12 @@ def assertXMLEqual(s_act, s_exp, entity):
                              (entity, diff))
 
 
-def utf8_with_surrogate_issues(unicode_str):
+def utf8_with_surrogate_issues(in_str):
     """
-    Convert a unicode string to UTF-8, tolerating issues with surrogate
-    characters (U+D800 to U+DFFF).
+    Convert an input string (unicode or bytes) to a UTF-8 encoded byte string,
+    tolerating issues with surrogate characters (U+D800 to U+DFFF).
+
+    Returns: UTF-8 encoded byte string
 
     Background for having this function:
 
@@ -732,14 +759,13 @@ def utf8_with_surrogate_issues(unicode_str):
     that tolerates surrogate issues in both Python 2 and Python 3.
     """
     if six.PY2:
-        utf8_str = codecs.encode(unicode_str, 'utf-8')
+        utf8_str = codecs.encode(in_str, 'utf-8')
         # does not support 'surrogatepass', but behaves like that
     else:
-        utf8_str = codecs.encode(unicode_str, 'utf-8', 'surrogatepass')
+        utf8_str = codecs.encode(in_str, 'utf-8', 'surrogatepass')
     return utf8_str
 
 
-@httpretty.activate
 def runtestcase(testcase):
     """Run a single test case."""
 
@@ -761,25 +787,25 @@ def runtestcase(testcase):
         pytest.skip("Test case has 'ignore_python_version' set")
         return
 
-    httpretty.httpretty.allow_net_connect = False
-
     pywbem_request = tc_getattr(tc_name, testcase, "pywbem_request")
     exp_http_request = tc_getattr(tc_name, testcase, "http_request", None)
     http_response = tc_getattr(tc_name, testcase, "http_response", None)
     exp_pywbem_response = tc_getattr(tc_name, testcase, "pywbem_response")
 
-    # Setup HTTPretty for one WBEM operation
+    mock_adapter = requests_mock.Adapter()
+
+    # Setup requests_mock for one WBEM operation
     if exp_http_request is not None:
         exp_http_exception = tc_getattr(tc_name, http_response,
                                         "exception", None)
         if exp_http_exception is None:
             body = tc_getattr(tc_name, http_response, "data")
+            # body is a UTF-8 encoded byte string
             body = utf8_with_surrogate_issues(body)
             params = {
-                "body": body,
-                "adding_headers": tc_getattr(tc_name, http_response,
-                                             "headers", None),
-                "status": tc_getattr(tc_name, http_response, "status")
+                "content": body,
+                "headers": tc_getattr(tc_name, http_response, "headers", None),
+                "status_code": tc_getattr(tc_name, http_response, "status")
             }
         else:
             callback_name = exp_http_exception
@@ -789,13 +815,13 @@ def runtestcase(testcase):
                 raise ClientTestError("Unknown exception callback: %s" %
                                       callback_name)
             params = {
-                "body": callback_func
+                "text": callback_func
             }
 
         method = tc_getattr(tc_name, exp_http_request, "verb")
-        uri = tc_getattr(tc_name, exp_http_request, "url")
+        url = tc_getattr(tc_name, exp_http_request, "url")
 
-        httpretty.register_uri(method=method, uri=uri, **params)
+        mock_adapter.register_uri(method=method, url=url, **params)
 
     conn = pywbem.WBEMConnection(
         url=tc_getattr(tc_name, pywbem_request, "url"),
@@ -804,6 +830,8 @@ def runtestcase(testcase):
         timeout=tc_getattr(tc_name, pywbem_request, "timeout"),
         stats_enabled=tc_getattr(tc_name, pywbem_request, "stats-enabled",
                                  False))
+
+    conn.session.mount(conn.url_scheme + '://', mock_adapter)
 
     conn.debug = tc_getattr(tc_name, pywbem_request, "debug", False)
 
@@ -936,9 +964,9 @@ def runtestcase(testcase):
     # Validate HTTP request produced by PyWBEM
 
     if exp_http_request is not None:
-        http_request = httpretty.last_request()
-        assert not isinstance(http_request, HTTPrettyRequestEmpty), \
-            "HTTP request is empty"
+
+        http_request = mock_adapter.last_request
+
         exp_verb = tc_getattr(tc_name, exp_http_request, "verb")
         assert http_request.method == exp_verb
         exp_headers = tc_getattr(tc_name, exp_http_request, "headers", {})

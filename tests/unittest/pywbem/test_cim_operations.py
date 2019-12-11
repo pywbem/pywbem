@@ -44,7 +44,7 @@ class TestCreateConnection(object):
 
     @pytest.mark.parametrize(
         'attr_name, value', [
-            ('url', 'http:/myserver'),
+            ('url', 'http://myserver'),
             ('creds', ('x', 'y')),
             ('x509', dict(cert_file='c', key_file='k')),
             ('ca_certs', 'xxx'),

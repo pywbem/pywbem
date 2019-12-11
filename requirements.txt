@@ -9,12 +9,11 @@
 
 # Direct dependencies (except pip, setuptools, wheel):
 
-# On Windows, M2Crypto must be installed via pywbem_os_setup.bat
-M2Crypto>=0.31.0; python_version < '3.0' and sys_platform != 'win32'
 mock>=2.0.0
 ply>=3.10
 PyYAML>=5.1
 six>=1.10.0
+requests>=2.20.0
 
 
 # Indirect dependencies are no longer specified here, but for testing with a

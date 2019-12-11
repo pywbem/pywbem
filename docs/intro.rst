@@ -143,12 +143,6 @@ Installing to Linux
   manager for your Linux distribution (e.g. ``yum`` on the RedHat family), so
   the current userid needs to have sudo permission.
 
-  On older Linux versions, the Swig utility may not be available in the
-  required version. In that case, the ``pywbem_os_setup.sh`` script will report
-  that as an issue and one option on how to proceed is to build Swig yourself
-  as described in :ref:`Building Swig`, and then to repeat execution of the
-  ``pywbem_os_setup.sh`` script.
-
   In case the script reports that your Linux distribution is not supported by
   the script, you can still try to find out what the corresponding OS-level
   packages are on your Linux distribution and install them manually. The script
@@ -208,22 +202,6 @@ Installing to OS-X
   project) to install OS-level packages, so the current userid needs to have
   sudo permission.
 
-* Only on Python 2 on newer OS-X releases:
-
-  The ``pywbem_os_setup.sh`` script installs the ``openssl`` package needed by
-  the ``M2Crypto`` Python package. On newer OS-X releases, you may see a notice
-  that the ``openssl`` package is "not linked" because the TLS implementation
-  provided with OS-X is available. In that case, you need to set up the
-  following environment variables for use by the pywbem package installation
-  described in the next step:
-
-  .. code-block:: bash
-
-      $ openssl_dir=$(brew --prefix openssl)
-      $ export LDFLAGS="-L$openssl_dir/lib $LDFLAGS"
-      $ export CFLAGS="-I$openssl_dir/include $CFLAGS"
-      $ export SWIG_FEATURES="-I$openssl_dir/include $SWIG_FEATURES"
-
 * Install pywbem (and its prerequisite Python packages) into the active Python
   environment:
 
@@ -281,17 +259,10 @@ present in the PATH.
   installing and using pywbem are available in the PATH. If not, it installs
   them via ``choco``:
 
-  * ``swig``
   * ``curl``
   * ``grep``
   * ``chmod``
   * ``tar``
-
-  This script will also install the ``M2Crypto`` Python package into the active
-  Python environment.
-
-  This script will also download and install Win32 OpenSSL from
-  https://slproweb.com/products/Win32OpenSSL.html.
 
 * Install pywbem (and its other prerequisite Python packages) into the active
   Python environment:
@@ -498,102 +469,12 @@ section.
 Prerequisite operating system packages for install
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following table lists the prerequisite operating system packages along with
-their version requirements for installing and running pywbem, for the
-supported operating systems and Linux distributions. This list is for
-reference only, because the installation steps in the previous sections already
-take care of getting these packages installed.
+The installation of pywbem before its version 1.0.0 required certain operating
+system packages. Version 1.0.0 of pywbem has no more dependencies on
+specific operating system packages (other than Python).
 
-+--------------------------+--------------------+----------------------+-------+
-| Op.system / Distribution | Package name       | Version requirements | Notes |
-+==========================+====================+======================+=======+
-| Linux RedHat family      | openssl-devel      | >=1.0.1              | py2   |
-| (RHEL, CentOS, Fedora)   +--------------------+----------------------+-------+
-|                          | python-devel       | for your Python 2.x  | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | gcc-c++            | >=4.4                | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | swig               | >=2.0                | py2   |
-+--------------------------+--------------------+----------------------+-------+
-| Linux Debian family      | libssl-dev         | >=1.0.1              | py2   |
-| (Ubuntu, Debian,         +--------------------+----------------------+-------+
-| LinuxMint)               | python-dev         | for your Python 2.x  | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | g++                | >=4.4                | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | swig               | >=2.0                | py2   |
-+--------------------------+--------------------+----------------------+-------+
-| Linux SUSE family        | openssl-devel      | >=1.0.1              | py2   |
-| (SLES, openSUSE)         +--------------------+----------------------+-------+
-|                          | python-devel       | for your Python 2.x  | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | gcc-c++            | >=4.4                | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | swig               | >=2.0                | py2   |
-+--------------------------+--------------------+----------------------+-------+
-| OS-X                     | openssl            | >=1.0.1              | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | gcc                | >=4.4                | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | swig               | >=2.0                | py2   |
-+--------------------------+--------------------+----------------------+-------+
-| Windows (native)         | None               |                      |       |
-+--------------------------+--------------------+----------------------+-------+
-| Windows (CygWin)         | openssl            |                      | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | libssl-devel       |                      | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | openssl-devel      |                      | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | python2-devel      |                      | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | python2-cython     |                      | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | gcc                |                      | py2   |
-|                          +--------------------+----------------------+-------+
-|                          | swig               |                      | py2   |
-+--------------------------+--------------------+----------------------+-------+
-
-Notes:
-
-* py2: Only needed with Python 2 (not needed with Python 3).
-
-
-.. _`Building Swig`:
-
-Building Swig
-^^^^^^^^^^^^^
-
-The installation of M2Crypto needs the Swig utility (e.g. ``swig`` package
-on RedHat). On some Linux distributions, the Swig utility is not available in
-the required version. In such cases, it can be built from its sources, as
-follows:
-
-1. Install the PCRE development packages:
-
-   * ``pcre-devel`` package on Linux RedHat and SUSE families
-   * ``libpcre3`` and ``libpcre3-dev`` packages on Linux Debian family
-
-2. Download the source archive of Swig version 2.0 or higher, and unpack it.
-   For example, using Swig version 2.0.12::
-
-       $ wget -q -O swig-2.0.12.tar.gz https://sourceforge.net/projects/swig/files/swig/swig-2.0.12/swig-2.0.12.tar.gz/download
-       $ tar -xf swig-2.0.12.tar.gz
-
-3. Configure and build Swig::
-
-       $ cd swig-2.0.12
-       $ ./configure --prefix=/usr
-       $ make swig
-
-4. Install Swig (for all users of the system)::
-
-       $ sudo make install
-
-5. Verify the installation and the version of Swig::
-
-       $ swig -version
-       SWIG Version 2.0.12
+Note that the development of pywbem still requires a number of operating
+system packages. See :ref:`Setting up the development environment` for details.
 
 
 .. _`Package version`:

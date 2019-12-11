@@ -191,17 +191,8 @@ if [[ "$distro_family" == "redhat" ]]; then
     sudo $installer makecache fast
   fi
 
-  if [[ "$purpose" == "install" ]]; then
-    if [[ "$py_m" == "2" ]]; then
-      # For M2Crypto:
-      install_redhat $installer openssl-devel
-      install_redhat $installer gcc-c++
-      install_redhat $installer swig
-      install_redhat $installer python-devel
-    fi
-  fi
-
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_redhat $installer libxml2
   fi
 
@@ -209,17 +200,8 @@ elif [[ "$distro_family" == "debian" ]]; then
 
   sudo apt-get --quiet update
 
-  if [[ "$purpose" == "install" ]]; then
-    if [[ "$py_m" == "2" ]]; then
-      # For M2Crypto:
-      install_debian libssl-dev
-      install_debian g++
-      install_debian swig
-      install_debian python-dev
-    fi
-  fi
-
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_debian libxml2-utils
   fi
 
@@ -227,17 +209,8 @@ elif [[ "$distro_family" == "suse" ]]; then
 
   sudo zypper refresh
 
-  if [[ "$purpose" == "install" ]]; then
-    if [[ "$py_m" == "2" ]]; then
-      # For M2Crypto:
-      install_suse openssl-devel
-      install_suse gcc-c++
-      install_suse swig
-      install_suse python-devel
-    fi
-  fi
-
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_suse libxml2
   fi
 
@@ -245,17 +218,8 @@ elif [[ "$distro_family" == "osx" ]]; then
 
   brew update
 
-  if [[ "$purpose" == "install" ]]; then
-    # Python devel seems to be part of the python package.
-    if [[ "$py_m" == "2" ]]; then
-      # For M2Crypto:
-      install_osx openssl
-      install_osx gcc
-      install_osx swig
-    fi
-  fi
-
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_osx libxml2
   fi
 
@@ -272,31 +236,25 @@ elif [[ "$distro_family" == "windows" ]]; then
 
 elif [[ "$distro_family" == "cygwin" ]]; then
 
-  if [[ "$purpose" == "install" ]]; then
-    if [[ "$py_m" == "2" ]]; then
-      # For M2Crypto:
-      install_cygwin openssl
-      install_cygwin libssl-devel
-      install_cygwin openssl-devel
-      install_cygwin gcc
-      install_cygwin swig
-      # For M2Crypto, pyzmq (used by Jupyter), lxml:
-      install_cygwin python2-devel
-      install_cygwin python2-cython
-    fi
-  fi
-
   if [[ "$purpose" == "develop" ]]; then
+
     # For lxml:
     install_cygwin libxml2
     install_cygwin libxslt
     install_cygwin libxml2-devel
     install_cygwin libxslt-devel
     install_cygwin libcrypt-devel
+
     # For pyzmq (used by Jupyter):
     install_cygwin libzmq-devel
+
+    if [[ "$py_m" == "2" ]]; then
+      # For pyzmq (used by Jupyter), lxml:
+      install_cygwin python2-devel
+      install_cygwin python2-cython
+    fi
     if [[ "$py_m" == "3" ]]; then
-      # For pyzmq, lxml:
+      # For pyzmq (used by Jupyter), lxml:
       install_cygwin python3-devel
       install_cygwin python3-cython
     fi
@@ -305,11 +263,6 @@ elif [[ "$distro_family" == "cygwin" ]]; then
 else
   echo "$myname: Warning: Installation of OS-level packages not supported on platform ${platform}." >&2
   echo ". The equivalent packages for the Linux RedHat family are:" >&2
-  echo ". For installing pywbem:" >&2
-  echo ".   * openssl-devel (at least 1.0.1, only on Python 2)" >&2
-  echo ".   * gcc-c++ (at least 4.4, only on Python 2)" >&2
-  echo ".   * swig (>=2.0.0, only on Python 2)" >&2
-  echo ".   * python-devel (only on Python 2" >&2
-  echo ". In addition, for developing pywbem:" >&2
+  echo ". For developing pywbem:" >&2
   echo ".   * libxml2 (>=2.7.0,!=2.7.4,!=2.7.5,!=2.7.6 on Python 2 and 3)" >&2
 fi

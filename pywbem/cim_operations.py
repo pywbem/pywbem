@@ -140,6 +140,8 @@ import warnings
 from collections import namedtuple
 import logging
 
+import requests
+from requests.packages import urllib3
 import six
 
 from . import cim_xml
@@ -149,10 +151,11 @@ from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMQualifierDeclaration, tocimxml, cimvalue
-from .cim_http import get_cimobject_header, wbem_request
+from .cim_http import get_cimobject_header, wbem_request, parse_url, \
+    first_existing_path, HTTP_CONNECT_RETRIES, HTTP_READ_RETRIES, \
+    HTTP_MAX_REDIRECTS, HTTP_RETRY_BACKOFF_FACTOR
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
-from .cim_http import parse_url
 from .exceptions import CIMXMLParseError, XMLParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
@@ -410,7 +413,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             The following URL schemes are supported:
 
             * ``https``: Causes HTTPS to be used.
-            * ``http``: Causes HTTP to be used.
+            * ``http``: Causes HTTP to be used (default).
 
             The host can be specified in any of the usual formats:
 
@@ -594,6 +597,50 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._set_no_verification(no_verification)
         self._set_timeout(timeout)
 
+        # Requests session
+        self.session = requests.Session()
+
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        if self.x509 is not None:
+            cert = (self.x509['cert_file'], self.x509['key_file'])
+        else:
+            cert = None
+        self.session.cert = cert
+
+        # A certificate file must contain the certificate used to verify
+        # the server certificate returned during SSL/TLS handshake.
+        # A certificate directory must contain certificate files that are
+        # organized according to the c_rehash utility supplied with OpenSSL.
+        if self.no_verification:
+            verify = False
+        elif self.ca_certs is None:
+            # Use the default certificates, which are:
+            # 1. REQUESTS_CA_BUNDLE env var, if set. It specifies the path to
+            #    a certificate file or certificate directory.
+            # 2. CURL_CA_BUNDLE env var, if set. It specifies the path to
+            #    a certificate file or certificate directory.
+            # 3. The certificates provided by the Python certifi package.
+            # TODO: Find out how the system-installed certificates can be used.
+            verify = True
+        else:
+            # Use the first existing certificate file or certificate directory
+            # from the list that was specified.
+            verify = first_existing_path(self.ca_certs)
+        self.session.verify = verify
+
+        retry = urllib3.Retry(
+            total=HTTP_CONNECT_RETRIES,
+            connect=HTTP_CONNECT_RETRIES,
+            read=HTTP_READ_RETRIES,
+            method_whitelist={'POST'},
+            redirect=HTTP_MAX_REDIRECTS,
+            backoff_factor=HTTP_RETRY_BACKOFF_FACTOR)
+
+        retry_adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+        self.session.mount('http://', retry_adapter)
+        self.session.mount('https://', retry_adapter)
+
         # Saving last request and reply
         self._debug = False
         self._last_raw_request = None
@@ -661,7 +708,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _set_url(self, url):
         """Internal setter function."""
+        if not re.match(r'^[A-Za-z0-9_\-]+://', url):
+            url = 'http://' + url
         self._url = _ensure_unicode(url)
+
+    @property
+    def url_scheme(self):
+        """
+        :term:`unicode string`: Scheme of the URL of the WBEM server, for
+        example 'http' or 'https'.
+        """
+        parts = self._url.split('://')
+        assert len(parts) == 2
+        return parts[0]
 
     @property
     def creds(self):
@@ -1659,14 +1718,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Send request and receive response
         reply_data, self._last_server_response_time = wbem_request(
-            self.url, request_data, self.creds, cimxml_headers,
-            x509=self.x509,
-            ca_certs=self.ca_certs,
-            no_verification=self.no_verification,
-            timeout=self.timeout,
-            debug=self.debug,
-            recorders=self._operation_recorders,
-            conn_id=self.conn_id)
+            self, request_data, cimxml_headers)
 
         # Set attributes recording the response, part 1.
         # Only those that can be done without parsing (which can fail).
@@ -1972,14 +2024,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Send request and receive response
         reply_data, self._last_server_response_time = wbem_request(
-            self.url, request_data, self.creds, cimxml_headers,
-            x509=self.x509,
-            ca_certs=self.ca_certs,
-            no_verification=self.no_verification,
-            timeout=self.timeout,
-            debug=self.debug,
-            recorders=self._operation_recorders,
-            conn_id=self.conn_id)
+            self, request_data, cimxml_headers)
 
         # Set attributes recording the response, part 1.
         # Only those that can be done without parsing (which can fail).

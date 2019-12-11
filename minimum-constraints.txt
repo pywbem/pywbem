@@ -55,17 +55,16 @@ wheel==0.33.6; python_version >= '3.8'
 
 # Direct dependencies for install (must be consistent with requirements.txt)
 
-M2Crypto==0.31.0
 mock==2.0.0
 ordereddict==1.1
 ply==3.10
 PyYAML==5.1
 six==1.10.0
+requests==2.20.0
 
 
 # Indirect dependencies for install (not in requirements.txt)
 
-typing==3.6.1  # from M2Crypto
 # funcsigs; is covered in direct deps for develop, from mock
 
 
@@ -74,7 +73,7 @@ typing==3.6.1  # from M2Crypto
 # Unit test (imports into testcases):
 pytest==4.3.1
 testfixtures==6.9.0
-httpretty==0.9.5
+requests-mock==1.6.0
 lxml==4.2.4; python_version <= '3.7'
 lxml==4.4.1; python_version >= '3.8'
 requests==2.20.1
