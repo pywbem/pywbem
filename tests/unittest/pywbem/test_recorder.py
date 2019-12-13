@@ -962,30 +962,30 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "Request:test_id POST /cimom 11 http://blah "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
-            "CIMObject:'root/cimv2'\n"
-            '    <?xml version="1.0" encoding="utf-8" ?>\n'
-            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            '<SIMPLEREQ>\n'
-            '<IMETHODCALL NAME="GetInstance">\n'
-            '<LOCALNAMESPACEPATH>\n'
-            '<NAMESPACE NAME="root"/>\n'
-            '<NAMESPACE NAME="cimv2"/>\n'
-            '</LOCALNAMESPACEPATH>\n'
-            '<IPARAMVALUE NAME="InstanceName">\n'
-            '<INSTANCENAME CLASSNAME="PyWBEM_Person">\n'
-            '<KEYBINDING NAME="Name">\n'
-            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>\n'
-            '</KEYBINDING>\n'
-            '</INSTANCENAME>\n'
-            '</IPARAMVALUE>\n'
-            '<IPARAMVALUE NAME="LocalOnly">\n'
-            '<VALUE>FALSE</VALUE>\n'
-            '</IPARAMVALUE>\n'
-            '</IMETHODCALL>\n'
-            '</SIMPLEREQ>\n'
-            '</MESSAGE>\n'
-            '</CIM>)')
+            "CIMObject:'root/cimv2' "
+            '\'<?xml version="1.0" encoding="utf-8" ?>\\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\\n'
+            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\\n'
+            '<SIMPLEREQ>\\n'
+            '<IMETHODCALL NAME="GetInstance">\\n'
+            '<LOCALNAMESPACEPATH>\\n'
+            '<NAMESPACE NAME="root"/>\\n'
+            '<NAMESPACE NAME="cimv2"/>\\n'
+            '</LOCALNAMESPACEPATH>\\n'
+            '<IPARAMVALUE NAME="InstanceName">\\n'
+            '<INSTANCENAME CLASSNAME="PyWBEM_Person">\\n'
+            '<KEYBINDING NAME="Name">\\n'
+            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>\\n'
+            '</KEYBINDING>\\n'
+            '</INSTANCENAME>\\n'
+            '</IPARAMVALUE>\\n'
+            '<IPARAMVALUE NAME="LocalOnly">\\n'
+            '<VALUE>FALSE</VALUE>\\n'
+            '</IPARAMVALUE>\\n'
+            '</IMETHODCALL>\\n'
+            '</SIMPLEREQ>\\n'
+            '</MESSAGE>\\n'
+            '</CIM>)\'')
 
         lc.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
@@ -1005,8 +1005,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "Request:test_id POST /cimom 11 http://blah "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
-            "CIMObject:'root/cimv2'\n"
-            '    ')
+            "CIMObject:'root/cimv2' "
+            "''")
 
         lc.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
@@ -1028,8 +1028,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "Request:test_id POST /cimom 11 http://blah "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
-            "CIMObject:'root/cimv2'\n"
-            '    <?xml vers...')
+            "CIMObject:'root/cimv2' "
+            "'<?xml vers...'")
 
         lc.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
@@ -1085,26 +1085,26 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'450'\n"
-            '    <?xml version="1.0" encoding="utf-8" ?>\n'
-            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            '<SIMPLERSP>\n'
-            '<IMETHODRESPONSE NAME="GetInstance">\n'
-            '<IRETURNVALUE>\n'
-            '<INSTANCE CLASSNAME="PyWBEM_Person">\n'
-            '<PROPERTY NAME="Name" TYPE="string">\n'
-            '<VALUE>Fritz</VALUE>\n'
-            '</PROPERTY>\n'
-            '<PROPERTY NAME="Address" TYPE="string">\n'
-            '<VALUE>Fritz Town</VALUE>\n'
-            '</PROPERTY>\n'
-            '</INSTANCE>\n'
-            '</IRETURNVALUE>\n'
-            '</IMETHODRESPONSE>\n'
-            '</SIMPLERSP>\n'
-            '</MESSAGE>\n'
-            '</CIM>)\n')
+            "Content-length:'450' "
+            '\'<?xml version="1.0" encoding="utf-8" ?>\\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\\n'
+            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\\n'
+            '<SIMPLERSP>\\n'
+            '<IMETHODRESPONSE NAME="GetInstance">\\n'
+            '<IRETURNVALUE>\\n'
+            '<INSTANCE CLASSNAME="PyWBEM_Person">\\n'
+            '<PROPERTY NAME="Name" TYPE="string">\\n'
+            '<VALUE>Fritz</VALUE>\\n'
+            '</PROPERTY>\\n'
+            '<PROPERTY NAME="Address" TYPE="string">\\n'
+            '<VALUE>Fritz Town</VALUE>\\n'
+            '</PROPERTY>\\n'
+            '</INSTANCE>\\n'
+            '</IRETURNVALUE>\\n'
+            '</IMETHODRESPONSE>\\n'
+            '</SIMPLERSP>\\n'
+            '</MESSAGE>\\n'
+            '</CIM>)\\n\'')
 
         lc.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
@@ -1124,8 +1124,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'450'\n"
-            '    ')
+            "Content-length:'450' "
+            "''")
 
         lc.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
@@ -1145,8 +1145,8 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'450'\n"
-            '    <?xml version="1.0" encoding="...')
+            "Content-length:'450' "
+            '\'<?xml version="1.0" encoding="...\'')
 
         lc.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
