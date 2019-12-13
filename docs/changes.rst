@@ -45,6 +45,9 @@ Released: not yet
   against a WBEM server, when the class already existed, and when the
   ModifyClass operation that was attempted in this case, failed.
 
+* Fixed that the CIM-XML payload in log entries was spread over multiple lines.
+  The payload is now escaped as a single-line Python string.
+
 **Enhancements:**
 
 * Test: Removed the dependency on unittest2 for Python 2.7 and higher.
@@ -52,7 +55,7 @@ Released: not yet
 
 **Cleanup**:
 
-* For Python 2.7 and higher, replaced the yamlordereddictloader package with 
+* For Python 2.7 and higher, replaced the yamlordereddictloader package with
   yamlloader, as it was deprecated. For Python 2.6, still using
   yamlordereddictloader. (See issue #2008)
 

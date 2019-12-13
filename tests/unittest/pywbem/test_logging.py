@@ -447,19 +447,23 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
         a GetQualifier operation that fails.
         """
 
-        url = 'dummy'  # File URL to get quick result
+        url = 'http://dummy'  # File URL to get quick result
         conn = WBEMConnection(url)
         try:
             conn.GetQualifier('Association')
         except ConnectionError:
             pass
+        else:
+            raise AssertionError("ConnectionError exception not raised")
 
         exp_line_patterns = [
             r".*-{0}\..*-Connection:.* WBEMConnection\(url='{1}'".
             format(LOGGER_API_CALLS_NAME, url),
             r".*-{0}\..*-Request:.* GetQualifier\(QualifierName='Association'".
             format(LOGGER_API_CALLS_NAME),
-            r".*-{0}\..*-Exception:.* GetQualifier\(\"ConnectionError".
+            r".*-{0}\..*-Request:.* POST /cimom .* CIMMethod:'GetQualifier'".
+            format(LOGGER_HTTP_NAME),
+            r".*-{0}\..*-Exception:.* GetQualifier.*ConnectionError".
             format(LOGGER_API_CALLS_NAME),
         ]
 

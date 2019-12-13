@@ -805,8 +805,10 @@ class LogOperationRecorder(BaseOperationRecorder):
                 upayload = payload
             if self.http_maxlen and (len(payload) > self.http_maxlen):
                 upayload = upayload[:self.http_maxlen] + '...'
-
-            self.httplogger.debug('Request:%s %s %s %s %s %s\n    %s',
+            upayload = repr(upayload)
+            if upayload.startswith("u'"):
+                upayload = upayload[1:]
+            self.httplogger.debug('Request:%s %s %s %s %s %s %s',
                                   conn_id, method, target, version, url,
                                   header_str, upayload)
 
@@ -842,8 +844,11 @@ class LogOperationRecorder(BaseOperationRecorder):
                             '...')
             else:
                 upayload = _ensure_unicode(payload)
+            upayload = repr(upayload)
+            if upayload.startswith("u'"):
+                upayload = upayload[1:]
 
-            self.httplogger.debug('Response:%s %s:%s %s %s\n    %s',
+            self.httplogger.debug('Response:%s %s:%s %s %s %s',
                                   self._http_response_conn_id,
                                   self._http_response_status,
                                   self._http_response_reason,
