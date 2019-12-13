@@ -295,6 +295,9 @@ Released: not yet
   against a WBEM server, when the class already existed, and when the
   ModifyClass operation that was attempted in this case, failed.
 
+* Fixed that the CIM-XML payload in log entries was spread over multiple lines.
+  The payload is now escaped as a single-line Python string.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
