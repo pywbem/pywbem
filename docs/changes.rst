@@ -48,6 +48,9 @@ Released: not yet
 * Fixed that the CIM-XML payload in log entries was spread over multiple lines.
   The payload is now escaped as a single-line Python string.
 
+* Test: Fixed an error in test_format_random() for the backslash character.
+  (See issue #2027)
+
 **Enhancements:**
 
 * Test: Removed the dependency on unittest2 for Python 2.7 and higher.
