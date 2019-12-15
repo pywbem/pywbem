@@ -488,12 +488,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
               * ``"cert_file"`` (:term:`string`):
                 The file path of a file containing an :term:`X.509` client
-                certificate.
+                certificate. Required.
 
               * ``"key_file"`` (:term:`string`):
                 The file path of a file containing the private key belonging to
                 the public key that is part of the :term:`X.509` certificate
-                file.
+                file. Optional; if omitted or `None`, the private key must
+                be in the file specified with ``"cert_file"``.
 
             See :ref:`Authentication types` for an overview.
 
@@ -739,6 +740,29 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _set_x509(self, x509):
         """Internal setter function."""
+        if x509 is not None:
+            if not isinstance(x509, dict):
+                raise TypeError(
+                    "The x509 parameter must be a dictionary but has type: {0}".
+                    format(type(x509)))
+            try:
+                cert_file = x509['cert_file']
+            except KeyError:
+                raise ValueError(
+                    "The x509 parameter does not have the required key "
+                    "'cert_file': {0!r}".format(x509))
+            if not isinstance(cert_file, six.string_types):
+                raise TypeError(
+                    "The 'cert_file' item in the x509 parameter must be a "
+                    "string but has type: {0}".
+                    format(type(cert_file)))
+            key_file = x509.get('key_file', None)
+            if key_file is not None and \
+                    not isinstance(key_file, six.string_types):
+                raise TypeError(
+                    "The 'key_file' item in the x509 parameter must be a "
+                    "string but has type: {0}".
+                    format(type(key_file)))
         self._x509 = x509
 
     @property

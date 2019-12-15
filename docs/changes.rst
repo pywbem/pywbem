@@ -379,6 +379,11 @@ Released: not yet
 * Added 'twine check' when uploading a version to Pypi, in order to get
   the README file checked before uploading.
 
+* Clarified the 'x509' parameter of 'WBEMConnection' in that its 'key_file'
+  item is optional and if omitted, both the private key and the certificate
+  must be in the file referenced by the 'cert_file' item. Added checks
+  for the 'x509' parameter.
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
