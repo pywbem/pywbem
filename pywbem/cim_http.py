@@ -565,10 +565,13 @@ def wbem_request(url, data, creds, cimxml_headers=None, debug=False, x509=None,
                     ctx.set_verify(
                         SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
                         depth=9, callback=verify_callback)
+                    # M2Crypto requires binary strings as path names and
+                    # otherwise raises TypeError.
+                    ca_certs = _ensure_bytes(self.ca_certs)
                     if os.path.isdir(self.ca_certs):
-                        ctx.load_verify_locations(capath=self.ca_certs)
+                        ctx.load_verify_locations(capath=ca_certs)
                     else:
-                        ctx.load_verify_locations(cafile=self.ca_certs)
+                        ctx.load_verify_locations(cafile=ca_certs)
                 try:
                     self.sock = SSL.Connection(ctx, self.sock)
 

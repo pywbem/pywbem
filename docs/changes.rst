@@ -51,6 +51,9 @@ Released: not yet
 * Test: Fixed an error in test_format_random() for the backslash character.
   (See issue #2027)
 
+* Fixed handling of Unicode string in ca_certs parm of WBEMConnection on py2
+  (See issue #2033)
+
 **Enhancements:**
 
 * Test: Removed the dependency on unittest2 for Python 2.7 and higher.
