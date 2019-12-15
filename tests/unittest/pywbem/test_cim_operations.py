@@ -8,6 +8,7 @@ Unittest functions in cim_operations.
 from __future__ import print_function, absolute_import
 
 import os
+import re
 import pytest
 
 from ...utils import skip_if_moftab_regenerated
@@ -26,21 +27,146 @@ from pywbem_mock import FakedWBEMConnection
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
+TESTCASES_INIT = [
+    (
+        "No optional init parameters, test defaults",
+        [],
+        dict(),
+        dict(
+            creds=None,
+            default_namespace='root/cimv2',
+            x509=None,
+            ca_certs=None,
+            no_verification=False,
+            timeout=None,
+            use_pull_operations=False,
+            stats_enabled=False,
+        ),
+        None, None
+    ),
+    (
+        "All optional init parameters, except x509 and ca_certs",
+        [],
+        dict(
+            creds=('myuser', 'mypw'),
+            default_namespace='root/myns',
+            no_verification=True,
+            timeout=30,
+            use_pull_operations=True,
+            stats_enabled=True,
+        ),
+        dict(
+            creds=('myuser', 'mypw'),
+            default_namespace='root/myns',
+            no_verification=True,
+            timeout=30,
+            use_pull_operations=True,
+            stats_enabled=True,
+        ),
+        None, None
+    ),
+    (
+        "x509 parameter that is a dict with existing cert_file and "
+        "existing key_file",
+        ['mycertfile.tmp', 'mykeyfile.tmp'],
+        dict(
+            x509=dict(
+                cert_file='mycertfile.tmp',
+                key_file='mykeyfile.tmp',
+            ),
+        ),
+        dict(
+            x509=dict(
+                cert_file='mycertfile.tmp',
+                key_file='mykeyfile.tmp',
+            ),
+        ),
+        None, None
+    ),
+    (
+        "x509 parameter that is a dict with existing cert_file and "
+        "omitted key_file",
+        ['mycertfile.tmp'],
+        dict(
+            x509=dict(
+                cert_file='mycertfile.tmp',
+            ),
+        ),
+        dict(
+            x509=dict(
+                cert_file='mycertfile.tmp',
+            ),
+        ),
+        None, None
+    ),
+    (
+        "x509 parameter that is a dict with cert_file=None (invalid) "
+        "and key_file=None",
+        [],
+        dict(
+            x509=dict(
+                cert_file=None,
+                key_file=None,
+            ),
+        ),
+        dict(),
+        TypeError, "cert_file.* must be a string"
+    ),
+    (
+        "x509 parameter that is an existing file (invalid)",
+        ['mycertfile.tmp'],
+        dict(
+            x509='mycertfile.tmp',
+        ),
+        dict(),
+        TypeError, "x509 .* must be a dictionary"
+    ),
+]
+
+
 class TestCreateConnection(object):
     """
     Test construction of WBEMConnection and those functions that do not
     depend on actually creating a connection
     """
-    def test_connection_defaults(self):  # pylint: disable=no-self-use
+
+    @pytest.mark.parametrize(
+        'desc, files, init_kwargs, exp_attrs, exp_exc, exp_exc_regex',
+        TESTCASES_INIT)
+    def test_init(self, desc, files, init_kwargs, exp_attrs, exp_exc,
+                  exp_exc_regex):
+        # pylint: disable=no-self-use
         """
-        Test creation of a connection with default init parameters.
+        Test initialization of a WBEMConnection object.
         """
-        conn = WBEMConnection('http://localhost')
-        assert conn.url == 'http://localhost'
-        assert conn.creds is None
-        assert conn.x509 is None
-        assert conn.use_pull_operations is False
-        assert conn.stats_enabled is False
+
+        try:
+            for fname in files:
+                open(fname, 'a').close()  # create empty file
+
+            if exp_exc is not None:
+                with pytest.raises(exp_exc) as exc_info:
+
+                    # The code to be tested
+                    WBEMConnection('http://localhost', **init_kwargs)
+
+                exc = exc_info.value
+                exc_msg = str(exc)
+                if exp_exc_regex:
+                    assert re.search(exp_exc_regex, exc_msg)
+            else:
+
+                # The code to be tested
+                conn = WBEMConnection('http://localhost', **init_kwargs)
+
+                for name in exp_attrs:
+                    exp_value = exp_attrs[name]
+                    act_value = getattr(conn, name)
+                    assert act_value == exp_value
+
+        finally:
+            for fname in files:
+                os.remove(fname)
 
     @pytest.mark.parametrize(
         'attr_name, value', [
@@ -93,22 +219,6 @@ class TestCreateConnection(object):
 
         value2 = getattr(conn, attr_name)
         assert value2 == value1
-
-    def test_no_recorder(self):  # pylint: disable=no-self-use
-        """Test creation of wbem connection with specific parameters"""
-        creds = ('myname', 'mypw')
-        x509 = {'cert_file': 'mycertfile.crt', 'key_file': 'mykeyfile.key'}
-        conn = WBEMConnection('http://localhost', creds,
-                              default_namespace='root/blah',
-                              x509=x509,
-                              use_pull_operations=True,
-                              stats_enabled=True)
-        assert conn.url == 'http://localhost'
-        assert conn.creds == creds
-        assert conn.default_namespace == 'root/blah'
-        assert conn.x509 == x509
-        assert conn.stats_enabled is True
-        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         'kwargs, exp_default_namespace', [
