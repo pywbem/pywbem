@@ -15,7 +15,7 @@
 pytest>=4.3.1,<5.0.0; python_version < '3.5'
 pytest>=4.3.1; python_version >= '3.5'
 testfixtures>=6.9.0
-httpretty>=0.9.5
+requests-mock>=1.6.0
 # lxml 4.4.0 removed Python 3.4 support.
 # lxml 4.4.1 added Python 3.8 support. However, while providing binary wheel
 #   files, it did not register Python 3.8 as a supported version in the

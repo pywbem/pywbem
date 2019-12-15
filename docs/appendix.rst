@@ -443,51 +443,13 @@ Troubleshooting
 
 Here are some trouble shooting hints for the installation of pywbem.
 
-Swig error 'Unrecognized option -builtin' during M2Crypto install
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On Python 2.x, pywbem uses the `M2Crypto` package from PyPI and installs it
-during its own installation. The M2Crypto package invokes the Swig tool during
-its installation. If the version of Swig is too old, the invocation of Swig
-fails with::
-
-    swig error : Unrecognized option -builtin
-
-The solution is to use Swig v2.0 or higher.
-
-The pywbem setup script checks the version of Swig and installs a newer version
-of Swig, or if not available builds Swig from its sources (while automatically
-installing any further OS-level prerequisites needed for building Swig).
-
-gcc does not find Python.h while installing M2Crypto
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On Python 2.x, pywbem uses the `M2Crypto` package from PyPI and installs it
-during its own installation. The M2Crypto package invokes the Swig tool during
-its installation. Swig invokes the gcc compiler on source code it produces.
-That source code needs the Python.h header file.
-
-If the invocation of gcc fails with::
-
-    SWIG/_m2crypto_wrap.c:127:20: fatal error: Python.h: No such file or directory
-
-then you do not have the Python.h header file available.
-
-The installation of pywbem with OS-level prereqs (see :ref:`Installation`)
-installs the necessary Python SDK package for C/C++ (or displays its package
-name). On RHEL, the missing package is `python-dev`.
-For more details, see
-:ref:`Prerequisite operating system packages for install`.
-
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The installation of M2Crypto and probably other Python packages requires the
-Python "wheel" package. If that package is not installed in the current Python
-environment, the installation will fail with the following (or similar)
-symptom::
+The installation of some Python packages requires the Python "wheel" package.
+If that package is not installed in the current Python environment, the
+installation will fail with the following (or similar) symptom::
 
-    Creating library build\temp.win-amd64-2.7\Release\SWIG_m2crypto.lib and object build\temp.win- amd64-2.7\Release\SWIG_m2crypto.exp
     python setup.py bdist_wheel
     usage: setup.py [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
     or: setup.py --help [cmd1 cmd2 ...]
@@ -498,39 +460,6 @@ symptom::
 To fix this, install the Python "wheel" package::
 
     pip install wheel
-
-Installation on Windows fails downloading or executing Win64OpenSSL-1_1_0j.exe
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The installation of M2Crypto on Windows requires an OpenSSL package, which is
-provided by Win32OpenSSL from https://slproweb.com/. The maintainer of
-that project has decided to remove the previous version of Win32OpenSSL
-whenever he releases a new version. Whenever such a release happens, this
-breaks the installation of pywbem on Windows (and of any other project that
-downloads Win32OpenSSL automatically).
-
-The symptom is that the installation of pywbem fails inside of
-pywbem_os_setup.bat with an error message like this::
-
-    pywbem_os_setup.bat: Error: The Win64OpenSSL-1_1_0j.exe file does not exist on https://slproweb.com.
-
-In the past, this issue has surfaced with a different symptom::
-
-    Win64OpenSSL-1_1_0j.exe /silent /verysilent /suppressmsgboxes /dir="C:\OpenSSL-1-1-0j-Win64"
-    The system cannot execute the specified program.
-    pywbem_os_setup.bat: Error: Command returned rc=1
-
-This issue will be fixed by the pywbem project by upgrading the version number
-of Win32OpenSSL relatively shortly (because we have regular test runs on the
-Appveyor CI), but in case you have run into this issue, here is how to get over
-it by yourself:
-
-Edit the file `pywbem_os_setup.bat`, and change the following versions to
-the latest released version of Win32OpenSSL on
-https://slproweb.com/products/Win32OpenSSL.html::
-
-    set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0j
-    set _WIN32OPENSSL_VERSION_DASHED=1-1-0j
 
 Installation of lxml misses include files on Python 3.4 on native Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

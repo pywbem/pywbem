@@ -21,10 +21,6 @@ Pywbem - A WBEM client and related utilities, written in pure Python
 
 .. |pywbem-next-issue-link| replace:: |pywbem-next-issue-link-1|\ |pywbem-next-issue|\ |pywbem-next-issue-link-2| |pywbem-next-issue|\ |pywbem-next-issue-link-3|
 
-.. |os-setup-link| raw:: html
-
-    <a href="https://pywbem.readthedocs.io/en/stable/_downloads/pywbem_os_setup.sh">pywbem_os_setup.sh</a>
-
 .. image:: https://img.shields.io/pypi/v/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
     :alt: Version on Pypi
@@ -105,28 +101,18 @@ activities:
 Installation
 ------------
 
-To install the latest released version of pywbem on Linux:
+To install the latest released version of pywbem into your active Python
+environment:
 
-* Install the prerequisite OS-level packages:
+.. code-block:: bash
 
-  * Download the |os-setup-link| script
+    $ pip install pywbem
 
-  * Execute that script:
+This will also install any prerequisite Python packages.
 
-    .. code-block:: bash
+Since version 1.0.0, pywbem has no more OS-level prerequisite packages.
 
-        $ ./pywbem_os_setup.sh
-
-* With your target Python environment active, install pywbem:
-
-  .. code-block:: bash
-
-      $ pip install pywbem
-
-  This will also install any prerequisite Python packages.
-
-For more details, installation on other operating systems, and alternative
-ways to install, see the
+For more details and alternative ways to install, see the
 `Installation section`_ in the pywbem documentation.
 
 .. _Installation section: https://pywbem.readthedocs.io/en/stable/intro.html#installation

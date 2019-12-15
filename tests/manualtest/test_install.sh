@@ -60,7 +60,7 @@ PYWBEM_MN=$(echo "$PYWBEM_MNU" |sed 's/\([0-9]\+\.[0-9]\+\).\+$/\1/')
 SRC_DISTFILE="$ROOTDIR/dist/pywbem-${PYWBEM_FULL}.tar.gz"
 WHL_DISTFILE="$ROOTDIR/dist/pywbem-${PYWBEM_FULL}-py2.py3-none-any.whl"
 
-# Target directories for the dist. archives for testing 
+# Target directories for the dist. archives for testing
 TMP_DISTROOT="tmp_dist"
 TMP_DISTDIR_OLDPLY="${TMP_DISTROOT}/ply-${OLDPLY_VERSION}"
 TMP_DISTDIR_NEWPLY="${TMP_DISTROOT}/ply-${NEWPLY_VERSION}"
@@ -176,11 +176,11 @@ function build_dist()
   if [[ ! -f $SRC_DISTFILE ]]; then
     error "make build did not produce source dist. archive: $SRC_DISTFILE"
     exit 1
-  fi 
+  fi
   if [[ ! -f $WHL_DISTFILE ]]; then
     error "make build did not produce wheel dist. archive: $WHL_DISTFILE"
     exit 1
-  fi 
+  fi
   if [[ ! -d $tgt_dir ]]; then
     run "mkdir -p $tgt_dir" "Creating temp. dist. archive dir: $tgt_dir"
   fi
@@ -201,7 +201,7 @@ function assert_eq()
       failure "Unexpected value: actual: $v1 / expected: $v2"
     fi
     exit 1
-  fi  
+  fi
 }
 
 function run()
@@ -273,7 +273,7 @@ function assert_run_ok()
       cat cmd.log
     fi
     exit 1
-  fi  
+  fi
   rm -f cmd.log
 }
 
@@ -298,7 +298,7 @@ function assert_run_fails()
       cat cmd.log
     fi
     exit 1
-  fi  
+  fi
   rm -f cmd.log
 }
 
@@ -341,7 +341,7 @@ function get_ply_version()
   if [[ $rc != 0 ]]; then
     error "Cannot determine ply package version, rc=$rc"
     exit 1
-  fi  
+  fi
   echo $vers
 }
 
@@ -352,7 +352,7 @@ function get_ply_tabversion()
   if [[ $rc != 0 ]]; then
     error "Cannot determine generated table version of mofparsetab.py: python returns rc=$rc"
     exit 1
-  fi  
+  fi
   echo $vers
 }
 
@@ -370,7 +370,7 @@ function assert_no_moftab_build()
     exit 1
   fi
 }
- 
+
 function assert_moftab_build()
 {
   out=$(build_moftab)
@@ -379,13 +379,12 @@ function assert_moftab_build()
     exit 1
   fi
 }
- 
+
 function ensure_fresh()
 {
   verbose "Ensuring the relevant Python packages are uninstalled."
   ensure_uninstalled "six"
   ensure_uninstalled "ply"
-  ensure_uninstalled "M2Crypto"
   ensure_uninstalled "pywbem"
 }
 
@@ -423,10 +422,9 @@ function test1s()
 
   assert_import_ok "six"
   assert_import_ok "ply"
-  assert_import_ok "M2Crypto"
   assert_import_ok "pywbem"
   assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
-  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules"
   assert_no_moftab_build
 
   remove_virtualenv "test1s"
@@ -442,10 +440,9 @@ function test1w()
 
   assert_import_ok "six"
   assert_import_ok "ply"
-  assert_import_ok "M2Crypto"
   assert_import_ok "pywbem"
   assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
-  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules"
   assert_no_moftab_build
 
   remove_virtualenv "test1w"
@@ -461,10 +458,9 @@ function test2s()
 
   assert_import_ok "six"
   assert_import_ok "ply"
-  assert_import_ok "M2Crypto"
   assert_import_ok "pywbem"
   assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
-  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules"
   assert_moftab_build  # this shows the limitation with pip: It does not re-generate the tables upon install.
 
   remove_virtualenv "test2s"
@@ -480,10 +476,9 @@ function test2w()
 
   assert_import_ok "six"
   assert_import_ok "ply"
-  assert_import_ok "M2Crypto"
   assert_import_ok "pywbem"
   assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
-  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules"
   assert_moftab_build  # this shows the limitation with pip: It does not re-generate the tables upon install.
 
   remove_virtualenv "test2w"
@@ -500,10 +495,9 @@ function test3()
 
   assert_import_ok "six"
   assert_import_ok "ply"
-  assert_import_ok "M2Crypto"
   assert_import_ok "pywbem"
   assert_eq "$(get_ply_version)" "$NEWPLY_VERSION" "Unexpected 'ply' package version"
-  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_eq "$(get_ply_tabversion)" "$NEWPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules"
   assert_no_moftab_build
 
   remove_virtualenv "test3"
@@ -521,10 +515,9 @@ function test4()
 
   assert_import_ok "six"
   assert_import_ok "ply"
-  assert_import_ok "M2Crypto"
   assert_import_ok "pywbem"
   assert_eq "$(get_ply_version)" "$OLDPLY_VERSION" "Unexpected 'ply' package version"
-  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules" 
+  assert_eq "$(get_ply_tabversion)" "$OLDPLY_TABVERSION" "Unexpected ply table version in generated LEX/YACC table modules"
   assert_no_moftab_build
 
   run "pip install --upgrade ply==$NEWPLY_VERSION" "Upgrading ply to new version: $NEWPLY_VERSION"
@@ -554,4 +547,3 @@ test4
 cleanup
 
 info "All testcases succeeded."
-

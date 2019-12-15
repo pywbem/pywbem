@@ -323,7 +323,7 @@ ignore-mixin-members=yes
 # https://bitbucket.org/logilab/pylint/issues/223/ignored-modules-should-turn-no-name-in
 ignored-modules=distutils,six,builtins,urllib,
                 lxml,lxml.etree,
-                ssl,M2Crypto,M2Crypto.SSL,
+                ssl,
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work

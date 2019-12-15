@@ -307,7 +307,7 @@ help:
 	@echo "$(package_name) package version: $(package_version)"
 	@echo ""
 	@echo "Make targets:"
-	@echo "  install    - Install pywbem and its Python installation and runtime prereqs (includes install_os once after clobber)"
+	@echo "  install    - Install pywbem and its Python installation and runtime prereqs"
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
 	@echo "  build      - Build the distribution archive files in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
@@ -316,7 +316,6 @@ help:
 	@echo "  test       - Run unit and function tests"
 	@echo "  all        - Do all of the above"
 	@echo "  end2end    - Run end2end tests"
-	@echo "  install_os - Install OS-level installation and runtime prereqs"
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
@@ -397,21 +396,6 @@ install_basic_$(pymn).done: makefile pip_upgrade_$(pymn).done
 	echo "done" >$@
 	@echo "makefile: Done installing/upgrading basic Python packages"
 
-.PHONY: install_os
-install_os: install_os_$(pymn).done
-	@echo "makefile: Target $@ done."
-
-install_os_$(pymn).done: makefile pip_upgrade_$(pymn).done pywbem_os_setup.sh pywbem_os_setup.bat
-	@echo "makefile: Installing OS-level installation and runtime requirements"
-	-$(call RM_FUNC,$@)
-ifeq ($(PLATFORM),Windows_native)
-	pywbem_os_setup.bat install
-else
-	./pywbem_os_setup.sh install
-endif
-	echo "done" >$@
-	@echo "makefile: Done installing OS-level installation and runtime requirements"
-
 install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py
 	-$(call RM_FUNC,$@)
 ifdef TEST_INSTALLED
@@ -431,7 +415,7 @@ endif
 install: install_$(pymn).done
 	@echo "makefile: Target $@ done."
 
-install_$(pymn).done: makefile install_os_$(pymn).done install_basic_$(pymn).done install_pywbem_$(pymn).done
+install_$(pymn).done: makefile install_basic_$(pymn).done install_pywbem_$(pymn).done
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) -c "import $(package_name)"
 	$(PYTHON_CMD) -c "import $(mock_package_name)"

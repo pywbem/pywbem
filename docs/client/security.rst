@@ -115,10 +115,8 @@ WBEM server are set by the user when creating the
 * The `x509` parameter may specify an X.509 client certificate and key. If
   specified, pywbem uses 2-way authentication; otherwise it uses 1-way
   authentication at the TLS/SSL level.
-* The `ca_certs` parameter may specify the location of X.509 CA certificates
-  that are used to validate the X.509 server certificate returned by the WBEM
-  server. If not specified, pywbem assumes default locations for these
-  certificates (see :attr:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS`).
+* The `ca_certs` parameter controls which X.509 CA certificates are used to
+  validate the X.509 server certificate returned by the WBEM server.
 
 It is important to understand which side actually makes decisions about
 security-related parameters: The client only decides whether HTTP or HTTPS is
@@ -144,23 +142,18 @@ When using HTTPS, the TLS/SSL handshake protocol requires that the server always
 returns an :term:`X.509` server certificate to the client (unless anonymous
 ciphers are used, which is not recommended).
 
-Pywbem performs the following verifications on the server certificate returned
-by the WBEM server:
+Pywbem uses the `requests` Python package for communicating with the WBEM
+server, and thus delegates the validation of the server certificate to OpenSSL.
 
-* Validation of the server certificate against the CA certificates specified in
-  the `ca_certs` parameter. This is done by the TLS/SSL components used by
-  pywbem.
-* Validation of the server certificate's expiration date, based on the system
-  clock. This is done by the TLS/SSL components used by pywbem.
-* Validation of the hostname, by comparing the Subject attribute of the server
-  certificate with the hostname specified in the `url` parameter.
-  This is done by pywbem itself.
+If the validation of the server certificate fails, the WBEM operation methods
+of the :class:`~pywbem.WBEMConnection` object raise
+:exc:`pywbem.ConnectionError` with an according error message.
 
-If any of these validations fails, the WBEM operation methods of the
-:class:`~pywbem.WBEMConnection` object raise a :exc:`pywbem.AuthError`.
-
-If verification was disabled via the `no_verification` parameter, none of these
-validations of the server certificate happens.
+Validation of the server certificate can be disabled via the `no_verification`
+parameter of :class:`~pywbem.WBEMConnection`. Disabling certificate
+validation makes the communication of pywbem with the WBEM server vulnerable
+to man-in-the-middle attacks, because the identity of the server cannot be
+verified.
 
 .. _`Use of X.509 client certificates`:
 
@@ -188,22 +181,13 @@ Authentication errors
 ^^^^^^^^^^^^^^^^^^^^^
 
 The operation methods of :class:`~pywbem.WBEMConnection` raise
-:exc:`pywbem.AuthError` in any of these situations:
+:exc:`pywbem.AuthError` when the WBEM server returns HTTP status 401
+"Unauthorized" and the retries in the client are exhausted. The server
+typically returns that status in any of these situations:
 
-* When client side verification of the X.509 server certificate fails.
-
-* When the WBEM server returns HTTP status 401 "Unauthorized" and the
-  retries in the client are exhausted. The server typically returns
-  that status in any of these situations:
-
-  - no authorization information provided by client
-  - wrong HTTP authentication scheme used by client
-  - authentication failed
-  - user is not authorized to access resource
-
-.. _`Default CA certificate paths`:
-
-Default CA certificate paths
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autodata:: pywbem.cim_http.DEFAULT_CA_CERT_PATHS
+- invalid credentials provided by client
+- no credentials provided by client but server requires them
+- user is not authorized to access a resource
+- server does not support the HTTP authentication scheme used by the client.
+  Pywbem uses the "Basic" authentication scheme, which is recommended in
+  :term:`DSP0200`.
