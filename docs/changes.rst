@@ -124,6 +124,34 @@ Released: not yet
   its implementation and tests.  This turned out too simplistic for mock testing
   and of no real value while adding complexity.  (See issue #1959)
 
+* The migration to use the 'requests' Python package for communication between
+  the pywbem client and the WBEM server caused the following changes:
+
+  - Changed the behavior of the default value `None` for the `ca_certs`
+    parameter of `WBEMConnection`: Previously, it caused the first existing
+    directory from a predefined set of directories to be used as the
+    certificate directory. Now, it causes the certificates provided by the
+    'certifi' Python package to be used. That package provides the Mozilla
+    Included CA Certificate List.
+
+  - A non-existing path specified for the `ca_certs` parameter of
+    `WBEMConnection` now raises `IOError`. Previously, the directory or file
+    was simply skipped (and subsequently, verification failed).
+
+  - Removed support for the 'OWLocal' authentication scheme that was supported
+    for the OpenWBEM server, and the 'Local' authentication scheme that was
+    supported for the OpenPegasus server. Pywbem now supports only the 'Basic'
+    authentication scheme.
+
+  - Removed support for communicating with WBEM servers using UNIX domain
+    sockets by specifying a file-based URL. Use the standard http and https
+    protocols instead.
+
+  - The installation of pywbem no longer needs the `pywbem_os_setup.sh/.bat`
+    scripts because there are no more prerequisite OS-level packages needed
+    for installing pywbem. If you have automated the pywbem installation,
+    this step should be removed from your automation.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -390,6 +418,12 @@ Released: not yet
   item is optional and if omitted, both the private key and the certificate
   must be in the file referenced by the 'cert_file' item. Added checks
   for the 'x509' parameter.
+
+* Migrated the communication between the pywbem client and WBEM servers to
+  to use the 'requests' Python package. This greatly cleaned up the code,
+  made the code common again between Python 2 and Python 3, and removed
+  any prerequisite OS-level packages, thus simplifying the installation of
+  pywbem again to what is expected for a pure Python package.
 
 **Cleanup:**
 

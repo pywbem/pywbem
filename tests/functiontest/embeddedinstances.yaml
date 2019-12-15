@@ -878,7 +878,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: SetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -982,7 +982,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: SetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -1076,7 +1076,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: GetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -1169,7 +1169,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: ReturnAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -2106,7 +2106,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: SetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -2205,7 +2205,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: SetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -2301,7 +2301,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: GetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -2396,7 +2396,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: ReturnAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -3335,7 +3335,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: SetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -3434,7 +3434,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: SetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -3530,7 +3530,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: GetAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
@@ -3625,7 +3625,7 @@
         headers:
             CIMOperation: MethodCall
             CIMMethod: ReturnAddress
-            CIMObject: root/cimv2%3APyWBEM_Person.Name%3D%22Fritz%22
+            CIMObject: root/cimv2:PyWBEM_Person.Name="Fritz"
         data: >
             <?xml version="1.0" encoding="utf-8" ?>
             <CIM CIMVERSION="2.0" DTDVERSION="2.0">

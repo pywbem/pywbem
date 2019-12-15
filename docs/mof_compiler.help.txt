@@ -47,15 +47,12 @@ Connection security related options:
                         side verification of the server identity, but allows
                         encrypted communication with a server for which the
                         client does not have certificates.
-  --cacerts cacerts     File or directory containing certificates that will be
-                        matched against a certificate received from the WBEM
-                        server. Set the --no-verify-cert option to bypass
-                        client verification of the WBEM server certificate.
-                        Default: Searches for matching certificates in the
-                        following system directories:
-                        /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
-                        /etc/ssl/certs
-                        /etc/ssl/certificates
+  --cacerts cacerts     CA certificates to be used for verifying the server
+                        certificate presented by the WBEM server during TLS/SSL
+                        handshake:
+                        FILE: Use the certs in the specified cert file;
+                        DIR: Use the certs in the specified cert directory.
+                        Default: Use certs from the certifi Python package.
   --certfile certfile   Client certificate file for authenticating with the
                         WBEM server. If option specified the client attempts
                         to execute mutual authentication.

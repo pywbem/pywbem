@@ -36,7 +36,6 @@ from getpass import getpass
 from pywbem._cliutils import SmartFormatter
 from pywbem import WBEMConnection, Error
 from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler
-from pywbem.cim_http import get_default_ca_cert_paths
 from pywbem import __version__
 
 from pywbem._logging import LOG_DESTINATIONS, \
@@ -123,13 +122,12 @@ Example:
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
         # pylint: disable=bad-continuation
-        help='R|File or directory containing certificates that will be\n'
-             'matched against a certificate received from the WBEM\n'
-             'server. Set the --no-verify-cert option to bypass\n'
-             'client verification of the WBEM server certificate.\n'
-             'Default: Searches for matching certificates in the\n'
-             'following system directories:\n' +
-             ("\n".join("%s" % p for p in get_default_ca_cert_paths())))
+        help='R|CA certificates to be used for verifying the server\n'
+             'certificate presented by the WBEM server during TLS/SSL\n'
+             'handshake:\n'
+             'FILE: Use the certs in the specified cert file;\n'
+             'DIR: Use the certs in the specified cert directory.\n'
+             'Default: Use certs from the certifi Python package.')
     security_arggroup.add_argument(
         '--certfile', dest='cert_file', metavar='certfile',
         help='R|Client certificate file for authenticating with the\n'

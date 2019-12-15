@@ -596,11 +596,9 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_create_connection2(self, lc):
         """Test log of wbem connection with detailed information"""
 
-        x509_dict = {"cert_file": 'Certfile.x', 'key_file': 'keyfile.x'}
         conn = WBEMConnection('http://blah',
                               default_namespace='root/blah',
                               creds=('username', 'password'),
-                              x509=x509_dict,
                               no_verification=True,
                               timeout=10,
                               use_pull_operations=True,
@@ -619,7 +617,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "creds=('username', ...), "
             "conn_id={0!A}, "
             "default_namespace='root/blah', "
-            "x509={{'cert_file': 'Certfile.x', 'key_file': 'keyfile.x'}}, "
+            "x509=None, "
             "ca_certs=None, "
             "no_verification=True, "
             "timeout=10, "
@@ -636,11 +634,9 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_create_connection_summary(self, lc):
         """Test log of wbem connection with detailed information"""
 
-        x509_dict = {"cert_file": 'Certfile.x', 'key_file': 'keyfile.x'}
         conn = WBEMConnection('http://blah',
                               default_namespace='root/blah',
                               creds=('username', 'password'),
-                              x509=x509_dict,
                               no_verification=True,
                               timeout=10,
                               use_pull_operations=True,

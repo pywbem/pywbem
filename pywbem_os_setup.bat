@@ -36,6 +36,18 @@ goto end
 
 :do_install
 
+echo %myname%:
+echo %myname%: ================================================================
+echo %myname%:
+echo %myname%: Starting with pywbem 1.0.0, the installation of pywbem does not
+echo %myname%: need any OS-level prerequisite packages anymore, and therefore
+echo %myname%: no longer needs to run the pywbem_os_setup.bat script. Because
+echo %myname%: this script cannot determine the version of pywbem, it will
+echo %myname%: install the prerequisites needed for pywbem before 1.0.0.
+echo %myname%:
+echo %myname%: ================================================================
+echo %myname%:
+
 echo %myname%: Installing OS-level prerequisite packages for install on platform Windows_native ...
 
 if not exist tmp_pywbem_os_setup mkdir tmp_pywbem_os_setup

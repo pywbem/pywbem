@@ -100,6 +100,32 @@ TESTCASES_INIT = [
         None, None
     ),
     (
+        "x509 parameter that is a dict with non-existing cert_file "
+        "(invalid) and existing key_file",
+        ['mykeyfile.tmp'],
+        dict(
+            x509=dict(
+                cert_file='nonexistingcertfile.tmp',
+                key_file='mykeyfile.tmp',
+            ),
+        ),
+        dict(),
+        IOError, "Client certificate file .* not found"
+    ),
+    (
+        "x509 parameter that is a dict with existing cert_file "
+        "and non-existing key_file (invalid)",
+        ['mycertfile.tmp'],
+        dict(
+            x509=dict(
+                cert_file='mycertfile.tmp',
+                key_file='nonexistingkeyfile.tmp',
+            ),
+        ),
+        dict(),
+        IOError, "Client key file .* not found"
+    ),
+    (
         "x509 parameter that is a dict with cert_file=None (invalid) "
         "and key_file=None",
         [],
@@ -120,6 +146,35 @@ TESTCASES_INIT = [
         ),
         dict(),
         TypeError, "x509 .* must be a dictionary"
+    ),
+    (
+        "ca_certs parameter that is an existing file",
+        ['mycacertfile.tmp'],
+        dict(
+            ca_certs='mycacertfile.tmp',
+        ),
+        dict(
+            ca_certs='mycacertfile.tmp',
+        ),
+        None, None
+    ),
+    (
+        "ca_certs parameter that is an integer (invalid)",
+        [],
+        dict(
+            ca_certs=42,
+        ),
+        dict(),
+        TypeError, "ca_certs .* invalid type"
+    ),
+    (
+        "ca_certs parameter that is a non-existing file (invalid)",
+        [],
+        dict(
+            ca_certs='mycacertfile.tmp',
+        ),
+        dict(),
+        IOError, "file or directory not found"
     ),
 ]
 
@@ -170,7 +225,7 @@ class TestCreateConnection(object):
 
     @pytest.mark.parametrize(
         'attr_name, value', [
-            ('url', 'http:/myserver'),
+            ('url', 'http://myserver'),
             ('creds', ('x', 'y')),
             ('x509', dict(cert_file='c', key_file='k')),
             ('ca_certs', 'xxx'),

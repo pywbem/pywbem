@@ -58,6 +58,20 @@ if [[ "$purpose" != "install" && "$purpose" != "develop" ]]; then
   exit 2
 fi
 
+if [[ "$purpose" == "install" ]]; then
+  echo "$myname:"
+  echo "$myname: ================================================================"
+  echo "$myname:"
+  echo "$myname: Starting with pywbem 1.0.0, the installation of pywbem does not"
+  echo "$myname: need any OS-level prerequisite packages anymore, and therefore"
+  echo "$myname: no longer needs to run the pywbem_os_setup.sh script. Because"
+  echo "$myname: this script cannot determine the version of pywbem, it will"
+  echo "$myname: install the prerequisites needed for pywbem before 1.0.0."
+  echo "$myname:"
+  echo "$myname: ================================================================"
+  echo "$myname:"
+fi
+
 function run_cmd() {
   cmd="$1"
   echo "$cmd"
@@ -295,6 +309,11 @@ elif [[ "$distro_family" == "cygwin" ]]; then
     install_cygwin libcrypt-devel
     # For pyzmq (used by Jupyter):
     install_cygwin libzmq-devel
+    if [[ "$py_m" == "2" ]]; then
+      # For pyzmq (used by Jupyter), lxml:
+      install_cygwin python2-devel
+      install_cygwin python2-cython
+    fi
     if [[ "$py_m" == "3" ]]; then
       # For pyzmq, lxml:
       install_cygwin python3-devel

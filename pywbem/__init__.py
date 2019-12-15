@@ -58,6 +58,7 @@ from ._recorder import *  # noqa: F403,F401
 from ._statistics import *  # noqa: F403,F401
 from ._logging import *  # noqa: F403,F401
 from ._warnings import *  # noqa: F403,F401 pylint: disable=redefined-builtin
+from ._features import *  # noqa: F403,F401
 
 from ._version import __version__  # noqa: F401
 

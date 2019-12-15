@@ -140,6 +140,8 @@ import warnings
 from collections import namedtuple
 import logging
 
+import requests
+from requests.packages import urllib3
 import six
 
 from . import cim_xml
@@ -149,10 +151,9 @@ from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
 from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMQualifierDeclaration, tocimxml, cimvalue
-from .cim_http import get_cimobject_header, wbem_request
+from .cim_http import get_cimobject_header, wbem_request, parse_url
 from .tupleparse import TupleParser
 from .tupletree import xml_to_tupletree_sax
-from .cim_http import parse_url
 from .exceptions import CIMXMLParseError, XMLParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
@@ -164,9 +165,15 @@ from ._utils import _ensure_unicode, _format
 __all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
            'OpenWBEMUDSConnection']
 
+# Parameters for HTTP retry
+HTTP_TOTAL_RETRIES = 2           # Max number of total HTTP retries
+HTTP_CONNECT_RETRIES = 2         # Max number of HTTP connect retries
+HTTP_READ_RETRIES = 2            # Max number of HTTP read retries
+HTTP_RETRY_BACKOFF_FACTOR = 0.1  # Backoff factor for retries
+HTTP_MAX_REDIRECTS = 5           # Max number of HTTP redirects
+
 # Global named tuples. Used by the pull operation responses to return
 # (entities, end_of_sequence, and enumeration_context) to the caller.
-
 
 # openenumerateInstances, OpenAssociators, etc and PullInstanceWithPath
 # responses
@@ -284,7 +291,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     provided by this class is only conceptual. That is, the creation of the
     connection object does not cause any interaction with the WBEM server, and
     each subsequent WBEM operation performs an independent, state-less
-    HTTP/HTTPS request.
+    HTTP/HTTPS request. Usage of the `requests` Python package causes the
+    underlying resources such as sockets to be pooled, though.
 
     After creating a :class:`~pywbem.WBEMConnection` object, various methods
     may be called on the object, which cause WBEM operations to be issued to
@@ -410,7 +418,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             The following URL schemes are supported:
 
             * ``https``: Causes HTTPS to be used.
-            * ``http``: Causes HTTP to be used.
+            * ``http``: Causes HTTP to be used (default).
 
             The host can be specified in any of the usual formats:
 
@@ -479,44 +487,56 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             This parameter is ignored when HTTP is used.
 
             If `None`, no client certificate is presented to the server,
-            resulting in 1-way authentication to be used.
+            resulting in TLS/SSL 1-way authentication to be used.
 
             Otherwise, the client certificate is presented to the server,
-            resulting in 2-way authentication to be used.
+            resulting in TLS/SSL 2-way authentication to be used.
             This parameter must be a dictionary containing the following
             two items:
 
               * ``"cert_file"`` (:term:`string`):
                 The file path of a file containing an :term:`X.509` client
-                certificate. Required.
+                certificate. Required. If the file does not exist,
+                :exc:`~py:exceptions.IOError` will be raised.
 
               * ``"key_file"`` (:term:`string`):
                 The file path of a file containing the private key belonging to
                 the public key that is part of the :term:`X.509` certificate
                 file. Optional; if omitted or `None`, the private key must
-                be in the file specified with ``"cert_file"``.
+                be in the file specified with ``"cert_file"``. If specified
+                but the file does not exist, :exc:`~py:exceptions.IOError` will
+                be raised.
 
             See :ref:`Authentication types` for an overview.
 
           ca_certs (:term:`string`):
-            Location of CA certificates (trusted certificates) for
+            Selects the CA certificates (trusted certificates) for
             verifying the X.509 server certificate returned by the WBEM server.
 
-            This parameter is ignored when HTTP is used.
+            This parameter is ignored when HTTP is used or when the
+            `no_verification` parameter is set to disable verification.
 
             The parameter value must be one of:
 
-            * a path to a file containing one or more CA certificates in
-              PEM format. See the description of `CAfile` in the OpenSSL
-              `SSL_CTX_load_verify_locations`_ function for details.
+            * :term:`string`: A path to a file containing one or more CA
+              certificates in PEM format. See the description of `CAfile` in
+              the OpenSSL `SSL_CTX_load_verify_locations`_ function for
+              details. If the file does not exist,
+              :exc:`~py:exceptions.IOError` will be raised.
 
-            * a path to a directory with files each of which contains one CA
-              certificate in PEM format. See the description of `CApath` in the
-              OpenSSL `SSL_CTX_load_verify_locations`_ function for details.
+            * :term:`string`: A path to a directory with files each of which
+              contains one CA certificate in PEM format. See the description
+              of `CApath` in the OpenSSL `SSL_CTX_load_verify_locations`_
+              function for details. If the directory does not exist,
+              :exc:`~py:exceptions.IOError` will be raised.
 
-            If `None`, the directory path of the first existing directory from
-            the list in :data:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS` will be
-            used as a default.
+            * `None` (default): Use the certificates provided by the
+              `certifi Python package`_. This package provides the certificates
+              from the `Mozilla Included CA Certificate List`_.
+
+            .. _`certifi Python package`: https://certifi.io/en/latest/
+
+            .. _`Mozilla Included CA Certificate List`: https://wiki.mozilla.org/CA/Included_Certificates
 
             .. _`SSL_CTX_load_verify_locations`: https://www.openssl.org/docs/man1.1.0/ssl/SSL_CTX_load_verify_locations.html
 
@@ -595,6 +615,67 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._set_no_verification(no_verification)
         self._set_timeout(timeout)
 
+        # Requests session
+        self.session = requests.Session()
+
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        if self.x509 is not None:
+            cert_file = self.x509['cert_file']
+            key_file = self.x509.get('key_file', None)
+            if not os.path.exists(cert_file):
+                raise IOError(
+                    "Client certificate file for TLS/SSL 2-way "
+                    "authentication not found: {}".
+                    format(cert_file))
+            if key_file is not None and not os.path.exists(key_file):
+                raise IOError(
+                    "Client key file for TLS/SSL 2-way "
+                    "authentication not found: {}".
+                    format(key_file))
+            cert = (cert_file, key_file)
+        else:
+            cert = None
+        self.session.cert = cert
+
+        # In addition to the possibilities below, the REQUESTS_CA_BUNDLE
+        # and CURL_CA_BUNDLE environment variables can be set to override the
+        # choice. The value is in both cases the path to a certificate file or
+        # certificate directory.
+        if self.no_verification:
+            verify = False
+        elif self.ca_certs is None:
+            # Use the certificates provided by the Python certifi package.
+            verify = True
+        elif isinstance(self.ca_certs, six.string_types):
+            # Use the specified path name (to file or directory).
+            if not os.path.exists(self.ca_certs):
+                raise IOError(
+                    "CA certificate file or directory not found: {}".
+                    format(self.ca_certs))
+            verify = self.ca_certs
+        else:
+            raise TypeError(
+                _format("The ca_certs parameter has invalid type: {0}",
+                        type(self.ca_certs)))
+        self.session.verify = verify
+
+        retry = urllib3.Retry(
+            total=HTTP_TOTAL_RETRIES,
+            connect=HTTP_CONNECT_RETRIES,
+            read=HTTP_READ_RETRIES,
+            method_whitelist={'POST'},
+            redirect=HTTP_MAX_REDIRECTS,
+            backoff_factor=HTTP_RETRY_BACKOFF_FACTOR)
+
+        # While it would be technically sufficient to set a retry transport
+        # adapter only for the scheme specified in the input URL, we are
+        # setting it for both schemes that have existing adapters, in order to
+        # avoid confusion for the human reader.
+        retry_adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+        self.session.mount('http://', retry_adapter)
+        self.session.mount('https://', retry_adapter)
+
         # Saving last request and reply
         self._debug = False
         self._last_raw_request = None
@@ -662,7 +743,32 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _set_url(self, url):
         """Internal setter function."""
+        if not re.match(r'^[A-Za-z0-9_\-]+://', url):
+            url = 'http://' + url
         self._url = _ensure_unicode(url)
+
+    @property
+    def scheme(self):
+        """
+        :term:`unicode string`: Scheme of the URL of the WBEM server, for
+        example 'http' or 'https'.
+
+        *New in pywbem 1.0.*
+        """
+        parts = self._url.split('://')
+        assert len(parts) == 2
+        return parts[0]
+
+    @property
+    def host(self):
+        """
+        :term:`unicode string`: The ``{host}[:{port}]`` component of the
+        WBEM server's URL, as specified in the ``url`` attribute.
+
+        *New in pywbem 0.11.*
+        """
+        host = self.url.split('://')[-1]
+        return host
 
     @property
     def creds(self):
@@ -768,7 +874,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def ca_certs(self):
         """
-        :term:`string`: Location of CA certificates (trusted certificates) for
+        :term:`string`: Selects the CA certificates (trusted certificates) for
         verifying the X.509 server certificate returned by the WBEM server.
 
         For details, see the description of the same-named init
@@ -894,17 +1000,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             "deprecated. Use the add_operation_recorder() method instead.",
             DeprecationWarning, 2)
         self.add_operation_recorder(operation_recorder)
-
-    @property
-    def host(self):
-        """
-        :term:`unicode string`: The ``{host}[:{port}]`` component of the
-        WBEM server's URL, as specified in the ``url`` attribute.
-
-        *New in pywbem 0.11.*
-        """
-        host = self.url.split('://')[-1]
-        return host
 
     @property
     def operation_recorder_enabled(self):
@@ -1683,14 +1778,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Send request and receive response
         reply_data, self._last_server_response_time = wbem_request(
-            self.url, request_data, self.creds, cimxml_headers,
-            x509=self.x509,
-            ca_certs=self.ca_certs,
-            no_verification=self.no_verification,
-            timeout=self.timeout,
-            debug=self.debug,
-            recorders=self._operation_recorders,
-            conn_id=self.conn_id)
+            self, request_data, cimxml_headers)
 
         # Set attributes recording the response, part 1.
         # Only those that can be done without parsing (which can fail).
@@ -1996,14 +2084,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Send request and receive response
         reply_data, self._last_server_response_time = wbem_request(
-            self.url, request_data, self.creds, cimxml_headers,
-            x509=self.x509,
-            ca_certs=self.ca_certs,
-            no_verification=self.no_verification,
-            timeout=self.timeout,
-            debug=self.debug,
-            recorders=self._operation_recorders,
-            conn_id=self.conn_id)
+            self, request_data, cimxml_headers)
 
         # Set attributes recording the response, part 1.
         # Only those that can be done without parsing (which can fail).
