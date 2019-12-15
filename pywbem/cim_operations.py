@@ -554,13 +554,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             The parameter value must be one of:
 
-            * a path to a file containing one or more CA certificates in
-              PEM format. See the description of `CAfile` in the OpenSSL
-              `SSL_CTX_load_verify_locations`_ function for details.
+            * :term:`string`: A path to a file containing one or more CA
+              certificates in PEM format. See the description of `CAfile` in
+              the OpenSSL `SSL_CTX_load_verify_locations`_ function for
+              details.
 
-            * a path to a directory with files each of which contains one CA
-              certificate in PEM format. See the description of `CApath` in the
-              OpenSSL `SSL_CTX_load_verify_locations`_ function for details.
+            * :term:`string`: A path to a directory with files each of which
+              contains one CA certificate in PEM format. See the description
+              of `CApath` in the OpenSSL `SSL_CTX_load_verify_locations`_
+              function for details.
 
             If `None`, the directory path of the first existing directory from
             the list in :data:`~pywbem.cim_http.DEFAULT_CA_CERT_PATHS` will be
