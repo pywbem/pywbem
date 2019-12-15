@@ -47,9 +47,9 @@ environment:
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
 
-    - TOX_ENV: win64_py38_32
-      UNIX_PATH: none
-      PYTHON_CMD: python
+#    - TOX_ENV: win64_py38_32
+#      UNIX_PATH: none
+#      PYTHON_CMD: python
 
     - TOX_ENV: win64_py38_64
       UNIX_PATH: none
