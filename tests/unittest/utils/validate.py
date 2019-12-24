@@ -29,7 +29,7 @@ Note: The CIM_DTD_V22.dtd file used for DTD checking by pywbem for some time
       is a preliminary version that contained a few elements that were never
       released as a DMTF standard:
         TABLE, TABLEROW, TABLEROW.DECLARATION, TABLECELL.DECLARATION,
-        TABLECELL.REFERENCE, RESPONSEDESTINATION.
+        TABLECELL.REFERENCE, RESPONSEDESTINATION, SIMPLEREQACK.
 
 Note: Changes in DSP0203 2.3.1, compared to 2.2.0 (final):
       - SIMPLERSP: Removed child SIMPLEREQACK, to fix a an incompletely removed
@@ -76,11 +76,12 @@ from pywbem._utils import _ensure_bytes, _ensure_unicode
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
-# CIM-XML DTD file to validate against
-DTD_FILE = os.path.join('tests', 'dtd', 'DSP0203_2.3.1.dtd')
+# Version of DSP0201 to validate against
+DTD_VERSION = (2, 3, 1)
 
-# TODO: The DTD 2.4.0 requires the TYPE attribute on the KEYVALUE elements,
-#       and this causes some tests in test_cim_xml.py to fail. Fix them.
+# CIM-XML DTD file to validate against
+DTD_FILE = os.path.join(
+    'tests', 'dtd', 'DSP0203_{v[0]}.{v[1]}.{v[2]}.dtd'.format(v=DTD_VERSION))
 
 
 class CIMXMLValidationError(Exception):
@@ -191,3 +192,30 @@ def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
             "CIM-XML string:\n"
             "{3}".
             format(type(obj), exc, root_elem_name, obj_xml_str))
+
+
+def assert_xml_equal(act_xml_str, exp_xml_str):
+    """
+    Assert that an actual XML string and an expected XML string are equal.
+
+    Equality of two XML elements is defined by:
+    - equal name
+    - equal set of attributes (in any order)
+    - equal set of child elements (in order)
+    - equal text content (case sensitive)
+
+    Equality of two XML attributes is defined by:
+    - equal name
+    - equal value (case sensitive)
+
+    Parameters:
+
+      act_xml_str (string): The actual XML string.
+
+      exp_xml_str (string): The expected XML string.
+    """
+
+    assert _xml_semantic_compare(act_xml_str, exp_xml_str), \
+        "Unexpected XML element (XML attribute order does not matter):\n" \
+        "Actual:   {0!r}\n" \
+        "Expected: {1!r}\n".format(act_xml_str, exp_xml_str)

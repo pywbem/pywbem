@@ -8,11 +8,11 @@ try:
     from collections.abc import Iterable
 except ImportError:  # py2
     from collections import Iterable
-import unittest
 import six
 import pytest
 
-from ..utils.validate import validate_cim_xml, CIMXMLValidationError
+from ..utils.validate import validate_cim_xml, CIMXMLValidationError, \
+    assert_xml_equal, DTD_VERSION
 from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
@@ -36,168 +36,429 @@ def iter_flattened(lst):
             yield item
 
 
-def sample_LOCALNAMESPACEPATH_node():
+# The following functions return a simple but valid CIM-XML element, including
+# child elements. This simplifies the definition of testcases for the more
+# complex CIM-XML elements.
+# The *_node() functions return the pywbem CIM-XML node, and the same-named
+# *_str() functions return that node as a (possibly nested) list of XML
+# strings.
+
+
+def simple_HOST_node(name='leonardo'):
     """
-    Return a sample LOCALNAMESPACEPATH as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple HOST as a cim_xml node.
+    """
+    return cim_xml.HOST(name)
+
+
+def simple_HOST_str(name='leonardo'):
+    """
+    Return a simple HOST as a list of XML strings.
+    """
+    return [
+        '<HOST>{name}</HOST>'.format(name=name),
+    ]
+
+
+def simple_NAMESPACE_node(name='myns'):
+    """
+    Return a simple NAMESPACE as a cim_xml node.
+    """
+    return cim_xml.NAMESPACE(name)
+
+
+def simple_NAMESPACE_str(name='myns'):
+    """
+    Return a simple NAMESPACE as a list of XML strings.
+    """
+    return [
+        '<NAMESPACE NAME="{name}"/>'.format(name=name),
+    ]
+
+
+def simple_LOCALNAMESPACEPATH_node():
+    """
+    Return a simple LOCALNAMESPACEPATH as a cim_xml node.
     """
     return cim_xml.LOCALNAMESPACEPATH(
-        [cim_xml.NAMESPACE('root'),
-         cim_xml.NAMESPACE('cimv2')])
+        [
+            simple_NAMESPACE_node('root'),
+            simple_NAMESPACE_node('cimv2'),
+        ]
+    )
 
 
-def sample_LOCALNAMESPACEPATH_str():
+def simple_LOCALNAMESPACEPATH_str():
     """
-    Return a sample LOCALNAMESPACEPATH as a list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple LOCALNAMESPACEPATH as a nested list of XML strings.
     """
     return [
         '<LOCALNAMESPACEPATH>',
-        '<NAMESPACE NAME="root"/>',
-        '<NAMESPACE NAME="cimv2"/>',
+        simple_NAMESPACE_str('root'),
+        simple_NAMESPACE_str('cimv2'),
         '</LOCALNAMESPACEPATH>',
     ]
 
 
-def sample_NAMESPACEPATH_node():
+def simple_NAMESPACEPATH_node():
     """
-    Return a sample NAMESPACEPATH as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple NAMESPACEPATH as a cim_xml node.
     """
     return cim_xml.NAMESPACEPATH(
-        cim_xml.HOST('leonardo'),
-        sample_LOCALNAMESPACEPATH_node())
+        simple_HOST_node(),
+        simple_LOCALNAMESPACEPATH_node(),
+    )
 
 
-def sample_NAMESPACEPATH_str():
+def simple_NAMESPACEPATH_str():
     """
-    Return a sample NAMESPACEPATH as a (nested) list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple NAMESPACEPATH as a nested list of XML strings.
     """
     return [
         '<NAMESPACEPATH>',
-        '<HOST>leonardo</HOST>',
-        sample_LOCALNAMESPACEPATH_str(),
+        simple_HOST_str(),
+        simple_LOCALNAMESPACEPATH_str(),
         '</NAMESPACEPATH>',
     ]
 
 
-def sample_CLASSNAME_node():
+def simple_CLASSNAME_node(name='MyClass'):
     """
-    Return a sample CLASSNAME as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple CLASSNAME as a cim_xml node.
     """
-    return cim_xml.CLASSNAME('CIM_Foo')
+    return cim_xml.CLASSNAME(name)
 
 
-def sample_CLASSNAME_str():
+def simple_CLASSNAME_str(name='MyClass'):
     """
-    Return a sample CLASSNAME as a list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple CLASSNAME as a list of XML strings.
     """
     return [
-        '<CLASSNAME NAME="CIM_Foo"/>',
+        '<CLASSNAME NAME="{name}"/>'.format(name=name),
     ]
 
 
-def sample_LOCALCLASSPATH_node():
+def simple_LOCALCLASSPATH_node(name='MyClass'):
     """
-    Return a sample LOCALCLASSPATH as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple LOCALCLASSPATH as a cim_xml node.
     """
     return cim_xml.LOCALCLASSPATH(
-        sample_LOCALNAMESPACEPATH_node(),
-        sample_CLASSNAME_node())
+        simple_LOCALNAMESPACEPATH_node(),
+        simple_CLASSNAME_node(name),
+    )
 
 
-def sample_LOCALCLASSPATH_str():
+def simple_LOCALCLASSPATH_str(name='MyClass'):
     """
-    Return a sample LOCALCLASSPATH as a (nested) list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple LOCALCLASSPATH as a nested list of XML strings.
     """
     return [
         '<LOCALCLASSPATH>',
-        sample_LOCALNAMESPACEPATH_str(),
-        sample_CLASSNAME_str(),
+        simple_LOCALNAMESPACEPATH_str(),
+        simple_CLASSNAME_str(name),
         '</LOCALCLASSPATH>',
     ]
 
 
-def sample_CLASSPATH_node():
+def simple_CLASSPATH_node(name='MyClass'):
     """
-    Return a sample CLASSPATH as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple CLASSPATH as a cim_xml node.
     """
     return cim_xml.CLASSPATH(
-        sample_NAMESPACEPATH_node(),
-        sample_CLASSNAME_node())
+        simple_NAMESPACEPATH_node(),
+        simple_CLASSNAME_node(name),
+    )
 
 
-def sample_CLASSPATH_str():
+def simple_CLASSPATH_str(name='MyClass'):
     """
-    Return a sample CLASSPATH as a (nested) list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple CLASSPATH as a nested list of XML strings.
     """
     return [
         '<CLASSPATH>',
-        sample_NAMESPACEPATH_str(),
-        sample_CLASSNAME_str(),
+        simple_NAMESPACEPATH_str(),
+        simple_CLASSNAME_str(name),
         '</CLASSPATH>',
     ]
 
 
-def sample_INSTANCENAME_node():
+def simple_INSTANCENAME_node(name='MyClass'):
     """
-    Return a sample INSTANCENAME as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple INSTANCENAME as a cim_xml node.
     """
     return cim_xml.INSTANCENAME(
-        'CIM_Pet',
-        [cim_xml.KEYBINDING(
-            'type',
-            cim_xml.KEYVALUE('dog', 'string')),
-         cim_xml.KEYBINDING(
-             'age',
-             cim_xml.KEYVALUE('2', 'numeric'))])
+        name,
+        [
+            cim_xml.KEYBINDING(
+                'type',
+                cim_xml.KEYVALUE('dog', 'string')
+            ),
+            cim_xml.KEYBINDING(
+                'age',
+                cim_xml.KEYVALUE('2', 'numeric')
+            ),
+        ],
+    )
 
 
-def sample_INSTANCENAME_str():
+def simple_INSTANCENAME_str(name='MyClass'):
     """
-    Return a sample INSTANCENAME as a (nested) list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple INSTANCENAME as a list of XML strings.
     """
     return [
-        '<INSTANCENAME CLASSNAME="CIM_Pet">',
+        '<INSTANCENAME CLASSNAME="{name}">'.format(name=name),
         '<KEYBINDING NAME="type">',
-        '<KEYVALUE TYPE="string">dog</KEYVALUE>',
+        '<KEYVALUE VALUETYPE="string">dog</KEYVALUE>',
         '</KEYBINDING>',
         '<KEYBINDING NAME="age">',
-        '<KEYVALUE TYPE="numeric">2</KEYVALUE>',
+        '<KEYVALUE VALUETYPE="numeric">2</KEYVALUE>',
         '</KEYBINDING>',
         '</INSTANCENAME>',
     ]
 
 
-def sample_LOCALINSTANCEPATH_node():
+def simple_OBJECTPATH_node(name='MyClass'):
     """
-    Return a sample LOCALINSTANCEPATH as a cim_xml node.
-    Must match the result of the corresponding ..._str() function.
+    Return a simple OBJECTPATH as a cim_xml node.
+    """
+    return cim_xml.OBJECTPATH(
+        simple_INSTANCEPATH_node(name),
+    )
+
+
+def simple_OBJECTPATH_str(name='MyClass'):
+    """
+    Return a simple OBJECTPATH as a nested list of XML strings.
+    """
+    return [
+        '<OBJECTPATH>',
+        simple_INSTANCEPATH_str(name),
+        '</OBJECTPATH>',
+    ]
+
+
+def simple_LOCALINSTANCEPATH_node(name='MyClass'):
+    """
+    Return a simple LOCALINSTANCEPATH as a cim_xml node.
     """
     return cim_xml.LOCALINSTANCEPATH(
-        sample_LOCALNAMESPACEPATH_node(),
-        sample_INSTANCENAME_node())
+        simple_LOCALNAMESPACEPATH_node(),
+        simple_INSTANCENAME_node(name),
+    )
 
 
-def sample_LOCALINSTANCEPATH_str():
+def simple_LOCALINSTANCEPATH_str(name='MyClass'):
     """
-    Return a sample LOCALINSTANCEPATH as a (nested) list of XML strings.
-    Must match the result of the corresponding ..._node() function.
+    Return a simple LOCALINSTANCEPATH as a nested list of XML strings.
     """
     return [
         '<LOCALINSTANCEPATH>',
-        sample_LOCALNAMESPACEPATH_str(),
-        sample_INSTANCENAME_str(),
+        simple_LOCALNAMESPACEPATH_str(),
+        simple_INSTANCENAME_str(name),
         '</LOCALINSTANCEPATH>',
+    ]
+
+
+def simple_INSTANCEPATH_node(name='MyClass'):
+    """
+    Return a simple INSTANCEPATH as a cim_xml node.
+    """
+    return cim_xml.INSTANCEPATH(
+        simple_NAMESPACEPATH_node(),
+        simple_INSTANCENAME_node(name),
+    )
+
+
+def simple_INSTANCEPATH_str(name='MyClass'):
+    """
+    Return a simple INSTANCEPATH as a nested list of XML strings.
+    """
+    return [
+        '<INSTANCEPATH>',
+        simple_NAMESPACEPATH_str(),
+        simple_INSTANCENAME_str(name),
+        '</INSTANCEPATH>',
+    ]
+
+
+def simple_VALUE_OBJECT_node(name='MyClass'):
+    """
+    Return a simple VALUE.OBJECT with a CLASS as a cim_xml node.
+    """
+    return cim_xml.VALUE_OBJECT(
+        simple_CLASS_node(name),
+    )
+
+
+def simple_VALUE_OBJECT_str(name='MyClass'):
+    """
+    Return a simple VALUE.OBJECT with a CLASS as a nested list of XML strings.
+    """
+    return [
+        '<VALUE.OBJECT>',
+        simple_CLASS_str(name),
+        '</VALUE.OBJECT>',
+    ]
+
+
+def simple_VALUE_NAMEDINSTANCE_node(name='MyClass'):
+    """
+    Return a simple VALUE.NAMEDINSTANCE as a cim_xml node.
+    """
+    return cim_xml.VALUE_NAMEDINSTANCE(
+        simple_INSTANCENAME_node(name),
+        simple_INSTANCE_node(name),
+    )
+
+
+def simple_VALUE_NAMEDINSTANCE_str(name='MyClass'):
+    """
+    Return a simple VALUE.NAMEDINSTANCE as a nested list of XML strings.
+    """
+    return [
+        '<VALUE.NAMEDINSTANCE>',
+        simple_INSTANCENAME_str(name),
+        simple_INSTANCE_str(name),
+        '</VALUE.NAMEDINSTANCE>',
+    ]
+
+
+def simple_VALUE_NAMEDOBJECT_node(name='MyClass'):
+    """
+    Return a simple VALUE.NAMEDOBJECT with a CLASS as a cim_xml node.
+    """
+    return cim_xml.VALUE_NAMEDOBJECT(
+        simple_CLASS_node(name),
+    )
+
+
+def simple_VALUE_NAMEDOBJECT_str(name='MyClass'):
+    """
+    Return a simple VALUE.NAMEDOBJECT with a CLASS as a (nested) list of XML
+    strings.
+    """
+    return [
+        '<VALUE.NAMEDOBJECT>',
+        simple_CLASS_str(name),
+        '</VALUE.NAMEDOBJECT>',
+    ]
+
+
+def simple_VALUE_OBJECTWITHLOCALPATH_node(name='MyClass'):
+    """
+    Return a simple VALUE.OBJECTWITHLOCALPATH with a CLASS as a cim_xml node.
+    """
+    return cim_xml.VALUE_OBJECTWITHLOCALPATH(
+        simple_LOCALCLASSPATH_node(name),
+        simple_CLASS_node(name),
+    )
+
+
+def simple_VALUE_OBJECTWITHLOCALPATH_str(name='MyClass'):
+    """
+    Return a simple VALUE.OBJECTWITHLOCALPATH with a CLASS as a (nested) list
+    of XML strings.
+    """
+    return [
+        '<VALUE.OBJECTWITHLOCALPATH>',
+        simple_LOCALCLASSPATH_str(name),
+        simple_CLASS_str(name),
+        '</VALUE.OBJECTWITHLOCALPATH>',
+    ]
+
+
+def simple_VALUE_OBJECTWITHPATH_node(name='MyClass'):
+    """
+    Return a simple VALUE.OBJECTWITHPATH with a CLASS as a cim_xml node.
+    """
+    return cim_xml.VALUE_OBJECTWITHPATH(
+        simple_CLASSPATH_node(name),
+        simple_CLASS_node(name),
+    )
+
+
+def simple_VALUE_OBJECTWITHPATH_str(name='MyClass'):
+    """
+    Return a simple VALUE.OBJECTWITHPATH with a CLASS as a (nested) list
+    of XML strings.
+    """
+    return [
+        '<VALUE.OBJECTWITHPATH>',
+        simple_CLASSPATH_str(name),
+        simple_CLASS_str(name),
+        '</VALUE.OBJECTWITHPATH>',
+    ]
+
+
+def simple_VALUE_INSTANCEWITHPATH_node(name='MyClass'):
+    """
+    Return a simple VALUE.INSTANCEWITHPATH as a cim_xml node.
+    """
+    return cim_xml.VALUE_INSTANCEWITHPATH(
+        simple_INSTANCEPATH_node(name),
+        simple_INSTANCE_node(name),
+    )
+
+
+def simple_VALUE_INSTANCEWITHPATH_str(name='MyClass'):
+    """
+    Return a simple VALUE.INSTANCEWITHPATH as a (nested) list
+    of XML strings.
+    """
+    return [
+        '<VALUE.INSTANCEWITHPATH>',
+        simple_INSTANCEPATH_str(name),
+        simple_INSTANCE_str(name),
+        '</VALUE.INSTANCEWITHPATH>',
+    ]
+
+
+def simple_CLASS_node(name='MyClass'):
+    """
+    Return a simple CLASS as a cim_xml node.
+    """
+    return cim_xml.CLASS(name)
+
+
+def simple_CLASS_str(name='MyClass'):
+    """
+    Return a simple CLASS as a list of XML strings.
+    """
+    return [
+        '<CLASS NAME="{name}"/>'.format(name=name),
+    ]
+
+
+def simple_INSTANCE_node(name='MyClass'):
+    """
+    Return a simple INSTANCE as a cim_xml node.
+    """
+    return cim_xml.INSTANCE(name)
+
+
+def simple_INSTANCE_str(name='MyClass'):
+    """
+    Return a simple INSTANCE as a list of XML strings.
+    """
+    return [
+        '<INSTANCE CLASSNAME="{name}"/>'.format(name=name),
+    ]
+
+
+def simple_QUALIFIER_DECLARATION_node(name='MyQualifier', type='string'):
+    """
+    Return a simple QUALIFIER.DECLARATION as a cim_xml node.
+    """
+    return cim_xml.QUALIFIER_DECLARATION(name, type)
+
+
+def simple_QUALIFIER_DECLARATION_str(name='MyQualifier', type='string'):
+    """
+    Return a simple QUALIFIER.DECLARATION as a list of XML strings.
+    """
+    return [
+        '<QUALIFIER.DECLARATION NAME="{name}" TYPE="{type}"/>'.
+        format(name=name, type=type),
     ]
 
 
@@ -210,67 +471,3768 @@ TESTCASES_CIM_XML_NODE = [
     # * kwargs: Keyword arguments for the test function:
     #   * xml_node: cim_xml node to be tested (cim_xml.CIMElement subclass).
     #   * exp_xml_str_list: Expected XML string of the cim_xml node, as a
-    #     (possibly nested) list of strings, or None.
+    #     (possibly nested) list of strings.
+    #   * cdata_escaping: optional flag controlling whether escaping using
+    #     CDATA sections is used when creating the XML, instead of XML escaping.
+    #     Defaults to False.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
-    # CIM top level element
+    # Testcases for CIM element
+    #
+    #    <!ELEMENT CIM (MESSAGE | DECLARATION)>
+    #    <!ATTLIST CIM
+    #        CIMVERSION CDATA #REQUIRED
+    #        DTDVERSION CDATA #REQUIRED>
     (
-        "CIM: Simple request for EnumerateInstances",
+        "CIM with minimalistic MESSAGE",
         dict(
             xml_node=cim_xml.CIM(
                 cim_xml.MESSAGE(
                     cim_xml.SIMPLEREQ(
                         cim_xml.IMETHODCALL(
                             'EnumerateInstances',
-                            sample_LOCALNAMESPACEPATH_node(),
-                            [
-                                cim_xml.IPARAMVALUE(
-                                    'ClassName',
-                                    sample_CLASSNAME_node(),
-                                ),
-                            ],
+                            simple_LOCALNAMESPACEPATH_node(),
                         ),
                     ),
-                    '1001', '1.0'),
-                '2.0', '2.0'),
-            exp_xml_str_list=None,
+                    '1001', '1.4'),
+                '2.7', '2.3'),
+            exp_xml_str_list=[
+                '<CIM CIMVERSION="2.7" DTDVERSION="2.3">',
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEREQ>',
+                '<IMETHODCALL NAME="EnumerateInstances">',
+                simple_LOCALNAMESPACEPATH_str(),
+                '</IMETHODCALL>',
+                '</SIMPLEREQ>',
+                '</MESSAGE>',
+                '</CIM>',
+            ],
         ),
         None, None, True
     ),
     (
-        "CIM: Simple request for extrinsic method call (no parms)",
+        "CIM with minimalistic DECLARATION",
         dict(
             xml_node=cim_xml.CIM(
-                cim_xml.MESSAGE(
-                    cim_xml.SIMPLEREQ(
-                        cim_xml.METHODCALL(
-                            'MyMethod',
-                            sample_LOCALINSTANCEPATH_node(),
-                        ),
-                    ),
-                    '1001', '1.0'),
-                '2.0', '2.0'),
-            exp_xml_str_list=None,
+                cim_xml.DECLARATION([
+                    cim_xml.DECLGROUP([
+                    ]),
+                ]),
+                '2.7', '2.3'),
+            exp_xml_str_list=[
+                '<CIM CIMVERSION="2.7" DTDVERSION="2.3">',
+                '<DECLARATION>',
+                '<DECLGROUP/>',
+                '</DECLARATION>',
+                '</CIM>',
+            ],
         ),
         None, None, True
     ),
 
+    # Testcases for DECLARATION, DECLGROUP, DECLGROUP.WITHNAME,
+    #  DECLGROUP.WITHPATH elements
+    #
+    #    <!ELEMENT DECLARATION (DECLGROUP | DECLGROUP.WITHNAME |
+    #                           DECLGROUP.WITHPATH)+>
+    #
+    #    <!ELEMENT DECLGROUP ((LOCALNAMESPACEPATH | NAMESPACEPATH)?,
+    #                         QUALIFIER.DECLARATION*, VALUE.OBJECT*)>
+    #
+    #    <!ELEMENT DECLGROUP.WITHNAME ((LOCALNAMESPACEPATH | NAMESPACEPATH)?,
+    #                              QUALIFIER.DECLARATION*, VALUE.NAMEDOBJECT*)>
+    #
+    #    <!ELEMENT DECLGROUP.WITHPATH (VALUE.OBJECTWITHPATH |
+    #                                  VALUE.OBJECTWITHLOCALPATH)*>
     (
-        "VALUE.REFERENCE: Using sample CLASSPATH",
+        "DECLARATION with DECLGROUP with two qualifier declarations + "
+        "two objects, no namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP([
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_OBJECT_node('C1'),
+                    simple_VALUE_OBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP>',
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_OBJECT_str('C1'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</DECLGROUP>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP with two qualifier declarations + "
+        "two objects, local namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP([
+                    simple_LOCALNAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_OBJECT_node('C1'),
+                    simple_VALUE_OBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_OBJECT_str('C1'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</DECLGROUP>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP with two qualifier declarations + "
+        "two objects, namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP([
+                    simple_NAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_OBJECT_node('C1'),
+                    simple_VALUE_OBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP>',
+                simple_NAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_OBJECT_str('C1'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</DECLGROUP>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP.WITHNAME with two qualifier declarations + "
+        "two named objects, no namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_NAMEDOBJECT_node('C1'),
+                    simple_VALUE_NAMEDOBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHNAME>',
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_NAMEDOBJECT_str('C1'),
+                simple_VALUE_NAMEDOBJECT_str('C2'),
+                '</DECLGROUP.WITHNAME>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP.WITHNAME with two qualifier declarations + "
+        "two named objects, local namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_LOCALNAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_NAMEDOBJECT_node('C1'),
+                    simple_VALUE_NAMEDOBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHNAME>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_NAMEDOBJECT_str('C1'),
+                simple_VALUE_NAMEDOBJECT_str('C2'),
+                '</DECLGROUP.WITHNAME>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP.WITHNAME with two qualifier declarations + "
+        "two named objects, namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_NAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_NAMEDOBJECT_node('C1'),
+                    simple_VALUE_NAMEDOBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHNAME>',
+                simple_NAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_NAMEDOBJECT_str('C1'),
+                simple_VALUE_NAMEDOBJECT_str('C2'),
+                '</DECLGROUP.WITHNAME>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP.WITHPATH with two qualifier declarations + "
+        "two objects with path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHPATH([
+                    simple_VALUE_OBJECTWITHPATH_node('C1'),
+                    simple_VALUE_OBJECTWITHPATH_node('C2'),
+                    simple_VALUE_OBJECTWITHLOCALPATH_node('C1'),
+                    simple_VALUE_OBJECTWITHLOCALPATH_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHPATH>',
+                simple_VALUE_OBJECTWITHPATH_str('C1'),
+                simple_VALUE_OBJECTWITHPATH_str('C2'),
+                simple_VALUE_OBJECTWITHLOCALPATH_str('C1'),
+                simple_VALUE_OBJECTWITHLOCALPATH_str('C2'),
+                '</DECLGROUP.WITHPATH>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with two DECLGROUP with "
+        "one qualifier declaration + one object, no namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP([
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_VALUE_OBJECT_node('C1'),
+                ]),
+                cim_xml.DECLGROUP([
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_OBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP>',
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_VALUE_OBJECT_str('C1'),
+                '</DECLGROUP>',
+                '<DECLGROUP>',
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</DECLGROUP>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with with two DECLGROUP with "
+        "one qualifier declaration + one object, local namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP([
+                    simple_LOCALNAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_VALUE_OBJECT_node('C1'),
+                ]),
+                cim_xml.DECLGROUP([
+                    simple_LOCALNAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_OBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_VALUE_OBJECT_str('C1'),
+                '</DECLGROUP>',
+                '<DECLGROUP>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</DECLGROUP>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with two DECLGROUP with "
+        "one qualifier declaration + one object, namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP([
+                    simple_NAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_VALUE_OBJECT_node('C1'),
+                ]),
+                cim_xml.DECLGROUP([
+                    simple_NAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_OBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP>',
+                simple_NAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_VALUE_OBJECT_str('C1'),
+                '</DECLGROUP>',
+                '<DECLGROUP>',
+                simple_NAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</DECLGROUP>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with two DECLGROUP.WITHNAME with "
+        "one qualifier declaration + one named object, no namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_VALUE_NAMEDOBJECT_node('C1'),
+                ]),
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_NAMEDOBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHNAME>',
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_VALUE_NAMEDOBJECT_str('C1'),
+                '</DECLGROUP.WITHNAME>',
+                '<DECLGROUP.WITHNAME>',
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_NAMEDOBJECT_str('C2'),
+                '</DECLGROUP.WITHNAME>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with two DECLGROUP.WITHNAME with "
+        "one qualifier declaration + one named object, local namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_LOCALNAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_VALUE_NAMEDOBJECT_node('C1'),
+                ]),
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_LOCALNAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_NAMEDOBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHNAME>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_VALUE_NAMEDOBJECT_str('C1'),
+                '</DECLGROUP.WITHNAME>',
+                '<DECLGROUP.WITHNAME>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_NAMEDOBJECT_str('C2'),
+                '</DECLGROUP.WITHNAME>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP.WITHNAME with "
+        "one qualifier declaration + one named object, namespace path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_NAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q1'),
+                    simple_VALUE_NAMEDOBJECT_node('C1'),
+                ]),
+                cim_xml.DECLGROUP_WITHNAME([
+                    simple_NAMESPACEPATH_node(),
+                    simple_QUALIFIER_DECLARATION_node('Q2'),
+                    simple_VALUE_NAMEDOBJECT_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHNAME>',
+                simple_NAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_VALUE_NAMEDOBJECT_str('C1'),
+                '</DECLGROUP.WITHNAME>',
+                '<DECLGROUP.WITHNAME>',
+                simple_NAMESPACEPATH_str(),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                simple_VALUE_NAMEDOBJECT_str('C2'),
+                '</DECLGROUP.WITHNAME>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "DECLARATION with two DECLGROUP.WITHPATH with "
+        "one qualifier declaration + one object with path",
+        dict(
+            xml_node=cim_xml.DECLARATION([
+                cim_xml.DECLGROUP_WITHPATH([
+                    simple_VALUE_OBJECTWITHPATH_node('C1'),
+                    simple_VALUE_OBJECTWITHLOCALPATH_node('C1'),
+                ]),
+                cim_xml.DECLGROUP_WITHPATH([
+                    simple_VALUE_OBJECTWITHPATH_node('C2'),
+                    simple_VALUE_OBJECTWITHLOCALPATH_node('C2'),
+                ]),
+            ]),
+            exp_xml_str_list=[
+                '<DECLARATION>',
+                '<DECLGROUP.WITHPATH>',
+                simple_VALUE_OBJECTWITHPATH_str('C1'),
+                simple_VALUE_OBJECTWITHLOCALPATH_str('C1'),
+                '</DECLGROUP.WITHPATH>',
+                '<DECLGROUP.WITHPATH>',
+                simple_VALUE_OBJECTWITHPATH_str('C2'),
+                simple_VALUE_OBJECTWITHLOCALPATH_str('C2'),
+                '</DECLGROUP.WITHPATH>',
+                '</DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for QUALIFIER.DECLARATION element
+    #
+    #    <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
+    #    <!ATTLIST QUALIFIER.DECLARATION
+    #         %CIMName;
+    #         %CIMType;               #REQUIRED
+    #         ISARRAY    (true|false) #IMPLIED
+    #         %ArraySize;
+    #         %QualifierFlavor;>
+    (
+        "QUALIFIER.DECLARATION: Fully equipped scalar qualifier",
+        dict(
+            xml_node=cim_xml.QUALIFIER_DECLARATION(
+                'MyQualifier',
+                'string',
+                value=cim_xml.VALUE('abc'),
+                is_array=False,
+                qualifier_scopes={
+                    'CLASS': True,
+                    'ASSOCIATION': True,
+                },
+                overridable=True,
+                tosubclass=True,
+                toinstance=False,
+                translatable=False,
+            ),
+            exp_xml_str_list=[
+                '<QUALIFIER.DECLARATION NAME="MyQualifier" TYPE="string" '
+                'ISARRAY="false" OVERRIDABLE="true" TOSUBCLASS="true" '
+                'TOINSTANCE="false" TRANSLATABLE="false">',
+                '<SCOPE CLASS="true" ASSOCIATION="true"/>',
+                '<VALUE>abc</VALUE>',
+                '</QUALIFIER.DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION: Fully equipped fixed array qualifier",
+        dict(
+            xml_node=cim_xml.QUALIFIER_DECLARATION(
+                'MyQualifier',
+                'string',
+                value=cim_xml.VALUE_ARRAY([
+                    cim_xml.VALUE('abc'),
+                    cim_xml.VALUE_NULL(),
+                    cim_xml.VALUE('def'),
+                ]),
+                is_array=True,
+                array_size=4,
+                qualifier_scopes={
+                    'any': True,
+                },
+                overridable=False,
+                tosubclass=False,
+                toinstance=True,
+                translatable=True,
+            ),
+            exp_xml_str_list=[
+                '<QUALIFIER.DECLARATION NAME="MyQualifier" TYPE="string" '
+                'ISARRAY="true" ARRAYSIZE="4" '
+                'OVERRIDABLE="false" TOSUBCLASS="false" '
+                'TOINSTANCE="true" TRANSLATABLE="true">',
+                '<SCOPE CLASS="true" ASSOCIATION="true" '
+                'REFERENCE="true" PROPERTY="true" METHOD="true" '
+                'PARAMETER="true" INDICATION="true"/>',
+                '<VALUE.ARRAY>',
+                '<VALUE>abc</VALUE>',
+                '<VALUE.NULL/>',
+                '<VALUE>def</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION: Minimalistic qualifier",
+        dict(
+            xml_node=cim_xml.QUALIFIER_DECLARATION(
+                'MyQualifier',
+                'string',
+            ),
+            exp_xml_str_list=[
+                '<QUALIFIER.DECLARATION NAME="MyQualifier" TYPE="string"/>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for SCOPE element
+    #
+    #    <!ELEMENT SCOPE EMPTY>
+    #    <!ATTLIST SCOPE
+    #         CLASS        (true|false)      'false'
+    #         ASSOCIATION  (true|false)      'false'
+    #         REFERENCE    (true|false)      'false'
+    #         PROPERTY     (true|false)      'false'
+    #         METHOD       (true|false)      'false'
+    #         PARAMETER    (true|false)      'false'
+    #         INDICATION   (true|false)      'false'>
+    (
+        "SCOPE: Default input",
+        dict(
+            xml_node=cim_xml.SCOPE(),
+            exp_xml_str_list=[
+                '<SCOPE/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE: all scopes true",
+        dict(
+            xml_node=cim_xml.SCOPE({
+                'CLASS': True,
+                'ASSOCIATION': True,
+                'REFERENCE': True,
+                'PROPERTY': True,
+                'METHOD': True,
+                'PARAMETER': True,
+                'INDICATION': True,
+            }),
+            exp_xml_str_list=[
+                '<SCOPE CLASS="true" ASSOCIATION="true" '
+                'REFERENCE="true" PROPERTY="true" METHOD="true" '
+                'PARAMETER="true" INDICATION="true"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE: all scopes false",
+        dict(
+            xml_node=cim_xml.SCOPE({
+                'CLASS': False,
+                'ASSOCIATION': False,
+                'REFERENCE': False,
+                'PROPERTY': False,
+                'METHOD': False,
+                'PARAMETER': False,
+                'INDICATION': False,
+            }),
+            exp_xml_str_list=[
+                '<SCOPE CLASS="false" ASSOCIATION="false" '
+                'REFERENCE="false" PROPERTY="false" METHOD="false" '
+                'PARAMETER="false" INDICATION="false"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "SCOPE: any scope",
+        dict(
+            xml_node=cim_xml.SCOPE({
+                'any': True,
+            }),
+            exp_xml_str_list=[
+                '<SCOPE CLASS="true" ASSOCIATION="true" '
+                'REFERENCE="true" PROPERTY="true" METHOD="true" '
+                'PARAMETER="true" INDICATION="true"/>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE element
+    #
+    #    <!ELEMENT VALUE (#PCDATA)>
+    (
+        "VALUE with None as input",
+        dict(
+            xml_node=cim_xml.VALUE(None),
+            exp_xml_str_list=[
+                '<VALUE/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with empty string as input",
+        dict(
+            xml_node=cim_xml.VALUE(''),
+            exp_xml_str_list=[
+                '<VALUE/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with non-empty string as input",
+        dict(
+            xml_node=cim_xml.VALUE('abc'),
+            exp_xml_str_list=[
+                '<VALUE>abc</VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with XML special characters as input, "
+        "using XML escaping",
+        dict(
+            xml_node=cim_xml.VALUE('a&b<c>d'),
+            exp_xml_str_list=[
+                '<VALUE>a&amp;b&lt;c&gt;d</VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with XML special characters as input, "
+        "using CDATA escaping",
+        dict(
+            xml_node=cim_xml.VALUE('a&b<c>d'),
+            exp_xml_str_list=[
+                '<VALUE><![CDATA[a&b<c>d]]></VALUE>',
+            ],
+            cdata_escaping=True,
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with already XML-escaped XML special characters as input, "
+        "using XML escaping",
+        dict(
+            xml_node=cim_xml.VALUE('a&amp;b&lt;c&gt;d'),
+            exp_xml_str_list=[
+                '<VALUE>a&amp;amp;b&amp;lt;c&amp;gt;d</VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with already XML-escaped XML special characters as input, "
+        "using CDATA escaping",
+        dict(
+            xml_node=cim_xml.VALUE('a&amp;b&lt;c&gt;d'),
+            exp_xml_str_list=[
+                '<VALUE><![CDATA[a&amp;b&lt;c&gt;d]]></VALUE>',
+            ],
+            cdata_escaping=True,
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with already CDATA-escaped XML special characters as input, "
+        "using XML escaping",
+        dict(
+            xml_node=cim_xml.VALUE('<![CDATA[a&b<c>d]]>'),
+            exp_xml_str_list=[
+                '<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with already CDATA-escaped XML special characters as input, "
+        "using CDATA escaping",
+        dict(
+            xml_node=cim_xml.VALUE('<![CDATA[a&b<c>d]]>'),
+            exp_xml_str_list=[
+                '<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>',
+            ],
+            cdata_escaping=True,
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with some control characters as input",
+        dict(
+            xml_node=cim_xml.VALUE('a\nb\rc\td'),
+            exp_xml_str_list=[
+                '<VALUE>a\nb\rc\td</VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with whitespace as input",
+        dict(
+            xml_node=cim_xml.VALUE('  a  b  '),
+            exp_xml_str_list=[
+                '<VALUE>  a  b  </VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE with backlash character as input",
+        dict(
+            xml_node=cim_xml.VALUE('\\'),
+            exp_xml_str_list=[
+                '<VALUE>\\</VALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.ARRAY element
+    #
+    #    <!ELEMENT VALUE.ARRAY (VALUE*)>
+    (
+        "VALUE.ARRAY with empty list as input",
+        dict(
+            xml_node=cim_xml.VALUE_ARRAY([]),
+            exp_xml_str_list=[
+                '<VALUE.ARRAY/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.ARRAY with list of multiple VALUE and VALUE.NULL as input",
+        dict(
+            xml_node=cim_xml.VALUE_ARRAY([
+                cim_xml.VALUE_NULL(),
+                cim_xml.VALUE('abc'),
+                cim_xml.VALUE_NULL(),
+                cim_xml.VALUE('def'),
+                cim_xml.VALUE_NULL(),
+            ]),
+            exp_xml_str_list=[
+                '<VALUE.ARRAY>',
+                '<VALUE.NULL/>',
+                '<VALUE>abc</VALUE>',
+                '<VALUE.NULL/>',
+                '<VALUE>def</VALUE>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.REFERENCE element
+    #
+    #    <!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME |
+    #                               INSTANCEPATH | LOCALINSTANCEPATH |
+    #                               INSTANCENAME)>
+    (
+        "VALUE.REFERENCE with CLASSPATH",
         dict(
             xml_node=cim_xml.VALUE_REFERENCE(
-                sample_CLASSPATH_node(),
+                simple_CLASSPATH_node(),
             ),
             exp_xml_str_list=[
                 '<VALUE.REFERENCE>',
-                sample_CLASSPATH_str(),
+                simple_CLASSPATH_str(),
                 '</VALUE.REFERENCE>',
             ],
         ),
         None, None, True
     ),
+    (
+        "VALUE.REFERENCE with LOCALCLASSPATH",
+        dict(
+            xml_node=cim_xml.VALUE_REFERENCE(
+                simple_LOCALCLASSPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.REFERENCE>',
+                simple_LOCALCLASSPATH_str(),
+                '</VALUE.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with CLASSNAME",
+        dict(
+            xml_node=cim_xml.VALUE_REFERENCE(
+                simple_CLASSNAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.REFERENCE>',
+                simple_CLASSNAME_str(),
+                '</VALUE.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with INSTANCEPATH",
+        dict(
+            xml_node=cim_xml.VALUE_REFERENCE(
+                simple_INSTANCEPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.REFERENCE>',
+                simple_INSTANCEPATH_str(),
+                '</VALUE.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with LOCALINSTANCEPATH",
+        dict(
+            xml_node=cim_xml.VALUE_REFERENCE(
+                simple_LOCALINSTANCEPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.REFERENCE>',
+                simple_LOCALINSTANCEPATH_str(),
+                '</VALUE.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFERENCE with INSTANCENAME",
+        dict(
+            xml_node=cim_xml.VALUE_REFERENCE(
+                simple_INSTANCENAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.REFERENCE>',
+                simple_INSTANCENAME_str(),
+                '</VALUE.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.REFARRAY element
+    #
+    #    <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
+    (
+        "VALUE.REFARRAY with empty list",
+        dict(
+            xml_node=cim_xml.VALUE_REFARRAY([]),
+            exp_xml_str_list=[
+                '<VALUE.REFARRAY/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.REFARRAY with two VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.VALUE_REFARRAY([
+                cim_xml.VALUE_REFERENCE(
+                    simple_CLASSNAME_node('C1'),
+                ),
+                cim_xml.VALUE_REFERENCE(
+                    simple_CLASSNAME_node('C2'),
+                ),
+            ]),
+            exp_xml_str_list=[
+                '<VALUE.REFARRAY>',
+                '<VALUE.REFERENCE>',
+                simple_CLASSNAME_str('C1'),
+                '</VALUE.REFERENCE>',
+                '<VALUE.REFERENCE>',
+                simple_CLASSNAME_str('C2'),
+                '</VALUE.REFERENCE>',
+                '</VALUE.REFARRAY>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.OBJECT element
+    #
+    #    <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
+    (
+        "VALUE.OBJECT with CLASS",
+        dict(
+            xml_node=cim_xml.VALUE_OBJECT(
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.OBJECT>',
+                simple_CLASS_str(),
+                '</VALUE.OBJECT>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.OBJECT with INSTANCE",
+        dict(
+            xml_node=cim_xml.VALUE_OBJECT(
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.OBJECT>',
+                simple_INSTANCE_str(),
+                '</VALUE.OBJECT>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.NAMEDINSTANCE element
+    #
+    #    <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
+    (
+        "VALUE.NAMEDINSTANCE with INSTANCENAME and INSTANCE",
+        dict(
+            xml_node=cim_xml.VALUE_NAMEDINSTANCE(
+                simple_INSTANCENAME_node(),
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.NAMEDINSTANCE>',
+                simple_INSTANCENAME_str(),
+                simple_INSTANCE_str(),
+                '</VALUE.NAMEDINSTANCE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.NAMEDOBJECT element
+    #
+    #    <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
+    (
+        "VALUE.NAMEDOBJECT with CLASS",
+        dict(
+            xml_node=cim_xml.VALUE_NAMEDOBJECT(
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.NAMEDOBJECT>',
+                simple_CLASS_str(),
+                '</VALUE.NAMEDOBJECT>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.NAMEDOBJECT with CLASS",
+        dict(
+            xml_node=cim_xml.VALUE_NAMEDOBJECT([
+                simple_INSTANCENAME_node(),
+                simple_INSTANCE_node(),
+            ]),
+            exp_xml_str_list=[
+                '<VALUE.NAMEDOBJECT>',
+                simple_INSTANCENAME_str(),
+                simple_INSTANCE_str(),
+                '</VALUE.NAMEDOBJECT>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.OBJECTWITHLOCALPATH element
+    #
+    #    <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
+    #                                         (LOCALINSTANCEPATH, INSTANCE))>
+    (
+        "VALUE.OBJECTWITHLOCALPATH with LOCALCLASSPATH and CLASS",
+        dict(
+            xml_node=cim_xml.VALUE_OBJECTWITHLOCALPATH(
+                simple_LOCALCLASSPATH_node(),
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.OBJECTWITHLOCALPATH>',
+                simple_LOCALCLASSPATH_str(),
+                simple_CLASS_str(),
+                '</VALUE.OBJECTWITHLOCALPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHLOCALPATH with LOCALINSTANCEPATH and INSTANCE",
+        dict(
+            xml_node=cim_xml.VALUE_OBJECTWITHLOCALPATH(
+                simple_LOCALINSTANCEPATH_node(),
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.OBJECTWITHLOCALPATH>',
+                simple_LOCALINSTANCEPATH_str(),
+                simple_INSTANCE_str(),
+                '</VALUE.OBJECTWITHLOCALPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.OBJECTWITHPATH element
+    #
+    #    <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
+    #                                    (INSTANCEPATH, INSTANCE))>
+    (
+        "VALUE.OBJECTWITHPATH with CLASSPATH and CLASS",
+        dict(
+            xml_node=cim_xml.VALUE_OBJECTWITHPATH(
+                simple_CLASSPATH_node(),
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.OBJECTWITHPATH>',
+                simple_CLASSPATH_str(),
+                simple_CLASS_str(),
+                '</VALUE.OBJECTWITHPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHPATH with INSTANCEPATH and INSTANCE",
+        dict(
+            xml_node=cim_xml.VALUE_OBJECTWITHPATH(
+                simple_INSTANCEPATH_node(),
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.OBJECTWITHPATH>',
+                simple_INSTANCEPATH_str(),
+                simple_INSTANCE_str(),
+                '</VALUE.OBJECTWITHPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.NULL element
+    #
+    #    <!ELEMENT VALUE.NULL EMPTY>
+    (
+        "VALUE.NULL",
+        dict(
+            xml_node=cim_xml.VALUE_NULL(),
+            exp_xml_str_list=[
+                '<VALUE.NULL/>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for VALUE.INSTANCEWITHPATH element
+    #
+    #    <!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH, INSTANCE)>
+    (
+        "VALUE.INSTANCEWITHPATH",
+        dict(
+            xml_node=cim_xml.VALUE_INSTANCEWITHPATH(
+                simple_INSTANCEPATH_node(),
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<VALUE.INSTANCEWITHPATH>',
+                simple_INSTANCEPATH_str(),
+                simple_INSTANCE_str(),
+                '</VALUE.INSTANCEWITHPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for NAMESPACEPATH element
+    #
+    #    <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
+    (
+        "NAMESPACEPATH",
+        dict(
+            xml_node=cim_xml.NAMESPACEPATH(
+                simple_HOST_node(),
+                simple_LOCALNAMESPACEPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<NAMESPACEPATH>',
+                simple_HOST_str(),
+                simple_LOCALNAMESPACEPATH_str(),
+                '</NAMESPACEPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for LOCALNAMESPACEPATH element
+    #
+    #    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
+    (
+        "LOCALNAMESPACEPATH with one NAMESPACE",
+        dict(
+            xml_node=cim_xml.LOCALNAMESPACEPATH([
+                simple_NAMESPACE_node(),
+            ]),
+            exp_xml_str_list=[
+                '<LOCALNAMESPACEPATH>',
+                simple_NAMESPACE_str(),
+                '</LOCALNAMESPACEPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "LOCALNAMESPACEPATH with two NAMESPACE",
+        dict(
+            xml_node=cim_xml.LOCALNAMESPACEPATH([
+                simple_NAMESPACE_node('root'),
+                simple_NAMESPACE_node('myns'),
+            ]),
+            exp_xml_str_list=[
+                '<LOCALNAMESPACEPATH>',
+                simple_NAMESPACE_str('root'),
+                simple_NAMESPACE_str('myns'),
+                '</LOCALNAMESPACEPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for HOST element
+    #
+    #    <!ELEMENT HOST (#PCDATA)>
+    (
+        "HOST with empty string as input",
+        dict(
+            xml_node=cim_xml.HOST(''),
+            exp_xml_str_list=[
+                '<HOST/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "HOST with non-empty string as input",
+        dict(
+            xml_node=cim_xml.HOST('abc'),
+            exp_xml_str_list=[
+                '<HOST>abc</HOST>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for NAMESPACE element
+    #
+    #    <!ELEMENT NAMESPACE EMPTY>
+    #    <!ATTLIST NAMESPACE
+    #        %CIMName;>
+    (
+        "NAMESPACE with empty string as name",
+        dict(
+            xml_node=cim_xml.NAMESPACE(''),
+            exp_xml_str_list=[
+                '<NAMESPACE NAME=""/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "NAMESPACE with non-empty string as name",
+        dict(
+            xml_node=cim_xml.NAMESPACE('abc'),
+            exp_xml_str_list=[
+                '<NAMESPACE NAME="abc"/>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for CLASSPATH element
+    #
+    #    <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
+    (
+        "CLASSPATH",
+        dict(
+            xml_node=cim_xml.CLASSPATH(
+                simple_NAMESPACEPATH_node(),
+                simple_CLASSNAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<CLASSPATH>',
+                simple_NAMESPACEPATH_str(),
+                simple_CLASSNAME_str(),
+                '</CLASSPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for LOCALCLASSPATH element
+    #
+    #    <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
+    (
+        "LOCALCLASSPATH",
+        dict(
+            xml_node=cim_xml.LOCALCLASSPATH(
+                simple_LOCALNAMESPACEPATH_node(),
+                simple_CLASSNAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<LOCALCLASSPATH>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_CLASSNAME_str(),
+                '</LOCALCLASSPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for CLASSNAME element
+    #
+    #    <!ELEMENT CLASSNAME EMPTY>
+    #    <!ATTLIST CLASSNAME
+    #        %CIMName;>
+    (
+        "CLASSNAME with empty string as name",
+        dict(
+            xml_node=cim_xml.CLASSNAME(''),
+            exp_xml_str_list=[
+                '<CLASSNAME NAME=""/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "CLASSNAME with 7-bit ASCII string as name",
+        dict(
+            xml_node=cim_xml.CLASSNAME('ACME_Ab42'),
+            exp_xml_str_list=[
+                '<CLASSNAME NAME="ACME_Ab42"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "CLASSNAME with non-ASCII UCS-2 string as name",
+        dict(
+            xml_node=cim_xml.CLASSNAME('ACME_\u00E4'),
+            exp_xml_str_list=[
+                '<CLASSNAME NAME="ACME_\u00E4"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "CLASSNAME with non-UCS-2 unicode string as name",
+        dict(
+            xml_node=cim_xml.CLASSNAME('ACME_\U00010142'),
+            exp_xml_str_list=[
+                '<CLASSNAME NAME="ACME_\U00010142"/>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for INSTANCEPATH element
+    #
+    #    <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
+    (
+        "INSTANCEPATH",
+        dict(
+            xml_node=cim_xml.INSTANCEPATH(
+                simple_NAMESPACEPATH_node(),
+                simple_INSTANCENAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<INSTANCEPATH>',
+                simple_NAMESPACEPATH_str(),
+                simple_INSTANCENAME_str(),
+                '</INSTANCEPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for LOCALINSTANCEPATH element
+    #
+    #    <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
+    (
+        "LOCALINSTANCEPATH",
+        dict(
+            xml_node=cim_xml.LOCALINSTANCEPATH(
+                simple_LOCALNAMESPACEPATH_node(),
+                simple_INSTANCENAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<LOCALINSTANCEPATH>',
+                simple_LOCALNAMESPACEPATH_str(),
+                simple_INSTANCENAME_str(),
+                '</LOCALINSTANCEPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for INSTANCENAME element
+    #
+    #    <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? | VALUE.REFERENCE?)>
+    #    <!ATTLIST INSTANCENAME
+    #        %ClassName;>
+    (
+        "INSTANCENAME with no keys",
+        dict(
+            xml_node=cim_xml.INSTANCENAME(
+                'MyClass',
+                None
+            ),
+            exp_xml_str_list=[
+                '<INSTANCENAME CLASSNAME="MyClass"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with one KEYBINDING",
+        dict(
+            xml_node=cim_xml.INSTANCENAME(
+                'MyClass',
+                cim_xml.KEYBINDING(
+                    'Key1',
+                    cim_xml.KEYVALUE('abc'),
+                ),
+            ),
+            exp_xml_str_list=[
+                '<INSTANCENAME CLASSNAME="MyClass">',
+                '<KEYBINDING NAME="Key1">',
+                '<KEYVALUE VALUETYPE="string">abc</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with two KEYBINDING",
+        dict(
+            xml_node=cim_xml.INSTANCENAME(
+                'MyClass',
+                [
+                    cim_xml.KEYBINDING(
+                        'Key1',
+                        cim_xml.KEYVALUE('abc'),
+                    ),
+                    cim_xml.KEYBINDING(
+                        'Key2',
+                        cim_xml.KEYVALUE('def'),
+                    ),
+                ],
+            ),
+            exp_xml_str_list=[
+                '<INSTANCENAME CLASSNAME="MyClass">',
+                '<KEYBINDING NAME="Key1">',
+                '<KEYVALUE VALUETYPE="string">abc</KEYVALUE>',
+                '</KEYBINDING>',
+                '<KEYBINDING NAME="Key2">',
+                '<KEYVALUE VALUETYPE="string">def</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with one KEYVALUE",
+        dict(
+            xml_node=cim_xml.INSTANCENAME(
+                'MyClass',
+                cim_xml.KEYVALUE('abc'),
+            ),
+            exp_xml_str_list=[
+                '<INSTANCENAME CLASSNAME="MyClass">',
+                '<KEYVALUE VALUETYPE="string">abc</KEYVALUE>',
+                '</INSTANCENAME>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with one VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.INSTANCENAME(
+                'MyClass',
+                cim_xml.VALUE_REFERENCE(
+                    simple_CLASSNAME_node('C2'),
+                ),
+            ),
+            exp_xml_str_list=[
+                '<INSTANCENAME CLASSNAME="MyClass">',
+                '<VALUE.REFERENCE>',
+                simple_CLASSNAME_str('C2'),
+                '</VALUE.REFERENCE>',
+                '</INSTANCENAME>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for OBJECTPATH element
+    #
+    #    <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
+    (
+        "OBJECTPATH with INSTANCEPATH",
+        dict(
+            xml_node=cim_xml.OBJECTPATH(
+                simple_INSTANCEPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<OBJECTPATH>',
+                simple_INSTANCEPATH_str(),
+                '</OBJECTPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "OBJECTPATH with CLASSPATH",
+        dict(
+            xml_node=cim_xml.OBJECTPATH(
+                simple_CLASSPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<OBJECTPATH>',
+                simple_CLASSPATH_str(),
+                '</OBJECTPATH>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for KEYBINDING element
+    #
+    #    <!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
+    #    <!ATTLIST KEYBINDING
+    #        %CIMName;>
+    (
+        "KEYBINDING with KEYVALUE",
+        dict(
+            xml_node=cim_xml.KEYBINDING(
+                'Key1',
+                cim_xml.KEYVALUE('abc'),
+            ),
+            exp_xml_str_list=[
+                '<KEYBINDING NAME="Key1">',
+                '<KEYVALUE VALUETYPE="string">abc</KEYVALUE>',
+                '</KEYBINDING>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYBINDING with VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.KEYBINDING(
+                'Key1',
+                cim_xml.VALUE_REFERENCE(
+                    simple_CLASSNAME_node('C2'),
+                ),
+            ),
+            exp_xml_str_list=[
+                '<KEYBINDING NAME="Key1">',
+                '<VALUE.REFERENCE>',
+                simple_CLASSNAME_str('C2'),
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for KEYVALUE element
+    #
+    #    <!ELEMENT KEYVALUE (#PCDATA)>
+    #    <!ATTLIST KEYVALUE
+    #        VALUETYPE    (string|boolean|numeric)  'string'
+    #        %CIMType;    #IMPLIED>
+    (
+        "KEYVALUE with None (not very useful, though)",
+        dict(
+            xml_node=cim_xml.KEYVALUE(None),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="string"></KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with empty string and no types",
+        dict(
+            xml_node=cim_xml.KEYVALUE(''),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="string"></KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with non-empty string and VALUETYPE",
+        dict(
+            xml_node=cim_xml.KEYVALUE(
+                'abc', value_type='string'),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="string">abc</KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with non-empty string and VALUETYPE and TYPE",
+        dict(
+            xml_node=cim_xml.KEYVALUE(
+                'abc', value_type='string', cim_type='string'),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="string" TYPE="string">abc</KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with numeric and VALUETYPE",
+        dict(
+            xml_node=cim_xml.KEYVALUE(
+                '42', value_type='numeric'),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with numeric and VALUETYPE and TYPE",
+        dict(
+            xml_node=cim_xml.KEYVALUE(
+                '42', value_type='numeric', cim_type='uint8'),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint8">42</KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with boolean and VALUETYPE",
+        dict(
+            xml_node=cim_xml.KEYVALUE(
+                'true', value_type='boolean'),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="boolean">true</KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE with boolean and VALUETYPE and TYPE",
+        dict(
+            xml_node=cim_xml.KEYVALUE(
+                'true', value_type='boolean', cim_type='boolean'),
+            exp_xml_str_list=[
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">true</KEYVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for CLASS element
+    #
+    #    <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+    #                     PROPERTY.REFERENCE)*, METHOD*)>
+    #    <!ATTLIST CLASS
+    #        %CIMName;
+    #        %SuperClass;>
+    (
+        "CLASS with minimalistic elements",
+        dict(
+            xml_node=cim_xml.CLASS(
+                'MyClass',
+            ),
+            exp_xml_str_list=[
+                '<CLASS NAME="MyClass"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "CLASS fully equipped",
+        dict(
+            xml_node=cim_xml.CLASS(
+                'MyClass',
+                properties=[
+                    cim_xml.PROPERTY('P1', 'string'),
+                    cim_xml.PROPERTY_ARRAY('P2', 'string'),
+                    cim_xml.PROPERTY_REFERENCE('P3'),
+                ],
+                methods=[
+                    cim_xml.METHOD('M1'),
+                    cim_xml.METHOD('M2'),
+                ],
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ],
+                superclass='MySuper',
+            ),
+            exp_xml_str_list=[
+                '<CLASS NAME="MyClass" SUPERCLASS="MySuper">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '<PROPERTY NAME="P1" TYPE="string"/>',
+                '<PROPERTY.ARRAY NAME="P2" TYPE="string"/>',
+                '<PROPERTY.REFERENCE NAME="P3"/>',
+                '<METHOD NAME="M1"/>',
+                '<METHOD NAME="M2"/>',
+                '</CLASS>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for INSTANCE element
+    #
+    #    <!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+    #                                     PROPERTY.REFERENCE)*)>
+    #    <!ATTLIST INSTANCE
+    #        %ClassName;
+    #        xml:lang   NMTOKEN  #IMPLIED>
+    (
+        "INSTANCE with minimalistic elements",
+        dict(
+            xml_node=cim_xml.INSTANCE(
+                'MyClass',
+            ),
+            exp_xml_str_list=[
+                '<INSTANCE CLASSNAME="MyClass"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCE fully equipped",
+        dict(
+            xml_node=cim_xml.INSTANCE(
+                'MyClass',
+                properties=[
+                    cim_xml.PROPERTY('P1', 'string'),
+                    cim_xml.PROPERTY_ARRAY('P2', 'string'),
+                    cim_xml.PROPERTY_REFERENCE('P3'),
+                ],
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ],
+            ),
+            exp_xml_str_list=[
+                '<INSTANCE CLASSNAME="MyClass">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '<PROPERTY NAME="P1" TYPE="string"/>',
+                '<PROPERTY.ARRAY NAME="P2" TYPE="string"/>',
+                '<PROPERTY.REFERENCE NAME="P3"/>',
+                '</INSTANCE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for QUALIFIER element
+    #
+    #    <!ELEMENT QUALIFIER ((VALUE | VALUE.ARRAY)?)>
+    #    <!ATTLIST QUALIFIER
+    #        %CIMName;
+    #        %CIMType;               #REQUIRED
+    #        %Propagated;
+    #        %QualifierFlavor;
+    #        xml:lang  NMTOKEN  #IMPLIED>
+    (
+        "QUALIFIER of scalar string type, minimalistic",
+        dict(
+            xml_node=cim_xml.QUALIFIER(
+                'MyQualifier',
+                'string',
+            ),
+            exp_xml_str_list=[
+                '<QUALIFIER NAME="MyQualifier" TYPE="string"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER of scalar string type and flavors all true",
+        dict(
+            xml_node=cim_xml.QUALIFIER(
+                'MyQualifier',
+                'string',
+                value=cim_xml.VALUE('abc'),
+                propagated=True,
+                overridable=True,
+                tosubclass=True,
+                toinstance=True,
+                translatable=True,
+                xml_lang='de_DE'
+            ),
+            exp_xml_str_list=[
+                '<QUALIFIER NAME="MyQualifier" TYPE="string" '
+                'PROPAGATED="true" OVERRIDABLE="true" '
+                'TOSUBCLASS="true" TOINSTANCE="true" '
+                'TRANSLATABLE="true" xml:lang="de_DE">',
+                '<VALUE>abc</VALUE>',
+                '</QUALIFIER>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER of array string type and flavors all false",
+        dict(
+            xml_node=cim_xml.QUALIFIER(
+                'MyQualifier',
+                'string',
+                value=cim_xml.VALUE_ARRAY([
+                    cim_xml.VALUE('abc'),
+                    cim_xml.VALUE_NULL(),
+                ]),
+                propagated=False,
+                overridable=False,
+                tosubclass=False,
+                toinstance=False,
+                translatable=False,
+                xml_lang='de_DE'
+            ),
+            exp_xml_str_list=[
+                '<QUALIFIER NAME="MyQualifier" TYPE="string" '
+                'PROPAGATED="false" OVERRIDABLE="false" '
+                'TOSUBCLASS="false" TOINSTANCE="false" '
+                'TRANSLATABLE="false" xml:lang="de_DE">',
+                '<VALUE.ARRAY>',
+                '<VALUE>abc</VALUE>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PROPERTY element
+    #
+    #    <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
+    #    <!ATTLIST PROPERTY
+    #        %CIMName;
+    #        %CIMType;           #REQUIRED
+    #        %ClassOrigin;
+    #        %Propagated;
+    #        %EmbeddedObject;
+    #        xml:lang   NMTOKEN  #IMPLIED>
+    (
+        "PROPERTY of string type, minimalistic",
+        dict(
+            xml_node=cim_xml.PROPERTY(
+                'MyProp',
+                'string',
+            ),
+            exp_xml_str_list=[
+                '<PROPERTY NAME="MyProp" TYPE="string"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY of string type, all attributes",
+        dict(
+            xml_node=cim_xml.PROPERTY(
+                'MyProp',
+                'string',
+                value=cim_xml.VALUE('abc'),
+                class_origin='OriginClass',
+                propagated=True,
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ],
+                xml_lang='de_DE',
+                embedded_object='instance'
+            ),
+            exp_xml_str_list=[
+                '<PROPERTY NAME="MyProp" TYPE="string" '
+                'CLASSORIGIN="OriginClass" PROPAGATED="true" '
+                'EmbeddedObject="instance" xml:lang="de_DE">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '<VALUE>abc</VALUE>',
+                '</PROPERTY>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PROPERTY.ARRAY element
+    #
+    #    <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
+    #    <!ATTLIST PROPERTY.ARRAY
+    #        %CIMName;
+    #        %CIMType;           #REQUIRED
+    #        %ArraySize;
+    #        %ClassOrigin;
+    #        %Propagated;
+    #        %EmbeddedObject;
+    #        xml:lang   NMTOKEN  #IMPLIED>
+    (
+        "PROPERTY.ARRAY of string type, minimalistic",
+        dict(
+            xml_node=cim_xml.PROPERTY_ARRAY(
+                'MyProp',
+                'string',
+            ),
+            exp_xml_str_list=[
+                '<PROPERTY.ARRAY NAME="MyProp" TYPE="string"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.ARRAY of string type, all attributes",
+        dict(
+            xml_node=cim_xml.PROPERTY_ARRAY(
+                'MyProp',
+                'string',
+                value_array=cim_xml.VALUE_ARRAY([
+                    cim_xml.VALUE('abc'),
+                    cim_xml.VALUE_NULL(),
+                ]),
+                array_size='4',
+                class_origin='OriginClass',
+                propagated=True,
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ],
+                xml_lang='de_DE',
+                embedded_object='instance'
+            ),
+            exp_xml_str_list=[
+                '<PROPERTY.ARRAY NAME="MyProp" TYPE="string" ARRAYSIZE="4" '
+                'CLASSORIGIN="OriginClass" PROPAGATED="true" '
+                'EmbeddedObject="instance" xml:lang="de_DE">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '<VALUE.ARRAY>',
+                '<VALUE>abc</VALUE>',
+                '<VALUE.NULL/>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PROPERTY.REFERENCE element
+    #
+    #    <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, VALUE.REFERENCE?)>
+    #    <!ATTLIST PROPERTY.REFERENCE
+    #        %CIMName;
+    #        %ReferenceClass;
+    #        %ClassOrigin;
+    #        %Propagated;>
+    (
+        "PROPERTY.REFERENCE, minimalistic",
+        dict(
+            xml_node=cim_xml.PROPERTY_REFERENCE(
+                'MyProp',
+            ),
+            exp_xml_str_list=[
+                '<PROPERTY.REFERENCE NAME="MyProp"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE, all attributes",
+        dict(
+            xml_node=cim_xml.PROPERTY_REFERENCE(
+                'MyProp',
+                value_reference=cim_xml.VALUE_REFERENCE(
+                    simple_INSTANCENAME_node('RefClass'),
+                ),
+                reference_class='RefClass',
+                class_origin='OriginClass',
+                propagated=True,
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ]
+            ),
+            exp_xml_str_list=[
+                '<PROPERTY.REFERENCE NAME="MyProp" '
+                'REFERENCECLASS="RefClass" '
+                'CLASSORIGIN="OriginClass" PROPAGATED="true">'
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '<VALUE.REFERENCE>',
+                simple_INSTANCENAME_str('RefClass'),
+                '</VALUE.REFERENCE>',
+                '</PROPERTY.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for METHOD element
+    #
+    #    <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
+    #                               PARAMETER.ARRAY | PARAMETER.REFARRAY)*)>
+    #    <!ATTLIST METHOD
+    #        %CIMName;
+    #        %CIMType;          #IMPLIED
+    #        %ClassOrigin;
+    #        %Propagated;>
+    (
+        "METHOD, minimalistic",
+        dict(
+            xml_node=cim_xml.METHOD(
+                'MyMethod',
+            ),
+            exp_xml_str_list=[
+                '<METHOD NAME="MyMethod"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "METHOD, fully equipped",
+        dict(
+            xml_node=cim_xml.METHOD(
+                'MyMethod',
+                parameters=[
+                    cim_xml.PARAMETER('P1', 'string'),
+                    cim_xml.PARAMETER('P2', 'string'),
+                ],
+                return_type='string',
+                class_origin='OriginClass',
+                propagated=True,
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ]
+            ),
+            exp_xml_str_list=[
+                '<METHOD NAME="MyMethod" TYPE="string" '
+                'CLASSORIGIN="OriginClass" PROPAGATED="true">'
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '<PARAMETER NAME="P1" TYPE="string"/>',
+                '<PARAMETER NAME="P2" TYPE="string"/>',
+                '</METHOD>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PARAMETER element
+    #
+    #    <!ELEMENT PARAMETER (QUALIFIER*)>
+    #    <!ATTLIST PARAMETER
+    #        %CIMName;
+    #        %CIMType;      #REQUIRED>
+    (
+        "PARAMETER, minimalistic",
+        dict(
+            xml_node=cim_xml.PARAMETER(
+                'MyParm',
+                'string',
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER NAME="MyParm" TYPE="string"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER, fully equipped",
+        dict(
+            xml_node=cim_xml.PARAMETER(
+                'MyParm',
+                'string',
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ]
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER NAME="MyParm" TYPE="string">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '</PARAMETER>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PARAMETER.REFERENCE element
+    #
+    #    <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
+    #    <!ATTLIST PARAMETER.REFERENCE
+    #        %CIMName;
+    #        %ReferenceClass;>
+    (
+        "PARAMETER.REFERENCE, minimalistic",
+        dict(
+            xml_node=cim_xml.PARAMETER_REFERENCE(
+                'MyParm',
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER.REFERENCE NAME="MyParm"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.REFERENCE, fully equipped",
+        dict(
+            xml_node=cim_xml.PARAMETER_REFERENCE(
+                'MyParm',
+                reference_class='RefClass',
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ]
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER.REFERENCE NAME="MyParm" '
+                'REFERENCECLASS="RefClass">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '</PARAMETER.REFERENCE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PARAMETER.ARRAY element
+    #
+    #    <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
+    #    <!ATTLIST PARAMETER.ARRAY
+    #        %CIMName;
+    #        %CIMType;           #REQUIRED
+    #        %ArraySize;>
+    (
+        "PARAMETER.ARRAY, minimalistic",
+        dict(
+            xml_node=cim_xml.PARAMETER_ARRAY(
+                'MyParm',
+                'string',
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER.ARRAY NAME="MyParm" TYPE="string"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.ARRAY, fully equipped",
+        dict(
+            xml_node=cim_xml.PARAMETER_ARRAY(
+                'MyParm',
+                'string',
+                array_size='4',
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ]
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER.ARRAY NAME="MyParm" TYPE="string" ',
+                'ARRAYSIZE="4">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '</PARAMETER.ARRAY>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PARAMETER.REFARRAY element
+    #
+    #    <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
+    #    <!ATTLIST PARAMETER.REFARRAY
+    #        %CIMName;
+    #        %ReferenceClass;
+    #        %ArraySize;>
+    (
+        "PARAMETER.REFARRAY, minimalistic",
+        dict(
+            xml_node=cim_xml.PARAMETER_REFARRAY(
+                'MyParm',
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER.REFARRAY NAME="MyParm"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMETER.REFARRAY, fully equipped",
+        dict(
+            xml_node=cim_xml.PARAMETER_REFARRAY(
+                'MyParm',
+                reference_class='RefClass',
+                array_size='4',
+                qualifiers=[
+                    cim_xml.QUALIFIER('Q1', 'string'),
+                    cim_xml.QUALIFIER('Q2', 'string'),
+                ]
+            ),
+            exp_xml_str_list=[
+                '<PARAMETER.REFARRAY NAME="MyParm" '
+                'REFERENCECLASS="RefClass" ARRAYSIZE="4">',
+                '<QUALIFIER NAME="Q1" TYPE="string"/>',
+                '<QUALIFIER NAME="Q2" TYPE="string"/>',
+                '</PARAMETER.REFARRAY>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for MESSAGE element
+    #
+    # Note that the variation of child elements withion MESSAGE is tested
+    # in the testcases for these child elements.
+    #
+    #    <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP |
+    #                       SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP |
+    #                       MULTIEXPRSP)>
+    #    <!ATTLIST MESSAGE
+    #        ID CDATA #REQUIRED
+    #        PROTOCOLVERSION CDATA #REQUIRED>
+    (
+        "MESSAGE with minimalistic children",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEREQ(
+                    cim_xml.IMETHODCALL(
+                        'EnumerateInstances',
+                        simple_LOCALNAMESPACEPATH_node(),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEREQ>',
+                '<IMETHODCALL NAME="EnumerateInstances">',
+                simple_LOCALNAMESPACEPATH_str(),
+                '</IMETHODCALL>',
+                '</SIMPLEREQ>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for MULTIREQ element (within MESSAGE element)
+    #
+    #    <!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
+    (
+        "MESSAGE/MULTIREQ: Request for two intrinsic operation calls",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.MULTIREQ([
+                    cim_xml.SIMPLEREQ(
+                        cim_xml.IMETHODCALL(
+                            'EnumerateInstances',
+                            simple_LOCALNAMESPACEPATH_node(),
+                            [
+                                cim_xml.IPARAMVALUE(
+                                    'ClassName',
+                                    simple_CLASSNAME_node(),
+                                ),
+                            ],
+                        ),
+                    ),
+                    cim_xml.SIMPLEREQ(
+                        cim_xml.IMETHODCALL(
+                            'EnumerateInstanceNames',
+                            simple_LOCALNAMESPACEPATH_node(),
+                            [
+                                cim_xml.IPARAMVALUE(
+                                    'ClassName',
+                                    simple_CLASSNAME_node(),
+                                ),
+                            ],
+                        ),
+                    ),
+                ]),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<MULTIREQ>',
+                '<SIMPLEREQ>',
+                '<IMETHODCALL NAME="EnumerateInstances">',
+                simple_LOCALNAMESPACEPATH_str(),
+                '<IPARAMVALUE NAME="ClassName">',
+                simple_CLASSNAME_str(),
+                '</IPARAMVALUE>',
+                '</IMETHODCALL>',
+                '</SIMPLEREQ>',
+                '<SIMPLEREQ>',
+                '<IMETHODCALL NAME="EnumerateInstanceNames">',
+                simple_LOCALNAMESPACEPATH_str(),
+                '<IPARAMVALUE NAME="ClassName">',
+                simple_CLASSNAME_str(),
+                '</IPARAMVALUE>',
+                '</IMETHODCALL>',
+                '</SIMPLEREQ>',
+                '</MULTIREQ>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for MULTIEXPREQ element (within MESSAGE element)
+    #
+    #    <!ELEMENT MULTIEXPREQ (SIMPLEEXPREQ, SIMPLEEXPREQ+)>
+    (
+        "MESSAGE/MULTIEXPREQ: Request for two export method calls",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.MULTIEXPREQ([
+                    cim_xml.SIMPLEEXPREQ(
+                        cim_xml.EXPMETHODCALL(
+                            'DeliverIndication',
+                        ),
+                    ),
+                    cim_xml.SIMPLEEXPREQ(
+                        cim_xml.EXPMETHODCALL(
+                            'DeliverIndication2',
+                        ),
+                    ),
+                ]),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<MULTIEXPREQ>',
+                '<SIMPLEEXPREQ>',
+                '<EXPMETHODCALL NAME="DeliverIndication"/>',
+                '</SIMPLEEXPREQ>',
+                '<SIMPLEEXPREQ>',
+                '<EXPMETHODCALL NAME="DeliverIndication2"/>',
+                '</SIMPLEEXPREQ>',
+                '</MULTIEXPREQ>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for SIMPLEREQ, IMETHODCALL, METHODCALL elements
+    # (within MESSAGE element)
+    #
+    #    <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
+    #
+    #    <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
+    #    <!ATTLIST IMETHODCALL
+    #        %CIMName;>
+    #
+    #    <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH),
+    #                          PARAMVALUE*)>
+    #    <!ATTLIST METHODCALL
+    #        %CIMName;>
+    (
+        "MESSAGE/SIMPLEREQ: Request for intrinsic operation call",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEREQ(
+                    cim_xml.IMETHODCALL(
+                        'EnumerateInstances',
+                        simple_LOCALNAMESPACEPATH_node(),
+                        [
+                            cim_xml.IPARAMVALUE(
+                                'ClassName',
+                                simple_CLASSNAME_node(),
+                            ),
+                        ],
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEREQ>',
+                '<IMETHODCALL NAME="EnumerateInstances">',
+                simple_LOCALNAMESPACEPATH_str(),
+                '<IPARAMVALUE NAME="ClassName">',
+                simple_CLASSNAME_str(),
+                '</IPARAMVALUE>',
+                '</IMETHODCALL>',
+                '</SIMPLEREQ>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLEREQ: Request for extrinsic method call with "
+        "two parameters",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEREQ(
+                    cim_xml.METHODCALL(
+                        'MyMethod',
+                        simple_LOCALINSTANCEPATH_node(),
+                        [
+                            cim_xml.PARAMVALUE(
+                                'Parm1',
+                                cim_xml.VALUE('abc'),
+                            ),
+                            cim_xml.PARAMVALUE(
+                                'Parm2',
+                                cim_xml.VALUE('def'),
+                            ),
+                        ],
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEREQ>',
+                '<METHODCALL NAME="MyMethod">',
+                simple_LOCALINSTANCEPATH_str(),
+                '<PARAMVALUE NAME="Parm1">',
+                '<VALUE>abc</VALUE>',
+                '</PARAMVALUE>',
+                '<PARAMVALUE NAME="Parm2">',
+                '<VALUE>def</VALUE>',
+                '</PARAMVALUE>',
+                '</METHODCALL>',
+                '</SIMPLEREQ>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for SIMPLEEXPREQ, EXPMETHODCALL elements
+    # (within MESSAGE element)
+    #
+    #    <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
+    #
+    #    <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
+    #    <!ATTLIST EXPMETHODCALL
+    #        %CIMName;>
+    (
+        "MESSAGE/SIMPLEEXPREQ: Request for export method call with "
+        "two parameters",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEEXPREQ(
+                    cim_xml.EXPMETHODCALL(
+                        'DeliverIndication',
+                        [
+                            cim_xml.EXPPARAMVALUE(
+                                'Parm1',
+                                cim_xml.VALUE('abc'),
+                            ),
+                            cim_xml.EXPPARAMVALUE(
+                                'Parm2',
+                                cim_xml.VALUE('def'),
+                            ),
+                        ],
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEEXPREQ>',
+                '<EXPMETHODCALL NAME="DeliverIndication">',
+                '<EXPPARAMVALUE NAME="Parm1">',
+                '<VALUE>abc</VALUE>',
+                '</EXPPARAMVALUE>',
+                '<EXPPARAMVALUE NAME="Parm2">',
+                '<VALUE>def</VALUE>',
+                '</EXPPARAMVALUE>',
+                '</EXPMETHODCALL>',
+                '</SIMPLEEXPREQ>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for SIMPLERSP, IMETHODRESPONSE, METHODRESPONSE elements
+    # (within MESSAGE element)
+    #
+    #    <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
+    #
+    #    <!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
+    #    <!ATTLIST IMETHODRESPONSE
+    #        %CIMName;>
+    #
+    #    <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
+    #    <!ATTLIST METHODRESPONSE
+    #        %CIMName;>
+    (
+        "MESSAGE/SIMPLERSP: Response from intrinsic operation call, "
+        "success without return value",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.IMETHODRESPONSE(
+                        'ModifyInstance',
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<IMETHODRESPONSE NAME="ModifyInstance"/>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from intrinsic operation call, "
+        "success with return value",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.IMETHODRESPONSE(
+                        'EnumerateInstances',
+                        cim_xml.IRETURNVALUE([
+                            simple_VALUE_NAMEDINSTANCE_node('C1'),
+                            simple_VALUE_NAMEDINSTANCE_node('C2'),
+                        ]),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<IMETHODRESPONSE NAME="EnumerateInstances">',
+                '<IRETURNVALUE>',
+                simple_VALUE_NAMEDINSTANCE_str('C1'),
+                simple_VALUE_NAMEDINSTANCE_str('C2'),
+                '</IRETURNVALUE>',
+                '</IMETHODRESPONSE>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from intrinsic operation call, "
+        "success with return value and two output parameters",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.IMETHODRESPONSE(
+                        'EnumerateInstances',
+                        [
+                            cim_xml.IRETURNVALUE([
+                                simple_VALUE_NAMEDINSTANCE_node('C1'),
+                                simple_VALUE_NAMEDINSTANCE_node('C2'),
+                            ]),
+                            cim_xml.PARAMVALUE(
+                                'Parm1',
+                                cim_xml.VALUE('abc'),
+                            ),
+                            cim_xml.PARAMVALUE(
+                                'Parm2',
+                                cim_xml.VALUE('def'),
+                            ),
+                        ],
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<IMETHODRESPONSE NAME="EnumerateInstances">',
+                '<IRETURNVALUE>',
+                simple_VALUE_NAMEDINSTANCE_str('C1'),
+                simple_VALUE_NAMEDINSTANCE_str('C2'),
+                '</IRETURNVALUE>',
+                '<PARAMVALUE NAME="Parm1">',
+                '<VALUE>abc</VALUE>',
+                '</PARAMVALUE>',
+                '<PARAMVALUE NAME="Parm2">',
+                '<VALUE>def</VALUE>',
+                '</PARAMVALUE>',
+                '</IMETHODRESPONSE>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from intrinsic operation call, error",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.IMETHODRESPONSE(
+                        'EnumerateInstances',
+                        cim_xml.ERROR('6', 'Class not found'),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<IMETHODRESPONSE NAME="EnumerateInstances">',
+                '<ERROR CODE="6" DESCRIPTION="Class not found"/>',
+                '</IMETHODRESPONSE>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from extrinsic method call, "
+        "success without return value",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.METHODRESPONSE(
+                        'MyMethod',
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<METHODRESPONSE NAME="MyMethod"/>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from extrinsic method call, "
+        "success with return value",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.METHODRESPONSE(
+                        'MyMethod',
+                        cim_xml.RETURNVALUE(
+                            cim_xml.VALUE('abc'),
+                        ),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<METHODRESPONSE NAME="MyMethod">',
+                '<RETURNVALUE>',
+                '<VALUE>abc</VALUE>',
+                '</RETURNVALUE>',
+                '</METHODRESPONSE>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from extrinsic method call, "
+        "success with return value and two output parameters",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.METHODRESPONSE(
+                        'MyMethod',
+                        [
+                            cim_xml.RETURNVALUE(
+                                cim_xml.VALUE('abc'),
+                            ),
+                            cim_xml.PARAMVALUE(
+                                'Parm1',
+                                cim_xml.VALUE('foo'),
+                            ),
+                            cim_xml.PARAMVALUE(
+                                'Parm2',
+                                cim_xml.VALUE('bar'),
+                            ),
+                        ],
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<METHODRESPONSE NAME="MyMethod">',
+                '<RETURNVALUE>',
+                '<VALUE>abc</VALUE>',
+                '</RETURNVALUE>',
+                '<PARAMVALUE NAME="Parm1">',
+                '<VALUE>foo</VALUE>',
+                '</PARAMVALUE>',
+                '<PARAMVALUE NAME="Parm2">',
+                '<VALUE>bar</VALUE>',
+                '</PARAMVALUE>',
+                '</METHODRESPONSE>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLERSP: Response from extrinsic method call, error",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLERSP(
+                    cim_xml.METHODRESPONSE(
+                        'MyMethod',
+                        cim_xml.ERROR('6', 'Class not found'),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLERSP>',
+                '<METHODRESPONSE NAME="MyMethod">',
+                '<ERROR CODE="6" DESCRIPTION="Class not found"/>',
+                '</METHODRESPONSE>',
+                '</SIMPLERSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for SIMPLEEXPRSP, EXPMETHODRESPONSE elements
+    # (within MESSAGE element)
+    #
+    #    <!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
+    #
+    #    <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
+    #    <!ATTLIST EXPMETHODRESPONSE
+    #        %CIMName;>
+    (
+        "MESSAGE/SIMPLEEXPRSP: Response from export method call, "
+        "success without return value",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE(
+                        'DeliverIndication',
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEEXPRSP>',
+                '<EXPMETHODRESPONSE NAME="DeliverIndication"/>',
+                '</SIMPLEEXPRSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLEEXPRSP: Response from export method call, "
+        "success with return value",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE(
+                        'DeliverIndication',
+                        cim_xml.IRETURNVALUE(
+                            cim_xml.VALUE('abc'),
+                        ),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEEXPRSP>',
+                '<EXPMETHODRESPONSE NAME="DeliverIndication">',
+                '<IRETURNVALUE>',
+                '<VALUE>abc</VALUE>',
+                '</IRETURNVALUE>',
+                '</EXPMETHODRESPONSE>',
+                '</SIMPLEEXPRSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE/SIMPLEEXPRSP: Response from export method call, error",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.SIMPLEEXPRSP(
+                    cim_xml.EXPMETHODRESPONSE(
+                        'DeliverIndication',
+                        cim_xml.ERROR('6', 'Class not found'),
+                    ),
+                ),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<SIMPLEEXPRSP>',
+                '<EXPMETHODRESPONSE NAME="DeliverIndication">',
+                '<ERROR CODE="6" DESCRIPTION="Class not found"/>',
+                '</EXPMETHODRESPONSE>',
+                '</SIMPLEEXPRSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for MULTIRSP element (within MESSAGE element)
+    #
+    #    <!ELEMENT MULTIRSP (SIMPLERSP, SIMPLERSP+)>
+    (
+        "MESSAGE/MULTIRSP: Response from two intrinsic operation calls",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.MULTIRSP([
+                    cim_xml.SIMPLERSP(
+                        cim_xml.IMETHODRESPONSE(
+                            'ModifyInstance',
+                        ),
+                    ),
+                    cim_xml.SIMPLERSP(
+                        cim_xml.IMETHODRESPONSE(
+                            'DeleteInstance',
+                        ),
+                    ),
+                ]),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<MULTIRSP>',
+                '<SIMPLERSP>',
+                '<IMETHODRESPONSE NAME="ModifyInstance"/>',
+                '</SIMPLERSP>',
+                '<SIMPLERSP>',
+                '<IMETHODRESPONSE NAME="DeleteInstance"/>',
+                '</SIMPLERSP>',
+                '</MULTIRSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for MULTIEXPRSP element (within MESSAGE element)
+    #
+    #    <!ELEMENT MULTIEXPRSP (SIMPLEEXPRSP, SIMPLEEXPRSP+)>
+    (
+        "MESSAGE/MULTIEXPRSP: Response from two export method calls",
+        dict(
+            xml_node=cim_xml.MESSAGE(
+                cim_xml.MULTIEXPRSP([
+                    cim_xml.SIMPLEEXPRSP(
+                        cim_xml.EXPMETHODRESPONSE(
+                            'DeliverIndication',
+                        ),
+                    ),
+                    cim_xml.SIMPLEEXPRSP(
+                        cim_xml.EXPMETHODRESPONSE(
+                            'DeliverIndication2',
+                        ),
+                    ),
+                ]),
+                '1001', '1.4'),
+            exp_xml_str_list=[
+                '<MESSAGE ID="1001" PROTOCOLVERSION="1.4">',
+                '<MULTIEXPRSP>',
+                '<SIMPLEEXPRSP>',
+                '<EXPMETHODRESPONSE NAME="DeliverIndication"/>',
+                '</SIMPLEEXPRSP>',
+                '<SIMPLEEXPRSP>',
+                '<EXPMETHODRESPONSE NAME="DeliverIndication2"/>',
+                '</SIMPLEEXPRSP>',
+                '</MULTIEXPRSP>',
+                '</MESSAGE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for PARAMVALUE element
+    #
+    #    <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
+    #                          VALUE.REFARRAY | CLASSNAME | INSTANCENAME |
+    #                          CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+    #    <!ATTLIST PARAMVALUE
+    #        %CIMName;
+    #        %ParamType;    #IMPLIED
+    #        %EmbeddedObject;>
+    (
+        "PARAMVALUE, minimalistic",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE('foo'),
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1">',
+                '<VALUE>foo</VALUE>',
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE representing NULL",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with string VALUE",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE('foo'),
+                paramtype='string',
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1" PARAMTYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with embedded instance VALUE",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE('(the instance)'),
+                paramtype='string',
+                embedded_object='instance',
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1" PARAMTYPE="string" '
+                'EmbeddedObject="instance">',
+                '<VALUE>(the instance)</VALUE>',
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE_REFERENCE(
+                    simple_INSTANCENAME_node(),
+                ),
+                paramtype='reference',
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1" PARAMTYPE="reference">',
+                '<VALUE.REFERENCE>',
+                simple_INSTANCENAME_str(),
+                '</VALUE.REFERENCE>',
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with VALUE.ARRAY",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE_ARRAY([]),
+                paramtype='string',
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1" PARAMTYPE="string">',
+                '<VALUE.ARRAY/>',
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with VALUE.REFARRAY",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE_REFARRAY([]),
+                paramtype='reference',
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1" PARAMTYPE="reference">',
+                '<VALUE.REFARRAY/>',
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with CLASSNAME",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                simple_CLASSNAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1">',
+                simple_CLASSNAME_str(),
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with INSTANCENAME",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                simple_INSTANCENAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1">',
+                simple_INSTANCENAME_str(),
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, DTD_VERSION >= (2, 4)
+    ),
+    (
+        "PARAMVALUE, with CLASS",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1">',
+                simple_CLASS_str(),
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with INSTANCE",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1">',
+                simple_INSTANCE_str(),
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE, with VALUE.NAMEDINSTANCE",
+        dict(
+            xml_node=cim_xml.PARAMVALUE(
+                'Parm1',
+                simple_VALUE_NAMEDINSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<PARAMVALUE NAME="Parm1">',
+                simple_VALUE_NAMEDINSTANCE_str(),
+                '</PARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for IPARAMVALUE element
+    #
+    #    <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
+    #                           INSTANCENAME | CLASSNAME |
+    #                           QUALIFIER.DECLARATION |
+    #                           CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+    #    <!ATTLIST IPARAMVALUE
+    #        %CIMName;>
+    (
+        "IPARAMVALUE, minimalistic",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE('foo'),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                '<VALUE>foo</VALUE>',
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE representing NULL",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with string VALUE",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE('foo'),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                '<VALUE>foo</VALUE>',
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with VALUE.ARRAY",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE_ARRAY([]),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                '<VALUE.ARRAY/>',
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                cim_xml.VALUE_REFERENCE(
+                    simple_INSTANCENAME_node(),
+                ),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                '<VALUE.REFERENCE>',
+                simple_INSTANCENAME_str(),
+                '</VALUE.REFERENCE>',
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with INSTANCENAME",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                simple_INSTANCENAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                simple_INSTANCENAME_str(),
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, DTD_VERSION >= (2, 4)
+    ),
+    (
+        "IPARAMVALUE, with CLASSNAME",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                simple_CLASSNAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                simple_CLASSNAME_str(),
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with QUALIFIER.DECLARATION",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                simple_QUALIFIER_DECLARATION_node(),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                simple_QUALIFIER_DECLARATION_str(),
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with CLASS",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                simple_CLASS_str(),
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with INSTANCE",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                simple_INSTANCE_str(),
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE, with VALUE.NAMEDINSTANCE",
+        dict(
+            xml_node=cim_xml.IPARAMVALUE(
+                'Parm1',
+                simple_VALUE_NAMEDINSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<IPARAMVALUE NAME="Parm1">',
+                simple_VALUE_NAMEDINSTANCE_str(),
+                '</IPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+
+    # Testcases for EXPPARAMVALUE element
+    #
+    #    <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
+    #    <!ATTLIST EXPPARAMVALUE
+    #        %CIMName;
+    (
+        "EXPPARAMVALUE representing NULL",
+        dict(
+            xml_node=cim_xml.EXPPARAMVALUE('Parm1'),
+            exp_xml_str_list=[
+                '<EXPPARAMVALUE NAME="Parm1"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "EXPPARAMVALUE with INSTANCE",
+        dict(
+            xml_node=cim_xml.EXPPARAMVALUE(
+                'Parm1',
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<EXPPARAMVALUE NAME="Parm1">',
+                simple_INSTANCE_str(),
+                '</EXPPARAMVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for RETURNVALUE element
+    #
+    #    <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)?>
+    #    <!ATTLIST RETURNVALUE
+    #        %EmbeddedObject;
+    #        %ParamType;     #IMPLIED>
+    (
+        "RETURNVALUE representing NULL",
+        dict(
+            xml_node=cim_xml.RETURNVALUE(None),
+            exp_xml_str_list=[
+                '<RETURNVALUE/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE, with string VALUE",
+        dict(
+            xml_node=cim_xml.RETURNVALUE(
+                cim_xml.VALUE('foo'),
+                param_type='string',
+            ),
+            exp_xml_str_list=[
+                '<RETURNVALUE PARAMTYPE="string">',
+                '<VALUE>foo</VALUE>',
+                '</RETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE, with embedded instance VALUE",
+        dict(
+            xml_node=cim_xml.RETURNVALUE(
+                cim_xml.VALUE('(the instance)'),
+                param_type='string',
+                embedded_object='instance',
+            ),
+            exp_xml_str_list=[
+                '<RETURNVALUE PARAMTYPE="string" '
+                'EmbeddedObject="instance">',
+                '<VALUE>(the instance)</VALUE>',
+                '</RETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE, with VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.RETURNVALUE(
+                cim_xml.VALUE_REFERENCE(
+                    simple_INSTANCENAME_node(),
+                ),
+                param_type='reference',
+            ),
+            exp_xml_str_list=[
+                '<RETURNVALUE PARAMTYPE="reference">',
+                '<VALUE.REFERENCE>',
+                simple_INSTANCENAME_str(),
+                '</VALUE.REFERENCE>',
+                '</RETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for IRETURNVALUE element
+    #
+    #    <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
+    #                            VALUE.OBJECTWITHPATH* |
+    #                            VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
+    #                            OBJECTPATH* | QUALIFIER.DECLARATION* |
+    #                            VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
+    #                            INSTANCE* | VALUE.NAMEDINSTANCE*)>
+    (
+        "IRETURNVALUE representing NULL",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(None),
+            exp_xml_str_list=[
+                '<IRETURNVALUE/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one CLASSNAME",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_CLASSNAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_CLASSNAME_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two CLASSNAME",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_CLASSNAME_node('C1'),
+                simple_CLASSNAME_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_CLASSNAME_str('C1'),
+                simple_CLASSNAME_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one INSTANCENAME",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_INSTANCENAME_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_INSTANCENAME_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, DTD_VERSION >= (2, 4)
+    ),
+    (
+        "IRETURNVALUE with two INSTANCENAME",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_INSTANCENAME_node('C1'),
+                simple_INSTANCENAME_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_INSTANCENAME_str('C1'),
+                simple_INSTANCENAME_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, DTD_VERSION >= (2, 4)
+    ),
+    (
+        "IRETURNVALUE with one string VALUE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                cim_xml.VALUE('foo'),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                '<VALUE>foo</VALUE>',
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two string VALUE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                cim_xml.VALUE('foo'),
+                cim_xml.VALUE('bar'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                '<VALUE>foo</VALUE>',
+                '<VALUE>bar</VALUE>',
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.OBJECTWITHPATH",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_VALUE_OBJECTWITHPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_OBJECTWITHPATH_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.OBJECTWITHPATH",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_VALUE_OBJECTWITHPATH_node('C1'),
+                simple_VALUE_OBJECTWITHPATH_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_OBJECTWITHPATH_str('C1'),
+                simple_VALUE_OBJECTWITHPATH_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.OBJECTWITHLOCALPATH",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_VALUE_OBJECTWITHLOCALPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_OBJECTWITHLOCALPATH_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.OBJECTWITHLOCALPATH",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_VALUE_OBJECTWITHLOCALPATH_node('C1'),
+                simple_VALUE_OBJECTWITHLOCALPATH_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_OBJECTWITHLOCALPATH_str('C1'),
+                simple_VALUE_OBJECTWITHLOCALPATH_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.OBJECT",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_VALUE_OBJECT_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_OBJECT_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.OBJECT",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_VALUE_OBJECT_node('C1'),
+                simple_VALUE_OBJECT_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_OBJECT_str('C1'),
+                simple_VALUE_OBJECT_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one OBJECTPATH",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_OBJECTPATH_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_OBJECTPATH_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two OBJECTPATH",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_OBJECTPATH_node('C1'),
+                simple_OBJECTPATH_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_OBJECTPATH_str('C1'),
+                simple_OBJECTPATH_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one QUALIFIER.DECLARATION",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_QUALIFIER_DECLARATION_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_QUALIFIER_DECLARATION_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two QUALIFIER.DECLARATION",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_QUALIFIER_DECLARATION_node('Q1'),
+                simple_QUALIFIER_DECLARATION_node('Q2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_QUALIFIER_DECLARATION_str('Q1'),
+                simple_QUALIFIER_DECLARATION_str('Q2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with VALUE.ARRAY",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                cim_xml.VALUE_ARRAY([]),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                '<VALUE.ARRAY/>',
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with VALUE.REFERENCE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                cim_xml.VALUE_REFERENCE(
+                    simple_INSTANCENAME_node(),
+                ),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                '<VALUE.REFERENCE>',
+                simple_INSTANCENAME_str(),
+                '</VALUE.REFERENCE>',
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one CLASS",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_CLASS_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_CLASS_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two CLASS",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_CLASS_node('C1'),
+                simple_CLASS_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_CLASS_str('C1'),
+                simple_CLASS_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one INSTANCE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_INSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_INSTANCE_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two INSTANCE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_INSTANCE_node('C1'),
+                simple_INSTANCE_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_INSTANCE_str('C1'),
+                simple_INSTANCE_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.NAMEDINSTANCE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE(
+                simple_VALUE_NAMEDINSTANCE_node(),
+            ),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_NAMEDINSTANCE_str(),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.NAMEDINSTANCE",
+        dict(
+            xml_node=cim_xml.IRETURNVALUE([
+                simple_VALUE_NAMEDINSTANCE_node('C1'),
+                simple_VALUE_NAMEDINSTANCE_node('C2'),
+            ]),
+            exp_xml_str_list=[
+                '<IRETURNVALUE>',
+                simple_VALUE_NAMEDINSTANCE_str('C1'),
+                simple_VALUE_NAMEDINSTANCE_str('C2'),
+                '</IRETURNVALUE>',
+            ],
+        ),
+        None, None, True
+    ),
+
+    # Testcases for ERROR element
+    #
+    #    <!ELEMENT ERROR (INSTANCE*)>
+    #    <!ATTLIST ERROR
+    #        CODE CDATA #REQUIRED
+    #        DESCRIPTION CDATA #IMPLIED>
+    (
+        "ERROR, minimalistic",
+        dict(
+            xml_node=cim_xml.ERROR('1'),
+            exp_xml_str_list=[
+                '<ERROR CODE="1"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "ERROR, with all attributes, empty list of instances",
+        dict(
+            xml_node=cim_xml.ERROR(
+                '1',
+                description="some description",
+                instances=[],
+            ),
+            exp_xml_str_list=[
+                '<ERROR CODE="1" DESCRIPTION="some description"/>',
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "ERROR, with all attributes, two instances",
+        dict(
+            xml_node=cim_xml.ERROR(
+                '1',
+                description="some description",
+                instances=[
+                    simple_INSTANCE_node('C1'),
+                    simple_INSTANCE_node('C2'),
+                ],
+            ),
+            exp_xml_str_list=[
+                '<ERROR CODE="1" DESCRIPTION="some description">',
+                simple_INSTANCE_str('C1'),
+                simple_INSTANCE_str('C2'),
+                '</ERROR>',
+            ],
+        ),
+        None, None, True
+    ),
+
 ]
 
 
@@ -278,1805 +4240,36 @@ TESTCASES_CIM_XML_NODE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIM_XML_NODE)
 @simplified_test_function
-def test_cim_xml_node(testcase, xml_node, exp_xml_str_list):
-    # pylint: disable=unused-argument
+def test_cim_xml_node(testcase, xml_node, exp_xml_str_list, **kwargs):
     """
     Test function for a cim_xml node.
-
-    A cim_xml node is an object of a subclass of cim_xml.CIMElement.
-
-    The helper functions defined in class CIMElement are used only by the
-    __init__() methods of its subclasses, so they are not tested separately.
-
-    The __init__() method of the cim_xml node has already been executed during
-    creation of the testcase list for this test function, so this test
-    function checks the resulting cim_xml node object, as follows:
-
-    * Create the XML string for the cim_xml node, using `toxml()`. That method
-      is inherited from some base class of CIMElement and is not subject of
-      the test.
-    * Validate this XML string against the CIM-XML DTD.
-    * Compare this XML string against the expected CIM-XML string, if one is
-      defined.
     """
 
+    cdata_escaping = kwargs.get('cdata_escaping', False)
+
+    # Convert the cim_xml node (a subclass of xml.dom.minidom.Element) to an
+    # XML string
     act_xml_str = xml_node.toxml()
 
     try:
-        validate_cim_xml(act_xml_str)
-    except CIMXMLValidationError as exc:
-        raise AssertionError(
-            "DTD validation of CIM-XML failed:\n"
-            "{0}\n"
-            "CIM-XML string:\n"
-            "{1}".
-            format(exc, act_xml_str))
+        if cdata_escaping:
+            cim_xml._CDATA_ESCAPING = True  # pylint: disable=protected-access
 
-    if exp_xml_str_list is not None:
-
-        # It is a (possibly nested) list of strings
-        exp_xml_str = ''.join(iter_flattened(exp_xml_str_list))
-
-        assert act_xml_str == exp_xml_str, \
-            "Unexpected CIM-XML string:\n" \
-            "  expected: {0!r}\n" \
-            "  actual:   {1!r}". \
-            format(exp_xml_str, act_xml_str)
-
-
-###############################################################################
-#
-# TODO: Convert the following test classes to items in TESTCASES_CIM_XML_NODE
-#
-
-class CIMXMLTest(unittest.TestCase):
-    """Run validate.py script against an xml document fragment."""
-
-    def setUp(self):
-
-        # List of test cases, each list item being an xml.dom.minidom node
-        # representing some element from the CIM-XML payload.
-        self.xml = []
-
-        # List of expected XML strings resulting from each test case.
-        self.xml_str = []
-
-    @staticmethod
-    def validate(xml, expectedResult=0):
-        # pylint: disable=unused-argument
-        """xml is a string with the CIM-XML."""
-
+        # Validate the XML string against the CIM-XML DTD
         try:
-            validate_cim_xml(xml)
+            validate_cim_xml(act_xml_str)
         except CIMXMLValidationError as exc:
             raise AssertionError(
                 "DTD validation of CIM-XML failed:\n"
                 "{0}\n"
                 "CIM-XML string:\n"
                 "{1}".
-                format(exc, xml))
-
-    def test_all(self):
-        """Loop over xml to execute tests"""
-
-        for i in range(0, len(self.xml)):
-
-            xml_node = self.xml[i]
-            act_xml_str = xml_node.toxml()
-
-            # Test that the XML fragments pass validation against CIM-XML DTD
-            self.validate(act_xml_str)
-
-            if i < len(self.xml_str):
-                # Test XML fragments for expected string representation
-                exp_xml_str = self.xml_str[i]
-                if exp_xml_str is not None:
-                    self.assertEqual(act_xml_str, exp_xml_str,
-                                     "CIM-XML fragment to be tested: %r" %
-                                     act_xml_str)
-
-
-# pylint: disable=too-few-public-methods
-class UnimplementedTest(object):
-    """Test unimplemented. Raise AssertionError"""
-
-    @staticmethod
-    def test_all():
-        """raise Assertion Error"""
-        raise AssertionError('Unimplemented test')
-
-
-#################################################################
-#     3.2.1. Top Level Elements
-#################################################################
-
-#     3.2.1.1. CIM
-
-class CIM(CIMXMLTest):
-    """CIM Top level element as class"""
-
-    def setUp(self):
-        """setUp for CIM class"""
-        super(CIM, self).setUp()
-        self.xml.append(cim_xml.CIM(
-            cim_xml.MESSAGE(
-                cim_xml.SIMPLEREQ(
-                    cim_xml.IMETHODCALL(
-                        'IntrinsicMethod',
-                        sample_LOCALNAMESPACEPATH_node())),
-                '1001', '1.0'),
-            '2.0', '2.0'))
-
-
-#################################################################
-#     3.2.2. Declaration Elements
-#################################################################
-
-#     3.2.2.1. DECLARATION
-#     3.2.2.2. DECLGROUP
-#     3.2.2.3. DECLGROUP.WITHNAME
-#     3.2.2.4. DECLGROUP.WITHPATH
-#     3.2.2.5. QUALIFIER.DECLARATION
-#     3.2.2.6. SCOPE
-
-
-# pylint: disable=too-few-public-methods
-class Declaration(UnimplementedTest):
-    """
-    <!ELEMENT DECLARATION  (DECLGROUP|DECLGROUP.WITHNAME|DECLGROUP.WITHPATH)+>
-    """
-
-
-# pylint: disable=too-few-public-methods
-class DeclGroup(UnimplementedTest):
-    """
-    <!ELEMENT DECLGROUP  ((LOCALNAMESPACEPATH|NAMESPACEPATH)?,
-                          QUALIFIER.DECLARATION*,VALUE.OBJECT*)>
-    """
-    pass
-
-
-# pylint: disable=too-few-public-methods
-class DeclGroupWithName(UnimplementedTest):
-    """
-    <!ELEMENT DECLGROUP.WITHNAME  ((LOCALNAMESPACEPATH|NAMESPACEPATH)?,
-                                   QUALIFIER.DECLARATION*,VALUE.NAMEDOBJECT*)>
-    """
-
-
-# pylint: disable=too-few-public-methods
-class DeclGroupWithPath(UnimplementedTest):
-    """
-    <!ELEMENT DECLGROUP.WITHPATH  (VALUE.OBJECTWITHPATH|
-                                   VALUE.OBJECTWITHLOCALPATH)*>
-    """
-
-
-# pylint: disable=too-few-public-methods
-class QualifierDeclaration(UnimplementedTest):
-    """
-    <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
-    <!ATTLIST QUALIFIER.DECLARATION
-        %CIMName;
-        %CIMType;               #REQUIRED
-        ISARRAY    (true|false) #IMPLIED
-        %ArraySize;
-        %QualifierFlavor;>
-    """
-
-
-class Scope(CIMXMLTest):
-    """
-    <!ELEMENT SCOPE EMPTY>
-    <!ATTLIST SCOPE
-         CLASS        (true|false)      'false'
-         ASSOCIATION  (true|false)      'false'
-         REFERENCE    (true|false)      'false'
-         PROPERTY     (true|false)      'false'
-         METHOD       (true|false)      'false'
-         PARAMETER    (true|false)      'false'
-         INDICATION   (true|false)      'false'>
-    """
-
-    def setUp(self):
-        super(Scope, self).setUp()
-        self.xml.append(cim_xml.SCOPE())
-
-
-#################################################################
-#     3.2.3. Value Elements
-#################################################################
-
-#     3.2.3.1. VALUE
-#     3.2.3.2. VALUE.ARRAY
-#     3.2.3.3. VALUE.REFERENCE
-#     3.2.3.4. VALUE.REFARRAY
-#     3.2.3.5. VALUE.OBJECT
-#     3.2.3.6. VALUE.NAMEDINSTANCE
-#     3.2.3.7. VALUE.NAMEDOBJECT
-#     3.2.3.8. VALUE.OBJECTWITHPATH
-#     3.2.3.9. VALUE.OBJECTWITHLOCALPATH
-#     3.2.3.10. VALUE.NULL
-
-
-class Value(CIMXMLTest):
-    """
-    <!ELEMENT VALUE (#PCDATA)>
-    """
-
-    def setUp(self):
-        super(Value, self).setUp()
-
-        # The VALUE element depends on whether XML-based or CDATA-based
-        # escaping is used. Therefore, we modify the module-level switch that
-        # controls that and run each test twice (wth different expected XML
-        # strings).
-
-        cim_xml._CDATA_ESCAPING = True  # pylint: disable=protected-access
-
-        self.xml.append(cim_xml.VALUE('dog'))
-        self.xml_str.append('<VALUE>dog</VALUE>')
-
-        # self.xml.append(cim_xml.VALUE(None))
-        # Note: This is illegal, Value.Null should be used instead.
-
-        self.xml.append(cim_xml.VALUE(''))
-        self.xml_str.append('<VALUE></VALUE>')  # Assum. not folded to <VALUE/>
-
-        # Some control characters
-        self.xml.append(cim_xml.VALUE('a\nb\rc\td'))
-        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>')  # Assuming XML 1.1
-
-        # Some XML special characters
-        self.xml.append(cim_xml.VALUE('a&b<c>d'))
-        self.xml_str.append('<VALUE><![CDATA[a&b<c>d]]></VALUE>')
-
-        # Some XML special characters, already XML-escaped
-        self.xml.append(cim_xml.VALUE('a&amp;b&lt;c&gt;d'))
-        self.xml_str.append('<VALUE><![CDATA[a&amp;b&lt;c&gt;d]]></VALUE>')
-
-        # Some XML special characters, already CDATA-escaped
-        self.xml.append(cim_xml.VALUE('<![CDATA[a&b<c>d]]>'))
-        self.xml_str.append(
-            '<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>')
-
-        # set back to its default
-        cim_xml._CDATA_ESCAPING = False  # pylint: disable=protected-access
-
-        self.xml.append(cim_xml.VALUE('dog'))
-        self.xml_str.append('<VALUE>dog</VALUE>')
-
-        # self.xml.append(cim_xml.VALUE(None))
-        # Note: This is illegal, Value.Null is used instead.
-
-        self.xml.append(cim_xml.VALUE(''))
-        self.xml_str.append('<VALUE></VALUE>')  # Assum. not folded to <VALUE/>
-
-        # Some control characters
-        self.xml.append(cim_xml.VALUE('a\nb\rc\td'))
-        self.xml_str.append('<VALUE>a\nb\rc\td</VALUE>')  # Assuming XML 1.1
-
-        # Some XML special characters
-        self.xml.append(cim_xml.VALUE('a&b<c>d'))
-        self.xml_str.append('<VALUE>a&amp;b&lt;c&gt;d</VALUE>')
-
-        # Some XML special characters, already XML-escaped
-        self.xml.append(cim_xml.VALUE('a&amp;b&lt;c&gt;d'))
-        self.xml_str.append('<VALUE>a&amp;amp;b&amp;lt;c&amp;gt;d</VALUE>')
-
-        # Some XML special characters, already CDATA-escaped
-        self.xml.append(cim_xml.VALUE('<![CDATA[a&b<c>d]]>'))
-        self.xml_str.append(
-            '<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>')
-
-
-class ValueArray(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.ARRAY (VALUE*)>
-    """
-
-    def setUp(self):
-        super(ValueArray, self).setUp()
-
-        self.xml.append(cim_xml.VALUE_ARRAY([]))
-
-        self.xml.append(cim_xml.VALUE_ARRAY([cim_xml.VALUE('cat'),
-                                             cim_xml.VALUE('dog')]))
-
-
-class ValueReference(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.REFERENCE (CLASSPATH|LOCALCLASSPATH|CLASSNAME|
-                               INSTANCEPATH|LOCALINSTANCEPATH|INSTANCENAME)>
-    """
-
-    def setUp(self):
-        super(ValueReference, self).setUp()
-
-        # CLASSPATH
-
-        self.xml.append(cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node()))
-
-        # LOCALCLASSPATH
-
-        self.xml.append(cim_xml.VALUE_REFERENCE(
-            cim_xml.LOCALCLASSPATH(
-                sample_LOCALNAMESPACEPATH_node(),
-                sample_CLASSNAME_node())))
-
-        # CLASSNAME
-
-        self.xml.append(cim_xml.VALUE_REFERENCE(sample_CLASSNAME_node()))
-
-        # INSTANCEPATH
-
-        self.xml.append(cim_xml.VALUE_REFERENCE(
-            cim_xml.INSTANCEPATH(
-                sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node())))
-
-        # LOCALINSTANCEPATH
-
-        self.xml.append(cim_xml.VALUE_REFERENCE(
-            cim_xml.LOCALINSTANCEPATH(
-                sample_LOCALNAMESPACEPATH_node(), sample_INSTANCENAME_node())))
-
-        # INSTANCENAME
-
-        self.xml.append(cim_xml.VALUE_REFERENCE(sample_INSTANCENAME_node()))
-
-
-class ValueRefArray(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE*)>
-    """
-
-    def setUp(self):
-        super(ValueRefArray, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.VALUE_REFARRAY([]))
-
-        # VALUE.REFARRAY
-
-        self.xml.append(cim_xml.VALUE_REFARRAY(
-            [cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Foo')),
-             cim_xml.VALUE_REFERENCE(cim_xml.LOCALCLASSPATH(
-                 sample_LOCALNAMESPACEPATH_node(), sample_CLASSNAME_node()))]))
-
-
-class ValueObject(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.OBJECT (CLASS|INSTANCE)>
-    """
-
-    def setUp(self):
-        super(ValueObject, self).setUp()
-
-        # CLASS
-
-        self.xml.append(cim_xml.VALUE_OBJECT(cim_xml.CLASS('CIM_Foo')))
-
-        # INSTANCE
-
-        self.xml.append(cim_xml.VALUE_OBJECT(cim_xml.INSTANCE('CIM_Pet', [])))
-
-
-class ValueNamedInstance(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME,INSTANCE)>
-    """
-
-    def setUp(self):
-        super(ValueNamedInstance, self).setUp()
-
-        self.xml.append(cim_xml.VALUE_NAMEDINSTANCE(
-            sample_INSTANCENAME_node(),
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-
-class ValueNamedObject(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.NAMEDOBJECT (CLASS|(INSTANCENAME,INSTANCE))>
-    """
-
-    def setUp(self):
-        super(ValueNamedObject, self).setUp()
-
-        # CLASS
-
-        self.xml.append(cim_xml.VALUE_NAMEDOBJECT(
-            cim_xml.CLASS('CIM_Foo')))
-
-        # INSTANCENAME, INSTANCE
-
-        self.xml.append(cim_xml.VALUE_NAMEDOBJECT(
-            (sample_INSTANCENAME_node(),
-             cim_xml.INSTANCE('CIM_Pet', []))))
-
-
-class ValueObjectWithPath(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH,CLASS)|
-                                    (INSTANCEPATH,INSTANCE))>
-    """
-
-    def setUp(self):
-        super(ValueObjectWithPath, self).setUp()
-
-        # (CLASSPATH, CLASS)
-
-        self.xml.append(cim_xml.VALUE_OBJECTWITHPATH(
-            sample_CLASSPATH_node(),
-            cim_xml.CLASS('CIM_Foo')))
-
-        # (INSTANCEPATH, INSTANCE)
-
-        self.xml.append(cim_xml.VALUE_OBJECTWITHPATH(
-            cim_xml.INSTANCEPATH(
-                sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node()),
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-
-class ValueObjectWithLocalPath(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH,CLASS)|
-                                         (LOCALINSTANCEPATH,INSTANCE))>
-    """
-
-    def setUp(self):
-        super(ValueObjectWithLocalPath, self).setUp()
-
-        # (LOCALCLASSPATH, CLASS)
-
-        self.xml.append(cim_xml.VALUE_OBJECTWITHLOCALPATH(
-            cim_xml.LOCALCLASSPATH(
-                sample_LOCALNAMESPACEPATH_node(),
-                sample_CLASSNAME_node()),
-            cim_xml.CLASS('CIM_Foo')))
-
-        # (LOCALINSTANCEPATH, INSTANCE)
-
-        self.xml.append(cim_xml.VALUE_OBJECTWITHLOCALPATH(
-            cim_xml.LOCALINSTANCEPATH(
-                sample_LOCALNAMESPACEPATH_node(),
-                sample_INSTANCENAME_node()),
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-
-# pylint: disable=too-few-public-methods
-class ValueNull(UnimplementedTest):
-    """
-    <!ELEMENT VALUE.NULL EMPTY>
-    """
-    # TODO: Implement ValueNull test
-
-
-class ValueInstanceWithPath(CIMXMLTest):
-    """
-    <!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH,INSTANCE)>
-    """
-
-    def setUp(self):
-        super(ValueInstanceWithPath, self).setUp()
-
-        self.xml.append(cim_xml.VALUE_INSTANCEWITHPATH(
-            cim_xml.INSTANCEPATH(
-                sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node()),
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-
-#################################################################
-#     3.2.4. Naming and Location Elements
-#################################################################
-
-#     3.2.4.1. NAMESPACEPATH
-#     3.2.4.2. LOCALNAMESPACEPATH
-#     3.2.4.3. HOST
-#     3.2.4.4. NAMESPACE
-#     3.2.4.5. CLASSPATH
-#     3.2.4.6. LOCALCLASSPATH
-#     3.2.4.7. CLASSNAME
-#     3.2.4.8. INSTANCEPATH
-#     3.2.4.9. LOCALINSTANCEPATH
-#     3.2.4.10. INSTANCENAME
-#     3.2.4.11. OBJECTPATH
-#     3.2.4.12. KEYBINDING
-#     3.2.4.13. KEYVALUE
-
-
-class NamespacePath(CIMXMLTest):
-    """
-    <!ELEMENT NAMESPACEPATH (HOST,LOCALNAMESPACEPATH)>
-    """
-
-    def setUp(self):
-        super(NamespacePath, self).setUp()
-
-        self.xml.append(sample_NAMESPACEPATH_node())
-
-
-class LocalNamespacePath(CIMXMLTest):
-    """
-    <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
-    """
-
-    def setUp(self):
-        super(LocalNamespacePath, self).setUp()
-
-        self.xml.append(sample_LOCALNAMESPACEPATH_node())
-
-
-class Host(CIMXMLTest):
-    """
-    <!ELEMENT HOST (#PCDATA)>
-    """
-
-    def setUp(self):
-        super(Host, self).setUp()
-
-        self.xml.append(cim_xml.HOST('leonardo'))
-
-
-class Namespace(CIMXMLTest):
-    """
-    <!ELEMENT NAMESPACE EMPTY>
-    <!ATTLIST NAMESPACE
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(Namespace, self).setUp()
-
-        self.xml.append(cim_xml.NAMESPACE('root'))
-
-
-class ClassPath(CIMXMLTest):
-    """
-    <!ELEMENT CLASSPATH (NAMESPACEPATH,CLASSNAME)>
-    """
-
-    def setUp(self):
-        super(ClassPath, self).setUp()
-
-        self.xml.append(sample_CLASSPATH_node())
-
-
-class LocalClassPath(CIMXMLTest):
-    """
-    <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
-    """
-
-    def setUp(self):
-        super(LocalClassPath, self).setUp()
-
-        self.xml.append(cim_xml.LOCALCLASSPATH(
-            sample_LOCALNAMESPACEPATH_node(), sample_CLASSNAME_node()))
-
-
-class ClassName(CIMXMLTest):
-    """
-    <!ELEMENT CLASSNAME EMPTY>
-    <!ATTLIST CLASSNAME
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(ClassName, self).setUp()
-
-        self.xml.append(sample_CLASSNAME_node())
-
-
-class InstancePath(CIMXMLTest):
-    """
-    <!ELEMENT INSTANCEPATH (NAMESPACEPATH,INSTANCENAME)>
-    """
-
-    def setUp(self):
-        super(InstancePath, self).setUp()
-
-        self.xml.append(cim_xml.INSTANCEPATH(
-            sample_NAMESPACEPATH_node(), sample_INSTANCENAME_node()))
-
-
-class LocalInstancePath(CIMXMLTest):
-    """
-    <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH,INSTANCENAME)>
-    """
-
-    def setUp(self):
-        super(LocalInstancePath, self).setUp()
-
-        self.xml.append(cim_xml.LOCALINSTANCEPATH(
-            sample_LOCALNAMESPACEPATH_node(), sample_INSTANCENAME_node()))
-
-
-class InstanceName(CIMXMLTest):
-    """
-    <!ELEMENT INSTANCENAME (KEYBINDING*|KEYVALUE?|VALUE.REFERENCE?)>
-    <!ATTLIST INSTANCENAME
-        %ClassName;>
-    """
-
-    def setUp(self):
-        super(InstanceName, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.INSTANCENAME('CIM_Pet', None))
-
-        # KEYBINDING
-
-        self.xml.append(sample_INSTANCENAME_node())
-
-        # KEYVALUE
-
-        self.xml.append(cim_xml.INSTANCENAME(
-            'CIM_Pet', cim_xml.KEYVALUE('FALSE', 'boolean')))
-
-        # VALUE.REFERENCE
-
-        self.xml.append(cim_xml.INSTANCENAME(
-            'CIM_Pet',
-            cim_xml.VALUE_REFERENCE(sample_INSTANCENAME_node())))
-
-
-class ObjectPath(CIMXMLTest):
-    """
-    <!ELEMENT OBJECTPATH (INSTANCEPATH|CLASSPATH)>
-    """
-
-    def setUp(self):
-        super(ObjectPath, self).setUp()
-
-        self.xml.append(cim_xml.OBJECTPATH(
-            cim_xml.INSTANCEPATH(
-                sample_NAMESPACEPATH_node(),
-                sample_INSTANCENAME_node())))
-
-        self.xml.append(cim_xml.OBJECTPATH(
-            sample_CLASSPATH_node()))
-
-
-class KeyBinding(CIMXMLTest):
-    """
-    <!ELEMENT KEYBINDING (KEYVALUE|VALUE.REFERENCE)>
-    <!ATTLIST KEYBINDING
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(KeyBinding, self).setUp()
-
-        self.xml.append(cim_xml.KEYBINDING(
-            'pet', cim_xml.KEYVALUE('dog', 'string')))
-
-        self.xml.append(cim_xml.KEYBINDING(
-            'CIM_Foo',
-            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
-
-
-class KeyValue(CIMXMLTest):
-    """
-    <!ELEMENT KEYVALUE (#PCDATA)>
-    <!ATTLIST KEYVALUE
-        VALUETYPE    (string|boolean|numeric)  'string'
-        %CIMType;    #IMPLIED>
-    """
-
-    def setUp(self):
-        super(KeyValue, self).setUp()
-
-        self.xml.append(cim_xml.KEYVALUE('dog', 'string'))
-        self.xml.append(cim_xml.KEYVALUE('2', 'numeric'))
-        self.xml.append(cim_xml.KEYVALUE('FALSE', 'boolean'))
-        self.xml.append(cim_xml.KEYVALUE('2', 'numeric', 'uint16'))
-        self.xml.append(cim_xml.KEYVALUE(None))
-
-
-#################################################################
-#     3.2.5. Object Definition Elements
-#################################################################
-
-#     3.2.5.1. CLASS
-#     3.2.5.2. INSTANCE
-#     3.2.5.3. QUALIFIER
-#     3.2.5.4. PROPERTY
-#     3.2.5.5. PROPERTY.ARRAY
-#     3.2.5.6. PROPERTY.REFERENCE
-#     3.2.5.7. METHOD
-#     3.2.5.8. PARAMETER
-#     3.2.5.9. PARAMETER.REFERENCE
-#     3.2.5.10. PARAMETER.ARRAY
-#     3.2.5.11. PARAMETER.REFARRAY
-
-
-class Class(CIMXMLTest):
-    """
-    <!ELEMENT CLASS (QUALIFIER*,(PROPERTY|PROPERTY.ARRAY|PROPERTY.REFERENCE)*,
-                     METHOD*)>
-    <!ATTLIST CLASS
-        %CIMName;
-        %SuperClass;>
-    """
-
-    def setUp(self):
-        super(Class, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.CLASS('CIM_Foo'))
-
-        # PROPERTY
-
-        self.xml.append(cim_xml.CLASS(
-            'CIM_Foo',
-            properties=[cim_xml.PROPERTY('Dog', 'string',
-                                         cim_xml.VALUE('Spotty'))]))
-
-        # QUALIFIER + PROPERTY
-
-        self.xml.append(cim_xml.CLASS(
-            'CIM_Foo',
-            properties=[cim_xml.PROPERTY('Dog', 'string',
-                                         cim_xml.VALUE('Spotty'))],
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-        # PROPERTY.ARRAY
-
-        self.xml.append(cim_xml.CLASS(
-            'CIM_Foo',
-            properties=[cim_xml.PROPERTY_ARRAY('Dogs', 'string', None)]))
-
-        # PROPERTY.REFERENCE
-
-        self.xml.append(cim_xml.CLASS(
-            'CIM_Foo',
-            properties=[cim_xml.PROPERTY_REFERENCE('Dogs', None)]))
-
-        # METHOD
-
-        self.xml.append(cim_xml.CLASS(
-            'CIM_Foo',
-            methods=[cim_xml.METHOD('FooMethod')]))
-
-
-class Instance(CIMXMLTest):
-    """
-    <!ELEMENT INSTANCE (QUALIFIER*,(PROPERTY|PROPERTY.ARRAY|
-                                    PROPERTY.REFERENCE)*)>
-    <!ATTLIST INSTANCE
-         %ClassName;
-         xml:lang   NMTOKEN  #IMPLIED>
-    """
-
-    def setUp(self):
-        super(Instance, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.INSTANCE('CIM_Foo', []))
-
-        # PROPERTY
-
-        self.xml.append(cim_xml.INSTANCE(
-            'CIM_Foo',
-            [cim_xml.PROPERTY('Dog', 'string', cim_xml.VALUE('Spotty')),
-             cim_xml.PROPERTY('Cat', 'string', cim_xml.VALUE('Bella'))]))
-
-        # PROPERTY + QUALIFIER
-
-        self.xml.append(cim_xml.INSTANCE(
-            'CIM_Foo',
-            properties=[cim_xml.PROPERTY('Dog', 'string',
-                                         cim_xml.VALUE('Spotty')),
-                        cim_xml.PROPERTY('Cat', 'string',
-                                         cim_xml.VALUE('Bella'))],
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-        # PROPERTY.ARRAY
-
-        self.xml.append(cim_xml.INSTANCE(
-            'CIM_Pets',
-            [cim_xml.PROPERTY_ARRAY(
-                'Dogs',
-                'string',
-                cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
-                                     cim_xml.VALUE('Bronte')])),
-             cim_xml.PROPERTY_ARRAY(
-                 'Cats',
-                 'string',
-                 cim_xml.VALUE_ARRAY([cim_xml.VALUE('Bella'),
-                                      cim_xml.VALUE('Faux Lily')]))]))
-
-        # PROPERTY.REFERENCE
-
-        self.xml.append(cim_xml.INSTANCE(
-            'CIM_Pets',
-            [cim_xml.PROPERTY_REFERENCE(
-                'Dog',
-                cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog'))),
-             cim_xml.PROPERTY_REFERENCE(
-                 'Cat',
-                 cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Cat')))]))
-
-
-class Qualifier(CIMXMLTest):
-    """
-    <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
-    <!ATTLIST QUALIFIER
-        %CIMName;
-        %CIMType;              #REQUIRED
-        %Propagated;
-        %QualifierFlavor;
-        xml:lang   NMTOKEN  #IMPLIED>
-    """
-
-    def setUp(self):
-        super(Qualifier, self).setUp()
-
-        # Note: DTD 2.2 allows qualifier to be empty
-
-        # VALUE
-
-        self.xml.append(cim_xml.QUALIFIER(
-            'IMPISH', 'string', cim_xml.VALUE('true')))
-
-        # VALUE + attributes
-
-        self.xml.append(cim_xml.QUALIFIER(
-            'Key', 'string', cim_xml.VALUE('true'),
-            overridable='true'))
-
-        self.xml.append(cim_xml.QUALIFIER(
-            'Description', 'string', cim_xml.VALUE('blahblah'),
-            translatable='true'))
-
-        self.xml.append(cim_xml.QUALIFIER(
-            'Version', 'string', cim_xml.VALUE('foorble'),
-            tosubclass='false', translatable='true'))
-
-        # VALUE.ARRAY
-
-        self.xml.append(cim_xml.QUALIFIER(
-            'LUCKYNUMBERS', 'uint32',
-            cim_xml.VALUE_ARRAY([cim_xml.VALUE('1'), cim_xml.VALUE('2')])))
-
-
-class Property(CIMXMLTest):
-    """
-    <!ELEMENT PROPERTY (QUALIFIER*,VALUE?)>
-    <!ATTLIST PROPERTY
-        %CIMName;
-        %CIMType;           #REQUIRED
-        %ClassOrigin;
-        %Propagated;
-        xml:lang   NMTOKEN  #IMPLIED>
-    """
-
-    def setUp(self):
-        super(Property, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PROPERTY('PropertyName', 'string', None))
-
-        # PROPERTY
-
-        self.xml.append(cim_xml.PROPERTY(
-            'PropertyName',
-            'string',
-            cim_xml.VALUE('dog')))
-
-        # PROPERTY + attributes
-
-        self.xml.append(cim_xml.PROPERTY(
-            'PropertyName',
-            'string',
-            cim_xml.VALUE('dog'),
-            propagated='true', class_origin='CIM_Pets'))
-
-        # PROPERTY + QUALIFIER
-
-        self.xml.append(cim_xml.PROPERTY(
-            'PropertyName',
-            'string',
-            cim_xml.VALUE('dog'),
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class PropertyArray(CIMXMLTest):
-    """
-    <!ELEMENT PROPERTY.ARRAY (QUALIFIER*,VALUE.ARRAY?)>
-    <!ATTLIST PROPERTY.ARRAY
-       %CIMName;
-       %CIMType;           #REQUIRED
-       %ArraySize;
-       %ClassOrigin;
-       %Propagated;
-       xml:lang   NMTOKEN  #IMPLIED>
-
-    """
-
-    def setUp(self):
-        super(PropertyArray, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PROPERTY_ARRAY('Dogs', 'string'))
-
-        # VALUE.ARRAY
-
-        self.xml.append(cim_xml.PROPERTY_ARRAY(
-            'Dogs',
-            'string',
-            cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
-                                 cim_xml.VALUE('Bronte')])))
-
-        # VALUE.ARRAY + attributes
-
-        self.xml.append(cim_xml.PROPERTY_ARRAY(
-            'Dogs',
-            'string',
-            cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
-                                 cim_xml.VALUE('Bronte')]),
-            array_size='2', class_origin='CIM_Dog'))
-
-        self.xml.append(cim_xml.PROPERTY_ARRAY('Dogs', 'string', None))
-
-        # QUALIFIER + VALUE.ARRAY
-
-        self.xml.append(cim_xml.PROPERTY_ARRAY(
-            'Dogs',
-            'string',
-            cim_xml.VALUE_ARRAY([cim_xml.VALUE('Spotty'),
-                                 cim_xml.VALUE('Bronte')]),
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class PropertyReference(CIMXMLTest):
-    """
-    <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*,VALUE.REFERENCE?)>
-    <!ATTLIST PROPERTY.REFERENCE
-        %CIMName;
-        %ReferenceClass;
-        %ClassOrigin;
-        %Propagated;>
-    """
-
-    def setUp(self):
-        super(PropertyReference, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PROPERTY_REFERENCE('Dogs', None))
-
-        # VALUE.REFERENCE
-
-        self.xml.append(cim_xml.PROPERTY_REFERENCE(
-            'Dogs',
-            cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog'))))
-
-        # VALUE.REFERENCE + attributes
-
-        self.xml.append(cim_xml.PROPERTY_REFERENCE(
-            'Dogs',
-            cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog')),
-            reference_class='CIM_Dog', class_origin='CIM_Dog',
-            propagated='true'))
-
-        # QUALIFIER + VALUE.REFERENCE
-
-        self.xml.append(cim_xml.PROPERTY_REFERENCE(
-            'Dogs',
-            cim_xml.VALUE_REFERENCE(cim_xml.CLASSNAME('CIM_Dog')),
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class Method(CIMXMLTest):
-    """
-    <!ELEMENT METHOD (QUALIFIER*,(PARAMETER|PARAMETER.REFERENCE|
-                                  PARAMETER.ARRAY|PARAMETER.REFARRAY)*)>
-    <!ATTLIST METHOD
-        %CIMName;
-        %CIMType;          #IMPLIED
-        %ClassOrigin;
-        %Propagated;>
-    """
-
-    def setUp(self):
-        super(Method, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.METHOD('FooMethod'))
-
-        # PARAMETER
-
-        self.xml.append(cim_xml.METHOD(
-            'FooMethod',
-            [cim_xml.PARAMETER('arg', 'string')]))
-
-        # PARAMETER.REFERENCE
-
-        self.xml.append(cim_xml.METHOD(
-            'FooMethod',
-            [cim_xml.PARAMETER_REFERENCE('arg', 'CIM_Foo')]))
-
-        # PARAMETER.ARRAY
-
-        self.xml.append(cim_xml.METHOD(
-            'FooMethod',
-            [cim_xml.PARAMETER_ARRAY('arg', 'string')]))
-
-        # PARAMETER.REFARRAY
-
-        self.xml.append(cim_xml.METHOD(
-            'FooMethod',
-            [cim_xml.PARAMETER_REFARRAY('arg', 'CIM_Foo')]))
-
-        # PARAMETER + attributes
-
-        self.xml.append(cim_xml.METHOD(
-            'FooMethod',
-            [cim_xml.PARAMETER('arg', 'string')],
-            return_type='uint32',
-            class_origin='CIM_Foo',
-            propagated='true'))
-
-        # QUALIFIER + PARAMETER
-
-        self.xml.append(cim_xml.METHOD(
-            'FooMethod',
-            [cim_xml.PARAMETER('arg', 'string')],
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class Parameter(CIMXMLTest):
-    """
-    <!ELEMENT PARAMETER (QUALIFIER*)>
-    <!ATTLIST PARAMETER
-        %CIMName;
-        %CIMType;      #REQUIRED>
-    """
-
-    def setUp(self):
-        super(Parameter, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PARAMETER('arg', 'string'))
-
-        # QUALIFIER
-
-        self.xml.append(cim_xml.PARAMETER(
-            'arg',
-            'string',
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class ParameterReference(CIMXMLTest):
-    """
-    <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
-    <!ATTLIST PARAMETER.REFERENCE
-        %CIMName;
-        %ReferenceClass;>
-    """
-
-    def setUp(self):
-        super(ParameterReference, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PARAMETER_REFERENCE('arg'))
-
-        # QUALIFIER + attributes
-
-        self.xml.append(cim_xml.PARAMETER_REFERENCE(
-            'arg',
-            reference_class='CIM_Foo',
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class ParameterArray(CIMXMLTest):
-    """
-    <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
-    <!ATTLIST PARAMETER.ARRAY
-        %CIMName;
-        %CIMType;           #REQUIRED
-        %ArraySize;>
-    """
-
-    def setUp(self):
-        super(ParameterArray, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PARAMETER_ARRAY('arg', 'string'))
-
-        # QUALIFIERS + attributes
-
-        self.xml.append(cim_xml.PARAMETER_ARRAY(
-            'arg',
-            'string',
-            array_size='0',
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-class ParameterReferenceArray(CIMXMLTest):
-    """
-    <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
-    <!ATTLIST PARAMETER.REFARRAY
-        %CIMName;
-        %ReferenceClass;
-        %ArraySize;>
-    """
-
-    def setUp(self):
-        super(ParameterReferenceArray, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PARAMETER_REFARRAY('arg'))
-
-        # QUALIFIERS + attributes
-
-        self.xml.append(cim_xml.PARAMETER_REFARRAY(
-            'arg',
-            reference_class='CIM_Foo',
-            array_size='0',
-            qualifiers=[cim_xml.QUALIFIER('IMPISH', 'string',
-                                          cim_xml.VALUE('true'))]))
-
-
-#################################################################
-#     3.2.6. Message Elements
-#################################################################
-
-#     3.2.6.1. MESSAGE
-#     3.2.6.2. MULTIREQ
-#     3.2.6.3. SIMPLEREQ
-#     3.2.6.4. METHODCALL
-#     3.2.6.5. PARAMVALUE
-#     3.2.6.6. IMETHODCALL
-#     3.2.6.7. IPARAMVALUE
-#     3.2.6.8. MULTIRSP
-#     3.2.6.9. SIMPLERSP
-#     3.2.6.10. METHODRESPONSE
-#     3.2.6.11. IMETHODRESPONSE
-#     3.2.6.12. ERROR
-#     3.2.6.13. RETURNVALUE
-#     3.2.6.14. IRETURNVALUE
-#     3.2.6.15 MULTIEXPREQ
-#     3.2.6.16 SIMPLEEXPREQ
-#     3.2.6.17 EXPMETHODCALL
-#     3.2.6.18 MULTIEXPRSP
-#     3.2.6.19 SIMPLEEXPRSP
-#     3.2.6.20 EXPMETHODRESPONSE
-#     3.2.6.21 EXPPARAMVALUE
-
-
-class Message(CIMXMLTest):
-    """
-    <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP |
-                       SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP |
-                       MULTIEXPRSP)>
-    <!ATTLIST MESSAGE
-        ID CDATA #REQUIRED
-        PROTOCOLVERSION CDATA #REQUIRED>
-    """
-
-    def setUp(self):
-        super(Message, self).setUp()
-
-        # SIMPLEREQ
-
-        self.xml.append(cim_xml.MESSAGE(
-            cim_xml.SIMPLEREQ(
-                cim_xml.IMETHODCALL(
-                    'FooMethod',
-                    sample_LOCALNAMESPACEPATH_node())),
-            '1001', '1.0'))
-
-        # MULTIREQ
-
-        self.xml.append(cim_xml.MESSAGE(
-            cim_xml.MULTIREQ(
-                [cim_xml.SIMPLEREQ(
-                    cim_xml.IMETHODCALL(
-                        'FooMethod',
-                        sample_LOCALNAMESPACEPATH_node())),
-                 cim_xml.SIMPLEREQ(
-                     cim_xml.IMETHODCALL(
-                         'FooMethod',
-                         sample_LOCALNAMESPACEPATH_node()))]),
-            '1001', '1.0'))
-
-        # SIMPLERSP
-
-        self.xml.append(cim_xml.MESSAGE(
-            cim_xml.SIMPLERSP(
-                cim_xml.IMETHODRESPONSE('FooMethod')),
-            '1001', '1.0'))
-
-        # MULTIRSP
-
-        self.xml.append(cim_xml.MESSAGE(
-            cim_xml.MULTIRSP(
-                [cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')),
-                 cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod'))]),
-            '1001', '1.0'))
-
-        # TODO:
-
-        # SIMPLEEXPREQ
-        # MULTIEXPREQ
-        # SIMPLEEXPRSP
-        # MULTIEXPRSP
-
-
-class MultiReq(CIMXMLTest):
-    """
-    <!ELEMENT MULTIREQ (SIMPLEREQ, SIMPLEREQ+)>
-    """
-
-    def setUp(self):
-        super(MultiReq, self).setUp()
-
-        self.xml.append(cim_xml.MULTIREQ(
-            [cim_xml.SIMPLEREQ(
-                cim_xml.IMETHODCALL(
-                    'FooMethod',
-                    sample_LOCALNAMESPACEPATH_node())),
-             cim_xml.SIMPLEREQ(
-                 cim_xml.IMETHODCALL(
-                     'FooMethod',
-                     sample_LOCALNAMESPACEPATH_node()))]))
-
-
-class MultiExpReq(CIMXMLTest):
-    """
-    <!ELEMENT MULTIEXPREQ (SIMPLEEXPREQ, SIMPLEEXPREQ+)>
-    """
-
-    def setUp(self):
-        super(MultiExpReq, self).setUp()
-
-        self.xml.append(cim_xml.MULTIEXPREQ(
-            [cim_xml.SIMPLEEXPREQ(cim_xml.EXPMETHODCALL('FooMethod')),
-             cim_xml.SIMPLEEXPREQ(cim_xml.EXPMETHODCALL('FooMethod'))]))
-
-
-class SimpleReq(CIMXMLTest):
-    """
-    <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
-    """
-
-    def setUp(self):
-        super(SimpleReq, self).setUp()
-
-        # IMETHODCALL
-
-        self.xml.append(cim_xml.SIMPLEREQ(
-            cim_xml.IMETHODCALL(
-                'FooIMethod',
-                sample_LOCALNAMESPACEPATH_node())))
-
-        # METHODCALL
-
-        self.xml.append(cim_xml.SIMPLEREQ(
-            cim_xml.METHODCALL(
-                'FooMethod',
-                cim_xml.LOCALCLASSPATH(
-                    sample_LOCALNAMESPACEPATH_node(),
-                    sample_CLASSNAME_node()))))
-
-
-class SimpleExpReq(CIMXMLTest):
-    """
-    <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
-    """
-
-    def setUp(self):
-        super(SimpleExpReq, self).setUp()
-
-        self.xml.append(cim_xml.SIMPLEEXPREQ(
-            cim_xml.EXPMETHODCALL('FooMethod')))
-
-
-class IMethodCall(CIMXMLTest):
-    """
-    <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
-    <!ATTLIST IMETHODCALL
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(IMethodCall, self).setUp()
-
-        self.xml.append(
-            cim_xml.IMETHODCALL('FooMethod', sample_LOCALNAMESPACEPATH_node()))
-
-        self.xml.append(cim_xml.IMETHODCALL(
-            'FooMethod2', sample_LOCALNAMESPACEPATH_node(),
-            [cim_xml.IPARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
-
-
-class MethodCall(CIMXMLTest):
-    """
-    <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*)>
-    <!ATTLIST METHODCALL
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(MethodCall, self).setUp()
-
-        # LOCALINSTANCEPATH
-
-        self.xml.append(cim_xml.METHODCALL(
-            'FooMethod',
-            cim_xml.LOCALINSTANCEPATH(
-                sample_LOCALNAMESPACEPATH_node(),
-                sample_INSTANCENAME_node())))
-
-        # LOCALCLASSPATH
-
-        self.xml.append(cim_xml.METHODCALL(
-            'FooMethod',
-            cim_xml.LOCALCLASSPATH(
-                sample_LOCALNAMESPACEPATH_node(),
-                sample_CLASSNAME_node())))
-
-        # PARAMVALUEs
-
-        self.xml.append(cim_xml.METHODCALL(
-            'FooMethod',
-            cim_xml.LOCALINSTANCEPATH(
-                sample_LOCALNAMESPACEPATH_node(),
-                sample_INSTANCENAME_node()),
-            [cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))]))
-
-
-class ExpMethodCall(CIMXMLTest):
-    """
-    <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
-    <!ATTLIST EXPMETHODCALL
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(ExpMethodCall, self).setUp()
-
-        self.xml.append(cim_xml.EXPMETHODCALL('FooMethod'))
-
-        self.xml.append(cim_xml.EXPMETHODCALL(
-            'FooMethod',
-            [cim_xml.EXPPARAMVALUE('Dog')]))
-
-
-class ParamValue(CIMXMLTest):
-    """
-    <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
-                          VALUE.REFARRAY)?>
-    <!ATTLIST PARAMVALUE
-        %CIMName;
-        %ParamType;  #IMPLIED>
-    """
-
-    def setUp(self):
-        super(ParamValue, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.PARAMVALUE('Pet'))
-
-        # VALUE
-
-        self.xml.append(cim_xml.PARAMVALUE(
-            'Pet',
-            cim_xml.VALUE('Dog'),
-            'string'))
-
-        # VALUE.REFERENCE
-
-        self.xml.append(cim_xml.PARAMVALUE(
-            'Pet',
-            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
-
-        # VALUE.ARRAY
-
-        self.xml.append(cim_xml.PARAMVALUE(
-            'Pet',
-            cim_xml.VALUE_ARRAY([])))
-
-        # VALUE.REFARRAY
-
-        self.xml.append(cim_xml.PARAMVALUE(
-            'Pet',
-            cim_xml.VALUE_REFARRAY([])))
-
-
-class IParamValue(CIMXMLTest):
-    """
-    <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-                           INSTANCENAME | CLASSNAME | QUALIFIER.DECLARATION |
-                           CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
-    <!ATTLIST IPARAMVALUE
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(IParamValue, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.IPARAMVALUE('Bird'))
-
-        # VALUE
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            cim_xml.VALUE('Dog')))
-
-        # VALUE.ARRAY
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            cim_xml.VALUE_ARRAY([])))
-
-        # VALUE.REFERENCE
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
-
-        # INSTANCENAME
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            sample_INSTANCENAME_node()))
-
-        # CLASSNAME
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            sample_CLASSNAME_node()))
-
-        # TODO: QUALIFIER.DECLARATION
-
-        # CLASS
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            cim_xml.CLASS('CIM_Foo')))
-
-        # INSTANCE
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-        # VALUE.NAMEDINSTANCE
-
-        self.xml.append(cim_xml.IPARAMVALUE(
-            'Pet',
-            cim_xml.VALUE_NAMEDINSTANCE(
-                sample_INSTANCENAME_node(),
-                cim_xml.INSTANCE('CIM_Pet', []))))
-
-
-class ExpParamValue(CIMXMLTest):
-    """
-    <!ELEMENT EXPPARAMVALUE (INSTANCE? | VALUE? | METHODRESPONSE? |
-                             IMETHODRESPONSE?)>
-    <!ATTLIST EXPPARAMVALUE
-        %CIMName;
-        %ParamType;  #IMPLIED>
-    """
-
-    def setUp(self):
-        super(ExpParamValue, self).setUp()
-
-        self.xml.append(cim_xml.EXPPARAMVALUE('FooParam'))
-
-        self.xml.append(cim_xml.EXPPARAMVALUE(
-            'FooParam',
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-
-class MultiRsp(CIMXMLTest):
-    """
-    <!ELEMENT MULTIRSP (SIMPLERSP, SIMPLERSP+)>
-    """
-
-    def setUp(self):
-        super(MultiRsp, self).setUp()
-
-        self.xml.append(
-            cim_xml.MULTIRSP(
-                [cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')),
-                 cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod'))]))
-
-
-class MultiExpRsp(CIMXMLTest):
-    """
-    <!ELEMENT MULTIEXPRSP (SIMPLEEXPRSP, SIMPLEEXPRSP+)>
-    """
-
-    def setUp(self):
-        super(MultiExpRsp, self).setUp()
-
-        self.xml.append(
-            cim_xml.MULTIEXPRSP(
-                [cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE('FooMethod')),
-                 cim_xml.SIMPLEEXPRSP(
-                     cim_xml.EXPMETHODRESPONSE('FooMethod'))]))
-
-
-class SimpleRsp(CIMXMLTest):
-    """
-    <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
-    """
-
-    def setUp(self):
-        super(SimpleRsp, self).setUp()
-
-        # METHODRESPONSE
-
-        self.xml.append(
-            cim_xml.SIMPLERSP(cim_xml.METHODRESPONSE('FooMethod')))
-
-        # IMETHODRESPONSE
-
-        self.xml.append(
-            cim_xml.SIMPLERSP(cim_xml.IMETHODRESPONSE('FooMethod')))
-
-
-class SimpleExpRsp(CIMXMLTest):
-    """
-    <!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
-    """
-
-    def setUp(self):
-        super(SimpleExpRsp, self).setUp()
-
-        self.xml.append(
-            cim_xml.SIMPLEEXPRSP(cim_xml.EXPMETHODRESPONSE('FooMethod')))
-
-
-class MethodResponse(CIMXMLTest):
-    """
-    <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
-    <!ATTLIST METHODRESPONSE
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(MethodResponse, self).setUp()
-
-        # ERROR
-
-        self.xml.append(
-            cim_xml.METHODRESPONSE(
-                'FooMethod',
-                cim_xml.ERROR('123')))
-
-        # Empty
-
-        self.xml.append(cim_xml.METHODRESPONSE('FooMethod'))
-
-        # RETURNVALUE
-
-        self.xml.append(
-            cim_xml.METHODRESPONSE(
-                'FooMethod',
-                cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))))
-
-        # PARAMVALUE
-
-        self.xml.append(
-            cim_xml.METHODRESPONSE(
-                'FooMethod',
-                cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot'))))
-
-        # RETURNVALUE + PARAMVALUE
-
-        self.xml.append(
-            cim_xml.METHODRESPONSE(
-                'FooMethod',
-                (cim_xml.RETURNVALUE(cim_xml.VALUE('Dog')),
-                 cim_xml.PARAMVALUE('Dog', cim_xml.VALUE('Spottyfoot')))))
-
-
-class ExpMethodResponse(CIMXMLTest):
-    """
-    <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
-    <!ATTLIST EXPMETHODRESPONSE
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(ExpMethodResponse, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.EXPMETHODRESPONSE('FooMethod'))
-
-        # ERROR
-
-        self.xml.append(cim_xml.EXPMETHODRESPONSE(
-            'FooMethod',
-            cim_xml.ERROR('123')))
-
-        # IRETURNVALUE
-
-        self.xml.append(cim_xml.EXPMETHODRESPONSE(
-            'FooMethod',
-            cim_xml.IRETURNVALUE(cim_xml.VALUE('Dog'))))
-
-
-class IMethodResponse(CIMXMLTest):
-    """
-    <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
-    <!ATTLIST IMETHODRESPONSE
-        %CIMName;>
-    """
-
-    def setUp(self):
-        super(IMethodResponse, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.IMETHODRESPONSE('FooMethod'))
-
-        # ERROR
-
-        self.xml.append(cim_xml.IMETHODRESPONSE(
-            'FooMethod',
-            cim_xml.ERROR('123')))
-
-        # IRETURNVALUE
-
-        self.xml.append(cim_xml.IMETHODRESPONSE(
-            'FooMethod',
-            cim_xml.IRETURNVALUE(cim_xml.VALUE('Dog'))))
-
-
-class Error(CIMXMLTest):
-    """
-    <!ELEMENT ERROR (INSTANCE*)>
-    <!ATTLIST ERROR
-        CODE CDATA #REQUIRED
-        DESCRIPTION CDATA #IMPLIED>
-    """
-
-    def setUp(self):
-        super(Error, self).setUp()
-
-        self.xml.append(cim_xml.ERROR('1'))
-        self.xml.append(cim_xml.ERROR('1', 'Foo not found'))
-        # TODO: INSTANCE*
-
-
-class ReturnValue(CIMXMLTest):
-    """
-    <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)>
-    <!ATTLIST RETURNVALUE
-        %ParamType;     #IMPLIED>
-    """
-
-    def setUp(self):
-        super(ReturnValue, self).setUp()
-
-        # VALUE
-
-        self.xml.append(cim_xml.RETURNVALUE(cim_xml.VALUE('Dog')))
-
-        # VALUE.REFERENCE
-
-        self.xml.append(cim_xml.RETURNVALUE(
-            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
-
-        # TODO: PARAMTYPE
-
-
-class IReturnValue(CIMXMLTest):
-    """
-    <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
-                            VALUE.OBJECTWITHPATH* |
-                            VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
-                            OBJECTPATH* | QUALIFIER.DECLARATION* |
-                            VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
-                            INSTANCE* | VALUE.NAMEDINSTANCE*)>
-    """
-
-    def setUp(self):
-        super(IReturnValue, self).setUp()
-
-        # Empty
-
-        self.xml.append(cim_xml.IRETURNVALUE(None))
-
-        # CLASSNAME
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            sample_CLASSNAME_node()))
-
-        # INSTANCENAME
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            sample_INSTANCENAME_node()))
-
-        # VALUE
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE('Dog')))
-
-        # VALUE.OBJECTWITHPATH
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_OBJECTWITHPATH(
-                sample_CLASSPATH_node(),
-                cim_xml.CLASS('CIM_Foo'))))
-
-        # VALUE.OBJECTWITHLOCALPATH
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_OBJECTWITHLOCALPATH(
-                cim_xml.LOCALCLASSPATH(
-                    sample_LOCALNAMESPACEPATH_node(),
-                    sample_CLASSNAME_node()),
-                cim_xml.CLASS('CIM_Foo'))))
-
-        # VALUE.OBJECT
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_OBJECT(cim_xml.INSTANCE('CIM_Pet', []))))
-
-        # OBJECTPATH
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.OBJECTPATH(
-                cim_xml.INSTANCEPATH(
-                    sample_NAMESPACEPATH_node(),
-                    sample_INSTANCENAME_node()))))
-
-        # TODO: QUALIFIER.DECLARATION
-
-        # VALUE.ARRAY
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_ARRAY([])))
-
-        # VALUE.REFERENCE
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_REFERENCE(sample_CLASSPATH_node())))
-
-        # CLASS
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.CLASS('CIM_Foo')))
-
-        # INSTANCE
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.INSTANCE('CIM_Pet', [])))
-
-        # VALUE.NAMEDINSTANCE
-
-        self.xml.append(cim_xml.IRETURNVALUE(
-            cim_xml.VALUE_NAMEDINSTANCE(
-                sample_INSTANCENAME_node(),
-                cim_xml.INSTANCE('CIM_Pet', []))))
+                format(exc, act_xml_str))
+
+        # Verify that the XML string is as expected
+        exp_xml_str = ''.join(iter_flattened(exp_xml_str_list))
+        assert_xml_equal(act_xml_str, exp_xml_str)
+
+    finally:
+        if cdata_escaping:
+            cim_xml._CDATA_ESCAPING = False  # pylint: disable=protected-access

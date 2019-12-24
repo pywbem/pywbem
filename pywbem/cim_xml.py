@@ -1271,6 +1271,7 @@ class PARAMETER_REFARRAY(CIMElement):
             self.appendChildren(qualifiers)
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class TABLECELL_DECLARATION(CIMElement):  # pylint: disable=invalid-name
     # pylint: disable=invalid-name
     """
@@ -1291,6 +1292,7 @@ class TABLECELL_DECLARATION(CIMElement):  # pylint: disable=invalid-name
     """
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class TABLECELL_REFERENCE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1311,6 +1313,7 @@ class TABLECELL_REFERENCE(CIMElement):
      """
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class TABLEROW_DECLARATION(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1324,6 +1327,7 @@ class TABLEROW_DECLARATION(CIMElement):
     """
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class TABLE(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1337,6 +1341,7 @@ class TABLE(CIMElement):
     """
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class TABLEROW(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1739,7 +1744,7 @@ class IMETHODRESPONSE(CIMElement):
 
       ::
 
-        <!ELEMENT IMETHODRESPONSE (ERROR | IRETURNVALUE?)>
+        <!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
         <!ATTLIST IMETHODRESPONSE
             %CIMName;>
     """
@@ -1748,7 +1753,11 @@ class IMETHODRESPONSE(CIMElement):
         # We use call by class name because it is an old-style class.
         CIMElement.__init__(self, 'IMETHODRESPONSE')
         self.setName(name)
-        self.appendOptionalChild(data)
+        if data is not None:
+            if isinstance(data, (tuple, list)):
+                self.appendChildren(data)
+            else:
+                self.appendChild(data)
 
 
 class ERROR(CIMElement):
@@ -1818,9 +1827,14 @@ class IRETURNVALUE(CIMElement):
     def __init__(self, data):
         # We use call by class name because it is an old-style class.
         CIMElement.__init__(self, 'IRETURNVALUE')
-        self.appendOptionalChild(data)
+        if data is not None:
+            if isinstance(data, (tuple, list)):
+                self.appendChildren(data)
+            else:
+                self.appendChild(data)
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class RESPONSEDESTINATION(CIMElement):
     # pylint: disable=invalid-name
     """
@@ -1838,6 +1852,7 @@ class RESPONSEDESTINATION(CIMElement):
         self.appendChild(data)
 
 
+# TODO: Remove this class as it was never in a final DSP0200
 class SIMPLEREQACK(CIMElement):
     # pylint: disable=invalid-name
     """
