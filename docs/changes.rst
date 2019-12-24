@@ -333,6 +333,9 @@ Released: not yet
 * Test: Fixed an error in test_format_random() for the backslash character.
   (See issue #2027)
 
+* Test: Added testcases to the cim_xml module, and migrated from unittest to
+  pytest.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -468,6 +471,14 @@ Released: not yet
   deprecated. (See issue #2008)
 
 * Removed pywbem_mock conn_lite mode. (See issue # 1959)
+
+* Fixed an error in the CIM-XML creation where the IMETHODRESPONSE element did
+  not support output parameters. The IMETHODRESPONSE element is not used in the
+  pywbem client, though.
+
+* Fixed an error in the CIM-XML creation where the IRETURNVALUE element did not
+  support multiple return objects. The IRETURNVALUE element is not used in the
+  pywbem client, though.
 
 **Known issues:**
 
