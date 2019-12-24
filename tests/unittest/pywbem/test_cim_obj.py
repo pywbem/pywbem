@@ -395,6 +395,45 @@ def test_dict(testcase, obj, exp_dict):
     assert len(obj) == 2
 
 
+@pytest.mark.parametrize(
+    "func_name",
+    [
+        '__lt__',
+        '__gt__',
+        '__ge__',
+        '__le__',
+    ]
+)
+@pytest.mark.parametrize(
+    "objects",
+    [
+        (CIMInstance('Foo'), CIMInstance('Bar')),
+        (CIMInstanceName('Foo'), CIMInstanceName('Bar')),
+        (CIMClass('Foo'), CIMClass('Bar')),
+        (CIMClassName('Foo'), CIMClassName('Bar')),
+        (CIMProperty('Foo', 'a'), CIMProperty('Bar', 'b')),
+        (CIMMethod('Foo', 'string'), CIMMethod('Bar', 'string')),
+        (CIMParameter('Foo', 'string'), CIMParameter('Bar', 'string')),
+        (CIMQualifier('Foo', 'a'), CIMQualifier('Bar', 'b')),
+        (CIMQualifierDeclaration('Foo', 'string'),
+         CIMQualifierDeclaration('Bar', 'string')),
+    ]
+)
+def test_object_comparison(objects, func_name):
+    """
+    Test function for comparison operators of CIM objects.
+    The CIM objects intentionally do not implement comparison operators.
+    """
+    obj1, obj2 = objects
+    func = getattr(obj1, func_name, None)
+    assert func is not None
+    # func is a bound method, i.e. self is already part of it and set to obj1
+    with pytest.raises(TypeError) as exc_info:
+        func(obj2)
+    exc = exc_info.value
+    assert "not supported between instances of" in str(exc)
+
+
 TESTCASES_CIMINSTANCENAME_INIT = [
 
     # Testcases for CIMInstanceName.__init__()
@@ -1702,14 +1741,6 @@ def test_CIMInstanceName_eq_keybindings_order():
         "key bindings do not compare equal:\n" \
         "  obj1=%r\n" \
         "  obj2=%r" % (obj1, obj2)
-
-
-@unimplemented
-def test_CIMInstanceName_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMInstanceName._cmp().
-    """
-    raise NotImplementedError
 
 
 TESTCASES_CIMINSTANCENAME_HASH_EQ = [
@@ -6911,14 +6942,6 @@ def test_CIMInstance_update_existing(
         exp_value = exp_attrs[attr_name]
         value = getattr(obj, attr_name)
         assert value == exp_value
-
-
-@unimplemented
-def test_CIMInstance_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMInstance._cmp().
-    """
-    raise NotImplementedError
 
 
 # Special CIMInstance objects for TESTCASES_CIMINSTANCE_HASH_EQ:
@@ -13778,14 +13801,6 @@ def test_CIMProperty_setattr(
         assert value == exp_value
 
 
-@unimplemented
-def test_CIMProperty_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMProperty._cmp().
-    """
-    raise NotImplementedError
-
-
 TESTCASES_CIMPROPERTY_HASH_EQ = [
 
     # Testcases for CIMProperty.__hash__() and __eq__()
@@ -19536,14 +19551,6 @@ def test_CIMQualifier_setattr(
         exp_value = exp_attrs[attr_name]
         value = getattr(obj, attr_name)
         assert value == exp_value
-
-
-@unimplemented
-def test_CIMQualifier_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMQualifier._cmp().
-    """
-    raise NotImplementedError
 
 
 TESTCASES_CIMQUALIFIER_HASH_EQ = [
@@ -25987,14 +25994,6 @@ def test_CIMClass_setattr(
         assert value == exp_value
 
 
-@unimplemented
-def test_CIMClass_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMClass._cmp().
-    """
-    raise NotImplementedError
-
-
 TESTCASES_CIMCLASS_HASH_EQ = [
 
     # Testcases for CIMClass.__hash__() and __eq__()
@@ -28403,14 +28402,6 @@ def test_CIMMethod_setattr(
         exp_value = exp_attrs[attr_name]
         value = getattr(obj, attr_name)
         assert value == exp_value
-
-
-@unimplemented
-def test_CIMMethod_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMMethod._cmp().
-    """
-    raise NotImplementedError
 
 
 TESTCASES_CIMMETHOD_HASH_EQ = [
@@ -32859,14 +32850,6 @@ def test_CIMParameter_setattr(
         exp_value = exp_attrs[attr_name]
         value = getattr(obj, attr_name)
         assert value == exp_value
-
-
-@unimplemented
-def test_CIMParameter_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMParameter._cmp().
-    """
-    raise NotImplementedError
 
 
 TESTCASES_CIMPARAMETER_HASH_EQ = [
@@ -40080,14 +40063,6 @@ def test_CIMQualifierDeclaration_setattr(
         exp_value = exp_attrs[attr_name]
         value = getattr(obj, attr_name)
         assert value == exp_value
-
-
-@unimplemented
-def test_CIMQualifierDeclaration_cmp():  # TODO: Implement with pytest
-    """
-    Test function for CIMQualifierDeclaration._cmp().
-    """
-    raise NotImplementedError
 
 
 TESTCASES_CIMQUALIFIERDECLARATION_HASH_EQ = [
