@@ -270,7 +270,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
-                 timeout=None, response_delay=None, repo_lite=False):
+                 timeout=None, response_delay=None):
         """
         Parameters:
 
@@ -303,13 +303,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             Note that the
             :attr:`~pywbem_mock.FakedWBEMConnection.response_delay` property
             can be used to set this delay subsequent to object creation.
-
-          repo_lite (:class:`py:bool`):
-            Flag to set the
-            :ref:`operation mode <mock repository operation modes>` of the mock
-            repository.
-            If `True`, lite mode is set.
-            If `False`, full mode is set.
         """
         # Response delay in seconds. Any operation is delayed by this time.
         # Initialize before superclass init because otherwise logger may
@@ -370,8 +363,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # permitted as per self.namesaces).
         self.methods = NocaseDict()
 
-        self._repo_lite = repo_lite
-
         # Open Pull Contexts. The key for each context is an enumeration
         # context id.  The data is the total list of instances/names to
         # be returned and the current position in the list. Any context in
@@ -380,14 +371,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         self._imethodcall = Mock(side_effect=self._mock_imethodcall)
         self._methodcall = Mock(side_effect=self._mock_methodcall)
-
-    @property
-    def repo_lite(self):
-        """
-        Boolean indicating whether the connection was established in the
-        lite mode. (`True`) if the lite mode is set
-        """
-        return self._repo_lite
 
     @property
     def response_delay(self):
@@ -806,10 +789,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                     cc.classname, cc.superclass))
                 class_repo = self._get_class_repo(namespace)
 
-                # TODO: Future, this kills off the conn_lite for classes
-                # since we are resolving the classes.
-                qualifier_repo = None if self._repo_lite else \
-                    self._get_qualifier_repo(namespace)
+                qualifier_repo = self._get_qualifier_repo(namespace)
+
                 cc1 = self._resolve_class(cc, namespace, qualifier_repo,
                                           verbose=False)
 
@@ -1690,8 +1671,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 if class_origin and class_origin != rtn_inst.classname:
                     del rtn_inst[p]
 
-        # if not repo_lite test against class properties
-        if not self._repo_lite and local_only:
+        if local_only:
             # gets class propertylist which may be local only or all
             # superclasses
             try:
@@ -1722,14 +1702,11 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
     def _get_subclass_list_for_enums(self, classname, namespace):
         """ Get class list (i.e names of subclasses for classname for the
-            enumerateinstance methods. If conn.lite returns only classname but
-            no subclasses.
+            enumerateinstance methods.
 
             Returns NocaseDict where only the keys are important, This allows
             case insensitive matches of the names with Python "for cln in clns".
         """
-        if self._repo_lite:
-            return NocaseDict({classname: classname})
         if not self._class_exists(classname, namespace):
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
@@ -1925,8 +1902,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # Validate namespace
         class_repo = self._get_class_repo(namespace)
 
-        qualifier_repo = None if self._repo_lite else \
-            self._get_qualifier_repo(namespace)
+        qualifier_repo = self._get_qualifier_repo(namespace)
 
         if new_class.classname in class_repo:
             raise CIMError(
@@ -2155,11 +2131,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             CIMError: CIM_ERR_INVALID_CLASS
         """
 
-        if self._repo_lite:
-            raise CIMError(
-                CIM_ERR_NOT_SUPPORTED,
-                "CreateInstance not supported when repo_lite set.")
-
         # Validate parameters
         new_instance = params['NewInstance']
         if not isinstance(new_instance, CIMInstance):
@@ -2301,11 +2272,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
             CIMError: CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS
         """
-
-        if self._repo_lite:
-            raise CIMError(
-                CIM_ERR_NOT_SUPPORTED,
-                "ModifyInstance not supported when repo_lite set.")
 
         # Validate namespace
         instance_repo = self._get_instance_repo(namespace)
@@ -2472,13 +2438,11 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         self._validate_namespace(namespace)
 
-        # If not repo lite, corresponding class must exist.
-        if not self._repo_lite:
-            if not self._class_exists(iname.classname, namespace):
-                raise CIMError(
-                    CIM_ERR_INVALID_CLASS,
-                    _format("Class {0!A} for GetInstance of instance {1!A} "
-                            "does not exist.", iname.classname, iname))
+        if not self._class_exists(iname.classname, namespace):
+            raise CIMError(
+                CIM_ERR_INVALID_CLASS,
+                _format("Class {0!A} for GetInstance of instance {1!A} "
+                        "does not exist.", iname.classname, iname))
 
         inst = self._get_instance(iname, namespace,
                                   params['PropertyList'],
@@ -2512,14 +2476,12 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # Validate namespace
         instance_repo = self._get_instance_repo(namespace)
 
-        # if not repo_lite, Corresponding class must exist
-        if not self._repo_lite:
-            if not self._class_exists(iname.classname, namespace):
-                raise CIMError(
-                    CIM_ERR_INVALID_CLASS,
-                    _format("Class {0!A} in namespace {1!A} not found. "
-                            "Cannot delete instance {2!A}",
-                            iname.classname, namespace, iname))
+        if not self._class_exists(iname.classname, namespace):
+            raise CIMError(
+                CIM_ERR_INVALID_CLASS,
+                _format("Class {0!A} in namespace {1!A} not found. "
+                        "Cannot delete instance {2!A}",
+                        iname.classname, namespace, iname))
 
         if iname not in instance_repo:
             raise CIMError(
@@ -2582,24 +2544,20 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         ico = params['IncludeClassOrigin']
         iq = params.get('IncludeQualifiers', None)
 
-        if not self._repo_lite:
-            # gets class propertylist which is may be localonly or all
-            # superclasses
-            cl = self._get_class(cname, namespace, local_only=lo)
-            class_pl = cl.properties.keys()
-        else:
-            class_pl = None
+        # gets class propertylist which is may be localonly or all
+        # superclasses
+        cl = self._get_class(cname, namespace, local_only=lo)
+        class_pl = cl.properties.keys()
 
-        # if not lite repo and not di compute property list to filter
+        # If not di, compute property list to filter
         # all instances to the properties in the target class as modified
         # by the PropertyList
-        if not self._repo_lite:
-            if not di:
-                if pl is None:  # properties in class form property list
-                    pl = class_pl
-                else:      # reduce pl to properties in class_properties
-                    pl_lower = [pc.lower() for pc in pl]
-                    pl = [pc for pc in class_pl if pc.lower() in pl_lower]
+        if not di:
+            if pl is None:  # properties in class form property list
+                pl = class_pl
+            else:      # reduce pl to properties in class_properties
+                pl_lower = [pc.lower() for pc in pl]
+                pl = [pc for pc in class_pl if pc.lower() in pl_lower]
 
         clns_dict = self._get_subclass_list_for_enums(cname, namespace)
 
