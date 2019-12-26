@@ -415,10 +415,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
               ``[{scheme}://]{host}[:{port}]``
 
+            Possibly present trailing path segments in the URL are ignored.
+
             The following URL schemes are supported:
 
-            * ``https``: Causes HTTPS to be used.
             * ``http``: Causes HTTP to be used (default).
+            * ``https``: Causes HTTPS to be used.
 
             The host can be specified in any of the usual formats:
 
@@ -429,15 +431,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
               before the zone ID string, as an additional choice to ``%25``.
 
-            If no port is specified in the URL, the default ports are:
+            If no port is specified in the URL, it defaults to:
 
-            * If HTTPS is used, port 5989.
-            * If HTTP is used, port 5988.
+            * Port 5988 for URL scheme ``http``
+            * Port 5989 for URL scheme ``https``
 
             Examples for some URL formats:
 
-            * ``"https://10.11.12.13:6988"``:
-              Use HTTPS to port 6988 on host 10.11.12.13
+            * ``"https://10.11.12.13:6989"``:
+              Use HTTPS to port 6989 on host 10.11.12.13
             * ``"https://mysystem.acme.org"``:
               Use HTTPS to port 5989 on host mysystem.acme.org
             * ``"10.11.12.13"``:
@@ -724,12 +726,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def url(self):
         """
-        :term:`unicode string`: URL of the WBEM server.
+        :term:`unicode string`: Normalized URL of the WBEM server.
 
-        For details, see the description of the same-named init
+        The scheme is in lower case and the default scheme (http) has been
+        applied. Default port numbers (5988 for http and 5989 for https) have
+        been applied. For IPv6 addresses, the host has been normalized to
+        RFC6874 URI syntax. Trailing path segments have been removed.
+
+        For examples, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable, but setting it has been deprecated.
+
+        *Changed in pywbem 1.0: The URL is now normalized.*
         """
         return self._url
 
@@ -743,32 +752,43 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def _set_url(self, url):
         """Internal setter function."""
-        if not re.match(r'^[A-Za-z0-9_\-]+://', url):
-            url = 'http://' + url
-        self._url = _ensure_unicode(url)
+        scheme, hostport, url = parse_url(url)
+        self._scheme = scheme
+        self._host = hostport
+        self._url = url
 
     @property
     def scheme(self):
         """
-        :term:`unicode string`: Scheme of the URL of the WBEM server, for
-        example 'http' or 'https'.
+        :term:`unicode string`: Normalized scheme of the URL of the WBEM
+        server, for example 'http' or 'https'.
+
+        The scheme is in lower case and the default scheme (http) has been
+        applied.
 
         *New in pywbem 1.0.*
         """
-        parts = self._url.split('://')
-        assert len(parts) == 2
-        return parts[0]
+        return self._scheme
 
     @property
     def host(self):
         """
-        :term:`unicode string`: The ``{host}[:{port}]`` component of the
-        WBEM server's URL, as specified in the ``url`` attribute.
+        :term:`unicode string`: Normalized host and port number of the WBEM
+        server, in the format ``host:port``.
+
+        Default port numbers (5988 for http and 5989 for https) have been
+        applied. For IPv6 addresses, the host has been normalized to RFC6874
+        URI syntax.
+
+        This value is used as the host portion of CIM namespace paths in
+        any objects returned from the WBEM server that did not specify a
+        CIM namespace path.
 
         *New in pywbem 0.11.*
+        *Changed in pywbem 1.0: The host is now normalized and the port is
+        always present.*
         """
-        host = self.url.split('://')[-1]
-        return host
+        return self._host
 
     @property
     def creds(self):
@@ -4523,20 +4543,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
-            # Complete namespace and host components of the path
-            # pylint: disable=unused-variable
-            host, port, ssl = parse_url(self.url)
-
             # get namespace for the operation
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
 
+            # Complete namespace and host components of the path
             for inst in enum_rslt:
                 if inst.path.namespace is None:
                     inst.path.namespace = namespace
                 if inst.path.host is None:
-                    inst.path.host = host
+                    inst.path.host = self.host
 
             for inst in enum_rslt:
                 yield inst
@@ -4787,19 +4804,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             enum_rslt = self.EnumerateInstanceNames(
                 ClassName, namespace=namespace)
 
-            # pylint: disable=unused-variable
-            host, port, ssl = parse_url(self.url)
-
             # get namespace for the operation
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
 
+            # Complete namespace and host components of the path
             for path in enum_rslt:
                 if path.namespace is None:
                     path.namespace = namespace
                 if path.host is None:
-                    path.host = host
+                    path.host = self.host
 
             for inst in enum_rslt:
                 yield inst
@@ -8898,7 +8913,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # so we create the class path and set its namespace to the
             # effective target namespace.
             klass.path = CIMClassName(
-                classname=klass.classname, host=self.host, namespace=namespace)
+                classname=klass.classname, host=self.host,
+                namespace=namespace)
 
             return klass
 

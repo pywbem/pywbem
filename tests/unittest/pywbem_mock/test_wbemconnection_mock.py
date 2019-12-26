@@ -863,7 +863,9 @@ class TestFakedWBEMConnection(object):
         # pylint: disable=protected-access
         FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection()
-        assert conn.host == 'FakedUrl'
+        assert conn.scheme == 'http'
+        assert conn.host == 'FakedUrl:5988'
+        assert conn.url == 'http://FakedUrl:5988'
         assert conn.use_pull_operations is False
         assert conn.stats_enabled is False
         assert conn.default_namespace == DEFAULT_NAMESPACE
@@ -1884,7 +1886,7 @@ class TestRepoMethods(object):
                          propagated=False)}),
                  path=CIMClassName(classname='CIM_HostedDependency',
                                    namespace='root/cimv2',
-                                   host='FakedUrl')),
+                                   host='FakedUrl:5988')),
              True],
         ]
     )
@@ -2095,7 +2097,8 @@ class TestClassOperations(object):
 
         # Test the modified tst_class against the returned class
         tst_ns = ns or conn.default_namespace
-        tst_class.path = CIMClassName(cn, host='FakedUrl', namespace=tst_ns)
+        tst_class.path = CIMClassName(cn, host='FakedUrl:5988',
+                                      namespace=tst_ns)
 
         assert cl == tst_class
 
@@ -4614,7 +4617,7 @@ class TestReferenceOperations(object):
                             namespace='root/cimv2', host=conn.host),
             CIMInstanceName(classname='TST_Lineage',
                             keybindings=NocaseDict({'InstanceID': 'MikeGabi'}),
-                            namespace='root/cimv2', host='FakedUrl'),
+                            namespace='root/cimv2', host='FakedUrl:5988'),
             CIMInstanceName(
                 classname='TST_MemberOfFamilyCollection',
                 keybindings=NocaseDict({

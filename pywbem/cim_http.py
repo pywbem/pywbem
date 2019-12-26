@@ -43,6 +43,8 @@ from six.moves import urllib
 from requests.packages import urllib3
 
 from .cim_obj import CIMClassName, CIMInstanceName
+from .cim_constants import DEFAULT_URL_SCHEME, DEFAULT_URL_PORT_HTTP, \
+    DEFAULT_URL_PORT_HTTPS
 from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 from ._utils import _ensure_unicode, _ensure_bytes, _format
 
@@ -52,107 +54,142 @@ _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 HTTP_CONNECT_TIMEOUT = 10        # HTTP connect timeout in seconds
 
-DEFAULT_PORT_HTTP = 5988        # default port for http
-DEFAULT_PORT_HTTPS = 5989       # default port for https
+# Regexp pattern for an entire URL, with parsing items:
+# (1) scheme (optional)
+# (2) host (required) - may contain brackets and colons for IPv6 addresses
+# (3) port (optional)
+# (4) trailing path segments (optional)
+URL_PATTERN = re.compile(
+    r'^(?:(.*?)://)?([^/]+?)(?::([^:\[\]\-/]+?))?(/.*)?$')
+
+# Regexp pattern for the host of a URL in (bracketed) RFC6874 URI format,
+# with parsing items:
+# (1) host (required)
+# (2) zone ID (optional)
+URL_IPV6_URI_PATTERN = re.compile(r'^\[(.+?)(?:[\-%](.+))?\]$')
+
+# Regexp pattern for the host of a URL in (unbracketed) RFC4007 text format,
+# with parsing items:
+# (1):(2) host (required)
+# (3) zone ID (optional)
+URL_IPV6_TEXT_PATTERN = re.compile(r'^([^\[\]]*?):([^\[\]]*?)(?:%([^\[\]]+))?$')
 
 
 def parse_url(url, allow_defaults=True):
-    """Return a tuple (`host`, `port`, `ssl`) from the URL specified in the
-    `url` parameter.
+    """
+    Return a tuple (`scheme`, `hostport`, `url`) from the URL specified in the
+    input URL.
 
-    The returned `ssl` item is a boolean indicating the use of SSL, and is
-    recognized from the URL scheme (http vs. https). If none of these schemes
-    is specified in the URL, the returned value defaults to False
-    (non-SSL/http).
+    In the input URL, the host portion may be specified as a short or long
+    host name, dotted IPv4 address, bracketed IPv6 address in the RFC6874 URI
+    syntax, or unbracketed IPv6 address in the RFC4007 text syntax. In either
+    format, IPv6 addresses may optionally have a zone index (aka scope ID),
+    delimited with '-' or '%'.
 
-    The returned `port` item is the port number, as an integer. If there is
-    no port number specified in the URL, the returned value defaults to 5988
-    for non-SSL/http, and to 5989 for SSL/https.
+    The returned `scheme` item is the normalized scheme portion of the input
+    URL, as a unicode string. It is always in lower case. If not specified, it
+    defaults to DEFAULT_URL_SCHEME. Only 'http' and 'https' are supported
+    schemes, and ValueError is raised for invalid schemes.
 
-    The returned `host` item is the host portion of the URL, as a string.
-    The host portion may be specified in the URL as a short or long host name,
-    dotted IPv4 address, or bracketed IPv6 address with or without zone index
-    (aka scope ID). An IPv6 address is converted from the RFC6874 URI syntax
-    to the RFC4007 text representation syntax before being returned, by
-    removing the brackets and converting the zone index (if present) from
-    "-eth0" to "%eth0".
+    The returned `hostport` item is the normalized host and port number of the
+    input URL in the format '{host}:{port}', as a unicode string.
+    IPv6 addresses are always represented in (and converted to) RFC6874 URI
+    syntax. If there is no port number specified in the input URL, the port
+    in the returned `hostport` item defaults to DEFAULT_URL_PORT_HTTP or
+    DEFAULT_URL_PORT_HTTP, dependent on the scheme.
+    The returned `hostport` item should be used as the 'host' portion of CIM
+    namespace paths.
+
+    The returned `url` item is the normalized input URL, constructed from
+    the returned `scheme` and `hostport` items.
+
+    Defaults are only applied if allow_defaults=True. Otherwise, missing
+    components cause ValueError to be raised.
+
+    ValueError is raised in addition for invalid URLs or portions thereof.
 
     Examples for valid URLs can be found in the test program
     `tests/unittest/pywbem/test_cim_http.py`.
 
     Parameters:
 
-      url:
+      url (string): Input URL.
 
-      allow_defaults - If `True` (default) allow defaults for scheme and
-        port. If `False`, raise exception for invalid or missing scheme or
-        port.
+      allow_defaults (bool): If `True` allow defaults for scheme and
+        port. If `False`, raise ValueError for missing scheme or port.
 
     Returns:
 
-      tuple of (`host`, `port`, `ssl`)
+      tuple of (`scheme`, `hostport`, `url`)
 
     Raises:
 
-      ValueError: Exception raised if allow_defaults = False and either
-        scheme or port are invalid or missing
+      ValueError: Component missing (when allow_defaults = False)
+      ValueError: Invalid URL
     """
 
-    default_ssl = False             # default SSL use (for no or unknown scheme)
+    url = _ensure_unicode(url)
 
-    # Look for scheme.
-    matches = re.match(r"^(https?)://(.*)$", url, re.I)
-    _scheme = None
-    if matches:
-        _scheme = matches.group(1).lower()
-        hostport = matches.group(2)
-        ssl = (_scheme == 'https')
-    else:
+    m = URL_PATTERN.match(url)
+    if not m:
+        raise ValueError(
+            _format("Invalid URL {0!A}", url))
+
+    scheme = m.group(1)
+    if not scheme:
         if not allow_defaults:
             raise ValueError(
-                _format("URL {0!A} invalid scheme component", url))
-        # The URL specified no scheme (or a scheme other than the expected
-        # schemes, but we don't check)
-        ssl = default_ssl
-        hostport = url
+                _format("Scheme component missing in URL {0!A}", url))
+        scheme = DEFAULT_URL_SCHEME
+    scheme = scheme.lower()
+    if scheme not in ('http', 'https'):
+        raise ValueError(
+            _format("Unsupported scheme {0!A} in URL {1!A}", scheme, url))
 
-    # Remove trailing path segments, if any.
-    # Having URL components other than just slashes (e.g. '#' or '?') is not
-    # allowed (but we don't check).
-    result = hostport.find("/")
-    if result >= 0:
-        hostport = hostport[0:result]
-
-    # Look for port.
-    # This regexp also works for (colon-separated) IPv6 addresses, because they
-    # must be bracketed in a URL.
-    matches = re.search(r":([0-9]+)$", hostport)
-    if matches:
-        host = hostport[0:matches.start(0)]
-        port = int(matches.group(1))
-    else:
+    port = m.group(3)
+    if not port:
         if not allow_defaults:
             raise ValueError(
-                _format("URL {0!A} invalid host/port component", url))
-        host = hostport
-        port = DEFAULT_PORT_HTTPS if ssl else DEFAULT_PORT_HTTP
+                _format("Port component missing in URL {0!A}", url))
+        if scheme == 'http':
+            port = DEFAULT_URL_PORT_HTTP
+        else:
+            assert scheme == 'https'
+            port = DEFAULT_URL_PORT_HTTPS
+    try:
+        port = int(port)
+    except ValueError:
+        raise ValueError(
+            _format("Invalid port number {0!A} in URL {1!A}", port, url))
 
-    # Reformat IPv6 addresses from RFC6874 URI syntax to RFC4007 text
-    # representation syntax:
-    #   - Remove the brackets.
-    #   - Convert the zone index (aka scope ID) from "-eth0" to "%eth0".
-    # Note on the regexp below: The first group needs the '?' after '.+' to
-    # become non-greedy; in greedy mode, the optional second group would never
-    # be matched.
-    matches = re.match(r"^\[(.+?)(?:-(.+))?\]$", host)
-    if matches:
-        # It is an IPv6 address
-        host = matches.group(1)
-        if matches.group(2) is not None:
-            # The zone index is present
-            host += "%" + matches.group(2)
+    host = m.group(2)
+    assert host is not None  # This is guaranteed by the URL_PATTERN
 
-    return host, port, ssl
+    # Normalize the host for IPv6 addresses.
+    m = URL_IPV6_URI_PATTERN.match(host)
+    if m:
+        # It is an IPv6 address in RFC6874 URI syntax
+        _host = m.group(1)
+        _zone_index = m.group(2)
+        if _zone_index is not None:
+            host = '[{0}-{1}]'.format(_host, _zone_index)
+        else:
+            host = '[{0}]'.format(_host)
+    else:
+        m = URL_IPV6_TEXT_PATTERN.match(host)
+        if m:
+            # It is an IPv6 address in RFC4007 text syntax
+            _host = '{0}:{1}'.format(m.group(1), m.group(2))
+            _zone_index = m.group(3)
+            if _zone_index is not None:
+                host = '[{0}-{1}]'.format(_host, _zone_index)
+            else:
+                host = '[{0}]'.format(_host)
+
+    hostport = u'{0}:{1}'.format(host, port)
+    url = u'{0}://{1}'.format(scheme, hostport)
+
+    return scheme, hostport, url
 
 
 def request_exc_message(exc, conn):

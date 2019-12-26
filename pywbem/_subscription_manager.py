@@ -1162,10 +1162,8 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
-        # validate the URL by reconstructing it. Do not allow defaults
-        host, port, ssl = parse_url(dest_url, allow_defaults=False)
-        schema = 'https' if ssl else 'http'
-        listener_url = '{0}://{1}:{2}'.format(schema, host, port)
+        # Validate the URL by reconstructing it. Do not allow defaults
+        _, _, listener_url = parse_url(dest_url, allow_defaults=False)
 
         this_host = getfqdn()
         ownership = "owned" if owned else "permanent"
