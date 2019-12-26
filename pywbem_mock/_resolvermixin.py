@@ -80,7 +80,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
     def _test_qualifier_decl(qualifier, qualifier_repo, namespace):
         """
         Test that qualifier is in repo and valid.
-        For for conn_lite, ignore this test
         """
         if qualifier_repo is None:
             return

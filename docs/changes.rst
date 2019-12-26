@@ -120,6 +120,10 @@ Released: not yet
 * Made the MOFWBEMConnection class internal and undocumented. It has an
   inconsistent semantics and should not be used by users. (See issue #2001).
 
+* Completely removed the pywbem_mock initialization attribute conn_lite and
+  its implementation and tests.  This turned out too simplistic for mock testing
+  and of no real value while adding complexity.  (See issue #1959)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -428,6 +432,8 @@ Released: not yet
 
 * Replaced the yamlordereddictloader package with yamlloader, as it was
   deprecated. (See issue #2008)
+
+* Removed pywbem_mock conn_lite mode. (See issue # 1959)
 
 **Known issues:**
 

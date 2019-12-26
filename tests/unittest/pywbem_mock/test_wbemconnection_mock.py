@@ -50,9 +50,9 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
     CIMError, DEFAULT_NAMESPACE, CIM_ERR_FAILED, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_ALREADY_EXISTS, \
-    CIM_ERR_INVALID_ENUMERATION_CONTEXT, CIM_ERR_METHOD_NOT_FOUND, \
-    CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS
+    CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
+    CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_NAMESPACE_NOT_EMPTY, \
+    CIM_ERR_INVALID_SUPERCLASS
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from pywbem.cim_operations import pull_path_result_tuple
@@ -800,29 +800,6 @@ TST_PERSONWITH_SUB_INST_COUNT = TST_PERSON_INST_COUNT + \
     TST_PERSON_SUB_INST_COUNT                             # num both
 
 
-@pytest.fixture
-def conn_lite():
-    """
-    Create the FakedWBEMConnection with the repo_lite flag set and return it.
-    """
-    # pylint: disable=protected-access
-    FakedWBEMConnection._reset_logging_config()
-    return FakedWBEMConnection(repo_lite=True)
-
-
-@ pytest.fixture(params=[True, False])
-def conn_both(request):
-    """
-    Create the FakedWBEMConnection. This fixture returns the connection twice,
-    one with repo_lite True and the other with repo_lite False.  It can be
-    used to test both variations if the test can handle both variations.
-    """
-
-    # pylint: disable=protected-access
-    FakedWBEMConnection._reset_logging_config()
-    return FakedWBEMConnection(repo_lite=request.param)
-
-
 #########################################################################
 #
 #            Pytest Test Classes
@@ -888,7 +865,6 @@ class TestFakedWBEMConnection(object):
         conn = FakedWBEMConnection()
         assert conn.host == 'FakedUrl'
         assert conn.use_pull_operations is False
-        assert conn._repo_lite is False  # pylint: disable=protected-access
         assert conn.stats_enabled is False
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
@@ -2969,36 +2945,6 @@ class TestInstanceOperations(object):
             [None, True, True],
         ]
     )
-    def test_getinstancelite_opts(self, conn_lite, ns, lo, iq, ico,
-                                  tst_instances):
-        # pylint: disable=no-self-use
-        """
-        Test getting an instance from the repository with GetInstance and
-        the options set
-        """
-        # TODO extend to test lo and iq
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-        request_inst_path = CIMInstanceName(
-            'CIM_Foo', {'InstanceID': 'CIM_Foo1'}, namespace=ns)
-
-        inst = conn_lite.GetInstance(request_inst_path, LocalOnly=lo,
-                                     IncludeQualifiers=iq,
-                                     IncludeClassOrigin=ico)
-
-        inst.path.namespace = ns
-        assert inst.path == request_inst_path
-        # TODO add tests for iq and ico
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None]
-    )
-    @pytest.mark.parametrize(
-        "lo, iq, ico", [
-            [None, None, None],
-            [None, True, None],
-            [None, True, True],
-        ]
-    )
     def test_getinstance_opts(self, conn, ns, lo, iq, ico,
                               tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
@@ -3044,21 +2990,20 @@ class TestInstanceOperations(object):
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
-    def test_getinstance_pl(self, conn_both, ns, cln, inst_id, pl, props_exp,
+    def test_getinstance_pl(self, conn, ns, cln, inst_id, pl, props_exp,
                             tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test the variations of property list against what is returned by
-        GetInstance. This tests both the normal and lite mode for the
-        WBEM_Connection
+        GetInstance.
         """
-        if conn_both.repo_lite is False:
-            conn_both.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn_both.add_cimobjects(tst_instances, namespace=ns)
+
+        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+        conn.add_cimobjects(tst_instances, namespace=ns)
         request_inst_path = CIMInstanceName(
             cln, {'InstanceID': inst_id}, namespace=ns)
 
-        inst = conn_both.GetInstance(request_inst_path, PropertyList=pl)
+        inst = conn.GetInstance(request_inst_path, PropertyList=pl)
 
         inst.path.namespace = ns
         assert inst.path == request_inst_path
@@ -3074,30 +3019,28 @@ class TestInstanceOperations(object):
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln", ['cim_foo', 'CIM_Foo'])
-    def test_enumerateinstnames(self, conn_both, ns, cln,
+    def test_enumerateinstnames(self, conn, ns, cln,
                                 tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
-        fixture with both classes and instances in the repo.  This does not
-        use repo_lite
+        fixture with both classes and instances in the repo.
         """
-        if conn_both.repo_lite is False:
-            conn_both.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn_both.add_cimobjects(tst_instances, namespace=ns)
+        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+        conn.add_cimobjects(tst_instances, namespace=ns)
 
-        rtn_inst_names = conn_both.EnumerateInstanceNames(cln, ns)
+        rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
 
-        nsx = conn_both.default_namespace if ns is None else ns
+        nsx = conn.default_namespace if ns is None else ns
 
         # pylint: disable=protected-access
-        exp_subclasses = conn_both._get_subclass_names(cln, nsx, True)
+        exp_subclasses = conn._get_subclass_names(cln, nsx, True)
         exp_subclasses.append(cln)
         sub_class_dict = NocaseDict()
         for name in exp_subclasses:
             sub_class_dict[name] = name
 
-        request_inst_names = [i for i in conn_both._get_instance_repo(nsx)
+        request_inst_names = [i for i in conn._get_instance_repo(nsx)
                               if i.classname in sub_class_dict]
 
         assert len(rtn_inst_names) == len(request_inst_names)
@@ -3159,33 +3102,6 @@ class TestInstanceOperations(object):
             exc = exec_info.value
             assert exc.status_code == exp_exc.status_code
 
-    def test_enumerateinstances_lite(self, conn_lite, tst_instances):
-        # pylint: disable=no-self-use
-        """
-        Test mock EnumerateInstances with repo_lite set.
-        This returns only instances of the target class.
-        """
-        conn_lite.add_cimobjects(tst_instances)
-        enum_classname = 'CIM_Foo'
-        rtn_insts = conn_lite.EnumerateInstances(enum_classname)
-
-        tst_inst_dict = {}
-        for inst in tst_instances:
-            tst_inst_dict[str(model_path(inst.path))] = inst
-
-        # TODO compute number expected be returned. This is number with
-        # CIM_Foo as classname
-        assert len(rtn_insts) == 2
-        for inst in rtn_insts:
-            assert isinstance(inst, CIMInstance)
-            assert inst.classname == enum_classname
-
-            mp = str(model_path(inst.path))
-            assert mp in tst_inst_dict
-            tst_inst = tst_inst_dict[mp]
-            assert tst_inst is not None
-            assert insts_equal(inst, tst_inst)
-
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -3205,7 +3121,7 @@ class TestInstanceOperations(object):
                                 tst_instances, ns, cln, di, exp_cln, exp_prop):
         # pylint: disable=no-self-use
         """
-        Test mock EnumerateInstances without repo_lite. Returns instances
+        Test mock EnumerateInstances. Returns instances
         of defined class and subclasses
         """
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -3238,72 +3154,6 @@ class TestInstanceOperations(object):
                 # TODO improve algorithm so we define exactly what properties
                 # we should receive.
                 assert set(inst.keys()).issubset(exp_prop)
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    def test_enumerateinstances_ns(self, conn_lite, ns, tst_instances):
-        # pylint: disable=no-self-use
-        """
-        Test mock EnumerateInstances with namespace as an input
-        optional parameter defined by parametrizeration
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-        enum_classname = 'CIM_Foo'
-        rtn_insts = conn_lite.EnumerateInstances('CIM_Foo', ns)
-
-        assert len(rtn_insts) == 2
-        for inst in rtn_insts:
-            assert isinstance(inst, CIMInstance)
-            assert inst.classname == enum_classname
-            # TODO Test actual instance returned
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    @pytest.mark.parametrize(
-        "cln, pl, props_exp",
-        [
-            #  cln       pl     props_exp
-            ['CIM_Foo', None, ['InstanceID']],
-            ['CIM_Foo', "", []],
-            ['CIM_Foo', "blah", []],
-            ['CIM_Foo', 'InstanceID', ['InstanceID']],
-            ['CIM_Foo', ['InstanceID'], ['InstanceID']],
-            ['CIM_Foo', ['INSTANCEID'], ['InstanceID']],
-            ['CIM_Foo', ['instanceid'], ['InstanceID']],
-            ['CIM_Foo_sub', None, ['InstanceID', 'cimfoo_sub']],
-            ['CIM_Foo_sub', "", []],
-            ['CIM_Foo_sub', 'cimfoo_sub', ['cimfoo_sub']],
-            ['CIM_Foo_sub', "blah", []],
-            ['CIM_Foo_sub', 'InstanceID', ['InstanceID']],
-            ['CIM_Foo_sub', ['INSTANCEID'], ['InstanceID']],
-            ['CIM_Foo_sub', ['instanceid'], ['InstanceID']],
-            ['CIM_Foo_sub', ['InstanceID', 'cimfoo_sub'],
-             ['InstanceID', 'cimfoo_sub']],
-        ]
-    )
-    def test_enumerateinstances_pl_lite(self, conn_lite, ns, cln, pl, props_exp,
-                                        tst_instances):
-        # pylint: disable=no-self-use
-        """
-        Test mock EnumerateInstances with namespace as an input
-        optional parameter defined by parametrizeration.using repo_lite.
-
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-
-        rtn_insts = conn_lite.EnumerateInstances(cln, namespace=ns,
-                                                 PropertyList=pl)
-
-        assert len(rtn_insts) == 2
-        for inst in rtn_insts:
-            assert isinstance(inst, CIMInstance)
-            assert inst.classname == cln
-
-        # Assert p_exp(expected returned properties) matches returned
-        # properties.
-        for inst in rtn_insts:
-            assert set([x.lower() for x in props_exp]) ==  \
-                set([x.lower() for x in inst.keys()])
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -3388,30 +3238,6 @@ class TestInstanceOperations(object):
             props_expi = [x.lower() for x in props_expi]
             props_act = [x.lower() for x in inst.keys()]
             assert set(props_expi) == set(props_act)
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    @pytest.mark.parametrize(
-        "di", [None, True])
-    def test_enumerateinstances_di_lite(self, conn_lite, tst_instances, ns, di):
-        # pylint: disable=no-self-use
-        """
-        Test EnumerateInstances with DeepInheritance options.
-        TODO extend to cover property list.
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-        enum_classname = 'CIM_Foo'
-        rtn_insts = conn_lite.EnumerateInstances('CIM_Foo', ns,
-                                                 DeepInheritance=di)
-
-        tst_cim_foo = [i for i in tst_instances
-                       if i.path.classname == enum_classname]
-        assert len(rtn_insts) == len(tst_cim_foo)
-        for inst in rtn_insts:
-            assert isinstance(inst, CIMInstance)
-            assert inst.classname == enum_classname
-            # props = [p for p in inst]
-            # TODO Test actual instance returned
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -3551,6 +3377,7 @@ class TestInstanceOperations(object):
                                      'cimfoo_sub': 'blah'})],
 
             # test new instance has correct case on property names.
+            # TODO: Broken for some reason
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'instanceid': 'inst1',
                                         'CIMFOO_SUB': 'blah'}),
@@ -3855,16 +3682,6 @@ class TestInstanceOperations(object):
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
-    def test_createinstance_lite(self, conn_lite, tst_instances, ns):
-        # pylint: disable=no-self-use
-        """Test that we reject createinstance when repolite set."""
-        with pytest.raises(CIMError) as exec_info:
-            conn_lite.CreateInstance(tst_instances[0], ns)
-        exc = exec_info.value
-        assert exc.status_code == CIM_ERR_NOT_SUPPORTED
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "sp, nv, pl, exp_resp", [
             # sp: Special test. integer. 0 means No special test.
@@ -3987,38 +3804,6 @@ class TestInstanceOperations(object):
                         orig_instance.properties[p]
                     assert rtn_instance.properties[p].name == \
                         tst_class.properties[p].name
-
-    def test_modifyinstance_lite(self, conn_lite, tst_instances):
-        # pylint: disable=no-self-use
-        """Test that we reject createinstance when repolite set."""
-        with pytest.raises(CIMError) as exec_info:
-            conn_lite.ModifyInstance(tst_instances[0])
-        exc = exec_info.value
-        assert exc.status_code == CIM_ERR_NOT_SUPPORTED
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    @pytest.mark.parametrize(
-        "cln", ['cim_foo', 'CIM_Foo'])
-    def test_deleteinstance_lite(self, conn_lite, tst_instances, ns, cln):
-        # pylint: disable=no-self-use
-        """
-        Test delete instance in con_lite mode by inserting instances into the
-        repository and then deleting them. Deletes all instances that are
-        CIM_Foo and subclasses
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-
-        inst_name_list = conn_lite.EnumerateInstanceNames(cln, ns)
-
-        for inst_name in inst_name_list:
-            conn_lite.DeleteInstance(inst_name)
-
-        for inst_name in inst_name_list:
-            with pytest.raises(CIMError) as exec_info:
-                conn_lite.DeleteInstance(inst_name)
-            exc = exec_info.value
-            assert exc.status_code == CIM_ERR_NOT_FOUND
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4191,156 +3976,6 @@ class TestPullOperations(object):
         OperationTimeout=None, ContinueOnError=None,
         MaxObjectCount=None,
     """
-    def test_openenumeratepaths(self, conn_lite, tst_instances):
-        # pylint: disable=no-self-use
-        """
-            Test openenueratepaths where the open is the complete response
-            and all parameters are default
-        """
-        conn_lite.add_cimobjects(tst_instances)
-        result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo')
-        assert result_tuple.eos is True
-        assert result_tuple.context is None
-        exp_paths = [i.path for i in tst_instances
-                     if i.classname == 'CIM_Foo']
-        exp_ns = conn_lite.default_namespace
-        for p in exp_paths:
-            p.namespace = exp_ns
-        assert_equal_ciminstancenames(exp_paths, result_tuple.paths)
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    @pytest.mark.parametrize(
-        "moc", [None, 100])
-    def test_openenumeratepaths1(self, conn_lite, tst_instances, ns, moc):
-        # pylint: disable=no-self-use
-        """
-            Test openenueratepaths where the open is the complete response.
-            This is achieved by setting the moc. value large
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-        result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo', ns,
-                                                            MaxObjectCount=moc)
-        assert result_tuple.eos is True
-        assert result_tuple.context is None
-
-        exp_paths = [i.path for i in tst_instances
-                     if i.classname == 'CIM_Foo']
-        exp_ns = ns or conn_lite.default_namespace
-        for p in exp_paths:
-            p.namespace = exp_ns
-        assert_equal_ciminstancenames(exp_paths, result_tuple.paths)
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    # open max obj, pull max obj, expected objects on open, expected eos on
-    # open, expected pull eos
-    @pytest.mark.parametrize(
-        "omoc, pmoc, exp_ortn, exp_ooc_eos", [
-            [200, None, 2, True],  # return everything with open
-            [0, 200, 0, False],  # return nothing with open; all with pull
-            [1, 200, 1, False],  # return 1 with open; all with pull
-        ]
-    )
-    def test_openenumeratepaths2(self, conn_lite, tst_instances, ns, omoc, pmoc,
-                                 exp_ortn, exp_ooc_eos):
-        # pylint: disable=no-self-use
-        """
-            Test openenueratepaths where the open may not be the complete
-            response.
-            This is a simplified sequence where either the open returns
-            everything or the pull is executed and it returns everything not
-            returned by the open.
-            Tests whether initial response returns correct data and the
-            pull returns everything else.
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-
-        # expected returns are only CIM_Foo instances
-        exp_paths = [i.path for i in tst_instances if i.classname == 'CIM_Foo']
-        result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo', ns,
-                                                            MaxObjectCount=omoc)
-
-        opn_rtn_len = len(result_tuple.paths)
-
-        assert len(result_tuple.paths) == exp_ortn
-        assert result_tuple.eos == exp_ooc_eos
-
-        if result_tuple.eos:   # initial response complete
-            assert result_tuple.context is None
-        else:
-            assert isinstance(result_tuple.context[0], six.string_types)
-            assert isinstance(result_tuple.context[1], six.string_types)
-        rslt_paths = result_tuple.paths
-
-        # open response incomplete, execute a pull
-        if not result_tuple.eos:
-            result_tuple = conn_lite.PullInstancePaths(result_tuple.context,
-                                                       pmoc)
-            assert len(result_tuple.paths) == len(exp_paths) - opn_rtn_len
-            assert result_tuple.eos
-            assert result_tuple.context is None
-            rslt_paths.extend(result_tuple.paths)
-
-        exp_ns = ns or conn_lite.default_namespace
-        for p in exp_paths:
-            p.namespace = exp_ns
-        assert_equal_ciminstancenames(exp_paths, rslt_paths)
-
-    @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
-    @pytest.mark.parametrize(
-        "omoc, pmoc, exp_ortn, exp_ooc_eos", [
-            [200, None, 2, True],  # return everything with open
-            [0, 200, 0, False],  # return nothing with open; all with pull
-            [1, 200, 1, False],  # return 1 with open; others with pull
-        ]
-    )
-    def test_openenumeratepaths_lite(self, conn_lite, tst_instances, ns, omoc,
-                                     pmoc, exp_ortn, exp_ooc_eos):
-        # pylint: disable=no-self-use,unused-argument
-        """
-        Test openenumeratepaths where we only test for totals at the end
-        of the sequence
-        """
-        conn_lite.add_cimobjects(tst_instances, namespace=ns)
-        # expected returns are only CIM_Foo instances
-        exp_paths = [i.path for i in tst_instances if i.classname == 'CIM_Foo']
-        for p in exp_paths:
-            p.namespace = ns or conn_lite.default_namespace
-
-        result_tuple = conn_lite.OpenEnumerateInstancePaths('CIM_Foo',
-                                                            namespace=ns,
-                                                            MaxObjectCount=omoc)
-        rslt_paths = result_tuple.paths
-
-        while not result_tuple.eos:
-            result_tuple = conn_lite.PullInstancePaths(result_tuple.context,
-                                                       pmoc)
-            rslt_paths.extend(result_tuple.paths)
-
-        assert_equal_ciminstancenames(rslt_paths, exp_paths)
-
-    def test_openenumerateinstances(self, conn_lite, tst_instances):
-        # pylint: disable=no-self-use
-        """
-            Test openenueratepaths where the open is the complete response
-            and all parameters are default
-        """
-        conn_lite.add_cimobjects(tst_instances)
-        result_tuple = conn_lite.OpenEnumerateInstances('CIM_Foo')
-        assert result_tuple.eos is True
-        assert result_tuple.context is None
-        tst_insts = [i for i in tst_instances
-                     if i.classname == 'CIM_Foo']
-        exp_ns = conn_lite.default_namespace
-        for p in tst_insts:
-            p.path.namespace = exp_ns
-
-        tst_paths = [i.path for i in tst_insts]
-        rslt_paths = [i.path for i in result_tuple.instances]
-        assert_equal_ciminstancenames(tst_paths, rslt_paths)
-        # TODO test actual instances
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4366,8 +4001,8 @@ class TestPullOperations(object):
                                         exp_rslt, tst_assoc_mof):
         # pylint: disable=no-self-use,invalid-name
         """
-            Test openenueratepaths where the open is the complete response
-            and all parameters are default
+        Test openenueratepaths where the open is the complete response
+        and all parameters are default
         """
         skip_if_moftab_regenerated()
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)

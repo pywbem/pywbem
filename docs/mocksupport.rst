@@ -51,27 +51,11 @@ such as :meth:`~pywbem.WBEMConnection.DeleteClass` or
 
 .. _`mock repository operation modes`:
 
-The mock repository supports two operation modes:
+The repository contains the classes and qualifier types that
+are needed for the operations that are invoked. This results in a behavior of
+the faked operations that is close to the behavior of the operations of a
+real WBEM server.
 
-* full mode: The repository must contain the classes and qualifier types that
-  are needed for the operations that are invoked. This results in a behavior of
-  the faked operations that is close to the behavior of the operations of a
-  real WBEM server.
-
-* lite mode: The repository does not need to contain any classes and qualifier
-  types, and can be used when it contains only instances. This simplifies the
-  setup of the mock repository for users, but it also affects the behavior of
-  the faked instance operations to be farther away from the behavior of the
-  operations of a real WBEM server. For example, the faked `EnumerateInstances`
-  operation will not return instances of subclasses when `DeepInheritance` is
-  set, because without looking at classes, there is no way it can find out what
-  the subclasses are. And of course, class operations and qualifier operations
-  that retrieve objects don't work at all if the mock repository does not
-  contain them.
-
-The operation mode of the mock repository is selected when creating
-a :class:`~pywbem_mock.FakedWBEMConnection` object, through its `repo_lite`
-init parameter. Full mode is the default.
 
 The following example demonstrates setting up a faked connection, adding
 several CIM objects defined in a MOF string to its mock repository, and
@@ -140,7 +124,7 @@ Pywbem mock supports:
 
 1. All of the :class:`~pywbem.WBEMConnection` operation methods that communicate
    with the WBEM server (see below for list of operations supported and their
-   limitations).
+   limitations) except for specific limitations documented.
 2. Multiple CIM namespaces and a default namespace on the faked connection.
 3. Gathering time statistics and delaying responses for a predetermined time.
 4. :class:`~pywbem.WBEMConnection` logging except that there are no HTTP entries
@@ -192,13 +176,13 @@ These faked operations generally adhere to the behavior requirements defined in
 
 The faked operations get the data to be returned from the mock repository of
 the faked connection, and put the data provided in operation parameters that
-modify objects (create, modify, and delete operations) into that mock
+modify objects (create, modify, and delete operations) into the mock
 repository.
 
 However, because the pywbem mock support is only a simulation of a WBEM server
-and intended to be used primarily for testing, there are a number of
-limitations and differences between the behavior of the faked operations and
-a real WBEM server.
+and intended to be used primarily for testing, there are limitations and
+differences between the behavior of the faked operations and a real WBEM
+server.
 
 The descriptions below describe differences between the faked operations of
 the pywbem mock support and the operations of a real WBEM server, and the
@@ -210,62 +194,43 @@ effects of the operation modes of the mock repository.
 Faked instance operations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Instance operations work in both operation modes of the repository.
-
 The operations that retrieve objects require instances in the
-repository for the instances to be recovered.  We allow some of these methods to
-try to return data if the class repository is empty but they may react differently
-if there are classes in the repository.
+repository for the instances to be recovered and that the classes
+for these instances exist in the repository.
 
-- **GetInstance:** Behaves like :meth:`~pywbem.WBEMConnection.GetInstance`,
-  except that the behavior of property selection for the returned instance when
-  `LocalOnly` is set depends on the operation mode of the mock repository: In
-  lite mode, property selection is based upon the `class_origin` attribute of
-  the properties of the instance. In full mode, property selection is based
-  upon the classes in which they are defined.
+- **GetInstance:** Behaves like :meth:`~pywbem.WBEMConnection.GetInstance`.
+  Returns an instance defined by the instance name input parameter if that
+  instance exists in the repository.
 
 - **EnumerateInstances:** Behaves like
-  :meth:`~pywbem.WBEMConnection.EnumerateInstances`, except for these
-  differences when the mock repository is in lite mode: When `DeepInheritance`
-  is set, instances of subclasses of the specified class will not be returned,
-  and `LocalOnly` is ignored and treated as if it was set to `False`.
+  :meth:`~pywbem.WBEMConnection.EnumerateInstances`, returning all instances
+  of the cim class defined on input and subclasses of this class filtered
+  by the optional attributes for property names, etc.
 
 - **EnumerateInstanceNames:** Behaves like
-  :meth:`~pywbem.WBEMConnection.EnumerateInstances`, except for this
-  difference when the mock repository is in lite mode: When `DeepInheritance`
-  is set, instances of subclasses of the specified class will not be returned.
+  :meth:`~pywbem.WBEMConnection.EnumerateInstances`, Returns the instance
+  name of all instances of the cimclass defined on input and subclasses of this
+  class.
 
 - **CreateInstance**: Behaves like
-  :meth:`~pywbem.WBEMConnection.CreateInstance`, except for these
-  differences: This operation requires that all key properties are specified in
+  :meth:`~pywbem.WBEMConnection.CreateInstance`.
+  This operation requires that all key properties are specified in
   the new instance since the mock repository has no support for dynamically
   setting key properties as a dynamic provider for the class in a real WBEM
-  server might have. This operation requires that the mock repository is in
-  full mode and that the class of the new instance exists in the mock
-  repository. It fails with CIM_ERR_NOT_SUPPORTED if the mock repository is in
-  lite mode.
+  server might and all key properties are required to get the newly defined
+  instance with other requests.
 
 - **ModifyInstance**: Behaves like
-  :meth:`~pywbem.WBEMConnection.ModifyInstance`. This operation requires that
-  the mock repository is in full mode and that the class of the instance exists
-  in the mock repository. It fails with CIM_ERR_NOT_SUPPORTED if the mock
-  repository is in lite mode.
+  :meth:`~pywbem.WBEMConnection.ModifyInstance`. Modifies the instance
+  defined by the instance name provided on input if that instance exists in
+  the repository. It modifies only the properties defined by the instance
+  provided and will not modify any key properties.
 
 - **DeleteInstance**: Behaves like
-  :meth:`~pywbem.WBEMConnection.DeleteInstance`, except for this difference
-  depending on the operation mode of the mock repository: In lite mode, the
-  operation does not check for existence of the class of the instance. In full
-  mode, the operation validates the existence of the class of the instance.
-  In the current implementation, this operation does not check for association
-  instances referencing the instance to be deleted, so any such instances
-  become dangling references.
+  :meth:`~pywbem.WBEMConnection.DeleteInstance`. Deletes the instance defined
+  by the instance name provided on input if that instance exists.
 
-- **ExecQuery**: This operation is not currently implemented. Once implemented:
-  Behaves like :meth:`~pywbem.WBEMConnection.ExecQuery`, except
-  that it returns instances based on a very limited parsing of the query
-  string: Generally, the SELECT and FROM clauses are evaluated, and the WHERE
-  clause is ignored. The query string is not validated for correctness.
-  The query language is not validated.
+- **ExecQuery**: This operation is not currently implemented.
 
 
 .. _`Faked association operations`:
@@ -274,7 +239,7 @@ Faked association operations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The faked association operations support both instance-level use and
-class-level use. Class-level use requires the mock repository to be in full
+class-level requests. Class-level use requires the mock repository to be in full
 mode, while instance-level use works in both operation modes of the mock
 repository.
 
@@ -286,9 +251,7 @@ repository.
   repository.
   For instance-level use, correct results are returned if the mock repository
   is in full mode and the the source, target, and association classes and their
-  subclasses exist in the repository. More limited results are returned in lite
-  mode, because the class hierarchy is not considered when selecting the
-  instances to be returned.
+  subclasses exist in the repository.
 
 - **Associators**: Behaves like
   :meth:`~pywbem.WBEMConnection.Associators`, with the exceptions and
@@ -529,13 +492,11 @@ Class operations only work if the mock repository is in full operation mode.
 
 - **EnumerateClasses:** Behaves like
   :meth:`~pywbem.WBEMConnection.EnumerateClasses`. Requires that the class
-  specified in the `ClassName` parameter as well as the classes to be returned
-  are in the mock repository.
+  specified in the `ClassName` parameter be in the mock repository.
 
 - **EnumerateClassNames:** Behaves like
   :meth:`~pywbem.WBEMConnection.EnumerateClassNames`. Requires that the class
-  specified in the `ClassName` parameter as well as the classes to be returned
-  are in the mock repository.
+  specified in the `ClassName` parameter be  in the mock repository.
 
 - **CreateClass:** Behaves like
   :meth:`~pywbem.WBEMConnection.CreateClass`. Requires that the superclass of
@@ -567,6 +528,8 @@ mode.
 - **EnumerateQualifiers:** Behaves like
   :meth:`~pywbem.WBEMConnection.EnumerateQualifiers`.
   Requires that the qualifier types to be returned are in the mock repository.
+
+- **DeleteQualifier:** - Not implemented.
 
 
 .. _`Building the mock repository`:
