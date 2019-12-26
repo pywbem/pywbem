@@ -47,9 +47,8 @@ PyYAML==3.11; python_version == '2.6'  # yaml package, used by yamlordereddictlo
 PyYAML>=3.13; python_version >= '2.7'  # yaml package, used by yamlordereddictloader
 
 # Coverage reporting (no imports, invoked via coveralls script).
-# Make sure the Python version matches the one used in .travis.yml.
-coverage>=4.5.3; python_version == '3.8'
-python-coveralls>=2.9.2; python_version == '3.8'
+coverage>=4.5.3
+python-coveralls>=2.9.2
 
 # Safety CI by pyup.io
 safety>=1.8.4
