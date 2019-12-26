@@ -447,7 +447,7 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
         a GetQualifier operation that fails.
         """
 
-        url = 'http://dummy'  # File URL to get quick result
+        url = 'http://dummy:5988'  # File URL to get quick result
         conn = WBEMConnection(url)
         try:
             conn.GetQualifier('Association')

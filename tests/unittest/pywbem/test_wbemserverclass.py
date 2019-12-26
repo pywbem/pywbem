@@ -86,7 +86,7 @@ class TestServerClass(BaseMethodsForTests):
         # Test basic brand, version, namespace methods
         assert server.namespace_classname == 'CIM_Namespace'
 
-        assert server.url == 'http://FakedUrl'
+        assert server.url == 'http://FakedUrl:5988'
 
         assert server.brand == "OpenPegasus"
         assert server.version == "2.15.0"

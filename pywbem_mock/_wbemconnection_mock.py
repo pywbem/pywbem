@@ -310,7 +310,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self._response_delay = response_delay
 
         super(FakedWBEMConnection, self).__init__(
-            'http://FakedUrl',
+            'http://FakedUrl:5988',
             default_namespace=default_namespace,
             use_pull_operations=use_pull_operations,
             stats_enabled=stats_enabled, timeout=timeout)

@@ -564,7 +564,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_create_connection1(self, lc):
         """Create connection with default parameters"""
         # Fake the connection to create a fixed data environment
-        conn = WBEMConnection('http://blah')
+        conn = WBEMConnection('http://blah:5988')
         # TODO AM 2018-06: Suppress the printing to stderr
         configure_logger('api', log_dest='file', detail_level='all',
                          connection=conn, log_filename=TEST_OUTPUT_LOG,
@@ -575,7 +575,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
-            "url='http://blah', "
+            "url='http://blah:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace='root/cimv2', "
@@ -596,7 +596,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_create_connection2(self, lc):
         """Test log of wbem connection with detailed information"""
 
-        conn = WBEMConnection('http://blah',
+        conn = WBEMConnection('http://blah:5988',
                               default_namespace='root/blah',
                               creds=('username', 'password'),
                               no_verification=True,
@@ -613,7 +613,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
-            "url='http://blah', "
+            "url='http://blah:5988', "
             "creds=('username', ...), "
             "conn_id={0!A}, "
             "default_namespace='root/blah', "
@@ -634,7 +634,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     def test_create_connection_summary(self, lc):
         """Test log of wbem connection with detailed information"""
 
-        conn = WBEMConnection('http://blah',
+        conn = WBEMConnection('http://blah:5988',
                               default_namespace='root/blah',
                               creds=('username', 'password'),
                               no_verification=True,
@@ -651,7 +651,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
-            "url='http://blah', "
+            "url='http://blah:5988', "
             "creds=('username', ...), "
             "default_namespace='root/blah', "
             "...)",
@@ -914,7 +914,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             ('CIMOperation', 'MethodCall'),
             ('CIMMethod', 'GetInstance'),
             ('CIMObject', 'root/cimv2')])
-        url = 'http://blah'
+        url = 'http://blah:5988'
         method = 'POST'
         target = '/cimom'
 
@@ -955,7 +955,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                                               method, headers, payload)
 
         result_req = (
-            "Request:test_id POST /cimom 11 http://blah "
+            "Request:test_id POST /cimom 11 http://blah:5988 "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
             "CIMObject:'root/cimv2' "
@@ -998,7 +998,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                                               method, headers, payload)
 
         result_req = (
-            "Request:test_id POST /cimom 11 http://blah "
+            "Request:test_id POST /cimom 11 http://blah:5988 "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
             "CIMObject:'root/cimv2' "
@@ -1021,7 +1021,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                                               method, headers, payload)
 
         result_req = (
-            "Request:test_id POST /cimom 11 http://blah "
+            "Request:test_id POST /cimom 11 http://blah:5988 "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
             "CIMObject:'root/cimv2' "
@@ -1675,7 +1675,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         configure_logger('api', detail_level='summary', connection=True,
                          propagate=True)
         try:
-            conn = WBEMConnection('http://blah', timeout=1)
+            conn = WBEMConnection('http://blah:5988', timeout=1)
 
             conn.GetClass('blah')
         except Exception:  # pylint: disable=broad-except
@@ -1693,7 +1693,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
-            "url='http://blah', "
+            "url='http://blah:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace='root/cimv2', "
@@ -1717,7 +1717,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
             conn_id)
 
         result_hreq = _format(
-            "Request:{0} POST /cimom 11 http://blah "
+            "Request:{0} POST /cimom 11 http://blah:5988 "
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetClass' "
             "CIMObject:u'root/cimv2'\n"
@@ -1807,7 +1807,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
             "super=WBEMConnection("
-            "url='http://FakedUrl', "
+            "url='http://FakedUrl:5988', "
             "creds=None, "
             "default_namespace={1!A}, ...))",
             conn_id, namespace)
@@ -2005,7 +2005,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
             "super=WBEMConnection("
-            "url='http://FakedUrl', "
+            "url='http://FakedUrl:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace={1!A}, "
@@ -2050,7 +2050,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
             "super=WBEMConnection("
-            "url='http://FakedUrl', "
+            "url='http://FakedUrl:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace={1!A}, "
@@ -2101,7 +2101,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
             "super=WBEMConnection("
-            "url='http://FakedUrl', "
+            "url='http://FakedUrl:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace={1!A}, "
@@ -2146,7 +2146,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
             "super=WBEMConnection("
-            "url='http://FakedUrl', "
+            "url='http://FakedUrl:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace={1!A}, "
@@ -2190,7 +2190,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
             "super=WBEMConnection("
-            "url='http://FakedUrl', "
+            "url='http://FakedUrl:5988', "
             "creds=None, "
             "conn_id={0!A}, "
             "default_namespace={1!A}, "

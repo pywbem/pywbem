@@ -18,338 +18,385 @@ class Parse_url(unittest.TestCase):  # pylint: disable=invalid-name
     Test the parse_url() function.
     """
 
-    def _run_single(self, url, exp_host, exp_port, exp_ssl):
+    def _run_single(self, url, exp_scheme, exp_hostport, exp_url):
         '''
         Test function for single invocation of parse_url() and
         allow_defaults attribute =True(default)
         '''
 
-        host, port, ssl = cim_http.parse_url(url)
+        scheme, hostport, url2 = cim_http.parse_url(url, allow_defaults=True)
 
-        self.assertEqual(host, exp_host,
-                         "Unexpected host: %r, expected: %r" %
-                         (host, exp_host))
-        self.assertEqual(port, exp_port,
-                         "Unexpected port: %r, expected: %r" %
-                         (port, exp_port))
-        self.assertEqual(ssl, exp_ssl,
-                         "Unexpected ssl: %r, expected: %r" %
-                         (ssl, exp_ssl))
+        if exp_scheme is None:
+            raise AssertionError(
+                "Expected exception did not happen for url={!r}; "
+                "parse_url() returned scheme={!r}, hostport={!r}, url={!r}".
+                format(url, scheme, hostport, url2))
 
-    def _run_single_defaults_false(self, url, exp_host, exp_port, exp_ssl):
+        self.assertEqual(scheme, exp_scheme,
+                         "Unexpected scheme: %r, expected: %r" %
+                         (scheme, exp_scheme))
+        self.assertEqual(hostport, exp_hostport,
+                         "Unexpected hostport: %r, expected: %r" %
+                         (hostport, exp_hostport))
+        self.assertEqual(url2, exp_url,
+                         "Unexpected url: %r, expected: %r" %
+                         (url2, exp_url))
+
+    def _run_single_defaults_false(
+            self, url, exp_scheme, exp_hostport, exp_url):
         '''
         Test function for single invocation of parse_url() with the default
         attribute set false
         '''
 
-        host, port, ssl = cim_http.parse_url(url, allow_defaults=False)
+        scheme, hostport, url2 = cim_http.parse_url(url, allow_defaults=False)
 
-        self.assertEqual(host, exp_host,
-                         "Unexpected host: %r, expected: %r" %
-                         (host, exp_host))
-        self.assertEqual(port, exp_port,
-                         "Unexpected port: %r, expected: %r" %
-                         (port, exp_port))
-        self.assertEqual(ssl, exp_ssl,
-                         "Unexpected ssl: %r, expected: %r" %
-                         (ssl, exp_ssl))
+        if exp_scheme is None:
+            raise AssertionError(
+                "Expected exception did not happen for url={!r}; "
+                "parse_url() returned scheme={!r}, hostport={!r}, url={!r}".
+                format(url, scheme, hostport, url2))
+
+        self.assertEqual(scheme, exp_scheme,
+                         "Unexpected scheme: %r, expected: %r" %
+                         (scheme, exp_scheme))
+        self.assertEqual(hostport, exp_hostport,
+                         "Unexpected hostport: %r, expected: %r" %
+                         (hostport, exp_hostport))
+        self.assertEqual(url2, exp_url,
+                         "Unexpected url: %r, expected: %r" %
+                         (url2, exp_url))
 
     def test_all(self):
         '''
         Run all tests for parse_url().
         '''
 
-        # Keep these defaults in sync with those in cim_http.parse_url()
+        # Keep these defaults in sync with those in cim_constants
         default_port_http = 5988
         default_port_https = 5989
-        default_ssl = False
+        default_scheme = 'http'
 
         self._run_single("http://my.host.com",
-                         "my.host.com",
-                         default_port_http,
-                         False)
+                         "http",
+                         "my.host.com:{port}".
+                         format(port=default_port_http),
+                         "http://my.host.com:{port}".
+                         format(port=default_port_http))
 
         self._run_single("https://my.host.com/",
-                         "my.host.com",
-                         default_port_https,
-                         True)
+                         "https",
+                         "my.host.com:{port}".
+                         format(port=default_port_https),
+                         "https://my.host.com:{port}".
+                         format(port=default_port_https))
 
         self._run_single("my.host.com",
-                         "my.host.com",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "my.host.com:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://my.host.com:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("http.com",
-                         "http.com",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "http.com:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://http.com:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("http.com/",
-                         "http.com",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "http.com:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://http.com:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("http.com/path.segment.com",
-                         "http.com",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "http.com:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://http.com:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("http.com//path.segment.com",
-                         "http.com",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "http.com:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://http.com:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("http://my.host.com:1234",
-                         "my.host.com",
-                         1234,
-                         False)
+                         "http",
+                         "my.host.com:1234",
+                         "http://my.host.com:1234")
 
         self._run_single("http://my.host.com:1234/",
-                         "my.host.com",
-                         1234,
-                         False)
+                         "http",
+                         "my.host.com:1234",
+                         "http://my.host.com:1234")
 
         self._run_single("http://my.host.com:1234/path/segment",
-                         "my.host.com",
-                         1234,
-                         False)
+                         "http",
+                         "my.host.com:1234",
+                         "http://my.host.com:1234")
 
         self._run_single("http://9.10.11.12:1234",
-                         "9.10.11.12",
-                         1234,
-                         False)
+                         "http",
+                         "9.10.11.12:1234",
+                         "http://9.10.11.12:1234")
 
         self._run_single("my.host.com:1234",
-                         "my.host.com",
-                         1234,
-                         default_ssl)
+                         default_scheme,
+                         "my.host.com:1234",
+                         "{scheme}://my.host.com:1234".
+                         format(scheme=default_scheme))
 
         self._run_single("my.host.com:1234/",
-                         "my.host.com",
-                         1234,
-                         default_ssl)
+                         default_scheme,
+                         "my.host.com:1234",
+                         "{scheme}://my.host.com:1234".
+                         format(scheme=default_scheme))
 
         self._run_single("9.10.11.12/",
-                         "9.10.11.12",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "9.10.11.12:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://9.10.11.12:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("HTTP://my.host.com",
-                         "my.host.com",
-                         default_port_http,
-                         False)
+                         "http",
+                         "my.host.com:{port}".
+                         format(port=default_port_http),
+                         "http://my.host.com:{port}".
+                         format(port=default_port_http))
 
         self._run_single("HTTPS://my.host.com",
-                         "my.host.com",
-                         default_port_https,
-                         True)
+                         "https",
+                         "my.host.com:{port}".
+                         format(port=default_port_https),
+                         "https://my.host.com:{port}".
+                         format(port=default_port_https))
 
         self._run_single("http://[2001:db8::7348]",
-                         "2001:db8::7348",
-                         default_port_http,
-                         False)
+                         "http",
+                         "[2001:db8::7348]:{port}".
+                         format(port=default_port_http),
+                         "http://[2001:db8::7348]:{port}".
+                         format(port=default_port_http))
 
         self._run_single("http://[2001:db8::7348-1]",
-                         "2001:db8::7348%1",
-                         default_port_http,
-                         False)
+                         "http",
+                         "[2001:db8::7348-1]:{port}".
+                         format(port=default_port_http),
+                         "http://[2001:db8::7348-1]:{port}".
+                         format(port=default_port_http))
 
         self._run_single("http://[2001:db8::7348-eth1]",
-                         "2001:db8::7348%eth1",
-                         default_port_http,
-                         False)
+                         "http",
+                         "[2001:db8::7348-eth1]:{port}".
+                         format(port=default_port_http),
+                         "http://[2001:db8::7348-eth1]:{port}".
+                         format(port=default_port_http))
 
         self._run_single("http://[2001:db8::7348-eth1]:5900",
-                         "2001:db8::7348%eth1",
-                         5900,
-                         False)
+                         "http",
+                         "[2001:db8::7348-eth1]:5900",
+                         "http://[2001:db8::7348-eth1]:5900")
 
         # Toleration of (incorrect) IPv6 URI format supported by PyWBEM:
         # Must specify port; zone index must be specified with % if used
 
         self._run_single("http://2001:db8::7348:1234",
-                         "2001:db8::7348",
-                         1234,
-                         False)
+                         "http",
+                         "[2001:db8::7348]:1234",
+                         "http://[2001:db8::7348]:1234")
 
         self._run_single("http://2001:db8::7348%eth0:1234",
-                         "2001:db8::7348%eth0",
-                         1234,
-                         False)
+                         "http",
+                         "[2001:db8::7348-eth0]:1234",
+                         "http://[2001:db8::7348-eth0]:1234")
 
         self._run_single("http://2001:db8::7348%1:1234",
-                         "2001:db8::7348%1",
-                         1234,
-                         False)
+                         "http",
+                         "[2001:db8::7348-1]:1234",
+                         "http://[2001:db8::7348-1]:1234")
 
         self._run_single("https://[2001:db8::7348]/",
-                         "2001:db8::7348",
-                         default_port_https,
-                         True)
+                         "https",
+                         "[2001:db8::7348]:{port}".
+                         format(port=default_port_https),
+                         "https://[2001:db8::7348]:{port}".
+                         format(port=default_port_https))
 
         self._run_single("http://[2001:db8::7348]:1234",
-                         "2001:db8::7348",
-                         1234,
-                         False)
+                         "http",
+                         "[2001:db8::7348]:1234",
+                         "http://[2001:db8::7348]:1234")
 
         self._run_single("https://[::ffff.9.10.11.12]:1234/",
-                         "::ffff.9.10.11.12",
-                         1234,
-                         True)
+                         "https",
+                         "[::ffff.9.10.11.12]:1234",
+                         "https://[::ffff.9.10.11.12]:1234")
 
         self._run_single("https://[::ffff.9.10.11.12-0]:1234/",
-                         "::ffff.9.10.11.12%0",
-                         1234,
-                         True)
+                         "https",
+                         "[::ffff.9.10.11.12-0]:1234",
+                         "https://[::ffff.9.10.11.12-0]:1234")
 
         self._run_single("https://[::ffff.9.10.11.12-eth0]:1234/",
-                         "::ffff.9.10.11.12%eth0",
-                         1234,
-                         True)
+                         "https",
+                         "[::ffff.9.10.11.12-eth0]:1234",
+                         "https://[::ffff.9.10.11.12-eth0]:1234")
 
         self._run_single("[2001:db8::7348]",
-                         "2001:db8::7348",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "[2001:db8::7348]:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://[2001:db8::7348]:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("[2001:db8::7348]/",
-                         "2001:db8::7348",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "[2001:db8::7348]:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://[2001:db8::7348]:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
 
         self._run_single("[2001:db8::7348]/-eth0",
-                         "2001:db8::7348",
-                         default_port_http,
-                         default_ssl)
+                         default_scheme,
+                         "[2001:db8::7348]:{port}".
+                         format(port=default_port_http),
+                         "{scheme}://[2001:db8::7348]:{port}".
+                         format(scheme=default_scheme, port=default_port_http))
+
+        self._run_single("http://:1234",
+                         "http",
+                         "[:1234]:{port}".
+                         format(port=default_port_http),
+                         "http://[:1234]:{port}".
+                         format(port=default_port_http))
+
+        try:
+            self._run_single("httpsx://[2001:db8::7348-eth1]:5900",
+                             None, None, None)
+            self.fail('Unsupported scheme: Expecting exception')
+        except ValueError as exc:
+            assert "Unsupported scheme" in str(exc)
+
+        try:
+            self._run_single("",
+                             None, None, None)
+            self.fail('Invalid URL: Expecting exception')
+        except ValueError as exc:
+            assert "Invalid URL" in str(exc)
+
+        try:
+            self._run_single("/",
+                             None, None, None)
+            self.fail('Invalid URL: Expecting exception')
+        except ValueError as exc:
+            assert "Invalid URL" in str(exc)
+
+        try:
+            self._run_single("blah://my.host.com:5988",
+                             None, None, None)
+            self.fail('Unsupported scheme: Expecting exception')
+        except ValueError as exc:
+            assert "Unsupported scheme" in str(exc)
+
+        try:
+            self._run_single("https://[2001:db8::7348-eth1]:59x0",
+                             None, None, None)
+            self.fail('Invalid port number: Expecting exception')
+        except ValueError as exc:
+            assert "Invalid port number" in str(exc)
+
+        try:
+            self._run_single("http://my.host.com:5a98",
+                             None, None, None)
+            self.fail('Invalid port: Expecting exception')
+        except ValueError as exc:
+            assert "Invalid port" in str(exc)
 
     def test_all_no_defaults(self):
         """ Test urls agains parse_url with allow_defaults=False"""
 
         # The following tests expect good return
         self._run_single_defaults_false("http://my.host.com:5988",
-                                        "my.host.com",
-                                        5988,
-                                        False)
+                                        "http",
+                                        "my.host.com:5988",
+                                        "http://my.host.com:5988")
 
         self._run_single_defaults_false("https://my.host.com:5989",
-                                        "my.host.com",
-                                        5989,
-                                        True)
+                                        "https",
+                                        "my.host.com:5989",
+                                        "https://my.host.com:5989")
 
-        self._run_single("HTTP://my.host.com:50000",
-                         "my.host.com",
-                         50000,
-                         False)
+        self._run_single_defaults_false("HTTP://my.host.com:50000",
+                                        "http",
+                                        "my.host.com:50000",
+                                        "http://my.host.com:50000")
 
-        self._run_single("HTTPS://my.host.com:49000",
-                         "my.host.com",
-                         49000,
-                         True)
+        self._run_single_defaults_false("HTTPS://my.host.com:49000",
+                                        "https",
+                                        "my.host.com:49000",
+                                        "https://my.host.com:49000")
 
-        self._run_single("http://[2001:db8::7348-eth1]:5900",
-                         "2001:db8::7348%eth1",
-                         5900,
-                         False)
+        self._run_single_defaults_false("http://[2001:db8::7348-eth1]:5900",
+                                        "http",
+                                        "[2001:db8::7348-eth1]:5900",
+                                        "http://[2001:db8::7348-eth1]:5900")
 
-        self._run_single("https://[2001:db8::7348-eth1]:5901",
-                         "2001:db8::7348%eth1",
-                         5901,
-                         True)
+        self._run_single_defaults_false("https://[2001:db8::7348-eth1]:5901",
+                                        "https",
+                                        "[2001:db8::7348-eth1]:5901",
+                                        "https://[2001:db8::7348-eth1]:5901")
 
         # The following tests expect errors
+
         try:
             self._run_single_defaults_false("my.host.com:5988",
-                                            "my.host.com:5988",
-                                            5988,
-                                            False)
-            self.fail('No Scheme: Expecting exception')
-        except ValueError:
-            pass
+                                            None, None, None)
+            self.fail('Scheme component missing: Expecting exception')
+        except ValueError as exc:
+            assert "Scheme component missing" in str(exc)
 
         try:
             self._run_single_defaults_false("http://my.host.com",
-                                            "my.host.com",
-                                            5988,
-                                            False)
-            self.fail('No port: Expecting exception')
-        except ValueError:
-            pass
-
-        try:
-            self._run_single_defaults_false("blah://my.host.com:5988",
-                                            "my.host.com",
-                                            5988,
-                                            False)
-            self.fail('Invalid Scheme: Expecting exception')
-        except ValueError:
-            pass
-
-        try:
-            self._run_single_defaults_false("http://my.host.com:5a98",
-                                            "my.host.com",
-                                            5988,
-                                            False)
-            self.fail('Invalid Port: Expecting exception')
-        except ValueError:
-            pass
+                                            None, None, None)
+            self.fail('Port component missing: Expecting exception')
+        except ValueError as exc:
+            assert "Port component missing" in str(exc)
 
         try:
             self._run_single_defaults_false("[2001:db8::7348-eth1]:5900",
-                                            "2001:db8::7348%eth1",
-                                            5900,
-                                            False)
-            self.fail('Invalid Scheme: Expecting exception')
-        except ValueError:
-            pass
+                                            None, None, None)
+            self.fail('Scheme component missing: Expecting exception')
+        except ValueError as exc:
+            assert "Scheme component missing" in str(exc)
 
         try:
             self._run_single_defaults_false("://[2001:db8::7348-eth1]:5900",
-                                            "2001:db8::7348%eth1",
-                                            5900,
-                                            False)
-            self.fail('Invalid Scheme: Expecting exception')
-        except ValueError:
-            pass
+                                            None, None, None)
+            self.fail('Scheme component missing: Expecting exception')
+        except ValueError as exc:
+            assert "Scheme component missing" in str(exc)
 
         try:
-            self._run_single_defaults_false(
-                "httpsx://[2001:db8::7348-eth1]:5900",
-                "2001:db8::7348%eth1",
-                5900,
-                False)
-            self.fail('Invalid Scheme: Expecting exception')
-        except ValueError:
-            pass
+            self._run_single_defaults_false("https://[2001:db8::7348-eth1]",
+                                            None, None, None)
+            self.fail('Port component missing: Expecting exception')
+        except ValueError as exc:
+            assert "Port component missing" in str(exc)
 
         try:
-            self._run_single_defaults_false(
-                "https://[2001:db8::7348-eth1]",
-                "2001:db8::7348%eth1",
-                5900,
-                False)
-            self.fail('No Port: Expecting exception')
-        except ValueError:
-            pass
-
-        try:
-            self._run_single_defaults_false(
-                "https://2001:db8::7348-eth1",
-                "2001:db8::7348%eth1",
-                5900,
-                False)
-            self.fail('No Port: Expecting exception')
-        except ValueError:
-            pass
-
-        try:
-            self._run_single_defaults_false(
-                "httpsx://[2001:db8::7348-eth1]:59x0",
-                "2001:db8::7348%eth1",
-                5900,
-                False)
-            self.fail('Invalid Port: Expecting exception')
-        except ValueError:
-            pass
+            self._run_single_defaults_false("https://2001:db8::7348-eth1",
+                                            None, None, None)
+            self.fail('Port component missing: Expecting exception')
+        except ValueError as exc:
+            assert "Port component missing" in str(exc)
 
 
 if __name__ == '__main__':

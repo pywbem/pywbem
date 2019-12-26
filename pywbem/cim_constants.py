@@ -23,10 +23,7 @@ This section defines constants for two areas:
 
 * CIM status codes (the ``CIM_ERR_*`` symbols). They are for example stored in
   :exc:`~pywbem.CIMError` exceptions.
-* Default CIM namespace :data:`~pywbem.cim_constants.DEFAULT_NAMESPACE`. It is
-  used as a default namespace for a connection (see
-  :class:`~pywbem.WBEMConnection`) when no namespace is provided for an
-  operation.
+* Other constants.
 
 Note: For tooling reasons, the constants are shown in the namespace
 ``pywbem.cim_constants``. However, they are also available in the ``pywbem``
@@ -68,7 +65,10 @@ __all__ = [
     'CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED',
     'CIM_ERR_SERVER_LIMITS_EXCEEDED',
     'CIM_ERR_SERVER_IS_SHUTTING_DOWN',
-    'DEFAULT_NAMESPACE'
+    'DEFAULT_NAMESPACE',
+    'DEFAULT_URL_SCHEME',
+    'DEFAULT_URL_PORT_HTTP',
+    'DEFAULT_URL_PORT_HTTPS',
 ]
 
 # CIM status codes
@@ -261,4 +261,19 @@ PROVIDERTYPE_METHOD = 5
 PROVIDERTYPE_CONSUMER = 6               # Indication consumer
 PROVIDERTYPE_QUERY = 7
 
-DEFAULT_NAMESPACE = 'root/cimv2'        #: Default CIM namespace
+# Defaults for WBEM connection
+
+#: Default CIM namespace for WBEM connection
+DEFAULT_NAMESPACE = 'root/cimv2'
+
+#: Default URL scheme for WBEM connection
+#: *New in pywbem 1.0.*
+DEFAULT_URL_SCHEME = u'http'
+
+#: Default port number for http WBEM connection
+#: *New in pywbem 1.0.*
+DEFAULT_URL_PORT_HTTP = 5988
+
+#: Default port number for https WBEM connection
+#: *New in pywbem 1.0.*
+DEFAULT_URL_PORT_HTTPS = 5989
