@@ -33,9 +33,8 @@ yamlloader>=0.5.5
 funcsigs>=1.0.2
 
 # Coverage reporting (no imports, invoked via coveralls script).
-# Make sure the Python version matches the one used in .travis.yml.
-coverage>=4.5.3; python_version == '3.8'
-python-coveralls>=2.9.2; python_version == '3.8'
+coverage>=4.5.3
+python-coveralls>=2.9.2
 
 # Safety CI by pyup.io
 safety>=1.8.4
