@@ -1592,8 +1592,7 @@ class EXPPARAMVALUE(CIMElement):
 
       ::
 
-        <!ELEMENT EXPPARAMVALUE (INSTANCE? | VALUE? | METHODRESPONSE? |
-                                 IMETHODRESPONSE?)>
+        <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
         <!ATTLIST EXPPARAMVALUE
             %CIMName;
             %ParamType;  #IMPLIED>
