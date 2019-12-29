@@ -1818,10 +1818,12 @@ class IRETURNVALUE(CIMElement):
 
         <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
                                 VALUE.OBJECTWITHPATH* |
-                                VALUE.OBJECTWITHLOCALPATH* | VALUE.OBJECT* |
-                                OBJECTPATH* | QUALIFIER.DECLARATION* |
-                                VALUE.ARRAY? | VALUE.REFERENCE? | CLASS* |
-                                INSTANCE* | VALUE.NAMEDINSTANCE*)>
+                                VALUE.OBJECTWITHLOCALPATH* |
+                                VALUE.OBJECT* | OBJECTPATH* |
+                                QUALIFIER.DECLARATION* | VALUE.ARRAY? |
+                                VALUE.REFERENCE? | CLASS* | INSTANCE* |
+                                INSTANCEPATH* | VALUE.NAMEDINSTANCE* |
+                                VALUE.INSTANCEWITHPATH*)>
     """
 
     def __init__(self, data):
