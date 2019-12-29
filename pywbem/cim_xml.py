@@ -560,8 +560,8 @@ class VALUE_OBJECTWITHPATH(CIMElement):
 class VALUE_NULL(CIMElement):
     # pylint: disable=invalid-name
     """
-    The VALUE.NULL element is used to represent a TABLECELL that has
-    no assigned value.
+    The VALUE.NULL element is used to represent an array item that has
+    no assigned value (i.e. is NULL).
 
       ::
 
@@ -1271,91 +1271,6 @@ class PARAMETER_REFARRAY(CIMElement):
             self.appendChildren(qualifiers)
 
 
-# TODO: Remove this class as it was never in a final DSP0200
-class TABLECELL_DECLARATION(CIMElement):  # pylint: disable=invalid-name
-    # pylint: disable=invalid-name
-    """
-    The TABLECELL.DECLARATION element describes a TABLECELL that is
-    not a reference or an array of references.
-
-      ::
-
-        <!ELEMENT TABLECELL.DECLARATION EMPTY>
-        <!ATTLIST TABLECELL.DECLARATION
-            %CIMName;
-            %CIMType;                    #REQUIRED
-            ISARRAY         (true|false) "false"
-            %ARRAYSIZE;
-            CELLPOS          CDATA       #REQUIRED
-            SORTPOS          CDATA       #IMPLIED
-            SORTDIR        (ASC|DESC)    #IMPLIED>
-    """
-
-
-# TODO: Remove this class as it was never in a final DSP0200
-class TABLECELL_REFERENCE(CIMElement):
-    # pylint: disable=invalid-name
-    """
-    The TABLECELL.REFERENCE element defines a TABLECELL that contains
-    reference or reference array values.
-
-      ::
-
-        <!ELEMENT TABLECELL.REFERENCE EMPTY>
-        <!ATTLIST TABLECELL.REFERENCE
-            %CIMName;
-            %ReferenceClass;             #REQUIRED
-            ISARRAY        (true|false)  "false"
-            %ARRAYSIZE;
-            CELLPOS         CDATA        #REQUIRED
-            SORTPOS          CDATA       #IMPLIED
-            SORTDIR         (ASC|DESC)   #IMPLIED>
-     """
-
-
-# TODO: Remove this class as it was never in a final DSP0200
-class TABLEROW_DECLARATION(CIMElement):
-    # pylint: disable=invalid-name
-    """
-    The TABLEROW.DECLARATION element contains a definition for each
-    TABLECELL in the TABLEROW.
-
-      ::
-
-        <!ELEMENT TABLEROW.DECLARATION (TABLECELL.DECLARATION
-                                        | TABLECELL.REFERENCE)*>
-    """
-
-
-# TODO: Remove this class as it was never in a final DSP0200
-class TABLE(CIMElement):
-    # pylint: disable=invalid-name
-    """
-    The TABLE element defines the result of a CIM Query.  A TABLE
-    element consists of a TABLEROW.DECLARATION followed by 0 or more
-    rows.
-
-      ::
-
-        <!ELEMENT TABLE(TABLEROW.DECLARATION,(TABLEROW)*)>
-    """
-
-
-# TODO: Remove this class as it was never in a final DSP0200
-class TABLEROW(CIMElement):
-    # pylint: disable=invalid-name
-    """
-    The TABLEROW element defines the values for a single row of a
-    table.  A value for each cell of the row MUST be specified.  If a
-    value has no assigned value, the VALUE.NULL element MUST be used.
-
-      ::
-
-        <!ELEMENT TABLEROW (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
-                            VALUE.REFARRAY | VALUE.NULL)*>
-    """
-
-
 # Message elements
 
 
@@ -1461,27 +1376,22 @@ class IMETHODCALL(CIMElement):
     The IMETHODCALL element defines a single intrinsic method
     invocation.  It specifies the target local namespace, followed by
     zero or more IPARAMVALUE subelements as the parameter values to be
-    passed to the method. If the RESPONSEDESTINATION element is
-    specified, the intrinsic method call MUST be interpreted as an
-    asynchronous method call.
+    passed to the method.
 
       ::
 
-        <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*,
-                               RESPONSEDESTINATION?)>
+        <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
         <!ATTLIST IMETHODCALL
             %CIMName;>
     """
 
-    def __init__(self, name, localnamespacepath, iparamvalues=None,
-                 responsedestination=None):
+    def __init__(self, name, localnamespacepath, iparamvalues=None):
         # We use call by class name because it is an old-style class.
         CIMElement.__init__(self, 'IMETHODCALL')
         self.setName(name)
         self.appendChild(localnamespacepath)
         if iparamvalues:
             self.appendChildren(iparamvalues)
-        self.appendOptionalChild(responsedestination)
 
 
 class METHODCALL(CIMElement):
@@ -1490,27 +1400,23 @@ class METHODCALL(CIMElement):
     The METHODCALL element defines a single method invocation on a
     Class or Instance.  It specifies the local path of the target
     Class or Instance, followed by zero or more PARAMVALUE subelements
-    as the parameter values to be passed to the method. If the
-    RESPONSEDESTINATION element is specified, the method call MUST be
-    interpreted as an asynchronous method call.
+    as the parameter values to be passed to the method.
 
       ::
 
-        <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH), PARAMVALUE*,
-                              RESPONSEDESTINATION?)>
+        <!ELEMENT METHODCALL ((LOCALINSTANCEPATH | LOCALCLASSPATH),
+                              PARAMVALUE*)>
         <!ATTLIST METHODCALL
             %CIMName;>
     """
 
-    def __init__(self, name, localpath, paramvalues=None,
-                 responsedestination=None):
+    def __init__(self, name, localpath, paramvalues=None):
         # We use call by class name because it is an old-style class.
         CIMElement.__init__(self, 'METHODCALL')
         self.setName(name)
         self.appendChild(localpath)
         if paramvalues:
             self.appendChildren(paramvalues)
-        self.appendOptionalChild(responsedestination)
 
 
 class EXPMETHODCALL(CIMElement):
@@ -1652,12 +1558,11 @@ class SIMPLERSP(CIMElement):
     """
     The SIMPLERSP element defines a Simple CIM Operation response.  It
     contains either a METHODRESPONSE (for extrinsic methods),
-    IMETHODRESPONSE (for intrinsic methods) or a SIMPLEREQACK
-    subelement.
+    IMETHODRESPONSE (for intrinsic methods).
 
       ::
 
-        <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE | SIMPLEREQACK)>
+        <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
     """
 
     def __init__(self, data):
@@ -1833,44 +1738,3 @@ class IRETURNVALUE(CIMElement):
                 self.appendChildren(data)
             else:
                 self.appendChild(data)
-
-
-# TODO: Remove this class as it was never in a final DSP0200
-class RESPONSEDESTINATION(CIMElement):
-    # pylint: disable=invalid-name
-    """
-    The RESPONSEDESTINATION element contains an instance that
-    describes the desired destination for the response.
-
-      ::
-
-        <!ELEMENT RESPONSEDESTINATON (INSTANCE)>
-    """
-
-    def __init__(self, data):
-        # We use call by class name because it is an old-style class.
-        CIMElement.__init__(self, 'RESPONSEDESTINATON')
-        self.appendChild(data)
-
-
-# TODO: Remove this class as it was never in a final DSP0200
-class SIMPLEREQACK(CIMElement):
-    # pylint: disable=invalid-name
-    """
-    The SIMPLEREQACK defines the acknowledgement response to a Simple
-    CIM Operation asynchronous request. The ERROR subelement is used
-    to report a fundamental error which prevented the asynchronous
-    request from being initiated.
-
-      ::
-
-        <!ELEMENT SIMPLEREQACK (ERROR?)>
-        <!ATTLIST SIMPLEREQACK
-            INSTANCEID CDATA     #REQUIRED>
-    """
-
-    def __init__(self, instanceid, data):
-        # We use call by class name because it is an old-style class.
-        CIMElement.__init__(self, 'SIMPLEREQACK')
-        self.setOptionalAttribute('INSTANCEID', instanceid)
-        self.appendOptionalChild(data)
