@@ -123,10 +123,10 @@
                                         </NAMESPACEPATH>
                                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                             <KEYBINDING NAME="CreationClassName">
-                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                             </KEYBINDING>
                                             <KEYBINDING NAME="Name">
-                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                             </KEYBINDING>
                                         </INSTANCENAME>
                                     </INSTANCEPATH>
@@ -153,10 +153,10 @@
                                         </NAMESPACEPATH>
                                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                             <KEYBINDING NAME="CreationClassName">
-                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                             </KEYBINDING>
                                             <KEYBINDING NAME="Name">
-                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
                                             </KEYBINDING>
                                         </INSTANCENAME>
                                     </INSTANCEPATH>
@@ -307,10 +307,10 @@
                                         </NAMESPACEPATH>
                                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                             <KEYBINDING NAME="CreationClassName">
-                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                             </KEYBINDING>
                                             <KEYBINDING NAME="Name">
-                                                <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                             </KEYBINDING>
                                         </INSTANCENAME>
                                     </INSTANCEPATH>
@@ -337,10 +337,10 @@
                                         </NAMESPACEPATH>
                                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                             <KEYBINDING NAME="CreationClassName">
-                                                <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                             </KEYBINDING>
                                             <KEYBINDING NAME="Name">
-                                                <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                                <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
                                             </KEYBINDING>
                                         </INSTANCENAME>
                                     </INSTANCEPATH>

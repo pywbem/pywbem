@@ -2268,7 +2268,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2283,7 +2283,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2298,7 +2298,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="boolean">TRUE</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">TRUE</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2313,7 +2313,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">FALSE</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2328,7 +2328,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2346,7 +2346,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2363,7 +2363,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2380,7 +2380,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
-                '<KEYVALUE VALUETYPE="string">Birds</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2405,13 +2405,13 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Name">',
-                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Foo</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Number">',
                 '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Boolean">',
-                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">FALSE</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Ref">',
                 '<VALUE.REFERENCE>',
@@ -2442,13 +2442,13 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Name">',
-                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Foo</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Number">',
                 '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Boolean">',
-                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">FALSE</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Ref">',
                 '<VALUE.REFERENCE>',
@@ -2478,13 +2478,13 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Name">',
-                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Foo</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Number">',
                 '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Boolean">',
-                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">FALSE</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Ref">',
                 '<VALUE.REFERENCE>',
@@ -2514,13 +2514,13 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Name">',
-                '<KEYVALUE VALUETYPE="string">Foo</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Foo</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Number">',
                 '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Boolean">',
-                '<KEYVALUE VALUETYPE="boolean">FALSE</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">FALSE</KEYVALUE>',
                 '</KEYBINDING>',
                 '<KEYBINDING NAME="Ref">',
                 '<VALUE.REFERENCE>',
@@ -2879,7 +2879,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML_SPECIAL_KB = [
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="K1">',
-                '<KEYVALUE VALUETYPE="string">V2</KEYVALUE>',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">V2</KEYVALUE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )

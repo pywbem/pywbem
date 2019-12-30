@@ -96,10 +96,10 @@
       <IRETURNVALUE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IRETURNVALUE>
@@ -159,7 +159,7 @@
       namespace: null
   pywbem_response:
     request_len: 523
-    reply_len: 519
+    reply_len: 547
     result:
       pywbem_object: CIMInstanceName
       classname: PyWBEM_Person
@@ -209,10 +209,10 @@
       <IRETURNVALUE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IRETURNVALUE>
@@ -580,7 +580,7 @@
                     <IRETURNVALUE>
                       <INSTANCENAME CLASSNAME="PyWBEM_AllTypes">
                         <KEYBINDING NAME="InstanceId">
-                          <KEYVALUE VALUETYPE="string">run_cimoperations_test1</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test1</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IRETURNVALUE>
@@ -1040,10 +1040,10 @@
       <IRETURNVALUE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IRETURNVALUE>
@@ -1135,10 +1135,10 @@
       <IRETURNVALUE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IRETURNVALUE>

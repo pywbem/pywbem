@@ -172,7 +172,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_AllTypes">
                         <KEYBINDING NAME="ID">
-                          <KEYVALUE VALUETYPE="string">42</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">42</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -244,7 +244,7 @@
                           <VALUE.REFERENCE>
                             <INSTANCENAME CLASSNAME="PyWBEM_End1">
                               <KEYBINDING NAME="ID">
-                                <KEYVALUE VALUETYPE="string">1</KEYVALUE>
+                                <KEYVALUE VALUETYPE="string" TYPE="string">1</KEYVALUE>
                               </KEYBINDING>
                             </INSTANCENAME>
                           </VALUE.REFERENCE>
@@ -253,7 +253,7 @@
                           <VALUE.REFERENCE>
                             <INSTANCENAME CLASSNAME="PyWBEM_End2">
                               <KEYBINDING NAME="ID">
-                                <KEYVALUE VALUETYPE="string">2</KEYVALUE>
+                                <KEYVALUE VALUETYPE="string" TYPE="string">2</KEYVALUE>
                               </KEYBINDING>
                             </INSTANCENAME>
                           </VALUE.REFERENCE>

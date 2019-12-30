@@ -843,7 +843,8 @@ class KEYVALUE(CIMElement):
         <!ELEMENT KEYVALUE (#PCDATA)>
         <!ATTLIST KEYVALUE
             VALUETYPE    (string|boolean|numeric)  'string'
-            %CIMType;    #IMPLIED>
+            %CIMType;    #IMPLIED>  # DTD <2.4
+            %CIMType;    #REQUIRED>  # DTD >=2.4
     """
 
     def __init__(self, data, value_type=None, cim_type=None):
@@ -856,6 +857,11 @@ class KEYVALUE(CIMElement):
         else:
             self.setAttribute('VALUETYPE', value_type)
 
+        # Even though the goal is to always set the TYPE attribute in order
+        # to conform with DTD >=2.4, the data structures in CIMInstanceName
+        # do not have the required information currently. Therefore, we
+        # leave it to the caller to supply the TYPE attribute, where possible,
+        # but we do not currently require the caller to provide it.
         self.setOptionalAttribute('TYPE', cim_type)
 
         if data is not None:

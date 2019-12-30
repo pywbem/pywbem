@@ -336,6 +336,16 @@ Released: not yet
 * Test: Added testcases to the cim_xml module, and migrated from unittest to
   pytest.
 
+* Partially fixed a standards compliance issue. DSP0201/203 version 2.4
+  introduced the requirement to set the TYPE attribute on KEYVALUE elements.
+  In operation requests sent to the WBEM server, pywbem now sets the TYPE
+  attribute of the KEYVALUE element for key properties of CIM types string
+  and boolean. For key properties with numeric CIM types, it continues not to
+  be set. In operation responses received from the WBEM server, pywbem
+  continues to tolerate an absent TYPE attribute, in order to accomodate
+  WBEM servers that implement DSP0201/203 before version 2.4.
+  (See issue #2052)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

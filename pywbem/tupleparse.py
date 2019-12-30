@@ -1060,9 +1060,12 @@ class TupleParser(object):
             <!ELEMENT KEYVALUE (#PCDATA)>
             <!ATTLIST KEYVALUE
                 VALUETYPE (string | boolean | numeric) "string"
-                %CIMType;              #IMPLIED>
+                %CIMType;    #IMPLIED>  # DTD <2.4
+                %CIMType;    #REQUIRED>  # DTD >=2.4
         """
 
+        # In order to be backwards compatible to WBEM servers that implement
+        # DTD <2.4, pywbem treats the TYPE attribute as optional.
         self.check_node(tup_tree, 'KEYVALUE', (), ('VALUETYPE', 'TYPE'), (),
                         allow_pcdata=True)
 

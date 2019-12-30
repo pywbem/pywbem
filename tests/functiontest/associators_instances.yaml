@@ -45,7 +45,7 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="TST_Blah">
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">Blah</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -118,7 +118,7 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="TST_Blah">
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">Blah</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -205,10 +205,10 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="PG_ComputerSystem">
                   <KEYBINDING NAME="CreationClassName">
-                    <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">PG_ComputerSystem</KEYVALUE>
                   </KEYBINDING>
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">sheldon</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -282,10 +282,10 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="PG_ComputerSystem">
                   <KEYBINDING NAME="CreationClassName">
-                    <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">PG_ComputerSystem</KEYVALUE>
                   </KEYBINDING>
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">sheldon</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -429,10 +429,10 @@
       <IPARAMVALUE NAME="ObjectName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -467,7 +467,7 @@
       </NAMESPACEPATH>
       <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
       <KEYBINDING NAME="InstanceID">
-      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PersonCollection</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </INSTANCEPATH>
@@ -516,7 +516,7 @@
       Role: myRole
       AssocClass: myAssocClass
   pywbem_response:
-    request_len: 981
+    request_len: 1009
     reply_len: 251
     result: []
   http_request:
@@ -542,10 +542,10 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="PG_ComputerSystem">
                   <KEYBINDING NAME="CreationClassName">
-                    <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">PG_ComputerSystem</KEYVALUE>
                   </KEYBINDING>
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">sheldon</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -624,7 +624,7 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="TST_Blah">
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">Blah</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -692,7 +692,7 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="TST_Blah">
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">Blah</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>
@@ -760,7 +760,7 @@
               <IPARAMVALUE NAME="ObjectName">
                 <INSTANCENAME CLASSNAME="TST_Blah">
                   <KEYBINDING NAME="Name">
-                    <KEYVALUE VALUETYPE="string">Blah</KEYVALUE>
+                    <KEYVALUE VALUETYPE="string" TYPE="string">Blah</KEYVALUE>
                   </KEYBINDING>
                 </INSTANCENAME>
               </IPARAMVALUE>

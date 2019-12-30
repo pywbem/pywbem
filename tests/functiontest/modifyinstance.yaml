@@ -80,10 +80,10 @@
       <VALUE.NAMEDINSTANCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       <INSTANCE CLASSNAME="PyWBEM_Person">
@@ -200,10 +200,10 @@
       <VALUE.NAMEDINSTANCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       <INSTANCE CLASSNAME="PyWBEM_Person">
@@ -283,10 +283,10 @@
       <VALUE.NAMEDINSTANCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       <INSTANCE CLASSNAME="PyWBEM_Person">
@@ -355,10 +355,10 @@
       <VALUE.NAMEDINSTANCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       <INSTANCE CLASSNAME="PyWBEM_Person">
