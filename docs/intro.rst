@@ -309,6 +309,23 @@ to the standards:
     determined by the client: If a client does not use multi-requests,
     the server does not use multi-responses.
 
+  - :term:`DSP0201` version 2.4 introduced the requirement that the TYPE
+    attribute of the KEYVALUE element must be set. The KEYVALUE element is used
+    to represent keys in instance names, for example when the CreateInstance
+    operation returns an instance name from the WBEM server, or when the
+    DeleteInstance operation sends an instance name to the WBEM server.
+    In operation requests sent to the WBEM server, pywbem sets the TYPE
+    attribute of the KEYVALUE element for key properties of CIM types string
+    and boolean, as required by DSP0201 version 2.4. For key properties with
+    numeric CIM types, pywbem does not set the TYPE attribute of the KEYVALUE
+    element in operation requests. This conforms to DSP0201 before version 2.4,
+    but not to version 2.4. This is not expected to cause problems however,
+    because WBEM servers that implement DSP0201 version 2.4 very likely will
+    tolerate clients that conform to earlier versions. In operation responses
+    received from the WBEM server, pywbem tolerates an absent TYPE attribute
+    in KEYVALUE elements in order to accomodate WBEM servers that implement
+    DSP0201 before version 2.4.
+
   Notes:
 
   - The CIM-XML representation as defined in :term:`DSP0201` supports CIM

@@ -58,10 +58,10 @@
       <IPARAMVALUE NAME="ObjectName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -99,7 +99,7 @@
       <VALUE.REFERENCE>
       <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
       <KEYBINDING NAME="InstanceID">
-      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PersonCollection</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </VALUE.REFERENCE>
@@ -108,10 +108,10 @@
       <VALUE.REFERENCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </VALUE.REFERENCE>
@@ -185,10 +185,10 @@
       <IPARAMVALUE NAME="ObjectName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -226,7 +226,7 @@
       <VALUE.REFERENCE>
       <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
       <KEYBINDING NAME="InstanceID">
-      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PersonCollection</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </VALUE.REFERENCE>
@@ -235,10 +235,10 @@
       <VALUE.REFERENCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </VALUE.REFERENCE>
@@ -312,10 +312,10 @@
       <IPARAMVALUE NAME="ObjectName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -353,7 +353,7 @@
       <VALUE.REFERENCE>
       <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
       <KEYBINDING NAME="InstanceID">
-      <KEYVALUE VALUETYPE="string">PersonCollection</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PersonCollection</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </VALUE.REFERENCE>
@@ -362,10 +362,10 @@
       <VALUE.REFERENCE>
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </VALUE.REFERENCE>

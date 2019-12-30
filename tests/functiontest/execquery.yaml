@@ -209,10 +209,10 @@
       </NAMESPACEPATH>
       <INSTANCENAME CLASSNAME="PG_ComputerSystem">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PG_ComputerSystem</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">sheldon</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </INSTANCEPATH>
@@ -511,10 +511,10 @@
       </NAMESPACEPATH>
       <INSTANCENAME CLASSNAME="PG_ComputerSystem">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PG_ComputerSystem</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">sheldon</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </INSTANCEPATH>
@@ -601,10 +601,10 @@
       </NAMESPACEPATH>
       <INSTANCENAME CLASSNAME="PG_ComputerSystem">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PG_ComputerSystem</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PG_ComputerSystem</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">sheldon</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">sheldon</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </INSTANCEPATH>

@@ -39,7 +39,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -116,7 +116,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -193,7 +193,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -270,7 +270,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -346,7 +346,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -422,7 +422,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -498,7 +498,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -574,7 +574,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -650,7 +650,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -726,7 +726,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -802,7 +802,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -878,7 +878,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -954,7 +954,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1030,7 +1030,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1106,7 +1106,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1182,7 +1182,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1258,7 +1258,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1334,7 +1334,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1410,7 +1410,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1486,7 +1486,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1562,7 +1562,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1638,7 +1638,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1714,7 +1714,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1790,7 +1790,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1866,7 +1866,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1942,7 +1942,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2018,7 +2018,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2094,7 +2094,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2170,7 +2170,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2246,7 +2246,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2322,7 +2322,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2398,7 +2398,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2492,7 +2492,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2587,7 +2587,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2682,7 +2682,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2777,7 +2777,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2871,7 +2871,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -2948,7 +2948,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -3025,7 +3025,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -3102,7 +3102,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -3179,7 +3179,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>

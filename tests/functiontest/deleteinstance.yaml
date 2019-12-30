@@ -37,10 +37,10 @@
       <IPARAMVALUE NAME="InstanceName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -102,10 +102,10 @@
       <IPARAMVALUE NAME="InstanceName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -167,10 +167,10 @@
       <IPARAMVALUE NAME="InstanceName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>
@@ -231,10 +231,10 @@
       <IPARAMVALUE NAME="InstanceName">
       <INSTANCENAME CLASSNAME="PyWBEM_Person">
       <KEYBINDING NAME="CreationClassName">
-      <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
       </KEYBINDING>
       <KEYBINDING NAME="Name">
-      <KEYVALUE VALUETYPE="string">run_cimoperations_test</KEYVALUE>
+      <KEYVALUE VALUETYPE="string" TYPE="string">run_cimoperations_test</KEYVALUE>
       </KEYBINDING>
       </INSTANCENAME>
       </IPARAMVALUE>

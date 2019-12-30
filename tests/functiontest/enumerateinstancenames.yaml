@@ -72,26 +72,26 @@
                             <IRETURNVALUE>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Charlie</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Charlie</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                             </IRETURNVALUE>
@@ -159,10 +159,10 @@
                             <IRETURNVALUE>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                             </IRETURNVALUE>
@@ -462,18 +462,18 @@
                             <IRETURNVALUE>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Alice</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                             </IRETURNVALUE>
@@ -543,10 +543,10 @@
                             <IRETURNVALUE>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                             </IRETURNVALUE>
@@ -1000,10 +1000,10 @@
                             <IRETURNVALUE>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                             </IRETURNVALUE>
@@ -1071,10 +1071,10 @@
                             <IRETURNVALUE>
                                 <INSTANCENAME CLASSNAME="PyWBEM_Person">
                                     <KEYBINDING NAME="CreationClassName">
-                                        <KEYVALUE VALUETYPE="string">PyWBEM_Person</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
                                     </KEYBINDING>
                                     <KEYBINDING NAME="Name">
-                                        <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                                     </KEYBINDING>
                                 </INSTANCENAME>
                             </IRETURNVALUE>

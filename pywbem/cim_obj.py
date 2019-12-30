@@ -1659,21 +1659,31 @@ class CIMInstanceName(_CIMComparisonMixin):
                 continue
 
             if isinstance(value, six.text_type):
-                type_ = 'string'
+                value_type = 'string'
+                cim_type = 'string'
             elif isinstance(value, six.binary_type):
-                type_ = 'string'
+                value_type = 'string'
+                cim_type = 'string'
                 value = _to_unicode(value)
             elif isinstance(value, bool):
                 # Note: Bool is a subtype of int, therefore bool is tested
                 # before int.
-                type_ = 'boolean'
+                value_type = 'boolean'
+                cim_type = 'boolean'
                 if value:
                     value = 'TRUE'
                 else:
                     value = 'FALSE'
             elif isinstance(value, number_types):
                 # Numeric CIM data types derive from Python number types.
-                type_ = 'numeric'
+                value_type = 'numeric'
+
+                # Without CIM type information in the keybindings, pywbem cannot
+                # determine the CIM type from the value alone. This will cause
+                # the TYPE attribute not to be set, violating the requirement
+                # to set the TYPE attribute that was introduced in DTD 2.4.
+                cim_type = None
+
                 value = str(value)
             else:
                 # Double check the type of the keybindings, because they can be
@@ -1683,7 +1693,7 @@ class CIMInstanceName(_CIMComparisonMixin):
                             key, builtin_type(value)))
 
             kbs.append(cim_xml.KEYBINDING(
-                key, cim_xml.KEYVALUE(value, type_)))
+                key, cim_xml.KEYVALUE(value, value_type, cim_type)))
 
         instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
 

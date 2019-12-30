@@ -76,7 +76,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -199,7 +199,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -339,7 +339,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -459,7 +459,7 @@
                       <VALUE.NAMEDINSTANCE>
                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                           <KEYBINDING NAME="Name">
-                            <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                            <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                           </KEYBINDING>
                         </INSTANCENAME>
                         <INSTANCE CLASSNAME="PyWBEM_Person">
@@ -597,7 +597,7 @@
                     <IRETURNVALUE>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IRETURNVALUE>
@@ -937,7 +937,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -1035,7 +1035,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -1130,7 +1130,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -1224,7 +1224,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -1336,7 +1336,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1461,7 +1461,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1603,7 +1603,7 @@
                     <IPARAMVALUE NAME="InstanceName">
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz &amp; &lt;the cat&gt;</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IPARAMVALUE>
@@ -1727,7 +1727,7 @@
                       <VALUE.NAMEDINSTANCE>
                         <INSTANCENAME CLASSNAME="PyWBEM_Person">
                           <KEYBINDING NAME="Name">
-                            <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                            <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                           </KEYBINDING>
                         </INSTANCENAME>
                         <INSTANCE CLASSNAME="PyWBEM_Person">
@@ -1869,7 +1869,7 @@
                     <IRETURNVALUE>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </IRETURNVALUE>
@@ -2213,7 +2213,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -2313,7 +2313,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -2410,7 +2410,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
@@ -2506,7 +2506,7 @@
                       </LOCALNAMESPACEPATH>
                       <INSTANCENAME CLASSNAME="PyWBEM_Person">
                         <KEYBINDING NAME="Name">
-                          <KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>
+                          <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
                         </KEYBINDING>
                       </INSTANCENAME>
                     </LOCALINSTANCEPATH>
