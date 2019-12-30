@@ -45,8 +45,6 @@ from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, CIM_ERR_NOT_FOUND, \
 
 from pywbem._utils import _format
 
-from pywbem._nocasedict import NocaseDict
-
 
 class ResolverMixin(object):  # pylint: disable=too-few-public-methods
     """
@@ -169,11 +167,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         CIMMethod, or CIMParameter.  This method resolves each of the objects
         in the dictionary, using the superclass if it is defined.
         """
-        if new_objects:   # TODO Future REMOVE. This is test code
-            assert isinstance(new_objects, (dict, NocaseDict))
-            keys = new_objects.keys()
-            assert isinstance(new_objects[keys[0]], (CIMMethod, CIMProperty,
-                                                     CIMParameter))
 
         if not superclass:
             for new_obj in six.itervalues(new_objects):
@@ -182,42 +175,41 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                      False, type_str)
             return
 
-        # process objects if superclass exists
-        for oname, new_obj in six.iteritems(new_objects):
-            if oname not in superclass_objects:
+        # Process objects if superclass exists
+        for obj_name, new_obj in six.iteritems(new_objects):
+            # If obj_name not in superclass, set into new class
+            if obj_name not in superclass_objects:
                 self._set_new_object(new_obj, None, new_class,
                                      superclass, qualifier_repo,
                                      False, type_str)
                 continue
 
-            # oname in superclass_objects
-            # TODO: We may have object naming because of override.
-            if 'Override' not in new_objects[oname].qualifiers:
-                if not isinstance(new_objects[oname], CIMParameter):
+            # If obj_name in superclass_objects
+            if 'Override' not in new_objects[obj_name].qualifiers:
+                if not isinstance(new_objects[obj_name], CIMParameter):
                     raise CIMError(
                         CIM_ERR_INVALID_PARAMETER,
                         _format("{0} {1!A} in {2!A} duplicates {0} in "
                                 "{3!A} without override.",
-                                type_str, oname, new_class.classname,
+                                type_str, obj_name, new_class.classname,
                                 superclass.classname))
 
-                # TODO need to finish this.  For now just let
-                # parameter slide. Keep the new one.
+                # TODO need to finish this.  For now let parameter slide
                 continue
 
             # process object override
             # get override name
-            override_name = new_objects[oname].qualifiers["override"].value
+            override_name = new_objects[obj_name].qualifiers["override"].value
             if isinstance(new_obj, (CIMParameter, CIMProperty)):
                 if new_obj.type == 'reference':
-                    if override_name != oname:
+                    if override_name != obj_name:
                         raise CIMError(
                             CIM_ERR_INVALID_PARAMETER,
                             _format("Invalid new_class reference "
                                     "{0} {1!A}. in class {2!A}"
                                     "Override must not change {0} "
                                     "name but override name is {3!A}",
-                                    type_str, oname, superclass.classname,
+                                    type_str, obj_name, superclass.classname,
                                     override_name))
             try:
                 super_obj = superclass_objects[override_name]
@@ -226,8 +218,8 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Invalid new_class override  {0} {1!A}. in class "
                             "{2!A}. Override name {3!A}} not found in  {3!A}.",
-                            type_str, oname, new_class.classname, override_name,
-                            superclass.classname))
+                            type_str, obj_name, new_class.classname,
+                            override_name, superclass.classname))
 
             # Test if new object characteristics consistent with
             # requirements for that object type
@@ -241,7 +233,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                         _format("Invalid new_class property {0!A}. "
                                 "Does not match overridden property "
                                 "{1!A} in class {2!A}",
-                                oname, super_obj.name,
+                                obj_name, super_obj.name,
                                 superclass.classname))
             elif isinstance(super_obj, CIMMethod):
                 if super_obj.return_type != new_obj.return_type:
@@ -249,7 +241,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                         CIM_ERR_INVALID_PARAMETER,
                         _format("Invalid new_class method {0!A}. "
                                 "Mismatch method  return typein "
-                                "class {1!A}.", oname,
+                                "class {1!A}.", obj_name,
                                 superclass.classname))
             elif isinstance(super_obj, CIMParameter):
                 if super_obj.type != new_obj.type or \
@@ -263,9 +255,10 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                 "{0!A} param {1!A}. "
                                 "Does not match signature of "
                                 "overridden method parameters "
-                                "in class {2!A}.", mname, oname,
+                                "in class {2!A}.", mname, obj_name,
                                 superclass.classname))
             else:
+                # This is our programming error
                 assert True, "Invalid Type {0}" .format(type(super_obj))
 
             self._set_new_object(new_obj, super_obj,
@@ -285,15 +278,15 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         # Copy objects from from superclass that are not in new_class
         # Placed after loop with items in new_object so they are not part
         # of that loop.
-        for oname, ovalue in six.iteritems(superclass_objects):
-            if oname not in new_objects:
-                new_value = ovalue.copy()
+        for obj_name, obj_value in six.iteritems(superclass_objects):
+            if obj_name not in new_objects:
+                new_value = obj_value.copy()
                 new_value.propagated = True
-                assert ovalue.class_origin
-                new_value.class_origin = ovalue.class_origin
+                assert obj_value.class_origin
+                new_value.class_origin = obj_value.class_origin
                 for qualifier in new_value.qualifiers.values():
                     qualifier.propagated = True
-                new_objects[oname] = new_value
+                new_objects[obj_name] = new_value
 
     def _set_new_object(self, new_obj, inherited_obj, new_class, superclass,
                         qualifier_repo, propagated, type_str):
@@ -328,26 +321,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
     def _resolve_qualifiers(self, new_quals, inherited_quals, new_class,
                             super_class, obj_name, obj_type, qualifier_repo,
-                            propagate=False, verbose=False):
+                            propagate=False):
         """
         Process the override of qualifiers from the inherited_quals dictionary
         to the new_quals dict following the override rules in DSP0004.
         """
         superclassname = super_class.classname if super_class else None
-
-        # TODO Diagnostic we will keep until really sure of this code
-        if verbose:
-            print("\nRESOLVE sc_name=%s nc_name=%s, obj_name=%s obj_type=%s "
-                  "  propagate=%s" %
-                  (superclassname, new_class.classname, obj_name, obj_type,
-                   propagate))
-            print('\nNEW QUAL')
-            for q, qv in new_quals.items():
-                print('  %s: %r' % (q, qv))
-            print('INHERITEDQ:')
-            if inherited_quals:
-                for q, qv in inherited_quals.items():
-                    print('  %s: %r' % (q, qv))
 
         # If propagate flag not set, initialize the qualfiers
         # by setting flavor defaults and propagated False
@@ -365,7 +344,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         for inh_qname, inh_qvalue in inherited_quals.items():
             if inh_qvalue.tosubclass:
                 if inh_qvalue.overridable:
-                    # if not in new quals, copy it to the new quals, else ignore
+                    # if not in new quals, copy to new quals, else ignore
                     if inh_qname not in new_quals:
                         new_quals[inh_qname] = inherited_quals[inh_qname].copy()
                         new_quals[inh_qname].propagated = True
@@ -376,10 +355,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
                 else:  # not overridable
                     if inh_qname in new_quals:
-                        # allow for same qualifier def in subclass
-                        # TODO should more than value match here.??
+                        # Allow for same qualifier definition in subclass
                         if new_quals[inh_qname].value != \
-                                inherited_quals[inh_qname].value:
+                                inherited_quals[inh_qname].value \
+                                or \
+                                new_quals[inh_qname].type != \
+                                inherited_quals[inh_qname].type:
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
                                 _format("Invalid new_class {0!A}:{1!A} "
@@ -439,8 +420,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                 "in namespace {2!A}.",
                                 new_class.superclass, new_class.classname,
                                 namespace))
-                else:
-                    raise
+                raise
         else:
             superclass = None
 
@@ -486,15 +466,14 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         qualdict = superclass.qualifiers if superclass else {}
         new_class.classorigin = superclass.classname if superclass \
             else new_class.classname
-        new_class.propagated = True if superclass else False
+        new_class.propagated = bool(superclass)
         self._resolve_qualifiers(new_class.qualifiers,
                                  qualdict,
                                  new_class,
                                  superclass,
                                  new_class.classname, 'class',
                                  qualifier_repo,
-                                 propagate=False,
-                                 verbose=verbose)
+                                 propagate=False)
 
         classrepo = self._get_class_repo(namespace)
         # resolve properties in new class
@@ -508,7 +487,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         self._resolve_objects(new_class.methods,
                               superclass.methods if superclass else None,
                               new_class, superclass,
-                              classrepo, qualifier_repo, "Method",
-                              verbose=verbose)
+                              classrepo, qualifier_repo, "Method")
 
         return new_class
