@@ -152,6 +152,9 @@ Released: not yet
     for installing pywbem. If you have automated the pywbem installation,
     this step should be removed from your automation.
 
+* Added more unit tests for the cim_http.py module and converted it to
+  pytest. (See issue #1414)
+
 **Deprecations:**
 
 **Bug fixes:**
