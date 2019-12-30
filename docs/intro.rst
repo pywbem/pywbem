@@ -326,6 +326,9 @@ to the standards:
     in KEYVALUE elements in order to accomodate WBEM servers that implement
     DSP0201 before version 2.4.
 
+  - The ``CORRELATOR`` element introduced in :term:`DSP0201` version 2.4
+    is not supported by pywbem.
+
   Notes:
 
   - The CIM-XML representation as defined in :term:`DSP0201` supports CIM

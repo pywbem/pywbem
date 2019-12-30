@@ -346,6 +346,9 @@ Released: not yet
   WBEM servers that implement DSP0201/203 before version 2.4.
   (See issue #2052)
 
+* Documented the limitation that the `CORRELATOR` element introduced in
+  DSP0201/203 version 2.4 is not supported by pywbem. (related to issue #2053)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
