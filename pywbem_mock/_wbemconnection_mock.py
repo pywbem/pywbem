@@ -87,8 +87,8 @@ DEFAULT_DEEP_INHERITANCE = True
 OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 
 
-# TODO: ks Future We have not considered that iq and ico are deprecated in
-# DSP0200 for get_instance, etc. We could  set up a default to ignore these
+# Issue #2065. We have not considered that iq and ico are deprecated in
+# on DSP0200 for get_instance, etc. We could  set up a default to ignore these
 # parameters for the operations in which they are deprecated and we
 # should/could ignore them. We need to document our behavior in relation to the
 # spec.
@@ -558,7 +558,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         namespace = namespace or self.default_namespace
         self._validate_namespace(namespace)
 
-        # TODO fix this also so there is cleaner interface to WBEMConnection
+        # issue #2063 refactor this so there is cleaner interface to
+        # WBEMConnection
         mofcomp = MOFCompiler(_MockMOFWBEMConnection(self),
                               search_paths=search_paths,
                               verbose=verbose, log_func=None)
@@ -617,8 +618,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         """
         namespace = namespace or self.default_namespace
 
-        # if not self._validate_namespace(namespace):  TODO
-        #    self.add_namespace(namespace)
         self._validate_namespace(namespace)
 
         mofcomp = MOFCompiler(_MockMOFWBEMConnection(self),
@@ -982,7 +981,9 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         'Methods').
         """
 
-        # TODO:ks FUTURE Consider sorting to perserve order of compile/add.
+        # Issue #2062: TODO/ks FUTURE Consider sorting to preserve order of
+        # compile/add. Make this part of refactor to separate repository and
+        # datastore because it may be data store dependent
         if namespace in object_repo:
             if obj_type == 'Methods':
                 _uprint(dest,
@@ -1006,7 +1007,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 except KeyError:
                     return
 
-                # TODO:ks Future: Possibly sort insts by path order.
+                # Issue # 2062 - Consider sorting here in the future
                 for inst in six.itervalues(insts):
                     if output_format == 'xml':
                         _uprint(dest,
@@ -2057,8 +2058,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             CIMError: CIM_ERR_ALREADY_EXISTS
         """
 
-        # TODO:ks FUTURE implement set... method for instance, qualifier, class
-        # as general means to put new data into the repo.
+        # Issue #2062 ks Refactor to separate data store from repository method
 
         # Validate namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
@@ -2160,7 +2160,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                         new_instance.classname, namespace))
 
         # Handle namespace creation, currently hard coded.
-        # TODO AM 8/18 Generalize the hard coded handling into provider concept
+        # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
+        # provider concept
         classname_lower = new_instance.classname.lower()
         if classname_lower == 'pg_namespace':
             ns_classname = 'PG_Namespace'
@@ -2322,7 +2323,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         if modified_instance.path.namespace is None:
             modified_instance.path.namespace = namespace
 
-        # TODO_FIX validate that we should copy
         orig_instance = self._find_instance(modified_instance.path,
                                             instance_repo,
                                             copy_inst=True)
@@ -2490,7 +2490,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                         "{1!A}", iname, namespace))
 
         # Handle namespace deletion, currently hard coded.
-        # TODO AM 8/18 Generalize the hard coded handling into provider concept
+        # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
+        # provider concept
         classname_lower = iname.classname.lower()
         if classname_lower == 'pg_namespace':
             ns_classname = 'PG_Namespace'
@@ -2615,14 +2616,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     #  Faked WBEMConnection Reference and Associator methods
     #
     #####################################################################
-
-    @staticmethod
-    def _appendpath_unique(list_, path):
-        """Append path to list if not already in list"""
-        for p in list_:
-            if p == path:
-                return
-        list_.append(path)
 
     def _validate_class_exists(self, cln, namespace, req_param="TargetClass"):
         """
@@ -2769,8 +2762,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         role = role.lower() if role else role
 
         # Iterate through class repo getting association classes for namespace
-        # TODO: Future, Save assoc classes result in Repo so only has to
-        # be done once.
         for assoc_cl in self._iter_association_classes(namespace):
             for prop in six.itervalues(assoc_cl.properties):
                 if prop.type == 'reference' and \
@@ -2798,36 +2789,31 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 _format("Class {0!A} not found in namespace {1!A}.",
                         instname.classname, namespace))
 
-        # Get list of class and subclasses lower case
-        # TODO not sure why we do this other than to have a name independent
-        # set of subclass names.
+        # Get list of class and subclasses in lower case
         if result_class:
             self._validate_class_exists(result_class, namespace,
                                         "ResultClass")
-        # get subclasses or empty list
         resultclasses = self._subclasses_lc(result_class, namespace)
 
         instname.namespace = namespace
-        # TODO MAKE THIS SET
-        rtn_instpaths = []
-        role = role.lower() if role else role
-        # TODO:ks FUTURE: Make list from _get_reference_classnames if classes
-        #       exist. Otherwise set list to instance_repo to search every
-        #       instance.
+        role = role.lower() if role else None
 
-        # TODO: Search way to wide here.  Not isolating to associations and
-        # not limiting to expected result_classes
+        # Future TODO/ks: Search very wide here.  Not isolating to associations
+        # and not limiting to expected result_classes. Consider making list from
+        # get_reference_classnames if classes exist, otherwise set list to
+        # instance_repo to search all instances
+        rtn_instpaths = set()
         for inst in six.itervalues(instance_repo):
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
-                    # does this prop instance name match target inst name
+                    # Does this prop instance name match target inst name
                     if prop.value == instname:
                         if result_class:
                             if inst.classname.lower() not in resultclasses:
                                 continue
                         if role and prop.name.lower() != role:
                             continue
-                        self._appendpath_unique(rtn_instpaths, inst.path)
+                        rtn_instpaths.add(inst.path)
 
         return rtn_instpaths
 
@@ -2863,9 +2849,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         ref_clns = self._get_reference_classnames(classname, namespace,
                                                   assoc_class, role)
 
-        # TODO creating this list may be inefficient.
-        # Should be iteration.
-        # find reference properties that have multiple use of
+        # Find reference properties that have multiple use of
         # same reference_class
         klasses = [class_repo[cln] for cln in ref_clns]
         for cl in klasses:
@@ -2913,7 +2897,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         assoc_classes = self._subclasses_lc(assoc_class, namespace)
 
         inst_name.namespace = namespace
-        rtn_instpaths = []
         role = role.lower() if role else role
         result_role = result_role.lower() if result_role else result_role
 
@@ -2921,6 +2904,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                                                   assoc_class, role)
 
         # Get associated instance names
+        rtn_instpaths = set()
         for ref_path in ref_paths:
             inst = self._find_instance(ref_path, instance_repo)
             for prop in six.itervalues(inst.properties):
@@ -2937,7 +2921,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                             continue
                         if result_role and prop.name.lower() != result_role:
                             continue
-                        self._appendpath_unique(rtn_instpaths, prop.value)
+                        rtn_instpaths.add(prop.value)
         return rtn_instpaths
 
     def _fake_referencenames(self, namespace, **params):
@@ -3144,11 +3128,10 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         else:
             eos = u'FALSE'
             context_id = self._create_contextid()
-            # TODO:ks Future. Use the timeout along with response delay. Then
-            # user could timeout pulls. This means adding timer test to
-            # pulls and close. Timer should be used to close old contexts
-            # also.
-            # The 'time' item contains elapsed time in fractional seconds
+            # Issue #2063  Use the timeout along with response delay.
+            # Then user could timeout pulls. This means adding timer test to
+            # pulls and close. Timer should be used to close old contexts.
+            # Also The 'time' item contains elapsed time in fractional seconds
             # since an undefined point in time, so it is only useful for
             # calculating deltas.
             self.enumeration_contexts[context_id] = {'pull_type': pull_type,
@@ -3354,7 +3337,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self._validate_open_params(**params)
 
         # pylint: disable=assignment-from-no-return
-        # TODO: Not implemented
+        # Issue #2064 TODO/ks implement execquery
         result = self._fake_execquery(namespace, **params)
 
         objects = [] if result is None else [x[2] for x in result[0][2]]
@@ -3485,7 +3468,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 _format("Method {0!A} not found in class {1!A}.",
                         methodname, localobject.classname))
         if target_cln != cc.classname:
-            # TODO FUTURE: add method to repo that allows privileged users
+            # Issue #2062: add method to repo that allows privileged users
             # direct access so we don't have to go through _get_class and can
             # test classes directly in repo
             tcc = self._get_class(target_cln, namespace,

@@ -36,7 +36,8 @@ from pywbem.mof_compiler import MOFWBEMConnection
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
 
-# TODO: FutureUse the BaseWBEMConnection and recreate complete MOFWBEMConnection
+# Issue # 2062 Refactor this into a class that represents the repository
+# data store.
 
 
 class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
@@ -160,8 +161,6 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
            instance alias.
         2. Fail with a CIMError exception if the instance already exists
            in the repository.
-           TODO: Determine if the logic should be to fail or replace.
-           See pywbem issue #1890
 
 
         For a description of the parameters, see
