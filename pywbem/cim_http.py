@@ -194,8 +194,7 @@ def parse_url(url, allow_defaults=True):
 
 def request_exc_message(exc, conn):
     """
-    Return a reasonable exception message from a
-    :exc:`request.exceptions.RequestException` exception.
+    Return a reasonable exception message from a requests exception.
 
     The approach is to dig deep to the original reason, if the original
     exception is present, skipping irrelevant exceptions such as
@@ -204,7 +203,7 @@ def request_exc_message(exc, conn):
     `urllib3.exceptions.NewConnectionError`.
 
     Parameters:
-      exc (:exc:`~request.exceptions.RequestException`): Exception
+      exc (requests.exceptions.RequestException): Exception
       conn (WBEMConnection): Connection that was used.
 
     Returns:
