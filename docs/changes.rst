@@ -442,6 +442,9 @@ Released: not yet
 * Added more unit tests for the cim_http.py module and converted it to
   pytest. (See issue #1414)
 
+* Refactor pywbem_mock into more consistent components separating the
+  mock repository from the component that represents a CIMOM. (see issue # 2062)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
