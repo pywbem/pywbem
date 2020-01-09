@@ -3,10 +3,16 @@
 # The order of packages is significant, because pip processes them in the order
 # of appearance.
 
-six>=1.10.0
-ply>=3.10
-PyYAML>=3.13  # yaml package
-Sphinx>=1.7.6
+-r requirements.txt
+
+# Minimum set of packages for Sphinx processing
+# Keep in sync with dev-requirements.txt
+
+Sphinx>=1.7.6,<2.0.0; python_version < '3.5'  # BSD
+Sphinx>=1.7.6,<2.0.0; python_version >= '3.5'  # BSD
+# TODO: On Python 3.5 and higher, Sphinx currently fails, see issue
+#       https://github.com/sphinx-doc/sphinx/issues/6246. Therefore, Sphinx has
+#       been pinned to below 2.0.0 also for those Python versions.
 sphinx-git>=10.1.1
+GitPython>=2.1.1
 sphinxcontrib-fulltoc>=1.2.0
-requests>=2.20.0
