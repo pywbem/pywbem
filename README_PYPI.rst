@@ -4,10 +4,10 @@
 .. # we have to specify the package version directly in the links.
 
 .. # begin of customization for the current version
-.. |pywbem-version-mn| replace:: 0.15
-.. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_0.15/README.rst
-.. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_0.15/
-.. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_0.15/changes.html
+.. |pywbem-version-mn| replace:: 0.16
+.. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_0.16/README.rst
+.. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_0.16/
+.. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_0.16/changes.html
 .. # end of customization for the current version
 
 Pywbem is a WBEM client, written in pure Python. It supports Python 2 and
