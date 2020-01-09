@@ -11,7 +11,10 @@
 
 mock>=2.0.0
 ply>=3.10
-PyYAML>=5.1
+# PyYAML 5.3 has removed support for Python 3.4
+PyYAML>=5.1; python_version == '2.7'
+PyYAML>=5.1,<5.3; python_version == '3.4'
+PyYAML>=5.1; python_version > '3.4'
 six>=1.10.0
 requests>=2.20.0
 
