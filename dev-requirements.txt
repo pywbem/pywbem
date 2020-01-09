@@ -38,13 +38,18 @@ lxml>=4.4.1; python_version >= '3.8'
 requests>=2.19.1; python_version == '2.6'
 requests>=2.20.1; python_version > '2.6'
 decorator>=4.0.11
+
+# PyYAML is an indirect dependency used by yamlordereddictloader that is
+# needed due to version pinning. Keep in sync with requirements.txt.
+# PyYAML 5.3 has removed support for Python 3.4
+PyYAML>=3.11,<3.12; python_version == '2.6'
+PyYAML>=5.1; python_version == '2.7'
+PyYAML>=5.1,<5.3; python_version == '3.4'
+PyYAML>=5.1; python_version > '3.4'
+
 yamlordereddictloader>=0.4.0; python_version == '2.6'
 yamlloader>=0.5.5; python_version > '2.6'
 funcsigs>=1.0.2
-
-# Indirect dependencies that are needed due to version pinning
-PyYAML==3.11; python_version == '2.6'  # yaml package, used by yamlordereddictloader
-PyYAML>=3.13; python_version >= '2.7'  # yaml package, used by yamlordereddictloader
 
 # Coverage reporting (no imports, invoked via coveralls script).
 coverage>=4.5.3
