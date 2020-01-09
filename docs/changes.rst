@@ -13,18 +13,12 @@ Change log
       :revisions: 1
 
 
-pywbem 0.16.0.dev1
-------------------
-
-This version is currently in development and is shown as |version|.
+pywbem 0.16.0
+-------------
 
 This version contains all fixes up to pywbem 0.15.0.
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-01-09
 
 **Bug fixes:**
 
@@ -64,12 +58,6 @@ Released: not yet
 * For Python 2.7 and higher, replaced the yamlordereddictloader package with
   yamlloader, as it was deprecated. For Python 2.6, still using
   yamlordereddictloader. (See issue #2008)
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.15.0

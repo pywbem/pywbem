@@ -2,7 +2,7 @@ Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
 .. # begin of customization for the current version
-.. |pywbem-version| replace:: 0.15.0
+.. |pywbem-version| replace:: 0.16.0
 .. |pywbem-next-version| replace:: 1.0.0
 .. |pywbem-next-issue| replace:: 1413
 .. # end of customization for the current version
