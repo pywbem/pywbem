@@ -4412,7 +4412,7 @@ class TestQualifierOperations(object):
 
             assert rtn_qualifier == qual
 
-            # Test for already exists.
+            # Test for already exists by doing second set qualifier
             with pytest.raises(CIMError) as exec_info:
                 conn.SetQualifier(qual, namespace=ns)
             exc = exec_info.value

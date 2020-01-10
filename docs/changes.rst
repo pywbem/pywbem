@@ -33,19 +33,18 @@ Released: not yet
   Python 2.6 and it has become an increasingly difficult task for pywbem to
   keep supporting Python 2.6. For this reason, Python 2.6 support has been
   removed from pywbem in its 1.0.0 version.
-
   This allowed eliminating a lot of Python version dependent code,
   eliminating the dependency to the unittest2 package, and lifting a number
   of restrictions in test code.
 
-* Removed the `**extra` keyword arguments from `WBEMOperation` methods
+* Removed the `**extra` keyword arguments from `WBEMOperation` methods.
   Such arguments were passed on to the WBEM server, but they are not needed
   because all parameters defined by the CIM-XML protocol are supported as
-  named arguments to these methods. This is only incompatible when the WBEM
+  named arguments to these methods. This would only by incompatible if a WBEM
   server supports non-standard parameters. (See issue #1415)
 
-* Removed support for ordering NocaseDict, CIMInstanceName, CIMInstance
-  and CIMClass objects. The ordering of such dictionaries is not supported
+* Removed support for ordering `NocaseDict`, `CIMInstanceName`, `CIMInstance`
+  and `CIMClass` objects. The ordering of such dictionaries is not supported
   on Python 3, and for Python 2 it had been deprecated since pywbem 0.12.0.
   (See issue #1926).
 
@@ -114,15 +113,14 @@ Released: not yet
     attached to that exception in its attribute `cim_error`.
 
   If you are using these MOF compilation methods, please change your catching
-  of exceptions to catch the new base class `MOFCompileError`.
-  (See issue #1235)
+  of exceptions accordingly. (See issue #1235)
 
-* Made the MOFWBEMConnection class internal and undocumented. It has an
+* Made the `MOFWBEMConnection` class internal and undocumented. It has an
   inconsistent semantics and should not be used by users. (See issue #2001).
 
-* Completely removed the pywbem_mock initialization attribute conn_lite and
-  its implementation and tests.  This turned out too simplistic for mock testing
-  and of no real value while adding complexity.  (See issue #1959)
+* Removed the `FakedWBEMConnection` init argument `conn_lite`. The lighe mode
+  turned out too simplistic for mock testing and of no real value, while
+  adding complexity.  (See issue #1959)
 
 * The migration to use the 'requests' Python package for communication between
   the pywbem client and the WBEM server caused the following changes:
@@ -151,9 +149,6 @@ Released: not yet
     scripts because there are no more prerequisite OS-level packages needed
     for installing pywbem. If you have automated the pywbem installation,
     this step should be removed from your automation.
-
-* Added more unit tests for the cim_http.py module and converted it to
-  pytest. (See issue #1414)
 
 **Deprecations:**
 
@@ -443,6 +438,12 @@ Released: not yet
   made the code common again between Python 2 and Python 3, and removed
   any prerequisite OS-level packages, thus simplifying the installation of
   pywbem again to what is expected for a pure Python package.
+
+* Added more unit tests for the cim_http.py module and converted it to
+  pytest. (See issue #1414)
+
+* Refactor pywbem_mock into more consistent components separating the
+  mock repository from the component that represents a CIMOM. (see issue # 2062)
 
 **Cleanup:**
 

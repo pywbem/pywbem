@@ -411,9 +411,33 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
     ################################################################
     #
-    #   Methods to insert data into mock repository
+    #   Methods to manage namespaces
     #
     ################################################################
+
+    def _validate_namespace(self, namespace):
+        """
+        Validate whether a namespace exists in the mock repository.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the mock repository. Must not be
+            `None`.
+
+        Raises:
+
+          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+            not exist.
+        """
+        # Normalize the namespace name
+        namespace = namespace.strip('/')
+
+        if namespace not in self.namespaces:
+            raise CIMError(
+                CIM_ERR_INVALID_NAMESPACE,
+                _format("Namespace does not exist in mock repository: {0!A}",
+                        namespace))
 
     def add_namespace(self, namespace):
         """
@@ -421,21 +445,21 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         The namespace must not yet exist in the mock repository.
 
-        Note that the default connection namespace is automatically added to
-        the mock repository upon creation of this object.
+        The default connection namespace is automatically added to
+        the mock repository upon creation of this connection.
 
         Parameters:
 
           namespace (:term:`string`):
             The name of the CIM namespace in the mock repository. Must not be
-            `None`. Any leading and trailing slash characters are split off
+            `None`. Leading and trailing slash characters are split off
             from the provided string.
 
         Raises:
 
-          ValueError: Namespace argument must not be None
-          CIMError: CIM_ERR_ALREADY_EXISTS if the namespace already exists in
-            the mock repository.
+          ValueError: Namespace argument must not be None.
+          :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
+            already exists in the mock repository.
         """
 
         if namespace is None:
@@ -1082,10 +1106,10 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         in a WBEM server (at the CIM Object level) for the varisous CIM/XML
         methods and return.
 
-        Each function is named with the lower case method namd prepended with
+        Each function is named with the method name prepended with
         '_fake_'.
         """
-        method_name = '_fake_' + methodname.lower()
+        method_name = '_fake_' + methodname
 
         method_name = getattr(self, method_name)
 
@@ -1175,27 +1199,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             for method in obj.methods:
                 obj.methods[method].class_origin = None
 
-    def _validate_namespace(self, namespace):
-        """
-        Validate whether a CIM namespace exists in the mock repository.
-
-        Parameters:
-
-          namespace (:term:`string`):
-            The name of the CIM namespace in the mock repository. Must not be
-            `None`.
-
-        Raises:
-
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-        """
-        if namespace not in self.namespaces:
-            raise CIMError(
-                CIM_ERR_INVALID_NAMESPACE,
-                _format("Namespace does not exist in mock repository: {0!A}",
-                        namespace))
-
     def _get_class_repo(self, namespace):
         """
         Returns the class repository for the specified CIM namespace
@@ -1213,7 +1216,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         Returns:
 
-          dict of CIMClass: Class repository.
+          No case dictionary where each entry is:
+            <classname> :CIMClass
 
         Raises:
 
@@ -1241,7 +1245,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         Returns:
 
-          list of CIMInstance: Instance repository.
+          Dictionary of instances where each dictionary entry is:
+              <CIMInstanceName> : CIMInstance
 
         Raises:
 
@@ -1270,7 +1275,9 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         Returns:
 
-          dict of CIMQualifierDeclaration: Qualifier repository.
+          No case dictionary of <qualifier_name>: CIMQualifierDeclaration
+          entries.
+
 
         Raises:
 
@@ -1299,7 +1306,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         Returns:
 
-          dict of dict of method callback function: Method repository.
+          No case dictionary where each entry is
+            <method name>: <Callable method>
 
         Raises:
 
@@ -1757,7 +1765,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     #
     ######################################################################
 
-    def _fake_enumerateclasses(self, namespace, **params):
+    def _fake_EnumerateClasses(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateClasses`.
@@ -1806,7 +1814,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple(classes)
 
-    def _fake_enumerateclassnames(self, namespace, **params):
+    def _fake_EnumerateClassNames(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
@@ -1845,7 +1853,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple(rtn_clns)
 
-    def _fake_getclass(self, namespace, **params):
+    def _fake_GetClass(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.GetClass
@@ -1867,7 +1875,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple([cc])
 
-    def _fake_createclass(self, namespace, **params):
+    def _fake_CreateClass(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.CreateClass`
@@ -1900,7 +1908,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 _format("NewClass not valid CIMClass. Rcvd type={0}",
                         type(new_class)))
 
-        # Validate namespace
+        # Validate namespace and get the class datastoe for this namespace
         class_repo = self._get_class_repo(namespace)
 
         qualifier_repo = self._get_qualifier_repo(namespace)
@@ -1917,7 +1925,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         class_repo[new_class.classname] = new_class
 
-    def _fake_modifyclass(self, namespace, **params):
+    def _fake_ModifyClass(self, namespace, **params):
         # pylint: disable=unused-argument
         """
         Currently not implemented
@@ -1941,7 +1949,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             CIM_ERR_NOT_SUPPORTED,
             "Currently ModifyClass not supported in Fake_WBEMConnection")
 
-    def _fake_deleteclass(self, namespace, **params):
+    def _fake_DeleteClass(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.DeleteClass`
@@ -1960,7 +1968,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 repository
         """
 
-        # Validate namespace
+        # Validate namespace and get the class datastore for this namespace
         class_repo = self._get_class_repo(namespace)
 
         cname = params['ClassName'].classname
@@ -1991,7 +1999,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     #
     ###########################################################
 
-    def _fake_enumeratequalifiers(self, namespace, **params):
+    def _fake_EnumerateQualifiers(self, namespace, **params):
         # pylint: disable=unused-argument
         """
         Imlements a mock server responder for
@@ -2001,14 +2009,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         namespace.
         """
 
-        # Validate namespace
+        # Validate namespace and get qualifier_repo for this namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qualifiers = list(qualifier_repo.values())
 
         return self._make_tuple(qualifiers)
 
-    def _fake_getqualifier(self, namespace, **params):
+    def _fake_GetQualifier(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`pywbem.WBEMConnection.GetQualifier`.
@@ -2027,7 +2035,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             CIMError: CIM_ERR_NOT_FOUND
         """
 
-        # Validate namespace
+        # Validate namespace and get qualifier_repo for this namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qname = params['QualifierName']
@@ -2043,7 +2051,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple([qualifier])
 
-    def _fake_setqualifier(self, namespace, **params):
+    def _fake_SetQualifier(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`pywbem.WBEMConnection.SetQualifier`.
@@ -2060,7 +2068,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         # Issue #2062 ks Refactor to separate data store from repository method
 
-        # Validate namespace
+        # Validate namespace and get the qualifier data store for this namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qual_decl = params['QualifierDeclaration']
@@ -2081,7 +2089,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         qualifier_repo[qual_decl.name] = qual_decl
 
-    def _fake_deletequalifier(self, namespace, **params):
+    def _fake_DeleteQualifier(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.DeleteQualifier`
@@ -2094,7 +2102,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             CIMError: CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
         """
 
-        # Validate namespace
+        # Validate namespace and get the qualifier data store for this namespace
         qualifier_repo = self._get_qualifier_repo(namespace)
 
         qname = params['QualifierName']
@@ -2113,7 +2121,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     #
     #####################################################################
 
-    def _fake_createinstance(self, namespace, **params):
+    def _fake_CreateInstance(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.CreateInstance`
@@ -2262,7 +2270,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # Create instance returns model path, path relative to namespace
         return self._make_tuple([deepcopy(new_instance.path)])
 
-    def _fake_modifyinstance(self, namespace, **params):
+    def _fake_ModifyInstance(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.CreateInstance`
@@ -2274,7 +2282,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             CIMError: CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS
         """
 
-        # Validate namespace
+        # Validate namespace and get instance data store
         instance_repo = self._get_instance_repo(namespace)
 
         modified_instance = deepcopy(params['ModifiedInstance'])
@@ -2415,7 +2423,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self._modify_instance(modified_instance, instance_repo)
         return
 
-    def _fake_getinstance(self, namespace, **params):
+    def _fake_GetInstance(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.GetInstance`.
@@ -2452,7 +2460,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple([inst])
 
-    def _fake_deleteinstance(self, namespace, **params):
+    def _fake_DeleteInstance(self, namespace, **params):
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.DeleteInstance`.
@@ -2473,7 +2481,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         iname = params['InstanceName']
         iname.namespace = namespace
 
-        # Validate namespace
+        # Validate namespace and get instance datastore
         instance_repo = self._get_instance_repo(namespace)
 
         if not self._class_exists(iname.classname, namespace):
@@ -2509,7 +2517,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # Delete the instance from the repository
         self._delete_instance(iname, instance_repo)
 
-    def _fake_enumerateinstances(self, namespace, **params):
+    def _fake_EnumerateInstances(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateInstances`.
@@ -2570,7 +2578,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple(insts)
 
-    def _fake_enumerateinstancenames(self, namespace, **params):
+    def _fake_EnumerateInstanceNames(self, namespace, **params):
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`
@@ -2582,7 +2590,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         assert isinstance(cname, CIMClassName)
         cname = cname.classname
 
-        # Validate namespace
+        # Validate namespace and get instance datastore for this namespace
         instance_repo = self._get_instance_repo(namespace)
 
         clns = self._get_subclass_list_for_enums(cname, namespace)
@@ -2595,7 +2603,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._make_tuple(rtn_paths)
 
-    def _fake_execquery(self, namespace, **params):
+    def _fake_ExecQuery(self, namespace, **params):
         # pylint: disable=unused-argument
         """
         Implements a mock WBEM server responder for
@@ -2660,6 +2668,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         the class level references and associators return a tuple of
         CIMClassName and CIMClass for every entry.
         """
+
         rtn_tups = []
         for cn in rtn_classnames:
             rtn_tups.append((CIMClassName(cn, namespace=namespace,
@@ -2676,6 +2685,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Return a list of this class and it subclasses in lower case.
         Exception of class is not in repository.
         """
+
         if not classname:
             return []
         clns = [classname]
@@ -2696,6 +2706,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
           - if result_classes are not None, ref_classname is in result_classes
           - If role is not None, prop name matches role
         """
+
         assert prop.type == 'reference'
         if prop.reference_class.lower() in target_classnames:
             if resultclass_names and ref_classname not in resultclass_names:
@@ -2716,6 +2727,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Matches if ref_classname in assoc_classes, and result_role matches
         property name  and reference_class
         """
+
         assert prop.type == 'reference'
         if assoc_classes and ref_classname.lower() not in assoc_classes:
             return False
@@ -2738,8 +2750,6 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Returns:
             list of classnames that satisfy the criteria.
         """
-
-        self._validate_namespace(namespace)
 
         self._validate_class_exists(classname, namespace, "TargetClass")
 
@@ -2781,6 +2791,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Returns a list of the reference instance names. The returned list is
         the original, not a copy so the user must copy them
         """
+
         instance_repo = self._get_instance_repo(namespace)
 
         if not self._exists_class(instname.classname, namespace):
@@ -2802,6 +2813,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # and not limiting to expected result_classes. Consider making list from
         # get_reference_classnames if classes exist, otherwise set list to
         # instance_repo to search all instances
+
         rtn_instpaths = set()
         for inst in six.itervalues(instance_repo):
             for prop in six.itervalues(inst.properties):
@@ -2830,6 +2842,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         Returns:
             list of classnames that satisfy the criteria.
         """
+
         class_repo = self._get_class_repo(namespace)
         if assoc_class:
             self._validate_class_exists(assoc_class, namespace, "AssocClass")
@@ -2924,12 +2937,13 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                         rtn_instpaths.add(prop.value)
         return rtn_instpaths
 
-    def _fake_referencenames(self, namespace, **params):
+    def _fake_ReferenceNames(self, namespace, **params):
         """
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.ReferenceNames`
         """
 
+        self._validate_namespace(namespace)
         assert params['ResultClass'] is None or \
             isinstance(params['ResultClass'], CIMClassName)
 
@@ -2961,11 +2975,13 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._return_assoc_tuple(rtn_names)
 
-    def _fake_references(self, namespace, **params):
+    def _fake_References(self, namespace, **params):
         """
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.References`
         """
+
+        self._validate_namespace(namespace)
         rc = None if params['ResultClass'] is None else \
             params['ResultClass'].classname
         role = params['Role']
@@ -2997,7 +3013,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._return_assoc_tuple(rtn_insts)
 
-    def _fake_associatornames(self, namespace, **params):
+    def _fake_AssociatorNames(self, namespace, **params):
         # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
@@ -3039,7 +3055,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
         return self._return_assoc_tuple(results)
 
-    def _fake_associators(self, namespace, **params):
+    def _fake_Associators(self, namespace, **params):
         """
         Implements a mock WBEM server responder for
             :meth:`~pywbem.WBEMConnection.Associators`
@@ -3223,7 +3239,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     _format("OperationTimeout {0!A }must be positive integer "
                             "less than {1!A}", ot, OPEN_MAX_TIMEOUT))
 
-    def _fake_openenumerateinstancepaths(self, namespace, **params):
+    def _fake_OpenEnumerateInstancePaths(self, namespace, **params):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
@@ -3233,12 +3249,12 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         self._validate_namespace(namespace)
         self._validate_open_params(**params)
 
-        result_t = self._fake_enumerateinstancenames(namespace, **params)
+        result_t = self._fake_EnumerateInstanceNames(namespace, **params)
 
         return self._open_response(result_t[0][2], namespace,
                                    'PullInstancePaths', **params)
 
-    def _fake_openenumerateinstances(self, namespace, **params):
+    def _fake_OpenEnumerateInstances(self, namespace, **params):
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances`
@@ -3252,7 +3268,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         return self._open_response(result_t[0][2], namespace,
                                    'PullInstancesWithPath', **params)
 
-    def _fake_openreferenceinstancepaths(self, namespace, **params):
+    def _fake_OpenReferenceInstancePaths(self, namespace, **params):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
@@ -3264,14 +3280,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
 
-        result = self._fake_referencenames(namespace, **params)
+        result = self._fake_ReferenceNames(namespace, **params)
 
         objects = [] if result is None else [x[2] for x in result[0][2]]
 
         return self._open_response(objects, namespace,
                                    'PullInstancePaths', **params)
 
-    def _fake_openreferenceinstances(self, namespace, **params):
+    def _fake_OpenReferenceInstances(self, namespace, **params):
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
@@ -3282,14 +3298,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
 
-        result = self._fake_references(namespace, **params)
+        result = self._fake_References(namespace, **params)
 
         objects = [] if result is None else [x[2] for x in result[0][2]]
 
         return self._open_response(objects, namespace,
                                    'PullInstancesWithPath', **params)
 
-    def _fake_openassociatorinstancepaths(self, namespace, **params):
+    def _fake_OpenAssociatorInstancePaths(self, namespace, **params):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
@@ -3301,14 +3317,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
 
-        result = self._fake_associatornames(namespace, **params)
+        result = self._fake_AssociatorNames(namespace, **params)
 
         objects = [] if result is None else [x[2] for x in result[0][2]]
 
         return self._open_response(objects, namespace,
                                    'PullInstancePaths', **params)
 
-    def _fake_openassociatorinstances(self, namespace, **params):
+    def _fake_OpenAssociatorInstances(self, namespace, **params):
         """
         Implements WBEM server responder for
         WBEMConnection.OpenAssociatorInstances
@@ -3319,14 +3335,14 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         params['ObjectName'] = params['InstanceName']
         del params['InstanceName']
 
-        result = self._fake_associators(namespace, **params)
+        result = self._fake_Associators(namespace, **params)
 
         objects = [] if result is None else [x[2] for x in result[0][2]]
 
         return self._open_response(objects, namespace,
                                    'PullInstancesWithPath', **params)
 
-    def _fake_openqueryinstances(self, namespace, **params):
+    def _fake_OpenQueryInstances(self, namespace, **params):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
@@ -3345,7 +3361,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         return self._open_response(objects, namespace,
                                    'PullInstancesWithPath', **params)
 
-    def _fake_pullinstanceswithpath(self, namespace, **params):
+    def _fake_PullInstancesWithPath(self, namespace, **params):
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenPullInstancesWithPath`
@@ -3354,7 +3370,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         return self._pull_response(namespace, 'PullInstancesWithPath',
                                    **params)
 
-    def _fake_pullinstancepaths(self, namespace, **params):
+    def _fake_PullInstancePaths(self, namespace, **params):
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenPullInstancePaths`
@@ -3362,7 +3378,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         """
         return self._pull_response(namespace, 'PullInstancePaths', **params)
 
-    def _fake_pullinstances(self, namespace, **params):
+    def _fake_PullInstances(self, namespace, **params):
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenPullInstances`
@@ -3370,7 +3386,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         """
         return self._pull_response(namespace, 'PullInstances', **params)
 
-    def _fake_closeenumeration(self, namespace, **params):
+    def _fake_CloseEnumeration(self, namespace, **params):
         """
             Implements WBEM server responder for
             :meth:`~pywbem.WBEMConnection.CloseEnumeration`
