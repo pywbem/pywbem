@@ -260,7 +260,7 @@ from . import config
 from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
     Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
-    CIMFloat, _Longint
+    CIMFloat, _Longint, Char16
 from ._nocasedict import NocaseDict
 from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
@@ -930,7 +930,10 @@ def _cim_keybinding(key, value):
                 _format("Invalid keybinding name: CIMProperty.name must be "
                         "dictionary key {0!A}, but is {1!A}",
                         key, value.name))
-        return copy_.copy(value.value)
+        if value.type == 'char16':
+            return Char16(value.value)
+        else:
+            return copy_.copy(value.value)
 
     if value is None:
         return None
@@ -1248,6 +1251,12 @@ class CIMInstanceName(_CIMComparisonMixin):
         keybindings to be replaced with the new keybindings. For details, see
         the description of the same-named init parameter of
         :class:`this class <pywbem.CIMInstanceName>`.
+
+        When setting a keybinding value, it will be preserved whether the
+        input value was a :term:`CIM data type`, a :term:`number` or `None`.
+        If the input value was a :term:`CIM data type`, the CIM type of the
+        keybinding value is known and this will cause the TYPE attribute
+        in the KEYVALUE element of the CIM-XML representation to be present.
 
         The keybindings can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
@@ -1658,7 +1667,10 @@ class CIMInstanceName(_CIMComparisonMixin):
                     key, cim_xml.VALUE_REFERENCE(value.tocimxml())))
                 continue
 
-            if isinstance(value, six.text_type):
+            if isinstance(value, Char16):
+                value_type = 'string'
+                cim_type = 'char16'
+            elif isinstance(value, six.text_type):
                 value_type = 'string'
                 cim_type = 'string'
             elif isinstance(value, six.binary_type):
@@ -1674,8 +1686,16 @@ class CIMInstanceName(_CIMComparisonMixin):
                     value = 'TRUE'
                 else:
                     value = 'FALSE'
-            elif isinstance(value, number_types):
+            elif isinstance(value, CIMDateTime):
+                value_type = 'string'
+                cim_type = value.cimtype
+                value = str(value)
+            elif isinstance(value, (CIMInt, CIMFloat)):
                 # Numeric CIM data types derive from Python number types.
+                value_type = 'numeric'
+                cim_type = value.cimtype
+                value = str(value)
+            elif isinstance(value, number_types):
                 value_type = 'numeric'
 
                 # Without CIM type information in the keybindings, pywbem cannot

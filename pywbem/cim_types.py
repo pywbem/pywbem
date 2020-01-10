@@ -35,6 +35,7 @@ CIM data type                             Python type
 ========================================  =====================================
 boolean                                   :class:`py:bool`
 char16                                    :term:`string`
+                                          or :class:`~pywbem.Char16`
 string                                    :term:`string`
 string (EmbeddedInstance)                 :class:`~pywbem.CIMInstance`
 string (EmbeddedObject)                   :class:`~pywbem.CIMInstance`
@@ -92,7 +93,7 @@ else:
 __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
            'CIMDateTime', 'CIMInt', 'Uint8', 'Sint8', 'Uint16', 'Sint16',
            'Uint32', 'Sint32', 'Uint64', 'Sint64', 'CIMFloat', 'Real32',
-           'Real64']
+           'Real64', 'Char16']
 
 
 class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
@@ -267,6 +268,28 @@ class CIMType(object):  # pylint: disable=too-few-public-methods
     #: The name of the CIM datatype, as a :term:`string`. See
     #: :ref:`CIM data types` for details.
     cimtype = None
+
+
+class Char16(CIMType, six.text_type):
+    """
+    A value of CIM data type char16.
+
+    This class is derived from :term:`unicode string`.
+
+    Normally, values of CIM data type char16 are represented using
+    :term:`unicode string` objects. This class can be used to represent values
+    of CIM data type char16 when it matters to distinguish them from values of
+    CIM data type string. The only situation where that matters is for
+    keybindings, because that allows properly setting the TYPE attribute on
+    KEYVALUE elements when creating the CIM-XML representation for a keybinding.
+    """
+
+    #: The name of the CIM datatype ``"char16"``
+    cimtype = 'char16'
+
+    # Changing the string content requires using __new__() instead of __init__()
+    def __new__(cls, content=''):
+        return super(Char16, cls).__new__(cls, _ensure_unicode(content))
 
 
 class CIMDateTime(CIMType, _CIMComparisonMixin):

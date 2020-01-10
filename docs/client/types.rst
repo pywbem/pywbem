@@ -55,6 +55,22 @@ CIM data types
 
    .. rubric:: Details
 
+.. autoclass:: pywbem.Char16
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.Char16
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.Char16
+      :attributes:
+
+   .. rubric:: Details
+
 .. autoclass:: pywbem.CIMInt
    :members:
 
