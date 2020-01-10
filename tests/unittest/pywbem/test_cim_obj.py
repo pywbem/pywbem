@@ -26,8 +26,8 @@ pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMDateTime, tocimobj, MinutesFromUTC, \
-    __version__
+    Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, tocimobj, \
+    MinutesFromUTC, __version__
 from pywbem._nocasedict import NocaseDict
 from pywbem.cim_types import _Longint
 from pywbem.cim_obj import mofstr
@@ -2261,6 +2261,312 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
 
     # Classname with one keybinding tests
     (
+        "Classname with one keybinding with value of CIMProperty string",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 'Birds', type='string')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string" TYPE="string">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty char16",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 'Birds', type='char16')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string" TYPE="char16">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty boolean",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', True, type='boolean')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">TRUE</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty uint8",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='uint8')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint8">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty uint16",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='uint16')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint16">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty uint32",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='uint32')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint32">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty uint64",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='uint64')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint64">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty sint8",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='sint8')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint8">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty sint16",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='sint16')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint16">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty sint32",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='sint32')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint32">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty sint64",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42, type='sint64')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint64">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty real32",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42.1, type='real32')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="real32">42.1</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty real64",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', 42.1, type='real64')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="real64">42.1</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty datetime",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy',
+                             CIMDateTime('19980125133015.123456-300'),
+                             type='datetime')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string" TYPE="datetime">'
+                '19980125133015.123456-300</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMProperty reference",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                [CIMProperty('Cheepy', CIMInstanceName('CIM_Ref'),
+                             type='reference')]
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Ref"/>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Char16 with unicode value",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Char16(u'Birds')}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string" TYPE="char16">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Char16 with byte value",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Char16(b'Birds')}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string" TYPE="char16">Birds</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
         "Classname with one keybinding with value of unicode string type",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': u'Birds'}),
@@ -2314,6 +2620,225 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
                 '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">FALSE</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of int",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 42}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Uint8",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint8(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint8">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Uint16",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint16(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint16">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Uint32",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint32(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint32">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Uint64",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint64(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="uint64">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Sint8",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint8(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint8">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Sint16",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint16(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint16">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Sint32",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint32(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint32">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Sint64",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint64(42)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="sint64">42</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of float",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 42.1}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric">42.1</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Real32",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Real32(42.1)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="real32">42.1</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of Real64",
+        dict(
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Real64(42.1)}),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="numeric" TYPE="real64">42.1</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMDateTime",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                {'Cheepy': CIMDateTime('19980125133015.123456-300')}
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<KEYVALUE VALUETYPE="string" TYPE="datetime">'
+                '19980125133015.123456-300</KEYVALUE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, None, True
+    ),
+    (
+        "Classname with one keybinding with value of CIMInstanceName",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                {'Cheepy': CIMInstanceName('CIM_Ref')}
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCENAME CLASSNAME="CIM_Ref"/>',
+                '</VALUE.REFERENCE>',
                 '</KEYBINDING>',
                 '</INSTANCENAME>',
             )
@@ -2396,7 +2921,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 NocaseDict([
                     ('Name', 'Foo'),
-                    ('Number', Uint8(42)),
+                    ('Number', 42),
                     ('Boolean', False),
                     ('Ref', CIMInstanceName('CIM_Bar')),
                 ]),
@@ -2430,7 +2955,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 NocaseDict([
                     ('Name', 'Foo'),
-                    ('Number', Uint8(42)),
+                    ('Number', 42),
                     ('Boolean', False),
                     ('Ref', CIMInstanceName('CIM_Bar')),
                 ]),
@@ -2467,7 +2992,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 NocaseDict([
                     ('Name', 'Foo'),
-                    ('Number', Uint8(42)),
+                    ('Number', 42),
                     ('Boolean', False),
                     ('Ref', CIMInstanceName('CIM_Bar')),
                 ]),
@@ -2503,7 +3028,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 NocaseDict([
                     ('Name', 'Foo'),
-                    ('Number', Uint8(42)),
+                    ('Number', 42),
                     ('Boolean', False),
                     ('Ref', CIMInstanceName('CIM_Bar')),
                 ]),
@@ -11760,6 +12285,22 @@ TESTCASES_CIMPROPERTY_SETATTR = [
 
     # Tests that set the value attribute for scalar char16 types
     (
+        "For scalar char16 type, set value to 7-bit ASCII Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16('U'),
+            exp_attrs=dict(
+                value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For scalar char16 type, set value to 7-bit ASCII unicode string",
         dict(
             obj_kwargs=dict(
@@ -11787,6 +12328,22 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=b'U',
             exp_attrs=dict(
                 value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For scalar char16 type, set value to non-UCS-2 Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16(u'\U00010142'),
+            exp_attrs=dict(
+                value=u'\U00010142',
             ),
         ),
         None, None, True
@@ -12458,6 +13015,25 @@ TESTCASES_CIMPROPERTY_SETATTR = [
 
     # Tests that set the value attribute for array char16 types
     (
+        "For array char16 type, set value to array of 7-bit ASCII Char16 "
+        "strings",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value=['X'],
+                type='char16',
+                is_array=True,
+                array_size=None,
+            ),
+            item='value',
+            new_value=[Char16('U'), Char16('V')],
+            exp_attrs=dict(
+                value=[u'U', u'V'],
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For array char16 type, set value to array of 7-bit ASCII unicode "
         "strings",
         dict(
@@ -12491,6 +13067,25 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=[b'U', b'V'],
             exp_attrs=dict(
                 value=[u'U', u'V'],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For array char16 type, set value to array of non-UCS-2 Char16 "
+        "strings",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value=['X'],
+                type='char16',
+                is_array=True,
+                array_size=None,
+            ),
+            item='value',
+            new_value=[Char16(u'\U00010142')],
+            exp_attrs=dict(
+                value=[u'\U00010142'],
             ),
         ),
         None, None, True
@@ -18668,6 +19263,22 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
 
     # Tests that set the value attribute for char16 types
     (
+        "For char16 type, set value to 7-bit ASCII Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='Q1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16('U'),
+            exp_attrs=dict(
+                value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For char16 type, set value to 7-bit ASCII unicode string",
         dict(
             obj_kwargs=dict(
@@ -18695,6 +19306,22 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             new_value=b'U',
             exp_attrs=dict(
                 value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For char16 type, set value to non-UCS-2 Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='Q1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16(u'\U00010142'),
+            exp_attrs=dict(
+                value=u'\U00010142',
             ),
         ),
         None, None, True
@@ -30868,6 +31495,22 @@ TESTCASES_CIMPARAMETER_SETATTR = [
 
     # Tests that set the value attribute for scalar char16 types
     (
+        "For scalar char16 type, set value to 7-bit ASCII Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16('U'),
+            exp_attrs=dict(
+                value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For scalar char16 type, set value to 7-bit ASCII unicode string",
         dict(
             obj_kwargs=dict(
@@ -30895,6 +31538,22 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=b'U',
             exp_attrs=dict(
                 value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For scalar char16 type, set value to non-UCS-2 Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16(u'\U00010142'),
+            exp_attrs=dict(
+                value=u'\U00010142',
             ),
         ),
         None, None, True
@@ -31566,6 +32225,25 @@ TESTCASES_CIMPARAMETER_SETATTR = [
 
     # Tests that set the value attribute for array char16 types
     (
+        "For array char16 type, set value to array of 7-bit ASCII Char16 "
+        "strings",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value=['X'],
+                type='char16',
+                is_array=True,
+                array_size=None,
+            ),
+            item='value',
+            new_value=[Char16('U'), Char16('V')],
+            exp_attrs=dict(
+                value=[u'U', u'V'],
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For array char16 type, set value to array of 7-bit ASCII unicode "
         "strings",
         dict(
@@ -31599,6 +32277,25 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=[b'U', b'V'],
             exp_attrs=dict(
                 value=[u'U', u'V'],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For array char16 type, set value to array of non-UCS-2 Char16 "
+        "strings",
+        dict(
+            obj_kwargs=dict(
+                name='P1',
+                value=['X'],
+                type='char16',
+                is_array=True,
+                array_size=None,
+            ),
+            item='value',
+            new_value=[Char16(u'\U00010142')],
+            exp_attrs=dict(
+                value=[u'\U00010142'],
             ),
         ),
         None, None, True
@@ -37988,6 +38685,22 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
 
     # Tests that set the value attribute for scalar char16 types
     (
+        "For scalar char16 type, set value to 7-bit ASCII Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='Q1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16('U'),
+            exp_attrs=dict(
+                value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For scalar char16 type, set value to 7-bit ASCII unicode string",
         dict(
             obj_kwargs=dict(
@@ -38015,6 +38728,22 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=b'U',
             exp_attrs=dict(
                 value=u'U',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For scalar char16 type, set value to non-UCS-2 Char16 string",
+        dict(
+            obj_kwargs=dict(
+                name='Q1',
+                value='X',
+                type='char16',
+            ),
+            item='value',
+            new_value=Char16(u'\U00010142'),
+            exp_attrs=dict(
+                value=u'\U00010142',
             ),
         ),
         None, None, True
@@ -38678,6 +39407,25 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
 
     # Tests that set the value attribute for array char16 types
     (
+        "For array char16 type, set value to array of 7-bit ASCII Char16 "
+        "strings",
+        dict(
+            obj_kwargs=dict(
+                name='Q1',
+                value=['X'],
+                type='char16',
+                is_array=True,
+                array_size=None,
+            ),
+            item='value',
+            new_value=[Char16('U'), Char16('V')],
+            exp_attrs=dict(
+                value=[u'U', u'V'],
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "For array char16 type, set value to array of 7-bit ASCII unicode "
         "strings",
         dict(
@@ -38711,6 +39459,25 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=[b'U', b'V'],
             exp_attrs=dict(
                 value=[u'U', u'V'],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "For array char16 type, set value to array of non-UCS-2 Char16 "
+        "strings",
+        dict(
+            obj_kwargs=dict(
+                name='Q1',
+                value=['X'],
+                type='char16',
+                is_array=True,
+                array_size=None,
+            ),
+            item='value',
+            new_value=[Char16(u'\U00010142')],
+            exp_attrs=dict(
+                value=[u'\U00010142'],
             ),
         ),
         None, None, True
@@ -44116,6 +44883,15 @@ TESTCASES_TOCIMOBJ = [
         None, None, True
     ),
     (
+        "Type is char16, value is empty Char16 string",
+        dict(
+            args=[],
+            kwargs=dict(type_='char16', value=Char16('')),
+            exp_obj=None,  # Difference to cimvalue()
+        ),
+        None, None, True
+    ),
+    (
         "Type is char16, value is empty unicode string",
         dict(
             args=[],
@@ -44125,11 +44901,29 @@ TESTCASES_TOCIMOBJ = [
         None, None, True
     ),
     (
+        "Type is char16, value is one-char Char16 string",
+        dict(
+            args=[],
+            kwargs=dict(type_='char16', value=Char16('a')),
+            exp_obj=u'a',
+        ),
+        None, None, True
+    ),
+    (
         "Type is char16, value is one-char unicode string",
         dict(
             args=[],
             kwargs=dict(type_='char16', value=u'a'),
             exp_obj=u'a',
+        ),
+        None, None, True
+    ),
+    (
+        "Type is char16, value is non-ASCII Char16 string",
+        dict(
+            args=[],
+            kwargs=dict(type_='char16', value=Char16(u'\u00E4')),
+            exp_obj=u'\u00E4',
         ),
         None, None, True
     ),
@@ -45135,6 +45929,15 @@ TESTCASES_CIMVALUE = [
         None, None, CHECK_0_12_0
     ),
     (
+        "Type is char16, value is empty Char16 string",
+        dict(
+            args=[],
+            kwargs=dict(value=Char16(''), type='char16'),
+            exp_obj=u'',
+        ),
+        None, None, CHECK_0_12_0
+    ),
+    (
         "Type is char16, value is empty unicode string",
         dict(
             args=[],
@@ -45144,11 +45947,29 @@ TESTCASES_CIMVALUE = [
         None, None, CHECK_0_12_0
     ),
     (
+        "Type is char16, value is one-char Char16 string",
+        dict(
+            args=[],
+            kwargs=dict(value=Char16('a'), type='char16'),
+            exp_obj=u'a',
+        ),
+        None, None, CHECK_0_12_0
+    ),
+    (
         "Type is char16, value is one-char unicode string",
         dict(
             args=[],
             kwargs=dict(value=u'a', type='char16'),
             exp_obj=u'a',
+        ),
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "Type is char16, value is non-ASCII Char16 string",
+        dict(
+            args=[],
+            kwargs=dict(value=Char16(u'\u00E4'), type='char16'),
+            exp_obj=u'\u00E4',
         ),
         None, None, CHECK_0_12_0
     ),

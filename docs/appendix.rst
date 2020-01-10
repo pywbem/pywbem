@@ -122,6 +122,11 @@ This documentation uses a few special terms to refer to Python types:
 
         `None` for the keybinding value will be stored unchanged.
 
+        If the WBEM server requires the TYPE attribute on KEYVALUE elements to
+        be set in operation requests, this can be achieved by specifying the
+        keybinding value as :term:`CIM data type` (either directly, or via
+        a :class:`~pywbem.CIMProperty` object).
+
       The order of keybindings in the parent object is preserved if the input
       object is an iterable or a :class:`~py:collections.OrderedDict` object,
       but not when it is a :class:`py:dict` object.

@@ -17,10 +17,124 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
-    Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
+    Sint8, Sint16, Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, \
     MinutesFromUTC, CIMClass, CIMInstance, CIMInstanceName, CIMClassName, \
     cimtype, type_from_name
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+
+#
+# CIM Char16 data type
+#
+
+
+@pytest.fixture(params=[
+
+    # Each list item is a tuple of:
+    # (
+    #   in_str: Input argument for Char16().
+    #   exp_str: Expected string value of the Char16 object.
+    #   exp_exc_type: Expected exception type if initialization failed, or None
+    # )
+    (
+        None,
+        u'None',
+        None,
+    ),
+    (
+        u'foo',
+        u'foo',
+        None,
+    ),
+    (
+        b'foo',
+        u'foo',
+        None,
+    ),
+    (
+        42,
+        u'42',
+        None,
+    ),
+    (
+        Char16('foo'),
+        u'foo',
+        None,
+    ),
+], scope='module')
+def char16_init_tuple(request):
+    """pytest.fixture that returns char16 tuple info"""
+    return request.param
+
+
+def test_char16_class_attrs_class():  # pylint: disable=invalid-name
+    """Test class attrs via class level"""
+    assert Char16.cimtype == 'char16'
+
+
+def test_char16_class_attrs_inst():
+    """Test class attrs via instance level"""
+    obj = Char16('foo')
+    assert obj.cimtype == 'char16'
+
+
+def test_char16_inheritance():
+    """Test inheritance"""
+    obj = Char16('foo')
+    assert isinstance(obj, six.text_type)
+    assert isinstance(obj, CIMType)
+
+
+def test_char16_init(char16_init_tuple):
+    """Test initialization from all input types using
+       char16_init_tuple pytest.fixture.
+    """
+    # pylint: disable=redefined-outer-name
+    (in_str, exp_str, exp_exc_type) = char16_init_tuple
+    try:
+        obj = Char16(in_str)
+    except Exception as exc:  # pylint: disable=broad-except
+        assert isinstance(exc, exp_exc_type)
+    else:
+        assert exp_exc_type is None
+        assert obj == exp_str
+        assert obj is not in_str
+
+
+def test_char16_repr(char16_init_tuple):
+    """
+    Test repr(CIMDateTime) from all input types using
+    char16_init_tuple pytest.fixture.
+    """
+    # pylint: disable=redefined-outer-name
+    (in_str, _, exp_exc_type) = char16_init_tuple
+
+    if exp_exc_type is not None:
+        pytest.skip("Testing repr() needs Char16 object")
+
+    obj = Char16(in_str)
+
+    # The code to be tested.
+    # The actual test is that no exception is raised.
+    repr(obj)
+
+
+def test_char16_str(char16_init_tuple):
+    """
+    Test str(CIMDateTime) from all input types using
+    char16_init_tuple pytest.fixture.
+    """
+    # pylint: disable=redefined-outer-name
+    (in_str, _, exp_exc_type) = char16_init_tuple
+
+    if exp_exc_type is not None:
+        pytest.skip("Testing repr() needs Char16 object")
+
+    obj = Char16(in_str)
+
+    # The code to be tested.
+    # The actual test is that no exception is raised.
+    str(obj)
 
 
 #
