@@ -81,7 +81,7 @@ class TestServerClass(BaseMethodsForTests):
         server = mock_wbemserver.wbem_server
 
         # Build instances for get_central instance
-        # Using central methodology, i.e. ElementConformsToProfile
+        # using central methodology, i.e. ElementConformsToProfile
 
         # Test basic brand, version, namespace methods
         assert server.namespace_classname == 'CIM_Namespace'
