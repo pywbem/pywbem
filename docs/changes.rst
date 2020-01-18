@@ -463,6 +463,10 @@ Released: not yet
   subclasses already had `request_data` and `response_data` attributes.
   (See issue #1423)
 
+* Added proxy support to the `WBEMConnection` class, by adding a `proxies`
+  init parameter and attribute, utilizing the proxy support of the requests
+  package. (see issue #2040)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)

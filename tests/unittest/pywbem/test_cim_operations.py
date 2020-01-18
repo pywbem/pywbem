@@ -28,6 +28,16 @@ from pywbem_mock import FakedWBEMConnection
 
 
 TESTCASES_INIT = [
+
+    # the testcase items are tuples with these items:
+    # * desc: Testcase description
+    # * files: empty files to be created before the test
+    # * init_kwargs: dict of init arguments for WBEMConnection, in addition to
+    #   the utl argument
+    # * exp_attrs: dict of expected WBEMConnection attributes after init
+    # * exp_exc: Type of expected exception, or None
+    # * exp_exc_regex: Regexp for the expected exception message, or None
+
     (
         "No optional init parameters, test defaults",
         [],
@@ -41,6 +51,7 @@ TESTCASES_INIT = [
             timeout=None,
             use_pull_operations=False,
             stats_enabled=False,
+            proxies=None,
         ),
         None, None
     ),
@@ -54,6 +65,7 @@ TESTCASES_INIT = [
             timeout=30,
             use_pull_operations=True,
             stats_enabled=True,
+            proxies=None,
         ),
         dict(
             creds=('myuser', 'mypw'),
@@ -62,6 +74,7 @@ TESTCASES_INIT = [
             timeout=30,
             use_pull_operations=True,
             stats_enabled=True,
+            proxies=None,
         ),
         None, None
     ),
@@ -175,6 +188,32 @@ TESTCASES_INIT = [
         ),
         dict(),
         IOError, "file or directory not found"
+    ),
+    (
+        "proxies parameter that is valid",
+        [],
+        dict(
+            proxies={
+                'http': 'http://user:pass@10.10.1.10:3128',
+                'https': 'http://user:pass@10.10.1.10:1080',
+            },
+        ),
+        dict(
+            proxies={
+                'http': 'http://user:pass@10.10.1.10:3128',
+                'https': 'http://user:pass@10.10.1.10:1080',
+            },
+        ),
+        None, None
+    ),
+    (
+        "proxies parameter that is an invalid type",
+        [],
+        dict(
+            proxies=42,
+        ),
+        dict(),
+        TypeError, "proxies .* must be a dictionary .*"
     ),
 ]
 
