@@ -27,3 +27,4 @@ A number of these topics apply also to the other APIs of the pywbem package.
    client/recording.rst
    client/valuemappings.rst
    client/security.rst
+   client/proxy.rst

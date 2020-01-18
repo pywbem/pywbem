@@ -294,6 +294,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     HTTP/HTTPS request. Usage of the `requests` Python package causes the
     underlying resources such as sockets to be pooled, though.
 
+    The :class:`~pywbem.WBEMConnection` class supports connection through
+    HTTP and SOCKS proxies, by utilizing the proxy support in the `requests`
+    Python package.
+
     After creating a :class:`~pywbem.WBEMConnection` object, various methods
     may be called on the object, which cause WBEM operations to be issued to
     the WBEM server. See :ref:`WBEM operations` for a list of these methods.
@@ -405,7 +409,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def __init__(self, url, creds=None, default_namespace=None,
                  x509=None, ca_certs=None,
                  no_verification=False, timeout=None, use_pull_operations=False,
-                 stats_enabled=False):
+                 stats_enabled=False, proxies=None):
         # pylint: disable=line-too-long
         """
         Parameters:
@@ -605,6 +609,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             and finalized in 0.12.*
 
             See the :ref:`WBEM operation statistics` section for details.
+
+          proxies (:class:`py:dict`):
+            Dictionary with the URLs of HTTP or SOCKS proxies to use for
+            the connection to the WBEM server.
+
+            *New in pywbem 1.0*
+
+            `None` (the default) causes the use of direct connections without
+            using a proxy.
+
+            This parameter is passed on to the `proxies` parameter of the
+            requests package. See the :ref:`Proxy support` section for details.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -616,9 +632,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._set_ca_certs(ca_certs)
         self._set_no_verification(no_verification)
         self._set_timeout(timeout)
+        self._set_proxies(proxies)
 
         # Requests session
         self.session = requests.Session()
+        self.session.proxies = self.proxies
 
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -1074,6 +1092,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.statistics.enable()
         else:
             self.statistics.disable()
+
+    @property
+    def proxies(self):
+        """
+        :class:`py:dict`: Dictionary with the URLs of HTTP or SOCKS proxies to
+        use for the connection to the WBEM server.
+
+        *New in pywbem 1.0*
+
+        This attribute is not settable. The dictionary content should not be
+        modified (and such modifications would have no effect).
+
+        See the :ref:`Proxy support` section for details.
+        """
+        return self._proxies
+
+    def _set_proxies(self, proxies):
+        """Internal setter function."""
+        if proxies is not None:
+            if not isinstance(proxies, dict):
+                raise TypeError(
+                    "The proxies parameter must be a dictionary but has "
+                    "type: {0}".
+                    format(type(proxies)))
+            self._proxies = proxies.copy()
+        else:
+            self._proxies = None
 
     @property
     def statistics(self):
