@@ -74,9 +74,10 @@ There are multiple types of tests in pywbem:
        tests/manualtest/
 
    and are executed by simply invoking them from within the main directory
-   of the repository, e.g.:
+   of the repository, and providing that main directory as a Python package
+   path, e.g.:
 
-       tests/manualtest/run_cim_operations.py
+       PYTHONPATH=. tests/manualtest/run_cim_operations.py
 
    Some of the scripts support a `--help` option that informs about their
    usage.

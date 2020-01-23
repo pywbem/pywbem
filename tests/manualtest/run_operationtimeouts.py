@@ -26,7 +26,7 @@ from getpass import getpass
 import six
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
-from ..utils import import_installed
+from tests.utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import WBEMConnection, Uint32, ConnectionError, TimeoutError
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name

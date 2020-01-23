@@ -18,7 +18,7 @@ from pyinstrument import Profiler
 import six
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
-from ..utils import import_installed
+from tests.utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import tupletree, __version__
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
