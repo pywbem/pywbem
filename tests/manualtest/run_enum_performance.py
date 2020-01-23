@@ -20,7 +20,7 @@ import argparse as _argparse
 from tabulate import tabulate
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
-from ..utils import import_installed
+from tests.utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 from pywbem import WBEMConnection, Error, Uint64, TestClientRecorder

@@ -33,7 +33,7 @@ import six
 from tests.unittest.utils.unittest_extensions import RegexpMixin
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
-from ..utils import import_installed
+from tests.utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \

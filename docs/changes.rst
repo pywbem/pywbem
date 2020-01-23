@@ -28,6 +28,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Test: Fixed a bug introduced in 0.14.5 where the manualtest scripts failed
+  with invalid relative import. (see issue #2039)
+
 **Enhancements:**
 
 **Known issues:**
