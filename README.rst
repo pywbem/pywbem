@@ -25,30 +25,28 @@ Pywbem - A WBEM client and related utilities, written in pure Python
     :target: https://pypi.python.org/pypi/pywbem/
     :alt: Version on Pypi
 
-.. # .. image:: https://img.shields.io/pypi/dm/pywbem.svg
-.. #     :target: https://pypi.python.org/pypi/pywbem/
-.. #     :alt: Pypi downloads
-
 .. image:: https://travis-ci.org/pywbem/pywbem.svg?branch=master
-    :target: https://travis-ci.org/pywbem/pywbem
-    :alt: Travis test status (master)
+    :target: https://travis-ci.org/pywbem/pywbem/branches
+    :alt: Travis status
 
-.. image:: https://ci.appveyor.com/api/projects/status/i022iaeu3dao8j5x/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/andy-maier/pywbem
-    :alt: Appveyor test status (master)
+.. image:: https://ci.appveyor.com/api/projects/status/7bgmed9tk9sk0k8h/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/andy-maier/pywbem/history
+    :alt: Appveyor status
 
 .. image:: https://readthedocs.org/projects/pywbem/badge/?version=latest
-    :target: https://pywbem.readthedocs.io/en/latest/
-    :alt: Docs build status (master)
+    :target: https://readthedocs.org/projects/pywbem/builds/
+    :alt: ReadTheDocs status
 
-.. image:: https://img.shields.io/coveralls/pywbem/pywbem.svg
-    :target: https://coveralls.io/r/pywbem/pywbem
-    :alt: Test coverage (master)
-
-.. image:: https://img.shields.io/badge/License-LGPL%202.1-green.svg
+.. image:: https://coveralls.io/repos/github/pywbem/pywbem/badge.svg?branch=master
+    :target: https://coveralls.io/github/pywbem/pywbem?branch=master
+    :alt: Coveralls status
 
 .. image:: https://img.shields.io/pypi/pyversions/pywbem.svg?color=brightgreen
-    :alt: Python versions supported by latest version released to Pypi
+    :alt: Python versions supported
+
+.. image:: https://img.shields.io/badge/License-LGPL%202.1-green.svg
+    :alt: License
+
 
 .. # .. contents:: **Contents:**
 .. #    :local:
