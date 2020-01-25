@@ -1,30 +1,6 @@
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
-.. # begin of customization for the current version
-.. |pywbem-version| replace:: 0.16.0
-.. |pywbem-next-version| replace:: 1.0.0
-.. |pywbem-next-issue| replace:: 1413
-.. # end of customization for the current version
-
-.. |pywbem-next-issue-link-1| raw:: html
-
-    <a href="https://github.com/pywbem/pywbem/issues/
-
-.. |pywbem-next-issue-link-2| raw:: html
-
-    ">issue
-
-.. |pywbem-next-issue-link-3| raw:: html
-
-    </a>
-
-.. |pywbem-next-issue-link| replace:: |pywbem-next-issue-link-1|\ |pywbem-next-issue|\ |pywbem-next-issue-link-2| |pywbem-next-issue|\ |pywbem-next-issue-link-3|
-
-.. |os-setup-link| raw:: html
-
-    <a href="https://pywbem.readthedocs.io/en/stable/_downloads/pywbem_os_setup.sh">pywbem_os_setup.sh</a>
-
 .. image:: https://img.shields.io/pypi/v/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
     :alt: Version on Pypi
@@ -60,8 +36,6 @@ Overview
 
 Pywbem is a WBEM client and WBEM indication listener, written in pure Python.
 It runs on Python 2 and Python 3.
-
-The latest released version of pywbem is |pywbem-version|.
 
 The major components of pywbem are shown in this diagram:
 
@@ -218,10 +192,12 @@ release.
 Planned Next Release
 --------------------
 
-Pywbem |pywbem-next-version| is in development.
+Fix versions of pywbem are released as needed.
 
-Pywbem |pywbem-next-issue-link| defines the basic direction for version
-|pywbem-next-version|.
+The next planned feature version(s) of pywbem can be found by listing the
+`release definition issues`_.
+
+.. _release definition issues: https://github.com/pywbem/pywbem/issues?q=is%3Aissue+is%3Aopen+label%3A%22release+definition%22
 
 Contributing
 ------------
