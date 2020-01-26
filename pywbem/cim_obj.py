@@ -264,7 +264,8 @@ from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
 from ._nocasedict import NocaseDict
 from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
-    _realValue_to_float, _to_unicode
+    _realValue_to_float, _to_unicode, _eq_name, _eq_item, _eq_dict
+
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
@@ -335,80 +336,6 @@ ALL_CIMTYPES = set([
     'real64',
     'reference',
 ])
-
-
-def cmpname(name1, name2):
-    """
-    Compare two CIM names for equality and ordering.
-
-    The comparison is performed case-insensitively.
-
-    One or both of the items may be `None`, and `None` is considered the lowest
-    possible value.
-
-    The implementation delegates to the '==' and '<' operators of the
-    name datatypes.
-
-    If name1 == name2, 0 is returned.
-    If name1 < name2, -1 is returned.
-    Otherwise, +1 is returned.
-    """
-    if name1 is None and name2 is None:
-        return 0
-    if name1 is None:
-        return -1
-    if name2 is None:
-        return 1
-    lower_name1 = name1.lower()
-    lower_name2 = name2.lower()
-    if lower_name1 == lower_name2:
-        return 0
-    return -1 if lower_name1 < lower_name2 else 1
-
-
-def cmpitem(item1, item2):
-    """
-    Compare two items (CIM values, CIM objects) for equality (not for
-    ordering).
-
-    Note: Support for comparing the order of the items has been removed
-    in pywbem 0.9.
-
-    One or both of the items may be `None`.
-
-    Returns:
-        0 if the objects are equal.
-        1 if the objects are not equal.
-    """
-    if item1 is None and item2 is None:
-        return 0
-    if item1 is None or item2 is None:
-        return 1
-    if item1 == item2:
-        return 0
-    return 1
-
-
-def cmpdict(dict1, dict2):
-    """
-    Compare two NocaseDict objects for equality (not for ordering).
-
-    The comparison is performed case-insensitively w.r.t. to the dictionary
-    keys.
-
-    One or both of the items may be `None`.
-
-    Returns:
-        0 if the objects are equal.
-        1 if the objects are not equal.
-    """
-    if dict1 is None and dict2 is None:
-        return 0
-    if dict1 is None or dict2 is None:
-        return 1
-    if dict1 == dict2:
-        return 0
-    return 1
 
 
 def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
@@ -1366,11 +1293,11 @@ class CIMInstanceName(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._host = _ensure_unicode(host)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMInstanceName` objects.
+        Equality test function for two :class:`~pywbem.CIMInstanceName` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `host`
@@ -1378,24 +1305,22 @@ class CIMInstanceName(_CIMComparisonMixin):
         * `classname`
         * `keybindings`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
 
         Raises `TypeError', if the `other` object is not a
         :class:`~pywbem.CIMInstanceName` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMInstanceName)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMInstanceName):
             raise TypeError(
                 _format("other must be CIMInstanceName, but is: {0}",
                         type(other)))
-        return (cmpname(self.host, other.host) or
-                cmpname(self.namespace, other.namespace) or
-                cmpname(self.classname, other.classname) or
-                cmpdict(self.keybindings, other.keybindings))
+        return (_eq_name(self.host, other.host) and
+                _eq_name(self.namespace, other.namespace) and
+                _eq_name(self.classname, other.classname) and
+                _eq_dict(self.keybindings, other.keybindings))
 
     def __hash__(self):
         """
@@ -2611,11 +2536,11 @@ class CIMInstance(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._property_list = property_list
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMInstance` objects.
+        Equality test function for two :class:`~pywbem.CIMInstance` objects.
 
-        The comparison is based on some of their public attributes, in
+        The equality is based on some of their public attributes, in
         descending precedence:
 
         * `classname`
@@ -2623,25 +2548,26 @@ class CIMInstance(_CIMComparisonMixin):
         * `properties`
         * `qualifiers`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
 
-        The following public attributes are not utilized for the comparison:
+        The following public attributes are not utilized for the equality test:
 
         * `property_list`
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMInstance` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMInstance)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMInstance):
             raise TypeError(
                 _format("other must be CIMInstance, but is: {0}",
                         type(other)))
-        return (cmpname(self.classname, other.classname) or
-                cmpitem(self.path, other.path) or
-                cmpdict(self.properties, other.properties) or
-                cmpdict(self.qualifiers, other.qualifiers))
+        return (_eq_name(self.classname, other.classname) and
+                _eq_item(self.path, other.path) and
+                _eq_dict(self.properties, other.properties) and
+                _eq_dict(self.qualifiers, other.qualifiers))
 
     def __hash__(self):
         """
@@ -3416,31 +3342,32 @@ class CIMClassName(_CIMComparisonMixin):
             host=self.host,
             namespace=self.namespace)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMClassName` objects.
+        Equality test function for two :class:`~pywbem.CIMClassName` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `host`
         * `namespace`
         * `classname`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMClassName` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMClassName)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMClassName):
             raise TypeError(
                 _format("other must be CIMClassName, but is: {0}",
                         type(other)))
-        return (cmpname(self.host, other.host) or
-                cmpname(self.namespace, other.namespace) or
-                cmpname(self.classname, other.classname))
+        return (_eq_name(self.host, other.host) and
+                _eq_name(self.namespace, other.namespace) and
+                _eq_name(self.classname, other.classname))
 
     def __hash__(self):
         """
@@ -4142,11 +4069,11 @@ class CIMClass(_CIMComparisonMixin):
         # in test tools that show the object with repr().
         assert isinstance(path, CIMClassName) or path is None
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMClass` objects.
+        Equality test function for two :class:`~pywbem.CIMClass` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `classname`
@@ -4156,22 +4083,24 @@ class CIMClass(_CIMComparisonMixin):
         * `methods`
         * `path`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMClass` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMClass)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMClass):
             raise TypeError(
-                _format("other must be CIMClass, but is: {0}", type(other)))
-        return (cmpname(self.classname, other.classname) or
-                cmpname(self.superclass, other.superclass) or
-                cmpdict(self.qualifiers, other.qualifiers) or
-                cmpdict(self.properties, other.properties) or
-                cmpdict(self.methods, other.methods) or
-                cmpitem(self.path, other.path))
+                _format("other must be CIMClass, but is: {0}",
+                        type(other)))
+        return (_eq_name(self.classname, other.classname) and
+                _eq_name(self.superclass, other.superclass) and
+                _eq_dict(self.qualifiers, other.qualifiers) and
+                _eq_dict(self.properties, other.properties) and
+                _eq_dict(self.methods, other.methods) and
+                _eq_item(self.path, other.path))
 
     def __hash__(self):
         """
@@ -5165,11 +5094,11 @@ class CIMProperty(_CIMComparisonMixin):
 
         return u''.join(mof)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMProperty` objects.
+        Equality test function for two :class:`~pywbem.CIMProperty` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `name`
@@ -5183,29 +5112,28 @@ class CIMProperty(_CIMComparisonMixin):
         * `class_origin`
         * `qualifiers`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
 
         Raises `TypeError', if the `other` object is not a
         :class:`~pywbem.CIMProperty` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMProperty)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMProperty):
             raise TypeError(
-                _format("other must be CIMProperty, but is: {0}", type(other)))
-        return (cmpname(self.name, other.name) or
-                cmpitem(self.value, other.value) or
-                cmpitem(self.type, other.type) or
-                cmpname(self.reference_class, other.reference_class) or
-                cmpitem(self.embedded_object, other.embedded_object) or
-                cmpitem(self.is_array, other.is_array) or
-                cmpitem(self.array_size, other.array_size) or
-                cmpitem(self.propagated, other.propagated) or
-                cmpname(self.class_origin, other.class_origin) or
-                cmpdict(self.qualifiers, other.qualifiers))
+                _format("other must be CIMProperty, but is: {0}",
+                        type(other)))
+        return (_eq_name(self.name, other.name) and
+                _eq_item(self.value, other.value) and
+                _eq_item(self.type, other.type) and
+                _eq_name(self.reference_class, other.reference_class) and
+                _eq_item(self.embedded_object, other.embedded_object) and
+                _eq_item(self.is_array, other.is_array) and
+                _eq_item(self.array_size, other.array_size) and
+                _eq_item(self.propagated, other.propagated) and
+                _eq_name(self.class_origin, other.class_origin) and
+                _eq_dict(self.qualifiers, other.qualifiers))
 
     def __hash__(self):
         """
@@ -5537,11 +5465,11 @@ class CIMMethod(_CIMComparisonMixin):
                                 "in iterable: {0!A}", item))
                 self.qualifiers[key] = _cim_qualifier(key, value)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMMethod` objects.
+        Equality test function for two :class:`~pywbem.CIMMethod` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `name`
@@ -5551,22 +5479,24 @@ class CIMMethod(_CIMComparisonMixin):
         * `class_origin`
         * `propagated`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMMethod` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMMethod)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMMethod):
             raise TypeError(
-                _format("other must be CIMMethod, but is: {0}", type(other)))
-        return (cmpname(self.name, other.name) or
-                cmpdict(self.qualifiers, other.qualifiers) or
-                cmpdict(self.parameters, other.parameters) or
-                cmpitem(self.return_type, other.return_type) or
-                cmpname(self.class_origin, other.class_origin) or
-                cmpitem(self.propagated, other.propagated))
+                _format("other must be CIMMethod, but is: {0}",
+                        type(other)))
+        return (_eq_name(self.name, other.name) and
+                _eq_dict(self.qualifiers, other.qualifiers) and
+                _eq_dict(self.parameters, other.parameters) and
+                _eq_item(self.return_type, other.return_type) and
+                _eq_name(self.class_origin, other.class_origin) and
+                _eq_item(self.propagated, other.propagated))
 
     def __hash__(self):
         """
@@ -6119,11 +6049,11 @@ class CIMParameter(_CIMComparisonMixin):
         else:
             self._embedded_object = _ensure_unicode(embedded_object)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMParameter` objects.
+        Equality test function for two :class:`~pywbem.CIMParameter` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `name`
@@ -6135,7 +6065,7 @@ class CIMParameter(_CIMComparisonMixin):
         * `value`
         * `embedded_object`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
 
         Raises `TypeError', if the `other` object is not a
@@ -6143,21 +6073,19 @@ class CIMParameter(_CIMComparisonMixin):
         """
 
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMParameter)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMParameter):
             raise TypeError(
                 _format("other must be CIMParameter, but is: {0}",
                         type(other)))
-        return (cmpname(self.name, other.name) or
-                cmpitem(self.type, other.type) or
-                cmpname(self.reference_class, other.reference_class) or
-                cmpitem(self.is_array, other.is_array) or
-                cmpitem(self.array_size, other.array_size) or
-                cmpdict(self.qualifiers, other.qualifiers) or
-                cmpitem(self.value, other.value) or
-                cmpitem(self.embedded_object, other.embedded_object))
+        return (_eq_name(self.name, other.name) and
+                _eq_item(self.type, other.type) and
+                _eq_name(self.reference_class, other.reference_class) and
+                _eq_item(self.is_array, other.is_array) and
+                _eq_item(self.array_size, other.array_size) and
+                _eq_dict(self.qualifiers, other.qualifiers) and
+                _eq_item(self.value, other.value) and
+                _eq_item(self.embedded_object, other.embedded_object))
 
     def __hash__(self):
         """
@@ -6809,11 +6737,11 @@ class CIMQualifier(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._translatable = _ensure_bool(translatable)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMQualifier` objects.
+        Equality test function for two :class:`~pywbem.CIMQualifier` objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `name`
@@ -6825,25 +6753,26 @@ class CIMQualifier(_CIMComparisonMixin):
         * `toinstance`
         * `translatable`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMQualifier` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMQualifier)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMQualifier):
             raise TypeError(
                 _format("other must be CIMQualifier, but is: {0}",
                         type(other)))
-        return (cmpname(self.name, other.name) or
-                cmpitem(self.type, other.type) or
-                cmpitem(self.value, other.value) or
-                cmpitem(self.propagated, other.propagated) or
-                cmpitem(self.overridable, other.overridable) or
-                cmpitem(self.tosubclass, other.tosubclass) or
-                cmpitem(self.toinstance, other.toinstance) or
-                cmpitem(self.translatable, other.translatable))
+        return (_eq_name(self.name, other.name) and
+                _eq_item(self.type, other.type) and
+                _eq_item(self.value, other.value) and
+                _eq_item(self.propagated, other.propagated) and
+                _eq_item(self.overridable, other.overridable) and
+                _eq_item(self.tosubclass, other.tosubclass) and
+                _eq_item(self.toinstance, other.toinstance) and
+                _eq_item(self.translatable, other.translatable))
 
     def __hash__(self):
         """
@@ -7473,12 +7402,12 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         # pylint: disable=attribute-defined-outside-init
         self._translatable = _ensure_bool(translatable)
 
-    def _cmp(self, other):
+    def __eq__(self, other):
         """
-        Comparator function for two :class:`~pywbem.CIMQualifierDeclaration`
+        Equality test function for two :class:`~pywbem.CIMQualifierDeclaration`
         objects.
 
-        The comparison is based on their public attributes, in descending
+        The equality is based on their public attributes, in descending
         precedence:
 
         * `name`
@@ -7492,27 +7421,28 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
         * `toinstance`
         * `translatable`
 
-        The comparison takes into account any case insensitivities described
+        The equality test takes into account any case insensitivities described
         for these attributes.
+
+        Raises `TypeError', if the `other` object is not a
+        :class:`~pywbem.CIMQualifierDeclaration` object.
         """
         if self is other:
-            return 0
-        try:
-            assert isinstance(other, CIMQualifierDeclaration)
-        except AssertionError:
+            return True
+        if not isinstance(other, CIMQualifierDeclaration):
             raise TypeError(
                 _format("other must be CIMQualifierDeclaration, but is: {0}",
                         type(other)))
-        return (cmpname(self.name, other.name) or
-                cmpitem(self.type, other.type) or
-                cmpitem(self.value, other.value) or
-                cmpitem(self.is_array, other.is_array) or
-                cmpitem(self.array_size, other.array_size) or
-                cmpdict(self.scopes, other.scopes) or
-                cmpitem(self.overridable, other.overridable) or
-                cmpitem(self.tosubclass, other.tosubclass) or
-                cmpitem(self.toinstance, other.toinstance) or
-                cmpitem(self.translatable, other.translatable))
+        return (_eq_name(self.name, other.name) and
+                _eq_item(self.type, other.type) and
+                _eq_item(self.value, other.value) and
+                _eq_item(self.is_array, other.is_array) and
+                _eq_item(self.array_size, other.array_size) and
+                _eq_dict(self.scopes, other.scopes) and
+                _eq_item(self.overridable, other.overridable) and
+                _eq_item(self.tosubclass, other.tosubclass) and
+                _eq_item(self.toinstance, other.toinstance) and
+                _eq_item(self.translatable, other.translatable))
 
     def __hash__(self):
         """
