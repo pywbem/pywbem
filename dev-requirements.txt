@@ -31,6 +31,7 @@ requests>=2.20.1
 decorator>=4.0.11
 yamlloader>=0.5.5
 funcsigs>=1.0.2
+backports.statistics>=0.1.0; python_version == '2.7'
 
 # Coverage reporting (no imports, invoked via coveralls script).
 coverage>=4.5.3
