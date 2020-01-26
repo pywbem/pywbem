@@ -138,7 +138,8 @@ def timeit(measure_func, precision):
     measure_func()
     t2_s = process_time()
     t_s = t2_s - t1_s
-    rep = max(int(res_s / t_s) / precision, min_rep) if t_s != 0 else min_rep
+    rep = max(int(float(res_s) / t_s / precision), min_rep) \
+        if t_s != 0 else min_rep
 
     # Perform the measurement a number of times and store the results
     results = []

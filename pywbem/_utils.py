@@ -97,6 +97,52 @@ def _to_bytes(obj):
     return obj.encode("utf-8")
 
 
+def _eq_name(name1, name2):
+    """
+    Test two CIM names for equality.
+
+    The comparison is performed case-insensitively.
+
+    One or both of the names may be `None`; Two names that are `None` are
+    considered equal.
+    """
+    if name1 is None:
+        return name2 is None
+    else:
+        if name2 is None:
+            return False
+        else:
+            return name1.lower() == name2.lower()
+
+
+def _eq_item(item1, item2):
+    """
+    Test two items (CIM values, CIM objects) for equality.
+
+    One or both of the items may be `None`; Two items that are `None` are
+    considered equal.
+    """
+    if item1 is None:
+        return item2 is None
+    else:
+        if item2 is None:
+            return False
+        else:
+            return item1 == item2
+
+
+def _eq_dict(dict1, dict2):
+    """
+    Test two dictionary objects for equality.
+
+    The dictionaries must not be `None`; This is ensured by the respective
+    setter functions for the attributes of the CIM objects that use ths function
+    for equality test.
+    """
+    assert dict1 is not None and dict2 is not None
+    return dict1 == dict2
+
+
 def _hash_name(name):
     """
     Hash a CIM name, case-insensitively.

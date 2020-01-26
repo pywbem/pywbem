@@ -80,7 +80,8 @@ import copy
 import six
 
 from .config import ENFORCE_INTEGER_RANGE
-from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode
+from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode, \
+    _eq_item
 
 if six.PY2:
     # pylint: disable=invalid-name,undefined-variable
@@ -97,35 +98,37 @@ __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
 
 
 class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
-    """Mixin class providing default implementations for rich comparison
-    operators.
+    """
+    Mixin class providing default implementations for equality test
+    operators and hash function.
+
+    The implementations of ordering tests are also provided and raise an
+    exception because ordering of CIM objects is not supported.
 
     In Python 2, the rich comparison operators (e.g. `__eq__()`) have
-    precedence over the traditional comparator method (`_cmp__()`).
-    In Python 3, the comparator method (`_cmp__()`) no longer exists.
+    precedence over the traditional comparator method (`__cmp__()`).
+    In Python 3, the comparator method (`__cmp__()`) no longer exists.
     Therefore, implementing the rich comparison operators works in both.
-
-    The default implementations delegate to a comparator method `_cmp()`
-    implemented by subclasses. This requires that the subclasses can
-    define total ordering. (If they cannot, this mixin class cannot be
-    used).
     """
 
     def __eq__(self, other):
         """
-        Invoked when two CIM objects are compared with the `==` operator.
+        Equality test for two CIM objects.
 
-        The comparison is delegated to the `_cmp()` method.
+        The comparison must be implemented in the derived class.
         """
-        return self._cmp(other) == 0
+        raise NotImplementedError
 
     def __ne__(self, other):
         """
-        Invoked when two CIM objects are compared with the `!=` operator.
+        Non-equality test for two CIM objects.
 
-        The comparison is delegated to the `_cmp()` method.
+        The comparison is delegated to the `__eq__()` method, because we
+        require it to be implemented.
+        See https://stackoverflow.com/a/30676267/1424462 for discussion about
+        delegating to == vs. __eq__().
         """
-        return self._cmp(other) != 0
+        return not self.__eq__(other)
 
     def __raise_ordering_not_supported(self, other, op):
         """
@@ -147,16 +150,6 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
 
     def __le__(self, other):
         self.__raise_ordering_not_supported(other, '<=')
-
-    def _cmp(self, other):
-        """
-        Interface definition for comparator method to be provided by
-        subclasses, as follows:
-        * If self == other, 0 must be returned.
-        * If self < other, -1 must be returned.
-        * If self > other, +1 must be returned.
-        """
-        raise NotImplementedError
 
     def __hash__(self):
         """
@@ -698,17 +691,13 @@ class CIMDateTime(CIMType, _CIMComparisonMixin):
     def __setstate__(self, arg):
         self.__init__(arg)
 
-    def _cmp(self, other):
-        # Defer import due to circular import dependencies:
-        from .cim_obj import cmpitem
+    def __eq__(self, other):
         if self is other:
-            return 0
-
+            return True
         if not isinstance(other, CIMDateTime):
-            return 1
-
-        return (cmpitem(self.datetime, other.datetime) or
-                cmpitem(self.timedelta, other.timedelta))
+            return False
+        return (_eq_item(self.datetime, other.datetime) and
+                _eq_item(self.timedelta, other.timedelta))
 
     def __hash__(self):
         """
