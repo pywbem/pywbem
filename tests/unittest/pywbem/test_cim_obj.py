@@ -145,6 +145,12 @@ DATETIME1_DT = datetime(year=2014, month=9, day=24, hour=19, minute=30,
 DATETIME1_OBJ = CIMDateTime(DATETIME1_DT)
 DATETIME1_STR = '20140924193040.654321+120'
 
+DATETIME2_DT = datetime(year=2020, month=1, day=28, hour=14, minute=46,
+                        second=40, microsecond=654321,
+                        tzinfo=MinutesFromUTC(120))
+DATETIME2_OBJ = CIMDateTime(DATETIME2_DT)
+DATETIME2_STR = '20200128144640.654321+120'
+
 TIMEDELTA1_TD = timedelta(183, (13 * 60 + 25) * 60 + 42, 234567)
 TIMEDELTA1_OBJ = CIMDateTime(TIMEDELTA1_TD)
 TIMEDELTA1_STR = '00000183132542.234567:000'
@@ -1890,6 +1896,42 @@ TESTCASES_CIMINSTANCENAME_HASH_EQ = [
     ),
 
     # Keybindings tests
+    (
+        "Matching keybindings, both None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings=None),
+            obj2=CIMInstanceName('CIM_Foo', keybindings=None),
+            exp_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Matching keybindings, one None, one empty dict",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings=None),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={}),
+            exp_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching keybindings, first one None and second one not None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings=None),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            exp_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Non-matching keybindings, first one not None and second one None",
+        dict(
+            obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings=None),
+            exp_equal=False,
+        ),
+        None, None, True
+    ),
     (
         "Matching keybindings, key names with same lexical case",
         dict(
@@ -7972,7 +8014,7 @@ TESTCASES_CIMINSTANCE_EQ = [
         TypeError, None, True
     ),
     (
-        "Invalid type of second object: CIMInstance",
+        "Invalid type of second object: CIMInstanceName",
         dict(
             obj1=CIMInstance('CIM_Foo'),
             obj2=CIMInstanceName('CIM_Foo'),
@@ -8011,7 +8053,7 @@ def test_CIMInstance_hash(testcase, obj1, obj2, exp_equal):
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_CIMINSTANCE_HASH_EQ)
+    TESTCASES_CIMINSTANCE_HASH_EQ + TESTCASES_CIMINSTANCE_EQ)
 @simplified_test_function
 def test_CIMInstance_eq(testcase, obj1, obj2, exp_equal):
     """
@@ -14499,6 +14541,42 @@ TESTCASES_CIMPROPERTY_HASH_EQ = [
         dict(
             obj1=CIMProperty('Prop1', value='abc', type='string'),
             obj2=CIMProperty('Prop1', value=Uint32(42), type='string'),
+            exp_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, datetime with unequal datetime",
+        dict(
+            obj1=CIMProperty('Prop1', value=DATETIME1_OBJ, type='datetime'),
+            obj2=CIMProperty('Prop1', value=DATETIME2_OBJ, type='datetime'),
+            exp_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, datetime with equal datetime",
+        dict(
+            obj1=CIMProperty('Prop1', value=DATETIME1_OBJ, type='datetime'),
+            obj2=CIMProperty('Prop1', value=DATETIME1_OBJ, type='datetime'),
+            exp_equal=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, datetime with uint8",
+        dict(
+            obj1=CIMProperty('Prop1', value=DATETIME1_OBJ, type='datetime'),
+            obj2=CIMProperty('Prop1', value=42, type='uint8'),
+            exp_equal=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Value, uint8 with datetime",
+        dict(
+            obj1=CIMProperty('Prop1', value=42, type='uint8'),
+            obj2=CIMProperty('Prop1', value=DATETIME1_OBJ, type='datetime'),
             exp_equal=False,
         ),
         None, None, True
@@ -24118,7 +24196,7 @@ def test_CIMClassName_hash(testcase, obj1, obj2, exp_equal):
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_CIMCLASSNAME_HASH_EQ)
+    TESTCASES_CIMCLASSNAME_HASH_EQ + TESTCASES_CIMCLASSNAME_EQ)
 @simplified_test_function
 def test_CIMClassName_eq(testcase, obj1, obj2, exp_equal):
     """
@@ -33866,7 +33944,7 @@ def test_CIMParameter_hash(testcase, obj1, obj2, exp_equal):
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_CIMPARAMETER_HASH_EQ)
+    TESTCASES_CIMPARAMETER_HASH_EQ + TESTCASES_CIMPARAMETER_EQ)
 @simplified_test_function
 def test_CIMParameter_eq(testcase, obj1, obj2, exp_equal):
     """
