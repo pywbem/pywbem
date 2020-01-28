@@ -141,8 +141,7 @@ install:
   - choco --version
 
   # Install GNU make
-  # TODO: Remove interims solution for installing make by removing the version again.
-  - if "%UNIX_PATH%"=="none" tools\retry choco install -y make --version 4.3
+  - if "%UNIX_PATH%"=="none" tools\retry choco install -y make
   - if "%UNIX_PATH%"=="none" where make
   - if "%UNIX_PATH%"=="none" make --version
 
