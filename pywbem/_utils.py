@@ -88,7 +88,7 @@ def _to_unicode(obj):
     return obj.decode("utf-8")
 
 
-def _to__bytes(obj):
+def _to_bytes(obj):
     """
     Convert the input binary string to a :term:`byte string`.
     The input object must be a unicode string.
