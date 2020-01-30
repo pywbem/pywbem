@@ -33,6 +33,12 @@ Released: not yet
 
 **Enhancements:**
 
+* Changed the HTTPS support of `pywbem.WBEMListener` from using the deprecated
+  `ssl.wrap_socket()` function to using the `ssl.SSLContext` class that was
+  introduced in Python 2.7.9. This causes more secure SSL settings to be used.
+  On Python versions before 2.7.9, pywbem will continue to use the deprecated
+  `ssl.wrap_socket()` function. (See issue #2002)
+
 **Known issues:**
 
 * See `list of open issues`_.
