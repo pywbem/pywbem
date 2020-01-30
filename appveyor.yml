@@ -136,6 +136,10 @@ install:
   # Add UNIX commands to the path (used for bash)
   - if not "%UNIX_PATH%"=="none" set PATH=%UNIX_PATH%;%PATH%
 
+  # Set locale defaults for UNIX-like environments
+  - if not "%UNIX_PATH%"=="none" set LANG=C.UTF-8
+  - if not "%UNIX_PATH%"=="none" set LC_ALL=C.UTF-8
+
   # Verify that Chocolatey is available
   - where choco
   - choco --version
