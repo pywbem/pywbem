@@ -357,6 +357,7 @@ platform:
 	@echo "Platform: $(PLATFORM)"
 	@echo "Shell used for commands: $(SHELL)"
 	@echo "Shell flags: $(.SHELLFLAGS)"
+	@echo "Current locale settings: LANG=$(LANG), LC_ALL=$(LC_ALL), LC_CTYPE=$(LC_CTYPE)"
 	@echo "Make command location: $(MAKE)"
 	@echo "Make version: $(MAKE_VERSION)"
 	@echo "Python command name: $(PYTHON_CMD)"
