@@ -469,6 +469,12 @@ Released: not yet
   init parameter and attribute, utilizing the proxy support of the requests
   package. (see issue #2040)
 
+* Changed the HTTPS support of `pywbem.WBEMListener` from using the deprecated
+  `ssl.wrap_socket()` function to using the `ssl.SSLContext` class that was
+  introduced in Python 2.7.9. This causes more secure SSL settings to be used.
+  On Python versions before 2.7.9, pywbem will continue to use the deprecated
+  `ssl.wrap_socket()` function. (See issue #2002)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)

@@ -912,10 +912,32 @@ class WBEMListener(object):
 
                 # pylint: disable=attribute-defined-outside-init
                 server.listener = self
-                server.socket = ssl.wrap_socket(server.socket,
-                                                certfile=self._certfile,
-                                                keyfile=self._keyfile,
-                                                server_side=True)
+
+                try:
+                    try:
+                        # PROTOCOL_TLS was introduced in Py 2.7.13
+                        ssl_protocol = ssl.PROTOCOL_TLS
+                    except AttributeError:
+                        # Alias for PROTOCOL_TLS and deprecated in Py 2.7.13
+                        ssl_protocol = ssl.PROTOCOL_SSLv23
+                    # SSLContext was introduced in Python 2.7.9
+                    ctx = ssl.SSLContext(ssl_protocol)
+                    ctx.options |= ssl.OP_NO_SSLv2
+                    ctx.options |= ssl.OP_NO_SSLv3
+                    ctx.load_cert_chain(
+                        certfile=self._certfile,
+                        keyfile=self._keyfile)
+                    server.socket = ctx.wrap_socket(
+                        server.socket,
+                        server_side=True)
+                except AttributeError:
+                    # Fall back to deprecated ssl.wrap_socket() before Py 2.7.9
+                    server.socket = ssl.wrap_socket(
+                        server.socket,
+                        certfile=self._certfile,
+                        keyfile=self._keyfile,
+                        server_side=True)
+
                 thread = threading.Thread(target=server.serve_forever)
                 thread.daemon = True  # Exit server thread upon main thread exit
                 self._https_server = server
