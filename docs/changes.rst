@@ -39,6 +39,16 @@ Released: not yet
   On Python versions before 2.7.9, pywbem will continue to use the deprecated
   `ssl.wrap_socket()` function. (See issue #2002)
 
+**Cleanup:**
+
+* Renamed all sub-modules within the pywbem namespace so they are now private
+  (i.e. with a leading underscore). This has been done for consistency with
+  the upcoming 1.0.0 version of pywbem, for eaier rollback of changes from
+  that version. For compatibility to users of pywbem who use these sub-modules
+  directly, despite the recommendation to import only the symbols from the
+  pywbem namespace, these sub-modules are still available under their previous
+  names.  (See issue #1925)
+
 **Known issues:**
 
 * See `list of open issues`_.

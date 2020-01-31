@@ -19,7 +19,7 @@ The following exceptions are pywbem specific exceptions that can be raised at
 the WBEM client library API.
 """
 
-from .cim_constants import _statuscode2name, _statuscode2string
+from ._cim_constants import _statuscode2name, _statuscode2string
 
 # This module is meant to be safe for 'import *'.
 

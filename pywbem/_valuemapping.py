@@ -31,8 +31,8 @@ except ImportError:
     from ordereddict import OrderedDict
 import six
 
-from .cim_types import CIMInt, type_from_name
-from .cim_obj import CIMProperty, CIMMethod, CIMParameter
+from ._cim_types import CIMInt, type_from_name
+from ._cim_obj import CIMProperty, CIMMethod, CIMParameter
 from ._utils import _format, _integerValue_to_int
 
 __all__ = ['ValueMapping']

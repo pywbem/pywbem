@@ -254,10 +254,10 @@ except ImportError:  # py2
     from __builtin__ import type as builtin_type
 import six
 
-from . import cim_xml
+from . import _cim_xml
 from .config import DEBUG_WARNING_ORIGIN, SEND_VALUE_NULL
 from . import config
-from .cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
+from ._cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
     Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
     CIMFloat, _Longint
@@ -1651,8 +1651,8 @@ class CIMInstanceName(_CIMComparisonMixin):
             # References can only by instance names.
 
             if isinstance(value, CIMInstanceName):
-                kbs.append(cim_xml.KEYBINDING(
-                    key, cim_xml.VALUE_REFERENCE(value.tocimxml())))
+                kbs.append(_cim_xml.KEYBINDING(
+                    key, _cim_xml.VALUE_REFERENCE(value.tocimxml())))
                 continue
 
             if isinstance(value, six.text_type):
@@ -1679,23 +1679,23 @@ class CIMInstanceName(_CIMComparisonMixin):
                     _format("Keybinding {0!A} has invalid type: {1}",
                             key, builtin_type(value)))
 
-            kbs.append(cim_xml.KEYBINDING(
-                key, cim_xml.KEYVALUE(value, type_)))
+            kbs.append(_cim_xml.KEYBINDING(
+                key, _cim_xml.KEYVALUE(value, type_)))
 
-        instancename_xml = cim_xml.INSTANCENAME(self.classname, kbs)
+        instancename_xml = _cim_xml.INSTANCENAME(self.classname, kbs)
 
         if self.namespace is None or ignore_namespace:
             return instancename_xml
 
-        localnsp_xml = cim_xml.LOCALNAMESPACEPATH(
-            [cim_xml.NAMESPACE(ns)
+        localnsp_xml = _cim_xml.LOCALNAMESPACEPATH(
+            [_cim_xml.NAMESPACE(ns)
              for ns in self.namespace.split('/')])
 
         if self.host is None or ignore_host:
-            return cim_xml.LOCALINSTANCEPATH(localnsp_xml, instancename_xml)
+            return _cim_xml.LOCALINSTANCEPATH(localnsp_xml, instancename_xml)
 
-        return cim_xml.INSTANCEPATH(
-            cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp_xml),
+        return _cim_xml.INSTANCEPATH(
+            _cim_xml.NAMESPACEPATH(_cim_xml.HOST(self.host), localnsp_xml),
             instancename_xml)
 
     def tocimxmlstr(self, indent=None, ignore_host=False,
@@ -2966,7 +2966,7 @@ class CIMInstance(_CIMComparisonMixin):
                     _format("Property {0!A} has invalid type: {1} (must be "
                             "CIMProperty)", key, builtin_type(value)))
 
-        instance_xml = cim_xml.INSTANCE(
+        instance_xml = _cim_xml.INSTANCE(
             self.classname,
             properties=[p.tocimxml() for p in self.properties.values()],
             qualifiers=[q.tocimxml() for q in self.qualifiers.values()])
@@ -2975,16 +2975,16 @@ class CIMInstance(_CIMComparisonMixin):
             return instance_xml
 
         if self.path.namespace is None:
-            return cim_xml.VALUE_NAMEDINSTANCE(
+            return _cim_xml.VALUE_NAMEDINSTANCE(
                 self.path.tocimxml(),
                 instance_xml)
 
         if self.path.host is None:
-            return cim_xml.VALUE_OBJECTWITHLOCALPATH(
+            return _cim_xml.VALUE_OBJECTWITHLOCALPATH(
                 self.path.tocimxml(),
                 instance_xml)
 
-        return cim_xml.VALUE_INSTANCEWITHPATH(
+        return _cim_xml.VALUE_INSTANCEWITHPATH(
             self.path.tocimxml(),
             instance_xml)
 
@@ -3496,20 +3496,20 @@ class CIMClassName(_CIMComparisonMixin):
           of :term:`Element`.
         """
 
-        classname_xml = cim_xml.CLASSNAME(self.classname)
+        classname_xml = _cim_xml.CLASSNAME(self.classname)
 
         if self.namespace is None or ignore_namespace:
             return classname_xml
 
-        localnsp_xml = cim_xml.LOCALNAMESPACEPATH(
-            [cim_xml.NAMESPACE(ns)
+        localnsp_xml = _cim_xml.LOCALNAMESPACEPATH(
+            [_cim_xml.NAMESPACE(ns)
              for ns in self.namespace.split('/')])
 
         if self.host is None or ignore_host:
-            return cim_xml.LOCALCLASSPATH(localnsp_xml, classname_xml)
+            return _cim_xml.LOCALCLASSPATH(localnsp_xml, classname_xml)
 
-        return cim_xml.CLASSPATH(
-            cim_xml.NAMESPACEPATH(cim_xml.HOST(self.host), localnsp_xml),
+        return _cim_xml.CLASSPATH(
+            _cim_xml.NAMESPACEPATH(_cim_xml.HOST(self.host), localnsp_xml),
             classname_xml)
 
     def tocimxmlstr(self, indent=None, ignore_host=False,
@@ -4237,7 +4237,7 @@ class CIMClass(_CIMComparisonMixin):
           The CIM-XML representation, as an object of an appropriate subclass
           of :term:`Element`.
         """
-        return cim_xml.CLASS(
+        return _cim_xml.CLASS(
             self.classname,
             properties=[p.tocimxml() for p in self.properties.values()],
             methods=[m.tocimxml() for m in self.methods.values()],
@@ -4948,17 +4948,17 @@ class CIMProperty(_CIMComparisonMixin):
                 for v in self.value:
                     if v is None:
                         if SEND_VALUE_NULL:
-                            array_xml.append(cim_xml.VALUE_NULL())
+                            array_xml.append(_cim_xml.VALUE_NULL())
                         else:
-                            array_xml.append(cim_xml.VALUE(None))
+                            array_xml.append(_cim_xml.VALUE(None))
                     elif self.embedded_object is not None:
                         assert isinstance(v, (CIMInstance, CIMClass))
-                        array_xml.append(cim_xml.VALUE(v.tocimxml().toxml()))
+                        array_xml.append(_cim_xml.VALUE(v.tocimxml().toxml()))
                     else:
-                        array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
-                value_xml = cim_xml.VALUE_ARRAY(array_xml)
+                        array_xml.append(_cim_xml.VALUE(atomic_to_cim_xml(v)))
+                value_xml = _cim_xml.VALUE_ARRAY(array_xml)
 
-            return cim_xml.PROPERTY_ARRAY(
+            return _cim_xml.PROPERTY_ARRAY(
                 self.name,
                 self.type,
                 value_xml,
@@ -4973,9 +4973,9 @@ class CIMProperty(_CIMComparisonMixin):
             if self.value is None:
                 value_xml = None
             else:
-                value_xml = cim_xml.VALUE_REFERENCE(self.value.tocimxml())
+                value_xml = _cim_xml.VALUE_REFERENCE(self.value.tocimxml())
 
-            return cim_xml.PROPERTY_REFERENCE(
+            return _cim_xml.PROPERTY_REFERENCE(
                 self.name,
                 value_xml,
                 reference_class=self.reference_class,
@@ -4990,11 +4990,11 @@ class CIMProperty(_CIMComparisonMixin):
             else:
                 if self.embedded_object is not None:
                     assert isinstance(self.value, (CIMInstance, CIMClass))
-                    value_xml = cim_xml.VALUE(self.value.tocimxml().toxml())
+                    value_xml = _cim_xml.VALUE(self.value.tocimxml().toxml())
                 else:
-                    value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
+                    value_xml = _cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
-            return cim_xml.PROPERTY(
+            return _cim_xml.PROPERTY(
                 self.name,
                 self.type,
                 value_xml,
@@ -5644,7 +5644,7 @@ class CIMMethod(_CIMComparisonMixin):
           The CIM-XML representation, as an object of an appropriate subclass
           of :term:`Element`.
         """
-        return cim_xml.METHOD(
+        return _cim_xml.METHOD(
             self.name,
             parameters=[p.tocimxml() for p in self.parameters.values()],
             return_type=self.return_type,
@@ -6268,13 +6268,13 @@ class CIMParameter(_CIMComparisonMixin):
                     for v in self.value:
                         if v is None:
                             if SEND_VALUE_NULL:
-                                array_xml.append(cim_xml.VALUE_NULL())
+                                array_xml.append(_cim_xml.VALUE_NULL())
                             else:
-                                array_xml.append(cim_xml.VALUE(None))
+                                array_xml.append(_cim_xml.VALUE(None))
                         else:
                             array_xml.append(
-                                cim_xml.VALUE_REFERENCE(v.tocimxml()))
-                    value_xml = cim_xml.VALUE_REFARRAY(array_xml)
+                                _cim_xml.VALUE_REFERENCE(v.tocimxml()))
+                    value_xml = _cim_xml.VALUE_REFARRAY(array_xml)
 
                 else:  # array non-reference
 
@@ -6282,27 +6282,27 @@ class CIMParameter(_CIMComparisonMixin):
                     for v in self.value:
                         if v is None:
                             if SEND_VALUE_NULL:
-                                array_xml.append(cim_xml.VALUE_NULL())
+                                array_xml.append(_cim_xml.VALUE_NULL())
                             else:
-                                array_xml.append(cim_xml.VALUE(None))
+                                array_xml.append(_cim_xml.VALUE(None))
                         elif self.embedded_object is not None:
                             array_xml.append(
-                                cim_xml.VALUE(v.tocimxml().toxml()))
+                                _cim_xml.VALUE(v.tocimxml().toxml()))
                         else:
                             array_xml.append(
-                                cim_xml.VALUE(atomic_to_cim_xml(v)))
-                    value_xml = cim_xml.VALUE_ARRAY(array_xml)
+                                _cim_xml.VALUE(atomic_to_cim_xml(v)))
+                    value_xml = _cim_xml.VALUE_ARRAY(array_xml)
 
             else:  # scalar
 
                 if self.type == 'reference':
-                    value_xml = cim_xml.VALUE_REFERENCE(self.value.tocimxml())
+                    value_xml = _cim_xml.VALUE_REFERENCE(self.value.tocimxml())
                 elif self.embedded_object is not None:
-                    value_xml = cim_xml.VALUE(self.value.tocimxml().toxml())
+                    value_xml = _cim_xml.VALUE(self.value.tocimxml().toxml())
                 else:
-                    value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
+                    value_xml = _cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
-            return cim_xml.PARAMVALUE(
+            return _cim_xml.PARAMVALUE(
                 self.name,
                 value_xml,
                 paramtype=self.type,
@@ -6320,14 +6320,14 @@ class CIMParameter(_CIMComparisonMixin):
                     array_size = str(self.array_size)
 
                 if self.type == 'reference':
-                    return cim_xml.PARAMETER_REFARRAY(
+                    return _cim_xml.PARAMETER_REFARRAY(
                         self.name,
                         self.reference_class,
                         array_size,
                         qualifiers=qualifiers)
 
                 # For non-reference array types:
-                return cim_xml.PARAMETER_ARRAY(
+                return _cim_xml.PARAMETER_ARRAY(
                     self.name,
                     self.type,
                     array_size,
@@ -6336,13 +6336,13 @@ class CIMParameter(_CIMComparisonMixin):
             else:  # scalar
 
                 if self.type == 'reference':
-                    return cim_xml.PARAMETER_REFERENCE(
+                    return _cim_xml.PARAMETER_REFERENCE(
                         self.name,
                         self.reference_class,
                         qualifiers=qualifiers)
 
                 # For non-reference types:
-                return cim_xml.PARAMETER(
+                return _cim_xml.PARAMETER(
                     self.name,
                     self.type,
                     qualifiers=qualifiers)
@@ -6922,24 +6922,25 @@ class CIMQualifier(_CIMComparisonMixin):
             for v in self.value:
                 if v is None:
                     if SEND_VALUE_NULL:
-                        array_xml.append(cim_xml.VALUE_NULL())
+                        array_xml.append(_cim_xml.VALUE_NULL())
                     else:
-                        array_xml.append(cim_xml.VALUE(None))
+                        array_xml.append(_cim_xml.VALUE(None))
                 else:
-                    array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
-            value_xml = cim_xml.VALUE_ARRAY(array_xml)
+                    array_xml.append(_cim_xml.VALUE(atomic_to_cim_xml(v)))
+            value_xml = _cim_xml.VALUE_ARRAY(array_xml)
 
         else:
-            value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
+            value_xml = _cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
-        return cim_xml.QUALIFIER(self.name,
-                                 self.type,
-                                 value_xml,
-                                 propagated=self.propagated,
-                                 overridable=self.overridable,
-                                 tosubclass=self.tosubclass,
-                                 toinstance=self.toinstance,
-                                 translatable=self.translatable)
+        return _cim_xml.QUALIFIER(
+            self.name,
+            self.type,
+            value_xml,
+            propagated=self.propagated,
+            overridable=self.overridable,
+            tosubclass=self.tosubclass,
+            toinstance=self.toinstance,
+            translatable=self.translatable)
 
     def tocimxmlstr(self, indent=None):
         """
@@ -7600,26 +7601,27 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
             for v in self.value:
                 if v is None:
                     if SEND_VALUE_NULL:
-                        array_xml.append(cim_xml.VALUE_NULL())
+                        array_xml.append(_cim_xml.VALUE_NULL())
                     else:
-                        array_xml.append(cim_xml.VALUE(None))
+                        array_xml.append(_cim_xml.VALUE(None))
                 else:
-                    array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
-            value_xml = cim_xml.VALUE_ARRAY(array_xml)
+                    array_xml.append(_cim_xml.VALUE(atomic_to_cim_xml(v)))
+            value_xml = _cim_xml.VALUE_ARRAY(array_xml)
 
         else:
-            value_xml = cim_xml.VALUE(atomic_to_cim_xml(self.value))
+            value_xml = _cim_xml.VALUE(atomic_to_cim_xml(self.value))
 
-        return cim_xml.QUALIFIER_DECLARATION(self.name,
-                                             self.type,
-                                             value_xml,
-                                             is_array=self.is_array,
-                                             array_size=self.array_size,
-                                             qualifier_scopes=self.scopes,
-                                             overridable=self.overridable,
-                                             tosubclass=self.tosubclass,
-                                             toinstance=self.toinstance,
-                                             translatable=self.translatable)
+        return _cim_xml.QUALIFIER_DECLARATION(
+            self.name,
+            self.type,
+            value_xml,
+            is_array=self.is_array,
+            array_size=self.array_size,
+            qualifier_scopes=self.scopes,
+            overridable=self.overridable,
+            tosubclass=self.tosubclass,
+            toinstance=self.toinstance,
+            translatable=self.translatable)
 
     def tocimxmlstr(self, indent=None):
         """
@@ -7764,12 +7766,12 @@ def tocimxml(value):
         for v in value:
             if v is None:
                 if SEND_VALUE_NULL:
-                    array_xml.append(cim_xml.VALUE_NULL())
+                    array_xml.append(_cim_xml.VALUE_NULL())
                 else:
-                    array_xml.append(cim_xml.VALUE(None))
+                    array_xml.append(_cim_xml.VALUE(None))
             else:
-                array_xml.append(cim_xml.VALUE(atomic_to_cim_xml(v)))
-        value_xml = cim_xml.VALUE_ARRAY(array_xml)
+                array_xml.append(_cim_xml.VALUE(atomic_to_cim_xml(v)))
+        value_xml = _cim_xml.VALUE_ARRAY(array_xml)
         return value_xml
 
     if hasattr(value, 'tocimxml'):
@@ -7780,7 +7782,7 @@ def tocimxml(value):
                       "deprecated.",
                       DeprecationWarning, stacklevel=2)
 
-    return cim_xml.VALUE(atomic_to_cim_xml(value))
+    return _cim_xml.VALUE(atomic_to_cim_xml(value))
 
 
 def tocimxmlstr(value, indent=None):

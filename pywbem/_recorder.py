@@ -35,11 +35,11 @@ import yaml
 from yaml.representer import RepresenterError
 
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration
-from .cim_types import CIMInt, CIMFloat, CIMDateTime
-from .exceptions import CIMError
+from ._cim_types import CIMInt, CIMFloat, CIMDateTime
+from ._exceptions import CIMError
 from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 from ._utils import _ensure_unicode, _format
 
