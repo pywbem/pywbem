@@ -50,8 +50,8 @@ import six
 from six.moves import http_client as httplib
 from six.moves import urllib
 
-from .cim_obj import CIMClassName, CIMInstanceName
-from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
+from ._cim_obj import CIMClassName, CIMInstanceName
+from ._exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
 from ._warnings import ToleratedServerIssueWarning
 from ._utils import _ensure_unicode, _ensure_bytes, _format
 

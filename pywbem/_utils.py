@@ -131,7 +131,7 @@ def _hash_dict(dict_):
 def _stacklevel_above_module(mod_name):
     """
     Return the stack level (with 1 = caller of this function) of the first
-    caller that is not defined in the specified module (e.g. "pywbem.cim_obj").
+    caller that is not defined in the specified module (e.g. "pywbem._cim_obj").
 
     The returned stack level can be used directly by the caller of this
     function as an argument for the stacklevel parameter of warnings.warn().

@@ -137,14 +137,14 @@ from six.moves import BaseHTTPServer
 from six.moves import socketserver
 from six.moves import http_client
 
-from . import cim_xml
+from . import _cim_xml
 from ._version import __version__
-from .cim_obj import CIMInstance
-from .cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
+from ._cim_obj import CIMInstance
+from ._cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
     _statuscode2name
-from .tupleparse import TupleParser
-from .tupletree import xml_to_tupletree_sax
-from .exceptions import CIMXMLParseError, XMLParseError, VersionError
+from ._tupleparse import TupleParser
+from ._tupletree import xml_to_tupletree_sax
+from ._exceptions import CIMXMLParseError, XMLParseError, VersionError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -430,12 +430,12 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """Send a CIM-XML response message back to the WBEM server that
         indicates error."""
 
-        resp_xml = cim_xml.CIM(
-            cim_xml.MESSAGE(
-                cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE(
+        resp_xml = _cim_xml.CIM(
+            _cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPRSP(
+                    _cim_xml.EXPMETHODRESPONSE(
                         methodname,
-                        cim_xml.ERROR(
+                        _cim_xml.ERROR(
                             str(status_code),
                             status_desc,
                             error_insts),
@@ -466,10 +466,10 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """Send a CIM-XML response message back to the WBEM server that
         indicates success."""
 
-        resp_xml = cim_xml.CIM(
-            cim_xml.MESSAGE(
-                cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE(
+        resp_xml = _cim_xml.CIM(
+            _cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPRSP(
+                    _cim_xml.EXPMETHODRESPONSE(
                         methodname),
                     ),  # noqa: E123
                 msgid, IMPLEMENTED_PROTOCOL_VERSION),

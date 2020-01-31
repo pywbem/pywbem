@@ -41,15 +41,15 @@ import logging
 from . import config  # noqa: F401
 
 from ._utils import *  # noqa: F403,F401
-from .cim_types import *  # noqa: F403,F401
-from .cim_constants import *  # noqa: F403,F401
-from .cim_operations import *  # noqa: F403,F401
+from ._cim_types import *  # noqa: F403,F401
+from ._cim_constants import *  # noqa: F403,F401
+from ._cim_operations import *  # noqa: F403,F401
 from ._nocasedict import *  # noqa: F403,F401
-from .cim_obj import *  # noqa: F403,F401
-from .tupleparse import *  # noqa: F403,F401
-from .cim_http import *  # noqa: F403,F401
-from .exceptions import *  # noqa: F403,F401
-from .mof_compiler import *  # noqa: F403,F401
+from ._cim_obj import *  # noqa: F403,F401
+from ._tupleparse import *  # noqa: F403,F401
+from ._cim_http import *  # noqa: F403,F401
+from ._exceptions import *  # noqa: F403,F401
+from ._mof_compiler import *  # noqa: F403,F401
 from ._valuemapping import *  # noqa: F403,F401
 from ._server import *  # noqa: F403,F401
 from ._subscription_manager import *  # noqa: F403,F401
@@ -60,6 +60,28 @@ from ._logging import *  # noqa: F403,F401
 from ._warnings import *  # noqa: F403,F401 pylint: disable=redefined-builtin
 
 from ._version import __version__  # noqa: F401
+
+# Establish compatibility with old module names:
+from . import _cim_types as cim_types  # noqa: F401
+from . import _cim_constants as cim_constants  # noqa: F401
+from . import _cim_operations as cim_operations  # noqa: F401
+from . import _cim_obj as cim_obj  # noqa: F401
+from . import _tupleparse as tupleparse  # noqa: F401
+from . import _cim_http as cim_http  # noqa: F401
+from . import _exceptions as exceptions  # noqa: F401
+from . import _mof_compiler as mof_compiler  # noqa: F401
+from . import _cim_xml as cim_xml  # noqa: F401
+from . import _tupletree as tupletree  # noqa: F401
+sys.modules['pywbem.cim_types'] = cim_types
+sys.modules['pywbem.cim_constants'] = cim_constants
+sys.modules['pywbem.cim_operations'] = cim_operations
+sys.modules['pywbem.cim_obj'] = cim_obj
+sys.modules['pywbem.tupleparse'] = tupleparse
+sys.modules['pywbem.cim_http'] = cim_http
+sys.modules['pywbem.exceptions'] = exceptions
+sys.modules['pywbem.mof_compiler'] = mof_compiler
+sys.modules['pywbem.cim_xml'] = cim_xml
+sys.modules['pywbem.tupletree'] = tupletree
 
 _python_m = sys.version_info[0]  # pylint: disable=invalid-name
 _python_n = sys.version_info[1]  # pylint: disable=invalid-name
