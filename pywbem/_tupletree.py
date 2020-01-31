@@ -20,7 +20,7 @@
 #
 
 """
-tupletree - Convert XML DOM objects to and from tuple trees.
+_tupletree - Convert XML DOM objects to and from tuple trees.
 
 DOM is the standard in-memory representation of XML documents, but it
 is very cumbersome for some types of processing where XML encodes
@@ -60,7 +60,7 @@ import re
 import sys
 import six
 
-from .exceptions import XMLParseError
+from ._exceptions import XMLParseError
 from ._utils import _format, _ensure_bytes
 
 __all__ = []

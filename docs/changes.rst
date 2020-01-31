@@ -158,6 +158,18 @@ Released: not yet
   incompatible change for users that handle exceptions specifically.
   (See issue 2110)
 
+* Made all sub-namespaces within the pywbem namespace private, except for
+  pywbem.config. Specifically, renamed the following modules by prepending
+  an underscore character: cim_constants.py, cim_http.py, cim_obj.py,
+  cim_operations.py, cim_types.py, cim_xml.py, exceptions.py, mof_compiler.py,
+  moflextab.py, mofparsetab.py, tupleparse.py, tupletree.py.
+
+  This change is compatible for users that followed the recommendation
+  to import only the symbols from the pywbem namespace. Users that imported
+  symbols from these sub-namespace should now import them from the pywbem
+  namespace. If you miss a symbol in the pywbem namespace, it was likely a
+  symbol that is not part of the public pywbem API. (See issue #1925)
+
 **Deprecations:**
 
 **Bug fixes:**

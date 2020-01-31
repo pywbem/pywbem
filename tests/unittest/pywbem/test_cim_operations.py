@@ -2,7 +2,7 @@
 #
 
 """
-Unittest functions in cim_operations.
+Unittest functions in _cim_operations.
 """
 
 from __future__ import print_function, absolute_import
@@ -21,7 +21,7 @@ pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, CIMError
 from pywbem._recorder import LogOperationRecorder
 from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
-from pywbem.cim_operations import is_subclass
+from pywbem._cim_operations import is_subclass
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name

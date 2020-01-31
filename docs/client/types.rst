@@ -4,7 +4,7 @@
 CIM data types
 --------------
 
-.. automodule:: pywbem.cim_types
+.. automodule:: pywbem._cim_types
 
 .. autoclass:: pywbem.CIMType
    :members:

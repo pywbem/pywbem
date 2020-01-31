@@ -14,7 +14,7 @@ from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import CIMClass, CIMProperty, CIMMethod, CIMParameter, \
     CIMQualifier, WBEMServer, WBEMConnection, ValueMapping, ModelError
-from pywbem.cim_types import type_from_name
+from pywbem._cim_types import type_from_name
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

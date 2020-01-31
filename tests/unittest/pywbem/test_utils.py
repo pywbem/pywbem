@@ -21,7 +21,7 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem._utils import _ascii2, _format, _integerValue_to_int
-from pywbem.cim_obj import NocaseDict
+from pywbem._cim_obj import NocaseDict
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

@@ -41,15 +41,15 @@ import logging
 from . import config  # noqa: F401
 
 from ._utils import *  # noqa: F403,F401
-from .cim_types import *  # noqa: F403,F401
-from .cim_constants import *  # noqa: F403,F401
-from .cim_operations import *  # noqa: F403,F401
+from ._cim_types import *  # noqa: F403,F401
+from ._cim_constants import *  # noqa: F403,F401
+from ._cim_operations import *  # noqa: F403,F401
 from ._nocasedict import *  # noqa: F403,F401
-from .cim_obj import *  # noqa: F403,F401
-from .tupleparse import *  # noqa: F403,F401
-from .cim_http import *  # noqa: F403,F401
-from .exceptions import *  # noqa: F403,F401
-from .mof_compiler import *  # noqa: F403,F401
+from ._cim_obj import *  # noqa: F403,F401
+from ._tupleparse import *  # noqa: F403,F401
+from ._cim_http import *  # noqa: F403,F401
+from ._exceptions import *  # noqa: F403,F401
+from ._mof_compiler import *  # noqa: F403,F401
 from ._valuemapping import *  # noqa: F403,F401
 from ._server import *  # noqa: F403,F401
 from ._subscription_manager import *  # noqa: F403,F401

@@ -84,16 +84,16 @@ import six
 from ply import yacc, lex
 
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
+from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
     CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
     cimvalue
-from .cim_operations import WBEMConnection
+from ._cim_operations import WBEMConnection
 from ._server import WBEMServer
-from .cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
+from ._cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
-from .exceptions import Error, CIMError
+from ._exceptions import Error, CIMError
 from ._utils import _format
 
 __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
@@ -106,8 +106,8 @@ __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
 # pylint: disable=invalid-name
 
 _optimize = 1
-_tabmodule = 'mofparsetab'
-_lextab = 'moflextab'
+_tabmodule = '_mofparsetab'
+_lextab = '_moflextab'
 
 # Directory for _tabmodule and _lextab
 _tabdir = os.path.dirname(os.path.abspath(__file__))
@@ -2794,7 +2794,7 @@ def _yacc(verbose=False, out_dir=None):
       verbose (bool): Print messages while creating the parser object.
 
       out_dir (string): Path name of the directory in which the YACC table
-        module source file (mofparsetab.py) for the MOF compiler will be
+        module source file (_mofparsetab.py) for the MOF compiler will be
         generated. If None, that file will not be generated.
 
     Returns:
@@ -2831,7 +2831,7 @@ def _lex(verbose=False, out_dir=None):
       verbose (bool): Print messages while creating the parser object.
 
       out_dir (string): Path name of the directory in which the LEX table
-        module source file (moflextab.py) for the MOF compiler will be
+        module source file (_moflextab.py) for the MOF compiler will be
         generated. If None, that file will not be generated.
 
     Returns:

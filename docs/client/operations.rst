@@ -4,7 +4,7 @@
 WBEM operations
 ---------------
 
-.. automodule:: pywbem.cim_operations
+.. automodule:: pywbem._cim_operations
 
 WBEMConnection
 ^^^^^^^^^^^^^^

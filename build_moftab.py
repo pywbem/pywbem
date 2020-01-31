@@ -30,15 +30,15 @@ def main():
 
     # We want to build the table modules in the target install directory.
     #
-    # The mof_compiler._build() function builds them in the directory where
-    # the mof_compiler module was imported from.
+    # The _mof_compiler._build() function builds them in the directory where
+    # the _mof_compiler module was imported from.
     #
     # This script runs in the directory where the distribution archive has
     # been unpacked to (or during development in the git repo work directory),
     # where the pywbem package is directly available as a subdirectory.
     #
     # Therefore, we need to remove the directory of this script from the Python
-    # module search path before importing the mof_compiler module, in order to
+    # module search path before importing the _mof_compiler module, in order to
     # import it from the target install directory.
     if VERBOSE:
         print("%s: Ensuring to build in pywbem install directory" % myname)
@@ -67,9 +67,9 @@ def main():
         env_info()
         return 1
 
-    from pywbem import mof_compiler
+    from pywbem import _mof_compiler
     try:
-        mof_compiler._build(verbose=True)
+        _mof_compiler._build(verbose=True)
     except Exception as exc:
         print("%s: Error: Rebuilding the pywbem LEX/YACC table modules " \
               "failed: %s" % (myname, exc))

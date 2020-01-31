@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Test exceptions module.
+Test _exceptions module.
 """
 
 from __future__ import absolute_import, print_function

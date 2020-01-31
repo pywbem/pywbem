@@ -42,10 +42,10 @@ from six.moves import urllib
 import requests
 from requests.packages import urllib3
 
-from .cim_obj import CIMClassName, CIMInstanceName
-from .cim_constants import DEFAULT_URL_SCHEME, DEFAULT_URL_PORT_HTTP, \
+from ._cim_obj import CIMClassName, CIMInstanceName
+from ._cim_constants import DEFAULT_URL_SCHEME, DEFAULT_URL_PORT_HTTP, \
     DEFAULT_URL_PORT_HTTPS
-from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError, \
+from ._exceptions import ConnectionError, AuthError, TimeoutError, HTTPError, \
     HeaderParseError
 from ._utils import _ensure_unicode, _ensure_bytes, _format
 

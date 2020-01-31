@@ -55,7 +55,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_INVALID_SUPERCLASS
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
-from pywbem.cim_operations import pull_path_result_tuple
+from pywbem._cim_operations import pull_path_result_tuple
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name

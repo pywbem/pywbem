@@ -173,11 +173,11 @@ package_py_files := \
     $(wildcard $(package_name)/*/*.py) \
 
 # Lex/Yacc table files, generated from and by mof_compiler.py
-moftab_files := $(package_name)/mofparsetab.py $(package_name)/moflextab.py
+moftab_files := $(package_name)/_mofparsetab.py $(package_name)/_moflextab.py
 
 # Dependents for Lex/Yacc table files
 moftab_dependent_files := \
-    $(package_name)/mof_compiler.py \
+    $(package_name)/_mof_compiler.py \
 
 # Directory for generated API documentation
 doc_build_dir := build_doc
@@ -213,14 +213,14 @@ doc_dependent_files := \
     $(package_name)/_valuemapping.py \
     $(package_name)/_version.py \
     $(package_name)/_nocasedict.py \
-    $(package_name)/cim_constants.py \
-    $(package_name)/cim_http.py \
-    $(package_name)/cim_obj.py \
-    $(package_name)/cim_operations.py \
-    $(package_name)/cim_types.py \
+    $(package_name)/_cim_constants.py \
+    $(package_name)/_cim_http.py \
+    $(package_name)/_cim_obj.py \
+    $(package_name)/_cim_operations.py \
+    $(package_name)/_cim_types.py \
+    $(package_name)/_exceptions.py \
+    $(package_name)/_mof_compiler.py \
     $(package_name)/config.py \
-    $(package_name)/exceptions.py \
-    $(package_name)/mof_compiler.py \
     $(mock_package_name)/__init__.py \
     $(mock_package_name)/_wbemconnection_mock.py\
     $(mock_package_name)/_dmtf_cim_schema.py\
@@ -485,6 +485,7 @@ clean:
 	-$(call RM_R_FUNC,.*~)
 	-$(call RMDIR_R_FUNC,__pycache__)
 	-$(call RM_FUNC,MANIFEST parser.out .coverage $(package_name)/parser.out)
+	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
 	-$(call RMDIR_FUNC,build .cache $(package_name).egg-info .eggs)
 	@echo "makefile: Done removing temporary build products"
 	@echo "makefile: Target $@ done."
@@ -606,8 +607,8 @@ $(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependen
 # purpose of this rule is to build the mof*tab files in ./pywbem.
 $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 	@echo "makefile: Creating the LEX/YACC table modules"
-	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
-	$(PYTHON_CMD) -c "from pywbem import mof_compiler; mof_compiler._build(verbose=True)"
+	-$(call RM_FUNC,$(package_name)/_mofparsetab.py* $(package_name)/_moflextab.py*)
+	$(PYTHON_CMD) -c "from pywbem import _mof_compiler; _mof_compiler._build(verbose=True)"
 	@echo "makefile: Done creating the LEX/YACC table modules: $(moftab_files)"
 
 # TODO: Once pylint has no more errors, remove the dash "-"
@@ -670,7 +671,7 @@ end2end: develop_$(pymn).done $(moftab_files)
 	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) tests/end2endtest -s
 	@echo "makefile: Done running end2end tests"
 
-$(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/mof_compiler.py
+$(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/_mof_compiler.py
 	@echo "makefile: Creating mof_compiler script help message file"
 ifeq ($(PLATFORM),Windows_native)
 	mof_compiler.bat --help >$@

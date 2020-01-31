@@ -4,7 +4,7 @@
 MOF compiler API
 ================
 
-.. automodule:: pywbem.mof_compiler
+.. automodule:: pywbem._mof_compiler
 
 .. _`MOFCompiler Class`:
 

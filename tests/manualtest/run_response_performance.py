@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test cases for tupletree module and Unicode/XML check functions.
+Test cases for _tupletree module and Unicode/XML check functions.
 """
 
 from __future__ import absolute_import, print_function
@@ -20,15 +20,15 @@ import six
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import tupletree, __version__
+from pywbem import _tupletree, __version__
 from pywbem._cliutils import SmartFormatter as _SmartFormatter
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # In pywbem 0.13, parse_cim() changed from a function to a method:
 try:
-    from pywbem.tupleparse import parse_cim
+    from pywbem._tupleparse import parse_cim
 except ImportError:
-    from pywbem.tupleparse import TupleParser
+    from pywbem._tupleparse import TupleParser
 
     def parse_cim(tt):
         """Compatible parse_cim() function"""
@@ -216,7 +216,7 @@ def execute_test_code(xml_string, profiler):
             profiler.start()
 
     # The code to be tested
-    tt = tupletree.xml_to_tupletree_sax(xml_string, "TestData")
+    tt = _tupletree.xml_to_tupletree_sax(xml_string, "TestData")
 
     parse_cim(tt)
 
@@ -484,7 +484,7 @@ execution time.
 It creates XML for an EnumerateInstances response with the number of
 instances (response-count) and the approximate XML size of each instance
 (response-size) defined by the input arguments.  It then executes the parsing
-sequence (tupletree, tupleparse) against this xml,records the execution time.
+sequence (_tupletree, _tupleparse) against this xml,records the execution time.
 
 The input arguments for response count and response size may each specify
 multiple values (ex --response-count 100 100 1000). In this case tests are

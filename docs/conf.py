@@ -24,7 +24,7 @@ from docutils.parsers.rst import directives
 from sphinx.util.inspect import safe_getattr
 from sphinx.util import logging
 
-from pywbem.cim_constants import DEFAULT_NAMESPACE
+from pywbem._cim_constants import DEFAULT_NAMESPACE
 
 
 def get_version(version_file):

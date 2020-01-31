@@ -29,8 +29,8 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, tocimobj, \
     MinutesFromUTC, __version__
 from pywbem._nocasedict import NocaseDict
-from pywbem.cim_types import _Longint
-from pywbem.cim_obj import mofstr
+from pywbem._cim_types import _Longint
+from pywbem._cim_obj import mofstr
 from pywbem._utils import _format
 try:
     from pywbem import cimvalue

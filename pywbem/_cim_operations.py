@@ -144,17 +144,17 @@ import requests
 from requests.packages import urllib3
 import six
 
-from . import cim_xml
+from . import _cim_xml
 from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
-from .cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED
-from .cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
+from ._cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED
+from ._cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMQualifierDeclaration, tocimxml, cimvalue
-from .cim_http import get_cimobject_header, wbem_request, parse_url
-from .tupleparse import TupleParser
-from .tupletree import xml_to_tupletree_sax
-from .exceptions import CIMXMLParseError, XMLParseError, CIMError
+from ._cim_http import get_cimobject_header, wbem_request, parse_url
+from ._tupleparse import TupleParser
+from ._tupletree import xml_to_tupletree_sax
+from ._exceptions import CIMXMLParseError, XMLParseError, CIMError
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
 from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
@@ -1809,18 +1809,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Create parameter list
 
-        plist = [cim_xml.IPARAMVALUE(x[0], tocimxml(x[1]))
+        plist = [_cim_xml.IPARAMVALUE(x[0], tocimxml(x[1]))
                  for x in params.items() if x[1] is not None]
 
         # Build XML request
 
-        req_xml = cim_xml.CIM(
-            cim_xml.MESSAGE(
-                cim_xml.SIMPLEREQ(
-                    cim_xml.IMETHODCALL(
+        req_xml = _cim_xml.CIM(
+            _cim_xml.MESSAGE(
+                _cim_xml.SIMPLEREQ(
+                    _cim_xml.IMETHODCALL(
                         methodname,
-                        cim_xml.LOCALNAMESPACEPATH(
-                            [cim_xml.NAMESPACE(ns)
+                        _cim_xml.LOCALNAMESPACEPATH(
+                            [_cim_xml.NAMESPACE(ns)
                              for ns in namespace.split('/')]),
                         plist)),
                 '1001', '1.0'),
@@ -2070,24 +2070,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         def paramvalue(obj):
             """
-            Return a cim_xml node to be used as the value for a parameter.
+            Return a _cim_xml node to be used as the value for a parameter.
             """
             if isinstance(obj, (datetime, timedelta)):
                 obj = CIMDateTime(obj)
             if isinstance(obj, (CIMType, bool, six.string_types)):
                 # This includes CIMDateTime (subclass of CIMType)
-                return cim_xml.VALUE(atomic_to_cim_xml(obj))
+                return _cim_xml.VALUE(atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
-                return cim_xml.VALUE_REFERENCE(obj.tocimxml())
+                return _cim_xml.VALUE_REFERENCE(obj.tocimxml())
             if isinstance(obj, CIMInstance):
-                return cim_xml.VALUE(obj.tocimxml(ignore_path=True).toxml())
+                return _cim_xml.VALUE(obj.tocimxml(ignore_path=True).toxml())
             if isinstance(obj, CIMClass):
                 # CIMClass.tocimxml() always ignores path
-                return cim_xml.VALUE(obj.tocimxml().toxml())
+                return _cim_xml.VALUE(obj.tocimxml().toxml())
             if isinstance(obj, list):
                 if obj and isinstance(obj[0], (CIMClassName, CIMInstanceName)):
-                    return cim_xml.VALUE_REFARRAY([paramvalue(x) for x in obj])
-                return cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
+                    return _cim_xml.VALUE_REFARRAY([paramvalue(x) for x in obj])
+                return _cim_xml.VALUE_ARRAY([paramvalue(x) for x in obj])
             # The type has been checked in infer_type(), so we can assert
             assert obj is None
 
@@ -2118,15 +2118,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             ptuple = (n, v, infer_type(v, n), infer_embedded_object(v))
             ptuples.append(ptuple)
 
-        plist = [cim_xml.PARAMVALUE(n, paramvalue(v), t, embedded_object=eo)
+        plist = [_cim_xml.PARAMVALUE(n, paramvalue(v), t, embedded_object=eo)
                  for n, v, t, eo in ptuples]
 
         # Build XML request
 
-        req_xml = cim_xml.CIM(
-            cim_xml.MESSAGE(
-                cim_xml.SIMPLEREQ(
-                    cim_xml.METHODCALL(
+        req_xml = _cim_xml.CIM(
+            _cim_xml.MESSAGE(
+                _cim_xml.SIMPLEREQ(
+                    _cim_xml.METHODCALL(
                         methodname,
                         localobject.tocimxml(),
                         plist)),

@@ -33,7 +33,7 @@ DTD:
   https://www.dmtf.org/standards/wbem/CIM_DTD_V22.dtd
 
 There should be one class for each element described in the DTD.  Their
-init methods take builtin Python types, or other cim_xml classes where
+init methods take builtin Python types, or other _cim_xml classes where
 child elements are required.
 
 Every class is a subclass of the Element class and so shares the same
@@ -105,7 +105,7 @@ def _pcdata_nodes(pcdata):
     For example, if the pcdata string is ``a&amp;b``, the XML-escaped string
     will be ``a&amp;amp;b``.
 
-    If the ``cim_xml._CDATA_ESCAPING`` switch is set to True, CDATA-based
+    If the ``_cim_xml._CDATA_ESCAPING`` switch is set to True, CDATA-based
     escaping is used instead. CDATA-based escaping will cause a CDATA section
     to be used for the entire string, or consecutive CDATA sequences (see
     discussion of nesting, below). The returned node list contains only CDATA

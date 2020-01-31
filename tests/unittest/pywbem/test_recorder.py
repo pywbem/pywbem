@@ -39,7 +39,8 @@ from pywbem import CIMInstanceName, CIMInstance, \
     HTTPError, WBEMConnection, LogOperationRecorder, configure_logger
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
-from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
+from pywbem._cim_operations import pull_path_result_tuple, \
+    pull_inst_result_tuple
 from pywbem._utils import _format
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
@@ -304,7 +305,7 @@ class ToYaml(ClientRecorderTests):
 
 class ClientOperationStageTests(ClientRecorderTests):
     """
-    Test staging for different cim_operations.  This defines fixed
+    Test staging for different _cim_operations.  This defines fixed
     parameters for the before and after staging, stages (which creates
     a yaml file), and then inspects that file to determine if valid
     yaml was created
@@ -554,7 +555,7 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
 
 class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
     """
-    Test staging for different cim_operations.  This defines fixed
+    Test staging for different _cim_operations.  This defines fixed
     parameters for the before and after staging, stages (which creates
     a yaml file), and then inspects that file to determine if valid
     yaml was created

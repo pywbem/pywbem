@@ -4,5 +4,5 @@
 CIM status codes
 ----------------
 
-.. automodule:: pywbem.cim_constants
+.. automodule:: pywbem._cim_constants
    :members:

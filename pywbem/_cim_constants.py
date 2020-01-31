@@ -26,7 +26,7 @@ This section defines constants for two areas:
 * Other constants.
 
 Note: For tooling reasons, the constants are shown in the namespace
-``pywbem.cim_constants``. However, they are also available in the ``pywbem``
+``pywbem._cim_constants``. However, they are also available in the ``pywbem``
 namespace and should be used from there.
 """
 

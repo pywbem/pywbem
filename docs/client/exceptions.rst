@@ -4,7 +4,7 @@
 Exceptions
 ----------
 
-.. automodule:: pywbem.exceptions
+.. automodule:: pywbem._exceptions
 
 .. autoclass:: pywbem.ConnectionError
    :members:

@@ -97,15 +97,15 @@ Example output:
 import re
 import warnings
 
-from .cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
+from ._cim_constants import CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NAMESPACE_NOT_EMPTY
-from .exceptions import CIMError, CIMXMLParseError, XMLParseError, ModelError
+from ._exceptions import CIMError, CIMXMLParseError, XMLParseError, ModelError
 from ._warnings import ToleratedServerIssueWarning
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstanceName, CIMInstance
-from .cim_operations import WBEMConnection
+from ._cim_obj import CIMInstanceName, CIMInstance
+from ._cim_operations import WBEMConnection
 from ._valuemapping import ValueMapping
 from ._utils import _ensure_unicode, _format
 
