@@ -20,7 +20,7 @@ the WBEM client library.
 """
 
 import six
-from .exceptions import Error
+from ._exceptions import Error
 
 # This module is meant to be safe for 'import *'.
 

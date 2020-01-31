@@ -1,5 +1,5 @@
 """
-Unit test cases for cim_http.py
+Unit test cases for _cim_http.py
 """
 
 from __future__ import absolute_import
@@ -14,11 +14,11 @@ from ..utils.pytest_extensions import simplified_test_function
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import cim_http
+from pywbem import _cim_http
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
-# These defaults are defined separately from those in cim_constants.py to
+# These defaults are defined separately from those in _cim_constants.py to
 # ensure that changes of the defaults are caught.
 DEFAULT_PORT_HTTP = 5988
 DEFAULT_PORT_HTTPS = 5989
@@ -27,7 +27,7 @@ DEFAULT_SCHEME = 'http'
 
 TESTCASES_PARSE_URL = [
 
-    # Testcases for cim_http.parse_url()
+    # Testcases for _cim_http.parse_url()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -602,11 +602,11 @@ TESTCASES_PARSE_URL = [
 def test_parse_url(
         testcase, func_kwargs, exp_scheme, exp_hostport, exp_url):
     """
-    Test function for cim_http.parse_url()
+    Test function for _cim_http.parse_url()
     """
 
     # The code to be tested
-    act_scheme, act_hostport, act_url = cim_http.parse_url(**func_kwargs)
+    act_scheme, act_hostport, act_url = _cim_http.parse_url(**func_kwargs)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -625,7 +625,7 @@ DUMMY_POOL = urllib3.connectionpool.HTTPConnectionPool('dummy')
 
 TESTCASES_REQUEST_EXC_MESSAGE = [
 
-    # Testcases for cim_http.request_exc_message()
+    # Testcases for _cim_http.request_exc_message()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -743,11 +743,11 @@ TESTCASES_REQUEST_EXC_MESSAGE = [
 @simplified_test_function
 def test_request_exc_message(testcase, func_kwargs, exp_pattern):
     """
-    Test function for cim_http.request_exc_message()
+    Test function for _cim_http.request_exc_message()
     """
 
     # The code to be tested
-    act_message = cim_http.request_exc_message(**func_kwargs)
+    act_message = _cim_http.request_exc_message(**func_kwargs)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -757,13 +757,13 @@ def test_request_exc_message(testcase, func_kwargs, exp_pattern):
     assert re.search(exp_pattern, act_message)
 
 
-# TODO: Add unit tests for cim_http.wbem_request(). It is already tested to
+# TODO: Add unit tests for _cim_http.wbem_request(). It is already tested to
 # some extent in the function tests, but adding unit tests would still be good.
 
 
 TESTCASES_MAX_REPR = [
 
-    # Testcases for cim_http.max_repr()
+    # Testcases for _cim_http.max_repr()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -838,11 +838,11 @@ TESTCASES_MAX_REPR = [
 @simplified_test_function
 def test_max_repr(testcase, func_kwargs, exp_repr):
     """
-    Test function for cim_http.max_repr()
+    Test function for _cim_http.max_repr()
     """
 
     # The code to be tested
-    act_repr = cim_http.max_repr(**func_kwargs)
+    act_repr = _cim_http.max_repr(**func_kwargs)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -854,7 +854,7 @@ def test_max_repr(testcase, func_kwargs, exp_repr):
 
 TESTCASES_GET_CIMOBJECT_HEADER = [
 
-    # Testcases for cim_http.get_cimobject_header()
+    # Testcases for _cim_http.get_cimobject_header()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -949,11 +949,11 @@ TESTCASES_GET_CIMOBJECT_HEADER = [
 @simplified_test_function
 def test_get_cimobject_header(testcase, obj, exp_result):
     """
-    Test function for cim_http.get_cimobject_header()
+    Test function for _cim_http.get_cimobject_header()
     """
 
     # The code to be tested
-    act_result = cim_http.get_cimobject_header(obj)
+    act_result = _cim_http.get_cimobject_header(obj)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions

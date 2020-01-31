@@ -1,5 +1,5 @@
 """
-Unit tests for pywbem cim_xml.py module.
+Unit tests for pywbem _cim_xml.py module.
 """
 
 from __future__ import absolute_import
@@ -18,7 +18,7 @@ from ..utils.pytest_extensions import simplified_test_function
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import cim_xml
+from pywbem import _cim_xml
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -46,9 +46,9 @@ def iter_flattened(lst):
 
 def simple_HOST_node(name='leonardo'):
     """
-    Return a simple HOST as a cim_xml node.
+    Return a simple HOST as a _cim_xml node.
     """
-    return cim_xml.HOST(name)
+    return _cim_xml.HOST(name)
 
 
 def simple_HOST_str(name='leonardo'):
@@ -62,9 +62,9 @@ def simple_HOST_str(name='leonardo'):
 
 def simple_NAMESPACE_node(name='myns'):
     """
-    Return a simple NAMESPACE as a cim_xml node.
+    Return a simple NAMESPACE as a _cim_xml node.
     """
-    return cim_xml.NAMESPACE(name)
+    return _cim_xml.NAMESPACE(name)
 
 
 def simple_NAMESPACE_str(name='myns'):
@@ -78,9 +78,9 @@ def simple_NAMESPACE_str(name='myns'):
 
 def simple_LOCALNAMESPACEPATH_node():
     """
-    Return a simple LOCALNAMESPACEPATH as a cim_xml node.
+    Return a simple LOCALNAMESPACEPATH as a _cim_xml node.
     """
-    return cim_xml.LOCALNAMESPACEPATH(
+    return _cim_xml.LOCALNAMESPACEPATH(
         [
             simple_NAMESPACE_node('root'),
             simple_NAMESPACE_node('cimv2'),
@@ -102,9 +102,9 @@ def simple_LOCALNAMESPACEPATH_str():
 
 def simple_NAMESPACEPATH_node():
     """
-    Return a simple NAMESPACEPATH as a cim_xml node.
+    Return a simple NAMESPACEPATH as a _cim_xml node.
     """
-    return cim_xml.NAMESPACEPATH(
+    return _cim_xml.NAMESPACEPATH(
         simple_HOST_node(),
         simple_LOCALNAMESPACEPATH_node(),
     )
@@ -124,9 +124,9 @@ def simple_NAMESPACEPATH_str():
 
 def simple_CLASSNAME_node(name='MyClass'):
     """
-    Return a simple CLASSNAME as a cim_xml node.
+    Return a simple CLASSNAME as a _cim_xml node.
     """
-    return cim_xml.CLASSNAME(name)
+    return _cim_xml.CLASSNAME(name)
 
 
 def simple_CLASSNAME_str(name='MyClass'):
@@ -140,9 +140,9 @@ def simple_CLASSNAME_str(name='MyClass'):
 
 def simple_LOCALCLASSPATH_node(name='MyClass'):
     """
-    Return a simple LOCALCLASSPATH as a cim_xml node.
+    Return a simple LOCALCLASSPATH as a _cim_xml node.
     """
-    return cim_xml.LOCALCLASSPATH(
+    return _cim_xml.LOCALCLASSPATH(
         simple_LOCALNAMESPACEPATH_node(),
         simple_CLASSNAME_node(name),
     )
@@ -162,9 +162,9 @@ def simple_LOCALCLASSPATH_str(name='MyClass'):
 
 def simple_CLASSPATH_node(name='MyClass'):
     """
-    Return a simple CLASSPATH as a cim_xml node.
+    Return a simple CLASSPATH as a _cim_xml node.
     """
-    return cim_xml.CLASSPATH(
+    return _cim_xml.CLASSPATH(
         simple_NAMESPACEPATH_node(),
         simple_CLASSNAME_node(name),
     )
@@ -184,18 +184,18 @@ def simple_CLASSPATH_str(name='MyClass'):
 
 def simple_INSTANCENAME_node(name='MyClass'):
     """
-    Return a simple INSTANCENAME as a cim_xml node.
+    Return a simple INSTANCENAME as a _cim_xml node.
     """
-    return cim_xml.INSTANCENAME(
+    return _cim_xml.INSTANCENAME(
         name,
         [
-            cim_xml.KEYBINDING(
+            _cim_xml.KEYBINDING(
                 'type',
-                cim_xml.KEYVALUE('dog', 'string')
+                _cim_xml.KEYVALUE('dog', 'string')
             ),
-            cim_xml.KEYBINDING(
+            _cim_xml.KEYBINDING(
                 'age',
-                cim_xml.KEYVALUE('2', 'numeric')
+                _cim_xml.KEYVALUE('2', 'numeric')
             ),
         ],
     )
@@ -219,9 +219,9 @@ def simple_INSTANCENAME_str(name='MyClass'):
 
 def simple_OBJECTPATH_node(name='MyClass'):
     """
-    Return a simple OBJECTPATH as a cim_xml node.
+    Return a simple OBJECTPATH as a _cim_xml node.
     """
-    return cim_xml.OBJECTPATH(
+    return _cim_xml.OBJECTPATH(
         simple_INSTANCEPATH_node(name),
     )
 
@@ -239,9 +239,9 @@ def simple_OBJECTPATH_str(name='MyClass'):
 
 def simple_LOCALINSTANCEPATH_node(name='MyClass'):
     """
-    Return a simple LOCALINSTANCEPATH as a cim_xml node.
+    Return a simple LOCALINSTANCEPATH as a _cim_xml node.
     """
-    return cim_xml.LOCALINSTANCEPATH(
+    return _cim_xml.LOCALINSTANCEPATH(
         simple_LOCALNAMESPACEPATH_node(),
         simple_INSTANCENAME_node(name),
     )
@@ -261,9 +261,9 @@ def simple_LOCALINSTANCEPATH_str(name='MyClass'):
 
 def simple_INSTANCEPATH_node(name='MyClass'):
     """
-    Return a simple INSTANCEPATH as a cim_xml node.
+    Return a simple INSTANCEPATH as a _cim_xml node.
     """
-    return cim_xml.INSTANCEPATH(
+    return _cim_xml.INSTANCEPATH(
         simple_NAMESPACEPATH_node(),
         simple_INSTANCENAME_node(name),
     )
@@ -283,9 +283,9 @@ def simple_INSTANCEPATH_str(name='MyClass'):
 
 def simple_VALUE_OBJECT_node(name='MyClass'):
     """
-    Return a simple VALUE.OBJECT with a CLASS as a cim_xml node.
+    Return a simple VALUE.OBJECT with a CLASS as a _cim_xml node.
     """
-    return cim_xml.VALUE_OBJECT(
+    return _cim_xml.VALUE_OBJECT(
         simple_CLASS_node(name),
     )
 
@@ -303,9 +303,9 @@ def simple_VALUE_OBJECT_str(name='MyClass'):
 
 def simple_VALUE_NAMEDINSTANCE_node(name='MyClass'):
     """
-    Return a simple VALUE.NAMEDINSTANCE as a cim_xml node.
+    Return a simple VALUE.NAMEDINSTANCE as a _cim_xml node.
     """
-    return cim_xml.VALUE_NAMEDINSTANCE(
+    return _cim_xml.VALUE_NAMEDINSTANCE(
         simple_INSTANCENAME_node(name),
         simple_INSTANCE_node(name),
     )
@@ -325,9 +325,9 @@ def simple_VALUE_NAMEDINSTANCE_str(name='MyClass'):
 
 def simple_VALUE_NAMEDOBJECT_node(name='MyClass'):
     """
-    Return a simple VALUE.NAMEDOBJECT with a CLASS as a cim_xml node.
+    Return a simple VALUE.NAMEDOBJECT with a CLASS as a _cim_xml node.
     """
-    return cim_xml.VALUE_NAMEDOBJECT(
+    return _cim_xml.VALUE_NAMEDOBJECT(
         simple_CLASS_node(name),
     )
 
@@ -346,9 +346,9 @@ def simple_VALUE_NAMEDOBJECT_str(name='MyClass'):
 
 def simple_VALUE_OBJECTWITHLOCALPATH_node(name='MyClass'):
     """
-    Return a simple VALUE.OBJECTWITHLOCALPATH with a CLASS as a cim_xml node.
+    Return a simple VALUE.OBJECTWITHLOCALPATH with a CLASS as a _cim_xml node.
     """
-    return cim_xml.VALUE_OBJECTWITHLOCALPATH(
+    return _cim_xml.VALUE_OBJECTWITHLOCALPATH(
         simple_LOCALCLASSPATH_node(name),
         simple_CLASS_node(name),
     )
@@ -369,9 +369,9 @@ def simple_VALUE_OBJECTWITHLOCALPATH_str(name='MyClass'):
 
 def simple_VALUE_OBJECTWITHPATH_node(name='MyClass'):
     """
-    Return a simple VALUE.OBJECTWITHPATH with a CLASS as a cim_xml node.
+    Return a simple VALUE.OBJECTWITHPATH with a CLASS as a _cim_xml node.
     """
-    return cim_xml.VALUE_OBJECTWITHPATH(
+    return _cim_xml.VALUE_OBJECTWITHPATH(
         simple_CLASSPATH_node(name),
         simple_CLASS_node(name),
     )
@@ -392,9 +392,9 @@ def simple_VALUE_OBJECTWITHPATH_str(name='MyClass'):
 
 def simple_VALUE_INSTANCEWITHPATH_node(name='MyClass'):
     """
-    Return a simple VALUE.INSTANCEWITHPATH as a cim_xml node.
+    Return a simple VALUE.INSTANCEWITHPATH as a _cim_xml node.
     """
-    return cim_xml.VALUE_INSTANCEWITHPATH(
+    return _cim_xml.VALUE_INSTANCEWITHPATH(
         simple_INSTANCEPATH_node(name),
         simple_INSTANCE_node(name),
     )
@@ -415,9 +415,9 @@ def simple_VALUE_INSTANCEWITHPATH_str(name='MyClass'):
 
 def simple_CLASS_node(name='MyClass'):
     """
-    Return a simple CLASS as a cim_xml node.
+    Return a simple CLASS as a _cim_xml node.
     """
-    return cim_xml.CLASS(name)
+    return _cim_xml.CLASS(name)
 
 
 def simple_CLASS_str(name='MyClass'):
@@ -431,9 +431,9 @@ def simple_CLASS_str(name='MyClass'):
 
 def simple_INSTANCE_node(name='MyClass'):
     """
-    Return a simple INSTANCE as a cim_xml node.
+    Return a simple INSTANCE as a _cim_xml node.
     """
-    return cim_xml.INSTANCE(name)
+    return _cim_xml.INSTANCE(name)
 
 
 def simple_INSTANCE_str(name='MyClass'):
@@ -447,9 +447,9 @@ def simple_INSTANCE_str(name='MyClass'):
 
 def simple_QUALIFIER_DECLARATION_node(name='MyQualifier', type_='string'):
     """
-    Return a simple QUALIFIER.DECLARATION as a cim_xml node.
+    Return a simple QUALIFIER.DECLARATION as a _cim_xml node.
     """
-    return cim_xml.QUALIFIER_DECLARATION(name, type_)
+    return _cim_xml.QUALIFIER_DECLARATION(name, type_)
 
 
 def simple_QUALIFIER_DECLARATION_str(name='MyQualifier', type_='string'):
@@ -464,13 +464,13 @@ def simple_QUALIFIER_DECLARATION_str(name='MyQualifier', type_='string'):
 
 TESTCASES_CIM_XML_NODE = [
 
-    # Testcases for cim_xml nodes.
+    # Testcases for _cim_xml nodes.
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * xml_node: cim_xml node to be tested (cim_xml.CIMElement subclass).
-    #   * exp_xml_str_list: Expected XML string of the cim_xml node, as a
+    #   * xml_node: _cim_xml node to be tested (_cim_xml.CIMElement subclass).
+    #   * exp_xml_str_list: Expected XML string of the _cim_xml node, as a
     #     (possibly nested) list of strings.
     #   * cdata_escaping: optional flag controlling whether escaping using
     #     CDATA sections is used when creating the XML, instead of XML escaping.
@@ -488,10 +488,10 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CIM with minimalistic MESSAGE",
         dict(
-            xml_node=cim_xml.CIM(
-                cim_xml.MESSAGE(
-                    cim_xml.SIMPLEREQ(
-                        cim_xml.IMETHODCALL(
+            xml_node=_cim_xml.CIM(
+                _cim_xml.MESSAGE(
+                    _cim_xml.SIMPLEREQ(
+                        _cim_xml.IMETHODCALL(
                             'EnumerateInstances',
                             simple_LOCALNAMESPACEPATH_node(),
                         ),
@@ -515,9 +515,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CIM with minimalistic DECLARATION",
         dict(
-            xml_node=cim_xml.CIM(
-                cim_xml.DECLARATION([
-                    cim_xml.DECLGROUP([
+            xml_node=_cim_xml.CIM(
+                _cim_xml.DECLARATION([
+                    _cim_xml.DECLGROUP([
                     ]),
                 ]),
                 '2.7', '2.3'),
@@ -550,8 +550,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP with two qualifier declarations + "
         "two objects, no namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP([
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_OBJECT_node('C1'),
@@ -575,8 +575,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP with two qualifier declarations + "
         "two objects, local namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP([
                     simple_LOCALNAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
@@ -602,8 +602,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP with two qualifier declarations + "
         "two objects, namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP([
                     simple_NAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
@@ -629,8 +629,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP.WITHNAME with two qualifier declarations + "
         "two named objects, no namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHNAME([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_NAMEDOBJECT_node('C1'),
@@ -654,8 +654,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP.WITHNAME with two qualifier declarations + "
         "two named objects, local namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHNAME([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_LOCALNAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
@@ -681,8 +681,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP.WITHNAME with two qualifier declarations + "
         "two named objects, namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHNAME([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_NAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
@@ -708,8 +708,8 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP.WITHPATH with two qualifier declarations + "
         "two objects with path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHPATH([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHPATH([
                     simple_VALUE_OBJECTWITHPATH_node('C1'),
                     simple_VALUE_OBJECTWITHPATH_node('C2'),
                     simple_VALUE_OBJECTWITHLOCALPATH_node('C1'),
@@ -733,12 +733,12 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with two DECLGROUP with "
         "one qualifier declaration + one object, no namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP([
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_VALUE_OBJECT_node('C1'),
                 ]),
-                cim_xml.DECLGROUP([
+                _cim_xml.DECLGROUP([
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_OBJECT_node('C2'),
                 ]),
@@ -762,13 +762,13 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with with two DECLGROUP with "
         "one qualifier declaration + one object, local namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP([
                     simple_LOCALNAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_VALUE_OBJECT_node('C1'),
                 ]),
-                cim_xml.DECLGROUP([
+                _cim_xml.DECLGROUP([
                     simple_LOCALNAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_OBJECT_node('C2'),
@@ -795,13 +795,13 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with two DECLGROUP with "
         "one qualifier declaration + one object, namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP([
                     simple_NAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_VALUE_OBJECT_node('C1'),
                 ]),
-                cim_xml.DECLGROUP([
+                _cim_xml.DECLGROUP([
                     simple_NAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_OBJECT_node('C2'),
@@ -828,12 +828,12 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with two DECLGROUP.WITHNAME with "
         "one qualifier declaration + one named object, no namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHNAME([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_VALUE_NAMEDOBJECT_node('C1'),
                 ]),
-                cim_xml.DECLGROUP_WITHNAME([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_NAMEDOBJECT_node('C2'),
                 ]),
@@ -857,13 +857,13 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with two DECLGROUP.WITHNAME with "
         "one qualifier declaration + one named object, local namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHNAME([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_LOCALNAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_VALUE_NAMEDOBJECT_node('C1'),
                 ]),
-                cim_xml.DECLGROUP_WITHNAME([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_LOCALNAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_NAMEDOBJECT_node('C2'),
@@ -890,13 +890,13 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with DECLGROUP.WITHNAME with "
         "one qualifier declaration + one named object, namespace path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHNAME([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_NAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q1'),
                     simple_VALUE_NAMEDOBJECT_node('C1'),
                 ]),
-                cim_xml.DECLGROUP_WITHNAME([
+                _cim_xml.DECLGROUP_WITHNAME([
                     simple_NAMESPACEPATH_node(),
                     simple_QUALIFIER_DECLARATION_node('Q2'),
                     simple_VALUE_NAMEDOBJECT_node('C2'),
@@ -923,12 +923,12 @@ TESTCASES_CIM_XML_NODE = [
         "DECLARATION with two DECLGROUP.WITHPATH with "
         "one qualifier declaration + one object with path",
         dict(
-            xml_node=cim_xml.DECLARATION([
-                cim_xml.DECLGROUP_WITHPATH([
+            xml_node=_cim_xml.DECLARATION([
+                _cim_xml.DECLGROUP_WITHPATH([
                     simple_VALUE_OBJECTWITHPATH_node('C1'),
                     simple_VALUE_OBJECTWITHLOCALPATH_node('C1'),
                 ]),
-                cim_xml.DECLGROUP_WITHPATH([
+                _cim_xml.DECLGROUP_WITHPATH([
                     simple_VALUE_OBJECTWITHPATH_node('C2'),
                     simple_VALUE_OBJECTWITHLOCALPATH_node('C2'),
                 ]),
@@ -961,10 +961,10 @@ TESTCASES_CIM_XML_NODE = [
     (
         "QUALIFIER.DECLARATION: Fully equipped scalar qualifier",
         dict(
-            xml_node=cim_xml.QUALIFIER_DECLARATION(
+            xml_node=_cim_xml.QUALIFIER_DECLARATION(
                 'MyQualifier',
                 'string',
-                value=cim_xml.VALUE('abc'),
+                value=_cim_xml.VALUE('abc'),
                 is_array=False,
                 qualifier_scopes={
                     'CLASS': True,
@@ -989,13 +989,13 @@ TESTCASES_CIM_XML_NODE = [
     (
         "QUALIFIER.DECLARATION: Fully equipped fixed array qualifier",
         dict(
-            xml_node=cim_xml.QUALIFIER_DECLARATION(
+            xml_node=_cim_xml.QUALIFIER_DECLARATION(
                 'MyQualifier',
                 'string',
-                value=cim_xml.VALUE_ARRAY([
-                    cim_xml.VALUE('abc'),
-                    cim_xml.VALUE_NULL(),
-                    cim_xml.VALUE('def'),
+                value=_cim_xml.VALUE_ARRAY([
+                    _cim_xml.VALUE('abc'),
+                    _cim_xml.VALUE_NULL(),
+                    _cim_xml.VALUE('def'),
                 ]),
                 is_array=True,
                 array_size=4,
@@ -1028,7 +1028,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "QUALIFIER.DECLARATION: Minimalistic qualifier",
         dict(
-            xml_node=cim_xml.QUALIFIER_DECLARATION(
+            xml_node=_cim_xml.QUALIFIER_DECLARATION(
                 'MyQualifier',
                 'string',
             ),
@@ -1053,7 +1053,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "SCOPE: Default input",
         dict(
-            xml_node=cim_xml.SCOPE(),
+            xml_node=_cim_xml.SCOPE(),
             exp_xml_str_list=[
                 '<SCOPE/>',
             ],
@@ -1063,7 +1063,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "SCOPE: all scopes true",
         dict(
-            xml_node=cim_xml.SCOPE({
+            xml_node=_cim_xml.SCOPE({
                 'CLASS': True,
                 'ASSOCIATION': True,
                 'REFERENCE': True,
@@ -1083,7 +1083,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "SCOPE: all scopes false",
         dict(
-            xml_node=cim_xml.SCOPE({
+            xml_node=_cim_xml.SCOPE({
                 'CLASS': False,
                 'ASSOCIATION': False,
                 'REFERENCE': False,
@@ -1103,7 +1103,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "SCOPE: any scope",
         dict(
-            xml_node=cim_xml.SCOPE({
+            xml_node=_cim_xml.SCOPE({
                 'any': True,
             }),
             exp_xml_str_list=[
@@ -1121,7 +1121,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE with None as input",
         dict(
-            xml_node=cim_xml.VALUE(None),
+            xml_node=_cim_xml.VALUE(None),
             exp_xml_str_list=[
                 '<VALUE/>',
             ],
@@ -1131,7 +1131,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE with empty string as input",
         dict(
-            xml_node=cim_xml.VALUE(''),
+            xml_node=_cim_xml.VALUE(''),
             exp_xml_str_list=[
                 '<VALUE/>',
             ],
@@ -1141,7 +1141,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE with non-empty string as input",
         dict(
-            xml_node=cim_xml.VALUE('abc'),
+            xml_node=_cim_xml.VALUE('abc'),
             exp_xml_str_list=[
                 '<VALUE>abc</VALUE>',
             ],
@@ -1152,7 +1152,7 @@ TESTCASES_CIM_XML_NODE = [
         "VALUE with XML special characters as input, "
         "using XML escaping",
         dict(
-            xml_node=cim_xml.VALUE('a&b<c>d'),
+            xml_node=_cim_xml.VALUE('a&b<c>d'),
             exp_xml_str_list=[
                 '<VALUE>a&amp;b&lt;c&gt;d</VALUE>',
             ],
@@ -1163,7 +1163,7 @@ TESTCASES_CIM_XML_NODE = [
         "VALUE with XML special characters as input, "
         "using CDATA escaping",
         dict(
-            xml_node=cim_xml.VALUE('a&b<c>d'),
+            xml_node=_cim_xml.VALUE('a&b<c>d'),
             exp_xml_str_list=[
                 '<VALUE><![CDATA[a&b<c>d]]></VALUE>',
             ],
@@ -1175,7 +1175,7 @@ TESTCASES_CIM_XML_NODE = [
         "VALUE with already XML-escaped XML special characters as input, "
         "using XML escaping",
         dict(
-            xml_node=cim_xml.VALUE('a&amp;b&lt;c&gt;d'),
+            xml_node=_cim_xml.VALUE('a&amp;b&lt;c&gt;d'),
             exp_xml_str_list=[
                 '<VALUE>a&amp;amp;b&amp;lt;c&amp;gt;d</VALUE>',
             ],
@@ -1186,7 +1186,7 @@ TESTCASES_CIM_XML_NODE = [
         "VALUE with already XML-escaped XML special characters as input, "
         "using CDATA escaping",
         dict(
-            xml_node=cim_xml.VALUE('a&amp;b&lt;c&gt;d'),
+            xml_node=_cim_xml.VALUE('a&amp;b&lt;c&gt;d'),
             exp_xml_str_list=[
                 '<VALUE><![CDATA[a&amp;b&lt;c&gt;d]]></VALUE>',
             ],
@@ -1198,7 +1198,7 @@ TESTCASES_CIM_XML_NODE = [
         "VALUE with already CDATA-escaped XML special characters as input, "
         "using XML escaping",
         dict(
-            xml_node=cim_xml.VALUE('<![CDATA[a&b<c>d]]>'),
+            xml_node=_cim_xml.VALUE('<![CDATA[a&b<c>d]]>'),
             exp_xml_str_list=[
                 '<VALUE>&lt;![CDATA[a&amp;b&lt;c&gt;d]]&gt;</VALUE>',
             ],
@@ -1209,7 +1209,7 @@ TESTCASES_CIM_XML_NODE = [
         "VALUE with already CDATA-escaped XML special characters as input, "
         "using CDATA escaping",
         dict(
-            xml_node=cim_xml.VALUE('<![CDATA[a&b<c>d]]>'),
+            xml_node=_cim_xml.VALUE('<![CDATA[a&b<c>d]]>'),
             exp_xml_str_list=[
                 '<VALUE><![CDATA[<![CDATA[a&b<c>d]]]><![CDATA[]>]]></VALUE>',
             ],
@@ -1220,7 +1220,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE with some control characters as input",
         dict(
-            xml_node=cim_xml.VALUE('a\nb\rc\td'),
+            xml_node=_cim_xml.VALUE('a\nb\rc\td'),
             exp_xml_str_list=[
                 '<VALUE>a\nb\rc\td</VALUE>',
             ],
@@ -1230,7 +1230,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE with whitespace as input",
         dict(
-            xml_node=cim_xml.VALUE('  a  b  '),
+            xml_node=_cim_xml.VALUE('  a  b  '),
             exp_xml_str_list=[
                 '<VALUE>  a  b  </VALUE>',
             ],
@@ -1240,7 +1240,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE with backlash character as input",
         dict(
-            xml_node=cim_xml.VALUE('\\'),
+            xml_node=_cim_xml.VALUE('\\'),
             exp_xml_str_list=[
                 '<VALUE>\\</VALUE>',
             ],
@@ -1254,7 +1254,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.ARRAY with empty list as input",
         dict(
-            xml_node=cim_xml.VALUE_ARRAY([]),
+            xml_node=_cim_xml.VALUE_ARRAY([]),
             exp_xml_str_list=[
                 '<VALUE.ARRAY/>',
             ],
@@ -1264,12 +1264,12 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.ARRAY with list of multiple VALUE and VALUE.NULL as input",
         dict(
-            xml_node=cim_xml.VALUE_ARRAY([
-                cim_xml.VALUE_NULL(),
-                cim_xml.VALUE('abc'),
-                cim_xml.VALUE_NULL(),
-                cim_xml.VALUE('def'),
-                cim_xml.VALUE_NULL(),
+            xml_node=_cim_xml.VALUE_ARRAY([
+                _cim_xml.VALUE_NULL(),
+                _cim_xml.VALUE('abc'),
+                _cim_xml.VALUE_NULL(),
+                _cim_xml.VALUE('def'),
+                _cim_xml.VALUE_NULL(),
             ]),
             exp_xml_str_list=[
                 '<VALUE.ARRAY>',
@@ -1292,7 +1292,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFERENCE with CLASSPATH",
         dict(
-            xml_node=cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFERENCE(
                 simple_CLASSPATH_node(),
             ),
             exp_xml_str_list=[
@@ -1306,7 +1306,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFERENCE with LOCALCLASSPATH",
         dict(
-            xml_node=cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFERENCE(
                 simple_LOCALCLASSPATH_node(),
             ),
             exp_xml_str_list=[
@@ -1320,7 +1320,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFERENCE with CLASSNAME",
         dict(
-            xml_node=cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFERENCE(
                 simple_CLASSNAME_node(),
             ),
             exp_xml_str_list=[
@@ -1334,7 +1334,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFERENCE with INSTANCEPATH",
         dict(
-            xml_node=cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFERENCE(
                 simple_INSTANCEPATH_node(),
             ),
             exp_xml_str_list=[
@@ -1348,7 +1348,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFERENCE with LOCALINSTANCEPATH",
         dict(
-            xml_node=cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFERENCE(
                 simple_LOCALINSTANCEPATH_node(),
             ),
             exp_xml_str_list=[
@@ -1362,7 +1362,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFERENCE with INSTANCENAME",
         dict(
-            xml_node=cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFERENCE(
                 simple_INSTANCENAME_node(),
             ),
             exp_xml_str_list=[
@@ -1380,7 +1380,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFARRAY with empty list",
         dict(
-            xml_node=cim_xml.VALUE_REFARRAY([]),
+            xml_node=_cim_xml.VALUE_REFARRAY([]),
             exp_xml_str_list=[
                 '<VALUE.REFARRAY/>',
             ],
@@ -1390,11 +1390,11 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.REFARRAY with two VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.VALUE_REFARRAY([
-                cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.VALUE_REFARRAY([
+                _cim_xml.VALUE_REFERENCE(
                     simple_CLASSNAME_node('C1'),
                 ),
-                cim_xml.VALUE_REFERENCE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_CLASSNAME_node('C2'),
                 ),
             ]),
@@ -1418,7 +1418,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.OBJECT with CLASS",
         dict(
-            xml_node=cim_xml.VALUE_OBJECT(
+            xml_node=_cim_xml.VALUE_OBJECT(
                 simple_CLASS_node(),
             ),
             exp_xml_str_list=[
@@ -1432,7 +1432,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.OBJECT with INSTANCE",
         dict(
-            xml_node=cim_xml.VALUE_OBJECT(
+            xml_node=_cim_xml.VALUE_OBJECT(
                 simple_INSTANCE_node(),
             ),
             exp_xml_str_list=[
@@ -1450,7 +1450,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.NAMEDINSTANCE with INSTANCENAME and INSTANCE",
         dict(
-            xml_node=cim_xml.VALUE_NAMEDINSTANCE(
+            xml_node=_cim_xml.VALUE_NAMEDINSTANCE(
                 simple_INSTANCENAME_node(),
                 simple_INSTANCE_node(),
             ),
@@ -1470,7 +1470,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.NAMEDOBJECT with CLASS",
         dict(
-            xml_node=cim_xml.VALUE_NAMEDOBJECT(
+            xml_node=_cim_xml.VALUE_NAMEDOBJECT(
                 simple_CLASS_node(),
             ),
             exp_xml_str_list=[
@@ -1484,7 +1484,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.NAMEDOBJECT with CLASS",
         dict(
-            xml_node=cim_xml.VALUE_NAMEDOBJECT([
+            xml_node=_cim_xml.VALUE_NAMEDOBJECT([
                 simple_INSTANCENAME_node(),
                 simple_INSTANCE_node(),
             ]),
@@ -1505,7 +1505,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.OBJECTWITHLOCALPATH with LOCALCLASSPATH and CLASS",
         dict(
-            xml_node=cim_xml.VALUE_OBJECTWITHLOCALPATH(
+            xml_node=_cim_xml.VALUE_OBJECTWITHLOCALPATH(
                 simple_LOCALCLASSPATH_node(),
                 simple_CLASS_node(),
             ),
@@ -1521,7 +1521,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.OBJECTWITHLOCALPATH with LOCALINSTANCEPATH and INSTANCE",
         dict(
-            xml_node=cim_xml.VALUE_OBJECTWITHLOCALPATH(
+            xml_node=_cim_xml.VALUE_OBJECTWITHLOCALPATH(
                 simple_LOCALINSTANCEPATH_node(),
                 simple_INSTANCE_node(),
             ),
@@ -1542,7 +1542,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.OBJECTWITHPATH with CLASSPATH and CLASS",
         dict(
-            xml_node=cim_xml.VALUE_OBJECTWITHPATH(
+            xml_node=_cim_xml.VALUE_OBJECTWITHPATH(
                 simple_CLASSPATH_node(),
                 simple_CLASS_node(),
             ),
@@ -1558,7 +1558,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.OBJECTWITHPATH with INSTANCEPATH and INSTANCE",
         dict(
-            xml_node=cim_xml.VALUE_OBJECTWITHPATH(
+            xml_node=_cim_xml.VALUE_OBJECTWITHPATH(
                 simple_INSTANCEPATH_node(),
                 simple_INSTANCE_node(),
             ),
@@ -1578,7 +1578,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.NULL",
         dict(
-            xml_node=cim_xml.VALUE_NULL(),
+            xml_node=_cim_xml.VALUE_NULL(),
             exp_xml_str_list=[
                 '<VALUE.NULL/>',
             ],
@@ -1592,7 +1592,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "VALUE.INSTANCEWITHPATH",
         dict(
-            xml_node=cim_xml.VALUE_INSTANCEWITHPATH(
+            xml_node=_cim_xml.VALUE_INSTANCEWITHPATH(
                 simple_INSTANCEPATH_node(),
                 simple_INSTANCE_node(),
             ),
@@ -1612,7 +1612,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "NAMESPACEPATH",
         dict(
-            xml_node=cim_xml.NAMESPACEPATH(
+            xml_node=_cim_xml.NAMESPACEPATH(
                 simple_HOST_node(),
                 simple_LOCALNAMESPACEPATH_node(),
             ),
@@ -1632,7 +1632,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "LOCALNAMESPACEPATH with one NAMESPACE",
         dict(
-            xml_node=cim_xml.LOCALNAMESPACEPATH([
+            xml_node=_cim_xml.LOCALNAMESPACEPATH([
                 simple_NAMESPACE_node(),
             ]),
             exp_xml_str_list=[
@@ -1646,7 +1646,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "LOCALNAMESPACEPATH with two NAMESPACE",
         dict(
-            xml_node=cim_xml.LOCALNAMESPACEPATH([
+            xml_node=_cim_xml.LOCALNAMESPACEPATH([
                 simple_NAMESPACE_node('root'),
                 simple_NAMESPACE_node('myns'),
             ]),
@@ -1666,7 +1666,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "HOST with empty string as input",
         dict(
-            xml_node=cim_xml.HOST(''),
+            xml_node=_cim_xml.HOST(''),
             exp_xml_str_list=[
                 '<HOST/>',
             ],
@@ -1676,7 +1676,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "HOST with non-empty string as input",
         dict(
-            xml_node=cim_xml.HOST('abc'),
+            xml_node=_cim_xml.HOST('abc'),
             exp_xml_str_list=[
                 '<HOST>abc</HOST>',
             ],
@@ -1692,7 +1692,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "NAMESPACE with empty string as name",
         dict(
-            xml_node=cim_xml.NAMESPACE(''),
+            xml_node=_cim_xml.NAMESPACE(''),
             exp_xml_str_list=[
                 '<NAMESPACE NAME=""/>',
             ],
@@ -1702,7 +1702,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "NAMESPACE with non-empty string as name",
         dict(
-            xml_node=cim_xml.NAMESPACE('abc'),
+            xml_node=_cim_xml.NAMESPACE('abc'),
             exp_xml_str_list=[
                 '<NAMESPACE NAME="abc"/>',
             ],
@@ -1716,7 +1716,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSPATH",
         dict(
-            xml_node=cim_xml.CLASSPATH(
+            xml_node=_cim_xml.CLASSPATH(
                 simple_NAMESPACEPATH_node(),
                 simple_CLASSNAME_node(),
             ),
@@ -1736,7 +1736,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "LOCALCLASSPATH",
         dict(
-            xml_node=cim_xml.LOCALCLASSPATH(
+            xml_node=_cim_xml.LOCALCLASSPATH(
                 simple_LOCALNAMESPACEPATH_node(),
                 simple_CLASSNAME_node(),
             ),
@@ -1758,7 +1758,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with empty string as name",
         dict(
-            xml_node=cim_xml.CLASSNAME(''),
+            xml_node=_cim_xml.CLASSNAME(''),
             exp_xml_str_list=[
                 '<CLASSNAME NAME=""/>',
             ],
@@ -1768,7 +1768,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with 7-bit ASCII string as name",
         dict(
-            xml_node=cim_xml.CLASSNAME('ACME_Ab42'),
+            xml_node=_cim_xml.CLASSNAME('ACME_Ab42'),
             exp_xml_str_list=[
                 '<CLASSNAME NAME="ACME_Ab42"/>',
             ],
@@ -1778,7 +1778,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with non-ASCII UCS-2 string as name",
         dict(
-            xml_node=cim_xml.CLASSNAME(u'ACME_\u00E4'),
+            xml_node=_cim_xml.CLASSNAME(u'ACME_\u00E4'),
             exp_xml_str_list=[
                 u'<CLASSNAME NAME="ACME_\u00E4"/>',
             ],
@@ -1788,7 +1788,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with non-UCS-2 unicode string as name",
         dict(
-            xml_node=cim_xml.CLASSNAME(u'ACME_\U00010142'),
+            xml_node=_cim_xml.CLASSNAME(u'ACME_\U00010142'),
             exp_xml_str_list=[
                 u'<CLASSNAME NAME="ACME_\U00010142"/>',
             ],
@@ -1802,7 +1802,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCEPATH",
         dict(
-            xml_node=cim_xml.INSTANCEPATH(
+            xml_node=_cim_xml.INSTANCEPATH(
                 simple_NAMESPACEPATH_node(),
                 simple_INSTANCENAME_node(),
             ),
@@ -1822,7 +1822,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "LOCALINSTANCEPATH",
         dict(
-            xml_node=cim_xml.LOCALINSTANCEPATH(
+            xml_node=_cim_xml.LOCALINSTANCEPATH(
                 simple_LOCALNAMESPACEPATH_node(),
                 simple_INSTANCENAME_node(),
             ),
@@ -1844,7 +1844,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCENAME with no keys",
         dict(
-            xml_node=cim_xml.INSTANCENAME(
+            xml_node=_cim_xml.INSTANCENAME(
                 'MyClass',
                 None
             ),
@@ -1857,11 +1857,11 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCENAME with one KEYBINDING",
         dict(
-            xml_node=cim_xml.INSTANCENAME(
+            xml_node=_cim_xml.INSTANCENAME(
                 'MyClass',
-                cim_xml.KEYBINDING(
+                _cim_xml.KEYBINDING(
                     'Key1',
-                    cim_xml.KEYVALUE('abc'),
+                    _cim_xml.KEYVALUE('abc'),
                 ),
             ),
             exp_xml_str_list=[
@@ -1877,16 +1877,16 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCENAME with two KEYBINDING",
         dict(
-            xml_node=cim_xml.INSTANCENAME(
+            xml_node=_cim_xml.INSTANCENAME(
                 'MyClass',
                 [
-                    cim_xml.KEYBINDING(
+                    _cim_xml.KEYBINDING(
                         'Key1',
-                        cim_xml.KEYVALUE('abc'),
+                        _cim_xml.KEYVALUE('abc'),
                     ),
-                    cim_xml.KEYBINDING(
+                    _cim_xml.KEYBINDING(
                         'Key2',
-                        cim_xml.KEYVALUE('def'),
+                        _cim_xml.KEYVALUE('def'),
                     ),
                 ],
             ),
@@ -1906,9 +1906,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCENAME with one KEYVALUE",
         dict(
-            xml_node=cim_xml.INSTANCENAME(
+            xml_node=_cim_xml.INSTANCENAME(
                 'MyClass',
-                cim_xml.KEYVALUE('abc'),
+                _cim_xml.KEYVALUE('abc'),
             ),
             exp_xml_str_list=[
                 '<INSTANCENAME CLASSNAME="MyClass">',
@@ -1921,9 +1921,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCENAME with one VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.INSTANCENAME(
+            xml_node=_cim_xml.INSTANCENAME(
                 'MyClass',
-                cim_xml.VALUE_REFERENCE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_CLASSNAME_node('C2'),
                 ),
             ),
@@ -1944,7 +1944,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "OBJECTPATH with INSTANCEPATH",
         dict(
-            xml_node=cim_xml.OBJECTPATH(
+            xml_node=_cim_xml.OBJECTPATH(
                 simple_INSTANCEPATH_node(),
             ),
             exp_xml_str_list=[
@@ -1958,7 +1958,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "OBJECTPATH with CLASSPATH",
         dict(
-            xml_node=cim_xml.OBJECTPATH(
+            xml_node=_cim_xml.OBJECTPATH(
                 simple_CLASSPATH_node(),
             ),
             exp_xml_str_list=[
@@ -1978,9 +1978,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYBINDING with KEYVALUE",
         dict(
-            xml_node=cim_xml.KEYBINDING(
+            xml_node=_cim_xml.KEYBINDING(
                 'Key1',
-                cim_xml.KEYVALUE('abc'),
+                _cim_xml.KEYVALUE('abc'),
             ),
             exp_xml_str_list=[
                 '<KEYBINDING NAME="Key1">',
@@ -1993,9 +1993,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYBINDING with VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.KEYBINDING(
+            xml_node=_cim_xml.KEYBINDING(
                 'Key1',
-                cim_xml.VALUE_REFERENCE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_CLASSNAME_node('C2'),
                 ),
             ),
@@ -2019,7 +2019,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with None (not very useful, though)",
         dict(
-            xml_node=cim_xml.KEYVALUE(None),
+            xml_node=_cim_xml.KEYVALUE(None),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="string"></KEYVALUE>',
             ],
@@ -2029,7 +2029,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with empty string and no types",
         dict(
-            xml_node=cim_xml.KEYVALUE(''),
+            xml_node=_cim_xml.KEYVALUE(''),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="string"></KEYVALUE>',
             ],
@@ -2039,7 +2039,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with non-empty string and VALUETYPE",
         dict(
-            xml_node=cim_xml.KEYVALUE(
+            xml_node=_cim_xml.KEYVALUE(
                 'abc', value_type='string'),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="string">abc</KEYVALUE>',
@@ -2050,7 +2050,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with non-empty string and VALUETYPE and TYPE",
         dict(
-            xml_node=cim_xml.KEYVALUE(
+            xml_node=_cim_xml.KEYVALUE(
                 'abc', value_type='string', cim_type='string'),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="string" TYPE="string">abc</KEYVALUE>',
@@ -2061,7 +2061,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with numeric and VALUETYPE",
         dict(
-            xml_node=cim_xml.KEYVALUE(
+            xml_node=_cim_xml.KEYVALUE(
                 '42', value_type='numeric'),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="numeric">42</KEYVALUE>',
@@ -2072,7 +2072,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with numeric and VALUETYPE and TYPE",
         dict(
-            xml_node=cim_xml.KEYVALUE(
+            xml_node=_cim_xml.KEYVALUE(
                 '42', value_type='numeric', cim_type='uint8'),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="numeric" TYPE="uint8">42</KEYVALUE>',
@@ -2083,7 +2083,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with boolean and VALUETYPE",
         dict(
-            xml_node=cim_xml.KEYVALUE(
+            xml_node=_cim_xml.KEYVALUE(
                 'true', value_type='boolean'),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="boolean">true</KEYVALUE>',
@@ -2094,7 +2094,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "KEYVALUE with boolean and VALUETYPE and TYPE",
         dict(
-            xml_node=cim_xml.KEYVALUE(
+            xml_node=_cim_xml.KEYVALUE(
                 'true', value_type='boolean', cim_type='boolean'),
             exp_xml_str_list=[
                 '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">true</KEYVALUE>',
@@ -2113,7 +2113,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASS with minimalistic elements",
         dict(
-            xml_node=cim_xml.CLASS(
+            xml_node=_cim_xml.CLASS(
                 'MyClass',
             ),
             exp_xml_str_list=[
@@ -2125,20 +2125,20 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASS fully equipped",
         dict(
-            xml_node=cim_xml.CLASS(
+            xml_node=_cim_xml.CLASS(
                 'MyClass',
                 properties=[
-                    cim_xml.PROPERTY('P1', 'string'),
-                    cim_xml.PROPERTY_ARRAY('P2', 'string'),
-                    cim_xml.PROPERTY_REFERENCE('P3'),
+                    _cim_xml.PROPERTY('P1', 'string'),
+                    _cim_xml.PROPERTY_ARRAY('P2', 'string'),
+                    _cim_xml.PROPERTY_REFERENCE('P3'),
                 ],
                 methods=[
-                    cim_xml.METHOD('M1'),
-                    cim_xml.METHOD('M2'),
+                    _cim_xml.METHOD('M1'),
+                    _cim_xml.METHOD('M2'),
                 ],
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ],
                 superclass='MySuper',
             ),
@@ -2167,7 +2167,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCE with minimalistic elements",
         dict(
-            xml_node=cim_xml.INSTANCE(
+            xml_node=_cim_xml.INSTANCE(
                 'MyClass',
             ),
             exp_xml_str_list=[
@@ -2179,16 +2179,16 @@ TESTCASES_CIM_XML_NODE = [
     (
         "INSTANCE fully equipped",
         dict(
-            xml_node=cim_xml.INSTANCE(
+            xml_node=_cim_xml.INSTANCE(
                 'MyClass',
                 properties=[
-                    cim_xml.PROPERTY('P1', 'string'),
-                    cim_xml.PROPERTY_ARRAY('P2', 'string'),
-                    cim_xml.PROPERTY_REFERENCE('P3'),
+                    _cim_xml.PROPERTY('P1', 'string'),
+                    _cim_xml.PROPERTY_ARRAY('P2', 'string'),
+                    _cim_xml.PROPERTY_REFERENCE('P3'),
                 ],
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ],
             ),
             exp_xml_str_list=[
@@ -2216,7 +2216,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "QUALIFIER of scalar string type, minimalistic",
         dict(
-            xml_node=cim_xml.QUALIFIER(
+            xml_node=_cim_xml.QUALIFIER(
                 'MyQualifier',
                 'string',
             ),
@@ -2229,10 +2229,10 @@ TESTCASES_CIM_XML_NODE = [
     (
         "QUALIFIER of scalar string type and flavors all true",
         dict(
-            xml_node=cim_xml.QUALIFIER(
+            xml_node=_cim_xml.QUALIFIER(
                 'MyQualifier',
                 'string',
-                value=cim_xml.VALUE('abc'),
+                value=_cim_xml.VALUE('abc'),
                 propagated=True,
                 overridable=True,
                 tosubclass=True,
@@ -2254,12 +2254,12 @@ TESTCASES_CIM_XML_NODE = [
     (
         "QUALIFIER of array string type and flavors all false",
         dict(
-            xml_node=cim_xml.QUALIFIER(
+            xml_node=_cim_xml.QUALIFIER(
                 'MyQualifier',
                 'string',
-                value=cim_xml.VALUE_ARRAY([
-                    cim_xml.VALUE('abc'),
-                    cim_xml.VALUE_NULL(),
+                value=_cim_xml.VALUE_ARRAY([
+                    _cim_xml.VALUE('abc'),
+                    _cim_xml.VALUE_NULL(),
                 ]),
                 propagated=False,
                 overridable=False,
@@ -2296,7 +2296,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PROPERTY of string type, minimalistic",
         dict(
-            xml_node=cim_xml.PROPERTY(
+            xml_node=_cim_xml.PROPERTY(
                 'MyProp',
                 'string',
             ),
@@ -2309,15 +2309,15 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PROPERTY of string type, all attributes",
         dict(
-            xml_node=cim_xml.PROPERTY(
+            xml_node=_cim_xml.PROPERTY(
                 'MyProp',
                 'string',
-                value=cim_xml.VALUE('abc'),
+                value=_cim_xml.VALUE('abc'),
                 class_origin='OriginClass',
                 propagated=True,
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ],
                 xml_lang='de_DE',
                 embedded_object='instance'
@@ -2349,7 +2349,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PROPERTY.ARRAY of string type, minimalistic",
         dict(
-            xml_node=cim_xml.PROPERTY_ARRAY(
+            xml_node=_cim_xml.PROPERTY_ARRAY(
                 'MyProp',
                 'string',
             ),
@@ -2362,19 +2362,19 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PROPERTY.ARRAY of string type, all attributes",
         dict(
-            xml_node=cim_xml.PROPERTY_ARRAY(
+            xml_node=_cim_xml.PROPERTY_ARRAY(
                 'MyProp',
                 'string',
-                value_array=cim_xml.VALUE_ARRAY([
-                    cim_xml.VALUE('abc'),
-                    cim_xml.VALUE_NULL(),
+                value_array=_cim_xml.VALUE_ARRAY([
+                    _cim_xml.VALUE('abc'),
+                    _cim_xml.VALUE_NULL(),
                 ]),
                 array_size='4',
                 class_origin='OriginClass',
                 propagated=True,
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ],
                 xml_lang='de_DE',
                 embedded_object='instance'
@@ -2406,7 +2406,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PROPERTY.REFERENCE, minimalistic",
         dict(
-            xml_node=cim_xml.PROPERTY_REFERENCE(
+            xml_node=_cim_xml.PROPERTY_REFERENCE(
                 'MyProp',
             ),
             exp_xml_str_list=[
@@ -2418,17 +2418,17 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PROPERTY.REFERENCE, all attributes",
         dict(
-            xml_node=cim_xml.PROPERTY_REFERENCE(
+            xml_node=_cim_xml.PROPERTY_REFERENCE(
                 'MyProp',
-                value_reference=cim_xml.VALUE_REFERENCE(
+                value_reference=_cim_xml.VALUE_REFERENCE(
                     simple_INSTANCENAME_node('RefClass'),
                 ),
                 reference_class='RefClass',
                 class_origin='OriginClass',
                 propagated=True,
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ]
             ),
             exp_xml_str_list=[
@@ -2458,7 +2458,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "METHOD, minimalistic",
         dict(
-            xml_node=cim_xml.METHOD(
+            xml_node=_cim_xml.METHOD(
                 'MyMethod',
             ),
             exp_xml_str_list=[
@@ -2470,18 +2470,18 @@ TESTCASES_CIM_XML_NODE = [
     (
         "METHOD, fully equipped",
         dict(
-            xml_node=cim_xml.METHOD(
+            xml_node=_cim_xml.METHOD(
                 'MyMethod',
                 parameters=[
-                    cim_xml.PARAMETER('P1', 'string'),
-                    cim_xml.PARAMETER('P2', 'string'),
+                    _cim_xml.PARAMETER('P1', 'string'),
+                    _cim_xml.PARAMETER('P2', 'string'),
                 ],
                 return_type='string',
                 class_origin='OriginClass',
                 propagated=True,
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ]
             ),
             exp_xml_str_list=[
@@ -2506,7 +2506,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER, minimalistic",
         dict(
-            xml_node=cim_xml.PARAMETER(
+            xml_node=_cim_xml.PARAMETER(
                 'MyParm',
                 'string',
             ),
@@ -2519,12 +2519,12 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER, fully equipped",
         dict(
-            xml_node=cim_xml.PARAMETER(
+            xml_node=_cim_xml.PARAMETER(
                 'MyParm',
                 'string',
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ]
             ),
             exp_xml_str_list=[
@@ -2546,7 +2546,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER.REFERENCE, minimalistic",
         dict(
-            xml_node=cim_xml.PARAMETER_REFERENCE(
+            xml_node=_cim_xml.PARAMETER_REFERENCE(
                 'MyParm',
             ),
             exp_xml_str_list=[
@@ -2558,12 +2558,12 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER.REFERENCE, fully equipped",
         dict(
-            xml_node=cim_xml.PARAMETER_REFERENCE(
+            xml_node=_cim_xml.PARAMETER_REFERENCE(
                 'MyParm',
                 reference_class='RefClass',
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ]
             ),
             exp_xml_str_list=[
@@ -2587,7 +2587,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER.ARRAY, minimalistic",
         dict(
-            xml_node=cim_xml.PARAMETER_ARRAY(
+            xml_node=_cim_xml.PARAMETER_ARRAY(
                 'MyParm',
                 'string',
             ),
@@ -2600,13 +2600,13 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER.ARRAY, fully equipped",
         dict(
-            xml_node=cim_xml.PARAMETER_ARRAY(
+            xml_node=_cim_xml.PARAMETER_ARRAY(
                 'MyParm',
                 'string',
                 array_size='4',
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ]
             ),
             exp_xml_str_list=[
@@ -2630,7 +2630,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER.REFARRAY, minimalistic",
         dict(
-            xml_node=cim_xml.PARAMETER_REFARRAY(
+            xml_node=_cim_xml.PARAMETER_REFARRAY(
                 'MyParm',
             ),
             exp_xml_str_list=[
@@ -2642,13 +2642,13 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMETER.REFARRAY, fully equipped",
         dict(
-            xml_node=cim_xml.PARAMETER_REFARRAY(
+            xml_node=_cim_xml.PARAMETER_REFARRAY(
                 'MyParm',
                 reference_class='RefClass',
                 array_size='4',
                 qualifiers=[
-                    cim_xml.QUALIFIER('Q1', 'string'),
-                    cim_xml.QUALIFIER('Q2', 'string'),
+                    _cim_xml.QUALIFIER('Q1', 'string'),
+                    _cim_xml.QUALIFIER('Q2', 'string'),
                 ]
             ),
             exp_xml_str_list=[
@@ -2676,9 +2676,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE with minimalistic children",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEREQ(
-                    cim_xml.IMETHODCALL(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEREQ(
+                    _cim_xml.IMETHODCALL(
                         'EnumerateInstances',
                         simple_LOCALNAMESPACEPATH_node(),
                     ),
@@ -2703,26 +2703,26 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/MULTIREQ: Request for two intrinsic operation calls",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.MULTIREQ([
-                    cim_xml.SIMPLEREQ(
-                        cim_xml.IMETHODCALL(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.MULTIREQ([
+                    _cim_xml.SIMPLEREQ(
+                        _cim_xml.IMETHODCALL(
                             'EnumerateInstances',
                             simple_LOCALNAMESPACEPATH_node(),
                             [
-                                cim_xml.IPARAMVALUE(
+                                _cim_xml.IPARAMVALUE(
                                     'ClassName',
                                     simple_CLASSNAME_node(),
                                 ),
                             ],
                         ),
                     ),
-                    cim_xml.SIMPLEREQ(
-                        cim_xml.IMETHODCALL(
+                    _cim_xml.SIMPLEREQ(
+                        _cim_xml.IMETHODCALL(
                             'EnumerateInstanceNames',
                             simple_LOCALNAMESPACEPATH_node(),
                             [
-                                cim_xml.IPARAMVALUE(
+                                _cim_xml.IPARAMVALUE(
                                     'ClassName',
                                     simple_CLASSNAME_node(),
                                 ),
@@ -2763,15 +2763,15 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/MULTIEXPREQ: Request for two export method calls",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.MULTIEXPREQ([
-                    cim_xml.SIMPLEEXPREQ(
-                        cim_xml.EXPMETHODCALL(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.MULTIEXPREQ([
+                    _cim_xml.SIMPLEEXPREQ(
+                        _cim_xml.EXPMETHODCALL(
                             'DeliverIndication',
                         ),
                     ),
-                    cim_xml.SIMPLEEXPREQ(
-                        cim_xml.EXPMETHODCALL(
+                    _cim_xml.SIMPLEEXPREQ(
+                        _cim_xml.EXPMETHODCALL(
                             'DeliverIndication2',
                         ),
                     ),
@@ -2809,13 +2809,13 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/SIMPLEREQ: Request for intrinsic operation call",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEREQ(
-                    cim_xml.IMETHODCALL(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEREQ(
+                    _cim_xml.IMETHODCALL(
                         'EnumerateInstances',
                         simple_LOCALNAMESPACEPATH_node(),
                         [
-                            cim_xml.IPARAMVALUE(
+                            _cim_xml.IPARAMVALUE(
                                 'ClassName',
                                 simple_CLASSNAME_node(),
                             ),
@@ -2842,19 +2842,19 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLEREQ: Request for extrinsic method call with "
         "two parameters",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEREQ(
-                    cim_xml.METHODCALL(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEREQ(
+                    _cim_xml.METHODCALL(
                         'MyMethod',
                         simple_LOCALINSTANCEPATH_node(),
                         [
-                            cim_xml.PARAMVALUE(
+                            _cim_xml.PARAMVALUE(
                                 'Parm1',
-                                cim_xml.VALUE('abc'),
+                                _cim_xml.VALUE('abc'),
                             ),
-                            cim_xml.PARAMVALUE(
+                            _cim_xml.PARAMVALUE(
                                 'Parm2',
-                                cim_xml.VALUE('def'),
+                                _cim_xml.VALUE('def'),
                             ),
                         ],
                     ),
@@ -2891,18 +2891,18 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLEEXPREQ: Request for export method call with "
         "two parameters",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEEXPREQ(
-                    cim_xml.EXPMETHODCALL(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPREQ(
+                    _cim_xml.EXPMETHODCALL(
                         'DeliverIndication',
                         [
-                            cim_xml.EXPPARAMVALUE(
+                            _cim_xml.EXPPARAMVALUE(
                                 'Parm1',
-                                cim_xml.VALUE('abc'),
+                                _cim_xml.VALUE('abc'),
                             ),
-                            cim_xml.EXPPARAMVALUE(
+                            _cim_xml.EXPPARAMVALUE(
                                 'Parm2',
-                                cim_xml.VALUE('def'),
+                                _cim_xml.VALUE('def'),
                             ),
                         ],
                     ),
@@ -2942,9 +2942,9 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLERSP: Response from intrinsic operation call, "
         "success without return value",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.IMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.IMETHODRESPONSE(
                         'ModifyInstance',
                     ),
                 ),
@@ -2963,11 +2963,11 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLERSP: Response from intrinsic operation call, "
         "success with return value",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.IMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.IMETHODRESPONSE(
                         'EnumerateInstances',
-                        cim_xml.IRETURNVALUE([
+                        _cim_xml.IRETURNVALUE([
                             simple_VALUE_NAMEDINSTANCE_node('C1'),
                             simple_VALUE_NAMEDINSTANCE_node('C2'),
                         ]),
@@ -2993,22 +2993,22 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLERSP: Response from intrinsic operation call, "
         "success with return value and two output parameters",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.IMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.IMETHODRESPONSE(
                         'EnumerateInstances',
                         [
-                            cim_xml.IRETURNVALUE([
+                            _cim_xml.IRETURNVALUE([
                                 simple_VALUE_NAMEDINSTANCE_node('C1'),
                                 simple_VALUE_NAMEDINSTANCE_node('C2'),
                             ]),
-                            cim_xml.PARAMVALUE(
+                            _cim_xml.PARAMVALUE(
                                 'Parm1',
-                                cim_xml.VALUE('abc'),
+                                _cim_xml.VALUE('abc'),
                             ),
-                            cim_xml.PARAMVALUE(
+                            _cim_xml.PARAMVALUE(
                                 'Parm2',
-                                cim_xml.VALUE('def'),
+                                _cim_xml.VALUE('def'),
                             ),
                         ],
                     ),
@@ -3038,11 +3038,11 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/SIMPLERSP: Response from intrinsic operation call, error",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.IMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.IMETHODRESPONSE(
                         'EnumerateInstances',
-                        cim_xml.ERROR('6', 'Class not found'),
+                        _cim_xml.ERROR('6', 'Class not found'),
                     ),
                 ),
                 '1001', '1.4'),
@@ -3062,9 +3062,9 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLERSP: Response from extrinsic method call, "
         "success without return value",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.METHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.METHODRESPONSE(
                         'MyMethod',
                     ),
                 ),
@@ -3083,12 +3083,12 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLERSP: Response from extrinsic method call, "
         "success with return value",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.METHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.METHODRESPONSE(
                         'MyMethod',
-                        cim_xml.RETURNVALUE(
-                            cim_xml.VALUE('abc'),
+                        _cim_xml.RETURNVALUE(
+                            _cim_xml.VALUE('abc'),
                         ),
                     ),
                 ),
@@ -3111,21 +3111,21 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLERSP: Response from extrinsic method call, "
         "success with return value and two output parameters",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.METHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.METHODRESPONSE(
                         'MyMethod',
                         [
-                            cim_xml.RETURNVALUE(
-                                cim_xml.VALUE('abc'),
+                            _cim_xml.RETURNVALUE(
+                                _cim_xml.VALUE('abc'),
                             ),
-                            cim_xml.PARAMVALUE(
+                            _cim_xml.PARAMVALUE(
                                 'Parm1',
-                                cim_xml.VALUE('foo'),
+                                _cim_xml.VALUE('foo'),
                             ),
-                            cim_xml.PARAMVALUE(
+                            _cim_xml.PARAMVALUE(
                                 'Parm2',
-                                cim_xml.VALUE('bar'),
+                                _cim_xml.VALUE('bar'),
                             ),
                         ],
                     ),
@@ -3154,11 +3154,11 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/SIMPLERSP: Response from extrinsic method call, error",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLERSP(
-                    cim_xml.METHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLERSP(
+                    _cim_xml.METHODRESPONSE(
                         'MyMethod',
-                        cim_xml.ERROR('6', 'Class not found'),
+                        _cim_xml.ERROR('6', 'Class not found'),
                     ),
                 ),
                 '1001', '1.4'),
@@ -3187,9 +3187,9 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLEEXPRSP: Response from export method call, "
         "success without return value",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPRSP(
+                    _cim_xml.EXPMETHODRESPONSE(
                         'DeliverIndication',
                     ),
                 ),
@@ -3208,12 +3208,12 @@ TESTCASES_CIM_XML_NODE = [
         "MESSAGE/SIMPLEEXPRSP: Response from export method call, "
         "success with return value",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPRSP(
+                    _cim_xml.EXPMETHODRESPONSE(
                         'DeliverIndication',
-                        cim_xml.IRETURNVALUE(
-                            cim_xml.VALUE('abc'),
+                        _cim_xml.IRETURNVALUE(
+                            _cim_xml.VALUE('abc'),
                         ),
                     ),
                 ),
@@ -3235,11 +3235,11 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/SIMPLEEXPRSP: Response from export method call, error",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.SIMPLEEXPRSP(
-                    cim_xml.EXPMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPRSP(
+                    _cim_xml.EXPMETHODRESPONSE(
                         'DeliverIndication',
-                        cim_xml.ERROR('6', 'Class not found'),
+                        _cim_xml.ERROR('6', 'Class not found'),
                     ),
                 ),
                 '1001', '1.4'),
@@ -3262,15 +3262,15 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/MULTIRSP: Response from two intrinsic operation calls",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.MULTIRSP([
-                    cim_xml.SIMPLERSP(
-                        cim_xml.IMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.MULTIRSP([
+                    _cim_xml.SIMPLERSP(
+                        _cim_xml.IMETHODRESPONSE(
                             'ModifyInstance',
                         ),
                     ),
-                    cim_xml.SIMPLERSP(
-                        cim_xml.IMETHODRESPONSE(
+                    _cim_xml.SIMPLERSP(
+                        _cim_xml.IMETHODRESPONSE(
                             'DeleteInstance',
                         ),
                     ),
@@ -3298,15 +3298,15 @@ TESTCASES_CIM_XML_NODE = [
     (
         "MESSAGE/MULTIEXPRSP: Response from two export method calls",
         dict(
-            xml_node=cim_xml.MESSAGE(
-                cim_xml.MULTIEXPRSP([
-                    cim_xml.SIMPLEEXPRSP(
-                        cim_xml.EXPMETHODRESPONSE(
+            xml_node=_cim_xml.MESSAGE(
+                _cim_xml.MULTIEXPRSP([
+                    _cim_xml.SIMPLEEXPRSP(
+                        _cim_xml.EXPMETHODRESPONSE(
                             'DeliverIndication',
                         ),
                     ),
-                    cim_xml.SIMPLEEXPRSP(
-                        cim_xml.EXPMETHODRESPONSE(
+                    _cim_xml.SIMPLEEXPRSP(
+                        _cim_xml.EXPMETHODRESPONSE(
                             'DeliverIndication2',
                         ),
                     ),
@@ -3340,9 +3340,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, minimalistic",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE('foo'),
+                _cim_xml.VALUE('foo'),
             ),
             exp_xml_str_list=[
                 '<PARAMVALUE NAME="Parm1">',
@@ -3355,7 +3355,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE representing NULL",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
             ),
             exp_xml_str_list=[
@@ -3367,9 +3367,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with string VALUE",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE('foo'),
+                _cim_xml.VALUE('foo'),
                 paramtype='string',
             ),
             exp_xml_str_list=[
@@ -3383,9 +3383,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with embedded instance VALUE",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE('(the instance)'),
+                _cim_xml.VALUE('(the instance)'),
                 paramtype='string',
                 embedded_object='instance',
             ),
@@ -3401,9 +3401,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE_REFERENCE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_INSTANCENAME_node(),
                 ),
                 paramtype='reference',
@@ -3421,9 +3421,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with VALUE.ARRAY",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE_ARRAY([]),
+                _cim_xml.VALUE_ARRAY([]),
                 paramtype='string',
             ),
             exp_xml_str_list=[
@@ -3437,9 +3437,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with VALUE.REFARRAY",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE_REFARRAY([]),
+                _cim_xml.VALUE_REFARRAY([]),
                 paramtype='reference',
             ),
             exp_xml_str_list=[
@@ -3453,7 +3453,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with CLASSNAME",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
                 simple_CLASSNAME_node(),
             ),
@@ -3468,7 +3468,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with INSTANCENAME",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
                 simple_INSTANCENAME_node(),
             ),
@@ -3483,7 +3483,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with CLASS",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
                 simple_CLASS_node(),
             ),
@@ -3498,7 +3498,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with INSTANCE",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
                 simple_INSTANCE_node(),
             ),
@@ -3513,7 +3513,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "PARAMVALUE, with VALUE.NAMEDINSTANCE",
         dict(
-            xml_node=cim_xml.PARAMVALUE(
+            xml_node=_cim_xml.PARAMVALUE(
                 'Parm1',
                 simple_VALUE_NAMEDINSTANCE_node(),
             ),
@@ -3537,9 +3537,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, minimalistic",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE('foo'),
+                _cim_xml.VALUE('foo'),
             ),
             exp_xml_str_list=[
                 '<IPARAMVALUE NAME="Parm1">',
@@ -3552,7 +3552,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE representing NULL",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
             ),
             exp_xml_str_list=[
@@ -3564,9 +3564,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with string VALUE",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE('foo'),
+                _cim_xml.VALUE('foo'),
             ),
             exp_xml_str_list=[
                 '<IPARAMVALUE NAME="Parm1">',
@@ -3579,9 +3579,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with VALUE.ARRAY",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE_ARRAY([]),
+                _cim_xml.VALUE_ARRAY([]),
             ),
             exp_xml_str_list=[
                 '<IPARAMVALUE NAME="Parm1">',
@@ -3594,9 +3594,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
-                cim_xml.VALUE_REFERENCE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_INSTANCENAME_node(),
                 ),
             ),
@@ -3613,7 +3613,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with INSTANCENAME",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
                 simple_INSTANCENAME_node(),
             ),
@@ -3628,7 +3628,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with CLASSNAME",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
                 simple_CLASSNAME_node(),
             ),
@@ -3643,7 +3643,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with QUALIFIER.DECLARATION",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
                 simple_QUALIFIER_DECLARATION_node(),
             ),
@@ -3658,7 +3658,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with CLASS",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
                 simple_CLASS_node(),
             ),
@@ -3673,7 +3673,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with INSTANCE",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
                 simple_INSTANCE_node(),
             ),
@@ -3688,7 +3688,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IPARAMVALUE, with VALUE.NAMEDINSTANCE",
         dict(
-            xml_node=cim_xml.IPARAMVALUE(
+            xml_node=_cim_xml.IPARAMVALUE(
                 'Parm1',
                 simple_VALUE_NAMEDINSTANCE_node(),
             ),
@@ -3710,7 +3710,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "EXPPARAMVALUE representing NULL",
         dict(
-            xml_node=cim_xml.EXPPARAMVALUE('Parm1'),
+            xml_node=_cim_xml.EXPPARAMVALUE('Parm1'),
             exp_xml_str_list=[
                 '<EXPPARAMVALUE NAME="Parm1"/>',
             ],
@@ -3720,7 +3720,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "EXPPARAMVALUE with INSTANCE",
         dict(
-            xml_node=cim_xml.EXPPARAMVALUE(
+            xml_node=_cim_xml.EXPPARAMVALUE(
                 'Parm1',
                 simple_INSTANCE_node(),
             ),
@@ -3742,7 +3742,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "RETURNVALUE representing NULL",
         dict(
-            xml_node=cim_xml.RETURNVALUE(None),
+            xml_node=_cim_xml.RETURNVALUE(None),
             exp_xml_str_list=[
                 '<RETURNVALUE/>',
             ],
@@ -3752,8 +3752,8 @@ TESTCASES_CIM_XML_NODE = [
     (
         "RETURNVALUE, with string VALUE",
         dict(
-            xml_node=cim_xml.RETURNVALUE(
-                cim_xml.VALUE('foo'),
+            xml_node=_cim_xml.RETURNVALUE(
+                _cim_xml.VALUE('foo'),
                 param_type='string',
             ),
             exp_xml_str_list=[
@@ -3767,8 +3767,8 @@ TESTCASES_CIM_XML_NODE = [
     (
         "RETURNVALUE, with embedded instance VALUE",
         dict(
-            xml_node=cim_xml.RETURNVALUE(
-                cim_xml.VALUE('(the instance)'),
+            xml_node=_cim_xml.RETURNVALUE(
+                _cim_xml.VALUE('(the instance)'),
                 param_type='string',
                 embedded_object='instance',
             ),
@@ -3784,8 +3784,8 @@ TESTCASES_CIM_XML_NODE = [
     (
         "RETURNVALUE, with VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.RETURNVALUE(
-                cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.RETURNVALUE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_INSTANCENAME_node(),
                 ),
                 param_type='reference',
@@ -3812,7 +3812,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE representing NULL",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(None),
+            xml_node=_cim_xml.IRETURNVALUE(None),
             exp_xml_str_list=[
                 '<IRETURNVALUE/>',
             ],
@@ -3822,7 +3822,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one CLASSNAME",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_CLASSNAME_node(),
             ),
             exp_xml_str_list=[
@@ -3836,7 +3836,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two CLASSNAME",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_CLASSNAME_node('C1'),
                 simple_CLASSNAME_node('C2'),
             ]),
@@ -3852,7 +3852,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one INSTANCENAME",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_INSTANCENAME_node(),
             ),
             exp_xml_str_list=[
@@ -3866,7 +3866,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two INSTANCENAME",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_INSTANCENAME_node('C1'),
                 simple_INSTANCENAME_node('C2'),
             ]),
@@ -3882,8 +3882,8 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one string VALUE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
-                cim_xml.VALUE('foo'),
+            xml_node=_cim_xml.IRETURNVALUE(
+                _cim_xml.VALUE('foo'),
             ),
             exp_xml_str_list=[
                 '<IRETURNVALUE>',
@@ -3896,9 +3896,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two string VALUE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
-                cim_xml.VALUE('foo'),
-                cim_xml.VALUE('bar'),
+            xml_node=_cim_xml.IRETURNVALUE([
+                _cim_xml.VALUE('foo'),
+                _cim_xml.VALUE('bar'),
             ]),
             exp_xml_str_list=[
                 '<IRETURNVALUE>',
@@ -3912,7 +3912,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one VALUE.OBJECTWITHPATH",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_VALUE_OBJECTWITHPATH_node(),
             ),
             exp_xml_str_list=[
@@ -3926,7 +3926,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two VALUE.OBJECTWITHPATH",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_VALUE_OBJECTWITHPATH_node('C1'),
                 simple_VALUE_OBJECTWITHPATH_node('C2'),
             ]),
@@ -3942,7 +3942,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one VALUE.OBJECTWITHLOCALPATH",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_VALUE_OBJECTWITHLOCALPATH_node(),
             ),
             exp_xml_str_list=[
@@ -3956,7 +3956,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two VALUE.OBJECTWITHLOCALPATH",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_VALUE_OBJECTWITHLOCALPATH_node('C1'),
                 simple_VALUE_OBJECTWITHLOCALPATH_node('C2'),
             ]),
@@ -3972,7 +3972,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one VALUE.OBJECT",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_VALUE_OBJECT_node(),
             ),
             exp_xml_str_list=[
@@ -3986,7 +3986,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two VALUE.OBJECT",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_VALUE_OBJECT_node('C1'),
                 simple_VALUE_OBJECT_node('C2'),
             ]),
@@ -4002,7 +4002,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one OBJECTPATH",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_OBJECTPATH_node(),
             ),
             exp_xml_str_list=[
@@ -4016,7 +4016,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two OBJECTPATH",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_OBJECTPATH_node('C1'),
                 simple_OBJECTPATH_node('C2'),
             ]),
@@ -4032,7 +4032,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one QUALIFIER.DECLARATION",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_QUALIFIER_DECLARATION_node(),
             ),
             exp_xml_str_list=[
@@ -4046,7 +4046,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two QUALIFIER.DECLARATION",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_QUALIFIER_DECLARATION_node('Q1'),
                 simple_QUALIFIER_DECLARATION_node('Q2'),
             ]),
@@ -4062,8 +4062,8 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with VALUE.ARRAY",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
-                cim_xml.VALUE_ARRAY([]),
+            xml_node=_cim_xml.IRETURNVALUE(
+                _cim_xml.VALUE_ARRAY([]),
             ),
             exp_xml_str_list=[
                 '<IRETURNVALUE>',
@@ -4076,8 +4076,8 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with VALUE.REFERENCE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
-                cim_xml.VALUE_REFERENCE(
+            xml_node=_cim_xml.IRETURNVALUE(
+                _cim_xml.VALUE_REFERENCE(
                     simple_INSTANCENAME_node(),
                 ),
             ),
@@ -4094,7 +4094,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one CLASS",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_CLASS_node(),
             ),
             exp_xml_str_list=[
@@ -4108,7 +4108,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two CLASS",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_CLASS_node('C1'),
                 simple_CLASS_node('C2'),
             ]),
@@ -4124,7 +4124,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one INSTANCE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_INSTANCE_node(),
             ),
             exp_xml_str_list=[
@@ -4138,7 +4138,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two INSTANCE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_INSTANCE_node('C1'),
                 simple_INSTANCE_node('C2'),
             ]),
@@ -4154,7 +4154,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with one VALUE.NAMEDINSTANCE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE(
+            xml_node=_cim_xml.IRETURNVALUE(
                 simple_VALUE_NAMEDINSTANCE_node(),
             ),
             exp_xml_str_list=[
@@ -4168,7 +4168,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "IRETURNVALUE with two VALUE.NAMEDINSTANCE",
         dict(
-            xml_node=cim_xml.IRETURNVALUE([
+            xml_node=_cim_xml.IRETURNVALUE([
                 simple_VALUE_NAMEDINSTANCE_node('C1'),
                 simple_VALUE_NAMEDINSTANCE_node('C2'),
             ]),
@@ -4191,7 +4191,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "ERROR, minimalistic",
         dict(
-            xml_node=cim_xml.ERROR('1'),
+            xml_node=_cim_xml.ERROR('1'),
             exp_xml_str_list=[
                 '<ERROR CODE="1"/>',
             ],
@@ -4201,7 +4201,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "ERROR, with all attributes, empty list of instances",
         dict(
-            xml_node=cim_xml.ERROR(
+            xml_node=_cim_xml.ERROR(
                 '1',
                 description="some description",
                 instances=[],
@@ -4215,7 +4215,7 @@ TESTCASES_CIM_XML_NODE = [
     (
         "ERROR, with all attributes, two instances",
         dict(
-            xml_node=cim_xml.ERROR(
+            xml_node=_cim_xml.ERROR(
                 '1',
                 description="some description",
                 instances=[
@@ -4243,18 +4243,18 @@ TESTCASES_CIM_XML_NODE = [
 def test_cim_xml_node(testcase, xml_node, exp_xml_str_list, **kwargs):
     # pylint: disable=unused-argument
     """
-    Test function for a cim_xml node.
+    Test function for a _cim_xml node.
     """
 
     cdata_escaping = kwargs.get('cdata_escaping', False)
 
-    # Convert the cim_xml node (a subclass of xml.dom.minidom.Element) to an
+    # Convert the _cim_xml node (a subclass of xml.dom.minidom.Element) to an
     # XML string
     act_xml_str = xml_node.toxml()
 
     try:
         if cdata_escaping:
-            cim_xml._CDATA_ESCAPING = True  # pylint: disable=protected-access
+            _cim_xml._CDATA_ESCAPING = True  # pylint: disable=protected-access
 
         # Validate the XML string against the CIM-XML DTD
         try:
@@ -4273,4 +4273,4 @@ def test_cim_xml_node(testcase, xml_node, exp_xml_str_list, **kwargs):
 
     finally:
         if cdata_escaping:
-            cim_xml._CDATA_ESCAPING = False  # pylint: disable=protected-access
+            _cim_xml._CDATA_ESCAPING = False  # pylint: disable=protected-access

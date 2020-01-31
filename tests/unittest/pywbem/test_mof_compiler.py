@@ -25,14 +25,14 @@ from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem.cim_operations import CIMError
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError, \
-    MOFDependencyError, MOFRepositoryError
-from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
+from pywbem._cim_operations import CIMError
+from pywbem._mof_compiler import MOFCompiler, MOFWBEMConnection, \
+    MOFParseError, MOFDependencyError, MOFRepositoryError
+from pywbem._cim_constants import CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
-from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
+from pywbem._cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
-from pywbem import mof_compiler
+from pywbem import _mof_compiler
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
@@ -1323,11 +1323,11 @@ class BaseTestLexer(unittest.TestCase):
             self.last_error_t = t
             self.saved_t_error(t)
 
-        self.saved_t_error = mof_compiler.t_error
-        mof_compiler.t_error = test_t_error
+        self.saved_t_error = _mof_compiler.t_error
+        _mof_compiler.t_error = test_t_error
 
     def tearDown(self):
-        mof_compiler.t_error = self.saved_t_error
+        _mof_compiler.t_error = self.saved_t_error
 
     @staticmethod
     def lex_token(type_, value, lineno, lexpos):

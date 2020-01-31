@@ -20,7 +20,7 @@ the WBEM client library API.
 """
 
 import six
-from .cim_constants import _statuscode2name, _statuscode2string
+from ._cim_constants import _statuscode2name, _statuscode2string
 
 # This module is meant to be safe for 'import *'.
 

@@ -35,7 +35,7 @@ from getpass import getpass
 
 from pywbem._cliutils import SmartFormatter
 from pywbem import WBEMConnection, Error
-from pywbem.mof_compiler import MOFWBEMConnection, MOFCompiler
+from pywbem._mof_compiler import MOFWBEMConnection, MOFCompiler
 from pywbem import __version__
 
 from pywbem._logging import LOG_DESTINATIONS, \

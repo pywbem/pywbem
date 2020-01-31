@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test cases for tupletree module and Unicode/XML check functions.
+Test cases for _tupletree module and Unicode/XML check functions.
 """
 
 from __future__ import absolute_import, print_function
@@ -13,12 +13,12 @@ import pytest
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import tupletree, ParseError
+from pywbem import _tupletree, ParseError
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
 # The following was originally the pywbem parser.  Now it is used simply as a
-# check on the SAX parser.  Therefore, this code was moved from tupletree.py to
+# check on the SAX parser.  Therefore, this code was moved from _tupletree.py to
 # here for the tests. Note that this code is referenced from other code in the
 # attic so we might not want to eliminate it completely.
 
@@ -75,7 +75,7 @@ def xml_to_tupletree(xml_string):
 class Test_xml_to_tupletree_sax(object):
     # pylint: disable=too-few-public-methods
     """
-    Exhaustive tests for tupletree.xml_to_tupletree_sax(), with inline input
+    Exhaustive tests for _tupletree.xml_to_tupletree_sax(), with inline input
     XML and expected tupletrees (for success) or exceptions (for failures).
 
     A comparison with the result of the previously implemented DOM based
@@ -507,7 +507,7 @@ class Test_xml_to_tupletree_sax(object):
 
         if exp_exc_type is None:
 
-            act_tupletree = tupletree.xml_to_tupletree_sax(
+            act_tupletree = _tupletree.xml_to_tupletree_sax(
                 xml_string, 'Test XML')
 
             # Compare against expected result
@@ -521,7 +521,7 @@ class Test_xml_to_tupletree_sax(object):
         else:
             with pytest.raises(exp_exc_type) as exec_info:
 
-                tupletree.xml_to_tupletree_sax(xml_string, 'Test XML')
+                _tupletree.xml_to_tupletree_sax(xml_string, 'Test XML')
 
             if exp_exc_msg_pattern:
                 exc = exec_info.value
@@ -533,7 +533,7 @@ class Test_xml_to_tupletree_sax(object):
 
 class Test_get_failing_line(object):
     # pylint: disable=too-few-public-methods
-    """Tests for tupletree.get_failing_line()"""
+    """Tests for _tupletree.get_failing_line()"""
 
     testcases = [
         # Each testcase has these items:
@@ -682,14 +682,14 @@ class Test_get_failing_line(object):
             self, desc, xml_string, exc_msg, exp_result, exp_exc_type,
             condition):
         # pylint: disable=no-self-use,unused-argument
-        """Tests for tupletree.get_failing_line()"""
+        """Tests for _tupletree.get_failing_line()"""
 
         if not condition:
             pytest.skip("Condition for test case not met")
 
         if exp_exc_type is None:
 
-            act_result = tupletree.get_failing_line(xml_string, exc_msg)
+            act_result = _tupletree.get_failing_line(xml_string, exc_msg)
 
             assert isinstance(act_result, tuple)
             assert act_result == exp_result
@@ -697,13 +697,13 @@ class Test_get_failing_line(object):
         else:
             with pytest.raises(exp_exc_type):
 
-                tupletree.get_failing_line(xml_string, exc_msg)
+                _tupletree.get_failing_line(xml_string, exc_msg)
 
 
 class Test_check_invalid_utf8_sequences(object):
     # pylint: disable=too-few-public-methods
     """
-    Tests for tupletree.check_invalid_utf8_sequences()
+    Tests for _tupletree.check_invalid_utf8_sequences()
     """
 
     testcases = [
@@ -807,7 +807,7 @@ class Test_check_invalid_utf8_sequences(object):
             self, desc, utf8_string, exp_exc_type, condition):
         # pylint: disable=no-self-use
         """
-        Tests for tupletree.check_invalid_utf8_sequences()
+        Tests for _tupletree.check_invalid_utf8_sequences()
         """
 
         if not condition:
@@ -815,7 +815,7 @@ class Test_check_invalid_utf8_sequences(object):
 
         if exp_exc_type is None:
 
-            unicode_string = tupletree.check_invalid_utf8_sequences(
+            unicode_string = _tupletree.check_invalid_utf8_sequences(
                 utf8_string, desc)
 
             assert isinstance(unicode_string, six.text_type), desc
@@ -825,13 +825,13 @@ class Test_check_invalid_utf8_sequences(object):
         else:
             with pytest.raises(exp_exc_type):
 
-                tupletree.check_invalid_utf8_sequences(utf8_string, desc)
+                _tupletree.check_invalid_utf8_sequences(utf8_string, desc)
 
 
 class Test_check_invalid_xml_chars(object):
     # pylint: disable=too-few-public-methods
     """
-    Tests for tupletree.check_invalid_xml_chars()
+    Tests for _tupletree.check_invalid_xml_chars()
     """
 
     testcases = [
@@ -921,7 +921,7 @@ class Test_check_invalid_xml_chars(object):
             self, desc, xml_string, exp_exc_type, condition):
         # pylint: disable=no-self-use
         """
-        Tests for tupletree.check_invalid_xml_chars()
+        Tests for _tupletree.check_invalid_xml_chars()
         """
 
         if not condition:
@@ -929,9 +929,9 @@ class Test_check_invalid_xml_chars(object):
 
         if exp_exc_type is None:
 
-            tupletree.check_invalid_xml_chars(xml_string, desc)
+            _tupletree.check_invalid_xml_chars(xml_string, desc)
 
         else:
             with pytest.raises(exp_exc_type):
 
-                tupletree.check_invalid_xml_chars(xml_string, desc)
+                _tupletree.check_invalid_xml_chars(xml_string, desc)

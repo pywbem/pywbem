@@ -144,10 +144,10 @@ import uuid
 import six
 
 from ._server import WBEMServer
-from .cim_obj import CIMInstance, CIMInstanceName
-from .cim_http import parse_url
-from .cim_constants import CIM_ERR_FAILED
-from .exceptions import CIMError
+from ._cim_obj import CIMInstance, CIMInstanceName
+from ._cim_http import parse_url
+from ._cim_constants import CIM_ERR_FAILED
+from ._exceptions import CIMError
 from ._utils import _format
 
 # CIM model classnames for subscription components

@@ -4,7 +4,7 @@
 CIM objects
 -----------
 
-.. automodule:: pywbem.cim_obj
+.. automodule:: pywbem._cim_obj
 
 .. _`NocaseDict`:
 

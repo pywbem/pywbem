@@ -1,5 +1,5 @@
 """
-Test CIM-XML parsing routines in tupleparse.py.
+Test CIM-XML parsing routines in _tupleparse.py.
 """
 
 from __future__ import absolute_import
@@ -11,7 +11,7 @@ from ..utils.pytest_extensions import simplified_test_function
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import tupletree, tupleparse
+from pywbem import _tupletree, _tupleparse
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, \
@@ -544,9 +544,9 @@ def test_tupleparse_roundtrip(testcase, obj):
     """
 
     xml_str = obj.tocimxml().toxml()
-    tt = tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
+    tt = _tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
 
-    tp = tupleparse.TupleParser()
+    tp = _tupleparse.TupleParser()
 
     # The code to be tested
     parsed_obj = tp.parse_any(tt)
@@ -562,7 +562,7 @@ def test_tupleparse_roundtrip(testcase, obj):
 # CIM-XML element, including invalid input.
 TESTCASES_TUPLEPARSE_XML = [
 
-    # Testcases for tupleparse
+    # Testcases for _tupleparse
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -10338,9 +10338,9 @@ def test_tupleparse_xml(testcase, xml_str, exp_result):
     """
 
     # This way to create a tuple tree is also used in _imethodcall() etc.
-    tt = tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
+    tt = _tupletree.xml_to_tupletree_sax(xml_str, 'Test-XML')
 
-    tp = tupleparse.TupleParser()
+    tp = _tupleparse.TupleParser()
 
     # The code to be tested
     result = tp.parse_any(tt)

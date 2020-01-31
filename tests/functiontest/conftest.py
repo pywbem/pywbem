@@ -32,7 +32,7 @@ The test case syntax allows specifying error cases and success cases.
 
 This allows testing the entire pywbem client layer (at least of its
 WBEMConnection class), with the exception of the lowest layers of the HTTP
-transport logic in the cim_http.py module of pywbem. This nearly holistic
+transport logic in the _cim_http.py module of pywbem. This nearly holistic
 test approach for the client inspired the term "testclient .yaml files".
 
 The following is a description of a single test case in the testclient .yaml

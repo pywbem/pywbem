@@ -28,9 +28,9 @@ from pywbem import WBEMConnection, Error, Uint64, __version__
 
 # In pywbem 0.13, parse_cim() changed from a function to a method:
 try:
-    from pywbem.tupleparse import parse_cim
+    from pywbem._tupleparse import parse_cim
 except ImportError:
-    from pywbem.tupleparse import TupleParser
+    from pywbem._tupleparse import TupleParser
 
     def parse_cim(tt):
         """Compatible parse_cim() function"""

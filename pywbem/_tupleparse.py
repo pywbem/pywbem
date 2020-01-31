@@ -41,8 +41,7 @@ representation of CIM in XML by having the following properties:
 # Implementation:
 #
 # This works by a recursive descent down the CIM XML tupletree.  As we walk
-# down, we produce cim_obj and cim_type objects representing the CIM message
-# in digested form.
+# down, we produce CIM objects representing the CIM message in digested form.
 #
 # For each XML node type FOO there is one function parse_foo, which
 # returns the digested form by examining a tuple tree rooted at FOO.
@@ -84,12 +83,12 @@ import six
 
 from ._utils import _stacklevel_above_module, _format
 from ._nocasedict import NocaseDict
-from .cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration
-from .cim_types import CIMDateTime, type_from_name
-from .tupletree import xml_to_tupletree_sax
-from .exceptions import CIMXMLParseError
+from ._cim_types import CIMDateTime, type_from_name
+from ._tupletree import xml_to_tupletree_sax
+from ._exceptions import CIMXMLParseError
 from ._warnings import ToleratedServerIssueWarning
 
 

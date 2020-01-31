@@ -48,7 +48,7 @@ from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder, \
     configure_logger
-from pywbem.mof_compiler import MOFCompiler
+from pywbem._mof_compiler import MOFCompiler
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name

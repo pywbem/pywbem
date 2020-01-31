@@ -32,7 +32,7 @@ pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import WBEMConnection, CIMInstance, CIMClass, CIMInstanceName, \
     CIMProperty, CIMError, CIM_ERR_NOT_SUPPORTED
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT
-from pywbem.cim_operations import pull_inst_result_tuple, \
+from pywbem._cim_operations import pull_inst_result_tuple, \
     pull_path_result_tuple, pull_query_result_tuple
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
