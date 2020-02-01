@@ -19,42 +19,142 @@ The following exceptions are pywbem specific exceptions that can be raised at
 the WBEM client library API.
 """
 
+import six
 from .cim_constants import _statuscode2name, _statuscode2string
 
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'VersionError', 'ParseError', 'CIMXMLParseError', 'XMLParseError',
-           'CIMError', 'ModelError']
+           'CIMError', 'ModelError', '_RequestExceptionMixin',
+           '_ResponseExceptionMixin']
 
 
-class Error(Exception):
+class _RequestExceptionMixin(object):
     """
-    Base class for pywbem specific exceptions.
+    An internal mixin class for pywbem specific exceptions that provides the
+    ability to store the CIM-XML request string in the exception.
+
+    *New in pywbem 1.0.*
+
+    Derived classes using this mixin class need to specify it before the base
+    error class.
     """
 
     def __init__(self, *args, **kwargs):
         """
         Parameters:
 
-          conn_id (:term:`connection id`): Must be a keyword argument.
-            Connection ID of the connection in whose context the error
-            happened. Omitted or `None` if the error did not happen in context
-            of any connection, or if the connection context was not known.
+          *args :
+            Any other positional arguments are passed on to the next superclass.
+
+          **kwargs :
+            Any other keyword arguments are passed on to the next superclass.
+
+          request_data (:term:`string`):
+            CIM-XML request string. Omitted or `None` means the exception does
+            not store a CIM-XML request.
+            Must be specified as a keyword argument; if specified it will be
+            removed from the keyword arguments that are passed on.
+        """
+        if 'request_data' in kwargs:
+            request_data = kwargs['request_data']
+            del kwargs['request_data']
+        else:
+            request_data = None
+        self.request_data = request_data
+        super(_RequestExceptionMixin, self).__init__(*args, **kwargs)
+
+    @property
+    def request_data(self):
+        """
+        :term:`string`: CIM-XML request string (settable).
+        `None` if the exception does not store a CIM-XML request.
+        """
+        return self._request_data
+
+    @request_data.setter
+    def request_data(self, request_data):
+        """Setter method; for a description see the getter method."""
+        self._request_data = request_data
+
+
+class _ResponseExceptionMixin(object):
+    """
+    Mixin class into pywbem specific exceptions that provides the ability to
+    store the CIM-XML response string in the exception.
+
+    *New in pywbem 1.0.*
+
+    Derived classes using this mixin class need to specify it before the base
+    error class.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Parameters:
+
+          *args :
+            Any other positional arguments are passed on to the next superclass.
+
+          **kwargs :
+            Any other keyword arguments are passed on to the next superclass.
+
+          response_data (:term:`string`):
+            CIM-XML response string. Omitted or `None` means the exception does
+            not store a CIM-XML response.
+            Must be specified as a keyword argument; if specified it will be
+            removed from the keyword arguments that are passed on.
+        """
+        if 'response_data' in kwargs:
+            response_data = kwargs['response_data']
+            del kwargs['response_data']
+        else:
+            response_data = None
+        self.response_data = response_data
+        super(_ResponseExceptionMixin, self).__init__(*args, **kwargs)
+
+    @property
+    def response_data(self):
+        """
+        :term:`string`: CIM-XML response string (settable).
+        `None` if the exception does not store a CIM-XML response.
+        """
+        return self._response_data
+
+    @response_data.setter
+    def response_data(self, response_data):
+        """Setter method; for a description see the getter method."""
+        self._response_data = response_data
+
+
+class Error(Exception):
+    """
+    Abstract base class for pywbem specific exceptions.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Parameters:
 
           *args :
             Any other positional arguments are passed to :exc:`py:Exception`.
 
-          **kwargs :
-            Any other keyword arguments are passed to :exc:`py:Exception`.
+          conn_id (:term:`connection id`):
+            Connection ID of the connection in whose context the error
+            happened. Omitted or `None` if the error did not happen in context
+            of any connection, or if the connection context was not known.
+            Must be specified as a keyword argument.
         """
         if 'conn_id' in kwargs:
             conn_id = kwargs['conn_id']
             del kwargs['conn_id']
         else:
             conn_id = None
-        super(Error, self).__init__(*args, **kwargs)
         self._conn_id = conn_id
+        # The Python Exception class cannot be initialized with keyword args
+        assert not kwargs, str(kwargs)
+        super(Error, self).__init__(*args)
 
     @property
     def conn_id(self):
@@ -83,7 +183,24 @@ class ConnectionError(Error):
     server. A retry may or may not succeed.
     Derived from :exc:`~pywbem.Error`.
     """
-    pass
+
+    def __init__(self, message, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+          conn_id (:term:`connection id`):
+            Connection ID of the connection in whose context the error happened.
+            Omitted or `None` if the error did not happen in context of any
+            connection, or if the connection context was not known.
+
+        :ivar args: A tuple (message, ) set from the corresponding init
+            arguments.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(ConnectionError, self).__init__(message, conn_id=conn_id)
 
 
 class AuthError(Error):
@@ -92,10 +209,27 @@ class AuthError(Error):
     either during TLS/SSL handshake, or during HTTP-level authentication.
     Derived from :exc:`~pywbem.Error`.
     """
-    pass
+
+    def __init__(self, message, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+          conn_id (:term:`connection id`):
+            Connection ID of the connection in whose context the error happened.
+            Omitted or `None` if the error did not happen in context of any
+            connection, or if the connection context was not known.
+
+        :ivar args: A tuple (message, ) set from the corresponding init
+            arguments.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(AuthError, self).__init__(message, conn_id=conn_id)
 
 
-class HTTPError(Error):
+class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     """
     This exception indicates that the WBEM server returned an HTTP response
     with a bad HTTP status code. Derived from :exc:`~pywbem.Error`.
@@ -110,7 +244,7 @@ class HTTPError(Error):
     """
 
     def __init__(self, status, reason, cimerror=None, cimdetails=None,
-                 conn_id=None):
+                 conn_id=None, request_data=None, response_data=None):
         """
         Parameters:
 
@@ -136,13 +270,20 @@ class HTTPError(Error):
             happen in context of any connection, or if the connection context
             was not known.
 
+          request_data (:term:`string`): CIM-XML request string.
+            `None` means the exception does not store a CIM-XML request.
+
+          response_data (:term:`string`): CIM-XML response string.
+            `None` means the exception does not store a CIM-XML response.
+
         :ivar args: A tuple (status, reason, cimerror, cimdetails) set from the
             corresponding init arguments.
         """
         if cimdetails is None:
             cimdetails = {}
         super(HTTPError, self).__init__(
-            status, reason, cimerror, cimdetails, conn_id=conn_id)
+            status, reason, cimerror, cimdetails, conn_id=conn_id,
+            request_data=request_data, response_data=response_data)
 
     @property
     def status(self):
@@ -205,22 +346,33 @@ class TimeoutError(Error):
     This exception indicates that the client timed out waiting for the WBEM
     server. Derived from :exc:`~pywbem.Error`.
     """
-    pass
+
+    def __init__(self, message, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+          conn_id (:term:`connection id`):
+            Connection ID of the connection in whose context the error happened.
+            Omitted or `None` if the error did not happen in context of any
+            connection, or if the connection context was not known.
+
+        :ivar args: A tuple (message, ) set from the corresponding init
+            arguments.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(TimeoutError, self).__init__(message, conn_id=conn_id)
 
 
-class ParseError(Error):
+class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     """
     This exception indicates a parsing error with the CIM-XML operation
     response the pywbem client received, or with the CIM-XML indication
     request the pywbem listener received.
 
     Derived from :exc:`~pywbem.Error`.
-
-    This class supports attaching the CIM-XML request and response data in
-    properties :attr:`~pywbem.ParseError.request_data` and
-    :attr:`~pywbem.ParseError.response_data`, respectively. When exceptions
-    of this class are raised by pywbem, these properties will always be
-    set.
 
     The CIM-XML response data is part of the `str()` representation of the
     exception.
@@ -236,7 +388,8 @@ class ParseError(Error):
     WBEM server.
     """
 
-    def __init__(self, message, conn_id=None):
+    def __init__(self, message, conn_id=None, request_data=None,
+                 response_data=None):
         """
         Parameters:
 
@@ -246,34 +399,21 @@ class ParseError(Error):
             whose context the error happened. `None` if the error did not
             happen in context of any connection, or if the connection context
             was not known.
-        """
-        super(ParseError, self).__init__(message, conn_id=conn_id)
-        self._request_data = None
-        self._response_data = None
 
-    @property
-    def request_data(self):
-        """
-        :term:`string`: CIM-XML request data (unformatted).
-        """
-        return self._request_data
+          request_data (:term:`string`): CIM-XML request string.
+            `None` means the exception does not store a CIM-XML request.
 
-    @request_data.setter
-    def request_data(self, request_data):
-        """Setter method; for a description see the getter method."""
-        self._request_data = request_data
+          response_data (:term:`string`): CIM-XML response string.
+            `None` means the exception does not store a CIM-XML response.
 
-    @property
-    def response_data(self):
+        :ivar args: A tuple (message, ) set from the corresponding init
+            argument.
         """
-        :term:`string`: CIM-XML response data (unformatted).
-        """
-        return self._response_data
-
-    @response_data.setter
-    def response_data(self, response_data):
-        """Setter method; for a description see the getter method."""
-        self._response_data = response_data
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(ParseError, self).__init__(
+            message, conn_id=conn_id, request_data=request_data,
+            response_data=response_data)
 
     def __str__(self):
         error_str = super(ParseError, self).__str__()
@@ -314,10 +454,27 @@ class VersionError(Error):
     with the CIM-XML response returned by the WBEM server, or in the CIM-XML
     request sent by the WBEM listener. Derived from :exc:`~pywbem.Error`.
     """
-    pass
+
+    def __init__(self, message, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+          conn_id (:term:`connection id`):
+            Connection ID of the connection in whose context the error happened.
+            Omitted or `None` if the error did not happen in context of any
+            connection, or if the connection context was not known.
+
+        :ivar args: A tuple (message, ) set from the corresponding init
+            argument.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(VersionError, self).__init__(message, conn_id=conn_id)
 
 
-class CIMError(Error):
+class CIMError(_RequestExceptionMixin, Error):
     """
     This exception indicates that the WBEM server returned an error response
     with a CIM status code. Derived from :exc:`~pywbem.Error`.
@@ -351,7 +508,7 @@ class CIMError(Error):
 
     # pylint: disable=super-init-not-called
     def __init__(self, status_code, status_description=None, instances=None,
-                 conn_id=None):
+                 conn_id=None, request_data=None):
         """
         Parameters:
 
@@ -372,11 +529,15 @@ class CIMError(Error):
             happen in context of any connection, or if the connection context
             was not known.
 
-        :ivar args: A tuple (status_code, status_description) set from the
-            corresponding init arguments.
+          request_data (:term:`string`): CIM-XML request string.
+            `None` means the exception does not store a CIM-XML request.
+
+        :ivar args: A tuple (status_code, status_description, instances) set
+            from the corresponding init arguments.
         """
         super(CIMError, self).__init__(
-            status_code, status_description, instances, conn_id=conn_id)
+            status_code, status_description, instances, conn_id=conn_id,
+            request_data=request_data)
 
     @property
     def status_code(self):
@@ -454,4 +615,21 @@ class ModelError(Error):
 
     Derived from :exc:`~pywbem.Error`.
     """
-    pass
+
+    def __init__(self, message, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+          conn_id (:term:`connection id`):
+            Connection ID of the connection in whose context the error happened.
+            Omitted or `None` if the error did not happen in context of any
+            connection, or if the connection context was not known.
+
+        :ivar args: A tuple (message, ) set from the corresponding init
+            argument.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(ModelError, self).__init__(message, conn_id=conn_id)

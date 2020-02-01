@@ -145,6 +145,11 @@ Released: not yet
     for installing pywbem. If you have automated the pywbem installation,
     this step should be removed from your automation.
 
+* Changed the `CIMError` exceptions that were raised by pywbem code in several
+  `WBEMServer` methods to now raise `ModelError`, for cases where the model
+  implemented by the server has issues.
+  (See issue #1423)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -347,6 +352,12 @@ Released: not yet
 * Test: Fixed a bug introduced in 0.14.5 where the manualtest scripts failed
   with invalid relative import. (see issue #2039)
 
+* The `HTTPError` exception raised when receiving an invalid Content-type header
+  in a CIM-XML response had its `status` attribute set to the message string.
+  That has been fixed to now set the `reason` attribute to the message and
+  `status` to the actual status code.
+  (See issue #1423)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
@@ -444,6 +455,13 @@ Released: not yet
 
 * Refactor pywbem_mock into more consistent components separating the
   mock repository from the component that represents a CIMOM. (see issue # 2062)
+
+* Added a `request_data` attribute to the `HTTPError` and `CIMError`
+  exceptions and a `response_data` attribute to the `HTTPError` exception
+  for storing the CIM-XML request or response, respectively, in order to
+  provide additional context for the error. The `ParseError` exception and its
+  subclasses already had `request_data` and `response_data` attributes.
+  (See issue #1423)
 
 **Cleanup:**
 

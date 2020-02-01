@@ -6,22 +6,6 @@ Exceptions
 
 .. automodule:: pywbem.exceptions
 
-.. autoclass:: pywbem.Error
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.Error
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.Error
-      :attributes:
-
-   .. rubric:: Details
-
 .. autoclass:: pywbem.ConnectionError
    :members:
 
@@ -162,6 +146,54 @@ Exceptions
    .. rubric:: Attributes
 
    .. autoautosummary:: pywbem.ModelError
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem.Error
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.Error
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.Error
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem._RequestExceptionMixin
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem._RequestExceptionMixin
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem._RequestExceptionMixin
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem._ResponseExceptionMixin
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem._ResponseExceptionMixin
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem._ResponseExceptionMixin
       :attributes:
 
    .. rubric:: Details

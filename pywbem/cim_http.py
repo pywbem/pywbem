@@ -388,25 +388,26 @@ def wbem_request(conn, req_data, cimxml_headers):
             raise AuthError(msg, conn_id=conn.conn_id)
 
         cimerror_hdr = resp.headers.get('CIMError', None)
+        cimdetails = {}
         if cimerror_hdr is not None:
-            cimdetails = {}
             pgdetails_hdr = resp.headers.get('PGErrorDetail', None)
             if pgdetails_hdr is not None:
                 cimdetails['PGErrorDetail'] = \
                     urllib.parse.unquote(pgdetails_hdr)
-            raise HTTPError(resp.status_code, resp.reason,
-                            cimerror_hdr, cimdetails, conn_id=conn.conn_id)
-        raise HTTPError(resp.status_code, resp.reason, conn_id=conn.conn_id)
+        raise HTTPError(
+            resp.status_code, resp.reason, cimerror_hdr, cimdetails,
+            conn_id=conn.conn_id, request_data=req_body)
 
     # status code 200
     resp_content_type = resp.headers.get('Content-type', None)
     if resp_content_type is not None and \
             not resp_content_type.startswith('application/xml'):
         raise HTTPError(
-            "Unknown content type in HTTP response: {}. "
-            "Content (max.1000, decoded using {}): {}".
-            format(resp_content_type, resp.encoding,
-                   max_repr(resp.text, 1000)))
+            resp.status_code,
+            "pywbem detected invalid content-type in HTTP response: {}".
+            format(resp_content_type),
+            conn_id=conn.conn_id, request_data=req_body,
+            response_data=resp.text)
 
     resp_body = resp.content
 

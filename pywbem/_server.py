@@ -238,11 +238,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: An issue with the model implemented by the WBEM server.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
-            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-              determined.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         if self._namespace_classname is None:
             self._determine_namespaces()
@@ -257,11 +253,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: An issue with the model implemented by the WBEM server.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
-            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-              determined.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         if self._namespaces is None:
             self._determine_namespaces()
@@ -283,11 +275,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: An issue with the model implemented by the WBEM server.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
-            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-              determined.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         if self._namespace_paths is None:
             self._determine_namespaces()
@@ -427,15 +415,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: An issue with the model implemented by the WBEM server.
-            CIMError: CIM_ERR_ALREADY_EXISTS, Specified namespace already
-              exists in the WBEM server.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
-            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-              `CIM_ObjectManager` instances.
-            CIMError: CIM_ERR_FAILED, Unexpected number of
-              central instances of WBEM Server profile.
+            ModelError: An error with the model implemented by the WBEM server.
         """
 
         std_namespace = _ensure_unicode(namespace.strip('/'))
@@ -450,8 +430,7 @@ class WBEMServer(object):
             ws_profile_inst = ws_profiles_sorted[-1]  # latest version
             ws_insts = self.get_central_instances(ws_profile_inst.path)
             if len(ws_insts) != 1:
-                raise CIMError(
-                    CIM_ERR_FAILED,
+                raise ModelError(
                     _format("Unexpected number of central instances of WBEM "
                             "Server profile: {0!A}",
                             [i.path for i in ws_insts]))
@@ -477,8 +456,7 @@ class WBEMServer(object):
                     raise
             else:
                 if ret_val != 0:
-                    raise CIMError(
-                        CIM_ERR_FAILED,
+                    raise ModelError(
                         _format("The CreateWBEMServerNamespace() method is "
                                 "implemented but failed: {0}",
                                 out_params['Errors']))
@@ -573,11 +551,10 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: An issue with the model implemented by the WBEM server.
+            ModelError: An error with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Specified namespace does not exist.
             CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY, Specified namespace is not
               empty.
-            Additional CIM errors.
         """
 
         std_namespace = _ensure_unicode(namespace.strip('/'))
@@ -591,7 +568,8 @@ class WBEMServer(object):
         if std_namespace not in self.namespaces:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("Specified namespace does not exist: {0!A}",
+                _format("pywbem detected that the specified namespace does not "
+                        "exist: {0!A}",
                         std_namespace),
                 conn_id=self.conn.conn_id)
 
@@ -612,7 +590,8 @@ class WBEMServer(object):
         if class_paths or quals:
             raise CIMError(
                 CIM_ERR_NAMESPACE_NOT_EMPTY,
-                _format("Specified namespace {0!A} is not empty; it contains "
+                _format("pywbem detected that the specified namespace {0!A} "
+                        "is not empty; it contains "
                         "{1} top-level classes and {2} qualifier types",
                         std_namespace, len(class_paths), len(quals)),
                 conn_id=self.conn.conn_id)
@@ -857,7 +836,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: Model implementation errors on the server.
+            ModelError: An error with the model implemented by the WBEM server.
             ValueError: User errors regarding input parameter values.
             TypeError: User errors regarding input parameter types.
         """
@@ -1074,8 +1053,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         test_classname = 'CIM_Namespace'
         interop_ns = None
@@ -1107,8 +1085,7 @@ class WBEMServer(object):
                 break
         if interop_ns is None:
             # Exhausted the possible namespaces
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
+            raise ModelError(
                 _format("Interop namespace could not be determined "
                         "(tried {0!A})", self.INTEROP_NAMESPACES),
                 conn_id=self.conn.conn_id)
@@ -1172,11 +1149,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            ModelError: An issue with the model implemented by the WBEM server.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
-            CIMError: CIM_ERR_NOT_FOUND, Namespace class could not be
-              determined.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         ns_insts = None
         ns_classname = None
@@ -1199,8 +1172,7 @@ class WBEMServer(object):
                 break
         if ns_insts is None:
             # Exhausted the possible class names
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
+            raise ModelError(
                 _format("Namespace class could not be determined "
                         "(tried {0!A})", self.NAMESPACE_CLASSNAMES),
                 conn_id=self.conn.conn_id)
@@ -1233,16 +1205,12 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
-            CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
-              `CIM_ObjectManager` instances.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         cimom_insts = self._conn.EnumerateInstances(
             "CIM_ObjectManager", namespace=self.interop_ns)
         if len(cimom_insts) != 1:
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
+            raise ModelError(
                 _format("Unexpected number of CIM_ObjectManager instances: "
                         "{0!A} ", [i['ElementName'] for i in cimom_insts]),
                 conn_id=self.conn.conn_id)
@@ -1312,8 +1280,7 @@ class WBEMServer(object):
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
-            CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
-              determined.
+            ModelError: An error with the model implemented by the WBEM server.
         """
         mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
                                                  namespace=self.interop_ns)
