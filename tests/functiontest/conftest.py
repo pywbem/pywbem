@@ -859,7 +859,7 @@ def runtestcase(testcase):
                                   raised_traceback_str))
         if isinstance(raised_exception,
                       (pywbem.CIMXMLParseError, pywbem.XMLParseError)):
-            req = raised_exception.request_data  # pylint: disable=no-member
+            req = raised_exception.request_data
             if req != conn.last_raw_request:
                 raise AssertionError("Testcase %s: The %s exception raised by "
                                      "PyWBEM operation %s has unexpected "
@@ -867,9 +867,10 @@ def runtestcase(testcase):
                                      "%s\n"
                                      "Expected CIM-XML request data:\n"
                                      "%s\n" %
-                                     (tc_name, raised_exception, op_name,
-                                      req, conn.last_raw_request))
-            resp = raised_exception.response_data  # pylint: disable=no-member
+                                     (tc_name,
+                                      raised_exception.__class__.__name__,
+                                      op_name, req, conn.last_raw_request))
+            resp = raised_exception.response_data
             if resp != conn.last_raw_reply:
                 raise AssertionError("Testcase %s: The %s exception raised by "
                                      "PyWBEM operation %s has unexpected "
@@ -877,8 +878,9 @@ def runtestcase(testcase):
                                      "%s\n"
                                      "Expected CIM-XML response data:\n"
                                      "%s\n" %
-                                     (tc_name, raised_exception, op_name,
-                                      resp, conn.last_raw_reply))
+                                     (tc_name,
+                                      raised_exception.__class__.__name__,
+                                      op_name, resp, conn.last_raw_reply))
     else:
         if raised_exception is not None:
             raise AssertionError("Testcase %s: No exception was "
