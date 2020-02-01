@@ -65,37 +65,69 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
 
 
 @pytest.fixture(params=[
-    # The exception classes for which the simple test should be done:
-    Error,
-    ConnectionError,
-    AuthError,
-    TimeoutError,
-    VersionError,
-    ModelError,
+    # The exception classes with only 'message' as a positional argument,
+    # along with a tuple of names of keyword arguments the class supports.
+    (
+        Error,
+        ('conn_id'),
+    ),
+    (
+        ConnectionError,
+        ('conn_id'),
+    ),
+    (
+        AuthError,
+        ('conn_id'),
+    ),
+    (
+        TimeoutError,
+        ('conn_id'),
+    ),
+    (
+        ParseError,
+        ('conn_id', 'request_data', 'response_data'),
+    ),
+    (
+        CIMXMLParseError,
+        ('conn_id', 'request_data', 'response_data'),
+    ),
+    (
+        XMLParseError,
+        ('conn_id', 'request_data', 'response_data'),
+    ),
+    (
+        VersionError,
+        ('conn_id'),
+    ),
+    (
+        ModelError,
+        ('conn_id'),
+    ),
 ], scope='module')
-def simple_class(request):
+def message_exception_info(request):
     """
-    Fixture representing variations of the simple exception classes.
+    Fixture representing variations of exception classes with only 'message'
+    as a positional argument,
 
-    Returns the exception class.
+    Returns a tuple of:
+    * Exception class.
+    * tuple with names of keyword arguments supported by the exception.
     """
     return request.param
 
 
 @pytest.fixture(params=[
-    # Tuple of positional init arguments for the simple exception classes
-    (),
-    ('',),
-    ('foo',),
-    ('foo', 42),
+    # message init argument for the exception classes
+    None,
+    '',
+    'foo',
 ], scope='module')
-def simple_args(request):
+def message_arg(request):
     """
-    Fixture representing variations of positional init arguments for the simple
+    Fixture representing variations of the 'message' init argument for
     exception classes.
 
-    Returns a tuple of positional arguments for initializing an exception
-    object.
+    Returns directly the message argument.
     """
     return request.param
 
@@ -118,23 +150,76 @@ def conn_info(request):
     return request.param
 
 
-def test_simple(simple_class, simple_args, conn_info):
+@pytest.fixture(params=[
+    # Tuple of (request_data_kwarg, exp_request_data)
+    (dict(), None),
+    (dict(request_data=None), None),
+    (dict(request_data=b'<CIM/>'), b'<CIM/>'),
+], scope='module')
+def request_data_info(request):
+    """
+    Fixture representing variations for the request_data keyword argument for
+    some of the exception classes, and the expected request_data attribute.
+
+    Returns a tuple of:
+    * request_data_kwarg: dict with the 'request_data' keyword argument. May be
+      empty.
+    * exp_request_data: Expected request_data attribute value.
+    """
+    return request.param
+
+
+@pytest.fixture(params=[
+    # Tuple of (response_data_kwarg, exp_request_data)
+    (dict(), None),
+    (dict(response_data=None), None),
+    (dict(response_data=b'<CIM/>'), b'<CIM/>'),
+], scope='module')
+def response_data_info(request):
+    """
+    Fixture representing variations for the response_data keyword argument for
+    some of the exception classes, and the expected response_data attribute.
+
+    Returns a tuple of:
+    * response_data_kwarg: dict with the 'response_data' keyword argument.
+      May be empty.
+    * exp_response_data: Expected response_data attribute value.
+    """
+    return request.param
+
+
+def test_message_init(
+        message_exception_info, message_arg, conn_info, request_data_info,
+        response_data_info):
     # pylint: disable=redefined-outer-name
     """
-    Test the simple exception classes.
+    Test the initialization of exception classes with 'message' as the only
+    positional argument.
     """
-
+    exception_class, kwargs_names = message_exception_info
     conn_id_kwarg, exp_conn_str = conn_info
+    request_data_kwarg, exp_request_data = request_data_info
+    response_data_kwarg, exp_response_data = response_data_info
 
-    exc = simple_class(*simple_args, **conn_id_kwarg)
+    kwargs = {}
+    if 'conn_id' in kwargs_names:
+        kwargs.update(conn_id_kwarg)
+    if 'request_data' in kwargs_names:
+        kwargs.update(request_data_kwarg)
+    if 'response_data' in kwargs_names:
+        kwargs.update(response_data_kwarg)
+
+    # The code to be tested
+    exc = exception_class(message_arg, **kwargs)
 
     # exc has no len()
-    assert len(exc.args) == len(simple_args)
-    for i, _ in enumerate(simple_args):
-        assert exc.args[i] == simple_args[i]
-        assert exc.args[i:] == simple_args[i:]
-        assert exc.args[0:i] == simple_args[0:i]
-        assert exc.args[:] == simple_args[:]
+    assert len(exc.args) == 1
+    assert exc.args[0] == message_arg
+
+    if 'request_data' in kwargs_names:
+        assert exc.request_data == exp_request_data
+    if 'response_data' in kwargs_names:
+        assert exc.response_data == exp_response_data
 
     _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)
@@ -159,15 +244,23 @@ def httperror_args(request):
     return request.param
 
 
-def test_httperror(httperror_args, conn_info):
+def test_httperror(
+        httperror_args, conn_info, request_data_info, response_data_info):
     # pylint: disable=redefined-outer-name
     """
     Test HTTPError exception class.
     """
 
     conn_id_kwarg, exp_conn_str = conn_info
+    request_data_kwarg, exp_request_data = request_data_info
+    response_data_kwarg, exp_response_data = response_data_info
 
-    exc = HTTPError(*httperror_args, **conn_id_kwarg)
+    kwargs = {}
+    kwargs.update(conn_id_kwarg)
+    kwargs.update(request_data_kwarg)
+    kwargs.update(response_data_kwarg)
+
+    exc = HTTPError(*httperror_args, **kwargs)
 
     assert exc.status == httperror_args[0]
     assert exc.reason == httperror_args[1]
@@ -185,6 +278,9 @@ def test_httperror(httperror_args, conn_info):
     assert exc.args[2] == exc.cimerror
     assert exc.args[3] == exc.cimdetails
     assert len(exc.args) == 4
+
+    assert exc.request_data == exp_request_data
+    assert exc.response_data == exp_response_data
 
     _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)

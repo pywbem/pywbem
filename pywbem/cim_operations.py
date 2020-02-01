@@ -1885,7 +1885,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 desc = _format("Error code {0}", err[1]['CODE'])
             raise CIMError(
-                code, desc, instances=err_insts, conn_id=self.conn_id)
+                code, desc, instances=err_insts, conn_id=self.conn_id,
+                request_data=request_data)
 
         # At this point, we know the operation was successful.
 
@@ -2168,7 +2169,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 desc = _format("Error code {0}", err[1]['CODE'])
             raise CIMError(
-                code, desc, instances=err_insts, conn_id=self.conn_id)
+                code, desc, instances=err_insts, conn_id=self.conn_id,
+                request_data=request_data)
 
         # #  Original code return tup_tree
 
