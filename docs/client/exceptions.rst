@@ -118,6 +118,22 @@ Exceptions
 
    .. rubric:: Details
 
+.. autoclass:: pywbem.HeaderParseError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.HeaderParseError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.HeaderParseError
+      :attributes:
+
+   .. rubric:: Details
+
 .. autoclass:: pywbem.CIMError
    :members:
 
