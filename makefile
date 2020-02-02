@@ -313,9 +313,10 @@ help:
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources"
 	@echo "  pylint     - Run PyLint on sources"
-	@echo "  test       - Run unit and function tests"
+	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
+	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  all        - Do all of the above"
-	@echo "  end2end    - Run end2end tests"
+	@echo "  end2end    - Run end2end tests (in tests/end2endtest)"
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
@@ -350,6 +351,12 @@ help:
 	@echo "      Optional, defaults to 'python'."
 	@echo "  PIP_CMD - Pip command to be used. Useful for Python 3 in some envs."
 	@echo "      Optional, defaults to 'pip'."
+	@echo "  YAGOT - Optional: When non-empty, 'test' target checks for garbage (=collected and "
+	@echo "      uncollectable) objects caused by the pytest test cases."
+	@echo "  YAGOT_LEAKS_ONLY - Optional: When non-empty, garbage checks are limited to "
+	@echo "      uncollectable (=leak) objects only."
+	@echo "  YAGOT_IGNORE_TYPES - Optional: Ignore the specified comma-separated list of types in"
+	@echo "      garbage checks."
 
 .PHONY: platform
 platform:
@@ -465,7 +472,7 @@ pylint: pylint_$(pymn).done
 	@echo "makefile: Target $@ done."
 
 .PHONY: all
-all: install develop build builddoc check pylint test
+all: install develop build builddoc check pylint test leaktest
 	@echo "makefile: Target $@ done."
 
 .PHONY: clobber
@@ -663,7 +670,13 @@ endif
 test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
 	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warning_opts) $(pytest_opts) tests/unittest tests/functiontest -s
-	@echo "makefile: Done running tests"
+	@echo "makefile: Done running unit and function tests"
+
+.PHONY: leaktest
+leaktest: $(test_deps)
+	@echo "makefile: Running memory leak tests"
+	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) tests/leaktest -s
+	@echo "makefile: Done running memory leak tests"
 
 .PHONY: end2end
 end2end: develop_$(pymn).done $(moftab_files)

@@ -215,6 +215,7 @@ script:
   # - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
   - make pylint
   - make test
+  - make leaktest
 
 after_success:
 # Note: In case of error 422 (Couldn't find a repository matching this job),
