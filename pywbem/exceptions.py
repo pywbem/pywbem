@@ -26,8 +26,8 @@ from .cim_constants import _statuscode2name, _statuscode2string
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'VersionError', 'ParseError', 'CIMXMLParseError', 'XMLParseError',
-           'CIMError', 'ModelError', '_RequestExceptionMixin',
-           '_ResponseExceptionMixin']
+           'HeaderParseError', 'CIMError', 'ModelError',
+           '_RequestExceptionMixin', '_ResponseExceptionMixin']
 
 
 class _RequestExceptionMixin(object):
@@ -377,12 +377,14 @@ class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     The CIM-XML response data is part of the `str()` representation of the
     exception.
 
-    This exception is a base class for two more specific exceptions:
+    This exception is a base class for more specific exceptions:
 
     * :exc:`~pywbem.CIMXMLParseError` - Issue at the CIM-XML level (e.g. NAME
       attribute missing on CLASS element)
     * :exc:`~pywbem.XMLParseError` - Issue at the XML level (e.g. ill-formed
       XML)
+    * :exc:`~pywbem.HeaderParseError` - Issue with HTTP headers (e.g. invalid
+      content-type header)
 
     Occurrence of this exception nearly always indicates an issue with the
     WBEM server.
@@ -441,6 +443,19 @@ class XMLParseError(ParseError):
     that is an issue at the XML level.
 
     Example: Ill-formed XML.
+
+    Occurrence of this exception nearly always indicates an issue with the
+    WBEM server.
+    """
+    pass
+
+
+class HeaderParseError(ParseError):
+    """
+    This exception indicates a specific kind of :exc:`~pywbem.ParseError`
+    that is an issue with an HTTP header.
+
+    Example: Invalid content-type.
 
     Occurrence of this exception nearly always indicates an issue with the
     WBEM server.

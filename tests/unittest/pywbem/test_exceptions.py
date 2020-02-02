@@ -12,9 +12,9 @@ import pytest
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
-    ParseError, CIMXMLParseError, XMLParseError, VersionError, CIMError, \
-    ModelError, CIMInstance
+from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError, \
+    ParseError, CIMXMLParseError, XMLParseError, HeaderParseError, \
+    VersionError, CIMError, ModelError, CIMInstance
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -93,6 +93,10 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     ),
     (
         XMLParseError,
+        ('conn_id', 'request_data', 'response_data'),
+    ),
+    (
+        HeaderParseError,
         ('conn_id', 'request_data', 'response_data'),
     ),
     (

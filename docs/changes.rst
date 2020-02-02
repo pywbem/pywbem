@@ -150,6 +150,14 @@ Released: not yet
   implemented by the server has issues.
   (See issue #1423)
 
+* Added a new exception `pywbem.HeaderParseError` derived from
+  `pywbem.ParseError` that is used to report HTTP header issues in the CIM-XML
+  response. Previously, `HTTPError` had been used for that purpose, misusing
+  its integer-typed `status` attribute for the message string. This is actually
+  a bug fix, but because it changes the exception type, it is also an
+  incompatible change for users that handle exceptions specifically.
+  (See issue 2110)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -351,12 +359,6 @@ Released: not yet
 
 * Test: Fixed a bug introduced in 0.14.5 where the manualtest scripts failed
   with invalid relative import. (see issue #2039)
-
-* The `HTTPError` exception raised when receiving an invalid Content-type header
-  in a CIM-XML response had its `status` attribute set to the message string.
-  That has been fixed to now set the `reason` attribute to the message and
-  `status` to the actual status code.
-  (See issue #1423)
 
 **Enhancements:**
 

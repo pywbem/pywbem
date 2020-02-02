@@ -45,7 +45,8 @@ from requests.packages import urllib3
 from .cim_obj import CIMClassName, CIMInstanceName
 from .cim_constants import DEFAULT_URL_SCHEME, DEFAULT_URL_PORT_HTTP, \
     DEFAULT_URL_PORT_HTTPS
-from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError
+from .exceptions import ConnectionError, AuthError, TimeoutError, HTTPError, \
+    HeaderParseError
 from ._utils import _ensure_unicode, _ensure_bytes, _format
 
 __all__ = []
@@ -402,8 +403,7 @@ def wbem_request(conn, req_data, cimxml_headers):
     resp_content_type = resp.headers.get('Content-type', None)
     if resp_content_type is not None and \
             not resp_content_type.startswith('application/xml'):
-        raise HTTPError(
-            resp.status_code,
+        raise HeaderParseError(
             "pywbem detected invalid content-type in HTTP response: {}".
             format(resp_content_type),
             conn_id=conn.conn_id, request_data=req_body,
