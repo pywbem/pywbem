@@ -73,6 +73,7 @@ requests==2.20.0
 # Unit test (imports into testcases):
 pytest==4.3.1
 testfixtures==6.9.0
+yagot==0.5.0
 requests-mock==1.6.0
 lxml==4.2.4; python_version <= '3.7'
 lxml==4.4.1; python_version >= '3.8'
