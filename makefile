@@ -481,6 +481,8 @@ clobber: clean
 clean:
 	@echo "makefile: Removing temporary build products"
 	-$(call RM_R_FUNC,*.pyc)
+	-$(call RM_R_FUNC,*~)
+	-$(call RM_R_FUNC,.*~)
 	-$(call RMDIR_R_FUNC,__pycache__)
 	-$(call RM_FUNC,MANIFEST parser.out .coverage $(package_name)/parser.out)
 	-$(call RMDIR_FUNC,build .cache $(package_name).egg-info .eggs)
