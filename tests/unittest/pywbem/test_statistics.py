@@ -6,16 +6,28 @@ Tests for statistics (`_statistics` in pywbem module).
 
 from __future__ import absolute_import, print_function
 
+import re
 import time
-import unittest
+import pytest
 
-from ..utils.unittest_extensions import RegexpMixin
+from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem import Statistics
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+
+@pytest.fixture(params=[
+    True,
+    False,
+], scope='module')
+def statistics_enable(request):
+    """
+    Possible values for Statistics(enable).
+    """
+    return request.param
 
 
 def time_abs_delta(t1, t2):
@@ -25,508 +37,611 @@ def time_abs_delta(t1, t2):
     return abs(t1 - t2)
 
 
-class StatisticsTests(unittest.TestCase):
-    """All tests for Statistics and TimeCapture."""
-
-    def test_enabling(self):
-        """Test enabling and disabling."""
-
-        statistics = Statistics()
-
-        self.assertFalse(statistics.enabled,
-                         "Error: initial state is not disabled")
-
-        statistics.disable()
-        self.assertFalse(statistics.enabled,
-                         "Error: disabling a disabled statistics works")
-
-        statistics.enable()
-        self.assertTrue(statistics.enabled,
-                        "Error: enabling a disabled statistics works")
-
-        statistics.enable()
-        self.assertTrue(statistics.enabled,
-                        "Error: enabling an enabled statistics works")
-
-        statistics.disable()
-        self.assertFalse(statistics.enabled,
-                         "Errror: disabling an enabled statistics works")
-
-    def test_get(self):
-        """Test getting statistics."""
-
-        statistics = Statistics()
-        snapshot_length = len(statistics.snapshot())
-        self.assertEqual(snapshot_length, 0,
-                         "Error:  initial state has no time statistics. "
-                         "Actual number = %d" % snapshot_length)
-
-        stats = statistics.get_op_statistic('EnumerateInstances')
-        snapshot_length = len(statistics.snapshot())
-        self.assertEqual(snapshot_length, 0,
-                         "Error: getting a new stats with a disabled "
-                         "statistics results in no time statistics. "
-                         "Actual number = %d" % snapshot_length)
-        self.assertEqual(stats.container, statistics)
-        self.assertEqual(stats.name, "disabled")
-        self.assertEqual(stats.count, 0)
-        self.assertEqual(stats.avg_time, 0)
-        self.assertEqual(stats.min_time, float('inf'))
-        self.assertEqual(stats.max_time, 0)
-
-        self.assertEqual(stats.avg_request_len, 0)
-        self.assertEqual(stats.min_request_len, float('inf'))
-        self.assertEqual(stats.max_request_len, 0)
-
-        statistics.enable()
-
-        method_name = 'OpenEnumerateInstances'
-
-        stats = statistics.get_op_statistic(method_name)
-        snapshot_length = len(statistics.snapshot())
-        self.assertEqual(snapshot_length, 1,
-                         "Error: getting a new stats with an enabled "
-                         "statistics results in one time statistics. "
-                         "Actual number = %d" % snapshot_length)
-
-        self.assertEqual(stats.container, statistics)
-        self.assertEqual(stats.name, method_name)
-        self.assertEqual(stats.count, 0)
-        self.assertEqual(stats.avg_time, 0)
-        self.assertEqual(stats.min_time, float('inf'))
-        self.assertEqual(stats.max_time, 0)
-
-        statistics.get_op_statistic(method_name)
-        snapshot_length = len(statistics.snapshot())
-        self.assertEqual(snapshot_length, 1,
-                         "Error: getting an existing stats with an "
-                         "enabled statistics results in the same number of "
-                         "statistics. "
-                         "Actual number = %d" % snapshot_length)
-
-    def test_measure_enabled(self):
-        """Test measuring time with enabled statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        duration = 1.0
-
-        # Allowable delta in seconds between expected and actual duration.
-        # Notes:
-        # * Windows has only a precision of 1/60 sec.
-        # * In CI environments, the tests sometimes run slow.
-        delta = 0.5
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        for _, stats in statistics.snapshot():
-            self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
-                            "actual avg duration: %r" % stats.avg_time)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
-                            "actual min duration: %r" % stats.min_time)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
-                            "actual max duration: %r" % stats.max_time)
-            self.assertEqual(stats.max_request_len, 100)
-            self.assertEqual(stats.min_request_len, 100)
-            self.assertEqual(stats.avg_request_len, 100)
-            self.assertEqual(stats.max_reply_len, 200)
-            self.assertEqual(stats.min_reply_len, 200)
-            self.assertEqual(stats.avg_reply_len, 200)
-
-        stats.reset()
-        self.assertEqual(stats.count, 0)
-        self.assertEqual(stats.avg_time, 0)
-        self.assertEqual(stats.min_time, float('inf'))
-        self.assertEqual(stats.max_time, 0)
-
-    def test_measure_enabled_with_servertime(self):
-        # pylint: disable=invalid-name
-        """Test measuring time with enabled statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        duration = 1.0
-
-        # Allowable delta in seconds between expected and actual duration.
-        # Notes:
-        # * Windows has only a precision of 1/60 sec.
-        # * In CI environments, the tests sometimes run slow.
-        delta = 0.5
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(duration)
-        stats.stop_timer(1000, 2000, duration)
-
-        for _, stats in statistics.snapshot():
-            self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) <= delta,
-                            "actual avg duration: %r" % stats.avg_time)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) <= delta,
-                            "actual min duration: %r" % stats.min_time)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) <= delta,
-                            "actual max duration: %r" % stats.max_time)
-
-            self.assertTrue(
-                time_abs_delta(stats.avg_server_time, duration) <= delta,
-                "actual avg server duration: %r" % stats.avg_server_time)
-            self.assertTrue(
-                time_abs_delta(stats.min_server_time, duration) <= delta,
-                "actual min server duration: %r" % stats.min_server_time)
-            self.assertTrue(
-                time_abs_delta(stats.max_server_time, duration) <= delta,
-                "actual max server duration: %r" % stats.max_server_time)
-
-            self.assertEqual(stats.max_request_len, 1000)
-            self.assertEqual(stats.min_request_len, 1000)
-            self.assertEqual(stats.avg_request_len, 1000)
-            self.assertEqual(stats.max_reply_len, 2000)
-            self.assertEqual(stats.min_reply_len, 2000)
-            self.assertEqual(stats.avg_reply_len, 2000)
-
-        stats.reset()
-        self.assertEqual(stats.count, 0)
-        self.assertEqual(stats.avg_time, 0)
-        self.assertEqual(stats.min_time, float('inf'))
-        self.assertEqual(stats.max_time, 0)
-
-    def test_measure_disabled(self):
-        """Test measuring time with disabled statistics."""
-
-        statistics = Statistics()
-
-        duration = 0.2
-
-        stats = statistics.get_op_statistic('GetClass')
-        self.assertEqual(stats.name, 'disabled')
-
-        stats.start_timer()
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        for _, stats in statistics.snapshot():
-            self.assertEqual(stats.count, 0)
-            self.assertEqual(stats.avg_time, 0)
-            self.assertEqual(stats.min_time, float('inf'))
-            self.assertEqual(stats.max_time, 0)
-
-    def test_measure_avg(self):
-        """Test measuring time with enabled statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        duration = 1.0
-
-        # Allowable delta in seconds between expected and actual duration.
-        # Notes:
-        # * Windows has only a precision of 1/60 sec.
-        # * In CI environments, the tests sometimes run slow.
-        delta = 0.5
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(duration)
-        stats.stop_timer(200, 400)
-
-        for _, stats in statistics.snapshot():
-            self.assertEqual(stats.count, 2)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
-                            "actual avg duration: %r" % stats.avg_time)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
-                            "actual min duration: %r" % stats.min_time)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
-                            "actual max duration: %r" % stats.max_time)
-            self.assertEqual(stats.max_request_len, 200)
-            self.assertEqual(stats.min_request_len, 100)
-            self.assertEqual(stats.avg_request_len, 150)
-            self.assertEqual(stats.max_reply_len, 400)
-            self.assertEqual(stats.min_reply_len, 200)
-            self.assertEqual(stats.avg_reply_len, 300)
-
-    def test_measure_exception(self):
-        """Test measuring time with enabled statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        duration = 1.0
-
-        # Allowable delta in seconds between expected and actual duration.
-        # Notes:
-        # * Windows has only a precision of 1/60 sec.
-        # * In CI environments, the tests sometimes run slow.
-        delta = 0.5
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(duration)
-        stats.stop_timer(200, 400)
-
-        for _, stats in statistics.snapshot():
-            self.assertEqual(stats.count, 2)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
-                            "actual avg duration: %r" % stats.avg_time)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
-                            "actual min duration: %r" % stats.min_time)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
-                            "actual max duration: %r" % stats.max_time)
-            self.assertEqual(stats.max_request_len, 200)
-            self.assertEqual(stats.min_request_len, 100)
-            self.assertEqual(stats.avg_request_len, 150)
-            self.assertEqual(stats.max_reply_len, 400)
-            self.assertEqual(stats.min_reply_len, 200)
-            self.assertEqual(stats.avg_reply_len, 300)
-
-    def test_snapshot(self):
-        """Test that snapshot() takes a stable snapshot."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        duration = 1.0
-
-        # Allowable delta in seconds between expected and actual duration.
-        # Notes:
-        # * Windows has only a precision of 1/60 sec.
-        # * In CI environments, the tests sometimes run slow.
-        delta = 0.5
-
-        stats = statistics.start_timer('GetInstance')
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        # take the snapshot
-        snapshot = statistics.snapshot()
-
-        # keep producing statistics data
-        stats.start_timer()
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        # verify that only the first set of data is in the snapshot
-        for _, stats in snapshot:
-            self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
-                            "actual avg duration: %r" % stats.avg_time)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
-                            "actual min duration: %r" % stats.min_time)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
-                            "actual max duration: %r" % stats.max_time)
-
-    def test_reset(self):
-        """Test resetting statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        duration = 1.0
-
-        # Allowable delta in seconds between expected and actual duration.
-        # Notes:
-        # * Windows has only a precision of 1/60 sec.
-        # * In CI environments, the tests sometimes run slow.
-        delta = 0.5
-
-        stats = statistics.start_timer('GetInstance')
-        # test reset fails because stat in process
-        self.assertFalse(statistics.reset())
-        time.sleep(duration)
-        stats.stop_timer(100, 200)
-
-        # take a snapshot
-        snapshot = statistics.snapshot()
-
-        # verify that only the first set of data is in the snapshot
-        for _, stats in snapshot:
-            self.assertEqual(stats.count, 1)
-            self.assertTrue(time_abs_delta(stats.avg_time, duration) < delta,
-                            "actual avg duration: %r" % stats.avg_time)
-            self.assertTrue(time_abs_delta(stats.min_time, duration) < delta,
-                            "actual min duration: %r" % stats.min_time)
-            self.assertTrue(time_abs_delta(stats.max_time, duration) < delta,
-                            "actual max duration: %r" % stats.max_time)
-
-        self.assertTrue(statistics.reset())
-
-        # take another snapshot. This snapshot should be empty
-        snapshot = statistics.snapshot()
-        self.assertTrue(len(snapshot) == 0)
-
-
-class StatisticsOutputTests(unittest.TestCase, RegexpMixin):
-    """Test repr and report output from statistics class"""
-    def test_print_statistics(self):  # pylint: disable=no-self-use
-        """Test repr() and formatted() for a small statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        stats = statistics.start_timer('EnumerateInstanceNames')
-        time.sleep(0.1)
-        stats.stop_timer(1200, 22000)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(0.1)
-        stats.stop_timer(1000, 20000)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(0.2)
-        stats.stop_timer(1500, 25000)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(0.4)
-        stats.stop_timer(1200, 35000)
-
-        # test repr output
-        stat_repr = repr(statistics)
-
-        self.assert_regexp_matches(stat_repr, r'Statistics\(')
-
-        self.assert_regexp_contains(
-            stat_repr,
-            r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
-            r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
-            r"max_time=[.0-9]+, avg_server_time=0.0, min_server_time=inf, "
-            r"max_server_time=0.0, avg_request_len=[.0-9]+, "
-            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
-            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
-            r" max_reply_len=[0-9]{5}")
-
-        self.assert_regexp_contains(
-            stat_repr,
-            r"OperationStatistic\(name='EnumerateInstances', count=3, "
-            r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
-            r"max_time=[.0-9]+, avg_server_time=0.0, min_server_time=inf, "
-            r"max_server_time=0.0, avg_request_len=[.0-9]+, "
-            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
-            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
-            r"max_reply_len=[0-9]{5}")
-
-        # Test statistics report output
-
-        report = statistics.formatted()
-
-        self.assert_regexp_matches(
-            report, r'Statistics \(times in seconds, lengths in Bytes\)')
-
-        self.assert_regexp_contains(
-            report, r"Count Excep *ClientTime *RequestLen *ReplyLen *Operation")
-
-        self.assert_regexp_contains(
-            report,
-            r" +3 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
-            r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
-            r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstances")
-
-        self.assert_regexp_contains(
-            report,
-            r" +1 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
-            r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
-            r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstanceNames")
-
-    def test_print_stats_svrtime(self):  # pylint: disable=no-self-use
-        """Test repr() and formatted() for a small statistics."""
-
-        statistics = Statistics()
-        statistics.enable()
-
-        stats = statistics.start_timer('EnumerateInstanceNames')
-        time.sleep(0.1)
-        stats.stop_timer(1200, 22000, 0.1)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(0.1)
-        stats.stop_timer(1000, 20000, 0.1)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(0.2)
-        stats.stop_timer(1500, 25000, 0.2)
-
-        stats = statistics.start_timer('EnumerateInstances')
-        time.sleep(0.4)
-        stats.stop_timer(1200, 35000, 0.4)
-
-        # test repr output
-        stat_repr = repr(statistics)
-
-        # test repr output
-        self.assert_regexp_matches(
-            stat_repr,
-            r'Statistics\(')
-
-        self.assert_regexp_contains(
-            stat_repr,
-            r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
-            r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
-            r"max_time=[.0-9]+, avg_server_time=[.0-9]+, "
-            r"min_server_time=[.0-9]+, "
-            r"max_server_time=[.0-9]+, avg_request_len=[.0-9]+, "
-            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
-            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
-            r" max_reply_len=[0-9]{5}")
-
-        self.assert_regexp_contains(
-            stat_repr,
-            r"OperationStatistic\(name='EnumerateInstances', count=3, "
-            r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
-            r"max_time=[.0-9]+, avg_server_time=[.0-9]+, "
-            r"min_server_time=[.0-9]+, "
-            r"max_server_time=[.0-9]+, avg_request_len=[.0-9]+, "
-            r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
-            r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
-            r"max_reply_len=[0-9]{5}")
-
-        self.assert_regexp_contains(
-            stat_repr,
-            r"OperationStatistic\(name='EnumerateInstances', count=3, "
-            r"exception_count=0, avg_time=.+min_time=.+max_time=.+"
-            r"avg_server_time=.+min_server_time.+max_server_time=.+"
-            r"max_reply_len=[0-9]{5}")
-
-        self.assert_regexp_contains(
-            stat_repr,
-            r"OperationStatistic\(name='EnumerateInstanceNames', count=1, "
-            r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
-            r"max_time=[.0-9]+, avg_server_time=[.0-9]+, min_server_time="
-            r"[.0-9]+.+max_server_time=[.0-9]+, avg_request_len=[.0-9]+"
-            r".+max_reply_len=[0-9]{5}")
-
-        # test formatted output
-
-        report = statistics.formatted()
-
-        self.assert_regexp_contains(
-            report,
-            r'Count Excep +ClientTime +ServerTime +RequestLen +ReplyLen +'
-            r'Operation')
-
-        self.assert_regexp_contains(
-            report,
-            r'Cnt +Avg +Min +Max +Avg +Min +Max +Avg +Min +Max')
-
-        self.assert_regexp_contains(
-            report,
-            r"3     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
-            r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
-            r"EnumerateInstances")
-
-        self.assert_regexp_contains(
-            report,
-            r"1     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
-            r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
-            r"EnumerateInstanceNames")
-
-
-if __name__ == '__main__':
-    unittest.main()
+TESTCASES_STATISTICS_INIT = [
+
+    # Testcases for Statistics.__init__()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_args: Tuple of positional arguments to CIMInstanceName().
+    #   * init_kwargs: Dict of keyword arguments to CIMInstanceName().
+    #   * exp_attrs: Dict of expected attributes of resulting object.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Verify default arguments",
+        dict(
+            init_args=[],
+            init_kwargs={},
+            exp_attrs=dict(
+                enabled=False,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "Verify order of positional arguments",
+        dict(
+            init_args=[
+                True,
+            ],
+            init_kwargs={},
+            exp_attrs=dict(
+                enabled=True,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "Verify names of arguments",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                enable=True,
+            ),
+            exp_attrs=dict(
+                enabled=True,
+            ),
+        ),
+        None, None, True
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_STATISTICS_INIT)
+@simplified_test_function
+def test_Statistics_init(testcase, init_args, init_kwargs, exp_attrs):
+    """
+    Test function for Statistics.__init__()
+    """
+
+    # The code to be tested
+    statistics = Statistics(*init_args, **init_kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    exp_enabled = exp_attrs['enabled']
+    assert statistics.enabled == exp_enabled
+    assert isinstance(statistics.enabled, type(exp_enabled))
+
+
+def test_Statistics_enable(statistics_enable):
+    """
+    Test function for Statistics.enable()
+    """
+
+    statistics = Statistics(enable=statistics_enable)
+
+    # The code to be tested
+    statistics.enable()
+
+    assert statistics.enabled is True
+
+
+def test_Statistics_disable(statistics_enable):
+    """
+    Test function for Statistics.disable()
+    """
+
+    statistics = Statistics(enable=statistics_enable)
+
+    # The code to be tested
+    statistics.disable()
+
+    assert statistics.enabled is False
+
+
+TESTCASES_STATISTICS_GET_OP_STATISTIC = [
+
+    # Testcases for Statistics.get_op_statistic()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_args: Tuple of positional arguments to CIMInstanceName().
+    #   * init_kwargs: Dict of keyword arguments to CIMInstanceName().
+    #   * exp_attrs: Dict of expected attributes of resulting object.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Verify initial stats and snapshot for disabled statistics",
+        dict(
+            init_enable=False,
+            method_name='EnumerateInstances',
+            exp_snapshot_len=0,
+            exp_op_stats_attrs=dict(
+                name='disabled',
+                count=0,
+                avg_time=0,
+                min_time=float('inf'),
+                max_time=0,
+                avg_request_len=0,
+                min_request_len=float('inf'),
+                max_request_len=0,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "Verify initial stats and snapshot for enabled statistics",
+        dict(
+            init_enable=True,
+            method_name='EnumerateInstances',
+            exp_snapshot_len=1,
+            exp_op_stats_attrs=dict(
+                name='EnumerateInstances',
+                count=0,
+                avg_time=0,
+                min_time=float('inf'),
+                max_time=0,
+                avg_request_len=0,
+                min_request_len=float('inf'),
+                max_request_len=0,
+            ),
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_STATISTICS_GET_OP_STATISTIC)
+@simplified_test_function
+def test_Statistics_get_op_statistic(
+        testcase, init_enable, method_name, exp_snapshot_len,
+        exp_op_stats_attrs):
+    """
+    Test function for Statistics.get_op_statistic()
+    """
+
+    statistics = Statistics(enable=init_enable)
+
+    # The code to be tested
+    op_stats = statistics.get_op_statistic(method_name)
+
+    snapshot_length = len(statistics.snapshot())
+    assert snapshot_length == exp_snapshot_len
+
+    for attr_name in exp_op_stats_attrs:
+        exp_attr_value = exp_op_stats_attrs[attr_name]
+        attr_value = getattr(op_stats, attr_name)
+        assert attr_value == exp_attr_value, \
+            "Unexpected op_stats attribute '{}'".format(attr_name)
+
+
+def test_Statistics_measure_enabled():
+    """
+    Test measuring time with enabled statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    for _, stats in statistics.snapshot():
+        assert stats.count == 1
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert stats.max_request_len == 100
+        assert stats.min_request_len == 100
+        assert stats.avg_request_len == 100
+        assert stats.max_reply_len == 200
+        assert stats.min_reply_len == 200
+        assert stats.avg_reply_len == 200
+
+    stats.reset()
+    assert stats.count == 0
+    assert stats.avg_time == 0
+    assert stats.min_time == float('inf')
+    assert stats.max_time == 0
+
+
+def test_Statistics_measure_enabled_with_servertime():
+    # pylint: disable=invalid-name
+    """
+    Test measuring time with enabled statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(duration)
+    stats.stop_timer(1000, 2000, duration)
+
+    for _, stats in statistics.snapshot():
+        assert stats.count == 1
+        assert time_abs_delta(stats.avg_time, duration) <= delta
+        assert time_abs_delta(stats.min_time, duration) <= delta
+        assert time_abs_delta(stats.max_time, duration) <= delta
+
+        assert time_abs_delta(stats.avg_server_time, duration) <= delta
+        assert time_abs_delta(stats.min_server_time, duration) <= delta
+        assert time_abs_delta(stats.max_server_time, duration) <= delta
+
+        assert stats.max_request_len == 1000
+        assert stats.min_request_len == 1000
+        assert stats.avg_request_len == 1000
+        assert stats.max_reply_len == 2000
+        assert stats.min_reply_len == 2000
+        assert stats.avg_reply_len == 2000
+
+    stats.reset()
+    assert stats.count == 0
+    assert stats.avg_time == 0
+    assert stats.min_time == float('inf')
+    assert stats.max_time == 0
+
+
+def test_Statistics_measure_disabled():
+    """
+    Test measuring time with disabled statistics.
+    """
+
+    statistics = Statistics()
+
+    duration = 0.2
+
+    stats = statistics.get_op_statistic('GetClass')
+    assert stats.name == 'disabled'
+
+    stats.start_timer()
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    for _, stats in statistics.snapshot():
+        assert stats.count == 0
+        assert stats.avg_time == 0
+        assert stats.min_time == float('inf')
+        assert stats.max_time == 0
+
+
+def test_Statistics_measure_avg():
+    """
+    Test measuring time with enabled statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(duration)
+    stats.stop_timer(200, 400)
+
+    for _, stats in statistics.snapshot():
+        assert stats.count == 2
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert stats.max_request_len == 200
+        assert stats.min_request_len == 100
+        assert stats.avg_request_len == 150
+        assert stats.max_reply_len == 400
+        assert stats.min_reply_len == 200
+        assert stats.avg_reply_len == 300
+
+
+def test_Statistics_measure_exception():
+    """
+    Test measuring time with enabled statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(duration)
+    stats.stop_timer(200, 400)
+
+    for _, stats in statistics.snapshot():
+        assert stats.count == 2
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert stats.max_request_len == 200
+        assert stats.min_request_len == 100
+        assert stats.avg_request_len == 150
+        assert stats.max_reply_len == 400
+        assert stats.min_reply_len == 200
+        assert stats.avg_reply_len == 300
+
+
+def test_Statistics_snapshot():
+    """
+    Test that snapshot() takes a stable snapshot.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('GetInstance')
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    # take the snapshot
+    snapshot = statistics.snapshot()
+
+    # keep producing statistics data
+    stats.start_timer()
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    # verify that only the first set of data is in the snapshot
+    for _, stats in snapshot:
+        assert stats.count == 1
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+
+
+def test_Statistics_reset():
+    """
+    Test resetting statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('GetInstance')
+    # test reset fails because stat in process
+    assert statistics.reset() is False
+    time.sleep(duration)
+    stats.stop_timer(100, 200)
+
+    # take a snapshot
+    snapshot = statistics.snapshot()
+
+    # verify that only the first set of data is in the snapshot
+    for _, stats in snapshot:
+        assert stats.count == 1
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+
+    assert statistics.reset() is True
+
+    # take another snapshot. This snapshot should be empty
+    snapshot = statistics.snapshot()
+    assert len(snapshot) == 0
+
+
+def test_Statistics_print_statistics():
+    """
+    Test repr() and formatted() for a small statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    stats = statistics.start_timer('EnumerateInstanceNames')
+    time.sleep(0.1)
+    stats.stop_timer(1200, 22000)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(0.1)
+    stats.stop_timer(1000, 20000)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(0.2)
+    stats.stop_timer(1500, 25000)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(0.4)
+    stats.stop_timer(1200, 35000)
+
+    # test repr output
+    stat_repr = repr(statistics)
+
+    assert re.match(
+        r'Statistics\(',
+        stat_repr)
+
+    assert re.search(
+        r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
+        r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+        r"max_time=[.0-9]+, avg_server_time=0.0, min_server_time=inf, "
+        r"max_server_time=0.0, avg_request_len=[.0-9]+, "
+        r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+        r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
+        r" max_reply_len=[0-9]{5}",
+        stat_repr)
+
+    assert re.search(
+        r"OperationStatistic\(name='EnumerateInstances', count=3, "
+        r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+        r"max_time=[.0-9]+, avg_server_time=0.0, min_server_time=inf, "
+        r"max_server_time=0.0, avg_request_len=[.0-9]+, "
+        r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+        r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
+        r"max_reply_len=[0-9]{5}",
+        stat_repr)
+
+    # Test statistics report output
+
+    report = statistics.formatted()
+
+    assert re.match(
+        r'Statistics \(times in seconds, lengths in Bytes\)',
+        report)
+
+    assert re.search(
+        r"Count Excep *ClientTime *RequestLen *ReplyLen *Operation",
+        report)
+
+    assert re.search(
+        r" +3 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+        r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
+        r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstances",
+        report)
+
+    assert re.search(
+        r" +1 +0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+        r"[.0-9]+ +[0-9]{4} +[0-9]{4} +"
+        r"[.0-9]+ +[0-9]{5} +[0-9]{5} EnumerateInstanceNames",
+        report)
+
+
+def test_Statistics_print_stats_svrtime():
+    """
+    Test repr() and formatted() for a small statistics.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    stats = statistics.start_timer('EnumerateInstanceNames')
+    time.sleep(0.1)
+    stats.stop_timer(1200, 22000, 0.1)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(0.1)
+    stats.stop_timer(1000, 20000, 0.1)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(0.2)
+    stats.stop_timer(1500, 25000, 0.2)
+
+    stats = statistics.start_timer('EnumerateInstances')
+    time.sleep(0.4)
+    stats.stop_timer(1200, 35000, 0.4)
+
+    # test repr output
+    stat_repr = repr(statistics)
+
+    # test repr output
+    assert re.match(
+        r'Statistics\(',
+        stat_repr)
+
+    assert re.search(
+        r"OperationStatistic\(name='EnumerateInstanceNames', count=1,"
+        r" exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+        r"max_time=[.0-9]+, avg_server_time=[.0-9]+, "
+        r"min_server_time=[.0-9]+, "
+        r"max_server_time=[.0-9]+, avg_request_len=[.0-9]+, "
+        r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+        r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5},"
+        r" max_reply_len=[0-9]{5}",
+        stat_repr)
+
+    assert re.search(
+        r"OperationStatistic\(name='EnumerateInstances', count=3, "
+        r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+        r"max_time=[.0-9]+, avg_server_time=[.0-9]+, "
+        r"min_server_time=[.0-9]+, "
+        r"max_server_time=[.0-9]+, avg_request_len=[.0-9]+, "
+        r"min_request_len=[0-9]{4}, max_request_len=[0-9]{4}, "
+        r"avg_reply_len=[.0-9]+, min_reply_len=[0-9]{5}, "
+        r"max_reply_len=[0-9]{5}",
+        stat_repr)
+
+    assert re.search(
+        r"OperationStatistic\(name='EnumerateInstances', count=3, "
+        r"exception_count=0, avg_time=.+min_time=.+max_time=.+"
+        r"avg_server_time=.+min_server_time.+max_server_time=.+"
+        r"max_reply_len=[0-9]{5}",
+        stat_repr)
+
+    assert re.search(
+        r"OperationStatistic\(name='EnumerateInstanceNames', count=1, "
+        r"exception_count=0, avg_time=[.0-9]+, min_time=[.0-9]+, "
+        r"max_time=[.0-9]+, avg_server_time=[.0-9]+, min_server_time="
+        r"[.0-9]+.+max_server_time=[.0-9]+, avg_request_len=[.0-9]+"
+        r".+max_reply_len=[0-9]{5}",
+        stat_repr)
+
+    # test formatted output
+
+    report = statistics.formatted()
+
+    assert re.search(
+        r'Count Excep +ClientTime +ServerTime +RequestLen +ReplyLen +'
+        r'Operation',
+        report)
+
+    assert re.search(
+        r'Cnt +Avg +Min +Max +Avg +Min +Max +Avg +Min +Max',
+        report)
+
+    assert re.search(
+        r"3     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+        r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
+        r"EnumerateInstances",
+        report)
+
+    assert re.search(
+        r"1     0 +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +[.0-9]+ +"
+        r"[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]{5} "
+        r"EnumerateInstanceNames",
+        report)
