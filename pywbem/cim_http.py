@@ -36,10 +36,10 @@ from __future__ import print_function, absolute_import
 import re
 import os
 import base64
-import requests
 import ssl
 import six
 from six.moves import urllib
+import requests
 from requests.packages import urllib3
 
 from .cim_obj import CIMClassName, CIMInstanceName

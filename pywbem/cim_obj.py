@@ -859,8 +859,7 @@ def _cim_keybinding(key, value):
                         key, value.name))
         if value.type == 'char16':
             return Char16(value.value)
-        else:
-            return copy_.copy(value.value)
+        return copy_.copy(value.value)
 
     if value is None:
         return None

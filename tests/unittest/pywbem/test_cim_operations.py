@@ -190,7 +190,7 @@ class TestCreateConnection(object):
         TESTCASES_INIT)
     def test_init(self, desc, files, init_kwargs, exp_attrs, exp_exc,
                   exp_exc_regex):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test initialization of a WBEMConnection object.
         """
