@@ -103,7 +103,8 @@ def test_perf_eq(desc, obj1, obj2):
     num = 10  # Repetitions for neglecting function overhead
 
     def measure():
-        for i in six.moves.range(num):
+        "One measurement"
+        for _ in six.moves.range(num):
             # The code to be measured
             _ = (obj1 == obj2)
 
@@ -143,9 +144,9 @@ def timeit(measure_func, precision):
 
     # Perform the measurement a number of times and store the results
     results = []
-    for i in six.moves.range(num_runs):
+    for _ in six.moves.range(num_runs):
         t1_s = process_time()
-        for j in six.moves.range(rep):
+        for _j in six.moves.range(rep):  # pylint: disable=unused-variable
             measure_func()
         t2_s = process_time()
         t_us = 1.0E6 * (t2_s - t1_s) / rep

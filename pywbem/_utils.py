@@ -108,11 +108,9 @@ def _eq_name(name1, name2):
     """
     if name1 is None:
         return name2 is None
-    else:
-        if name2 is None:
-            return False
-        else:
-            return name1.lower() == name2.lower()
+    elif name2 is None:
+        return False
+    return name1.lower() == name2.lower()
 
 
 def _eq_item(item1, item2):
@@ -124,11 +122,9 @@ def _eq_item(item1, item2):
     """
     if item1 is None:
         return item2 is None
-    else:
-        if item2 is None:
-            return False
-        else:
-            return item1 == item2
+    elif item2 is None:
+        return False
+    return item1 == item2
 
 
 def _eq_dict(dict1, dict2):

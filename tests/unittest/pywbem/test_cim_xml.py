@@ -445,20 +445,20 @@ def simple_INSTANCE_str(name='MyClass'):
     ]
 
 
-def simple_QUALIFIER_DECLARATION_node(name='MyQualifier', type='string'):
+def simple_QUALIFIER_DECLARATION_node(name='MyQualifier', type_='string'):
     """
     Return a simple QUALIFIER.DECLARATION as a cim_xml node.
     """
-    return cim_xml.QUALIFIER_DECLARATION(name, type)
+    return cim_xml.QUALIFIER_DECLARATION(name, type_)
 
 
-def simple_QUALIFIER_DECLARATION_str(name='MyQualifier', type='string'):
+def simple_QUALIFIER_DECLARATION_str(name='MyQualifier', type_='string'):
     """
     Return a simple QUALIFIER.DECLARATION as a list of XML strings.
     """
     return [
         '<QUALIFIER.DECLARATION NAME="{name}" TYPE="{type}"/>'.
-        format(name=name, type=type),
+        format(name=name, type=type_),
     ]
 
 
@@ -1778,9 +1778,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with non-ASCII UCS-2 string as name",
         dict(
-            xml_node=cim_xml.CLASSNAME('ACME_\u00E4'),
+            xml_node=cim_xml.CLASSNAME(u'ACME_\u00E4'),
             exp_xml_str_list=[
-                '<CLASSNAME NAME="ACME_\u00E4"/>',
+                u'<CLASSNAME NAME="ACME_\u00E4"/>',
             ],
         ),
         None, None, True
@@ -1788,9 +1788,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with non-UCS-2 unicode string as name",
         dict(
-            xml_node=cim_xml.CLASSNAME('ACME_\U00010142'),
+            xml_node=cim_xml.CLASSNAME(u'ACME_\U00010142'),
             exp_xml_str_list=[
-                '<CLASSNAME NAME="ACME_\U00010142"/>',
+                u'<CLASSNAME NAME="ACME_\U00010142"/>',
             ],
         ),
         None, None, True
@@ -4241,6 +4241,7 @@ TESTCASES_CIM_XML_NODE = [
     TESTCASES_CIM_XML_NODE)
 @simplified_test_function
 def test_cim_xml_node(testcase, xml_node, exp_xml_str_list, **kwargs):
+    # pylint: disable=unused-argument
     """
     Test function for a cim_xml node.
     """

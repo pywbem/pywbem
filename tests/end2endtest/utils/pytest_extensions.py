@@ -383,6 +383,7 @@ class ProfileTest(object):
         """
 
         self.init_profile(conn)
+        # TODO: Add profile_org and profile_name arguments
 
         central_paths_id = self.profile_id + ':central_paths'
 
