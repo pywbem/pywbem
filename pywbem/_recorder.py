@@ -32,7 +32,7 @@ import logging
 
 import six
 import yaml
-from yaml.representer import RepresenterError
+import yamlloader
 
 from ._nocasedict import NocaseDict
 from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -59,88 +59,6 @@ else:
     _Longint = int
 
 OpArgsTuple = namedtuple("OpArgsTuple", ["method", "args"])
-
-
-def _represent_ordereddict(dump, tag, mapping, flow_style=None):
-    """PyYAML representer function for OrderedDict.
-    This is needed for yaml.safe_dump() to support OrderedDict.
-
-    Courtesy:
-    https://blog.elsdoerfer.name/2012/07/26/make-pyyaml-output-an-ordereddict/
-    """
-    value = []
-    node = yaml.MappingNode(tag, value, flow_style=flow_style)
-    if dump.alias_key is not None:
-        dump.represented_objects[dump.alias_key] = node
-    best_style = True
-    if hasattr(mapping, 'items'):
-        mapping = mapping.items()
-    for item_key, item_value in mapping:
-        node_key = dump.represent_data(item_key)
-        node_value = dump.represent_data(item_value)
-        if not (isinstance(node_key, yaml.ScalarNode) and
-                not node_key.style):
-            best_style = False    # pylint: disable=bad-indentation
-        if not (isinstance(node_value, yaml.ScalarNode) and
-                not node_value.style):
-            best_style = False    # pylint: disable=bad-indentation
-        value.append((node_key, node_value))
-    if flow_style is None:
-        if dump.default_flow_style is not None:
-            node.flow_style = dump.default_flow_style
-        else:
-            node.flow_style = best_style
-    return node
-
-
-yaml.SafeDumper.add_representer(
-    OrderedDict,
-    lambda dumper, value:
-    _represent_ordereddict(dumper, u'tag:yaml.org,2002:map', value))
-
-
-# Tag for CIMDateTime serialization in yaml files
-CIMDATETIME_TAG = '!CIMDateTime'
-
-
-def _cimdatetime_representer(dumper, cimdatetime):
-    """
-    PyYAML representer function for CIMDateTime objects.
-    This is needed for yaml.safe_dump() to support CIMDateTime.
-    """
-    cimdatetime_str = str(cimdatetime)
-    node = dumper.represent_scalar(CIMDATETIME_TAG, cimdatetime_str)
-    return node
-
-
-yaml.SafeDumper.add_representer(CIMDateTime, _cimdatetime_representer)
-
-
-def _cimdatetime_constructor(loader, node):
-    """
-    PyYAML constructor function for CIMDateTime objects.
-    This is needed for yaml.safe_load() to support CIMDateTime.
-    """
-    cimdatetime_str = loader.construct_scalar(node)
-    cimdatetime = CIMDateTime(cimdatetime_str)
-    return cimdatetime
-
-
-yaml.SafeLoader.add_constructor(CIMDATETIME_TAG, _cimdatetime_constructor)
-
-
-# Some monkey-patching for better diagnostics:
-def _represent_undefined(self, data):
-    """Raises flag for objects that cannot be represented"""
-    raise RepresenterError(
-        _format("Cannot represent an object: {0!A} of type: {1}; "
-                "yaml_representers: {2!A}, "
-                "yaml_multi_representers: {3!A}",
-                data, type(data), self.yaml_representers.keys(),
-                self.yaml_multi_representers.keys()))
-
-
-yaml.SafeDumper.represent_undefined = _represent_undefined
 
 
 class OpArgs(OpArgsTuple):
@@ -1008,9 +926,13 @@ class TestClientRecorder(BaseOperationRecorder):
         testcases = []
         testcases.append(testcase)
 
-        # The file is open in text mode, so we produce a unicode string
-        data = yaml.safe_dump(testcases, encoding=None, allow_unicode=True,
-                              default_flow_style=False, indent=4)
+        # The file is open in text mode, so we produce a unicode string by
+        # setting encoding=None and allow_unicode=True.
+        data = yaml.dump(
+            testcases, encoding=None, allow_unicode=True,
+            default_flow_style=False, indent=4,
+            Dumper=yamlloader.ordereddict.CSafeDumper)
+
         data = data.replace('\n\n', '\n')  # YAML dump duplicates newlines
         self._fp.write(data)
         self._fp.flush()
@@ -1022,15 +944,21 @@ class TestClientRecorder(BaseOperationRecorder):
         test_client yaml format.
         """
 
-        # namedtuple is subclass of tuple so it is instance of tuple but
-        # not type tuple. Cvt to dictionary and cvt dict to yaml.
-        # pylint: disable=unidiomatic-typecheck, no-else-return
+        # pylint: disable=unidiomatic-typecheck
         if isinstance(obj, tuple) and type(obj) is not tuple:
+            # Handle namedtuple objects.
+            # Because collections.namedtuple() is a factory function and there
+            # is no common superclass for the generated namedtuple types other
+            # than tuple itself, the detection of this case is somewhat
+            # creative: The namedtuple object is an instance of tuple but does
+            # not have type tuple.
+            # In order to record the tuple item names, namedtuple objects are
+            # converted to a dictionary first.
             ret_dict = obj._asdict()
             return self.toyaml(ret_dict)
-        if isinstance(obj, (list, tuple)):
+        elif isinstance(obj, (list, tuple)):
+            # Note that namedtuple objects are handeled above.
             ret = []
-            # This does not handle namedtuple
             for item in obj:
                 ret.append(self.toyaml(item))
             return ret
@@ -1045,6 +973,10 @@ class TestClientRecorder(BaseOperationRecorder):
             return obj.decode("utf-8")
         elif isinstance(obj, six.text_type):
             return obj
+        elif isinstance(obj, bool):
+            # The check for bool must be before any integer checks, because
+            # bool is a subclass of int in Python.
+            return obj
         elif isinstance(obj, CIMInt):
             # CIMInt is _Longint and therefore may exceed the value range of
             # int in Python 2. Therefore, we convert it to _Longint.
@@ -1057,8 +989,6 @@ class TestClientRecorder(BaseOperationRecorder):
             # Note that in Python 2 (where that would make a difference), int
             # and long do not inherit from each other, so it is likely best if
             # we just don't convert.
-            return obj
-        elif isinstance(obj, bool):
             return obj
         elif isinstance(obj, CIMFloat):
             return float(obj)
@@ -1073,6 +1003,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['pywbem_object'] = 'CIMInstance'
             ret_dict['classname'] = self.toyaml(obj.classname)
             ret_dict['properties'] = self.toyaml(obj.properties)
+            # TODO: Add support for qualifiers attribute
             ret_dict['path'] = self.toyaml(obj.path)
             return ret_dict
         elif isinstance(obj, CIMInstanceName):
@@ -1080,6 +1011,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['pywbem_object'] = 'CIMInstanceName'
             ret_dict['classname'] = self.toyaml(obj.classname)
             ret_dict['namespace'] = self.toyaml(obj.namespace)
+            # TODO: Add support for host attribute
             ret_dict['keybindings'] = self.toyaml(obj.keybindings)
             return ret_dict
         elif isinstance(obj, CIMClass):
@@ -1090,6 +1022,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['properties'] = self.toyaml(obj.properties)
             ret_dict['methods'] = self.toyaml(obj.methods)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
+            # TODO: Add support for path attribute
             return ret_dict
         elif isinstance(obj, CIMClassName):
             ret_dict = OrderedDict()
@@ -1128,6 +1061,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['name'] = self.toyaml(obj.name)
             ret_dict['type'] = self.toyaml(obj.type)
             ret_dict['reference_class'] = self.toyaml(obj.reference_class)
+            # TODO: Add support for embedded_object attribute
             ret_dict['is_array'] = self.toyaml(obj.is_array)
             ret_dict['array_size'] = self.toyaml(obj.array_size)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
@@ -1158,7 +1092,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['overridable'] = self.toyaml(obj.overridable)
             ret_dict['translatable'] = self.toyaml(obj.translatable)
             return ret_dict
-        else:
-            raise TypeError(
-                _format("Invalid type in TestClientRecorder.toyaml(): {0} {1}",
-                        obj.__class__.__name__, type(obj)))
+
+        raise TypeError(
+            _format("Invalid type in TestClientRecorder.toyaml(): {0} {1}",
+                    obj.__class__.__name__, type(obj)))

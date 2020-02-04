@@ -20,6 +20,7 @@ requests>=2.20.0
 # Pinned because this is the current version and the developer
 # is planing to remove python 2.7 support in next version.
 custom-inherit==2.2.2
+yamlloader>=0.5.5
 
 
 # Indirect dependencies are no longer specified here, but for testing with a

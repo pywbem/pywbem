@@ -6,6 +6,8 @@ from __future__ import absolute_import, print_function
 
 import sys
 import os
+import types
+import six
 import pytest
 from ply import yacc, lex
 from packaging.version import parse as parse_version
@@ -160,3 +162,75 @@ def import_installed(module_name):
             print("Debug: {0} module was already loaded from: {1}".
                   format(module_name, module.__file__))
     return module
+
+
+def is_inherited_from(member_name, derived_class, base_class):
+    """
+    Return whether the specified member of a derived class was inherited from
+    a base class without being overwritten in between.
+
+    This can be used in situations where a derived class is used to test the
+    (inherited) members of an abstract base class, to assert that the member
+    that is used in the test is actually the inherited base class member.
+
+    The member can be any of:
+
+    * an instance method,
+    * a static method (i.e. a method decorated with @staticmethod),
+    * a property (i.e. a getter method decorated with @property).
+
+    Data attributes are not supported at this point.
+
+    Note that the base class may have inherited the member from a further base
+    class; but that is irrelevant for this check.
+
+    If the derived class or base class does not expose a member with the
+    specified name, AttributeError is raised.
+    If the type of member is not supported, TypeError is raised.
+
+    Parameters:
+
+      member_name (string): The name of the class member to be checked.
+
+      derived_class (class): The derived class to be used for the check.
+
+      base_class (class): The base class to be used for the check.
+
+    Returns:
+
+      bool: Boolean indicating whether the derived class member was inherited
+        from the base class.
+    """
+
+    assert isinstance(member_name, six.string_types)
+    assert isinstance(base_class, type)
+    assert isinstance(derived_class, type)
+
+    derived_member = getattr(derived_class, member_name)
+    base_member = getattr(base_class, member_name)
+
+    if isinstance(derived_member, types.MethodType) and \
+            isinstance(base_member, types.MethodType):
+        # instance method
+        derived_code = derived_member.__func__.__code__
+        base_code = base_member.__func__.__code__
+    elif isinstance(derived_member, types.FunctionType) and \
+            isinstance(base_member, types.FunctionType):
+        # static method
+        derived_code = derived_member.__code__
+        base_code = base_member.__code__
+    elif isinstance(derived_member, property) and \
+            isinstance(base_member, property):
+        # property
+        derived_code = derived_member.fget.__code__
+        base_code = base_member.fget.__code__
+    else:
+        raise TypeError(
+            "The type of class member {} is not an instance method, static "
+            "method, or a property, but is {} in derived class {} and {} in "
+            "base class {}".
+            format(member_name, type(derived_member), derived_class.__name__,
+                   type(base_member), base_class.__name__))
+
+    return derived_code.co_filename == base_code.co_filename and \
+        derived_code.co_firstlineno == base_code.co_firstlineno
