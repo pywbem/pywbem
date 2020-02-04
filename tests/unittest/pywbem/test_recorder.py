@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 """
-Unit test recorder functions.
-
+Unit tests for the recorder functions (_recorder.py module).
 """
 
 from __future__ import absolute_import, print_function
@@ -10,33 +7,41 @@ from __future__ import absolute_import, print_function
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
+import sys
 import os
 import os.path
 import logging
 import logging.handlers
+import warnings
 from io import open as _open
+from datetime import datetime, timedelta
 
-import unittest
+import pytest
 import six
-from testfixtures import LogCapture, log_capture
+from testfixtures import LogCapture
 # Enabled only to display a tree of loggers
 # from logging_tree import printout as logging_tree_printout
 import yaml
+import yamlloader
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
-from ...utils import skip_if_moftab_regenerated
+from ...utils import skip_if_moftab_regenerated, is_inherited_from
 from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
+from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import CIMInstanceName, CIMInstance, \
+from pywbem import CIMInstanceName, CIMInstance, CIMClassName, CIMClass, \
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
-    HTTPError, WBEMConnection, LogOperationRecorder, configure_logger
+    Sint32, Sint64, Real32, Real64, CIMDateTime, MinutesFromUTC, CIMError, \
+    HTTPError, WBEMConnection, LogOperationRecorder, BaseOperationRecorder, \
+    configure_logger
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder
 from pywbem._cim_operations import pull_path_result_tuple, \
@@ -46,6 +51,11 @@ pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Ordered dict type created by yamlloader.ordereddict loaders
+if sys.version_info[0:2] >= (3, 7):
+    yaml_ordereddict = dict
+else:
+    yaml_ordereddict = OrderedDict
 
 TEST_DIR = os.path.dirname(__file__)
 
@@ -57,442 +67,1488 @@ TEST_YAML_FILE = os.path.join(TEST_DIR, 'test_recorder.yaml')
 TEST_OUTPUT_LOG = os.path.join(TEST_DIR, 'test_recorder.log')
 
 VERBOSE = False
+DEBUG_TEST_YAML_FILE = False  # Show the generated test client YAML file
 
 
-class BaseRecorderTests(unittest.TestCase):
-    """Base class for recorder unit tests. Implements methods
-       for creating instance and instancename
+# CIMProperty objects of all types and the corresponding test client YAML
+CIMPROPERTY_B1_OBJ = CIMProperty('B1', value=True)
+CIMPROPERTY_B1_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'B1',
+    type=u'boolean',
+    value=True,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_C1_OBJ = CIMProperty('C1', type='char16', value=u'A')
+CIMPROPERTY_C1_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'C1',
+    type=u'char16',
+    value=u'A',
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_C2_OBJ = CIMProperty('C2', type='char16', value=u'\u00E4')
+CIMPROPERTY_C2_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'C2',
+    type=u'char16',
+    value=u'\u00E4',
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+# Note that the value space of the char16 datatype is UCS-2
+CIMPROPERTY_S1_OBJ = CIMProperty('S1', type='string', value=u'Ham')
+CIMPROPERTY_S1_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S1',
+    type=u'string',
+    value=u'Ham',
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_S2_OBJ = CIMProperty('S2', type='string', value=u'H\u00E4m')
+CIMPROPERTY_S2_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S2',
+    type=u'string',
+    value=u'H\u00E4m',
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_S3_OBJ = CIMProperty('S3', type='string', value=u'A\U00010142B')
+CIMPROPERTY_S3_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S3',
+    type=u'string',
+    value=u'A\U00010142B',
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_E1_OBJ = CIMProperty('E1', type='string',
+                                 embedded_object='instance',
+                                 value=CIMInstance('C_Emb'))
+CIMPROPERTY_E1_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'E1',
+    type=u'string',
+    value=dict(
+        pywbem_object='CIMInstance',
+        classname='C_Emb',
+        properties=yaml_ordereddict(),
+        path=None,
+    ),
+    reference_class=None,
+    embedded_object=u'instance',
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_E2_OBJ = CIMProperty('E2', type='string',
+                                 embedded_object='object',
+                                 value=CIMInstance('C_Emb'))
+CIMPROPERTY_E2_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'E2',
+    type=u'string',
+    value=dict(
+        pywbem_object='CIMInstance',
+        classname='C_Emb',
+        properties=yaml_ordereddict(),
+        path=None,
+    ),
+    reference_class=None,
+    embedded_object=u'object',
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_E3_OBJ = CIMProperty('E3', type='string',
+                                 embedded_object='object',
+                                 value=CIMClass('C_Emb'))
+CIMPROPERTY_E3_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'E3',
+    type=u'string',
+    value=dict(
+        pywbem_object='CIMClass',
+        classname='C_Emb',
+        superclass=None,
+        properties=yaml_ordereddict(),
+        methods=yaml_ordereddict(),
+        qualifiers=yaml_ordereddict(),
+        # TODO: Add path attribute once supported
+    ),
+    reference_class=None,
+    embedded_object=u'object',
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_U11_OBJ = CIMProperty('U11', value=Uint8(42))
+CIMPROPERTY_U11_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'U11',
+    type=u'uint8',
+    value=42,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_U21_OBJ = CIMProperty('U21', value=Uint16(4216))
+CIMPROPERTY_U21_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'U21',
+    type=u'uint16',
+    value=4216,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_U41_OBJ = CIMProperty('U41', value=Uint32(4232))
+CIMPROPERTY_U41_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'U41',
+    type=u'uint32',
+    value=4232,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_U81_OBJ = CIMProperty('U81', value=Uint64(4264))
+CIMPROPERTY_U81_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'U81',
+    type=u'uint64',
+    value=4264,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_S11_OBJ = CIMProperty('S11', value=Sint8(-42))
+CIMPROPERTY_S11_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S11',
+    type=u'sint8',
+    value=-42,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_S21_OBJ = CIMProperty('S21', value=Sint16(-4216))
+CIMPROPERTY_S21_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S21',
+    type=u'sint16',
+    value=-4216,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_S41_OBJ = CIMProperty('S41', value=Sint32(-4232))
+CIMPROPERTY_S41_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S41',
+    type=u'sint32',
+    value=-4232,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_S81_OBJ = CIMProperty('S81', value=Sint64(-4264))
+CIMPROPERTY_S81_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'S81',
+    type=u'sint64',
+    value=-4264,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_R41_OBJ = CIMProperty('R41', value=Real32(42.0))
+CIMPROPERTY_R41_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'R41',
+    type=u'real32',
+    value=42.0,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_R81_OBJ = CIMProperty('R81', value=Real64(42.64))
+CIMPROPERTY_R81_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'R81',
+    type=u'real64',
+    value=42.64,
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_R1_OBJ = CIMProperty('R1', value=CIMInstanceName('C1'))
+CIMPROPERTY_R1_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'R1',
+    type=u'reference',
+    value=dict(
+        pywbem_object='CIMInstanceName',
+        classname='C1',
+        keybindings=yaml_ordereddict(),
+        namespace=None,
+    ),
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+CIMPROPERTY_D1_OBJ = CIMProperty(
+    'D1',
+    value=CIMDateTime('20140924193040.654321+120'))
+CIMPROPERTY_D1_TCYAML = dict(
+    pywbem_object='CIMProperty',
+    name=u'D1',
+    type=u'datetime',
+    value=u'20140924193040.654321+120',
+    reference_class=None,
+    embedded_object=None,
+    is_array=False,
+    array_size=None,
+    class_origin=None,
+    propagated=None,
+    qualifiers=yaml_ordereddict(),
+)
+
+# CIMInstance object without path, with all property types and the test client
+# YAML object
+CIMINSTANCE_ALL_OBJ = CIMInstance(
+    'CIM_Foo',
+    properties=[
+        CIMPROPERTY_B1_OBJ,
+        CIMPROPERTY_C1_OBJ,
+        CIMPROPERTY_C2_OBJ,
+        CIMPROPERTY_S1_OBJ,
+        CIMPROPERTY_S2_OBJ,
+        CIMPROPERTY_S3_OBJ,
+        CIMPROPERTY_E1_OBJ,
+        CIMPROPERTY_E2_OBJ,
+        CIMPROPERTY_E3_OBJ,
+        CIMPROPERTY_U11_OBJ,
+        CIMPROPERTY_U21_OBJ,
+        CIMPROPERTY_U41_OBJ,
+        CIMPROPERTY_U81_OBJ,
+        CIMPROPERTY_S11_OBJ,
+        CIMPROPERTY_S21_OBJ,
+        CIMPROPERTY_S41_OBJ,
+        CIMPROPERTY_S81_OBJ,
+        CIMPROPERTY_R41_OBJ,
+        CIMPROPERTY_R81_OBJ,
+        CIMPROPERTY_R1_OBJ,
+        CIMPROPERTY_D1_OBJ,
+    ],
+    path=None,
+)
+CIMINSTANCE_ALL_TCYAML = yaml_ordereddict([
+    ('pywbem_object', 'CIMInstance'),
+    ('classname', 'CIM_Foo'),
+    ('properties', yaml_ordereddict([
+        ('B1', CIMPROPERTY_B1_TCYAML),
+        ('C1', CIMPROPERTY_C1_TCYAML),
+        ('C2', CIMPROPERTY_C2_TCYAML),
+        ('S1', CIMPROPERTY_S1_TCYAML),
+        ('S2', CIMPROPERTY_S2_TCYAML),
+        ('S3', CIMPROPERTY_S3_TCYAML),
+        ('E1', CIMPROPERTY_E1_TCYAML),
+        ('E2', CIMPROPERTY_E2_TCYAML),
+        ('E3', CIMPROPERTY_E3_TCYAML),
+        ('U11', CIMPROPERTY_U11_TCYAML),
+        ('U21', CIMPROPERTY_U21_TCYAML),
+        ('U41', CIMPROPERTY_U41_TCYAML),
+        ('U81', CIMPROPERTY_U81_TCYAML),
+        ('S11', CIMPROPERTY_S11_TCYAML),
+        ('S21', CIMPROPERTY_S21_TCYAML),
+        ('S41', CIMPROPERTY_S41_TCYAML),
+        ('S81', CIMPROPERTY_S81_TCYAML),
+        ('R41', CIMPROPERTY_R41_TCYAML),
+        ('R81', CIMPROPERTY_R81_TCYAML),
+        ('R1', CIMPROPERTY_R1_TCYAML),
+        ('D1', CIMPROPERTY_D1_TCYAML),
+    ])),
+    ('path', None),
+])
+
+
+@pytest.fixture(params=[
+    (CIMINSTANCE_ALL_OBJ, CIMINSTANCE_ALL_TCYAML),
+], scope='module')
+def instance_tuple(request):
+    """
+    Fixture for a CIMInstance object without path and its corresponding
+    test client YAML object.
+
+    Returns a tuple(CIMInstance, tcyaml_dict).
+    """
+    return request.param
+
+
+# CIMInstance object with path, with all property types and the test client
+# YAML object
+CIMINSTANCE_WP_ALL_OBJ = CIMInstance(
+    'CIM_Foo',
+    properties=[
+        CIMPROPERTY_B1_OBJ,
+        CIMPROPERTY_C1_OBJ,
+        CIMPROPERTY_C2_OBJ,
+        CIMPROPERTY_S1_OBJ,
+        CIMPROPERTY_S2_OBJ,
+        CIMPROPERTY_S3_OBJ,
+        CIMPROPERTY_E1_OBJ,
+        CIMPROPERTY_E2_OBJ,
+        CIMPROPERTY_E3_OBJ,
+        CIMPROPERTY_U11_OBJ,
+        CIMPROPERTY_U21_OBJ,
+        CIMPROPERTY_U41_OBJ,
+        CIMPROPERTY_U81_OBJ,
+        CIMPROPERTY_S11_OBJ,
+        CIMPROPERTY_S21_OBJ,
+        CIMPROPERTY_S41_OBJ,
+        CIMPROPERTY_S81_OBJ,
+        CIMPROPERTY_R41_OBJ,
+        CIMPROPERTY_R81_OBJ,
+        CIMPROPERTY_R1_OBJ,
+        CIMPROPERTY_D1_OBJ,
+    ],
+    path=CIMInstanceName(
+        'CIM_Foo',
+        keybindings=dict(S1=CIMPROPERTY_S1_OBJ.value),
+        namespace='root/cimv2',
+        host='woot.com',
+    ),
+)
+CIMINSTANCE_WP_ALL_TCYAML = yaml_ordereddict([
+    ('pywbem_object', 'CIMInstance'),
+    ('classname', 'CIM_Foo'),
+    ('properties', yaml_ordereddict([
+        ('B1', CIMPROPERTY_B1_TCYAML),
+        ('C1', CIMPROPERTY_C1_TCYAML),
+        ('C2', CIMPROPERTY_C2_TCYAML),
+        ('S1', CIMPROPERTY_S1_TCYAML),
+        ('S2', CIMPROPERTY_S2_TCYAML),
+        ('S3', CIMPROPERTY_S3_TCYAML),
+        ('E1', CIMPROPERTY_E1_TCYAML),
+        ('E2', CIMPROPERTY_E2_TCYAML),
+        ('E3', CIMPROPERTY_E3_TCYAML),
+        ('U11', CIMPROPERTY_U11_TCYAML),
+        ('U21', CIMPROPERTY_U21_TCYAML),
+        ('U41', CIMPROPERTY_U41_TCYAML),
+        ('U81', CIMPROPERTY_U81_TCYAML),
+        ('S11', CIMPROPERTY_S11_TCYAML),
+        ('S21', CIMPROPERTY_S21_TCYAML),
+        ('S41', CIMPROPERTY_S41_TCYAML),
+        ('S81', CIMPROPERTY_S81_TCYAML),
+        ('R41', CIMPROPERTY_R41_TCYAML),
+        ('R81', CIMPROPERTY_R81_TCYAML),
+        ('R1', CIMPROPERTY_R1_TCYAML),
+        ('D1', CIMPROPERTY_D1_TCYAML),
+    ])),
+    ('path', yaml_ordereddict([
+        ('pywbem_object', 'CIMInstanceName'),
+        ('classname', 'CIM_Foo'),
+        ('keybindings', dict(S1=CIMPROPERTY_S1_TCYAML['value'])),
+        ('namespace', 'root/cimv2'),
+        ('host', 'woot.com'),
+    ])),
+])
+
+
+@pytest.fixture(params=[
+    (CIMINSTANCE_WP_ALL_OBJ, CIMINSTANCE_WP_ALL_TCYAML),
+], scope='module')
+def instance_wp_tuple(request):
+    """
+    Fixture for a CIMInstance object with path and its corresponding
+    test client YAML object.
+
+    Returns a tuple(CIMInstance, tcyaml_dict).
+    """
+    return request.param
+
+
+# Two CIMInstance objects without path and the test client YAML object
+CIMINSTANCES_OBJS = [
+    CIMInstance(
+        'CIM_Foo',
+        properties=[
+            CIMPROPERTY_S1_OBJ,
+            CIMPROPERTY_S2_OBJ,
+        ],
+        path=None,
+    ),
+    CIMInstance(
+        'CIM_Foo',
+        properties=[
+            CIMPROPERTY_S3_OBJ,
+        ],
+        path=None,
+    ),
+]
+CIMINSTANCES_TCYAML = [
+    yaml_ordereddict([
+        ('pywbem_object', 'CIMInstance'),
+        ('classname', 'CIM_Foo'),
+        ('properties', yaml_ordereddict([
+            ('S1', CIMPROPERTY_S1_TCYAML),
+            ('S2', CIMPROPERTY_S2_TCYAML),
+        ])),
+        ('path', None),
+    ]),
+    yaml_ordereddict([
+        ('pywbem_object', 'CIMInstance'),
+        ('classname', 'CIM_Foo'),
+        ('properties', yaml_ordereddict([
+            ('S3', CIMPROPERTY_S3_TCYAML),
+        ])),
+        ('path', None),
+    ]),
+]
+
+
+@pytest.fixture(params=[
+    (CIMINSTANCES_OBJS, CIMINSTANCES_TCYAML),
+], scope='module')
+def instances_tuple(request):
+    """
+    Fixture for a list of two CIMInstance objects without path and its
+    corresponding test client YAML object.
+
+    Returns a tuple(list(CIMInstance), tcyaml_dict).
+    """
+    return request.param
+
+
+# Two CIMInstance objects with path and the test client YAML object
+CIMINSTANCES_WP_OBJS = [
+    CIMInstance(
+        'CIM_Foo',
+        properties=[
+            CIMPROPERTY_S1_OBJ,
+            CIMPROPERTY_S2_OBJ,
+        ],
+        path=CIMInstanceName(
+            'CIM_Foo',
+            keybindings=dict(S1=CIMPROPERTY_S1_OBJ.value),
+            namespace='root/cimv2',
+            host='woot.com',
+        ),
+    ),
+    CIMInstance(
+        'CIM_Foo',
+        properties=[
+            CIMPROPERTY_S1_OBJ,
+            CIMPROPERTY_S3_OBJ,
+        ],
+        path=CIMInstanceName(
+            'CIM_Foo',
+            keybindings=dict(S1=CIMPROPERTY_S1_OBJ.value),
+            namespace='root/cimv2',
+            host='woot.com',
+        ),
+    ),
+]
+CIMINSTANCES_WP_TCYAML = [
+    yaml_ordereddict([
+        ('pywbem_object', 'CIMInstance'),
+        ('classname', 'CIM_Foo'),
+        ('properties', yaml_ordereddict([
+            ('S1', CIMPROPERTY_S1_TCYAML),
+            ('S2', CIMPROPERTY_S2_TCYAML),
+        ])),
+        ('path', yaml_ordereddict([
+            ('pywbem_object', 'CIMInstanceName'),
+            ('classname', 'CIM_Foo'),
+            ('keybindings', dict(S1=CIMPROPERTY_S1_TCYAML['value'])),
+            ('namespace', 'root/cimv2'),
+            ('host', 'woot.com'),
+        ])),
+    ]),
+    yaml_ordereddict([
+        ('pywbem_object', 'CIMInstance'),
+        ('classname', 'CIM_Foo'),
+        ('properties', yaml_ordereddict([
+            ('S1', CIMPROPERTY_S1_TCYAML),
+            ('S3', CIMPROPERTY_S3_TCYAML),
+        ])),
+        ('path', yaml_ordereddict([
+            ('pywbem_object', 'CIMInstanceName'),
+            ('classname', 'CIM_Foo'),
+            ('keybindings', dict(S1=CIMPROPERTY_S1_TCYAML['value'])),
+            ('namespace', 'root/cimv2'),
+            ('host', 'woot.com'),
+        ])),
+    ]),
+]
+
+
+@pytest.fixture(params=[
+    (CIMINSTANCES_WP_OBJS, CIMINSTANCES_WP_TCYAML),
+], scope='module')
+def instances_wp_tuple(request):
+    """
+    Fixture for a list of two CIMInstance objects with path and its
+    corresponding test client YAML object.
+
+    Returns a tuple(list(CIMInstance), tcyaml_dict).
+    """
+    return request.param
+
+
+# CIMInstanceName object and the test client YAML object
+CIMINSTANCENAME_OBJ = CIMInstanceName(
+    'CIM_Foo',
+    keybindings=dict(S1='a'),
+    namespace='root/cimv2',
+    host='woot.com',
+)
+CIMINSTANCENAME_TCYAML = yaml_ordereddict([
+    ('pywbem_object', 'CIMInstanceName'),
+    ('classname', 'CIM_Foo'),
+    ('keybindings', dict(S1='a')),
+    ('namespace', 'root/cimv2'),
+    ('host', 'woot.com'),
+])
+
+
+@pytest.fixture(params=[
+    (CIMINSTANCENAME_OBJ, CIMINSTANCENAME_TCYAML),
+], scope='module')
+def instancename_tuple(request):
+    """
+    Fixture for a CIMInstanceName object and its corresponding
+    test client YAML object.
+
+    Returns a tuple(CIMInstanceName, tcyaml_dict).
+    """
+    return request.param
+
+
+@pytest.fixture(autouse=True)
+def capture():
+    """
+    Fixture for log capturing. Returns a testfixtures.LogCapture object.
+
+    Note: The log_capture decorator of testfixtures is not compatible with
+    pytest fixtures, see
+    https://testfixtures.readthedocs.io/en/latest/logging.html#the-decorator
+    """
+    with LogCapture() as lc:
+        yield lc
+
+
+@pytest.fixture(scope='function')
+def test_client_recorder(request):
+    """
+    Fixture for a TestClientRecorder object that records to TEST_YAML_FILE and
+    that is enabled.
+    """
+    fp = _TestClientRecorder.open_file(TEST_YAML_FILE, 'w')
+    recorder = _TestClientRecorder(fp)
+    recorder.reset()
+    recorder.enable()
+    # recorder.test_fp = fp
+    yield recorder
+    # del recorder.test_fp
+    fp.close()
+
+
+def logged_payload(payload):
+    """
+    Return the payload unicode string as it is logged by the pywbem recorders.
+    """
+    ret_payload = repr(payload)
+    if ret_payload.startswith("u'"):
+        ret_payload = ret_payload[1:]
+    return ret_payload
+
+
+def load_recorder_yaml_file():
+    """
+    Load the test YAML file created by the test recorder and return its content
+    as a dict.
+    """
+    with _open(TEST_YAML_FILE, encoding="utf-8") as fp:
+        yaml_content = yaml.load(
+            fp, Loader=yamlloader.ordereddict.CSafeLoader)
+    return yaml_content
+
+
+def cleanup_recorder_yaml_file():
+    """
+    Delete the test YAML file created by the test recorder, to clean up.
+    """
+    if os.path.exists(TEST_YAML_FILE):
+        try:
+            os.remove(TEST_YAML_FILE)
+        except Exception as exc:
+            # The file is still open at this point and on Windows,
+            # a WindowsError is raised.
+            warnings.warn(
+                "Cleaning up the test client YAML file {} failed: {}".
+                format(TEST_YAML_FILE, exc), UserWarning)
+
+
+def test_BaseOperationRecorder_init():
+    """
+    Test function for BaseOperationRecorder.__init__()
     """
 
-    def create_ciminstance(self, set_path=False):
-        """
-        Create a sample instance with multiple properties and
-        property types.
-        """
+    # BaseOperationRecorder is an abstract base class, so we test its methods
+    # through its derived class TestClientRecorder, but we verify that the
+    # derived class attributes/methods we use were inherited from the base
+    # class.
+    assert is_inherited_from(
+        'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-        props_input = OrderedDict([
-            ('S1', b'Ham'),
-            ('Bool', True),
-            ('UI8', Uint8(42)),
-            ('UI16', Uint16(4216)),
-            ('UI32', Uint32(4232)),
-            ('UI64', Uint64(4264)),
-            ('SI8', Sint8(-42)),
-            ('SI16', Sint16(-4216)),
-            ('SI32', Sint32(-4232)),
-            ('SI64', Sint64(-4264)),
-            ('R32', Real32(42.0)),
-            ('R64', Real64(42.64)),
-            ('S2', u'H\u00E4m'),  # U+00E4 = lower case a umlaut
-            # CIMDateTime.__repr__() output changes between Python versions,
-            # so we omit that from these properties. After all, this is not a
-            # test for a correct repr() of all CIM datatypes, but a test of
-            # the recorder with a long string.
-        ])
+    try:
+        fp = open(os.devnull, 'w')
 
-        inst = CIMInstance('CIM_Foo', props_input)
-        if set_path:
-            inst.path = self.create_ciminstancename()
-        return inst
+        # The code to be tested
+        recorder = _TestClientRecorder(fp)
 
-    def create_ciminstancename(self):
-        kb = [('Chicken', 'Ham')]
-        obj_name = CIMInstanceName('CIM_Foo',
-                                   kb,
-                                   namespace='root/cimv2',
-                                   host='woot.com')
-        return obj_name
+        assert recorder.enabled is True
 
-    def create_ciminstances(self):
-        """Create multiple instances using """
-        instances = []
-        instances.append(self.create_ciminstance(set_path=True))
-        instances.append(self.create_ciminstance(set_path=True))
-        return instances
-
-    def create_ciminstancepaths(self):
-        """Create multiple instances using """
-        paths = []
-        paths.append(self.create_ciminstancename())
-        paths.append(self.create_ciminstancename())
-        return paths
-
-    def create_method_params(self):
-        """Create a set of method params to be used in InvokeMethodTests."""
-        obj_name = self.create_ciminstancename()
-
-        params = [('StringParam', 'Spotty'),
-                  ('Uint8', Uint8(1)),
-                  ('Sint8', Sint8(2)),
-                  ('Uint16', Uint16(3)),
-                  ('Sint16', Sint16(3)),
-                  ('Uint32', Uint32(4)),
-                  ('Sint32', Sint32(5)),
-                  ('Uint64', Uint64(6)),
-                  ('Sint64', Sint64(7)),
-                  ('Real32', Real32(8)),
-                  ('Real64', Real64(9)),
-                  ('Bool', True),
-                  ('Ref', obj_name)]
-        # CIMDateTime.__repr__() output changes between Python
-        # versions, so we omit any datetime parameters. After all,
-        # this is not a test for a correct repr() of all CIM
-        # datatypes, but a test of the recorder with a long string.
-        return params
+    finally:
+        fp.close()
 
 
-class ClientRecorderTests(BaseRecorderTests):
+def test_BaseOperationRecorder_enable_disable():
     """
-    Common base for all tests on the TestClientRecorder. Defines specific common
-    methods including setUp and tearDown for the TestClientRecorder.
-    """
-    def setUp(self):
-        """ Setup recorder instance including defining output file"""
-        self.testyamlfile = os.path.join(TEST_DIR, TEST_YAML_FILE)
-        if os.path.isfile(self.testyamlfile):
-            os.remove(self.testyamlfile)
-
-        self.yamlfp = _TestClientRecorder.open_file(self.testyamlfile, 'a')
-
-        self.test_recorder = _TestClientRecorder(self.yamlfp)
-        self.test_recorder.reset()
-        self.test_recorder.enable()
-
-    def tearDown(self):
-        """Close the test_client YAML file."""
-        if self.yamlfp is not None:
-            self.yamlfp.close()
-
-    def closeYamlFile(self):
-        """Close the yaml file if it is open"""
-        if self.yamlfp is not None:
-            self.yamlfp.close()
-            self.yamlfp = None
-
-    def loadYamlFile(self):
-        """Load any created yaml file"""
-        self.closeYamlFile()
-        with _open(self.testyamlfile, encoding="utf-8") as fp:
-            testyaml = yaml.safe_load(fp)
-        return testyaml
-
-
-class ToYaml(ClientRecorderTests):
-    """Test the toyaml function with multiple data input"""
-    def test_inst_to_yaml_simple(self):
-        """Test Simple instancename toyaml conversion"""
-
-        test_yaml = self.test_recorder.toyaml(self.create_ciminstancename())
-
-        self.assertEqual(test_yaml['pywbem_object'], 'CIMInstanceName')
-        self.assertEqual(test_yaml['classname'], 'CIM_Foo')
-        self.assertEqual(test_yaml['namespace'], 'root/cimv2')
-        kb = test_yaml['keybindings']
-        self.assertEqual(kb['Chicken'], 'Ham')
-
-        # CIMClass, cimqualifierdecl
-
-    def test_to_yaml_simple2(self):
-        """Test Simple cimdatetime and other primitive types to toyaml"""
-
-        test_yaml = self.test_recorder.toyaml(
-            CIMDateTime('20140924193040.654321+120'))
-
-        self.assertEqual(test_yaml, '20140924193040.654321+120')
-
-        self.assertEqual(self.test_recorder.toyaml(True), True)
-        self.assertEqual(self.test_recorder.toyaml(False), False)
-        self.assertEqual(self.test_recorder.toyaml(1234), 1234)
-        self.assertEqual(self.test_recorder.toyaml('blahblah '), 'blahblah ')
-
-    def test_inst_to_yaml_all_prop_types(self):
-        """Test all property types toyaml"""
-
-        inst = self.create_ciminstance()
-
-        test_yaml = self.test_recorder.toyaml(inst)
-
-        self.assertEqual(test_yaml['pywbem_object'], 'CIMInstance')
-        self.assertEqual(test_yaml['classname'], 'CIM_Foo')
-        properties = test_yaml['properties']
-
-        si64 = properties['SI64']
-        self.assertEqual(si64['name'], 'SI64')
-        self.assertEqual(si64['type'], 'sint64')
-        self.assertEqual(si64['value'], -4264)
-
-        # TODO add test for reference properties
-        # TODO add test for embedded object property
-
-    def test_inst_to_yaml_array_props(self):
-        """Test  property with array toyaml"""
-        str_data = "The pink fox jumped over the big blue dog"
-        array_props = [
-            ('MyString', str_data),
-            ('MyUint8Array', [Uint8(1), Uint8(2)]),
-            ('MySint8Array', [Sint8(1), Sint8(2)]),
-            ('MyUint64Array', [Uint64(123456789),
-                               Uint64(123456789),
-                               Uint64(123456789)]),
-            ('MyUint32Array', [Uint32(9999), Uint32(9999)]),
-            ('MyStrLongArray', [str_data, str_data, str_data]),
-        ]
-        inst = CIMInstance('CIM_FooArray', array_props)
-        test_yaml = self.test_recorder.toyaml(inst)
-
-        self.assertEqual(test_yaml['pywbem_object'], 'CIMInstance')
-        self.assertEqual(test_yaml['classname'], 'CIM_FooArray')
-        properties = test_yaml['properties']
-        my_string = properties['MyString']
-        self.assertEqual(my_string['name'], 'MyString')
-        self.assertEqual(my_string['type'], 'string')
-        self.assertEqual(my_string['value'], str_data)
-
-        my_uint8array = properties['MyUint8Array']
-        self.assertEqual(my_uint8array['name'], 'MyUint8Array')
-        self.assertEqual(my_uint8array['type'], 'uint8')
-        self.assertEqual(my_uint8array['value'], [Uint8(1), Uint8(2)])
-
-        my_sint8array = properties['MySint8Array']
-        self.assertEqual(my_sint8array['name'], 'MySint8Array')
-        self.assertEqual(my_sint8array['type'], 'sint8')
-        self.assertEqual(my_sint8array['value'], [Sint8(1), Sint8(2)])
-
-        my_sint64array = properties['MyUint64Array']
-        self.assertEqual(my_sint64array['name'], 'MyUint64Array')
-        self.assertEqual(my_sint64array['type'], 'uint64')
-        self.assertEqual(my_sint64array['value'], [Uint64(123456789),
-                                                   Uint64(123456789),
-                                                   Uint64(123456789)])
-
-    def test_instname_to_yaml(self):
-        """Test  instname toyaml"""
-
-        inst_name = self.create_ciminstancename()
-
-        test_yaml = self.test_recorder.toyaml(inst_name)
-
-        self.assertEqual(test_yaml['pywbem_object'], 'CIMInstanceName')
-        self.assertEqual(test_yaml['classname'], 'CIM_Foo')
-        # TODO host does not appear in output yaml. Is that correct???
-        # ##self.assertEqual[test_yaml['host'], 'woot.com']
-        kbs = test_yaml['keybindings']
-        self.assertEqual(len(kbs), 1)
-        self.assertEqual(kbs['Chicken'], 'Ham')
-
-    def test_openreq_resulttuple(self):
-        """test tuple result from open operation. The input is a
-        named tuple.
-        """
-        result = []
-        context = ('test_rtn_context', 'root/cim_namespace')
-        result_tuple = pull_path_result_tuple(result, True, None)
-
-        test_yaml = self.test_recorder.toyaml(result_tuple)
-
-        self.assertEqual(test_yaml['paths'], [])
-        self.assertEqual(test_yaml['eos'], True)
-        self.assertEqual(test_yaml['context'], None)
-
-        result_tuple = pull_path_result_tuple(result, False, context)
-
-        test_yaml = self.test_recorder.toyaml(result_tuple)
-
-        self.assertEqual(test_yaml['paths'], [])
-        self.assertEqual(test_yaml['eos'], False)
-        self.assertEqual(test_yaml['context'], list(context))
-
-
-class ClientOperationStageTests(ClientRecorderTests):
-    """
-    Test staging for different _cim_operations.  This defines fixed
-    parameters for the before and after staging, stages (which creates
-    a yaml file), and then inspects that file to determine if valid
-    yaml was created
+    Test function for BaseOperationRecorder.enable() and disable()
     """
 
-    def test_invoke_method(self):
-        """
-        Emulates call to invokemethod to test parameter processing.
-        Currently creates the pywbem_request component.
-        Each test emulated a single cim operation with fixed data to
-        create the input for the yaml, create the yaml, and test the result
-        """
-        params = self.create_method_params()
-        in_params_dict = OrderedDict(params)
-        obj_name = in_params_dict['Ref']
+    # BaseOperationRecorder is an abstract base class, so we test its methods
+    # through its derived class TestClientRecorder, but we verify that the
+    # derived class attributes/methods we use were inherited from the base
+    # class.
+    assert is_inherited_from(
+        'disable', _TestClientRecorder, BaseOperationRecorder)
+    assert is_inherited_from(
+        'enable', _TestClientRecorder, BaseOperationRecorder)
+    assert is_inherited_from(
+        'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-        self.test_recorder.stage_pywbem_args(method='InvokeMethod',
-                                             MethodName='Blah',
-                                             ObjectName=obj_name,
-                                             Params=params)
-        method_result_tuple = None
-        method_exception = None
+    try:
+        fp = open(os.devnull, 'w')
 
-        self.test_recorder.stage_pywbem_result(method_result_tuple,
-                                               method_exception)
+        recorder = _TestClientRecorder(fp)
 
-        self.test_recorder.record_staged()
+        # The code to be tested
+        recorder.enable()
+        assert recorder.enabled is True
 
-        # reload the yaml to test created values
-        test_yaml = self.loadYamlFile()
-        test_yaml = test_yaml[0]
+        # The code to be tested
+        recorder.disable()
+        assert recorder.enabled is False
 
-        pywbem_request = test_yaml['pywbem_request']
-        self.assertEqual(pywbem_request['url'], 'http://acme.com:80')
+        # The code to be tested
+        recorder.disable()
+        assert recorder.enabled is False
 
-        operation = pywbem_request['operation']
-        self.assertEqual(operation['pywbem_method'], 'InvokeMethod')
-        self.assertEqual(operation['MethodName'], 'Blah')
-        out_params_dict = OrderedDict(operation['Params'])
+        # The code to be tested
+        recorder.enable()
+        assert recorder.enabled is True
 
-        self.assertEqual(len(in_params_dict), len(out_params_dict))
+    finally:
+        fp.close()
 
-        self.assertEqual(out_params_dict['StringParam'], 'Spotty')
-        self.assertEqual(out_params_dict['Uint8'], 1)
-        self.assertEqual(out_params_dict['Sint8'], 2)
-        self.assertEqual(out_params_dict['Uint16'], 3)
-        self.assertEqual(out_params_dict['Sint16'], 3)
-        self.assertEqual(out_params_dict['Uint32'], 4)
-        self.assertEqual(out_params_dict['Sint32'], 5)
-        self.assertEqual(out_params_dict['Uint64'], 6)
-        self.assertEqual(out_params_dict['Sint64'], 7)
-        self.assertEqual(out_params_dict['Real32'], 8)
-        self.assertEqual(out_params_dict['Real64'], 9)
-        self.assertEqual(out_params_dict['Bool'], True)
-        # TODO fix the following. Currently it fails with:
-        # AssertionError: CIMIn[16 chars]name={'classname': 'CIM_Foo',
-        # 'keybindings': {[132 chars]None) != CIMIn[16 chars]name=u'CIM_Foo',
-        # keybindings=NocaseDict({('Chi[55 chars]com')
-        # self.assertEqual(CIMInstanceName(out_params_dict['Ref']), obj_name)
 
-    def test_get_instance(self):
-        """
-        Emulates call to getInstance to test parameter processing.
-        Currently creates the pywbem_request component.
-        """
-        inst_name = self.create_ciminstancename()
+TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
 
-        self.test_recorder.reset()
+    # Testcases for BaseOperationRecorder.open_file()
 
-        self.test_recorder.stage_pywbem_args(
-            method='GetInstance',
-            InstanceName=inst_name,
-            LocalOnly=True,
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * text: Input data for the file, as unicode string.
+    #   * exp_bytes: Expected UTF-8 Bytes in the file, as byte string.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Single 7-bit ASCII character",
+        dict(
+            text=u'A',
+            exp_bytes=b'A',
+        ),
+        None, None, True
+    ),
+    (
+        "Single UCS-2 character resulting in 2-char UTF-8 sequence",
+        dict(
+            text=u'\u00E8',
+            exp_bytes=b'\xC3\xA8',
+        ),
+        None, None, True
+    ),
+    (
+        "Single UCS-2 character resulting in 3-char UTF-8 sequence",
+        dict(
+            text=u'\u2014',
+            exp_bytes=b'\xE2\x80\x94',
+        ),
+        None, None, True
+    ),
+    (
+        "Single UTF-16 surrogate sequence for U+10142 resulting in 4-char "
+        "UTF-8 sequence",
+        dict(
+            text=u'\uD800\uDD42',
+            exp_bytes=b'\xF0\x90\x85\x82',
+        ),
+        None, None, six.PY2  # Not supported in Python 3
+    ),
+    (
+        "Single UCS-4 character resulting in 4-char UTF-8 sequence",
+        dict(
+            text=u'\U00010142',
+            exp_bytes=b'\xF0\x90\x85\x82',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE)
+@simplified_test_function
+def test_BaseOperationRecorder_open_file(testcase, text, exp_bytes):
+    # pylint: disable=unused-argument
+    """
+    Test function for BaseOperationRecorder.open_file()
+    """
+
+    # BaseOperationRecorder is an abstract base class, so we test its methods
+    # through its derived class TestClientRecorder, but we verify that the
+    # derived class attributes/methods we use were inherited from the base
+    # class.
+    assert is_inherited_from(
+        'open_file', _TestClientRecorder, BaseOperationRecorder)
+
+    tmp_filename = 'openfile.tmp'
+
+    # The code to be tested
+    fp = _TestClientRecorder.open_file(tmp_filename, 'w')
+
+    fp.write(text)
+    fp.close()
+
+    with open(tmp_filename, 'rb') as fp:
+        bytes = fp.read()
+    assert bytes == exp_bytes
+
+    os.remove(tmp_filename)
+
+
+TESTCASES_TESTCLIENTRECORDER_TOYAML = [
+
+    # Testcases for TestClientRecorder.toyaml()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: Object that has dictionary behavior, e.g. IMInstanceName.
+    #   * exp_yaml: Expected YAML object, for validation.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Boolean value True",
+        dict(
+            obj=True,
+            exp_yaml=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Boolean value False",
+        dict(
+            obj=False,
+            exp_yaml=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Integer value",
+        dict(
+            obj=1234,
+            exp_yaml=1234,
+        ),
+        None, None, True
+    ),
+    (
+        "Uint8 value",
+        dict(
+            obj=Uint8(42),
+            exp_yaml=42,
+        ),
+        None, None, True
+    ),
+    (
+        "Float value",
+        dict(
+            obj=42.1,
+            exp_yaml=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Real32 value",
+        dict(
+            obj=Real32(42.1),
+            exp_yaml=42.1,
+        ),
+        None, None, True
+    ),
+    (
+        "Unicode string value",
+        dict(
+            obj='blahblah ',
+            exp_yaml='blahblah ',
+        ),
+        None, None, True
+    ),
+    (
+        "Byte string value",
+        dict(
+            obj=b'blahblah ',
+            exp_yaml='blahblah ',
+        ),
+        None, None, True
+    ),
+    (
+        "CIMDateTime object",
+        dict(
+            obj=CIMDateTime('20140924193040.654321+120'),
+            exp_yaml='20140924193040.654321+120',
+        ),
+        None, None, True
+    ),
+    (
+        "datetime object",
+        dict(
+            obj=datetime(year=2020, month=1, day=28, hour=14, minute=46,
+                         second=40, microsecond=654321,
+                         tzinfo=MinutesFromUTC(120)),
+            exp_yaml=CIMDateTime('20200128144640.654321+120'),
+        ),
+        None, None, True
+    ),
+    (
+        "timedelta object",
+        dict(
+            obj=timedelta(183, (13 * 60 + 25) * 60 + 42, 234567),
+            exp_yaml=CIMDateTime('00000183132542.234567:000'),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMInstanceName object",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=OrderedDict([
+                    ('Chicken', 'Ham'),
+                    ('Beans', Uint8(42)),
+                ]),
+                namespace='cimv2',
+                host='woot.com',
+            ),
+            exp_yaml=dict(
+                pywbem_object='CIMInstanceName',
+                classname=u'CIM_Foo',
+                namespace=u'cimv2',
+                # TODO: Add host attribute once supported
+                keybindings=yaml_ordereddict([
+                    (u'Chicken', u'Ham'),
+                    (u'Beans', 42),
+                ]),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMInstance object",
+        dict(
+            obj=CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    ('Chicken', 'Ham'),
+                ],
+            ),
+            exp_yaml=dict(
+                pywbem_object='CIMInstance',
+                classname=u'CIM_Foo',
+                properties=yaml_ordereddict([
+                    (u'Chicken', dict(
+                        pywbem_object='CIMProperty',
+                        name=u'Chicken',
+                        type=u'string',
+                        value=u'Ham',
+                        reference_class=None,
+                        embedded_object=None,
+                        is_array=False,
+                        array_size=None,
+                        class_origin=None,
+                        propagated=None,
+                        qualifiers=yaml_ordereddict(),
+                    )),
+                ]),
+                path=None,
+                # TODO: Add qualifiers attribute once supported
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMClassName object",
+        dict(
+            obj=CIMClassName(
+                'CIM_Foo',
+                namespace='cimv2',
+                host='woot.com',
+            ),
+            exp_yaml=dict(
+                pywbem_object='CIMClassName',
+                classname=u'CIM_Foo',
+                namespace=u'cimv2',
+                host='woot.com',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMClass object",
+        dict(
+            obj=CIMClass(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Chicken', type='string', value='Ham'),
+                ],
+            ),
+            exp_yaml=dict(
+                pywbem_object='CIMClass',
+                classname=u'CIM_Foo',
+                superclass=None,
+                properties=yaml_ordereddict([
+                    (u'Chicken', dict(
+                        pywbem_object='CIMProperty',
+                        name=u'Chicken',
+                        type=u'string',
+                        value=u'Ham',
+                        reference_class=None,
+                        embedded_object=None,
+                        is_array=False,
+                        array_size=None,
+                        class_origin=None,
+                        propagated=None,
+                        qualifiers=yaml_ordereddict(),
+                    )),
+                ]),
+                methods=yaml_ordereddict(),
+                qualifiers=yaml_ordereddict(),
+                # TODO: Add path attribute once supported
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMProperty object",
+        dict(
+            obj=CIMProperty('Chicken', type='string', value='Ham'),
+            exp_yaml=dict(
+                pywbem_object='CIMProperty',
+                name=u'Chicken',
+                type=u'string',
+                value=u'Ham',
+                reference_class=None,
+                embedded_object=None,
+                is_array=False,
+                array_size=None,
+                class_origin=None,
+                propagated=None,
+                qualifiers=yaml_ordereddict(),
+            ),
+        ),
+        None, None, True
+    ),
+    # TODO: Add testcase for reference property
+    # TODO: Add testcase for embedded object property
+    # TODO: Add testcase for array property
+    (
+        "CIMMethod object",
+        dict(
+            obj=CIMMethod('Chicken', return_type='string'),
+            exp_yaml=dict(
+                pywbem_object='CIMMethod',
+                name=u'Chicken',
+                return_type=u'string',
+                class_origin=None,
+                propagated=None,
+                parameters=yaml_ordereddict(),
+                qualifiers=yaml_ordereddict(),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMParameter object",
+        dict(
+            obj=CIMParameter('Chicken', type='string'),
+            exp_yaml=dict(
+                pywbem_object='CIMParameter',
+                name=u'Chicken',
+                type=u'string',
+                reference_class=None,
+                # TODO: Add embedded_object attribute once supported
+                is_array=False,
+                array_size=None,
+                qualifiers=yaml_ordereddict(),
+            ),
+        ),
+        None, None, True
+    ),
+    # TODO: Add testcase for reference parameter
+    # TODO: Add testcase for embedded object parameter
+    # TODO: Add testcase for array parameter
+    (
+        "CIMQualifier object",
+        dict(
+            obj=CIMQualifier('Chicken', type='string', value='Ham'),
+            exp_yaml=dict(
+                pywbem_object='CIMQualifier',
+                name=u'Chicken',
+                type=u'string',
+                value=u'Ham',
+                propagated=None,
+                tosubclass=None,
+                toinstance=None,
+                overridable=None,
+                translatable=None,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMQualifierDeclaration object",
+        dict(
+            obj=CIMQualifierDeclaration('Chicken', type='string', value='Ham'),
+            exp_yaml=dict(
+                pywbem_object='CIMQualifierDeclaration',
+                name=u'Chicken',
+                type=u'string',
+                value=u'Ham',
+                is_array=False,
+                array_size=None,
+                scopes=yaml_ordereddict(),
+                tosubclass=None,
+                toinstance=None,
+                overridable=None,
+                translatable=None,
+            ),
+        ),
+        None, None, True
+    ),
+    # TODO: Add testcase for array qualifier decl
+    (
+        "pull_path_result_tuple object for exhausted open/pull",
+        dict(
+            obj=pull_path_result_tuple(
+                [],
+                True,
+                None,
+            ),
+            exp_yaml=dict(
+                paths=[],
+                eos=True,
+                context=None,
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "pull_path_result_tuple object for non-exhausted open/pull",
+        dict(
+            obj=pull_path_result_tuple(
+                [],
+                False,
+                ('test_rtn_context', 'root/cim_namespace'),
+            ),
+            exp_yaml=dict(
+                paths=[],
+                eos=False,
+                context=['test_rtn_context', 'root/cim_namespace'],
+            ),
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_TESTCLIENTRECORDER_TOYAML)
+@simplified_test_function
+def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
+    # pylint: disable=unused-argument
+    """
+    Test function for TestClientRecorder.toyaml()
+    """
+
+    try:
+        fp = open(os.devnull, 'w')
+
+        recorder = _TestClientRecorder(fp)
+        recorder.reset()
+        recorder.enable()
+
+        # The code to be tested
+        act_yaml = recorder.toyaml(obj)
+
+    finally:
+        fp.close()
+
+    assert act_yaml == exp_yaml
+
+
+TESTCASES_TESTCLIENTRECORDER_RECORD = [
+
+    # Testcases for TestClientRecorder.toyaml()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * op_name: Name of the operation
+    # * op_kwargs: Input arguments for the operation as kwargs dict
+    # * op_result: Return value of the operation
+    # * op_exc: Exception raised by the operation, or None
+    # * exp_yaml_items: partial set of items that should be compared against
+    #   the items in the first entry of the generated test YAML file.
+
+    (
+        "InvokeMethod of instance method",
+        'InvokeMethod',
+        dict(
+            namespace='cim/blah',
+            MethodName='Blah',
+            ObjectName=CIMInstanceName('C1'),
+            Params=[
+                CIMParameter('P1', type='string', value='abc'),
+            ],
+        ),
+        Uint32(42),
+        None,
+        dict(
+            name='InvokeMethod',
+            pywbem_request=dict(
+                url='http://acme.com:80',
+                creds=['username', 'password'],
+                debug=False,
+                timeout=10,
+                namespace='root/cimv2',
+                operation=dict(
+                    pywbem_method='InvokeMethod',
+                    namespace='cim/blah',
+                    MethodName='Blah',
+                    ObjectName=dict(
+                        pywbem_object='CIMInstanceName',
+                        classname='C1',
+                        keybindings=yaml_ordereddict(),
+                        namespace=None,
+                    ),
+                    Params=[
+                        dict(
+                            pywbem_object='CIMParameter',
+                            name='P1',
+                            type='string',
+                            array_size=None,
+                            is_array=False,
+                            reference_class=None,
+                            qualifiers=yaml_ordereddict(),
+                        )
+                    ],
+                ),
+            ),
+            pywbem_response=dict(
+                result=42,
+            ),
+        ),
+    ),
+    (
+        "GetInstance on an instance",
+        'GetInstance',
+        dict(
+            namespace='cim/blah',
+            InstanceName=CIMInstanceName('C1'),
+            LocalOnly=False,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
-            PropertyList=['propertyblah'])
-
-        instance = None
-        exc = None
-
-        self.test_recorder.stage_pywbem_result(instance, exc)
-
-        self.test_recorder.record_staged()
-
-        test_yaml = self.loadYamlFile()
-        test_yaml = test_yaml[0]
-        pywbem_request = test_yaml['pywbem_request']
-        self.assertEqual(pywbem_request['url'], 'http://acme.com:80')
-        operation = pywbem_request['operation']
-        self.assertEqual(operation['pywbem_method'], 'GetInstance')
-        self.assertEqual(operation['LocalOnly'], True)
-        self.assertEqual(operation['IncludeQualifiers'], True)
-        self.assertEqual(operation['PropertyList'], ['propertyblah'])
-        pywbem_response = test_yaml['pywbem_response']
-        self.assertEqual(pywbem_response, {})
-
-    def test_create_instance(self):
-        """Test record of create instance"""
-
-        new_inst = self.create_ciminstance()
-
-        self.test_recorder.reset()
-
-        self.test_recorder.stage_pywbem_args(
-            method='CreateInstance',
-            NewInstance=new_inst,
-            namespace='cim/blah')
-
-        exc = None
-        obj_name = self.create_ciminstancename()
-
-        self.test_recorder.stage_pywbem_result(obj_name, exc)
-
-        self.test_recorder.record_staged()
-
-        test_yaml = self.loadYamlFile()
-        test_yaml = test_yaml[0]
-        pywbem_request = test_yaml['pywbem_request']
-        self.assertEqual(pywbem_request['url'], 'http://acme.com:80')
-        operation = pywbem_request['operation']
-        self.assertEqual(operation['pywbem_method'], 'CreateInstance')
-        returned_new_inst = operation['NewInstance']
-        self.assertEqual(returned_new_inst['classname'], new_inst.classname)
-        pd = returned_new_inst['properties']
-
-        # compare all properties returned against original
-        self.assertEqual(len(pd), len(new_inst.properties))
-        for pn, pv in pd.items():
-            prop = CIMProperty(pn, pv['value'], type=pv['type'],
-                               array_size=pv['array_size'],
-                               propagated=pv['propagated'],
-                               is_array=pv['is_array'],
-                               reference_class=pv['reference_class'],
-                               qualifiers=pv['qualifiers'],
-                               embedded_object=pv['embedded_object'])
-
-            self.assertEqual(new_inst.properties[pn], prop,
-                             'Property compare failed orig %s, recreated %s' %
-                             (new_inst.properties[pn], prop))
-
-    def test_open_enumerateInstancePaths(self):
-        """Emulate staging of enumerateInstancePaths call. Tests building
-        yaml for this call. Used to test the generation of context, eos
-        result info.
-        """
-        namespace = 'root/cimv2'
-
-        self.test_recorder.reset(pull_op=True)
-
-        self.test_recorder.stage_pywbem_args(
-            method='OpenEnumerateInstancePaths',
+            PropertyList=['propertyblah'],
+        ),
+        CIMInstance('C1'),
+        None,
+        dict(
+            name='GetInstance',
+            pywbem_request=dict(
+                url='http://acme.com:80',
+                creds=['username', 'password'],
+                debug=False,
+                timeout=10,
+                namespace='root/cimv2',
+                operation=dict(
+                    pywbem_method='GetInstance',
+                    namespace='cim/blah',
+                    IncludeClassOrigin=True,
+                    IncludeQualifiers=True,
+                    InstanceName=dict(
+                        pywbem_object='CIMInstanceName',
+                        classname='C1',
+                        keybindings=yaml_ordereddict(),
+                        namespace=None,
+                    ),
+                    LocalOnly=False,
+                    PropertyList=['propertyblah'],
+                ),
+            ),
+            pywbem_response=dict(
+                result=dict(
+                    pywbem_object='CIMInstance',
+                    classname='C1',
+                    properties=yaml_ordereddict(),
+                    path=None,
+                ),
+            ),
+        ),
+    ),
+    (
+        "CreateInstance with properties of all types",
+        'CreateInstance',
+        dict(
+            namespace='cim/blah',
+            NewInstance=CIMINSTANCE_ALL_OBJ,
+        ),
+        CIMInstanceName('C1'),
+        None,
+        dict(
+            name='CreateInstance',
+            pywbem_request=dict(
+                url='http://acme.com:80',
+                creds=['username', 'password'],
+                debug=False,
+                timeout=10,
+                namespace='root/cimv2',
+                operation=dict(
+                    pywbem_method='CreateInstance',
+                    namespace='cim/blah',
+                    NewInstance=CIMINSTANCE_ALL_TCYAML,
+                ),
+            ),
+            pywbem_response=dict(
+                result=dict(
+                    pywbem_object='CIMInstanceName',
+                    classname='C1',
+                    keybindings=yaml_ordereddict(),
+                    namespace=None,
+                ),
+            ),
+        ),
+    ),
+    (
+        "OpenEnumerateInstancePaths operation",
+        'OpenEnumerateInstancePaths',
+        dict(
+            namespace='cim/blah',
             ClassName='CIM_BLAH',
-            namespace=namespace,
             FilterQueryLanguage='WQL',
             FilterQuery='Property = 3',
             OperationTimeout=40,
             ContinueOnError=False,
-            MaxObjectCount=100)
+            MaxObjectCount=100,
+        ),
+        pull_path_result_tuple(
+            [],
+            False,
+            ('test_rtn_context', 'root/cim_namespace'),
+        ),
+        None,
+        dict(
+            name='OpenEnumerateInstancePaths',
+            pywbem_request=dict(
+                url='http://acme.com:80',
+                creds=['username', 'password'],
+                debug=False,
+                timeout=10,
+                namespace='root/cimv2',
+                operation=dict(
+                    pywbem_method='OpenEnumerateInstancePaths',
+                    namespace='cim/blah',
+                    ClassName='CIM_BLAH',
+                    ContinueOnError=False,
+                    FilterQuery='Property = 3',
+                    FilterQueryLanguage='WQL',
+                    MaxObjectCount=100,
+                    OperationTimeout=40,
+                ),
+            ),
+            pywbem_response=dict(
+                pullresult=dict(
+                    context=['test_rtn_context', 'root/cim_namespace'],
+                    eos=False,
+                    paths=[],
+                ),
+            ),
+        ),
+    ),
 
-        exc = None
-        result = []
-        result_tuple = pull_path_result_tuple(result, True, None)
+]
 
-        self.test_recorder.stage_pywbem_result(result_tuple, exc)
 
-        self.test_recorder.record_staged()
+@pytest.mark.parametrize(
+    "desc, op_name, op_kwargs, op_result, op_exc, exp_yaml_items",
+    TESTCASES_TESTCLIENTRECORDER_RECORD)
+def test_TestClientRecorder_record(
+        desc, op_name, op_kwargs, op_result, op_exc, exp_yaml_items,
+        test_client_recorder):
+    """
+    Record a single operation using the test client recorder and verify the
+    generated YAML file.
+    """
 
-        test_yaml = self.loadYamlFile()
-        test_yaml = test_yaml[0]
+    # The code to be tested
+    if op_name.startswith('Open') or op_name.startswith('Pull'):
+        test_client_recorder.reset(pull_op=True)
+    test_client_recorder.stage_pywbem_args(method=op_name, **op_kwargs)
+    test_client_recorder.stage_pywbem_result(op_result, op_exc)
+    test_client_recorder.record_staged()
 
-        pywbem_request = test_yaml['pywbem_request']
-        self.assertEqual(pywbem_request['url'], 'http://acme.com:80')
-        operation = pywbem_request['operation']
-        self.assertEqual(operation['pywbem_method'],
-                         'OpenEnumerateInstancePaths')
-        self.assertEqual(operation['ClassName'], 'CIM_BLAH')
-        self.assertEqual(operation['MaxObjectCount'], 100)
-        self.assertEqual(operation['FilterQueryLanguage'], 'WQL')
-        self.assertEqual(operation['FilterQuery'], 'Property = 3')
-        self.assertEqual(operation['ContinueOnError'], False)
-        self.assertEqual(operation['OperationTimeout'], 40)
+    if DEBUG_TEST_YAML_FILE:
+        print("\nDebug: Test client YAML file for testcase: {}".
+              format(desc))
+        if sys.platform == 'win32':
+            os.system('type {}'.format(TEST_YAML_FILE))
+        else:
+            os.system('cat {}'.format(TEST_YAML_FILE))
 
-        pywbem_response = test_yaml['pywbem_response']
-        pull_result = pywbem_response['pullresult']
-        self.assertEqual(pull_result['paths'], [])
-        self.assertEqual(pull_result['eos'], True)
-        self.assertEqual(pull_result['context'], None)
+    # Verify the generated test client YAML file
+    test_yaml = load_recorder_yaml_file()
+    assert len(test_yaml) == 1
+    test_yaml_record = test_yaml[0]
+    for key in exp_yaml_items:
+        exp_value = exp_yaml_items[key]
+        assert_yaml_equal(test_yaml_record[key], exp_value, key)
+
+    cleanup_recorder_yaml_file()
+
+
+def assert_yaml_equal(act_value, exp_value, location):
+    """
+    Assert that two YAML objects are equal, whereby dictionaries are compared
+    such that the use of an OrderedDict on the side of the expected value
+    takes ordering into account, and any other dict type does not.
+    """
+    if isinstance(exp_value, OrderedDict):
+        # Ordered comparison.
+        assert act_value == exp_value, \
+            "Unexpected YAML object at {}".format(location)
+    elif isinstance(exp_value, dict):
+        # Ensure unordered comparison by converting to dict.
+        # Note that starting with Python 3.7, dict maintains order but equality
+        # comparison does not take order into account.
+        act_value2 = dict(act_value)
+        assert act_value2 == exp_value, \
+            "Unexpected YAML object at {}".format(location)
+    else:
+        assert act_value == exp_value, \
+            "Unexpected YAML object at {}".format(location)
 
 
 ################################################################
@@ -501,17 +1557,18 @@ class ClientOperationStageTests(ClientRecorderTests):
 #
 ################################################################
 
-class BaseLogOperationRecorderTests(BaseRecorderTests):
+class BaseLogOperationRecorderTests(object):
     """
     Test the LogOperationRecorder functions. Creates log entries and
     uses testfixture to validate results
     """
-    def setUp(self):
+
+    def setup_method(self):
         """
         Setup that is run before each test method.
-        Shut down any existing logger and reset WBEMConnection and
-        reset WBEMConnection class attributes
         """
+        # Shut down any existing logger and reset WBEMConnection and
+        # reset WBEMConnection class attributes
         # pylint: disable=protected-access
         WBEMConnection._reset_logging_config()
         logging.shutdown()
@@ -519,7 +1576,9 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
         #      That should not affect the tests.
 
     def recorder_setup(self, detail_level=None):
-        """Setup the recorder for a defined max output size"""
+        """
+        Setup the recorder for a defined max output size
+        """
 
         configure_logger('api', log_dest='file',
                          detail_level=detail_level,
@@ -544,8 +1603,10 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
         self.test_recorder.reset()
         self.test_recorder.enable()
 
-    def tearDown(self):
-        """Remove LogCapture."""
+    def teardown_method(self):
+        """
+        Teardown that is run after each test method.
+        """
         LogCapture.uninstall_all()
         logging.shutdown()
         # remove any existing log file
@@ -553,20 +1614,19 @@ class BaseLogOperationRecorderTests(BaseRecorderTests):
             os.remove(TEST_OUTPUT_LOG)
 
 
-class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
+class Test_LOR_Connections(BaseLogOperationRecorderTests):
     """
-    Test staging for different _cim_operations.  This defines fixed
-    parameters for the before and after staging, stages (which creates
-    a yaml file), and then inspects that file to determine if valid
-    yaml was created
+    Test the LogOperationRecorder with just connections, without any operations.
     """
 
-    @log_capture()
-    def test_create_connection1(self, lc):
-        """Create connection with default parameters"""
+    def test_connection_1(self, capture):
+        """
+        Test log of a WBEMConnection object with default parameters.
+        """
+
         # Fake the connection to create a fixed data environment
         conn = WBEMConnection('http://blah:5988')
-        # TODO AM 2018-06: Suppress the printing to stderr
+
         configure_logger('api', log_dest='file', detail_level='all',
                          connection=conn, log_filename=TEST_OUTPUT_LOG,
                          propagate=True)
@@ -589,13 +1649,15 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder'])",
             conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
         )
 
-    @log_capture()
-    def test_create_connection2(self, lc):
-        """Test log of wbem connection with detailed information"""
+    def test_connection_2(self, capture):
+        """
+        Test log of a WBEMConnection object with most parameters specified,
+        and detail level 'all'.
+        """
 
         conn = WBEMConnection('http://blah:5988',
                               default_namespace='root/blah',
@@ -604,7 +1666,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
-        # TODO AM 2018-06: Suppress the printing to stderr
+
         configure_logger('api', log_dest='file', detail_level='all',
                          connection=conn, log_filename=TEST_OUTPUT_LOG,
                          propagate=True)
@@ -627,13 +1689,15 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder'])",
             conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
         )
 
-    @log_capture()
-    def test_create_connection_summary(self, lc):
-        """Test log of wbem connection with detailed information"""
+    def test_connection_summary(self, capture):
+        """
+        Test log of a WBEMConnection object with most parameters specified,
+        and detail level 'summary'.
+        """
 
         conn = WBEMConnection('http://blah:5988',
                               default_namespace='root/blah',
@@ -642,7 +1706,7 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
                               timeout=10,
                               use_pull_operations=True,
                               stats_enabled=True)
-        # TODO AM 2018-06: Suppress the printing to stderr
+
         configure_logger('api', log_dest='file', detail_level='summary',
                          connection=conn, log_filename=TEST_OUTPUT_LOG,
                          propagate=True)
@@ -658,13 +1722,21 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "...)",
             conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
         )
 
-    @log_capture()
-    def test_stage_result_exception(self, lc):
-        """Test the ops result log None return, HTTPError exception."""
+
+class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
+    """
+    Test the LogOperationRecorder by staging pywbem results of operations.
+    """
+
+    def test_result_exception(self, capture):
+        """
+        Test the ops result log None return, HTTPError exception.
+        """
+
         self.recorder_setup(detail_level=10)
 
         # Note: cimerror is the CIMError HTTP header field
@@ -674,13 +1746,15 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
 
         result_exc = "Exception:test_id None('HTTPError...)"
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_exc),
         )
 
-    @log_capture()
-    def test_stage_result_exception_all(self, lc):
-        """Test the ops result log None return, HTTPError exception."""
+    def test_result_exception_all(self, capture):
+        """
+        Test the ops result log None return, HTTPError exception.
+        """
+
         self.recorder_setup(detail_level='all')
 
         # Note: cimerror is the CIMError HTTP header field
@@ -692,224 +1766,146 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "Exception:test_id None('HTTPError({0})')",
             exc)
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_exc),
         )
 
-    @log_capture()
-    def test_stage_getinstance_args(self, lc):
+    def test_result_getinstance(self, capture, instancename_tuple):
         """
         Emulates call to getInstance to test parameter processing.
         Currently creates the pywbem_request component.
         """
 
-        inst_name = self.create_ciminstancename()
-
+        instancename = instancename_tuple[0]
         self.recorder_setup(detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=inst_name,
+            InstanceName=instancename,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
 
-        result_req = (
-            "Request:test_id GetInstance("
-            "IncludeClassOrigin=True, "
-            "IncludeQualifiers=True, "
-            "InstanceName=CIMInstanceName("
-            "classname='CIM_Foo', "
-            "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace='root/cimv2', host='woot.com'), "
-            "LocalOnly=True, "
-            "PropertyList=['propertyblah'])"
-        )
+        result_req = \
+            "Request:test_id GetInstance(" \
+            "IncludeClassOrigin=True, " \
+            "IncludeQualifiers=True, " \
+            "InstanceName={ip!r}, " \
+            "LocalOnly=True, " \
+            "PropertyList=['propertyblah'])". \
+            format(ip=instancename)
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
         )
 
-    @log_capture()
-    def test_stage_instance_result(self, lc):
-        instance = self.create_ciminstance()
-        self.recorder_setup(detail_level=10)
+    @pytest.mark.parametrize(
+        "detail_level", [10, 1000, 'all'])
+    def test_result_instance(self, capture, instance_tuple, detail_level):
+        """
+        Test the staging of a CIM instance with different detail_level values.
+        """
+
+        instance = instance_tuple[0]
+        self.recorder_setup(detail_level=detail_level)
         exc = None
 
         self.test_recorder.stage_pywbem_result(instance, exc)
 
-        result_ret = "Return:test_id None(CIMInstanc...)"
+        exp_str = repr(instance)
+        if detail_level == 'all':
+            # use it in its full length
+            pass
+        elif len(exp_str) <= detail_level:
+            # it fits the desired detail
+            pass
+        else:
+            # shorten it to the desired detail
+            exp_str = "{}...".format(exp_str[:detail_level])
 
-        lc.check(
+        result_ret = "Return:test_id None({})".format(exp_str)
+
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_stage_instance_result_default(self, lc):
-        instance = self.create_ciminstance()
-        # set the length in accord with the "min" definition.
-        self.recorder_setup(detail_level=1000)
-        exc = None
+    def test_result_instance_paths(self, capture, instance_wp_tuple):
+        """
+        Test the staging of a CIM instance with path with detail_level 'paths'.
+        """
 
-        self.test_recorder.stage_pywbem_result(instance, exc)
-
-        result_ret = (
-            "Return:test_id None(CIMInstance(classname='CIM_Foo', "
-            "path=None, properties=NocaseDict({"
-            "'S1': CIMProperty(name='S1', value='Ham', type='string', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'Bool': CIMProperty(name='Bool', value=True, "
-            "type='boolean', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI8': CIMProperty(name='UI8', value=42, type='uint8', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'UI16': CIMProperty(name='UI16', value=4216, "
-            "type='uint16', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI32': CIMProperty(name='UI32', value=4232, "
-            "type='uint32', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None,...)")
-
-        lc.check(
-            ('pywbem.api.test_id', 'DEBUG', result_ret),
-        )
-
-    @log_capture()
-    def test_stage_instance_result_all(self, lc):
-        instance = self.create_ciminstance()
-        self.recorder_setup(detail_level='all')
-        exc = None
-
-        self.test_recorder.stage_pywbem_result(instance, exc)
-
-        result_ret = (
-            "Return:test_id None(CIMInstance(classname='CIM_Foo', "
-            "path=None, properties=NocaseDict({"
-            "'S1': CIMProperty(name='S1', value='Ham', "
-            "type='string', reference_class=None, "
-            "embedded_object=None, is_array=False, array_size=None, "
-            "class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'Bool': CIMProperty(name='Bool', value=True, "
-            "type='boolean', reference_class=None, "
-            "embedded_object=None, is_array=False, array_size=None, "
-            "class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'UI8': CIMProperty(name='UI8', value=42, "
-            "type='uint8', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI16': CIMProperty(name='UI16', value=4216, "
-            "type='uint16', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI32': CIMProperty(name='UI32', value=4232, "
-            "type='uint32', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'UI64': CIMProperty(name='UI64', value=4264, "
-            "type='uint64', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI8': CIMProperty(name='SI8', value=-42, "
-            "type='sint8', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI16': CIMProperty(name='SI16', value=-4216, "
-            "type='sint16', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI32': CIMProperty(name='SI32', value=-4232, type='sint32', "
-            "reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI64': CIMProperty(name='SI64', value=-4264, type='sint64', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'R32': CIMProperty(name='R32', value=42.0, type='real32', "
-            "reference_class=None, embedded_object=None, is_array=False,"
-            " array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'R64': CIMProperty(name='R64', value=42.64, type='real64', "
-            "reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'S2': CIMProperty(name='S2', value='H\\u00e4m', type='string', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({}))"
-            "}), property_list=None, qualifiers=NocaseDict({})))")
-
-        lc.check(
-            ('pywbem.api.test_id', 'DEBUG', result_ret),
-        )
-
-    @log_capture()
-    def test_stage_instance_result_inst_path(self, lc):
-        instance = self.create_ciminstance(set_path=True)
+        instance_wp = instance_wp_tuple[0]
         self.recorder_setup(detail_level='paths')
         exc = None
 
-        self.test_recorder.stage_pywbem_result(instance, exc)
+        self.test_recorder.stage_pywbem_result(instance_wp, exc)
 
-        result_ret = (
-            "Return:test_id None("
-            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"')")
+        path_str = "'{}'".format(instance_wp.path.to_wbem_uri())
+        result_ret = "Return:test_id None({})".format(path_str)
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_stage_instance_result_paths(self, lc):
+    def test_result_instances_paths(self, capture, instances_wp_tuple):
+        """
+        Test the staging of multiple CIM instances with path with
+        detail_level 'paths'.
+        """
+
+        instances_wp = instances_wp_tuple[0]
         self.recorder_setup(detail_level='paths')
-        instances = self.create_ciminstances()
         exc = None
 
-        self.test_recorder.stage_pywbem_result(instances, exc)
+        self.test_recorder.stage_pywbem_result(instances_wp, exc)
 
-        result_ret = (
-            "Return:test_id None("
-            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"', "
-            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"')")
+        path_strs = ["'{}'".format(inst.path.to_wbem_uri())
+                     for inst in instances_wp]
+        result_ret = "Return:test_id None({})".format(', '.join(path_strs))
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_stage_instance_result_pull(self, lc):
+    def test_result_pull_instances_paths(self, capture, instances_wp_tuple):
+        """
+        Test the staging of multiple CIM instances with path with
+        detail_level 'paths'.
+        """
+
+        instances_wp = instances_wp_tuple[0]
         self.recorder_setup(detail_level='paths')
-        instances = self.create_ciminstances()
         exc = None
 
         context = ('test_rtn_context', 'root/blah')
-        result_tuple = pull_inst_result_tuple(instances, False, context)
+        result_tuple = pull_inst_result_tuple(
+            instances_wp, False, context)
 
         self.test_recorder.stage_pywbem_result(result_tuple, exc)
 
+        path_strs = ["'{}'".format(inst.path.to_wbem_uri())
+                     for inst in instances_wp]
         result_ret = (
             "Return:test_id None(pull_inst_result_tuple("
             "context=('test_rtn_context', 'root/blah'), eos=False, "
-            "instances='//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"', "
-            "'//woot.com/root/cimv2:CIM_Foo.Chicken=\"Ham\"'))"
+            "instances={}))".format(', '.join(path_strs))
         )
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    def build_http_request(self):
+
+class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
+    """
+    Test the LogOperationRecorder by staging HTTP requests of operations.
+    """
+
+    def build_http_request(self, instancename):
         """
-        Build an http request for the following tests
+        Build the HTTP request for a GetInstance operation for the specified
+        instance name, for use by the following tests.
         """
         headers = OrderedDict([
             ('CIMOperation', 'MethodCall'),
@@ -920,37 +1916,39 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         target = '/cimom'
 
         payload = (
-            '<?xml version="1.0" encoding="utf-8" ?>\n'
-            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            '<SIMPLEREQ>\n'
-            '<IMETHODCALL NAME="GetInstance">\n'
-            '<LOCALNAMESPACEPATH>\n'
-            '<NAMESPACE NAME="root"/>\n'
-            '<NAMESPACE NAME="cimv2"/>\n'
-            '</LOCALNAMESPACEPATH>\n'
-            '<IPARAMVALUE NAME="InstanceName">\n'
-            '<INSTANCENAME CLASSNAME="PyWBEM_Person">\n'
-            '<KEYBINDING NAME="Name">\n'
-            '<KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>\n'
-            '</KEYBINDING>\n'
-            '</INSTANCENAME>\n'
-            '</IPARAMVALUE>\n'
-            '<IPARAMVALUE NAME="LocalOnly">\n'
-            '<VALUE>FALSE</VALUE>\n'
-            '</IPARAMVALUE>\n'
-            '</IMETHODCALL>\n'
-            '</SIMPLEREQ>\n'
-            '</MESSAGE>\n'
-            '</CIM>)')
+            u'<?xml version="1.0" encoding="utf-8" ?>\n'
+            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            u'<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            u'<SIMPLEREQ>\n'
+            u'<IMETHODCALL NAME="GetInstance">\n'
+            u'<LOCALNAMESPACEPATH>\n'
+            u'<NAMESPACE NAME="root"/>\n'
+            u'<NAMESPACE NAME="cimv2"/>\n'
+            u'</LOCALNAMESPACEPATH>\n'
+            u'<IPARAMVALUE NAME="InstanceName">\n'
+            u'{ip}\n'
+            u'</IPARAMVALUE>\n'
+            u'<IPARAMVALUE NAME="LocalOnly">\n'
+            u'<VALUE>FALSE</VALUE>\n'
+            u'</IPARAMVALUE>\n'
+            u'</IMETHODCALL>\n'
+            u'</SIMPLEREQ>\n'
+            u'</MESSAGE>\n'
+            u'</CIM>)'.
+            format(ip=instancename.tocimxmlstr(indent=0))
+        )
 
         return url, target, method, headers, payload
 
-    @log_capture()
-    def test_stage_http_request_all(self, lc):
-        """Test stage of http_request log with detail_level='all'"""
+    def test_stage_http_request_all(self, capture, instancename_tuple):
+        """
+        Test stage of http_request log with detail_level='all'
+        """
+
+        instancename = instancename_tuple[0]
         self.recorder_setup(detail_level='all')
-        url, target, method, headers, payload = self.build_http_request()
+        url, target, method, headers, payload = \
+            self.build_http_request(instancename)
 
         self.test_recorder.stage_http_request('test_id', 11, url, target,
                                               method, headers, payload)
@@ -960,41 +1958,22 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
             "CIMObject:'root/cimv2' "
-            '\'<?xml version="1.0" encoding="utf-8" ?>\\n'
-            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\\n'
-            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\\n'
-            '<SIMPLEREQ>\\n'
-            '<IMETHODCALL NAME="GetInstance">\\n'
-            '<LOCALNAMESPACEPATH>\\n'
-            '<NAMESPACE NAME="root"/>\\n'
-            '<NAMESPACE NAME="cimv2"/>\\n'
-            '</LOCALNAMESPACEPATH>\\n'
-            '<IPARAMVALUE NAME="InstanceName">\\n'
-            '<INSTANCENAME CLASSNAME="PyWBEM_Person">\\n'
-            '<KEYBINDING NAME="Name">\\n'
-            '<KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>\\n'
-            '</KEYBINDING>\\n'
-            '</INSTANCENAME>\\n'
-            '</IPARAMVALUE>\\n'
-            '<IPARAMVALUE NAME="LocalOnly">\\n'
-            '<VALUE>FALSE</VALUE>\\n'
-            '</IPARAMVALUE>\\n'
-            '</IMETHODCALL>\\n'
-            '</SIMPLEREQ>\\n'
-            '</MESSAGE>\\n'
-            '</CIM>)\'')
+            "{}".
+            format(logged_payload(payload)))
 
-        lc.check(
+        capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
         )
 
-    @log_capture()
-    def test_stage_http_request_summary(self, lc):
+    def test_stage_http_request_summary(self, capture, instancename_tuple):
         """
         Test http request log record with summary as detail level
         """
+
+        instancename = instancename_tuple[0]
         self.recorder_setup(detail_level='summary')
-        url, target, method, headers, payload = self.build_http_request()
+        url, target, method, headers, payload = \
+            self.build_http_request(instancename)
         self.test_recorder.stage_http_request('test_id', 11, url, target,
                                               method, headers, payload)
 
@@ -1005,18 +1984,19 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "CIMObject:'root/cimv2' "
             "''")
 
-        lc.check(
+        capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
         )
 
-    @log_capture()
-    def test_stage_http_request_int(self, lc):
+    def test_stage_http_request_int(self, capture, instancename_tuple):
         """
         Test http log record with integer as detail_level
         """
-        self.recorder_setup(detail_level=10)
 
-        url, target, method, headers, payload = self.build_http_request()
+        instancename = instancename_tuple[0]
+        self.recorder_setup(detail_level=10)
+        url, target, method, headers, payload = \
+            self.build_http_request(instancename)
 
         self.test_recorder.stage_http_request('test_id', 11, url, target,
                                               method, headers, payload)
@@ -1028,35 +2008,37 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
             "CIMObject:'root/cimv2' "
             "'<?xml vers...'")
 
-        lc.check(
+        capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
         )
 
-    def build_http_response(self):
+
+class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
+    """
+    Test the LogOperationRecorder by staging HTTP responses of operations.
+    """
+
+    def build_http_response(self, instance):
         """
-        Build an http response. Builds the complete stage_http_response1
-        and executes and returns the body component so each test can build
-        stage_http_response2 since that is where the logging occurs
+        Build the HTTP response for a GetInstance operation for the specified
+        instance, for use by the following tests.
+        Also, perform part 1 of the response staging.
         """
-        body = ('<?xml version="1.0" encoding="utf-8" ?>\n'
-                '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-                '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-                '<SIMPLERSP>\n'
-                '<IMETHODRESPONSE NAME="GetInstance">\n'
-                '<IRETURNVALUE>\n'
-                '<INSTANCE CLASSNAME="PyWBEM_Person">\n'
-                '<PROPERTY NAME="Name" TYPE="string">\n'
-                '<VALUE>Fritz</VALUE>\n'
-                '</PROPERTY>\n'
-                '<PROPERTY NAME="Address" TYPE="string">\n'
-                '<VALUE>Fritz Town</VALUE>\n'
-                '</PROPERTY>\n'
-                '</INSTANCE>\n'
-                '</IRETURNVALUE>\n'
-                '</IMETHODRESPONSE>\n'
-                '</SIMPLERSP>\n'
-                '</MESSAGE>\n'
-                '</CIM>)\n')
+        body = (
+            u'<?xml version="1.0" encoding="utf-8" ?>\n'
+            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            u'<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            u'<SIMPLERSP>\n'
+            u'<IMETHODRESPONSE NAME="GetInstance">\n'
+            u'<IRETURNVALUE>\n'
+            u'{i}\n'
+            u'</IRETURNVALUE>\n'
+            u'</IMETHODRESPONSE>\n'
+            u'</SIMPLERSP>\n'
+            u'</MESSAGE>\n'
+            u'</CIM>)\n'.
+            format(i=instance.tocimxmlstr(indent=0))
+        )
         headers = OrderedDict([
             ('Content-type', 'application/xml; charset="utf-8"'),
             ('Content-length', str(len(body)))])
@@ -1065,114 +2047,106 @@ class LogOperationRecorderStagingTests(BaseLogOperationRecorderTests):
         version = 11
         self.test_recorder.stage_http_response1('test_id', version,
                                                 status, reason, headers)
-
         return body
 
-    @log_capture()
-    def test_stage_http_response_all(self, lc):
+    def test_stage_http_response_all(self, capture, instance_tuple):
         """
         Test http response log record with 'all' detail_level
         """
+
+        instance = instance_tuple[0]
         self.recorder_setup(detail_level='all')
 
-        body = self.build_http_response()
+        body = self.build_http_response(instance)
 
         self.test_recorder.stage_http_response2(body)
 
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'450' "
-            '\'<?xml version="1.0" encoding="utf-8" ?>\\n'
-            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\\n'
-            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\\n'
-            '<SIMPLERSP>\\n'
-            '<IMETHODRESPONSE NAME="GetInstance">\\n'
-            '<IRETURNVALUE>\\n'
-            '<INSTANCE CLASSNAME="PyWBEM_Person">\\n'
-            '<PROPERTY NAME="Name" TYPE="string">\\n'
-            '<VALUE>Fritz</VALUE>\\n'
-            '</PROPERTY>\\n'
-            '<PROPERTY NAME="Address" TYPE="string">\\n'
-            '<VALUE>Fritz Town</VALUE>\\n'
-            '</PROPERTY>\\n'
-            '</INSTANCE>\\n'
-            '</IRETURNVALUE>\\n'
-            '</IMETHODRESPONSE>\\n'
-            '</SIMPLERSP>\\n'
-            '</MESSAGE>\\n'
-            '</CIM>)\\n\'')
+            "Content-length:'{bl}' "
+            "{b}".
+            format(bl=len(body), b=logged_payload(body))
+        )
 
-        lc.check(
+        capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
         )
 
-    @log_capture()
-    def test_stage_http_response_summary(self, lc):
+    def test_stage_http_response_summary(self, capture, instance_tuple):
         """
         Test http response log record with 'all' detail_level
         """
+
+        instance = instance_tuple[0]
         self.recorder_setup(detail_level='summary')
 
-        body = self.build_http_response()
+        body = self.build_http_response(instance)
 
         self.test_recorder.stage_http_response2(body)
 
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'450' "
-            "''")
+            "Content-length:'{bl}' "
+            "''".
+            format(bl=len(body))
+        )
 
-        lc.check(
+        capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
         )
 
-    @log_capture()
-    def test_stage_http_response_int(self, lc):
+    def test_stage_http_response_int(self, capture, instance_tuple):
         """
         Test http response log record with 'all' detail_level
         """
+
+        instance = instance_tuple[0]
         self.recorder_setup(detail_level=30)
 
-        body = self.build_http_response()
+        body = self.build_http_response(instance)
 
         self.test_recorder.stage_http_response2(body)
 
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'450' "
-            '\'<?xml version="1.0" encoding="...\'')
+            "Content-length:'{bl}' "
+            '\'<?xml version="1.0" encoding="...\''.
+            format(bl=len(body))
+        )
 
-        lc.check(
+        capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
         )
 
 
-class LogOperationRecorderTests(BaseLogOperationRecorderTests):
+class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
     """
-    Test args and results logging. This emulates the WBEMConnection method
-    call and the response together.
+    Test the LogOperationRecorder by staging pywbem args and results of
+    operations.
     """
 
-    @log_capture()
-    def test_getinstance(self, lc):
-        """Test the ops result log for get instance"""
+    def test_getinstance(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for get instance
+        """
 
-        inst_name = self.create_ciminstancename()
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level=10)
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=inst_name,
+            InstanceName=instancename,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
-        instance = self.create_ciminstance()
+
         exc = None
         self.test_recorder.stage_pywbem_result(instance, exc)
 
@@ -1182,26 +2156,29 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_ret = (
             "Return:test_id GetInstance(CIMInstanc...)")
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_getinstance_exception(self, lc):
-        """Test the ops result log for get instance"""
+    def test_getinstance_exception(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for get instance
+        """
 
-        inst_name = self.create_ciminstancename()
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
 
         self.recorder_setup(detail_level=11)
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=inst_name,
+            InstanceName=instancename,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
+
         instance = None
         exc = CIMError(6, "Fake CIMError")
         self.test_recorder.stage_pywbem_result(instance, exc)
@@ -1212,148 +2189,101 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_exc = (
             "Exception:test_id GetInstance('CIMError(6...)")
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_exc),
         )
 
-    @log_capture()
-    def test_getinstance_exception_all(self, lc):
-        """Test the ops result log for get instance CIMError exception"""
+    def test_getinstance_exception_all(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for get instance CIMError exception
+        """
 
-        inst_name = self.create_ciminstancename()
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
 
         self.recorder_setup(detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=inst_name)
+            InstanceName=instancename)
+
         instance = None
         exc = CIMError(6, "Fake CIMError")
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         result_req = (
             "Request:test_id GetInstance("
-            "InstanceName=CIMInstanceName("
-            "classname='CIM_Foo', "
-            "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace='root/cimv2', host='woot.com'))")
+            "InstanceName={!r})".
+            format(instancename))
 
         result_exc = _format(
             "Exception:test_id GetInstance('CIMError({0})')", exc)
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_exc),
         )
 
-    @log_capture()
-    def test_getinstance_result_all(self, lc):
-        """Test the ops result log for get instance"""
+    def test_getinstance_result_all(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for get instance
+        """
 
-        inst_name = self.create_ciminstancename()
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
 
         self.recorder_setup(detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='GetInstance',
-            InstanceName=inst_name,
+            InstanceName=instancename,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
-        instance = self.create_ciminstance()
+
         exc = None
 
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         result_req = (
-            'Request:test_id GetInstance(IncludeClassOrigin=True, '
-            'IncludeQualifiers=True, '
-            "InstanceName=CIMInstanceName(classname='CIM_Foo', "
-            "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace='root/cimv2', "
-            "host='woot.com'), LocalOnly=True, "
-            "PropertyList=['propertyblah'])")
+            "Request:test_id GetInstance("
+            "IncludeClassOrigin=True, "
+            "IncludeQualifiers=True, "
+            "InstanceName={!r}, "
+            "LocalOnly=True, "
+            "PropertyList=['propertyblah'])".
+            format(instancename))
 
         result_ret = (
-            "Return:test_id GetInstance(CIMInstance(classname='CIM_Foo', "
-            "path=None, properties=NocaseDict({"
-            "'S1': CIMProperty(name='S1', value='Ham', type='string', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'Bool': CIMProperty(name='Bool', value=True, type='boolean', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'UI8': CIMProperty(name='UI8', value=42, type='uint8', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'UI16': CIMProperty(name='UI16', value=4216, type='uint16', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'UI32': CIMProperty(name='UI32', value=4232, type='uint32', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'UI64': CIMProperty(name='UI64', value=4264, "
-            "type='uint64', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI8': CIMProperty(name='SI8', value=-42, type='sint8', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'SI16': CIMProperty(name='SI16', value=-4216, type='sint16', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'SI32': CIMProperty(name='SI32', value=-4232, "
-            "type='sint32', reference_class=None, embedded_object=None, "
-            "is_array=False, array_size=None, class_origin=None, "
-            "propagated=None, qualifiers=NocaseDict({})), "
-            "'SI64': CIMProperty(name='SI64', value=-4264, type='sint64', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'R32': CIMProperty(name='R32', value=42.0, type='real32', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'R64': CIMProperty(name='R64', value=42.64, type='real64', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({})), "
-            "'S2': CIMProperty(name='S2', value='H\\u00e4m', type='string', "
-            "reference_class=None, embedded_object=None, is_array=False, "
-            "array_size=None, class_origin=None, propagated=None, "
-            "qualifiers=NocaseDict({}))"
-            "}), property_list=None, qualifiers=NocaseDict({})))")
+            "Return:test_id GetInstance({!r})".
+            format(instance))
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_enuminstances_result(self, lc):
-        """Test the ops result log for enumerate instances"""
+    def test_enuminstances_result(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for enumerate instances
+        """
+
+        instance = instance_wp_tuple[0]
+        classname = instance.classname
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level=10)
 
         self.test_recorder.stage_pywbem_args(
             method='EnumerateInstances',
-            ClassName='CIM_Foo',
+            ClassName=classname,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
 
-        instance = self.create_ciminstance()
         exc = None
 
         self.test_recorder.stage_pywbem_result([instance, instance], exc)
@@ -1364,30 +2294,35 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_ret = (
             "Return:test_id EnumerateInstances([CIMInstan...)")
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_enuminstancenames_result(self, lc):
-        """Test the ops result log for enumerate instances"""
+    def test_enuminstancenames_result(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for enumerate instances
+        """
+
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
+        classname = instance.classname
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level=10)
 
         self.test_recorder.stage_pywbem_args(
             method='EnumerateInstanceNames',
-            ClassName='CIM_Foo',
+            ClassName=classname,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah', 'blah2'])
 
         exc = None
-        inst_name = self.create_ciminstancename()
 
-        self.test_recorder.stage_pywbem_result([inst_name, inst_name], exc)
+        self.test_recorder.stage_pywbem_result(
+            [instancename, instancename], exc)
 
         result_req = (
             "Request:test_id EnumerateInstanceNames(ClassName=...)")
@@ -1395,29 +2330,29 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_ret = (
             "Return:test_id EnumerateInstanceNames([CIMInstan...)")
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_openenuminstances_result_all(self, lc):
-        """Test the ops result log for enumerate instances. Returns no
-        instances.
+    def test_openenuminstances_result_all(self, capture):
         """
+        Test the ops result log for enumerate instances. Returns no instances.
+        """
+
+        classname = 'CIM_Foo'
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='OpenEnumerateInstances',
-            ClassName='CIM_Foo',
+            ClassName=classname,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
 
-        # instance = self.create_ciminstance()
         exc = None
 
         result = []
@@ -1428,41 +2363,47 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         result_req = (
             "Request:test_id OpenEnumerateInstances("
-            "ClassName='CIM_Foo', "
+            "ClassName={!r}, "
             "IncludeClassOrigin=True, "
             "IncludeQualifiers=True, "
             "LocalOnly=True, "
-            "PropertyList=['propertyblah'])")
+            "PropertyList=['propertyblah'])".
+            format(classname))
 
         result_ret = (
-            "Return:test_id OpenEnumerateInstances(pull_inst_result_tuple("
+            "Return:test_id OpenEnumerateInstances("
+            "pull_inst_result_tuple("
             "context=('test_rtn_context', 'root/blah'), eos=False, "
             "instances=[]))")
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_openenuminstances_all(self, lc):
-        """Test the ops result log for enumerate instances paths with
-        data in the paths component"""
+    def test_openenuminstances_all(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for enumerate instances paths with
+        data in the paths component
+        """
+
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
+        classname = instance.classname
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level='all')
 
         self.test_recorder.stage_pywbem_args(
             method='OpenEnumerateInstancePaths',
-            ClassName='CIM_Foo',
+            ClassName=classname,
             FilterQueryLanguage='FQL',
             FilterQuery='SELECT A from B',
             OperationTimeout=10,
             ContinueOnError=None,
             MaxObjectCount=100)
 
-        inst_name = self.create_ciminstancename()
-        result = [inst_name, inst_name]
+        result = [instancename, instancename]
         exc = None
 
         context = ('test_rtn_context', 'root/blah')
@@ -1472,43 +2413,40 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         result_req = (
             "Request:test_id OpenEnumerateInstancePaths("
-            "ClassName='CIM_Foo', "
+            "ClassName={!r}, "
             "ContinueOnError=None, "
             "FilterQuery='SELECT A from B', "
             "FilterQueryLanguage='FQL', "
             "MaxObjectCount=100, "
-            "OperationTimeout=10)")
+            "OperationTimeout=10)".
+            format(classname))
 
         result_ret = (
             "Return:test_id OpenEnumerateInstancePaths("
             "pull_path_result_tuple("
             "context=('test_rtn_context', 'root/blah'), eos=False, "
-            "paths=["
-            "CIMInstanceName(classname='CIM_Foo', "
-            "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace='root/cimv2', host='woot.com'), "
-            "CIMInstanceName(classname='CIM_Foo', "
-            "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace='root/cimv2', host='woot.com')"
-            "]))")
+            "paths={!r}))".
+            format(result))
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_associators_result(self, lc):
-        """Test the ops result log for Associators that returns nothing"""
+    def test_associators_result(self, capture, instance_wp_tuple):
+        """
+        Test the ops result log for Associators that returns nothing
+        """
 
-        inst_name = self.create_ciminstancename()
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level=10)
 
         self.test_recorder.stage_pywbem_args(
             method='Associators',
-            InstanceName=inst_name,
+            InstanceName=instancename,
             AssocClass='BLAH_Assoc',
             ResultClass='BLAH_Result',
             IncludeQualifiers=True,
@@ -1524,14 +2462,15 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_ret = (
             "Return:test_id Associators([])")
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_associators_result_exception(self, lc):
-        """Test the ops result log for associators that returns exception"""
+    def test_associators_result_exception(self, capture):
+        """
+        Test the ops result log for associators that returns exception
+        """
 
         # set recorder to limit response to length of 10
         self.recorder_setup(detail_level=11)
@@ -1542,16 +2481,20 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         result_exc = "Exception:test_id None('CIMError(6...)"
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_exc),
         )
 
-    @log_capture()
-    def test_invokemethod_int(self, lc):
-        """Test invoke method log"""
+    def test_invokemethod_int(self, capture, instance_wp_tuple):
+        """
+        Test invoke method log
+        """
+
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
+
         self.recorder_setup(detail_level=11)
 
-        obj_name = self.create_ciminstancename()
         return_val = 0
         params = [('StringParam', 'Spotty'),
                   ('Uint8', Uint8(1)),
@@ -1559,7 +2502,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         self.test_recorder.stage_pywbem_args(method='InvokeMethod',
                                              MethodName='Blah',
-                                             ObjectName=obj_name,
+                                             ObjectName=instancename,
                                              Params=OrderedDict(params))
 
         self.test_recorder.stage_pywbem_result((return_val, params),
@@ -1569,17 +2512,21 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         result_ret = "Return:test_id InvokeMethod((0, [('Stri...)"
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_invokemethod_summary(self, lc):
-        """Test invoke method log"""
+    def test_invokemethod_summary(self, capture, instance_wp_tuple):
+        """
+        Test invoke method log
+        """
+
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
+
         self.recorder_setup(detail_level='summary')
 
-        obj_name = self.create_ciminstancename()
         return_val = 0
         params = [('StringParam', 'Spotty'),
                   ('Uint8', Uint8(1)),
@@ -1587,7 +2534,7 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
         self.test_recorder.stage_pywbem_args(method='InvokeMethod',
                                              MethodName='Blah',
-                                             ObjectName=obj_name,
+                                             ObjectName=instancename,
                                              Params=OrderedDict(params))
 
         self.test_recorder.stage_pywbem_result((return_val, params),
@@ -1596,19 +2543,17 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
         result_req = (
             "Request:test_id InvokeMethod("
             "MethodName='Blah', "
-            "ObjectName=CIMInstanceName("
-            "classname='CIM_Foo', "
-            "keybindings=NocaseDict({'Chicken': 'Ham'}), "
-            "namespace='root/cimv2', host='woot.com'), "
+            "ObjectName={!r}, "
             "Params=OrderedDict(["
             "('StringParam', 'Spotty'), "
             "('Uint8', Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 1)), "
             "('Sint8', Sint8(cimtype='sint8', minvalue=-128, maxvalue=127, 2))"
-            "]))")
+            "]))".
+            format(instancename))
 
         result_ret = "Return:test_id InvokeMethod(tuple )"
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
@@ -1617,13 +2562,19 @@ class LogOperationRecorderTests(BaseLogOperationRecorderTests):
 
 
 class TestExternLoggerDef(BaseLogOperationRecorderTests):
-    """ Test configuring loggers above level of our loggers"""
+    """
+    Test configuring loggers above level of our loggers
+    """
 
-    @log_capture()
-    def test_root_logger(self, lc):
+    def test_root_logger(self, capture, instance_wp_tuple):
         """
         Create a logger using logging.basicConfig and generate logs
         """
+
+        instance = instance_wp_tuple[0]
+        instancename = instance.path
+        classname = instance.classname
+
         logging.basicConfig(filename=TEST_OUTPUT_LOG, level=logging.DEBUG)
 
         detail_level_int = 10
@@ -1637,35 +2588,35 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
         # the recorder calls.
         self.test_recorder.stage_pywbem_args(
             method='EnumerateInstanceNames',
-            ClassName='CIM_Foo',
+            ClassName=classname,
             LocalOnly=True,
             IncludeQualifiers=True,
             IncludeClassOrigin=True,
             PropertyList=['propertyblah', 'blah2'])
 
         exc = None
-        inst_name = self.create_ciminstancename()
+        result = [instancename, instancename]
 
-        self.test_recorder.stage_pywbem_result([inst_name, inst_name], exc)
+        self.test_recorder.stage_pywbem_result(result, exc)
 
         result_req = "Request:test_id EnumerateInstanceNames(ClassName=...)"
 
         result_ret = "Return:test_id EnumerateInstanceNames([CIMInstan...)"
 
-        lc.check(
+        capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
             ('pywbem.api.test_id', 'DEBUG', result_ret),
         )
 
-    @unittest.skip("Test unreliable exception not always the same")
-    @log_capture()
-    def test_pywbem_logger(self, lc):
+    @pytest.mark.skip("Test unreliable exception not always the same")
+    def test_pywbem_logger(self, capture):
         """
         Test executing a connection with an externally created handler. Note
         that this test inconsistently reports the text of the exception
         in that sometimes adds the message  "[Errno 113] No route to host" and
         sometimes the message "timed out".
         """
+
         logger = logging.getLogger('pywbem')
         handler = logging.FileHandler(TEST_OUTPUT_LOG)
         handler.setLevel(logging.DEBUG)
@@ -1740,7 +2691,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
             '</CIM>',
             conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
             (api_exp_log_id, 'DEBUG', result_req),
             (http_exp_log_id, 'DEBUG', result_hreq),
@@ -1772,8 +2723,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
                                 search_paths=[schema.schema_mof_dir])
         return conn
 
-    @log_capture()
-    def test_1(self, lc):
+    def test_1(self, capture):
         """
         Configure the "pywbem.api" logger for summary information output to a
         file and activate that logger for all subsequently created
@@ -1827,14 +2777,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "Return:{0} GetClass(CIMClass CIM_ObjectManager)",
             conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
             (api_exp_log_id, 'DEBUG', result_req),
             (api_exp_log_id, 'DEBUG', result_ret)
         )
 
-    @log_capture()
-    def test_2(self, lc):
+    def test_2(self, capture):
         """
         Configure and activate a single :class:`~pywbem.WBEMConnection` object
         logger for output of summary information for both "pywbem.api" and
@@ -1860,14 +2809,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         result_ret = _format("Return:{0} GetClass(CIMClass(c...)", conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
             (api_exp_log_id, 'DEBUG', result_req),
             (api_exp_log_id, 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_3(self, lc):
+    def test_3(self, capture):
         """
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
@@ -1898,14 +2846,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         result_ret = _format("Return:{0} GetClass(CIMClass(c...)", conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
             (api_exp_log_id, 'DEBUG', result_req),
             (api_exp_log_id, 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_4(self, lc):
+    def test_4(self, capture):
         """
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
@@ -1934,14 +2881,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         result_ret = _format("Return:{0} GetClass(CIMClass(c...)", conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
             (api_exp_log_id, 'DEBUG', result_req),
             (api_exp_log_id, 'DEBUG', result_ret),
         )
 
-    @log_capture()
-    def test_5(self, lc):
+    def test_5(self, capture):
         """
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
@@ -1971,14 +2917,13 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         result_ret = _format("Return:{0} GetClass(CIMClass(c...)", conn_id)
 
-        lc.check(
+        capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
             (api_exp_log_id, 'DEBUG', result_req),
             (api_exp_log_id, 'DEBUG', result_ret)
         )
 
-    @log_capture()
-    def test_6(self, lc):
+    def test_6(self, capture):
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -2020,12 +2965,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder']))",
             conn_id, namespace)
 
-        lc.check(
+        capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
         )
 
-    @log_capture()
-    def test_7(self, lc):
+    def test_7(self, capture):
         """
         Configure a http logger with detail_level='all', log_dest=none
         a log config with just 'http'  (which produces no output because the
@@ -2066,12 +3010,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder']))",
             conn_id, namespace)
 
-        lc.check(
+        capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
         )
 
-    @log_capture()
-    def test_8(self, lc):
+    def test_8(self, capture):
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -2118,12 +3061,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder']))",
             conn_id, namespace)
 
-        lc.check(
+        capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
         )
 
-    @log_capture()
-    def test_9(self, lc):
+    def test_9(self, capture):
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -2164,12 +3106,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder']))",
             conn_id, namespace)
 
-        lc.check(
+        capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
         )
 
-    @log_capture()
-    def test_10(self, lc):
+    def test_10(self, capture):
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -2209,12 +3150,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "recorders=['LogOperationRecorder']))",
             conn_id, namespace)
 
-        lc.check(
+        capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
         )
 
-    @log_capture()
-    def test_err(self, lc):
+    def test_err(self, capture):
         """
         Test configure_logger exception
         """
@@ -2229,8 +3169,4 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         except ValueError:
             pass
 
-        lc.check()
-
-
-if __name__ == '__main__':
-    unittest.main()
+        capture.check()
