@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2018 InovaDevelopment.comn
+# (C) Copyright 2018 InovaDevelopment.com
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ from copy import deepcopy
 import uuid
 import time
 import sys
-import locale
+
 import traceback
 import re
 from xml.dom import minidom
@@ -60,17 +60,13 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
-
 from ._inmemoryrepository import InMemoryRepository
 
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
 from ._dmtf_cim_schema import DMTFCIMSchema
 from ._resolvermixin import ResolverMixin
-
-if six.PY2:
-    import codecs  # pylint: disable=wrong-import-order
-
+from ._utils import _uprint
 
 __all__ = ['FakedWBEMConnection', 'method_callback_interface']
 
@@ -95,61 +91,6 @@ OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 # parameters for the operations in which they are deprecated and we
 # should/could ignore them. We need to document our behavior in relation to the
 # spec.
-
-STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
-if not STDOUT_ENCODING:
-    STDOUT_ENCODING = locale.getpreferredencoding()
-if not STDOUT_ENCODING:
-    STDOUT_ENCODING = 'utf-8'
-
-
-def _uprint(dest, text):
-    """
-    Write text to dest, adding a newline character.
-
-    Text may be a unicode string, or a byte string in UTF-8 encoding.
-    It must not be None.
-
-    If dest is None, the text is encoded to a codepage suitable for the current
-    stdout and is written to stdout.
-
-    Otherwise, dest must be a file path, and the text is encoded to a UTF-8
-    Byte sequence and is appended to the file (opening and closing the file).
-    """
-    if isinstance(text, six.text_type):
-        text = text + u'\n'
-    elif isinstance(text, six.binary_type):
-        text = text + b'\n'
-    else:
-        raise TypeError(
-            "text must be a unicode or byte string, but is {0}".
-            format(type(text)))
-    if dest is None:
-        if six.PY2:
-            # On py2, stdout.write() requires byte strings
-            if isinstance(text, six.text_type):
-                text = text.encode(STDOUT_ENCODING, 'replace')
-        else:
-            # On py3, stdout.write() requires unicode strings
-            if isinstance(text, six.binary_type):
-                text = text.decode('utf-8')
-        sys.stdout.write(text)
-    elif isinstance(dest, (six.text_type, six.binary_type)):
-        if isinstance(text, six.text_type):
-            open_kwargs = dict(mode='a', encoding='utf-8')
-        else:
-            open_kwargs = dict(mode='ab')
-        if six.PY2:
-            # Open with codecs to be able to set text mode
-            with codecs.open(dest, **open_kwargs) as f:
-                f.write(text)
-        else:
-            with open(dest, **open_kwargs) as f:
-                f.write(text)
-    else:
-        raise TypeError(
-            "dest must be None or a string, but is {0}".
-            format(type(text)))
 
 
 def method_callback_interface(conn, methodname, objectname, **params):
@@ -921,8 +862,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             If `None`, all namespaces of the mock repository are displayed.
 
           dest (:term:`string`):
-            File path of the output file. If `None`, the output is written to
-            stdout.
+            File-like object(ex. file_path, or other data stream definition )
+            for the output. If `None`, the output is written to stdout.
 
           summary (:class:`py:bool`):
             Flag for summary mode. If `True`, only a summary count of CIM
@@ -958,7 +899,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                         cmt_end))
 
         # get all namespaces
-        repo_ns = sorted(self.repo.list_namespaces())
+        repo_ns = sorted(self.repo.namespaces)
 
         for ns in repo_ns:
             _uprint(dest,

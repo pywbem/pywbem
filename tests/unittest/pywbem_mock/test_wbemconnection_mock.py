@@ -1408,7 +1408,7 @@ class TestRepoMethods(object):
             # The code to be tested
             conn.add_namespace(test_ns)
 
-            assert exp_ns in conn.repo.list_namespaces()
+            assert exp_ns in conn.repo.namespaces
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
 
@@ -1436,6 +1436,7 @@ class TestRepoMethods(object):
         """
         Test _remove_namespace()
         """
+
         conn = FakedWBEMConnection(default_namespace=default_ns)
         for ns in additional_ns:
             conn.repo.add_namespace(ns)
@@ -1445,7 +1446,7 @@ class TestRepoMethods(object):
             # pylint: disable=protected-access
             conn._remove_namespace(test_ns)
 
-            assert exp_ns not in conn.repo.list_namespaces()
+            assert exp_ns not in conn.repo.namespaces
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
 
@@ -3594,7 +3595,7 @@ class TestInstanceOperations(object):
 
             act_ns = new_path.keybindings['Name']
             assert act_ns == exp_ns
-            assert act_ns in conn.repo.list_namespaces()
+            assert act_ns in conn.repo.namespaces
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
 
@@ -3979,7 +3980,7 @@ class TestInstanceOperations(object):
             conn.DeleteInstance(new_path)
 
         for ns in additional_objs:
-            if ns not in conn.repo.list_namespaces():
+            if ns not in conn.repo.namespaces:
                 conn.add_namespace(ns)
             conn.add_cimobjects(additional_objs[ns], namespace=ns)
 
@@ -3989,7 +3990,7 @@ class TestInstanceOperations(object):
             conn.DeleteInstance(new_path)
 
             act_ns = new_path.keybindings['Name']
-            assert act_ns not in conn.repo.list_namespaces()
+            assert act_ns not in conn.repo.namespaces
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
 

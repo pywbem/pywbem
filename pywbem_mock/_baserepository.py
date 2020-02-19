@@ -23,21 +23,39 @@
 Base classes for an object store for CIM classes, CIM instances, and CIM
 qualifier declarations and the generic API for a repository of these object
 types organized by repository.
-
-For documentation, see mocksupport.rst.
 """
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 import six
 
 
+def compatibleabstractproperty(func):
+    """
+    Python 2 and python 3 differ in decorator for abstract property.
+    in python 3 (gt 3.3) it is:
+        @property
+        @abstractproperty
+    in python 2
+        @abstractproperty
+    """
+
+    if six.PY3:
+        return property(abstractmethod(func))
+    else:
+        return abstractproperty(func)
+
+
 @six.add_metaclass(ABCMeta)
-class ObjectStoreAPI(object):
+class BaseObjectStore(object):
     """
     This abstract class defines the APIs for the methods of an object store
-    for the CIM objects that constitute a WBEM server repository.  This
+    for CIM objects including CIMClass, CIMInstance, and CIMQualifierDeclaration
+    objectsthat constitute a WBEM server repository.  This
     class provides the abstract methods for creating, accessing, and deleting,
     CIM objects of a single CIM object type in the repository.
+
+    These APIs allows creating, updating, deleting, and retrieving these
+    objects.
     """
 
     def __init__(self, case_insensitive_names, cim_object_type):
@@ -51,7 +69,7 @@ class ObjectStoreAPI(object):
               case insensitively. The names must be strings.
               If False, names identify objects. The names may be strings
               or other objects that can be used to uniquely identify
-              objects in the object store.
+              objects in the object store (ex. CIMInstanceName).
 
             cim_object_type(:term:`string`):
               The Pywbem cim object type as defined in cim_types.py for the
@@ -63,7 +81,7 @@ class ObjectStoreAPI(object):
     @abstractmethod
     def exists(self, name):
         """
-        Test if cim_object defined by name and namespace exists in the
+        Test if cim_object defined by name exists in the
         object store
 
         Paramsters
@@ -85,11 +103,17 @@ class ObjectStoreAPI(object):
             Name by which the object is identified in the object store
 
           copy: If True, insures that modifying the returned object does not
-            change the data store
+            change the data store. The default behavior is True.  If
+            copy is False, the object in the object store is returned but
+            if it is modified by the user, the object in the store may
+            be modified also.
 
-        Returns: The cim_object identified by the name parameter
+        Returns:
+
+            Returns the cim_object identified by the name parameter
 
         Raises:
+
             KeyError: Object not in this object store
         """
         pass
@@ -97,7 +121,7 @@ class ObjectStoreAPI(object):
     @abstractmethod
     def create(self, name, cim_object):
         """
-        Insert the cim_object into the object store identified by name.
+        Adds the cim_object identified by name to the object store.
 
         Parameters:
 
@@ -105,9 +129,11 @@ class ObjectStoreAPI(object):
             Name by which the object is identified in the object store .
 
           cim_object(cim_object to be added to the object store):
+            The CIM object that will be inserted into the object store.
 
         Raises:
-            ValueError: If object already in the object store
+
+            ValueError: If object already exists in the object store.
         """
         pass
 
@@ -125,15 +151,15 @@ class ObjectStoreAPI(object):
           cim_object(cim_object to be added to the object store):
 
         Raises:
-            KeyError: If no object with name exists in this object store
 
+            KeyError: If no object with name exists in the object store.
         """
         pass
 
     @abstractmethod
     def delete(self, name):
         """
-        Delete the object identified by name in the object store
+        Delete the object identified by name from the object store.
 
         Parameters:
 
@@ -142,14 +168,15 @@ class ObjectStoreAPI(object):
 
         Raises:
             KeyError: If there is no object with name in this object store
-
         """
         pass
 
     @abstractmethod
     def iter_names(self):
         """
-        Return iterator to the names of the objects in the object store.
+        Return iterator to the names of the objects in the object store.e o
+
+        The order of returned names is undefined.
 
         Returns:
             List of the names of CIM objects in the object store
@@ -162,6 +189,9 @@ class ObjectStoreAPI(object):
         Return iterator to the cim objects in the object store. This allows
         iteration through all the objects in this
         object store. Objects may be accessed using iterator methods.
+
+        The order of returned values is undefined.
+
 
         Parameters:
           copy (:class:`py:bool`):
@@ -179,7 +209,7 @@ class ObjectStoreAPI(object):
     @abstractmethod
     def len(self):
         """
-        Get count of objects in this object store
+        Get count of objects in this object store.
 
         Returns:
             Integer that is count of objects in this objectstore
@@ -189,9 +219,9 @@ class ObjectStoreAPI(object):
 
 
 @six.add_metaclass(ABCMeta)
-class BaseRepositoryAPI(object):
+class BaseRepository(object):
     """
-    An abstract base class for  the APIs to provide access to a data store for
+    An abstract base class defining the required  APIs to provide access to a
     a CIM repository.  The API provides functions to:
 
     1. Manage CIM namespaces in the data repository including creation, deletion
@@ -201,29 +231,39 @@ class BaseRepositoryAPI(object):
        decelarations) so that methods of the ObjStoreAPI can be used to access
        objects by namespace so that CIM objects can be manupulated in the
        repository by namespace.
-
     """
 
-    # TODO I need to limit the obj store to defined types in API
-    # def __init__(self, repository, obj_store):
-    # """
-    # Construct the repository by defining the namespace with the supplied
-    # default_namespace and setting the objects for the classes, instances,
-    # and qualifiers
-    # """
+    @compatibleabstractproperty
+    def namespaces(self):
+        """
+        Read-only property that returns a list with the names of the
+        namespaces defined for this repository. Note that if there were any
+        leading or trailing slash characters in namespace parameters used
+        to add the namespaces to the repository, they will be removed from
+        the namespaces returned with this property.
 
-    # self.repository.classes = obj_store(True, CIMClass)
-    # self.repository.instances = obj_store(False, CIMInstance)
-    # self.repository.qualifiers = obj_store(True, CIMQualifierDeclaration)
+        Returns:
+            list of :term:`string` items containing the namespace names
+        """
+        pass
 
     @abstractmethod
     def validate_namespace(self, namespace):
         """
-        Validate if the namespace parameter exists in the repository. If the
+        Validate if the namespace exists in the repository. If the
         namespace does not exist a KeyError is raised.
 
+        Parameters:
+
+            The name of the CIM namespace in the CIM repository. The name
+            is treated case insensitively and it must not be
+            `None`. Any leading and trailing slash characters in the
+            namespace string are ignored when accessing the repository.
+
         Raises:
-            KeyError: If the namespace is not defined in the repository
+
+          KeyError: If the namespace is not defined in the repository.
+          ValueError: if the namespace is None.
         """
         pass
 
@@ -232,20 +272,23 @@ class BaseRepositoryAPI(object):
         """
         Add a CIM namespace to the repository.
 
-        The namespace must not yet exist in the mock repository.
+        The namespace must not yet exist in the CIM repository.
 
         The default connection namespace is automatically added to
-        the mock repository upon creation of this connection.
+        the CIM repository upon creation of this connection.
 
-          Parameters:
-            namespace (:term:`string`):
-              The name of the CIM namespace in the mock repository. Must not be
-              `None`. Leading and trailing slash characters are split off
-              from the provided string.
+        Parameters:
 
-          Raises:
-            ValueError: If the namespace argument is None or the
-             namespace already exists.
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. The name
+            is treated case insensitively and it must not be
+            `None`. Any leading and trailing slash characters in the
+            namespace string are ignored when accessing the repository.
+
+        Raises:
+
+          ValueError: If the namespace argument is None or the
+           namespace already exists.
         """
         pass
 
@@ -259,25 +302,16 @@ class BaseRepositoryAPI(object):
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the mock repository. Must not be
-            `None`. Any leading and trailing slash characters are split off
-            from the provided string.
+            The name of the CIM namespace in the CIM repository. The name
+            is treated case insensitively and it must not be
+            `None`. Any leading and trailing slash characters in the
+            namespace string are ignored when accessing the repository.
 
         Raises:
 
           ValueError: Namespace argument is None or the repository namespace
             is not empty
-          KeyError:  The namespace does not exist in the mock repository.
-        """
-        pass
-
-    @abstractmethod
-    def list_namespaces(self):
-        """
-        List the namespaces that exist in the repository
-
-        Returns:
-            list of :term:`string` items containing the namespace names
+          KeyError:  The namespace does not exist in the CIM repository.
         """
         pass
 
@@ -287,18 +321,23 @@ class BaseRepositoryAPI(object):
         Get the handle for the data CIM class object store for the namespace
         provided.
 
-          Parameters:
-            namespace (:term:`string`):
-              The name of the CIM namespace in the mock repository. Must not be
-              `None`
+        Parameters:
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. The name
+            is treated case insensitively and it must not be
+            `None`. Any leading and trailing slash characters in the
+            namespace string are ignored when accessing the repository.
 
-          Returns:
-            Returns an instance of InMemoryObjStore which defines the
-            methods exists(), get() create(), etc. for accessing the
-            data in this store.
+        Returns:
 
-          Raises:
-            KeyError: If the namespace does not exist in the repository
+          Returns an instance of InMemoryObjStore for CIM classes which
+          defines the methods exists(), get() create(), etc. for accessing
+          the data in this store.
+
+        Raises:
+
+          ValueError: Namespace argument is None.
+          KeyError: If the namespace does not exist in the repository
         """
 
         pass
@@ -309,15 +348,25 @@ class BaseRepositoryAPI(object):
         Get the handle for the data CIM instance object store for the namespace
         provided.
 
-          Parameters:
+        Parameters:
 
-            namespace (:term:`string`):
-              The name of the CIM namespace in the mock repository. Must not be
-              `None`
-          Returns:
-            returns an instance of InMemoryObjStore which defines the
-            methods exists(), get() create(), etc. for accessing the
-            data in this store.
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. The name
+            is treated case insensitively and it must not be
+            `None`. Any leading and trailing slash characters in the
+            namespace string are ignored when accessing the repository.
+
+        Returns:
+
+          Returns an instance of InMemoryObjStore for CIM instances which
+          defines the methods exists(), get() create(), etc. for accessing
+          the data in this store.
+
+        Raises:
+
+          ValueError: Namespace argument is None.
+          KeyError: The namespace parameter does not define an existing
+            namespace
         """
 
     @abstractmethod
@@ -326,18 +375,23 @@ class BaseRepositoryAPI(object):
         Gets the handle for the data CIM qualifier declaration object store for
         the namespace provided.
 
-          Parameters:
+        Parameters:
 
-            namespace (:term:`string`):
-              The name of the CIM namespace in the mock repository. Must not be
-              `None`
-          Returns:
-            returns an instance of InMemoryObjStore which defines the
-            methods exists(), get() create(), etc. for accessing the
-            data in this store.
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. The name
+            is treated case insensitively and it must not be
+            `None`. Any leading and trailing slash characters in the
+            namespace string are ignored when accessing the repository.
 
-          Raises:
-            ValueError if namespace parameter is None
-            KeyError if the namespace parameter does not define an existing
-              namespace
+        Returns:
+
+          Returns an instance of InMemoryObjStore for CIM qualifier
+          declarations which defines the methods exists(), get() create(),
+          etc. for accessing the data in this store.
+
+        Raises:
+
+          ValueError: Namespace parameter is None
+          KeyError: The namespace parameter does not define an existing
+            namespace
         """

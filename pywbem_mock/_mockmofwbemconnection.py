@@ -195,7 +195,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
         instance_repo = self.conn._get_instance_repo(namespace)
 
-        if self.default_namespace not in self.repo.list_namespaces():
+        if self.default_namespace not in self.repo.namespaces:
             raise CIMError(
                 CIM_ERR_INVALID_NAMESPACE,
                 _format('ModifyInstance failed. No instance repo exists. '
