@@ -35,47 +35,46 @@ from pywbem._utils import _format
 from ._baserepository import BaseObjectStore, BaseRepository
 from ._utils import _uprint
 
-__all__ = ['InMemoryRepository']
+__all__ = ['InMemoryRepository', 'InMemoryObjectStore']
 
 
-class InMemoryObjStore(BaseObjectStore):
+class InMemoryObjectStore(BaseObjectStore):
     """
     Derived from the :class:`BaseObjectStore`, this class implements a
     dictionary based in-memory repository for CIM objects that manages
     CIM classes, CIM instances, and CIM qualifier declarations.
+
+    Documentation for the methods and properties inherited from
+    ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
+    documentation. Therefore the methods in this class have no
+    documentation string.
     """
     # pylint: disable=line-too-long
-    def __init__(self, case_insensitive_names, cim_object_type):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.__init__`
-        """
+    def __init__(self, cim_object_type):
 
-        super(InMemoryObjStore, self).__init__(case_insensitive_names,
-                                               cim_object_type)
+        super(InMemoryObjectStore, self).__init__(cim_object_type)
 
         # Define the dictionary that implements the object store.
         # The keys in this dictionary are the names of the objects and
         # the values the corresponding CIM objects.
-        self._data = NocaseDict() if case_insensitive_names else {}
-
+        if cim_object_type.__name__ in ("CIMClass", 'CIMQualifierDeclaration'):
+            self._data = NocaseDict()
+        elif cim_object_type.__name__ == 'CIMInstance':
+            self._data = {}
+        else:
+            assert False, "InMemoryObjectStore: Invalid input parameter {}." \
+                .format(cim_object_type)
     # pylint: enable=line-too-long
 
     def __repr__(self):
-        return _format('InMemoryObjStore(type={0},  dict={1}, size={2}',
+        return _format('InMemoryObjectStore(type={0},  dict={1}, size={2}',
                        self._cim_object_type, type(self._data),
                        len(self._data))
 
     def exists(self, name):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.exists`
-        """
         return name in self._data
 
     def get(self, name, copy=True):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.get`
-        """
-
         # pylint: disable=no-else-return
         if name in self._data:
             if copy:
@@ -86,10 +85,6 @@ class InMemoryObjStore(BaseObjectStore):
                            .format(name, self._cim_object_type))
 
     def create(self, name, cim_object):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.create`
-        """
-
         assert isinstance(cim_object, self._cim_object_type)
 
         if name in self._data:
@@ -99,10 +94,6 @@ class InMemoryObjStore(BaseObjectStore):
         self._data[name] = cim_object.copy()
 
     def update(self, name, cim_object):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.update`
-        """
-
         assert isinstance(cim_object, self._cim_object_type)
 
         if name not in self._data:
@@ -113,9 +104,6 @@ class InMemoryObjStore(BaseObjectStore):
         self._data[name] = cim_object.copy()
 
     def delete(self, name):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.delete`
-        """
         if name in self._data:
             del self._data[name]
         else:
@@ -123,16 +111,9 @@ class InMemoryObjStore(BaseObjectStore):
                            .format(name, self._cim_object_type))
 
     def iter_names(self):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.iter_names`
-        """
         return six.iterkeys(self._data)
 
     def iter_values(self, copy=True):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.iter_values`
-
-        """
         for value in six.itervalues(self._data):
             if copy:
                 yield(value.copy())
@@ -140,18 +121,17 @@ class InMemoryObjStore(BaseObjectStore):
                 yield(value)
 
     def len(self):
-        """
-        See :meth:`~pywbem_mock.BaseObjectStore.len`
-        """
         return len(self._data)
 
 
 class InMemoryRepository(BaseRepository):
     """
-    A CIM repository that keeps its data in memory..
+    A CIM repository that maintains its data in memory.
 
-    The API for this data store is defined in
-    :class:`~pywbem_mock.BaseObjectStore and :class:.
+    Documentation for the methods and properties inherited from
+    ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
+    documentation. Therefore the methods in this class have no
+    documentation string.
     """
     def __init__(self, initial_namespace=None):
         """
@@ -170,7 +150,7 @@ class InMemoryRepository(BaseRepository):
         # defining the CIM classes, CIM instances, and CIM qualifier
         # declarations where the keys are "classes", "instance", and
         # "qualifiers" and the value for each is an instance of the
-        # class InMemoryObjStore
+        # class InMemoryObjectStore
         self._repository = NocaseDict()
 
         # If an initial namespace is defined, add it to the repository
@@ -189,7 +169,7 @@ class InMemoryRepository(BaseRepository):
         """
         def objstore_info(objstore_name):
             """
-            Display the date for the object
+            Display the data for the object store
             """
             for ns in self._repository:
                 if objstore_name == 'class':
@@ -215,9 +195,6 @@ class InMemoryRepository(BaseRepository):
         _uprint(dest, _format(u'INSTANCES: {0}', objstore_info('instance')))
 
     def validate_namespace(self, namespace):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.validate_namespace`
-        """
         if namespace is None:
             raise ValueError("Namespace argument must not be None")
 
@@ -229,10 +206,6 @@ class InMemoryRepository(BaseRepository):
                            format(namespace))
 
     def add_namespace(self, namespace):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.add_namespace`
-        """
-
         if namespace is None:
             raise ValueError("Namespace argument must not be None")
 
@@ -245,20 +218,15 @@ class InMemoryRepository(BaseRepository):
         self._repository[namespace] = {}
 
         # Create the data store for each of the object types.
-        self._repository[namespace]['classes'] = InMemoryObjStore(
-            True, CIMClass)
+        self._repository[namespace]['classes'] = InMemoryObjectStore(CIMClass)
 
-        self._repository[namespace]['instances'] = InMemoryObjStore(
-            False, CIMInstance)
+        self._repository[namespace]['instances'] = InMemoryObjectStore(
+            CIMInstance)
 
-        self._repository[namespace]['qualifiers'] = InMemoryObjStore(
-            True, CIMQualifierDeclaration)
+        self._repository[namespace]['qualifiers'] = InMemoryObjectStore(
+            CIMQualifierDeclaration)
 
     def remove_namespace(self, namespace):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.remove_namespace`
-        """
-
         self.validate_namespace(namespace)
         namespace = namespace.strip('/')
 
@@ -272,17 +240,9 @@ class InMemoryRepository(BaseRepository):
 
     @property
     def namespaces(self):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.namespaces`
-
-        """
-        return [ns for ns in self._repository]
+        return list(self._repository)
 
     def get_class_repo(self, namespace):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.get_class_repo`
-        """
-
         if namespace is None:
             raise ValueError("Namespace None not permitted.")
         namespace = namespace.strip('/')
@@ -290,11 +250,6 @@ class InMemoryRepository(BaseRepository):
         return self._repository[namespace]['classes']
 
     def get_instance_repo(self, namespace):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.get_instance_repo`
-
-        """
-
         if namespace is None:
             raise ValueError("Namespace None not permitted.")
         namespace = namespace.strip('/')
@@ -302,11 +257,6 @@ class InMemoryRepository(BaseRepository):
         return self._repository[namespace]['instances']
 
     def get_qualifier_repo(self, namespace):
-        """
-        See :meth:`~pywbem_mock.BaseRepository.get_qualifier_repo`
-
-        """
-
         if namespace is None:
             raise ValueError("Namespace None not permitted.")
         namespace = namespace.strip('/')

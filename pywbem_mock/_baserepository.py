@@ -24,7 +24,10 @@ Base classes for an object store for CIM classes, CIM instances, and CIM
 qualifier declarations and the generic API for a repository of these object
 types organized by repository.
 """
-from abc import ABCMeta, abstractmethod, abstractproperty
+
+from abc import abstractmethod, abstractproperty
+from six import add_metaclass
+from custom_inherit import DocInheritMeta
 
 import six
 
@@ -39,16 +42,16 @@ def compatibleabstractproperty(func):
         @abstractproperty
     """
 
-    if six.PY3:
-        return property(abstractmethod(func))
-    else:
+    if six.PY2:  # pylint: disable=no-else-return
         return abstractproperty(func)
+    else:
+        return property(abstractmethod(func))
 
 
-@six.add_metaclass(ABCMeta)
+@add_metaclass(DocInheritMeta(style="google", abstract_base_class=True))
 class BaseObjectStore(object):
     """
-    This abstract class defines the APIs for the methods of an object store
+    An abstract class that defines the APIs for the methods of an object store
     for CIM objects including CIMClass, CIMInstance, and CIMQualifierDeclaration
     objectsthat constitute a WBEM server repository.  This
     class provides the abstract methods for creating, accessing, and deleting,
@@ -58,24 +61,16 @@ class BaseObjectStore(object):
     objects.
     """
 
-    def __init__(self, case_insensitive_names, cim_object_type):
+    def __init__(self, cim_object_type):
         """
         Initialize the object store.
 
         Parameters:
 
-            case_insensitive-names(:class:`py:bool`):
-              If True, the names uniquely identify objects in the object store
-              case insensitively. The names must be strings.
-              If False, names identify objects. The names may be strings
-              or other objects that can be used to uniquely identify
-              objects in the object store (ex. CIMInstanceName).
-
             cim_object_type(:term:`string`):
               The Pywbem cim object type as defined in cim_types.py for the
               objects in the data store. Used to verify values on create.
         """
-        self._case_insensitive_names = case_insensitive_names
         self._cim_object_type = cim_object_type
 
     @abstractmethod
@@ -114,7 +109,7 @@ class BaseObjectStore(object):
 
         Raises:
 
-            KeyError: Object not in this object store
+            KeyError: cim_object with name not in this object store
         """
         pass
 
@@ -218,7 +213,7 @@ class BaseObjectStore(object):
         pass
 
 
-@six.add_metaclass(ABCMeta)
+@add_metaclass(DocInheritMeta(style="google", abstract_base_class=True))
 class BaseRepository(object):
     """
     An abstract base class defining the required  APIs to provide access to a
@@ -226,11 +221,19 @@ class BaseRepository(object):
 
     1. Manage CIM namespaces in the data repository including creation, deletion
        and getting a list of the available namespaces.
-    2. Accessing the object store within the repository for the objects of the
+    2. Access the object store within the repository for the objects of the
        following CIM types: (CIM classes, CIM instances, and CIM qualifier
-       decelarations) so that methods of the ObjStoreAPI can be used to access
-       objects by namespace so that CIM objects can be manupulated in the
-       repository by namespace.
+       decelarations) so that methods of the BaseObjectStore are used to access
+       objects by namespace to manipulate CIM objects in the repository by
+       namespace.
+
+    Example :
+
+      xxxrepo = XXXRepository()                        # create the repo
+      xxxrepo.add_namespace("root/cimv2")              # add a namespace
+      class_repo = xxx.repo.get_class_repo("root/cimv2") # get class obj store
+      test_class = CIMClass(...)                       # create a class
+      class_repo.add(test_class)                       # add to xxxrepo classes
     """
 
     @compatibleabstractproperty
@@ -255,10 +258,11 @@ class BaseRepository(object):
 
         Parameters:
 
-            The name of the CIM namespace in the CIM repository. The name
-            is treated case insensitively and it must not be
-            `None`. Any leading and trailing slash characters in the
-            namespace string are ignored when accessing the repository.
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
 
         Raises:
 
@@ -280,10 +284,10 @@ class BaseRepository(object):
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. The name
-            is treated case insensitively and it must not be
-            `None`. Any leading and trailing slash characters in the
-            namespace string are ignored when accessing the repository.
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
 
         Raises:
 
@@ -302,10 +306,10 @@ class BaseRepository(object):
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. The name
-            is treated case insensitively and it must not be
-            `None`. Any leading and trailing slash characters in the
-            namespace string are ignored when accessing the repository.
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
 
         Raises:
 
@@ -323,16 +327,16 @@ class BaseRepository(object):
 
         Parameters:
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. The name
-            is treated case insensitively and it must not be
-            `None`. Any leading and trailing slash characters in the
-            namespace string are ignored when accessing the repository.
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
 
         Returns:
 
-          Returns an instance of InMemoryObjStore for CIM classes which
-          defines the methods exists(), get() create(), etc. for accessing
-          the data in this store.
+          Returns the instance of :class:`~pywbem_mock.InMemoryObjectStore` for
+          CIM classes which defines the methods exists(name), get(name)
+          create(), etc. for accessing the data in this store.
 
         Raises:
 
@@ -351,16 +355,16 @@ class BaseRepository(object):
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. The name
-            is treated case insensitively and it must not be
-            `None`. Any leading and trailing slash characters in the
-            namespace string are ignored when accessing the repository.
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
 
         Returns:
 
-          Returns an instance of InMemoryObjStore for CIM instances which
-          defines the methods exists(), get() create(), etc. for accessing
-          the data in this store.
+          Returns the instance of :class:`~pywbem_mock.InMemoryObjectStore`
+          for CIM instances which defines the methods exists(), get() create(),
+          etc. for accessing the data in this store.
 
         Raises:
 
@@ -378,16 +382,16 @@ class BaseRepository(object):
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. The name
-            is treated case insensitively and it must not be
-            `None`. Any leading and trailing slash characters in the
-            namespace string are ignored when accessing the repository.
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
 
         Returns:
 
-          Returns an instance of InMemoryObjStore for CIM qualifier
-          declarations which defines the methods exists(), get() create(),
-          etc. for accessing the data in this store.
+          Returns the instance of :class:`~pywbem_mock.InMemoryObjectStore` for
+          CIM qualifier declarations which defines the methods exists(), get()
+          create(), etc. for accessing the data in this store.
 
         Raises:
 

@@ -26,13 +26,13 @@ from pywbem import CIMClass, CIMInstance, CIMInstanceName, CIMProperty, \
 from pywbem._nocasedict import NocaseDict
 
 from pywbem_mock import InMemoryRepository
-from pywbem_mock._inmemoryrepository import InMemoryObjStore
+from pywbem_mock._inmemoryrepository import InMemoryObjectStore
 
 from ..utils.pytest_extensions import simplified_test_function
 
 ########################################################################
 #
-#      Test InMemoryObjStore
+#      Test InMemoryObjectStore
 #
 #########################################################################
 
@@ -53,7 +53,7 @@ TESTCASES_OBJSTORE = [
     (
         "Test with an class",
         dict(
-            init_args=[True, CIMClass],
+            init_args=[CIMClass],
             cls_kwargs=dict(
                 classname='CIM_Foo',
                 properties=[
@@ -74,7 +74,7 @@ TESTCASES_OBJSTORE = [
     (
         "Test with an instance",
         dict(
-            init_args=[False, CIMInstance],
+            init_args=[CIMInstance],
             cls_kwargs=dict(
                 classname='CIM_Foo',
                 properties=[
@@ -102,7 +102,7 @@ TESTCASES_OBJSTORE = [
     (
         "Test with an qualifier declaration",
         dict(
-            init_args=[False, CIMQualifierDeclaration],
+            init_args=[CIMQualifierDeclaration],
             cls_kwargs=None,
             inst_kwargs=None,
             qual_kwargs=dict(
@@ -126,8 +126,9 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     """
     namespace = "root/cimv2"
 
-    # setup the ObjStore
-    xxx_repo = InMemoryObjStore(*init_args)
+    # Setup the ObjectStore
+    xxx_repo = InMemoryObjectStore(*init_args)
+
     if cls_kwargs:
         cls = CIMClass(**cls_kwargs)
     if inst_kwargs:
@@ -432,7 +433,7 @@ def test_repository_valid_methods(desc, args, condition, capsys):
         print(repr(xxx_repo))
         captured = capsys.readouterr()
         result = captured.out
-        assert "InMemoryObjStore(" in result
+        assert "InMemoryObjectStore(" in result
         assert "size=2" in result
 
         # Test iter_names and iter_values
@@ -531,13 +532,13 @@ def test_repository_method_errs(desc, args, condition, capsys):
         valid_name = valid_names[repo_name]
         try:
             xxx_repo.get(err_name)
-            assert False, "get should return exception"
+            assert False, "Get should return exception"
         except KeyError:
             pass
 
         try:
             xxx_repo.delete(err_name)
-            assert False, "delete Exception failed {} {}"
+            assert False, "Delete Exception failed {} {}"
         except KeyError:
             pass
 
