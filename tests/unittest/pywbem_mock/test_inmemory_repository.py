@@ -355,17 +355,17 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     # the repository for each object type
     repo = InMemoryRepository(initial_namespace=namespace)
 
-    class_repo = repo.get_class_repo(namespace)
-    inst_repo = repo.get_instance_repo(namespace)
-    qual_repo = repo.get_qualifier_repo(namespace)
+    class_store = repo.get_class_store(namespace)
+    inst_repo = repo.get_instance_store(namespace)
+    qual_repo = repo.get_qualifier_store(namespace)
 
     # Holding dict for items created in repository by repository name
     input_items = {'classes': {}, 'instances': {}, 'qualifiers': {}}
 
     # Relate repository names to corresponsing get_xxx_repo function
-    repos = {'classes': repo.get_class_repo(namespace),
-             'instances': repo.get_instance_repo(namespace),
-             'qualifiers': repo.get_qualifier_repo(namespace)}
+    repos = {'classes': repo.get_class_store(namespace),
+             'instances': repo.get_instance_store(namespace),
+             'qualifiers': repo.get_qualifier_store(namespace)}
 
     # Insert the items in init_objs into the repository
     # Counter of number of objects by type created.
@@ -374,8 +374,8 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     qual_count = 0
     for item in init_objs:
         if isinstance(item, CIMClass):
-            class_repo = repos['classes']
-            class_repo.create(item.classname, item)
+            class_store = repos['classes']
+            class_store.create(item.classname, item)
             class_count += 1
             input_items['classes'][item.classname] = item
         elif isinstance(item, CIMInstance):
@@ -400,7 +400,7 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     assert inst_count == len(input_items['instances'])
     assert qual_count == len(input_items['qualifiers'])
 
-    assert class_repo.len() == class_count
+    assert class_store.len() == class_count
     assert inst_repo.len() == inst_count
     assert qual_repo.len() == qual_count
 
@@ -510,14 +510,14 @@ def test_repository_method_errs(desc, args, condition, capsys):
     repo = InMemoryRepository(namespace)
 
     # Relate repository names to corresponsing get_xxx_repo function
-    repos = {'classes': repo.get_class_repo(namespace),
-             'instances': repo.get_instance_repo(namespace),
-             'qualifiers': repo.get_qualifier_repo(namespace)}
+    repos = {'classes': repo.get_class_store(namespace),
+             'instances': repo.get_instance_store(namespace),
+             'qualifiers': repo.get_qualifier_store(namespace)}
 
     for item in init_objs:
         if isinstance(item, CIMClass):
-            class_repo = repos['classes']
-            class_repo.create(item.classname, item)
+            class_store = repos['classes']
+            class_store.create(item.classname, item)
         elif isinstance(item, CIMInstance):
             inst_repo = repos['instances']
             inst_repo.create(item.path, item)

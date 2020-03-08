@@ -475,7 +475,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                  qualifier_repo,
                                  propagate=False)
 
-        classrepo = self._get_class_repo(namespace)
+        classrepo = self._get_class_store(namespace)
         # resolve properties in new class
         self._resolve_objects(new_class.properties,
                               superclass.properties if superclass else None,

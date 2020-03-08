@@ -56,15 +56,10 @@ class BaseObjectStore(object):
     objectsthat constitute a WBEM server repository.  This
     class provides the abstract methods for creating, accessing, and deleting,
     CIM objects of a single CIM object type in the repository.
-
-    These APIs allows creating, updating, deleting, and retrieving these
-    objects.
     """
 
     def __init__(self, cim_object_type):
         """
-        Initialize the object store.
-
         Parameters:
 
             cim_object_type(:term:`string`):
@@ -79,7 +74,7 @@ class BaseObjectStore(object):
         Test if cim_object defined by name exists in the
         object store
 
-        Paramsters
+        Parameters
           name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
             Name by which the object is identified in the object store
 
@@ -231,7 +226,7 @@ class BaseRepository(object):
 
       xxxrepo = XXXRepository()                        # create the repo
       xxxrepo.add_namespace("root/cimv2")              # add a namespace
-      class_repo = xxx.repo.get_class_repo("root/cimv2") # get class obj store
+      class_repo = xxx.repo.get_class_store("root/cimv2") # get class obj store
       test_class = CIMClass(...)                       # create a class
       class_repo.add(test_class)                       # add to xxxrepo classes
     """
@@ -320,10 +315,9 @@ class BaseRepository(object):
         pass
 
     @abstractmethod
-    def get_class_repo(self, namespace):
+    def get_class_store(self, namespace):
         """
-        Get the handle for the data CIM class object store for the namespace
-        provided.
+        Return the CIM class object store for the namespace provided.
 
         Parameters:
           namespace (:term:`string`):
@@ -334,9 +328,8 @@ class BaseRepository(object):
 
         Returns:
 
-          Returns the instance of :class:`~pywbem_mock.InMemoryObjectStore` for
-          CIM classes which defines the methods exists(name), get(name)
-          create(), etc. for accessing the data in this store.
+          :class:`~pywbem_mock.InMemoryObjectStore` : CIM class object store for
+          the namespace provided.
 
         Raises:
 
@@ -347,9 +340,34 @@ class BaseRepository(object):
         pass
 
     @abstractmethod
-    def get_instance_repo(self, namespace):
+    def get_instance_store(self, namespace):
         """
-        Get the handle for the data CIM instance object store for the namespace
+        Return the CIM instance object store for the namespace provided.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. The name is
+            treated case insensitively and it must not be `None`. Any leading
+            and trailing slash characters in the namespace string are ignored
+            when accessing the repository.
+
+        Returns:
+
+          :class:`~pywbem_mock.InMemoryObjectStore` : CIM instance object store
+          for the namespace provided.
+
+        Raises:
+
+          ValueError: Namespace argument is None.
+          KeyError: The namespace parameter does not define an existing
+            namespace
+        """
+
+    @abstractmethod
+    def get_qualifier_store(self, namespace):
+        """
+        Return the  CIM qualifier declaration object store for the namespace
         provided.
 
         Parameters:
@@ -362,36 +380,8 @@ class BaseRepository(object):
 
         Returns:
 
-          Returns the instance of :class:`~pywbem_mock.InMemoryObjectStore`
-          for CIM instances which defines the methods exists(), get() create(),
-          etc. for accessing the data in this store.
-
-        Raises:
-
-          ValueError: Namespace argument is None.
-          KeyError: The namespace parameter does not define an existing
-            namespace
-        """
-
-    @abstractmethod
-    def get_qualifier_repo(self, namespace):
-        """
-        Gets the handle for the data CIM qualifier declaration object store for
-        the namespace provided.
-
-        Parameters:
-
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. The name is
-            treated case insensitively and it must not be `None`. Any leading
-            and trailing slash characters in the namespace string are ignored
-            when accessing the repository.
-
-        Returns:
-
-          Returns the instance of :class:`~pywbem_mock.InMemoryObjectStore` for
-          CIM qualifier declarations which defines the methods exists(), get()
-          create(), etc. for accessing the data in this store.
+          :class:`~pywbem_mock.InMemoryObjectStore`: CIM qualifier declaration
+          object store for the namespace provided.
 
         Raises:
 

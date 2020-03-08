@@ -880,15 +880,15 @@ DMTF CIM schema download support
    .. rubric:: Details
 
 
-.. _`Mock InMemory CIM Repository`:
+.. _`Mock inmemory CIM repository`:
 
-Mock in-memory CIM repository
------------------------------
+Mock inmemory CIM repository
+----------------------------
 
 pywbem_mock provides a standard interface to a CIM repository that
 stores CIM classes, CIM instances, and CIM qualifier declarations.
 
-This repository implements an repository in memmory that is created and
+This repository implements an repository in memory that is created and
 destroyed each time the FakedWBEMConnection class is constructed and
 destroyed.
 
@@ -911,9 +911,9 @@ destroyed.
 
    .. rubric:: Details
 
-.. _`Mock InMemory Object store`:
+.. _`Mock inmemory object store`:
 
-Mock InMemory object store
+Mock inmemory object store
 --------------------------
 
 .. automodule:: pywbem_mock._inmemoryrepository

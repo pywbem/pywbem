@@ -40,15 +40,14 @@ __all__ = ['InMemoryRepository', 'InMemoryObjectStore']
 
 class InMemoryObjectStore(BaseObjectStore):
     """
-    Derived from the :class:`BaseObjectStore`, this class implements a
-    dictionary based in-memory repository for CIM objects that manages
-    CIM classes, CIM instances, and CIM qualifier declarations.
-
-    Documentation for the methods and properties inherited from
-    ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
-    documentation. Therefore the methods in this class have no
-    documentation string.
+    A store for CIM objects of a single type (CIM classes, CIM instances,
+    or CIM qualifier declarations) that maintains its data in memory.
     """
+    # Documentation for the methods and properties inherited from
+    # ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
+    # documentation. Therefore the methods in this class have no documentation
+    # string.
+
     # pylint: disable=line-too-long
     def __init__(self, cim_object_type):
 
@@ -127,16 +126,14 @@ class InMemoryObjectStore(BaseObjectStore):
 class InMemoryRepository(BaseRepository):
     """
     A CIM repository that maintains its data in memory.
-
-    Documentation for the methods and properties inherited from
-    ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
-    documentation. Therefore the methods in this class have no
-    documentation string.
     """
+    # Documentation for the methods and properties inherited from
+    # ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
+    # documentation. Therefore the methods in this class have no documentation
+    # string.
+
     def __init__(self, initial_namespace=None):
         """
-        Initialize the InMemoryRepository.
-
         Parameters:
 
           initial_namespace:(:term:`string` or None):
@@ -159,7 +156,7 @@ class InMemoryRepository(BaseRepository):
 
     def print_repository(self, dest=None, ):
         """
-        Display the items in the repository. This displays information on
+        Print the CIM repository to a destination. This displays information on
         the items in the data base and is only a diagnostic tool.
 
         Parameters:
@@ -173,18 +170,17 @@ class InMemoryRepository(BaseRepository):
             """
             for ns in self._repository:
                 if objstore_name == 'class':
-                    repo = self.get_class_repo(ns)
+                    store = self.get_class_store(ns)
                 elif objstore_name == 'qualifier':
-                    repo = self.get_qualifier_repo(ns)
+                    store = self.get_qualifier_store(ns)
                 elif objstore_name == 'instance':
-                    repo = self.get_instance_repo(ns)
+                    store = self.get_instance_store(ns)
                 else:
-                    assert objstore_name == 'instance'
-                    repo = self.get_instance_repo(ns)
+                    assert 'Invalid data store name {}'.format(objstore_name)
 
                 rtn_str = u'Namespace: {} Repo: {} len:{}\n'.format(
-                    ns, objstore_name, repo.len())
-                for val in repo.iter_values():
+                    ns, objstore_name, store.len())
+                for val in store.iter_values():
                     rtn_str += (u'{}\n'.format(val))
                 return rtn_str
 
@@ -230,9 +226,9 @@ class InMemoryRepository(BaseRepository):
         self.validate_namespace(namespace)
         namespace = namespace.strip('/')
 
-        if self.get_class_repo(namespace).len() != 0 or \
-                self.get_qualifier_repo(namespace).len() != 0 or \
-                self.get_instance_repo(namespace).len() != 0:
+        if self.get_class_store(namespace).len() != 0 or \
+                self.get_qualifier_store(namespace).len() != 0 or \
+                self.get_instance_store(namespace).len() != 0:
             raise ValueError('Namespace {} removal invalid. Namespace not '
                              'empty'.format(namespace))
 
@@ -242,21 +238,21 @@ class InMemoryRepository(BaseRepository):
     def namespaces(self):
         return list(self._repository)
 
-    def get_class_repo(self, namespace):
+    def get_class_store(self, namespace):
         if namespace is None:
             raise ValueError("Namespace None not permitted.")
         namespace = namespace.strip('/')
         self.validate_namespace(namespace)
         return self._repository[namespace]['classes']
 
-    def get_instance_repo(self, namespace):
+    def get_instance_store(self, namespace):
         if namespace is None:
             raise ValueError("Namespace None not permitted.")
         namespace = namespace.strip('/')
         self.validate_namespace(namespace)
         return self._repository[namespace]['instances']
 
-    def get_qualifier_repo(self, namespace):
+    def get_qualifier_store(self, namespace):
         if namespace is None:
             raise ValueError("Namespace None not permitted.")
         namespace = namespace.strip('/')

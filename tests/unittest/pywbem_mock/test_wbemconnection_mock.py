@@ -933,9 +933,9 @@ class TestRepoMethods(object):
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
 
-        class_repo = conn._get_class_repo(ns)
+        class_store = conn._get_class_store(ns)
 
-        assert set(conn._get_subclass_names(cln, class_repo, di)) == \
+        assert set(conn._get_subclass_names(cln, class_store, di)) == \
             set(exp_clns)
 
     @pytest.mark.parametrize(
@@ -965,8 +965,8 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
 
         # pylint: disable=protected-access
-        class_repo = conn._get_class_repo(ns)
-        clns = conn._get_superclass_names(cln, class_repo)
+        class_store = conn._get_class_store(ns)
+        clns = conn._get_superclass_names(cln, class_store)
         assert clns == exp_cln
 
     @pytest.mark.parametrize(
@@ -1013,8 +1013,8 @@ class TestRepoMethods(object):
 
         cl_props = [p.name for p in six.itervalues(cl.properties)]
 
-        class_repo = conn._get_class_repo(ns)
-        tst_class = class_repo.get(cln)
+        class_store = conn._get_class_store(ns)
+        tst_class = class_store.get(cln)
 
         if ico:
             for prop in six.itervalues(cl.properties):
@@ -1103,8 +1103,8 @@ class TestRepoMethods(object):
                                 namespace=ns)
         if exp_exc is None:
             # pylint: disable=protected-access
-            instance_repo = conn._get_instance_repo(ns)
-            inst = conn._get_instance(iname, ns, instance_repo,
+            instance_store = conn._get_instance_store(ns)
+            inst = conn._get_instance(iname, ns, instance_store,
                                       pl, lo, ico, iq)
             assert isinstance(inst, CIMInstance)
             assert inst.path.classname.lower() == cln.lower()
@@ -1119,8 +1119,8 @@ class TestRepoMethods(object):
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
                 # pylint: disable=protected-access
-                instance_repo = conn._get_instance_repo(ns)
-                conn._get_instance(iname, ns, instance_repo, pl, lo, ico, iq)
+                instance_store = conn._get_instance_store(ns)
+                conn._get_instance(iname, ns, instance_store, pl, lo, ico, iq)
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
@@ -1154,15 +1154,15 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        instance_repo = \
-            conn._get_instance_repo(ns)  # pylint: disable=protected-access
+        instance_store = \
+            conn._get_instance_store(ns)  # pylint: disable=protected-access
 
         iname = CIMInstanceName(cln,
                                 keybindings={'InstanceID': key},
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn._find_instance(iname, instance_repo)
+        inst = conn._find_instance(iname, instance_store)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -1335,11 +1335,11 @@ class TestRepoMethods(object):
         exp_ns = ns or conn.default_namespace
 
         # pylint: disable=protected-access
-        class_repo = conn._get_class_repo(exp_ns)
-        assert class_repo.len() == len(tst_classes)
+        class_store = conn._get_class_store(exp_ns)
+        assert class_store.len() == len(tst_classes)
 
-        instance_repo = conn._get_instance_repo(exp_ns)
-        assert instance_repo.len() == len(tst_instances) + len(tst_insts_big)
+        instance_store = conn._get_instance_store(exp_ns)
+        assert instance_store.len() == len(tst_instances) + len(tst_insts_big)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -1558,14 +1558,15 @@ class TestRepoMethods(object):
         skip_if_moftab_regenerated()
 
         conn.compile_mof_string(q1, ns)
-        qual_repo = \
-            conn._get_qualifier_repo(exp_ns)  # pylint: disable=protected-access
+        # pylint: disable=protected-access
+        qual_repo = conn._get_qualifier_store(exp_ns)
 
         assert qual_repo.exists('Association')
         conn.compile_mof_string(q2, ns)
 
-        qual_repo = \
-            conn._get_qualifier_repo(exp_ns)  # pylint: disable=protected-access
+        qual_repo = conn._get_qualifier_store(exp_ns)
+        # pylint: enable=protected-access
+
         assert qual_repo.exists('Association')
         assert qual_repo.exists('Description')
         assert qual_repo.exists('Key')
@@ -1734,8 +1735,8 @@ class TestRepoMethods(object):
                               search_paths=[dmtf_schema.schema_mof_dir])
 
         # pylint: disable=protected-access
-        assert conn._get_class_repo(ns).len() == TOTAL_CLASSES
-        assert conn._get_qualifier_repo(ns).len() == TOTAL_QUALIFIERS
+        assert conn._get_class_store(ns).len() == TOTAL_CLASSES
+        assert conn._get_qualifier_store(ns).len() == TOTAL_QUALIFIERS
 
     @pytest.mark.parametrize(
         # Description - Description of the test
@@ -2003,9 +2004,9 @@ def resolve_class(conn, cls, ns):
     """
     ns = ns or conn.default_namespace
     # pylint: disable=protected-access
-    qualifier_repo = conn._get_qualifier_repo(ns)
+    qualifier_store = conn._get_qualifier_store(ns)
     rslvd_cls = conn._resolve_class(cls,  # pylint: disable=protected-access
-                                    ns, qualifier_repo)
+                                    ns, qualifier_store)
     return rslvd_cls
 
 
@@ -2804,9 +2805,9 @@ class TestClassOperations(object):
                                       IncludeClassOrigin=True,
                                       LocalOnly=False)
             ns = ns or conn.default_namespace
-            class_repo = conn._get_class_repo(ns)
+            class_store = conn._get_class_store(ns)
             superclasses = conn._get_superclass_names(new_class.classname,
-                                                      class_repo)
+                                                      class_store)
 
             if new_class.superclass is None:
                 superclass = None
@@ -3054,15 +3055,15 @@ class TestInstanceOperations(object):
         namespace = conn.default_namespace if ns is None else ns
 
         # pylint: disable=protected-access
-        class_repo = conn._get_class_repo(namespace)
-        exp_subclasses = conn._get_subclass_names(cln, class_repo, True)
+        class_store = conn._get_class_store(namespace)
+        exp_subclasses = conn._get_subclass_names(cln, class_store, True)
         exp_subclasses.append(cln)
         sub_class_dict = NocaseDict()
         for name in exp_subclasses:
             sub_class_dict[name] = name
 
-        instance_repo = conn._get_instance_repo(namespace)
-        request_inst_names = [i.path for i in instance_repo.iter_values()
+        instance_store = conn._get_instance_store(namespace)
+        request_inst_names = [i.path for i in instance_store.iter_values()
                               if i.classname in sub_class_dict]
 
         assert len(rtn_inst_names) == len(request_inst_names)
@@ -3100,7 +3101,7 @@ class TestInstanceOperations(object):
         namespace = ns or conn.default_namespace
 
         # pylint: disable=protected-access
-        instance_repo = conn._get_instance_repo(namespace)
+        instance_store = conn._get_instance_store(namespace)
         # pylint: ENABLE=protected-access
 
         if not exp_exc:
@@ -3112,7 +3113,7 @@ class TestInstanceOperations(object):
                         'CIM_Foo_sub_sub']
 
             # pylint: disable=protected-access
-            request_inst_names = [i.path for i in instance_repo.iter_values()
+            request_inst_names = [i.path for i in instance_store.iter_values()
                                   if i.classname in exp_clns]
 
             assert len(rtn_inst_names) == len(request_inst_names)
@@ -3352,7 +3353,7 @@ class TestInstanceOperations(object):
             rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
 
             # pylint: disable=protected-access
-            request_inst_names = [i.path for i in conn._get_instance_repo(ns)
+            request_inst_names = [i.path for i in conn._get_instance_store(ns)
                                   if i.classname == cln]
 
             assert len(rtn_inst_names) == len(request_inst_names)

@@ -168,15 +168,15 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
         # Exception if duplicate. NOTE: compiler overrides this with
         # modify instance.
-        instance_repo = self.repo.get_instance_repo(namespace)
-        if instance_repo.exists(inst.path):
+        instance_store = self.repo.get_instance_store(namespace)
+        if instance_store.exists(inst.path):
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
                 _format('CreateInstance failed. Instance with path {0!A} '
                         'already exists in mock repository', inst.path))
         try:
             # TODO: This should go through self.conn.CreateInstance
-            instance_repo.create(inst.path, inst)
+            instance_store.create(inst.path, inst)
         except KeyError:
             raise
 
@@ -193,7 +193,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         """
         namespace = self.default_namespace
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
-        instance_repo = self.conn._get_instance_repo(namespace)
+        instance_store = self.conn._get_instance_store(namespace)
 
         if self.default_namespace not in self.repo.namespaces:
             raise CIMError(
@@ -202,7 +202,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
-        if not instance_repo.exists(mod_inst.path):
+        if not instance_store.exists(mod_inst.path):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format('ModifyInstance failed. No instance exists. '
@@ -210,9 +210,9 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                         'instance declaration. inst: {0!A}', mod_inst))
 
         # Update the instance in the repository from the modified inst
-        orig_inst = instance_repo.get(mod_inst.path)
+        orig_inst = instance_store.get(mod_inst.path)
         orig_inst.update(mod_inst.properties)
-        instance_repo.update(mod_inst.path, orig_inst)
+        instance_store.update(mod_inst.path, orig_inst)
 
     def DeleteInstance(self, *args, **kwargs):
         """This method is only invoked by :meth:`rollback` (on the underlying
@@ -273,7 +273,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         """
         cc = args[0] if args else kwargs['NewClass']
         namespace = self.default_namespace
-        class_repo = self.repo.get_class_repo(namespace)
+        class_store = self.repo.get_class_store(namespace)
 
         if cc.superclass:
             # Since this may cause additional GetClass calls
@@ -355,15 +355,15 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                         raise
 
         ccr = self.conn._resolve_class(  # pylint: disable=protected-access
-            cc, namespace, self.repo.get_qualifier_repo(namespace))
+            cc, namespace, self.repo.get_qualifier_store(namespace))
 
         # If the class exists, update it. Otherwise create it
         # TODO: Validate that this is correct behavior. That is what the
         # original MOFWBEMConnection does.
-        if class_repo.exists(ccr.classname):
-            class_repo.update(ccr.classname, ccr)
+        if class_store.exists(ccr.classname):
+            class_store.update(ccr.classname, ccr)
         else:
-            class_repo.create(ccr.classname, ccr)
+            class_store.create(ccr.classname, ccr)
         self.classes[namespace][ccr.classname] = ccr
 
     def EnumerateQualifiers(self, *args, **kwargs):
@@ -394,8 +394,8 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         namespace = self.default_namespace
         try:
             # TODO: This should get from real repo I think
-            qualifier_repo = self.repo.get_qualifier_repo(namespace)
-            qual = qualifier_repo.get(qualname)
+            qualifier_store = self.repo.get_qualifier_store(namespace)
+            qual = qualifier_store.get(qualname)
         except KeyError:
             raise
         return qual
@@ -409,13 +409,13 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         """
         namespace = self.default_namespace
         qual = args[0] if args else kwargs['QualifierDeclaration']
-        qualifier_repo = self.repo.get_qualifier_repo(namespace)
+        qualifier_store = self.repo.get_qualifier_store(namespace)
         try:
-            qualifier_repo.create(qual.name, qual)
+            qualifier_store.create(qual.name, qual)
         except KeyError:
             # If qualifier already in repo, update it. This is defined
             # specification behavior
-            qualifier_repo.update(qual.name, qual)
+            qualifier_store.update(qual.name, qual)
             # raise
             # self.qualifiers[self.default_namespace] = \
             #    # NocaseDict({qual.name: qual})
