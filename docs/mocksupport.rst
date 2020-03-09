@@ -888,10 +888,16 @@ Mock inmemory CIM repository
 pywbem_mock provides a standard interface to a CIM repository that
 stores CIM classes, CIM instances, and CIM qualifier declarations.
 
-This repository implements an repository in memory that is created and
+This repository implements a repository in memory that is created and
 destroyed each time the FakedWBEMConnection class is constructed and
 destroyed.
 
+The following classes implement this repository.
+
+.. _`Inmemory CIM Repository class`:
+
+Inmemory CIM Repository class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pywbem_mock._inmemoryrepository
 
@@ -911,10 +917,10 @@ destroyed.
 
    .. rubric:: Details
 
-.. _`Mock inmemory object store`:
+.. _`Inmemory object store class`:
 
-Mock inmemory object store
---------------------------
+Inmemory object store class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pywbem_mock._inmemoryrepository
 

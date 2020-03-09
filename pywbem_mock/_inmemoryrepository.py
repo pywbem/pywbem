@@ -141,9 +141,9 @@ class InMemoryRepository(BaseRepository):
             the CIM repository.
         """
 
-        # Create the in memory repository.  This defines the top level
-        # NocaseDict which defines the namespaces. The keys of this
-        # dictionary are namespace names and the values are the dictionaries
+        # This variable defines the top level NocaseDict() which defines the
+        # namespaces in the repository. The keys of this dictionary
+        # are namespace names and the values are dictionaries
         # defining the CIM classes, CIM instances, and CIM qualifier
         # declarations where the keys are "classes", "instance", and
         # "qualifiers" and the value for each is an instance of the
@@ -173,10 +173,9 @@ class InMemoryRepository(BaseRepository):
                     store = self.get_class_store(ns)
                 elif objstore_name == 'qualifier':
                     store = self.get_qualifier_store(ns)
-                elif objstore_name == 'instance':
-                    store = self.get_instance_store(ns)
                 else:
-                    assert 'Invalid data store name {}'.format(objstore_name)
+                    assert objstore_name == 'instance'
+                    store = self.get_instance_store(ns)
 
                 rtn_str = u'Namespace: {} Repo: {} len:{}\n'.format(
                     ns, objstore_name, store.len())
