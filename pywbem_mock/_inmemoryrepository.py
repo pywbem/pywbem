@@ -25,11 +25,14 @@ collections of :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`, and
 define the API for the repository.
 
 The class :class:`~pywbem_mock.InMemoryRepository` implements a CIM repository
-that stores the CIM objects only in memory, partitioned by CIM namespaces, and
-containing an object store for each CIM object type using
-:class:`~pywbem_mock.InMemoryObjectStore` for each defined namespace. The CIM
-repository is created each time a :class:`~pywbem_mock.InMemoryRepository` is
-constructed and destroyed each time it is destroyed.
+that stores the CIM objects only in memory partitioned by CIM namespaces, and
+containing an object store (:class:`~pywbem_mock.InMemoryObjectStore`) for each
+CIM object type in each defined namespace. Each object store contains the CIM
+objects of the defined CIM type that have been added to the repository.
+
+The CIM repository is created each time a
+:class:`~pywbem_mock.InMemoryRepository` is constructed and destroyed each time
+it is destroyed.
 
 Example:
 

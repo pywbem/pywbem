@@ -20,15 +20,16 @@
 
 
 """
-Base abscract classes for an object store for collections of
+Base abstract classes for an object store for collections of
 :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`, and
 :class:`~pywbem.CIMQualifierDeclaration` objects and a generic API for a CIM
 repository to access and manage the collections of each of these CIM object
 types.
 
-The repository is organized by namespace such that a
-namespace must be created before it can be used to create CIM object collections
-and each namespace contains a collection of each of these CIM objects.
+The repository is organized by namespace such that a namespace must be created
+before it can be used to contain CIM object collections and each namespace
+contains an object store for each CIM object type containing the CIM objects
+that have been added to the CIM repository.
 
 Example :
 
