@@ -20,9 +20,15 @@
 
 
 """
-Base classes for an object store for CIM classes, CIM instances, and CIM
-qualifier declarations and the generic API for a CIM repository of these object
-types organized by repository.
+Base abscract classes for an object store for collections of
+:class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`, and
+:class:`~pywbem.CIMQualifierDeclaration`s and a generic API for a CIM
+repository to access and manage the collections of each of these CIM object
+types.
+
+The repository is organized by namespace such that a
+namespace must be created before it can be used to create CIM object collections
+and each namespace contains a collection of each of these CIM objects.
 """
 
 from abc import abstractmethod, abstractproperty
@@ -54,6 +60,8 @@ class BaseObjectStore(object):
     objectsthat constitute a WBEM server repository.  This
     class provides the abstract methods for creating, accessing, and deleting,
     CIM objects of a single CIM object type in the repository.
+
+    An object store stores only a single CIM object type.
     """
 
     def __init__(self, cim_object_type):
@@ -69,7 +77,7 @@ class BaseObjectStore(object):
     @abstractmethod
     def exists(self, name):
         """
-        Test if CIM object defined by name exists in the object store.
+        Test if the CIM object defined by name exists in the object store.
 
         Parameters:
 
@@ -132,8 +140,8 @@ class BaseObjectStore(object):
     @abstractmethod
     def update(self, name, cim_object):
         """
-        Replace the CIM object defined by name in the object store with
-        the object defined by cim_object.
+        Replace the CIM object in the object store defined by the name argument
+        with the CIM object defined by cim_object.
 
         Parameters:
 
@@ -171,9 +179,11 @@ class BaseObjectStore(object):
     @abstractmethod
     def iter_names(self):
         """
-        Return iterator to the names of the CIM objects in the object store.
+        Return an iterator to the names of the CIM objects in the object store.
         The order of returned names is undefined. Objects may be accessed using
-        iterator methods. The order of returned object is undetermined.
+        iterator methods.
+
+        The order of returned object is undetermined.
 
         Returns:
 
@@ -184,9 +194,9 @@ class BaseObjectStore(object):
     @abstractmethod
     def iter_values(self, copy=True):
         """
-        Return iterator to the cim objects in the object store. This allows
-        iteration through all the objects in this
-        object store. Objects may be accessed using iterator methods.
+        Return an iterator to the cim objects in the object store. This allows
+        iteration through all the objects in this object store using iterator
+        methods.
 
         The order of returned values is undetermined.
 
@@ -208,7 +218,7 @@ class BaseObjectStore(object):
     @abstractmethod
     def len(self):
         """
-        Get count of objects in this object store.
+        Return the count of objects in this object store.
 
         Returns:
 
@@ -226,18 +236,22 @@ class BaseRepository(object):
 
     1. Manage CIM namespaces in the data repository including creation, deletion
        and getting a list of the existing namespaces.
-    2. Access the object store within the repository for the objects of the
-       following CIM types: (CIM classes, CIM instances, and CIM qualifier
+    2. Access the object store for each CIM object type in the repository for
+       the objects of the following CIM types: (:class:`~pywbem.CIMClass`,
+       :class:`~pywbem.CIMInstance`, and :class:`~pywbem.QualifierDeclaration`
        decelarations) so that methods of the BaseObjectStore are used to access
-       and manipulate CIM objects by namespace in the repository.
+       and manipulate CIM objects of a single CIM type by namespace in the
+       repository.
 
     Example :
-
-      xxxrepo = XXXRepository()                        # create the repo
-      xxxrepo.add_namespace("root/cimv2")              # add a namespace
-      class_repo = xxx.repo.get_class_store("root/cimv2") # get class obj store
-      test_class = CIMClass(...)                       # create a class
-      class_repo.add(test_class)                       # add to xxxrepo classes
+      # XXXRepository is a class derived from BaseRepository
+      repo = XXXRepository()                           # create the repo
+      repo.add_namespace("root/cimv2")                 # add a namespace
+      class_store = .repo.get_class_store("root/cimv2") # get class obj store
+      test_class = CIMClass('CIM_Blah', ...)           # create a class
+      class_store.add(test_class)                      # add to xxxrepo classes
+      if 'CIM_Blah' in class_store:                    # test if class exists
+          klass = class_store.get('CIM_Blah;)          # get the class
     """
 
     @compatibleabstractproperty

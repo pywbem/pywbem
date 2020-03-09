@@ -19,8 +19,28 @@
 #
 
 """
-Implementation of the BaseRepository abstract classes that defines an in-memory
-repository based on dictionaries.
+The pywbem_mock module provides a standard interface to a CIM repository that
+stores collections of :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`,
+and :class:`~pywbem.CIMQualifierDeclaration` as Python asbstract classes in the
+module :py:mod:`pywbem_mock/_baserepository.py`.
+
+The pywbem_mock inmemory CIM repository implements a repository derived from
+:py:mod:`pywbem_mock/_baserepository.py` that stores the CIM objects only in
+memory. This CIMrepository is created each time a
+:class:`~pywbem_mock.FakedWBEMConnection` is constructed and destroyed each
+time it is destroyed.
+
+.. code-block:: python
+  Example:
+  repo = InMemoryRepository()                      # create the repo
+  repo.add_namespace("root/cimv2")                 # add a namespace
+  class_store = .repo.get_class_store("root/cimv2") # get class obj store
+  test_class = CIMClass('CIM_Blah', ...)           # create a class
+  class_store.add(test_class)                      # add to xxxrepo classes
+  if 'CIM_Blah' in class_store:                    # test if class exists
+      klass = class_store.get('CIM_Blah;)          # get the class
+
+The following classes implement this repository:
 """
 
 from __future__ import absolute_import, print_function

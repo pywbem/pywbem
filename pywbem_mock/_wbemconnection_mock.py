@@ -262,7 +262,9 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         # Implementation of the CIM object repository that is the data store
         # for CIM classes, CIM instances, CIM qualifier declarations and
         # CIM methods for the mocker.  All access to the mocker CIM data must
-        # pass through this variable to the datastore.
+        # pass through this variable to the CIM repository.
+        # See :py:module:`pywbem_mock/inmemoryrepository` for a description of
+        # the repository interface.
         self.repo = InMemoryRepository(self.default_namespace)
 
         # Defines the connection for the compiler.  The compiler uses
