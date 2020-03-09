@@ -26,19 +26,24 @@ module :py:mod:`pywbem_mock/_baserepository.py`.
 
 The pywbem_mock inmemory CIM repository implements a repository derived from
 :py:mod:`pywbem_mock/_baserepository.py` that stores the CIM objects only in
-memory. This CIMrepository is created each time a
-:class:`~pywbem_mock.FakedWBEMConnection` is constructed and destroyed each
+memory. This CIM repository is created each time a
+:class:`~pywbem_mock.InMemoryRepository` is constructed and destroyed each
 time it is destroyed.
 
+Example:
+
 .. code-block:: python
-  Example:
-  repo = InMemoryRepository()                      # create the repo
-  repo.add_namespace("root/cimv2")                 # add a namespace
-  class_store = .repo.get_class_store("root/cimv2") # get class obj store
-  test_class = CIMClass('CIM_Blah', ...)           # create a class
-  class_store.add(test_class)                      # add to xxxrepo classes
-  if 'CIM_Blah' in class_store:                    # test if class exists
-      klass = class_store.get('CIM_Blah;)          # get the class
+
+    repo = InMemoryRepository()                      # create the repo
+    repo.add_namespace("root/cimv2")                 # add a namespace
+    class_store = .repo.get_class_store("root/cimv2") # get class obj store
+    test_class = CIMClass('CIM_Blah', ...)           # create a class
+    class_store.add(test_class)                      # add to xxxrepo classes
+    if 'CIM_Blah' in class_store:                    # test if class exists
+        klass = class_store.get('CIM_Blah;)          # get the class
+    iter = class_store.iter_names()                  # get name iterator
+    for item in iter:                                # display all names
+       print(item(
 
 The following classes implement this repository:
 """
@@ -73,6 +78,8 @@ class InMemoryObjectStore(BaseObjectStore):
 
         super(InMemoryObjectStore, self).__init__(cim_object_type)
 
+        self._copy_names = False
+
         # Define the dictionary that implements the object store.
         # The keys in this dictionary are the names of the objects and
         # the values the corresponding CIM objects.
@@ -80,6 +87,7 @@ class InMemoryObjectStore(BaseObjectStore):
             self._data = NocaseDict()
         elif cim_object_type.__name__ == 'CIMInstance':
             self._data = {}
+            self._copy_names = True
         else:
             assert False, "InMemoryObjectStore: Invalid input parameter {}." \
                 .format(cim_object_type)
@@ -100,14 +108,14 @@ class InMemoryObjectStore(BaseObjectStore):
                 return self._data[name].copy()
             return self._data[name]
         else:
-            raise KeyError('{} not in {} object store'
+            raise KeyError('Name {} not in {} object store'
                            .format(name, self._cim_object_type))
 
     def create(self, name, cim_object):
         assert isinstance(cim_object, self._cim_object_type)
 
         if name in self._data:
-            raise ValueError('{} already in {} object store'
+            raise ValueError('Name "{}" already in {} object store'
                              .format(name, self._cim_object_type))
 
         self._data[name] = cim_object.copy()
@@ -116,7 +124,7 @@ class InMemoryObjectStore(BaseObjectStore):
         assert isinstance(cim_object, self._cim_object_type)
 
         if name not in self._data:
-            raise KeyError('{} not in {} object store'
+            raise KeyError('Name "{}" not in {} object store'
                            .format(name, self._cim_object_type))
 
         # Replace the existing object with a copy of the input object
@@ -126,11 +134,15 @@ class InMemoryObjectStore(BaseObjectStore):
         if name in self._data:
             del self._data[name]
         else:
-            raise KeyError('{} not in {} object store'
+            raise KeyError('Name "{}" not in {} object store'
                            .format(name, self._cim_object_type))
 
     def iter_names(self):
-        return six.iterkeys(self._data)
+        for name in six.iterkeys(self._data):
+            if self._copy_names:
+                yield(name.copy())
+            else:
+                yield(name)
 
     def iter_values(self, copy=True):
         for value in six.itervalues(self._data):
@@ -181,8 +193,8 @@ class InMemoryRepository(BaseRepository):
 
         Parameters:
           dest (:term:`string`):
-            File-like object(ex. file_path, or other data stream definition )
-            for the output. If `None`, the output is written to stdout.
+            File path of an output file. If `None`, the output is written to
+            stdout.
         """
         def objstore_info(objstore_name):
             """
@@ -217,7 +229,7 @@ class InMemoryRepository(BaseRepository):
         try:
             self._repository[namespace]
         except KeyError:
-            raise KeyError('Namespace {} does not exist in repository'.
+            raise KeyError('Namespace "{}" does not exist in repository'.
                            format(namespace))
 
     def add_namespace(self, namespace):
@@ -227,7 +239,7 @@ class InMemoryRepository(BaseRepository):
         namespace = namespace.strip('/')
 
         if namespace in self._repository:
-            raise ValueError('Namespace {} already in repository'.
+            raise ValueError('Namespace "{}" already in repository'.
                              format(namespace))
 
         self._repository[namespace] = {}

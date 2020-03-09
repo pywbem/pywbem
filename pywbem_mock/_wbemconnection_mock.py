@@ -864,8 +864,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             If `None`, all namespaces of the mock repository are displayed.
 
           dest (:term:`string`):
-            File-like object(ex. file_path, or other data stream definition )
-            for the output. If `None`, the output is written to stdout.
+            File path of an output file. If `None`, the output is written to
+            stdout.
 
           summary (:class:`py:bool`):
             Flag for summary mode. If `True`, only a summary count of CIM

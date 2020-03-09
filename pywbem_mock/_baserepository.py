@@ -29,6 +29,19 @@ types.
 The repository is organized by namespace such that a
 namespace must be created before it can be used to create CIM object collections
 and each namespace contains a collection of each of these CIM objects.
+
+Example :
+
+.. code-block:: python
+
+    # XXXRepository is a class derived from BaseRepository
+    repo = XXXRepository()                           # create the repo
+    repo.add_namespace("root/cimv2")                 # add a namespace
+    class_store = .repo.get_class_store("root/cimv2") # get class obj store
+    test_class = CIMClass('CIM_Blah', ...)           # create a class
+    class_store.add(test_class)                      # add to xxxrepo classes
+    if 'CIM_Blah' in class_store:                    # test if class exists
+        klass = class_store.get('CIM_Blah;)          # get the class
 """
 
 from abc import abstractmethod, abstractproperty
@@ -64,12 +77,15 @@ class BaseObjectStore(object):
     An object store stores only a single CIM object type.
     """
 
+    @abstractmethod
     def __init__(self, cim_object_type):
         """
+        Instantiate the self.cim_object_type variable.
+
         Parameters:
 
             cim_object_type(:term:`CIM object`):
-              The Pywbem cim object type as defined in cim_types.py for the
+              The Pywbem CIM object type as defined in cim_types.py for the
               objects in the data store. Used to verify values on create.
         """
         self._cim_object_type = cim_object_type
@@ -77,7 +93,7 @@ class BaseObjectStore(object):
     @abstractmethod
     def exists(self, name):
         """
-        Test if the CIM object defined by name exists in the object store.
+        Test if the CIM object identified by name exists in the object store.
 
         Parameters:
 
@@ -93,47 +109,49 @@ class BaseObjectStore(object):
     @abstractmethod
     def get(self, name, copy=True):
         """
-        Return the CIM object defined by name if it exists in the object store.
+        Return the CIM object identified by name if it exists in the object
+        store.
 
         Parameters:
 
           name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
             Name by which the object is identified in the object store
 
-          copy: If True, returns a copy of the object to insure that modifying
-          the returned object does not change the data store. The default
-          behavior is True .  If copy is False, the object in the object store
-          is returned but if it is modified by the user, the object in the
-          store may be modified also.
-
+          copy(:class:`py:bool`):
+            If True, returns a copy of the object to insure that modifying the
+            returned object does not change the data store. The default
+            behavior is True .  If copy is False, the object in the object
+            store is returned but if it is modified by the user, the object in
+            the store may be modified also.
         Returns:
 
-            Returns the cim_object identified by the name parameter
+            :term:`CIM object`: Returns the CIM object identified by the
+              name parameter.
 
         Raises:
 
-            KeyError: cim_object with name not in this object store
+            KeyError: CIM object identified with name not in the object store
         """
         pass
 
     @abstractmethod
     def create(self, name, cim_object):
         """
-        Adds the cim_object identified by name to the object store.
+        Add the cim_object to the object store.
 
         Parameters:
 
           name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
-            Name by which the object is identified in the object store .
+            Name by which the CIM object will be identified in the object store.
 
-          cim_object(:term:`CIM object` to be added to the object store):
-            The CIM object that will be inserted into the object store. The
+          cim_object(:term:`CIM object`):
+            The CIM object to be added to the object store. The
             object is copied into the object store so the user can safely
             modify the original object without affecting the store.
 
         Raises:
 
-            ValueError: If object already exists in the object store.
+            ValueError: If CIM object already exists in the object store.
         """
         pass
 
@@ -155,7 +173,7 @@ class BaseObjectStore(object):
 
         Raises:
 
-            KeyError: If no object with name exists in the object store.
+            KeyError: If no CIM object with name exists in the object store.
         """
         pass
 
@@ -180,25 +198,25 @@ class BaseObjectStore(object):
     def iter_names(self):
         """
         Return an iterator to the names of the CIM objects in the object store.
-        The order of returned names is undefined. Objects may be accessed using
-        iterator methods.
+        Objects may be accessed using iterator methods.
 
-        The order of returned object is undetermined.
+        The order of returned names is undetermined.
 
         Returns:
 
-            Python iterator for the names of CIM objects in the object store.
+            :term:`iterator`: An iterator for the names of CIM objects in the
+            object store.
         """
         pass
 
     @abstractmethod
     def iter_values(self, copy=True):
         """
-        Return an iterator to the cim objects in the object store. This allows
+        Return an iterator to the CIM objects in the object store. This allows
         iteration through all the objects in this object store using iterator
         methods.
 
-        The order of returned values is undetermined.
+        The order of returned CIM objects is undetermined.
 
         Parameters:
 
@@ -210,8 +228,9 @@ class BaseObjectStore(object):
 
         Returns:
 
-            Python iterator for the object values in the object store.
-            If copy == True, each object is copied before it is returned.
+            :term:`iterator`: An iterator for the objects in the object
+            store. If copy == True, each object is copied before it is
+            returned.
         """
         pass
 
@@ -222,7 +241,7 @@ class BaseObjectStore(object):
 
         Returns:
 
-            Integer that is count of objects in this object store.
+            int: Integer that is count of objects in this object store.
 
         """
         pass
@@ -238,20 +257,9 @@ class BaseRepository(object):
        and getting a list of the existing namespaces.
     2. Access the object store for each CIM object type in the repository for
        the objects of the following CIM types: (:class:`~pywbem.CIMClass`,
-       :class:`~pywbem.CIMInstance`, and :class:`~pywbem.QualifierDeclaration`
-       decelarations) so that methods of the BaseObjectStore are used to access
-       and manipulate CIM objects of a single CIM type by namespace in the
-       repository.
-
-    Example :
-      # XXXRepository is a class derived from BaseRepository
-      repo = XXXRepository()                           # create the repo
-      repo.add_namespace("root/cimv2")                 # add a namespace
-      class_store = .repo.get_class_store("root/cimv2") # get class obj store
-      test_class = CIMClass('CIM_Blah', ...)           # create a class
-      class_store.add(test_class)                      # add to xxxrepo classes
-      if 'CIM_Blah' in class_store:                    # test if class exists
-          klass = class_store.get('CIM_Blah;)          # get the class
+       :class:`~pywbem.CIMInstance`, and :class:`~pywbem.QualifierDeclaration`)
+       so that methods of the BaseObjectStore are used to access and manipulate
+       CIM objects of a single CIM type by namespace in the repository.
     """
 
     @compatibleabstractproperty
