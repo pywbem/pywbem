@@ -22,7 +22,7 @@
 """
 Base abscract classes for an object store for collections of
 :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`, and
-:class:`~pywbem.CIMQualifierDeclaration`s and a generic API for a CIM
+:class:`~pywbem.CIMQualifierDeclaration` objects and a generic API for a CIM
 repository to access and manage the collections of each of these CIM object
 types.
 
@@ -70,11 +70,15 @@ class BaseObjectStore(object):
     """
     An abstract class that defines the APIs for the methods of an object store
     for CIM objects including CIMClass, CIMInstance, and CIMQualifierDeclaration
-    objectsthat constitute a WBEM server repository.  This
+    objects that constitute a WBEM server repository.  This
     class provides the abstract methods for creating, accessing, and deleting,
     CIM objects of a single CIM object type in the repository.
 
-    An object store stores only a single CIM object type.
+    CIM objects in the object store are identified by a name which is part of
+    the methods that access the CIM objects and must be unique within a single
+    object store.
+
+    Each object store conatins only a single CIM object type.
     """
 
     @abstractmethod
@@ -126,7 +130,7 @@ class BaseObjectStore(object):
         Returns:
 
             :term:`CIM object`: Returns the CIM object identified by the
-              name parameter.
+            name parameter.
 
         Raises:
 
@@ -137,7 +141,7 @@ class BaseObjectStore(object):
     @abstractmethod
     def create(self, name, cim_object):
         """
-        Add the cim_object to the object store.
+        Add the CIM object to the object store.
 
         Parameters:
 
@@ -158,8 +162,8 @@ class BaseObjectStore(object):
     @abstractmethod
     def update(self, name, cim_object):
         """
-        Replace the CIM object in the object store defined by the name argument
-        with the CIM object defined by cim_object.
+        Replace the CIM object in the object store idenfified by the name
+        argument with the CIM object defined by the cim_object argument.
 
         Parameters:
 

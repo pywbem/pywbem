@@ -19,16 +19,17 @@
 #
 
 """
-The pywbem_mock module provides a standard interface to a CIM repository that
-stores collections of :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`,
-and :class:`~pywbem.CIMQualifierDeclaration` as Python asbstract classes in the
-module :py:mod:`pywbem_mock/_baserepository.py`.
+This module provides an implementation of a CIM repository that stores
+collections of :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`, and
+:class:`~pywbem.CIMQualifierDeclaration` objects based on abstract classes that
+define the API for the repository.
 
-The pywbem_mock inmemory CIM repository implements a repository derived from
-:py:mod:`pywbem_mock/_baserepository.py` that stores the CIM objects only in
-memory. This CIM repository is created each time a
-:class:`~pywbem_mock.InMemoryRepository` is constructed and destroyed each
-time it is destroyed.
+The class :class:`~pywbem_mock.InMemoryRepository` implements a CIM repository
+that stores the CIM objects only in memory, partitioned by CIM namespaces, and
+containing an object store for each CIM object type using
+:class:`~pywbem_mock.InMemoryObjectStore` for each defined namespace. The CIM
+repository is created each time a :class:`~pywbem_mock.InMemoryRepository` is
+constructed and destroyed each time it is destroyed.
 
 Example:
 
@@ -70,8 +71,8 @@ class InMemoryObjectStore(BaseObjectStore):
     """
     # Documentation for the methods and properties inherited from
     # ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
-    # documentation. Therefore the methods in this class have no documentation
-    # string.
+    # documentation. Therefore the methods in this class that are derived
+    # from abstrace methods have no documentation string.
 
     # pylint: disable=line-too-long
     def __init__(self, cim_object_type):
@@ -91,7 +92,6 @@ class InMemoryObjectStore(BaseObjectStore):
         else:
             assert False, "InMemoryObjectStore: Invalid input parameter {}." \
                 .format(cim_object_type)
-    # pylint: enable=line-too-long
 
     def __repr__(self):
         return _format('InMemoryObjectStore(type={0},  dict={1}, size={2}',
@@ -173,13 +173,13 @@ class InMemoryRepository(BaseRepository):
             the CIM repository.
         """
 
-        # This variable defines the top level NocaseDict() which defines the
+        # Defines the top level NocaseDict() which defines the
         # namespaces in the repository. The keys of this dictionary
         # are namespace names and the values are dictionaries
         # defining the CIM classes, CIM instances, and CIM qualifier
         # declarations where the keys are "classes", "instance", and
         # "qualifiers" and the value for each is an instance of the
-        # class InMemoryObjectStore
+        # class InMemoryObjectStore that containe the CIM objects.
         self._repository = NocaseDict()
 
         # If an initial namespace is defined, add it to the repository
