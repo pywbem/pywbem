@@ -878,3 +878,44 @@ DMTF CIM schema download support
       :attributes:
 
    .. rubric:: Details
+
+
+.. _`Mock inmemory CIM repository`:
+
+Mock inmemory CIM repository
+----------------------------
+
+.. automodule:: pywbem_mock._inmemoryrepository
+
+.. autoclass:: pywbem_mock.InMemoryRepository
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.InMemoryRepository
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.InMemoryRepository
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. autoclass:: pywbem_mock.InMemoryObjectStore
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
+      :attributes:
+
+   .. rubric:: Details

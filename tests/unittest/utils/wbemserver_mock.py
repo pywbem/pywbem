@@ -321,8 +321,10 @@ class WbemServerMock(object):
 
         rtn_rpinsts = conn.EnumerateInstances("CIM_RegisteredProfile",
                                               namespace=self.interop_ns)
-        assert rtn_rpinsts, \
-            "Expected 1 or more RegisteredProfile instances, got none"
+
+        assert len(rtn_rpinsts) == len(profiles), \
+            "Expected registered profiles: %r, got %s" % (len(profiles),
+                                                          len(rtn_rpinsts))
 
     def build_elementconformstoprofile_inst(self, conn, profile_path,
                                             element_path):

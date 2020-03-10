@@ -81,7 +81,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         """
         if qualifier_repo is None:
             return
-        if qualifier.name not in qualifier_repo:
+        if not qualifier_repo.exists(qualifier.name):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Qualifier declaration {0!A} required by CreateClass "
@@ -89,7 +89,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                         qualifier.name, namespace))
 
     @staticmethod
-    def _validate_qualifiers(qualifier_list, qual_repo, new_class, scope):
+    def _validate_qualifiers(qualifier_list, qualifier_repo, new_class, scope):
         """
         Validate a list of qualifiers against the Qualifier decl in the
         repository.
@@ -101,13 +101,13 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         5. Whether the qualifier should be propagated to the subclass.
         """
         for qname, qvalue in qualifier_list.items():
-            if qname not in qual_repo:
+            if not qualifier_repo.exists(qname):
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Qualifier {0!A} used in new class {1!A} "
                             "has no qualifier declaration in repository.",
                             qname, new_class.classname))
-            q_decl = qual_repo[qname]
+            q_decl = qualifier_repo.get(qname)
             if qvalue.type != q_decl.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
@@ -125,12 +125,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                             qname, new_class.classname, scope, q_decl.scopes))
 
     @staticmethod
-    def _init_qualifier(qualifier, qual_repo):
+    def _init_qualifier(qualifier, qualifier_repo):
         """
         Initialize the flavors of a qualifier from the qualifier repo and
         initialize propagated.
         """
-        qual_dict_entry = qual_repo[qualifier.name]
+        qual_dict_entry = qualifier_repo.get(qualifier.name)
         qualifier.propagated = False
         if qualifier.tosubclass is None:
             if qual_dict_entry.tosubclass is None:
@@ -146,12 +146,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             qualifier.translatable = qual_dict_entry.translatable
 
     @staticmethod
-    def _init_qualifier_decl(qualifier_decl, qual_repo):
+    def _init_qualifier_decl(qualifier_decl, qualifier_repo):
         """
         Initialize the flavors of a qualifier declaration if they are not
         already set.
         """
-        assert qualifier_decl.name not in qual_repo
+        assert qualifier_repo.exists(qualifier_decl.name)
         if qualifier_decl.tosubclass is None:
             qualifier_decl.tosubclass = True
         if qualifier_decl.overridable is None:
@@ -475,7 +475,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                  qualifier_repo,
                                  propagate=False)
 
-        classrepo = self._get_class_repo(namespace)
+        classrepo = self._get_class_store(namespace)
         # resolve properties in new class
         self._resolve_objects(new_class.properties,
                               superclass.properties if superclass else None,

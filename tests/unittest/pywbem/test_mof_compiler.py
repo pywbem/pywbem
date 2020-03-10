@@ -325,13 +325,10 @@ class TestRemove(MOFTest):
 
         skip_if_moftab_regenerated()
 
-        # compile the mof. The DMTF schema mof is installed by the setup
+        # Compile the mof. The DMTF schema mof is installed by the setup
 
         ns = 'root/test'
-
         conn = FakedWBEMConnection(default_namespace=ns)
-
-        # compile the file against the mocker
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         self.logfile = open(moflog_file, 'w')
 
@@ -367,7 +364,7 @@ class TestRemove(MOFTest):
             verbose=False,
             log_func=moflog)
 
-        # recompile for to MOFWBEMConnection for remove
+        # recompile to MOFWBEMConnection for remove
         conn_mof_mofcomp.compile_file(
             os.path.join(TEST_DIR, 'test.mof'), ns)
 

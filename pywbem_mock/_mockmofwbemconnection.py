@@ -28,16 +28,17 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, \
-    CIM_ERR_INVALID_NAMESPACE, CIMInstanceName
+    CIM_ERR_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, CIM_ERR_FAILED, \
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_NAMESPACE, CIMInstanceName
 from pywbem._nocasedict import NocaseDict
 from pywbem._mof_compiler import MOFWBEMConnection
 
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
+from pywbem._nocasedict import NocaseDict
 
-# Issue # 2062 Refactor this into a class that represents the repository
-# data store.
+# Issue #2062 TODO/ks Remove this code and use the methods in _WBEMConnection
+# in their place
 
 
 class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
@@ -50,7 +51,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
     that allows resolving the created class before it is inserted into the
     repository.
 
-    This class is private to pywbem_mock
+    This class adaption is private to pywbem_mock
     """
     def __init__(self, faked_conn_object):
         """
@@ -65,89 +66,64 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         """
         super(_MockMOFWBEMConnection, self).__init__(conn=faked_conn_object)
 
-        # Reassign the variables that represent the repository to the
-        # faked_conn_object so that we have a common repository
-        self.qualifiers = faked_conn_object.qualifiers
-        self.instances = faked_conn_object.instances
-        self.classes = faked_conn_object.classes
+        self.classes = NocaseDict()
 
-    def CreateClass(self, *args, **kwargs):
+        self.repo = faked_conn_object.repo
+
+    def _getns(self):
         """
-        Override the CreateClass method in MOFWBEMConnection. NOTE: This is
-        currently only used by the compiler.  The methods of Fake_WBEMConnectin
-        go directly to the repository, not through this method.
-        This modifies the overridden method to add validation.
+        :term:`string`: Return the default repository namespace to be used.
 
-        For a description of the parameters, see
-        :meth:`pywbem.WBEMConnection.CreateClass`.
+        This method exists for compatibility. Use the :attr:`default_namespace`
+        property instead.
         """
-        cc = args[0] if args else kwargs['NewClass']
-        namespace = self.getns()
+        if self.conn is not None:
+            return self.conn.default_namespace
+        return self.__default_namespace
 
-        try:
-            self.compile_ordered_classnames.append(cc.classname)
+    def _setns(self, value):
+        """
+        Set the default repository namespace to be used.
 
-            # The following generates an exception for each new ns
-            self.classes[self.default_namespace][cc.classname] = cc
-        except KeyError:
-            self.classes[namespace] = \
-                NocaseDict({cc.classname: cc})
+        This method exists for compatibility. Use the :attr:`default_namespace`
+        property instead.
+        """
+        if self.conn is not None:
+            self.conn.default_namespace = value
+        else:
+            self.__default_namespace = value
 
-        # Validate that references and embedded instance properties, methods,
-        # etc. have classes that exist in repo. This  also institates the
-        # mechanism that gets insures that prerequisite classes are inserted
-        # into the repo.
-        objects = list(cc.properties.values())
-        for meth in cc.methods.values():
-            objects += list(meth.parameters.values())
+    getns = _getns  # for compatibility
+    setns = _setns  # for compatibility
 
-        for obj in objects:
-            # Validate that reference_class exists in repo
-            if obj.type == 'reference':
-                try:
-                    self.GetClass(obj.reference_class, LocalOnly=True,
-                                  IncludeQualifiers=True)
-                except CIMError as ce:
-                    if ce.status_code == CIM_ERR_NOT_FOUND:
-                        raise CIMError(
-                            CIM_ERR_INVALID_PARAMETER,
-                            _format("Class {0!A} referenced by element {1!A} "
-                                    "of class {2!A} in namespace {3!A} does "
-                                    "not exist",
-                                    obj.reference_class, obj.name,
-                                    cc.classname, self.getns()),
-                            conn_id=self.conn_id)
-                    raise
+    default_namespace = property(
+        _getns, _setns, None,
+        """
+        :term:`string`: The default repository namespace to be used.
 
-            elif obj.type == 'string':
-                if 'EmbeddedInstance' in obj.qualifiers:
-                    eiqualifier = obj.qualifiers['EmbeddedInstance']
-                    try:
-                        self.GetClass(eiqualifier.value, LocalOnly=True,
-                                      IncludeQualifiers=False)
-                    except CIMError as ce:
-                        if ce.status_code == CIM_ERR_NOT_FOUND:
-                            raise CIMError(
-                                CIM_ERR_INVALID_PARAMETER,
-                                _format("Class {0!A} specified by "
-                                        "EmbeddInstance qualifier on element "
-                                        "{1!A} of class {2!A} in namespace "
-                                        "{3!A} does not exist",
-                                        eiqualifier.value, obj.name,
-                                        cc.classname, self.getns()),
-                                conn_id=self.conn_id)
-                        raise
+        The default repository namespace is the default namespace of the
+        underlying repository connection if there is such an underlying
+        connection, or the default namespace of this object.
 
-        ccr = self.conn._resolve_class(  # pylint: disable=protected-access
-            cc, namespace, self.qualifiers[namespace])
-        if namespace not in self.classes:
-            self.classes[namespace] = NocaseDict()
-        self.classes[namespace][ccr.classname] = ccr
+        Initially, the default namespace of this object is 'root/cimv2'.
 
-        try:
-            self.class_names[namespace].append(ccr.classname)
-        except KeyError:
-            self.class_names[namespace] = [ccr.classname]
+        This property is settable. Setting it will cause the default namespace
+        of the underlying repository connection to be updated if there is such
+        an underlying connection, or the default namespace of this object.
+        """
+    )
+
+    def EnumerateInstanceNames(self, *args, **kwargs):
+        """This method is used by the MOF compiler only when it creates a
+        namespace in the course of handling CIM_ERR_NAMESPACE_NOT_FOUND.
+        Because the operations of this class silently create every namespace
+        that is needed and never return that error, this method is never
+        called, and is therefore not implemented.
+        """
+
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def CreateInstance(self, *args, **kwargs):
         """
@@ -166,7 +142,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateInstance`.
         """
-
+        namespace = self.default_namespace
         inst = args[0] if args else kwargs['NewInstance']
 
         # Get list of properties in class defined for this instance
@@ -190,21 +166,19 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
             inst.path = CIMInstanceName.from_instance(
                 cls, inst, namespace=self.default_namespace)
 
-        if self.default_namespace not in self.instances:
-            self.instances[self.default_namespace] = {}
-
-        # exception if duplicate. NOTE: compiler overrides this with
+        # Exception if duplicate. NOTE: compiler overrides this with
         # modify instance.
-        if inst.path in self.instances[self.default_namespace]:
+        instance_store = self.repo.get_instance_store(namespace)
+        if instance_store.exists(inst.path):
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
                 _format('CreateInstance failed. Instance with path {0!A} '
                         'already exists in mock repository', inst.path))
         try:
-            self.instances[self.default_namespace][inst.path] = inst
+            # TODO: This should go through self.conn.CreateInstance
+            instance_store.create(inst.path, inst)
         except KeyError:
-            self.instances[self.default_namespace] = {}
-            self.instances[self.default_namespace][inst.path] = inst
+            raise
 
         return inst.path
 
@@ -217,24 +191,243 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         each created instance include the instance path which means that
         the MOF must include the instance alias on each created instance.
         """
+        namespace = self.default_namespace
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
-        if self.default_namespace not in self.instances:
+        instance_store = self.conn._get_instance_store(namespace)
+
+        if self.default_namespace not in self.repo.namespaces:
             raise CIMError(
                 CIM_ERR_INVALID_NAMESPACE,
                 _format('ModifyInstance failed. No instance repo exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
-        if mod_inst.path not in self.instances[self.default_namespace]:
+        if not instance_store.exists(mod_inst.path):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format('ModifyInstance failed. No instance exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
-        orig_instance = self.instances[self.default_namespace][mod_inst.path]
-        orig_instance.update(mod_inst.properties)
-        self.instances[self.default_namespace][mod_inst.path] = orig_instance
+        # Update the instance in the repository from the modified inst
+        orig_inst = instance_store.get(mod_inst.path)
+        orig_inst.update(mod_inst.properties)
+        instance_store.update(mod_inst.path, orig_inst)
+
+    def DeleteInstance(self, *args, **kwargs):
+        """This method is only invoked by :meth:`rollback` (on the underlying
+        repository), and never by the MOF compiler, and is therefore not
+        implemented."""
+
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
+
+    def GetClass(self, *args, **kwargs):
+        """Retrieve a CIM class from the local repository of this class.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.GetClass`.
+        """
+        cname = args[0] if args else kwargs['ClassName']
+
+        try:
+            cc = self.classes[self.default_namespace][cname]
+        except KeyError:
+            if self.conn is None:
+                ce = CIMError(CIM_ERR_NOT_FOUND, cname)
+                raise ce
+            cc = self.conn.GetClass(*args, **kwargs)
+            try:
+                self.classes[self.default_namespace][cc.classname] = cc
+            except KeyError:
+                self.classes[self.default_namespace] = \
+                    NocaseDict({cc.classname: cc})
+
+        if 'LocalOnly' in kwargs and not kwargs['LocalOnly']:
+            if cc.superclass:
+                try:
+                    del kwargs['ClassName']
+                except KeyError:
+                    pass
+                if args:
+                    args = args[1:]
+                super_ = self.GetClass(cc.superclass, *args, **kwargs)
+                for prop in super_.properties.values():
+                    if prop.name not in cc.properties:
+                        cc.properties[prop.name] = prop
+                for meth in super_.methods.values():
+                    if meth.name not in cc.methods:
+                        cc.methods[meth.name] = meth
+        return cc
+
+    def CreateClass(self, *args, **kwargs):
+        """
+        Override the CreateClass method in MOFWBEMConnection. NOTE: This is
+        currently only used by the compiler.  The methods of Fake_WBEMConnectin
+        go directly to the repository, not through this method.
+        This modifies the overridden method to add validation.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.CreateClass`.
+        """
+        cc = args[0] if args else kwargs['NewClass']
+        namespace = self.default_namespace
+        class_store = self.repo.get_class_store(namespace)
+
+        if cc.superclass:
+            # Since this may cause additional GetClass calls
+            # IncludeQualifiers = True insures reference properties on
+            # instances with aliases get built correctly.
+            try:
+                self.GetClass(cc.superclass, LocalOnly=True,
+                              IncludeQualifiers=True)
+            except CIMError as ce:
+                if ce.status_code == CIM_ERR_NOT_FOUND:
+                    raise CIMError(
+                        CIM_ERR_INVALID_SUPERCLASS,
+                        _format("Cannot create class {0!A} in namespace "
+                                "{1!A} because its superclass {2!A} does "
+                                "not exist",
+                                cc.classname, self.getns(), cc.superclass),
+                        conn_id=self.conn_id)
+                raise
+
+        # Class created in local repo before tests because that allows
+        # tests that may actually include this class to succeed in
+        # the test code below.
+        try:
+            # The following generates an exception for each new ns
+            self.classes[self.default_namespace][cc.classname] = cc
+        except KeyError:
+            self.classes[namespace] = NocaseDict({cc.classname: cc})
+
+        # Validate that references and embedded instance properties, methods,
+        # etc. have classes that exist in repo. This  also institates the
+        # mechanism that gets insures that prerequisite classes are inserted
+        # into the repo.
+        objects = list(cc.properties.values())
+        for meth in cc.methods.values():
+            objects += list(meth.parameters.values())
+
+        for obj in objects:
+            # Validate that reference_class exists in repo
+            if obj.type == 'reference':
+                try:
+                    self.GetClass(obj.reference_class, LocalOnly=True,
+                                  IncludeQualifiers=True)
+                except KeyError:
+                    raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                   obj.reference_class)
+                # TODO: When we hook to server this returns to CIMError
+                except CIMError as ce:
+                    if ce.status_code == CIM_ERR_NOT_FOUND:
+                        raise CIMError(
+                            CIM_ERR_INVALID_PARAMETER,
+                            _format("Class {0!A} referenced by element {1!A} "
+                                    "of class {2!A} in namespace {3!A} does "
+                                    "not exist",
+                                    obj.reference_class, obj.name,
+                                    cc.classname, self.getns()),
+                            conn_id=self.conn_id)
+                    raise
+
+            elif obj.type == 'string':
+                if 'EmbeddedInstance' in obj.qualifiers:
+                    eiqualifier = obj.qualifiers['EmbeddedInstance']
+                    try:
+                        self.GetClass(eiqualifier.value, LocalOnly=True,
+                                      IncludeQualifiers=False)
+                    except KeyError:
+                        raise CIMError(CIM_ERR_INVALID_PARAMETER,
+                                       eiqualifier.value)
+                    except CIMError as ce:
+                        if ce.status_code == CIM_ERR_NOT_FOUND:
+                            raise CIMError(
+                                CIM_ERR_INVALID_PARAMETER,
+                                _format("Class {0!A} specified by "
+                                        "EmbeddInstance qualifier on element "
+                                        "{1!A} of class {2!A} in namespace "
+                                        "{3!A} does not exist",
+                                        eiqualifier.value, obj.name,
+                                        cc.classname, self.getns()),
+                                conn_id=self.conn_id)
+                        raise
+
+        ccr = self.conn._resolve_class(  # pylint: disable=protected-access
+            cc, namespace, self.repo.get_qualifier_store(namespace))
+
+        # If the class exists, update it. Otherwise create it
+        # TODO: Validate that this is correct behavior. That is what the
+        # original MOFWBEMConnection does.
+        if class_store.exists(ccr.classname):
+            class_store.update(ccr.classname, ccr)
+        else:
+            class_store.create(ccr.classname, ccr)
+        self.classes[namespace][ccr.classname] = ccr
+
+    def EnumerateQualifiers(self, *args, **kwargs):
+        """Enumerate the qualifier types in the local repository of this class.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
+        """
+
+        if self.conn is not None:
+            rv = self.conn.EnumerateQualifiers(*args, **kwargs)
+        else:
+            rv = []
+        try:
+            rv += list(self.qualifiers[self.default_namespace].values())
+        except KeyError:
+            pass
+        return rv
+
+    def GetQualifier(self, *args, **kwargs):
+        """Retrieve a qualifier type from the local repository of this class.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.GetQualifier`.
+        """
+
+        qualname = args[0] if args else kwargs['QualifierName']
+        namespace = self.default_namespace
+        try:
+            # TODO: This should get from real repo I think
+            qualifier_store = self.repo.get_qualifier_store(namespace)
+            qual = qualifier_store.get(qualname)
+        except KeyError:
+            raise
+        return qual
+
+    def SetQualifier(self, *args, **kwargs):
+        """Create or modify a qualifier type in the local repository of this
+        class.
+
+        For a description of the parameters, see
+        :meth:`pywbem.WBEMConnection.SetQualifier`.
+        """
+        namespace = self.default_namespace
+        qual = args[0] if args else kwargs['QualifierDeclaration']
+        qualifier_store = self.repo.get_qualifier_store(namespace)
+        try:
+            qualifier_store.create(qual.name, qual)
+        except KeyError:
+            # If qualifier already in repo, update it. This is defined
+            # specification behavior
+            qualifier_store.update(qual.name, qual)
+            # raise
+            # self.qualifiers[self.default_namespace] = \
+            #    # NocaseDict({qual.name: qual})
+
+    def DeleteQualifier(self, *args, **kwargs):
+        """This method is only invoked by :meth:`rollback` (on the underlying
+        repository), and never by the MOF compiler, and is therefore not
+        implemented."""
+
+        raise CIMError(
+            CIM_ERR_FAILED, 'This should not happen!',
+            conn_id=self.conn_id)
 
     def _get_class(self, superclass, namespace=None,
                    local_only=False, include_qualifiers=True,

@@ -61,6 +61,7 @@ ply==3.10
 PyYAML==5.1
 six==1.10.0
 requests==2.20.0
+custom-inherit==2.2.2
 
 
 # Indirect dependencies for install (not in requirements.txt)
