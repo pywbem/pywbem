@@ -52,7 +52,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_NAMESPACE_NOT_EMPTY, \
-    CIM_ERR_INVALID_SUPERCLASS
+    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_NOT_SUPPORTED
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from pywbem._cim_operations import pull_path_result_tuple
@@ -847,6 +847,69 @@ class TestFakedWBEMConnection(object):
         else:
             assert exec_time < 0.1
 
+    @pytest.mark.parametrize(
+        "set_on_init", [False, True])
+    @pytest.mark.parametrize(
+        "disable", [False, None, True])
+    def test_disable_pull(self, tst_classeswqualifiers, tst_instances,
+                          set_on_init, disable):
+        # pylint: disable=no-self-use
+        """
+        Test the disable_pull_operations property set both in init
+        and with property.
+        """
+        def tfail(fn, *pargs, **kwargs):
+            """Confirm the operation fn fails with CIM_ERR_NOT_SUPPORTED"""
+            with pytest.raises(CIMError) as exec_info:
+                fn(*pargs, **kwargs)
+            exc = exec_info.value
+            assert exc.status_code == CIM_ERR_NOT_SUPPORTED
+
+        # pylint: disable=protected-access
+        FakedWBEMConnection._reset_logging_config()
+
+        if set_on_init:
+            conn = FakedWBEMConnection(disable_pull_operations=disable)
+        else:
+            conn = FakedWBEMConnection()
+            assert conn.disable_pull_operations is False
+            conn.disable_pull_operations = disable
+
+        # Test if the attribute correctly set
+        if disable:
+            assert conn.disable_pull_operations is True
+        elif disable is False:
+            assert conn.disable_pull_operations is False
+        else:
+            assert disable is None
+            assert conn.disable_pull_operations is False
+
+        conn.add_cimobjects(tst_classeswqualifiers)
+        conn.add_cimobjects(tst_instances)
+        tst_class = 'CIM_Foo'
+        paths = conn.EnumerateInstanceNames(tst_class)
+        path = paths[0]
+
+        if conn.disable_pull_operations is True:
+            tfail(conn.OpenEnumerateInstances, tst_class)
+            tfail(conn.OpenEnumerateInstancePaths, tst_class)
+            tfail(conn.OpenReferenceInstances, path)
+            tfail(conn.OpenReferenceInstancePaths, path)
+            tfail(conn.OpenAssociatorInstancePaths, path)
+            tfail(conn.OpenAssociatorInstancePaths, path)
+            # TODO add this tfail(conn.OpenQueryInstances,
+            #                     tst_class, 'WQL', "SELECT FROM CIM_Foo" )
+
+        else:
+            conn.OpenEnumerateInstances(tst_class)
+            conn.OpenEnumerateInstancePaths(tst_class)
+            conn.OpenReferenceInstances(path)
+            conn.OpenReferenceInstancePaths(path)
+            conn.OpenAssociatorInstancePaths(path)
+            conn.OpenAssociatorInstancePaths(path)
+            # TODO: Future conn.OpenQueryInstances
+            #       (tst_class, 'WQL', "SELECT FROM CIM_Foo" )
+
     def test_repr(self):
         # pylint: disable=no-self-use
         """ Test output of repr"""
@@ -933,6 +996,7 @@ class TestRepoMethods(object):
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
 
+        # pylint: disable=protected-access
         class_store = conn._get_class_store(ns)
 
         assert set(conn._get_subclass_names(cln, class_store, di)) == \
