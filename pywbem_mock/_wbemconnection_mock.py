@@ -36,8 +36,8 @@ import traceback
 import re
 from xml.dom import minidom
 from collections import Counter
-from mock import Mock
 import six
+from mock import Mock
 
 # pylint: disable=ungrouped-imports
 try:
@@ -214,7 +214,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
-                 timeout=None, response_delay=None):
+                 timeout=None, response_delay=None,
+                 disable_pull_operations=None):
         """
         Parameters:
 
@@ -224,8 +225,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             parameter of :class:`~pywbem.WBEMConnection`.
 
           use_pull_operations (:class:`py:bool`):
-            Flag to control whether pull or traditional operaitons are
-            used in the iter operations.
+            Flag to control whether pull or traditional operations are
+            used in the iter... operations.
             This parameter has the same characteristics as the same-named init
             parameter of :class:`~pywbem.WBEMConnection`.
 
@@ -247,11 +248,26 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             Note that the
             :attr:`~pywbem_mock.FakedWBEMConnection.response_delay` property
             can be used to set this delay subsequent to object creation.
+
+          disable_pull_operations (:class:`py:bool`):
+            Flag to allow user to disable the pull operations ( Open... and
+            Pull.. requests). The default is None which enables pull operations
+            to execute. Setting the variable to True causes pull operation
+            requests to the mock CIM repository to return CIM_ERR_NOT_SUPPORTED.
+
+            Note that the
+            :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
+            property can be used to set this variable.
         """
+
         # Response delay in seconds. Any operation is delayed by this time.
         # Initialize before superclass init because otherwise logger may
         # fail with this attribute not found
         self._response_delay = response_delay
+
+        # Flag to allow or disallow the use of the Open... and Pull...
+        # operations. Uses the setter method
+        self.disable_pull_operations = disable_pull_operations
 
         super(FakedWBEMConnection, self).__init__(
             'http://FakedUrl:5988',
@@ -320,6 +336,37 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                 _format("Invalid value for response_delay: {0!A}, must be a "
                         "positive number", delay))
 
+    @property
+    def disable_pull_operations(self):
+        """
+        ::`allow`:
+          Boolean Flag to set option to disable the execution of the open and
+          pull operation request handlers in the mock CIM repository. This
+          emulates the characteristic in some CIM servers that did not
+          implement pull operations. The default is to allow pull operations.
+          All pull operations requests may be forbidden from executing by
+          setting disable_pull_operations to True.
+
+          This attribute is settable. For details, see the description of the
+          same-named init parameter of
+          :class:`this class <pywbem.FakedWBEMConnection>`.
+        """
+        return self._disable_pull_operations
+
+    @disable_pull_operations.setter
+    def disable_pull_operations(self, disable):
+        """Setter method; for a description see the getter method."""
+        # Attribute will always be boolean
+        if disable is None:
+            disable = False
+        if isinstance(disable, bool):
+            # pylint: disable=attribute-defined-outside-init
+            self._disable_pull_operations = disable
+        else:
+            raise ValueError(
+                _format('Invalid type for disable_pull_operations: {0!A}, '
+                        'must be a boolean,'. disable))
+
     def __str__(self):
         return _format(
             "FakedWBEMConnection("
@@ -331,6 +378,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         return _format(
             "FakedWBEMConnection("
             "response_delay={s.response_delay}, "
+            "disable_pull_operations={s.disable_pull_operations} "
             "super={super})",
             s=self, super=super(FakedWBEMConnection, self).__repr__())
 
@@ -3012,6 +3060,15 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
     #
     #####################################################################
 
+    def _pull_operations_disabled(self):
+        """
+        Test if pull operations valid.  If they are not, raise exception
+        """
+        if self.disable_pull_operations:
+            raise CIMError(CIM_ERR_NOT_SUPPORTED,
+                           "Pull Operations not supported. "
+                           "disable_pull_operations=True")
+
     @staticmethod
     def _create_contextid():
         """Return a new uuid for an enumeration context"""
@@ -3079,6 +3136,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
 
             CIMError: CIM_ERR_INVALID_ENUMERATION_CONTEXT
         """
+        self._pull_operations_disabled()
 
         self.validate_namespace(namespace)
 
@@ -3142,6 +3200,11 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
                     _format("OperationTimeout {0!A }must be positive integer "
                             "less than {1!A}", ot, OPEN_MAX_TIMEOUT))
 
+    #########################################################
+    #
+    #   Implementation of Open and Pull request operations
+    #
+    #########################################################
     def _fake_OpenEnumerateInstancePaths(self, **params):
         # pylint: disable=invalid-name
         """
@@ -3149,6 +3212,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         :meth:`~pywbem.WBEMConnection.OpenEnumerationInstancePaths`
         with data from the instance repository.
         """
+        self._pull_operations_disabled()
 
         namespace = self.namespace
         self.validate_namespace(namespace)
@@ -3165,6 +3229,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances`
         with data from the instance repository.
         """
+        self._pull_operations_disabled()
+
         namespace = self.namespace
         self.validate_namespace(namespace)
         self._validate_open_params(**params)
@@ -3181,6 +3247,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`
         with data from the instance repository.
         """
+        self._pull_operations_disabled()
+
         namespace = self.namespace
         self.validate_namespace(namespace)
         self._validate_open_params(**params)
@@ -3200,6 +3268,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
         with data from the instance repository.
         """
+        self._pull_operations_disabled()
 
         namespace = self.namespace
         self.validate_namespace(namespace)
@@ -3222,6 +3291,8 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         with data from the instance repository.
         """
 
+        self._pull_operations_disabled()
+
         namespace = self.namespace
         self.validate_namespace(namespace)
         self._validate_open_params(**params)
@@ -3241,6 +3312,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         WBEMConnection.OpenAssociatorInstances
         with data from the instance repository.
         """
+        self._pull_operations_disabled()
 
         namespace = self.namespace
         self.validate_namespace(namespace)
@@ -3262,6 +3334,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
         :meth:`~pywbem.WBEMConnection.OpenQueryInstances`
         with data from the instance repository.
         """
+        self._pull_operations_disabled()
 
         namespace = self.namespace
         self.validate_namespace(namespace)
@@ -3316,6 +3389,7 @@ class FakedWBEMConnection(WBEMConnection, ResolverMixin):
             If the EnumerationContext is valid it removes it from the
             context repository. Otherwise it returns an exception.
         """
+        self._pull_operations_disabled()
 
         namespace = self.namespace
         self.validate_namespace(namespace)

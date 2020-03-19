@@ -491,6 +491,10 @@ Released: not yet
   On Python versions before 2.7.9, pywbem will continue to use the deprecated
   `ssl.wrap_socket()` function. (See issue #2002)
 
+* Add property to pywbem_mock Fake_WBEMConnection to allow the user to modify
+  the mocker behavior to forbid the use of the pull operations.
+  (See issue #2126)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
