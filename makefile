@@ -679,11 +679,15 @@ else
 endif
 
 safety_$(pymn).done: develop_$(pymn).done makefile minimum-constraints.txt
+ifeq ($(python_mn_version),2.6)
+	@echo "makefile: Warning: Skipping pyup.io safety check on Python $(python_version)" >&2
+else
 	@echo "makefile: Running pyup.io safety check"
 	-$(call RM_FUNC,$@)
 	-safety check -r minimum-constraints.txt --full-report
 	echo "done" >$@
 	@echo "makefile: Done running pyup.io safety check"
+endif
 
 ifdef TEST_INSTALLED
   test_deps =
