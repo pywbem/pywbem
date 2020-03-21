@@ -51,9 +51,11 @@ environment:
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
 
-    - TOX_ENV: win64_py38_64
-      UNIX_PATH: none
-      PYTHON_CMD: python
+#    - TOX_ENV: win64_py38_64
+#      UNIX_PATH: none
+#      PYTHON_CMD: python
+
+# Note: On CygWin with Python 3.x, LC_ALL/LANG need to be set to utf-8 for Click to install/work
 
 # TODO: Disabled because python2.7 with cygwin 32-bit fails with:
 #       "virtualenv is not compatible with this system or executable"
@@ -61,45 +63,64 @@ environment:
 #      UNIX_PATH: C:\cygwin\bin
 #      PYTHON_CMD: python2.7
 #      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python27-devel
 
 #    - TOX_ENV: cygwin64_py27
 #      UNIX_PATH: C:\cygwin64\bin
 #      PYTHON_CMD: python2.7
 #      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python27-devel
 
+# TODO: Disabled because tox does nothing in this env.
 #    - TOX_ENV: cygwin32_py36
 #      UNIX_PATH: C:\cygwin\bin
-#      PYTHON_CMD: python3.6m
+#      PYTHON_CMD: python3.6
 #      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python36-devel
+#      LC_ALL: C.UTF-8
+#      LANG: C.UTF-8
 
-    - TOX_ENV: cygwin64_py36
+#    - TOX_ENV: cygwin64_py36
+#      UNIX_PATH: C:\cygwin64\bin
+#      PYTHON_CMD: python3.6
+#      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python36-devel
+#      LC_ALL: C.UTF-8
+#      LANG: C.UTF-8
+
+# TODO: Disabled because tox does nothing in this env.
+#    - TOX_ENV: cygwin32_py37
+#      UNIX_PATH: C:\cygwin\bin
+#      PYTHON_CMD: python3.7
+#      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python37-devel
+#      LC_ALL: C.UTF-8
+#      LANG: C.UTF-8
+
+#    - TOX_ENV: cygwin64_py37
+#      UNIX_PATH: C:\cygwin64\bin
+#      PYTHON_CMD: python3.7
+#      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python37-devel
+#      LC_ALL: C.UTF-8
+#      LANG: C.UTF-8
+
+# TODO: Disabled because tox does nothing in this env.
+#    - TOX_ENV: cygwin32_py38
+#      UNIX_PATH: C:\cygwin\bin
+#      PYTHON_CMD: python3.8
+#      PIP_CMD: pip
+#      CYGWIN_PYTHON_DEVEL: python38-devel
+#      LC_ALL: C.UTF-8
+#      LANG: C.UTF-8
+
+    - TOX_ENV: cygwin64_py38
       UNIX_PATH: C:\cygwin64\bin
-      PYTHON_CMD: python3.6m
+      PYTHON_CMD: python3.8
       PIP_CMD: pip
-
-## TODO: Enable Python 3.7 once available on Appveyor in Cygwin
-##    - TOX_ENV: cygwin32_py37
-##      UNIX_PATH: C:\cygwin\bin
-##      PYTHON_CMD: python3.7m
-##      PIP_CMD: pip
-
-## TODO: Enable Python 3.7 once available on Appveyor in Cygwin
-##    - TOX_ENV: cygwin64_py37
-##      UNIX_PATH: C:\cygwin64\bin
-##      PYTHON_CMD: python3.7m
-##      PIP_CMD: pip
-
-## TODO: Enable Python 3.8 once available on Appveyor in Cygwin
-##    - TOX_ENV: cygwin32_py38
-##      UNIX_PATH: C:\cygwin\bin
-##      PYTHON_CMD: python3.8m
-##      PIP_CMD: pip
-
-## TODO: Enable Python 3.8 once available on Appveyor in Cygwin
-##    - TOX_ENV: cygwin64_py38
-##      UNIX_PATH: C:\cygwin64\bin
-##      PYTHON_CMD: python3.8m
-##      PIP_CMD: pip
+      CYGWIN_PYTHON_DEVEL: python38-devel
+      LC_ALL: C.UTF-8
+      LANG: C.UTF-8
 
 configuration:
 # These values will become the values of the PACKAGE_LEVEL env.var.
@@ -154,6 +175,10 @@ install:
   - if not "%UNIX_PATH%"=="none" ( bash --noprofile --norc -c "which %PYTHON_CMD%; echo which %PYTHON_CMD% returns rc=\$?" )
   - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( C:\cygwin\setup-x86.exe -qnNdO -R C:/cygwin -P python2 )'
   - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -P python2 )'
+
+  # Install Python development packages on CygWin
+  - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( C:\cygwin\setup-x86.exe -qnNdO -R C:/cygwin -P %CYGWIN_PYTHON_DEVEL% )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( C:\cygwin64\setup-x86_64.exe -qnNdO -R C:/cygwin64 -P %CYGWIN_PYTHON_DEVEL% )'
 
   # Verify that Python command is available, and fail if not
   - if "%UNIX_PATH%"=="none" ( where %PYTHON_CMD% )
