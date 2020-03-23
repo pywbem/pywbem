@@ -495,6 +495,10 @@ Released: not yet
   the mocker behavior to forbid the use of the pull operations.
   (See issue #2126)
 
+* Refactor pywbem_mock to separate the CIM repository from the class
+  Fake_WBEMConnection. This creates a new file _cimrepository.py that
+  implements a CIM server repository. (See issue #2062)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)

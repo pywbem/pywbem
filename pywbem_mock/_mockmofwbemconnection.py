@@ -53,7 +53,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
     This class adaption is private to pywbem_mock
     """
-    def __init__(self, faked_conn_object):
+    def __init__(self, faked_conn_object, cimrepository):
         """
         Initialize the connection.
 
@@ -68,7 +68,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
         self.classes = NocaseDict()
 
-        self.repo = faked_conn_object.repo
+        self.repo = cimrepository
 
     def _getns(self):
         """
@@ -354,7 +354,8 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                                 conn_id=self.conn_id)
                         raise
 
-        ccr = self.conn._resolve_class(  # pylint: disable=protected-access
+        # TODO: Review this. Changed from conn to repo
+        ccr = self.repo._resolve_class(  # pylint: disable=protected-access
             cc, namespace, self.repo.get_qualifier_store(namespace))
 
         # If the class exists, update it. Otherwise create it
