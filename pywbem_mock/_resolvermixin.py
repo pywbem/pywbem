@@ -75,13 +75,13 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
     """
     @staticmethod
-    def _test_qualifier_decl(qualifier, qualifier_repo, namespace):
+    def _test_qualifier_decl(qualifier, qualifier_store, namespace):
         """
         Test that qualifier is in repo and valid.
         """
-        if qualifier_repo is None:
+        if qualifier_store is None:
             return
-        if not qualifier_repo.exists(qualifier.name):
+        if not qualifier_store.exists(qualifier.name):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Qualifier declaration {0!A} required by CreateClass "
@@ -89,7 +89,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                         qualifier.name, namespace))
 
     @staticmethod
-    def _validate_qualifiers(qualifier_list, qualifier_repo, new_class, scope):
+    def _validate_qualifiers(qualifier_list, qualifier_store, new_class, scope):
         """
         Validate a list of qualifiers against the Qualifier decl in the
         repository.
@@ -101,13 +101,13 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         5. Whether the qualifier should be propagated to the subclass.
         """
         for qname, qvalue in qualifier_list.items():
-            if not qualifier_repo.exists(qname):
+            if not qualifier_store.exists(qname):
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Qualifier {0!A} used in new class {1!A} "
                             "has no qualifier declaration in repository.",
                             qname, new_class.classname))
-            q_decl = qualifier_repo.get(qname)
+            q_decl = qualifier_store.get(qname)
             if qvalue.type != q_decl.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
@@ -125,12 +125,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                             qname, new_class.classname, scope, q_decl.scopes))
 
     @staticmethod
-    def _init_qualifier(qualifier, qualifier_repo):
+    def _init_qualifier(qualifier, qualifier_store):
         """
         Initialize the flavors of a qualifier from the qualifier repo and
         initialize propagated.
         """
-        qual_dict_entry = qualifier_repo.get(qualifier.name)
+        qual_dict_entry = qualifier_store.get(qualifier.name)
         qualifier.propagated = False
         if qualifier.tosubclass is None:
             if qual_dict_entry.tosubclass is None:
@@ -146,12 +146,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             qualifier.translatable = qual_dict_entry.translatable
 
     @staticmethod
-    def _init_qualifier_decl(qualifier_decl, qualifier_repo):
+    def _init_qualifier_decl(qualifier_decl, qualifier_store):
         """
         Initialize the flavors of a qualifier declaration if they are not
         already set.
         """
-        assert qualifier_repo.exists(qualifier_decl.name)
+        assert qualifier_store.exists(qualifier_decl.name)
         if qualifier_decl.tosubclass is None:
             qualifier_decl.tosubclass = True
         if qualifier_decl.overridable is None:
@@ -160,7 +160,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             qualifier_decl.translatable = False
 
     def _resolve_objects(self, new_objects, superclass_objects, new_class,
-                         superclass, classrepo, qualifier_repo, type_str,
+                         superclass, classrepo, qualifier_store, type_str,
                          verbose=None):
         """
         Resolve a dictionary of objects where the objects can be CIMProperty,
@@ -171,7 +171,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         if not superclass:
             for new_obj in six.itervalues(new_objects):
                 self._set_new_object(new_obj, None, new_class, None,
-                                     qualifier_repo,
+                                     qualifier_store,
                                      False, type_str)
             return
 
@@ -180,7 +180,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             # If obj_name not in superclass, set into new class
             if obj_name not in superclass_objects:
                 self._set_new_object(new_obj, None, new_class,
-                                     superclass, qualifier_repo,
+                                     superclass, qualifier_store,
                                      False, type_str)
                 continue
 
@@ -263,7 +263,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
             self._set_new_object(new_obj, super_obj,
                                  new_class,
-                                 superclass, qualifier_repo,
+                                 superclass, qualifier_store,
                                  True, type_str)
 
             # if type is method, resolve the parameters.
@@ -272,7 +272,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                     new_obj.parameters,
                     superclass_objects[new_obj.name].parameters,
                     new_class,
-                    superclass, classrepo, qualifier_repo,
+                    superclass, classrepo, qualifier_store,
                     "Parameter", verbose=verbose)
 
         # Copy objects from from superclass that are not in new_class
@@ -289,7 +289,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                 new_objects[obj_name] = new_value
 
     def _set_new_object(self, new_obj, inherited_obj, new_class, superclass,
-                        qualifier_repo, propagated, type_str):
+                        qualifier_store, propagated, type_str):
         """
         Set the object attributes for a single object and resolve the
         qualifiers. This sets attributes for Properties, Methods, and
@@ -316,11 +316,11 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                  new_class,
                                  superclass,
                                  new_obj.name, type_str,
-                                 qualifier_repo,
+                                 qualifier_store,
                                  propagate=propagated)
 
     def _resolve_qualifiers(self, new_quals, inherited_quals, new_class,
-                            super_class, obj_name, obj_type, qualifier_repo,
+                            super_class, obj_name, obj_type, qualifier_store,
                             propagate=False):
         """
         Process the override of qualifiers from the inherited_quals dictionary
@@ -332,13 +332,13 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         # by setting flavor defaults and propagated False
         if not propagate:
             for qname, qvalue in new_quals.items():
-                self._init_qualifier(qvalue, qualifier_repo)
+                self._init_qualifier(qvalue, qualifier_store)
             return
 
         # resolve qualifiers not in inherited object
         for qname, qvalue in new_quals.items():
             if not inherited_quals or qname not in inherited_quals:
-                self._init_qualifier(qvalue, qualifier_repo)
+                self._init_qualifier(qvalue, qualifier_store)
 
         # resolve qualifiers from inherited object
         for inh_qname, inh_qvalue in inherited_quals.items():
@@ -351,11 +351,12 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                     else:
                         new_quals[inh_qname].propagated = False
                         self._init_qualifier(new_quals[inh_qname],
-                                             qualifier_repo)
+                                             qualifier_store)
 
                 else:  # not overridable
                     if inh_qname in new_quals:
                         # Allow for same qualifier definition in subclass
+                        # pylint: disable=no-else-raise
                         if new_quals[inh_qname].value != \
                                 inherited_quals[inh_qname].value \
                                 or \
@@ -387,7 +388,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                     "{1!A} . Restricted in super class {2!A}",
                                     obj_name, inh_qname, superclassname))
 
-    def _resolve_class(self, new_class, namespace, qualifier_repo,
+    def _resolve_class(self, new_class, namespace, qualifier_store,
                        verbose=None):
         """
         Resolve the class defined by new_class by:
@@ -449,17 +450,18 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
             objects += list(meth.parameters.values())
 
         # Validate the attributes of all qualifiers in the new class
-        if qualifier_repo:
-            self._validate_qualifiers(new_class.qualifiers, qualifier_repo,
+        if qualifier_store:
+            self._validate_qualifiers(new_class.qualifiers, qualifier_store,
                                       new_class, 'CLASS')
             for pvalue in new_class.properties.values():
-                self._validate_qualifiers(pvalue.qualifiers, qualifier_repo,
+                self._validate_qualifiers(pvalue.qualifiers, qualifier_store,
                                           new_class, 'PROPERTY')
             for mvalue in new_class.methods.values():
-                self._validate_qualifiers(mvalue.qualifiers, qualifier_repo,
+                self._validate_qualifiers(mvalue.qualifiers, qualifier_store,
                                           new_class, 'METHOD')
                 for pvalue in mvalue.parameters.values():
-                    self._validate_qualifiers(pvalue.qualifiers, qualifier_repo,
+                    self._validate_qualifiers(pvalue.qualifiers,
+                                              qualifier_store,
                                               new_class, 'PARAMETER')
 
         # resolve class level qualifiers and attributes
@@ -472,21 +474,21 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                  new_class,
                                  superclass,
                                  new_class.classname, 'class',
-                                 qualifier_repo,
+                                 qualifier_store,
                                  propagate=False)
 
-        classrepo = self._get_class_store(namespace)
+        classrepo = self.get_class_store(namespace)
         # resolve properties in new class
         self._resolve_objects(new_class.properties,
                               superclass.properties if superclass else None,
                               new_class, superclass,
-                              classrepo, qualifier_repo, "Property",
+                              classrepo, qualifier_store, "Property",
                               verbose=verbose)
 
         # resolve methods and parameters in new class
         self._resolve_objects(new_class.methods,
                               superclass.methods if superclass else None,
                               new_class, superclass,
-                              classrepo, qualifier_repo, "Method")
+                              classrepo, qualifier_store, "Method")
 
         return new_class
