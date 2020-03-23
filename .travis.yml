@@ -26,106 +26,126 @@ sudo: required
 # to install Python.
 matrix:
   include:
+
     - os: linux
       language: python
       python: "2.7"
       env:
         - PACKAGE_LEVEL=minimum
+
     - os: linux
       language: python
       python: "2.7"
       env:
         - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.4"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
     - os: linux
       language: python
       python: "3.4"
       env:
         - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.5"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "3.5"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.6"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "3.6"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.7"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "3.7"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
     - os: linux
       language: python
       python: "3.8"
       env:
         - PACKAGE_LEVEL=minimum
+
     - os: linux
       language: python
       python: "3.8"
       env:
         - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 # TODO: pypy3 disabled due to install error with typed-ast (from pylint)
 #    - os: linux
 #      language: python
 #      python: "pypy3"  # currently Python 3.6.1, PyPy 7.1.1-beta0
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 # TODO: pypy3 disabled due to install error with typed-ast (from pylint)
 #    - os: linux
 #      language: python
 #      python: "pypy3"  # currently Python 3.6.1, PyPy 7.1.1-beta0
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=2
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=2
 #        - PACKAGE_LEVEL=latest
+
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=3
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: osx
 #      language: generic
 #      python:
@@ -210,12 +230,11 @@ install:
 script:
 # make build is always run in order to verify the package version determination
   - make build
-  - if [[ -n $_MANUAL_CI_RUN ]]; then make builddoc; fi
+  - make builddoc
   - make check
-  # - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
   - make pylint
   - make test
-  - make leaktest
+  - if [[ "$TRAVIS_PYTHON_VERSION" != "pypy" ]]; then make leaktest; fi
 
 after_success:
 # Note: In case of error 422 (Couldn't find a repository matching this job),
