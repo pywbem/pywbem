@@ -29,5 +29,5 @@ from ._resolvermixin import *              # noqa: F403,F401
 from ._mockmofwbemconnection import *      # noqa: F403,F401
 from ._baserepository import *             # noqa: F403,F401
 from ._inmemoryrepository import *         # noqa: F403,F401
-from ._cimrepository import *              # noqa: F403,F401
+from ._mainprovider import *              # noqa: F403,F401
 from ._utils import *                      # noqa: F403,F401

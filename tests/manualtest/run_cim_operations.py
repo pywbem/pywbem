@@ -4368,8 +4368,8 @@ class PyWBEMServerClass(PegasusServerTestBase, RegexpMixin):
             if self.verbose:
                 print(ind_svc_inst.tomof())
 
-            # Search class hiearchy for CIM_IndicationService
-            # TODO change to create function to do the hiearchy search
+            # Search class hierarchy for CIM_IndicationService
+            # TODO change to create function to do the hierarchy search
             cls_name = ind_svc_inst.classname
             while cls_name != 'CIM_IndicationService':
                 cls = self.cimcall(self.conn.GetClass, cls_name,
@@ -4411,7 +4411,7 @@ class PyWBEMServerClass(PegasusServerTestBase, RegexpMixin):
 
                 cls_name = server_inst.classname
 
-                # Search class hiearchy for CIM_ObjectManager
+                # Search class hierarchy for CIM_ObjectManager
                 while cls_name != 'CIM_ObjectManager':
                     cls = self.cimcall(self.conn.GetClass, cls_name,
                                        namespace=ip.namespace)

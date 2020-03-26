@@ -317,7 +317,7 @@ with a simple callback function.
 
         # Access the mock repository through the faked connection object.
         # In case of a static CIM method, objectname is a
-        :class:`~pywbem.CIMClassName` object.
+        # :class:`~pywbem.CIMClassName` object.
         cl = conn.GetClass(objectname)
 
         # Set return value and output parameters
