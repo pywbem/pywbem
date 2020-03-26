@@ -372,6 +372,10 @@ Released: not yet
 * Test: Fixed a bug introduced in 0.14.5 where the manualtest scripts failed
   with invalid relative import. (see issue #2039)
 
+* Test: Fixed incorrect coverage reported at the end of the pytest run,
+  by increasing the minimum version of the coverage package to 4.5.2.
+  (See pywbemtools issue #547)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
