@@ -3191,7 +3191,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
             "response_delay=None, "
-            "disable_pull_operations=False "
+            "disable_pull_operations=None "
             "super=WBEMConnection("
             "url='http://FakedUrl:5988', "
             "creds=None, "

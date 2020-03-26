@@ -352,11 +352,11 @@ def tst_classwqualifiers(tst_qualifiers, tst_class):
 def tst_classes(tst_class):
     """
     Builds and returns a list of 5 classes
-        CIM_Foo - top level in hiearchy
+        CIM_Foo - top level in hierarchy
         CIM_Foo_sub - Subclass to CIMFoo
         CIM_Foo_sub2 - Subclass to CIMFoo
         CIM_Foo_sub_sub - Subclass to CIMFoo_sub
-        CIM_Foo_nokey - top level in hiearchy
+        CIM_Foo_nokey - top level in hierarchy
     This assumes that add_cimobjects resolves classes. so things line
     scoping, etc. on qualifiers and class origin are not included
     """
@@ -858,7 +858,7 @@ class TestFakedWBEMConnection(object):
         Test the disable_pull_operations property set both in init
         and with property.
         """
-        def tfail(fn, *pargs, **kwargs):
+        def operation_fail(fn, *pargs, **kwargs):
             """Confirm the operation fn fails with CIM_ERR_NOT_SUPPORTED"""
             with pytest.raises(CIMError) as exec_info:
                 fn(*pargs, **kwargs)
@@ -875,7 +875,7 @@ class TestFakedWBEMConnection(object):
             assert conn.disable_pull_operations is False
             conn.disable_pull_operations = disable
 
-        # Test if the attribute correctly set
+        # Test if the attribute correctly set in conn
         if disable:
             assert conn.disable_pull_operations is True
         elif disable is False:
@@ -884,6 +884,15 @@ class TestFakedWBEMConnection(object):
             assert disable is None
             assert conn.disable_pull_operations is False
 
+        # Test if the attribute correctly set in conn.mainprovider
+        if disable:
+            assert conn.mainprovider.disable_pull_operations is True
+        elif disable is False:
+            assert conn.mainprovider.disable_pull_operations is False
+        else:
+            assert disable is None
+            assert conn.mainprovider.disable_pull_operations is False
+
         conn.add_cimobjects(tst_classeswqualifiers)
         conn.add_cimobjects(tst_instances)
         tst_class = 'CIM_Foo'
@@ -891,13 +900,13 @@ class TestFakedWBEMConnection(object):
         path = paths[0]
 
         if conn.disable_pull_operations is True:
-            tfail(conn.OpenEnumerateInstances, tst_class)
-            tfail(conn.OpenEnumerateInstancePaths, tst_class)
-            tfail(conn.OpenReferenceInstances, path)
-            tfail(conn.OpenReferenceInstancePaths, path)
-            tfail(conn.OpenAssociatorInstancePaths, path)
-            tfail(conn.OpenAssociatorInstancePaths, path)
-            # TODO add this tfail(conn.OpenQueryInstances,
+            operation_fail(conn.OpenEnumerateInstances, tst_class)
+            operation_fail(conn.OpenEnumerateInstancePaths, tst_class)
+            operation_fail(conn.OpenReferenceInstances, path)
+            operation_fail(conn.OpenReferenceInstancePaths, path)
+            operation_fail(conn.OpenAssociatorInstancePaths, path)
+            operation_fail(conn.OpenAssociatorInstancePaths, path)
+            # TODO Future add this tfail(conn.OpenQueryInstances,
             #                     tst_class, 'WQL', "SELECT FROM CIM_Foo" )
 
         else:
@@ -940,7 +949,9 @@ class TestFakedWBEMConnection(object):
 
 class TestRepoMethods(object):
     """
-    Test the repository support methods.
+    Test the repository support methods including the ability to add objects
+    to the repository, _get_subclass_names, _get_superclass_names, _get_class,
+    _get_instance, display_repository, etc.
     """
 
     @pytest.mark.parametrize(
@@ -963,7 +974,7 @@ class TestRepoMethods(object):
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         # pylint: disable=protected-access
-        assert conn.cimrepository._class_exists(cln, ns) == exp_rtn
+        assert conn.mainprovider._class_exists(ns, cln) == exp_rtn
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES)
@@ -999,9 +1010,9 @@ class TestRepoMethods(object):
         # pylint: disable=protected-access
         class_store = conn._get_class_store(ns)
 
-        assert set(conn.cimrepository._get_subclass_names(cln,
-                                                          class_store,
-                                                          di)) == \
+        assert set(conn.mainprovider._get_subclass_names(cln,
+                                                         class_store,
+                                                         di)) == \
             set(exp_clns)
 
     @pytest.mark.parametrize(
@@ -1032,7 +1043,7 @@ class TestRepoMethods(object):
 
         # pylint: disable=protected-access
         class_store = conn._get_class_store(ns)
-        clns = conn.cimrepository._get_superclass_names(cln, class_store)
+        clns = conn.mainprovider._get_superclass_names(cln, class_store)
         assert clns == exp_cln
 
     @pytest.mark.parametrize(
@@ -1074,10 +1085,10 @@ class TestRepoMethods(object):
 
         # _get_class gets a copy of the class filtered by the parameters
         # pylint: disable=protected-access
-        cl = conn.cimrepository._get_class(cln, ns, local_only=lo,
-                                           include_qualifiers=iq,
-                                           include_classorigin=ico,
-                                           property_list=pl)
+        cl = conn.mainprovider._get_class(ns, cln, local_only=lo,
+                                          include_qualifiers=iq,
+                                          include_classorigin=ico,
+                                          property_list=pl)
 
         cl_props = [p.name for p in six.itervalues(cl.properties)]
 
@@ -1172,12 +1183,13 @@ class TestRepoMethods(object):
         if exp_exc is None:
             # pylint: disable=protected-access
             instance_store = conn._get_instance_store(ns)
-            inst = conn.cimrepository._get_instance(iname, ns, instance_store,
-                                                    pl, lo, ico, iq)
+            inst = conn.mainprovider._get_instance(ns, iname, instance_store,
+                                                   lo, ico, iq, pl)
             assert isinstance(inst, CIMInstance)
             assert inst.path.classname.lower() == cln.lower()
             assert iname == inst.path
             assert inst.classname.lower() == cln.lower()
+            assert inst.path.host is None
 
             if pl == "":
                 assert not inst.properties
@@ -1188,9 +1200,9 @@ class TestRepoMethods(object):
             with pytest.raises(exp_exc.__class__) as exec_info:
                 # pylint: disable=protected-access
                 instance_store = conn._get_instance_store(ns)
-                conn.cimrepository._get_instance(iname, ns,
-                                                 instance_store, pl, lo,
-                                                 ico, iq)
+                conn.mainprovider._get_instance(ns, iname,
+                                                instance_store, lo,
+                                                ico, iq, pl)
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
@@ -1232,7 +1244,7 @@ class TestRepoMethods(object):
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn.cimrepository._find_instance(iname, instance_store)
+        inst = conn.mainprovider._find_instance(iname, instance_store)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -1471,7 +1483,8 @@ class TestRepoMethods(object):
         Test add_namespace(). This tests the methods for managing namespaces
         in the FakedWBEMConnection class
         """
-        conn = FakedWBEMConnection(default_namespace=default_ns)
+        conn = FakedWBEMConnection()
+        conn.add_namespace(default_ns)
         for ns in additional_ns:
             conn.add_namespace(ns)
         if not exp_exc:
@@ -1508,9 +1521,10 @@ class TestRepoMethods(object):
         Test _remove_namespace()
         """
         # TODO: This test goes back and forth between the methods in
-        # wbemconnectionfake, cimrepository, and datastore. Make consistent
+        # wbemconnectionfake, mainprovider, and datastore. Make consistent
 
-        conn = FakedWBEMConnection(default_namespace=default_ns)
+        conn = FakedWBEMConnection()
+        conn.add_namespace(default_ns)
         for ns in additional_ns:
             conn.add_namespace(ns)
 
@@ -1776,7 +1790,7 @@ class TestRepoMethods(object):
                       inst['name'] == name]
             assert len(result) == 1
 
-        # test _get_instance
+        # test GetInstance
         for name in tst_person_instance_names:
             kb = {'name': name}
             inst_name = CIMInstanceName('TST_Person', kb, namespace=ns)
@@ -2079,7 +2093,7 @@ def resolve_class(conn, cls, ns):
     # pylint: disable=protected-access
     qualifier_store = conn._get_qualifier_store(ns)
     # pylint: disable=protected-access
-    rslvd_cls = conn.cimrepository._resolve_class(cls, ns, qualifier_store)
+    rslvd_cls = conn.mainprovider._resolve_class(cls, ns, qualifier_store)
     return rslvd_cls
 
 
@@ -2199,12 +2213,11 @@ class TestClassOperations(object):
         # parameters are classname(cn), LocalOnly(lo),
         # pl_exp(expected properties)
         "cn, lo, pl_exp", [
-            ['CIM_Foo_sub', None, ['cimfoo_sub', 'InstanceID']],
+            ['CIM_Foo_sub', None, ['cimfoo_sub']],
             ['CIM_Foo_sub', True, ['cimfoo_sub']],
             ['cim_foo_sub', True, ['cimfoo_sub']],
             ['CIM_Foo_sub', False, ['cimfoo_sub', 'InstanceID']],
-            ['CIM_Foo_sub_sub', None, ['cimfoo_sub_sub', 'cimfoo_sub',
-                                       'InstanceID']],
+            ['CIM_Foo_sub_sub', None, ['cimfoo_sub_sub']],
             ['CIM_Foo_sub_sub', True, ['cimfoo_sub_sub']],
             ['CIM_Foo_sub_sub', False, ['cimfoo_sub_sub', 'cimfoo_sub',
                                         'InstanceID']],
@@ -2261,10 +2274,11 @@ class TestClassOperations(object):
         """
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         cn = 'CIM_Foo_sub_sub'
-        if pl is None:
-            cl = conn.GetClass(cn, namespace=ns)
-        else:
-            cl = conn.GetClass(cn, PropertyList=pl, namespace=ns)
+
+        cl = conn.GetClass(cn, namespace=ns, PropertyList=pl,
+                           LocalOnly=False,
+                           IncludeQualifiers=True,
+                           IncludeClassOrigin=True)
 
         assert len(cl.properties) == len(p_exp)
         rtn_props = cl.properties.keys()
@@ -2454,7 +2468,7 @@ class TestClassOperations(object):
                 for method in six.itervalues(rtn_getclass.methods):
                     assert method.class_origin is None
 
-            if iq:
+            if iq is True or iq is None:
                 if rtn_getclass.qualifiers:
                     assert rtn_class.qualifiers
                 for prop in six.itervalues(rtn_getclass.properties):
@@ -2552,7 +2566,7 @@ class TestClassOperations(object):
                          class_origin='CIM_Foo',
                          propagated=False), },
                  ),
-             None, True],
+             None, OK],
 
             ['Validate CreateClass creates valid subclass from 2 superclasses',
              'CIM_Foo',
@@ -2609,7 +2623,7 @@ class TestClassOperations(object):
                          class_origin='CIM_Foo',
                          propagated=True), },
                  ),
-             None, True],
+             None, OK],
 
             ["Create valid 2nd level subclass from fixture defined classes.",
              ['CIM_Foo', 'CIM_Foo_sub'],
@@ -2684,7 +2698,7 @@ class TestClassOperations(object):
                                                 translatable=True)}),
                      },
                  ),
-             None, True,
+             None, OK
             ],
 
             [
@@ -2755,7 +2769,7 @@ class TestClassOperations(object):
                                     translatable=True)}),
                         },
                     ),
-                None, True,
+                None, OK
             ],
 
             [
@@ -2770,17 +2784,16 @@ class TestClassOperations(object):
                             class_origin='CIM_Foo_sub_sub', propagated=False)
                     }
                 ),
-                None, CIMError(CIM_ERR_INVALID_PARAMETER), True,
+                None, CIMError(CIM_ERR_INVALID_PARAMETER), OK
             ],
-
 
             ['Fail because superclass does not exist in namespace',
              None, 'CIM_Foo_sub', None, CIMError(CIM_ERR_INVALID_SUPERCLASS),
-             True],
+             OK],
 
             ['Fail because trying to create incorrect type',
              None, CIMQualifierDeclaration('blah', 'string'), None,
-             CIMError(CIM_ERR_INVALID_PARAMETER), True, ],
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
             # No invalid namespace test defined because createclass creates
             # namespace
@@ -2833,7 +2846,6 @@ class TestClassOperations(object):
                                       IncludeQualifiers=True,
                                       IncludeClassOrigin=True,
                                       LocalOnly=False)
-
             rtn_class.path = None
 
             # test for propagated set
@@ -2880,13 +2892,16 @@ class TestClassOperations(object):
                                       LocalOnly=False)
             ns = ns or conn.default_namespace
             class_store = conn._get_class_store(ns)
-            superclasses = conn.cimrepository._get_superclass_names(
+            superclasses = conn.mainprovider._get_superclass_names(
                 new_class.classname, class_store)
 
             if new_class.superclass is None:
                 superclass = None
             else:
-                superclass = conn.GetClass(new_class.superclass, ns)
+                superclass = conn.GetClass(new_class.superclass, namespace=ns,
+                                           IncludeQualifiers=True,
+                                           IncludeClassOrigin=True,
+                                           LocalOnly=False)
             # TODO most of the following is generic and just retests what
             # we defined for resolve.  Need to do it with each testcase, not
             # in general.
@@ -2896,8 +2911,10 @@ class TestClassOperations(object):
                 for method in superclass.methods:
                     assert method in rtn_class.methods
 
+            # Test for correct qualifier attributes in create class
             for pname, pvalue in rtn_class.properties.items():
                 if superclass:
+                    # If there is a superclass
                     if 'Override' in pvalue.qualifiers:
                         ov_qual = pvalue.qualifiers['Override']
                         sc_pname = ov_qual.value
@@ -3009,7 +3026,7 @@ class TestInstanceOperations(object):
                          tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
-        Test the With multiple ns for successful GetInstance and with
+        Test with multiple namespaces for successful GetInstance and with
         error for namespace and instance name
         """
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
@@ -3114,8 +3131,8 @@ class TestInstanceOperations(object):
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln", ['cim_foo', 'CIM_Foo'])
-    def test_enumerateinstnames(self, conn, ns, cln,
-                                tst_classeswqualifiers, tst_instances):
+    def test_enumerateinstancenames(self, conn, ns, cln,
+                                    tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
@@ -3130,9 +3147,9 @@ class TestInstanceOperations(object):
 
         # pylint: disable=protected-access
         class_store = conn._get_class_store(namespace)
-        exp_subclasses = conn.cimrepository._get_subclass_names(cln,
-                                                                class_store,
-                                                                True)
+        exp_subclasses = conn.mainprovider._get_subclass_names(cln,
+                                                               class_store,
+                                                               True)
         exp_subclasses.append(cln)
         sub_class_dict = NocaseDict()
         for name in exp_subclasses:
@@ -3163,8 +3180,9 @@ class TestInstanceOperations(object):
              CIMError(CIM_ERR_INVALID_CLASS)],
         ]
     )
-    def test_enumerateinstnames_ns_er(self, conn, tst_classeswqualifiers,
-                                      tst_instances, ns, cln, tst_ns, exp_exc):
+    def test_enumerateinstancenames_ns_er(self, conn, tst_classeswqualifiers,
+                                          tst_instances, ns, cln, tst_ns,
+                                          exp_exc):
         # pylint: disable=no-self-use
         """
         Test basic successful operation with namespaces and test for
@@ -4522,11 +4540,8 @@ class TestQualifierOperations(object):
 
             assert rtn_qualifier == qual
 
-            # Test for already exists by doing second set qualifier
-            with pytest.raises(CIMError) as exec_info:
-                conn.SetQualifier(qual, namespace=ns)
-            exc = exec_info.value
-            assert exc.status_code == CIM_ERR_ALREADY_EXISTS
+            # Test for uses modify by Setting second qualifier with same name
+            conn.SetQualifier(qual, namespace=ns)
 
         else:
             if exp_status == CIM_ERR_INVALID_NAMESPACE:
@@ -5441,7 +5456,7 @@ class TestInvokeMethod(object):
               'Params': [('InputParam1', 'FirstData')], },
              {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
                                                    value='SomeString')]},
-             None, True],
+             None, OK],
 
             ['Execution of Method1 method with single input param. Tests '
              'object name case insensitivity',
@@ -5450,7 +5465,7 @@ class TestInvokeMethod(object):
               'Params': [('InputParam1', 'FirstData')], },
              {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
                                                    value='SomeString')]},
-             None, True],
+             None, OK],
 
             ['Execution of Method1 method with objectname string',
              {'object_name': 'CIM_Foo_sub_sub',
@@ -5459,7 +5474,7 @@ class TestInvokeMethod(object):
               'params': {}, },
              {'return': 0, 'params': [CIMParameter('OutPutParam1', 'string',
                                                    value='SomeString')]},
-             None, True],
+             None, OK],
 
             ['Execution of Method1 method with multiple input params',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
@@ -5468,7 +5483,7 @@ class TestInvokeMethod(object):
                          ('InputParam2', 'SecondData')], },
              {'return': 0, 'params': [CIMParameter('OutPutParam1',
                                                    type='string')]},
-             None, True],
+             None, OK],
 
             ['Simple Execution of Method2 method with single input param',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
@@ -5476,7 +5491,7 @@ class TestInvokeMethod(object):
               'Params': [('InputParam1', 'FirstData')], },
              {'return': 0, 'params': [CIMParameter('OutPutParam1', 'string',
                                                    value='SomeString')]},
-             None, True],
+             None, OK],
 
             ['Execute Method1 with no input parameters',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
@@ -5484,35 +5499,35 @@ class TestInvokeMethod(object):
               'Params': [], },
              {'return': 0, 'params': [CIMParameter('OutPutParam1', 'string',
                                                    value='SomeString')]},
-             None, True],
+             None, OK],
 
             ['Execute Method1 with no output parameters',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [('InputParam1', 'FirstData')], },
              {'return': 0, 'params': []},
-             None, True],
+             None, OK],
 
             ['Execute Method1 with no input/output parameters',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             None, True],
+             None, OK],
 
             ['Execute Method1 with invalid namespace',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError(CIM_ERR_INVALID_NAMESPACE), True],
+             CIMError(CIM_ERR_INVALID_NAMESPACE), OK],
 
             ['Execute Method2 with invalid namespace',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method2',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError(CIM_ERR_INVALID_NAMESPACE), True],
+             CIMError(CIM_ERR_INVALID_NAMESPACE), OK],
 
             ['Execute method name with valid instancename',
              {'object_name':
@@ -5521,7 +5536,7 @@ class TestInvokeMethod(object):
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             None, True],
+             None, OK],
 
             ['Execute method name with ObjectName that does not exist',
              {'object_name': CIMInstanceName('CIM_Foo_sub_sub',
@@ -5530,35 +5545,35 @@ class TestInvokeMethod(object):
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError(CIM_ERR_NOT_FOUND), True],
+             CIMError(CIM_ERR_NOT_FOUND), OK],
 
             ['Execute with methodname that is not in repository',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Methodx',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError(CIM_ERR_METHOD_NOT_FOUND), True],
+             CIMError(CIM_ERR_METHOD_NOT_FOUND), OK],
 
             ['Execute method name with invalid classname',
              {'object_name': CIMClassName('CIM_Foo_sub_subx'),
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             CIMError(CIM_ERR_NOT_FOUND), True],
+             CIMError(CIM_ERR_NOT_FOUND), OK],
 
             ['Execute objectname invalid type',
              {'object_name': CIMQualifierDeclaration('Key', 'string'),
               'methodname': 'Method1',
               'Params': [], },
              {'return': 0, 'params': []},
-             TypeError(), True],
+             TypeError(), OK],
 
             ['Execute Method2 with input param flag to cause exception',
              {'object_name': CIMClassName('CIM_Foo_sub_sub'),
               'methodname': 'Method2',
               'Params': [('TestCIMErrorException', 'CIM_ERR_FAILED')], },
              {'return': 0, 'params': []},
-             CIMError(CIM_ERR_FAILED), True],
+             CIMError(CIM_ERR_FAILED), OK],
 
             ['Execute Fuzzy method with simple input params',
              {'object_name': CIMClassName('CIM_Foo'),
@@ -5571,7 +5586,7 @@ class TestInvokeMethod(object):
                              'foo', 'reference',
                              value=CIMInstanceName(
                                  'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
-             None, True],
+             None, OK],
 
 
             ['Execute Fuzzy method with where method call is for subclass',
@@ -5585,7 +5600,7 @@ class TestInvokeMethod(object):
                              'foo', 'reference',
                              value=CIMInstanceName(
                                  'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
-             None, True],
+             None, OK],
 
             ['Execute Fuzzy method with CIMInstanceName in input params',
              {'object_name': CIMClassName('CIM_Foo'),
@@ -5601,7 +5616,7 @@ class TestInvokeMethod(object):
                              'foo', 'reference',
                              value=CIMInstanceName(
                                  'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
-             None, True],
+             None, OK],
 
             ['Execute Fuzzy method with CIMInstanceName in input params',
              {'object_name': CIMClassName('CIM_Foo'),
@@ -5617,7 +5632,7 @@ class TestInvokeMethod(object):
                              'foo', 'reference',
                              value=CIMInstanceName(
                                  'CIM_Foo', {'InstanceID': 'CIM_F001'}))]},
-             None, True],
+             None, OK],
         ]
     )
     def test_invokemethod(self, conn, ns, desc, inputs, exp_output,

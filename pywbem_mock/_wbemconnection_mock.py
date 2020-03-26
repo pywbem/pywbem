@@ -41,7 +41,7 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIM_ERR_METHOD_NOT_FOUND, MOFCompiler
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
-from ._cimrepository import CIMRepository
+from ._mainprovider import MainProvider
 
 from ._inmemoryrepository import InMemoryRepository
 
@@ -169,6 +169,31 @@ def _pretty_xml(xml_string):
     return re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<', pretty_result)
 
 
+def _cvt_rqd_classname(classname):
+    """Convert required classname to string"""
+    if isinstance(classname, CIMClassName):
+        classname = classname.classname
+    return classname
+
+
+def _cvt_opt_classname(classname):
+    """Convert optional classname to string if it exists"""
+    if classname is None:
+        return classname
+    if isinstance(classname, CIMClassName):
+        return classname.classname
+    return classname
+
+
+def _cvt_obj_name(objname):
+    """Convert objectname to string if classname or return if inst name"""
+    if isinstance(objname, CIMInstanceName):
+        return objname
+    if isinstance(objname, CIMClassName):
+        return objname.classname
+    return objname
+
+
 class FakedWBEMConnection(WBEMConnection):
     """
     A subclass of :class:`pywbem.WBEMConnection` that mocks the communication
@@ -237,8 +262,7 @@ class FakedWBEMConnection(WBEMConnection):
             to execute. Setting the variable to True causes pull operation
             requests to the mock CIM repository to return CIM_ERR_NOT_SUPPORTED.
 
-            Note that the
-            :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
+            The :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
             property can be used to set this variable.
         """
 
@@ -247,9 +271,9 @@ class FakedWBEMConnection(WBEMConnection):
         # fail with this attribute not found
         self._response_delay = response_delay
 
-        # Flag to allow or disallow the use of the Open... and Pull...
-        # operations. Uses the setter method
-        self.disable_pull_operations = disable_pull_operations
+        # define attribute here to assure it is defined before cim repository
+        # created. Reset again after repository created.
+        self._disable_pull_operations = disable_pull_operations
 
         super(FakedWBEMConnection, self).__init__(
             'http://FakedUrl:5988',
@@ -265,17 +289,21 @@ class FakedWBEMConnection(WBEMConnection):
         # See :py:module:`pywbem_mock/inmemoryrepository` for a description of
         # the repository interface.
 
-        # Define the datastore to be used. This is passed to the cimrepository
+        # Define the datastore to be used with an initial namespace, the client
+        # connection default namespace. This is passed to the mainprovider
         # and not used further in this class.
-        datastore = InMemoryRepository(self.default_namespace)
-        self.cimrepository = CIMRepository(self, datastore,
-                                           self.default_namespace)
+        cimrepository = InMemoryRepository(self.default_namespace)
+        self.mainprovider = MainProvider(self, cimrepository)
+
+        # Flag to allow or disallow the use of the Open... and Pull...
+        # operations. Uses the setter method
+        self.disable_pull_operations = disable_pull_operations
 
         # Defines the connection for the compiler.  The compiler uses
         # its local repo for work but sends new objects back to the
-        # methods in the cimrepository attached to this class.
+        # methods in the mainprovider attached to this class.
         self._mofwbemconnection = _MockMOFWBEMConnection(self,
-                                                         self.cimrepository)
+                                                         self.mainprovider)
 
         # The CIM methods with callback in the mock repository.
         # This is a dictionary of dictionaries of dictionaries, where the top
@@ -305,9 +333,9 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def namespaces(self):
         """
-        list: List of namespace dictionaries of the in-memory mock repository.
+        list: List of namespaces in the repository.
         """
-        return self.cimrepository.namespaces
+        return self.mainprovider.namespaces
 
     @property
     def response_delay(self):
@@ -337,7 +365,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         ::`allow`:
           Boolean Flag to set option to disable the execution of the open and
-          pull operation request handlers in the mock CIM repository. This
+          pull operation request handlers in the CIM repository. This
           emulates the characteristic in some CIM servers that did not
           implement pull operations. The default is to allow pull operations.
           All pull operations requests may be forbidden from executing by
@@ -358,6 +386,8 @@ class FakedWBEMConnection(WBEMConnection):
         if isinstance(disable, bool):
             # pylint: disable=attribute-defined-outside-init
             self._disable_pull_operations = disable
+            # modify the parameter in the mainprovider
+            self.mainprovider.disable_pull_operations = disable
         else:
             raise ValueError(
                 _format('Invalid type for disable_pull_operations: {0!A}, '
@@ -380,20 +410,20 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _get_qualifier_store(self, namespace):
         # pylint: disable=missing-function-docstring,missing-docstring
-        return self.cimrepository.get_qualifier_store(namespace)
+        return self.mainprovider.get_qualifier_store(namespace)
 
     def _get_class_store(self, namespace):
         # pylint: disable=missing-function-docstring,missing-docstring
-        return self.cimrepository.get_class_store(namespace)
+        return self.mainprovider.get_class_store(namespace)
 
     def _get_instance_store(self, namespace):
         # pylint: disable=missing-function-docstring,missing-docstring
-        return self.cimrepository.get_instance_store(namespace)
+        return self.mainprovider.get_instance_store(namespace)
 
     # TODO: This changes when we add provider concept.
     def _get_method_repo(self, namespace):
         # pylint: disable=missing-function-docstring,missing-docstring
-        self.cimrepository.validate_namespace(namespace)
+        self.mainprovider.validate_namespace(namespace)
         if namespace not in self.methods:
             self.methods[namespace] = NocaseDict()
         return self.methods[namespace]
@@ -404,11 +434,11 @@ class FakedWBEMConnection(WBEMConnection):
 
     def add_namespace(self, namespace):
         # pylint: disable=missing-function-docstring,missing-docstring
-        self.cimrepository.add_namespace(namespace)
+        self.mainprovider.add_namespace(namespace)
 
     def remove_namespace(self, namespace):
         # pylint: disable=missing-function-docstring,missing-docstring
-        self.cimrepository.remove_namespace(namespace)
+        self.mainprovider.remove_namespace(namespace)
 
     ###########################################################################
     #
@@ -468,7 +498,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
 
         namespace = namespace or self.default_namespace
-        self.cimrepository.validate_namespace(namespace)
+        self.mainprovider.validate_namespace(namespace)
 
         # issue #2063 refactor this so there is cleaner interface to
         # WBEMConnection
@@ -531,7 +561,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         namespace = namespace or self.default_namespace
 
-        self.cimrepository.validate_namespace(namespace)
+        self.mainprovider.validate_namespace(namespace)
 
         mofcomp = MOFCompiler(self._mofwbemconnection,
                               search_paths=search_paths,
@@ -688,7 +718,7 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable=line-too-long
         namespace = namespace or self.default_namespace
-        self.cimrepository.validate_namespace(namespace)
+        self.mainprovider.validate_namespace(namespace)
 
         if isinstance(objects, list):
             for obj in objects:
@@ -699,9 +729,8 @@ class FakedWBEMConnection(WBEMConnection):
             if isinstance(obj, CIMClass):
                 cc = obj.copy()
                 if cc.superclass:
-                    # pylint: disable=protected-access
-                    if not self.cimrepository._class_exists(cc.superclass,
-                                                            namespace):
+                    if not self.mainprovider._class_exists(namespace,
+                                                           cc.superclass):
                         raise ValueError(
                             _format("Class {0!A} defines superclass {1!A} but "
                                     "the superclass does not exist in the "
@@ -712,9 +741,9 @@ class FakedWBEMConnection(WBEMConnection):
                 qualifier_store = self._get_qualifier_store(namespace)
 
                 # pylint: disable=protected-access
-                cc1 = self.cimrepository._resolve_class(cc, namespace,
-                                                        qualifier_store,
-                                                        verbose=False)
+                cc1 = self.mainprovider._resolve_class(cc, namespace,
+                                                       qualifier_store,
+                                                       verbose=False)
 
                 # TODO: ks. Originally this impled set whether exists or not
                 # using create changes semantic to only add
@@ -734,8 +763,8 @@ class FakedWBEMConnection(WBEMConnection):
                 instance_store = self._get_instance_store(namespace)
                 try:
                     # pylint: disable=protected-access
-                    if self.cimrepository._find_instance(inst.path,
-                                                         instance_store):
+                    if self.mainprovider._find_instance(inst.path,
+                                                        instance_store):
                         raise ValueError(
                             _format("The instance {0!A} already exists in "
                                     "namespace {1!A}", inst, namespace))
@@ -994,14 +1023,12 @@ class FakedWBEMConnection(WBEMConnection):
         """
         self.namespace = namespace
 
-        # TODO: port. This is poor way to handle namespace. Better to go
-        # back to using it as parameter.
-        self.cimrepository.namespace = self.namespace
+        # Create the local method name
+        methodname = '_imeth_' + methodname
+        methodnameattr = getattr(self, methodname)
 
-        methodname = getattr(self.cimrepository, methodname)
-
-        # Execute the named method in the cimrepository instance
-        result = methodname(**params)
+        # Execute the named method
+        result = methodnameattr(**params)
 
         # sleep for defined number of seconds
         if self._response_delay:
@@ -1024,11 +1051,587 @@ class FakedWBEMConnection(WBEMConnection):
 
         return result
 
+    @staticmethod
+    def _make_pull_imethod_resp(objs, eos, context_id):
+        """
+        Create the correct imethod response for the open and pull methods
+        """
+        eos_tuple = (u'EndOfSequence', None, eos)
+        enum_ctxt_tuple = (u'EnumerationContext', None, context_id)
+
+        return [("IRETURNVALUE", {}, objs), enum_ctxt_tuple, eos_tuple]
+
+    @staticmethod
+    def _make_tuple(rtn_value):
+        """
+        Change the return value from the value consistent with the definition
+        in cim_operations.py into a tuple in accord with _imethodcall
+        """
+        return [("IRETURNVALUE", {}, rtn_value)]
+
+    def _return_assoc_tuple(self, objects):
+        """
+        Create the property tuple for _imethod return of references,
+        referencenames, associators, and associatornames methods.
+
+        This is different than the get/enum imethod return tuples. It creates an
+        OBJECTPATH for each object in the return list.
+
+        _imethod call returns None when there are zero objects rather
+        than a tuple with empty object path
+        """
+        if objects:
+            result = [(u'OBJECTPATH', {}, obj) for obj in objects]
+            return self._make_tuple(result)
+
+        return None
+
     #####################################################################
     #
-    #  Faked WBEMConnection InvokeMethod
+    #  The following methods map the imethodcall interface (dictionary of
+    #  the method parameters to the arguments required by each method in the
+    #  corresponding CIM repository and call that method. the results
+    #  are mapped back to be compatible with imethodcall return tuple.
     #
     #####################################################################
+
+    # Instance Operations
+
+    def _imeth_EnumerateInstanceNames(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.EnumerateInstanceNames` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+            Dictionary of parameters for the method called.
+
+        Returns:
+
+          Tuple with instance paths comatible with imethodcall
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        instance_paths = self.mainprovider.EnumerateInstanceNames(
+            ClassName=_cvt_rqd_classname(params['ClassName']),
+            namespace=self.namespace)
+        return self._make_tuple(instance_paths)
+
+    def _imeth_EnumerateInstances(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.EnumerateInstances` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+            Dictionary of parameters for the method called.
+
+        Returns:
+
+          Tuple with instances comatible with imethodcall
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        instances = self.mainprovider.EnumerateInstances(
+            ClassName=_cvt_rqd_classname(params['ClassName']),
+            namespace=self.namespace,
+            LocalOnly=params.get('LocalOnly', None),
+            DeepInheritance=params.get('DeepInheritance', None),
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None))
+        return self._make_tuple(instances)
+
+    def _imeth_GetInstance(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.GetInstance` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+
+            Dictionary of parameters for the method called.
+
+        Returns:
+          Tuple with instance comatible with imethodcall
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        instance = self.mainprovider.GetInstance(
+            namespace=self.namespace,
+            InstanceName=params.get('InstanceName', None),
+            LocalOnly=params.get('LocalOnly', None),
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None))
+        return self._make_tuple([instance])
+
+    def _imeth_CreateInstance(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.CreateInstance` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+            Dictionary of parameters for the method called.
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        new_instance_path = self.mainprovider.CreateInstance(
+            namespace=self.namespace,
+            NewInstance=params['NewInstance'])
+        return self._make_tuple([new_instance_path])
+
+    def _imeth_ModifyInstance(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.ModifyInstance` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+            Dictionary of parameters for the method called.
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        self.mainprovider.ModifyInstance(
+            namespace=self.namespace,
+            ModifiedInstance=params['ModifiedInstance'],
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            PropertyList=params.get('PropertyList', None))
+
+    def _imeth_DeleteInstance(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.DeleteInstance` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+            Dictionary of parameters for the method called.
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        self.mainprovider.DeleteInstance(
+            namespace=self.namespace,
+            InstanceName=params['InstanceName'])
+
+    def ExecQuery(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.ExecQuery` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        Parameters:
+
+          params (class:`py:dict`):
+            Dictionary of parameters for the method called.
+
+        Returns:
+
+          Tuple with instances compatible with imethodcall
+
+        Raises:
+
+          Error: Exceptions from the call
+        """
+        instances = self.mainprovider.ExecQuery(
+            namespace=self.namespace,
+            QueryLanguage=params['QueryLanguage'],
+            Query=params['Query'])
+        # TODO: The following is untested because the
+        # mainprovider ExecQuery only generates exception.
+        return self._make_tuple([instances])
+
+    # CIMClass operations
+
+    def _imeth_EnumerateClasses(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.EnumerateClasses` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+
+        TODO: Complete parameter, etc documentation.
+        """
+        classes = self.mainprovider.EnumerateClasses(
+            params.get("namespace", self.namespace),
+            ClassName=_cvt_opt_classname(params.get('ClassName', None)),
+            DeepInheritance=params.get('DeepInheritance', None),
+            LocalOnly=params.get('LocalOnly', None),
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin, None)', None))
+        return self._make_tuple(classes)
+
+    def _imeth_EnumerateClassNames(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.EnumerateClasseNames` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        classnames = self.mainprovider.EnumerateClassNames(
+            params.get("namespace", self.namespace),
+            ClassName=_cvt_opt_classname(params.get('ClassName', None)),
+            DeepInheritance=params.get('DeepInheritance', None))
+
+        # Map the class name strings to CIMClassName
+        rtn_cim_classnames = [
+            CIMClassName(cn, namespace=self.namespace, host=self.host)
+            for cn in classnames]
+        return self._make_tuple(rtn_cim_classnames)
+
+    def _imeth_GetClass(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.EGetClass` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        klass = self.mainprovider.GetClass(
+            params.get("namespace", self.namespace),
+            ClassName=_cvt_rqd_classname(params['ClassName']),
+            LocalOnly=params.get('LocalOnly', None),
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None))
+        return self._make_tuple([klass])
+
+    def _imeth_CreateClass(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.CreateClass` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        self.mainprovider.CreateClass(
+            self.namespace,
+            NewClass=params['NewClass'])
+
+    def _imeth_ModifyClass(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.ModifyClass` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        self.mainprovider.ModifyClass(
+            self.namespace,
+            ModifiedClass=params['ModifiedClass'])
+
+    def _imeth_DeleteClass(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.DeleteClass` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        self.mainprovider.DeleteClass(
+            self.namespace,
+            ClassName=_cvt_rqd_classname(params['ClassName']))
+
+    # Qualifier declaration operations
+
+    def _imeth_EnumerateQualifiers(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.EnumerateQualifiers` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        qualifiers = self.mainprovider.EnumerateQualifiers(
+            namespace=self.namespace)
+        return self._make_tuple(qualifiers)
+
+    def _imeth_GetQualifier(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.GetQualifier` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        qualifier = self.mainprovider.GetQualifier(
+            namespace=self.namespace,
+            QualifierName=params['QualifierName'])
+        return self._make_tuple([qualifier])
+
+    def _imeth_DeleteQualifier(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.DeleteQualifier` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        self.mainprovider.DeleteQualifier(
+            namespace=self.namespace,
+            QualifierName=params['QualifierName'])
+
+    def _imeth_SetQualifier(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.SetQualifier` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        self.mainprovider.SetQualifier(
+            namespace=self.namespace,
+            QualifierDeclaration=params['QualifierDeclaration'])
+
+    # Associator and Reference operations
+
+    def _imeth_ReferenceNames(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.ReferenceNames` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.,
+        """
+        object_names = self.mainprovider.ReferenceNames(
+            namespace=self.namespace,
+            ObjectName=_cvt_obj_name(params['ObjectName']),
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None))
+        return self._return_assoc_tuple(object_names)
+
+    def _imeth_References(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.References` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        objects = self.mainprovider.References(
+            namespace=self.namespace,
+            ObjectName=_cvt_obj_name(params['ObjectName']),
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None))
+        return self._return_assoc_tuple(objects)
+
+    def _imeth_AssociatorNames(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.AssociatorNames` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        object_names = self.mainprovider.AssociatorNames(
+            namespace=self.namespace,
+            ObjectName=_cvt_obj_name(params['ObjectName']),
+            AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            ResultRole=params.get('ResultRole', None))
+        return self._return_assoc_tuple(object_names)
+
+    def _imeth_Associators(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.Associators` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        objects = self.mainprovider.Associators(
+            namespace=self.namespace,
+            ObjectName=_cvt_obj_name(params['ObjectName']),
+            AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            ResultRole=params.get('ResultRole', None),
+            IncludeQualifiers=params.get('IncludeQualifiers', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None))
+        return self._return_assoc_tuple(objects)
+
+    # The pull operations including Open..., Pull... and CloseEnumeration
+
+    def _imeth_OpenEnumerateInstancePaths(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenEnumerateInstancePaths` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.OpenEnumerateInstancePaths(
+            namespace=self.namespace,
+            ClassName=_cvt_rqd_classname(params['ClassName']),
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_OpenEnumerateInstances(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenEnumerateInstances` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+
+        context_tuple = self.mainprovider.OpenEnumerateInstances(
+            namespace=self.namespace,
+            ClassName=_cvt_rqd_classname(params['ClassName']),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None),
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_OpenReferenceInstancePaths(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenReferenceInstancePaths` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.OpenReferenceInstancePaths(
+            namespace=self.namespace,
+            InstanceName=params['InstanceName'],
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_OpenReferenceInstances(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenReferenceInstances` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.OpenReferenceInstances(
+            namespace=self.namespace,
+            InstanceName=params['InstanceName'],
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None),
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_OpenAssociatorInstances(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenAssociatorInstances` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.OpenAssociatorInstances(
+            namespace=self.namespace,
+            InstanceName=params['InstanceName'],
+            AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            ResultRole=params.get('ResultRole', None),
+            IncludeClassOrigin=params.get('IncludeClassOrigin', None),
+            PropertyList=params.get('PropertyList', None),
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_OpenAssociatorInstancePaths(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenAssociatorInstancePaths` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.OpenAssociatorInstancePaths(
+            namespace=self.namespace,
+            InstanceName=params['InstanceName'],
+            AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
+            ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
+            Role=params.get('Role', None),
+            ResultRole=params.get('ResultRole', None),
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_OpenQueryInstances(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.OpenQueryInstances` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.OpenQueryInstances(
+            namespace=self.namespace,
+            FilterQueryLanguage=params.get('FilterQueryLanguage', None),
+            FilterQuery=params.get('FilterQuery', None),
+            ReturnQueryResultClass=params.get('FilterQueryLanguage', None),
+            OperationTimeout=params.get('OperationTimeout', None),
+            ContinueOnError=params.get('ContinueOnError', None),
+            MaxObjectCount=params.get('MaxObjectCount', None))
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_PullInstancePaths(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.PullInstancePaths` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.PullInstancePaths(
+            EnumerationContext=params['EnumerationContext'],
+            MaxObjectCount=params['MaxObjectCount'])
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_PullInstancesWithPath(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.PullInstancesWithPath` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.PullInstancesWithPath(
+            EnumerationContext=params['EnumerationContext'],
+            MaxObjectCount=params['MaxObjectCount'])
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_PullInstances(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.PullInstances` with
+        parameters defined for that method and map response to tuple response
+        for imethodcall.
+        """
+        context_tuple = self.mainprovider.PullInstances(
+            EnumerationContext=params['EnumerationContext'],
+            MaxObjectCount=params['MaxObjectCount'])
+        return self._make_pull_imethod_resp(*context_tuple)
+
+    def _imeth_CloseEnumeration(self, **params):
+        """
+        Call :meth:`~pywbem_mock.MainProvider.CloseEnumeration` with
+        parameters defined for that method. Returns nothing
+        """
+        self.mainprovider.CloseEnumeration(
+            EnumerationContext=params['EnumerationContext'])
+
+    ####################################################################
+    #
+    #   Server responder for InvokeMethod.
+    #
+    ####################################################################
 
     def ServerInvokeMethod(self, methodname, objectname, Params, **params):
         # pylint: disable=invalid-name
@@ -1044,6 +1647,7 @@ class FakedWBEMConnection(WBEMConnection):
         The return is espected to be the same as the return defined by
         WBEMConnection.InvokeMethod (ReturnValue, OutputParameters).
         """
+
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
             localobject = objectname.copy()
             if localobject.namespace is None:
@@ -1076,11 +1680,10 @@ class FakedWBEMConnection(WBEMConnection):
         # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
         # Uses local_only = False to get characteristics from super classes
         # and include_class_origin to get origin of method in hiearchy
-        # pylint: disable=protected-access
-        cc = self.cimrepository._get_class(localobject.classname, namespace,
-                                           local_only=False,
-                                           include_qualifiers=True,
-                                           include_classorigin=True)
+        cc = self.mainprovider._get_class(namespace, localobject.classname,
+                                          local_only=False,
+                                          include_qualifiers=True,
+                                          include_classorigin=True)
 
         # Determine if method defined in classname defined in
         # the classorigin of the method
@@ -1095,11 +1698,10 @@ class FakedWBEMConnection(WBEMConnection):
             # Issue #2062: add method to repo that allows privileged users
             # direct access so we don't have to go through _get_class and can
             # test classes directly in repo
-            # pylint: disable=protected-access
-            tcc = self.cimrepository._get_class(target_cln, namespace,
-                                                local_only=False,
-                                                include_qualifiers=True,
-                                                include_classorigin=True)
+            tcc = self.mainprovider._get_class(namespace, target_cln,
+                                               local_only=False,
+                                               include_qualifiers=True,
+                                               include_classorigin=True)
             if methodname not in tcc.methods:
                 raise CIMError(
                     CIM_ERR_METHOD_NOT_FOUND,

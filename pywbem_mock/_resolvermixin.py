@@ -406,8 +406,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
         if new_class.superclass:
             try:
-                superclass = self._get_class(new_class.superclass,
-                                             namespace=namespace,
+                superclass = self._get_class(namespace, new_class.superclass,
                                              local_only=False,
                                              include_qualifiers=True,
                                              include_classorigin=True)
