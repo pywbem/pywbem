@@ -80,7 +80,10 @@ endif
 # to set the SHELL make variable is very special, see
 # https://www.gnu.org/software/make/manual/html_node/Choosing-the-Shell.html.
 # On native Windows this seems to be implemented differently than described:
-# SHELL is not set to COMSPEC, so we do that here.
+# SHELL is not set to COMSPEC, so we do that here. When COMSPEC includes a
+# path, it specifies it using backslashes. GNU make internally changes any
+# backslashes in SHELL to forward slashes, so $(SHELL) cannot be used on
+# native Windows to invoke the shell. Using $(shell ...) works.
 #
 # Note: Native Windows and CygWin are hard to distinguish: The native Windows
 # envvars are set in CygWin as well. COMSPEC (or ComSpec) is set on both
@@ -94,6 +97,7 @@ ifeq ($(OS),Windows_NT)
   else
     PLATFORM := Windows_native
     ifdef COMSPEC
+      # Some GNU make versions convert backslashes automatically (but not all?)
       SHELL := $(subst \,/,$(COMSPEC))
     else
       SHELL := cmd.exe
@@ -296,9 +300,9 @@ dist_dependent_files := \
     $(wildcard $(mock_package_name)/*.py) \
 
 ifeq ($(python_mn_version),2.6)
-	PIP_INSTALL_CMD := $(PIP_CMD) install
+  PIP_INSTALL_CMD := $(PIP_CMD) install
 else
-	PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
+  PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
 endif
 
 .PHONY: help
