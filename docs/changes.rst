@@ -31,6 +31,10 @@ Released: not yet
 * Test: Fixed a bug introduced in 0.14.5 where the manualtest scripts failed
   with invalid relative import. (see issue #2039)
 
+* Dev: Fixed installation of Jupyter Notebook on Python 3.4 by defining
+  the appropriate minimum versions of the ipython package, per Python version.
+  (See issue #2135)
+
 **Enhancements:**
 
 * Changed the HTTPS support of `pywbem.WBEMListener` from using the deprecated
