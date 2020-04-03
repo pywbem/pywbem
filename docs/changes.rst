@@ -376,6 +376,10 @@ Released: not yet
   by increasing the minimum version of the coverage package to 4.5.2.
   (See pywbemtools issue #547)
 
+* Dev: Fixed installation of Jupyter Notebook on Python 3.4 by defining
+  the appropriate minimum versions of the ipython package, per Python version.
+  (See issue #2135)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
