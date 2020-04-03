@@ -13,18 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 0.17.0.dev1
-------------------
+pywbem 0.17.0
+-------------
 
-This version is currently in development and is shown as |version|.
-
-This version contains all fixes up to pywbem 0.16.x.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-04-03
 
 **Bug fixes:**
 
@@ -54,12 +46,6 @@ Released: not yet
   directly, despite the recommendation to import only the symbols from the
   pywbem namespace, these sub-modules are still available under their previous
   names.  (See issue #1925)
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.16.0
