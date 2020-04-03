@@ -380,6 +380,8 @@ Released: not yet
   the appropriate minimum versions of the ipython package, per Python version.
   (See issue #2135)
 
+* Pinned dparse to <0.5.0 on Python 2.7 due to an issue. (See issue #2139)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
