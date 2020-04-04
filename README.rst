@@ -1,12 +1,12 @@
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
-.. image:: https://img.shields.io/pypi/v/pywbem.svg
+.. image:: https://badge.fury.io/py/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
-    :alt: Version on Pypi
+    :alt: PyPI Version
 
 .. image:: https://travis-ci.org/pywbem/pywbem.svg?branch=master
-    :target: https://travis-ci.org/pywbem/pywbem/branches
+    :target: https://travis-ci.org/github/pywbem/pywbem/builds
     :alt: Travis status
 
 .. image:: https://ci.appveyor.com/api/projects/status/7bgmed9tk9sk0k8h/branch/master?svg=true
@@ -19,13 +19,11 @@ Pywbem - A WBEM client and related utilities, written in pure Python
 
 .. image:: https://coveralls.io/repos/github/pywbem/pywbem/badge.svg?branch=master
     :target: https://coveralls.io/github/pywbem/pywbem?branch=master
-    :alt: Coveralls status
+    :alt: Coveralls result
 
 .. image:: https://img.shields.io/pypi/pyversions/pywbem.svg?color=brightgreen
-    :alt: Python versions supported
-
-.. image:: https://img.shields.io/badge/License-LGPL%202.1-green.svg
-    :alt: License
+    :target: https://pypi.python.org/pypi/pywbem/
+    :alt: Supported Python
 
 
 .. # .. contents:: **Contents:**
