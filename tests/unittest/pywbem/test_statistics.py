@@ -114,6 +114,7 @@ def test_Statistics_init(testcase, init_args, init_kwargs, exp_attrs):
 
 
 def test_Statistics_enable(statistics_enable):
+    # pylint: disable=redefined-outer-name
     """
     Test function for Statistics.enable()
     """
@@ -127,6 +128,7 @@ def test_Statistics_enable(statistics_enable):
 
 
 def test_Statistics_disable(statistics_enable):
+    # pylint: disable=redefined-outer-name
     """
     Test function for Statistics.disable()
     """
@@ -201,6 +203,7 @@ TESTCASES_STATISTICS_GET_OP_STATISTIC = [
 def test_Statistics_get_op_statistic(
         testcase, init_enable, method_name, exp_snapshot_len,
         exp_op_stats_attrs):
+    # pylint: disable=unused-argument
     """
     Test function for Statistics.get_op_statistic()
     """
@@ -473,7 +476,7 @@ def test_Statistics_reset():
 
     # take another snapshot. This snapshot should be empty
     snapshot = statistics.snapshot()
-    assert len(snapshot) == 0
+    assert not snapshot
 
 
 def test_Statistics_print_statistics():

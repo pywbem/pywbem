@@ -356,7 +356,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                 else:  # not overridable
                     if inh_qname in new_quals:
                         # Allow for same qualifier definition in subclass
-                        # pylint: disable=no-else-raise
                         if new_quals[inh_qname].value != \
                                 inherited_quals[inh_qname].value \
                                 or \

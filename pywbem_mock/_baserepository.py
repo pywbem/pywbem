@@ -35,8 +35,8 @@ Example :
 
 .. code-block:: python
 
-    # XXXRepository is a class derived from BaseRepository
-    repo = XXXRepository()                           # create the repo
+    # MyRepository is a class derived from BaseRepository
+    repo = MyRepository()                            # create the repo
     repo.add_namespace("root/cimv2")                 # add a namespace
     class_store = .repo.get_class_store("root/cimv2") # get class obj store
     test_class = CIMClass('CIM_Blah', ...)           # create a class

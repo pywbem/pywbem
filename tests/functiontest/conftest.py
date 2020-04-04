@@ -932,7 +932,7 @@ def runtestcase(testcase):
                                   raised_traceback_str))
         if isinstance(raised_exception,
                       (pywbem.CIMXMLParseError, pywbem.XMLParseError)):
-            req = raised_exception.request_data
+            req = raised_exception.request_data  # pylint: disable=no-member
             if req != conn.last_raw_request:
                 raise AssertionError("Testcase %s: The %s exception raised by "
                                      "PyWBEM operation %s has unexpected "
@@ -943,7 +943,7 @@ def runtestcase(testcase):
                                      (tc_name,
                                       raised_exception.__class__.__name__,
                                       op_name, req, conn.last_raw_request))
-            resp = raised_exception.response_data
+            resp = raised_exception.response_data  # pylint: disable=no-member
             if resp != conn.last_raw_reply:
                 raise AssertionError("Testcase %s: The %s exception raised by "
                                      "PyWBEM operation %s has unexpected "

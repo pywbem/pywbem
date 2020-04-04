@@ -88,6 +88,7 @@ class CIMRepository(ResolverMixin, object):
     """
 
     def __init__(self, conn, datastore, default_namespace=DEFAULT_NAMESPACE):
+        # pylint: disable=line-too-long
         """
         This CIM repository implementation uses a data store implementation
         defined by the constructor (Currently InMemoryRepository) to store
@@ -99,15 +100,16 @@ class CIMRepository(ResolverMixin, object):
               variables are extracted for the repository including
               the host and disable_pull_operations attributes.
 
-            datastore(:class:`~pywbem_mock.InMemoryRepository` or other subclass of `~pywbem_mock.baseRepository`):  # noqa: E501
-             class defining the data store for the CIM repository.
+            datastore(:class:`~pywbem_mock.InMemoryRepository` or other subclass of `~pywbem_mock.baseRepository`):
+              class defining the data store for the CIM repository.
 
             default_namespace(:term:`string`):
-                The default namespace defined if no namespace is specified
-                on a request.
-                TODO: Not sure this is necessary. On server side there should
-                be namespace with every request.
-        """
+              The default namespace defined if no namespace is specified
+              on a request.
+              TODO: Not sure this is necessary. On server side there should
+              be namespace with every request.
+        """  # noqa: E501
+
         #   Host name required for some responses. this is the host, port
         self.host = conn.host
         self.conn = conn
@@ -429,6 +431,7 @@ class CIMRepository(ResolverMixin, object):
 
     def _get_instance(self, iname, namespace, instance_store, property_list,
                       local_only, include_class_origin, include_qualifiers):
+        # pylint: disable=line-too-long
         """
         Local method implements getinstance. This is generally used by
         other instance methods that need to get an instance from the
@@ -440,25 +443,26 @@ class CIMRepository(ResolverMixin, object):
 
         Parameters:
 
-            iname (:class:`~pywbem.CIMInstanceName`)
+            iname (:class:`~pywbem.CIMInstanceName`):
                 The instance name of the instance to be retrieved.
 
-            namespace (:term:`string`)
+            namespace (:term:`string`):
                 Namespace containing the instance. This is used only for
                 explanatory data in exceptions
 
             instance_store:
                 Validated instance repository for the current namespace
 
-            property_list: (:term:`string` or :term:`py:iterable` of :term:`string`)  # noqa: E501
+            property_list (:term:`string` or :term:`py:iterable` of :term:`string`):
 
-            local_only:(:class:`pybool`)
+            local_only (:class:`pybool`):
                 If True only properties with classorigin same as classname
                 are returned.
-            include_class_origin:(:class:`pybool`)
+
+            include_class_origin (:class:`pybool`):
                 If True, class_origin included in returned object.
 
-            include_qualifiers:(:class:`pybool`)
+            include_qualifiers (:class:`pybool`):
                 If True, any qualifiers in the stored instance the instance and
                 properties are returned
                 NOTE: This is deprecated so generally has no effect.
@@ -472,7 +476,7 @@ class CIMRepository(ResolverMixin, object):
         Raises:
             CIMError: (CIM_ERR_NOT_FOUND) if the or its class instance do not
             exist in the repository
-        """
+        """  # noqa: E501
 
         rtn_inst = self._find_instance(iname, instance_store, copy_inst=True)
 
@@ -808,6 +812,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def EnumerateClasses(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateClasses`.
@@ -861,6 +866,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def EnumerateClassNames(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
@@ -908,6 +914,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def GetClass(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.GetClass
@@ -942,6 +949,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def CreateClass(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.CreateClass`
@@ -1002,7 +1010,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def ModifyClass(self, **params):
-        # pylint: disable=unused-argument
+        # pylint: disable=invalid-name,unused-argument
         """
         Currently not implemented
         Implements a mock server responder for
@@ -1033,6 +1041,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def DeleteClass(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.DeleteClass`
@@ -1098,7 +1107,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def EnumerateQualifiers(self, **params):
-        # pylint: disable=unused-argument
+        # pylint: disable=invalid-name,unused-argument
         """
         Imlements a mock server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateQualifiers`
@@ -1111,7 +1120,6 @@ class CIMRepository(ResolverMixin, object):
         # Validate namespace and get qualifier_store for this namespace
         qualifier_store = self.get_qualifier_store(namespace)
 
-        # pylint: disable=unnecessary-comprehension
         qualifiers = [q for q in qualifier_store.iter_values()]
 
         return self._make_tuple(qualifiers)
@@ -1123,6 +1131,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def GetQualifier(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`pywbem.WBEMConnection.GetQualifier`.
@@ -1165,6 +1174,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def SetQualifier(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`pywbem.WBEMConnection.SetQualifier`.
@@ -1208,6 +1218,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def DeleteQualifier(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.DeleteQualifier`
@@ -1247,6 +1258,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def CreateInstance(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.CreateInstance`
@@ -1405,6 +1417,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def ModifyInstance(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.CreateInstance`
@@ -1568,6 +1581,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def GetInstance(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.GetInstance`.
@@ -1613,6 +1627,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def DeleteInstance(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock server responder for
         :meth:`~pywbem.WBEMConnection.DeleteInstance`.
@@ -1678,6 +1693,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def EnumerateInstances(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateInstances`.
@@ -1749,6 +1765,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def EnumerateInstanceNames(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a server responder for
         :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`
@@ -1782,7 +1799,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def ExecQuery(self, **params):
-        # pylint: disable=unused-argument
+        # pylint: disable=invalid-name,unused-argument
         """
         Implements a mock WBEM server responder for
             :meth:`~pywbem.WBEMConnection.ExecQuery`
@@ -2128,6 +2145,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def ReferenceNames(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.ReferenceNames`
@@ -2177,6 +2195,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def References(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.References`
@@ -2276,6 +2295,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def Associators(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
             :meth:`~pywbem.WBEMConnection.Associators`
@@ -2509,6 +2529,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def OpenEnumerateInstances(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenEnumerationInstances`
@@ -2558,6 +2579,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def OpenReferenceInstances(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`
@@ -2611,6 +2633,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def OpenAssociatorInstances(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         WBEMConnection.OpenAssociatorInstances
@@ -2664,6 +2687,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def PullInstancesWithPath(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenPullInstancesWithPath`
@@ -2681,6 +2705,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def PullInstancePaths(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenPullInstancePaths`
@@ -2697,6 +2722,7 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def PullInstances(self, **params):
+        # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
         :meth:`~pywbem.WBEMConnection.OpenPullInstances`
@@ -2713,13 +2739,14 @@ class CIMRepository(ResolverMixin, object):
     ####################################################################
 
     def CloseEnumeration(self, **params):
+        # pylint: disable=invalid-name
         """
-            Implements WBEM server responder for
-            :meth:`~pywbem.WBEMConnection.CloseEnumeration`
-            with data from the instance repository.
+        Implements WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.CloseEnumeration`
+        with data from the instance repository.
 
-            If the EnumerationContext is valid it removes it from the
-            context repository. Otherwise it returns an exception.
+        If the EnumerationContext is valid it removes it from the
+        context repository. Otherwise it returns an exception.
         """
         self._pull_operations_disabled()
         namespace = self.namespace

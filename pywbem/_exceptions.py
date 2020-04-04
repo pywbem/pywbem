@@ -31,6 +31,7 @@ __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
 
 
 class _RequestExceptionMixin(object):
+    # pylint: disable=too-few-public-methods
     """
     An internal mixin class for pywbem specific exceptions that provides the
     ability to store the CIM-XML request string in the exception.
@@ -80,6 +81,7 @@ class _RequestExceptionMixin(object):
 
 
 class _ResponseExceptionMixin(object):
+    # pylint: disable=too-few-public-methods
     """
     Mixin class into pywbem specific exceptions that provides the ability to
     store the CIM-XML response string in the exception.
