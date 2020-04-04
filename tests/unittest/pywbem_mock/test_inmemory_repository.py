@@ -120,6 +120,7 @@ TESTCASES_OBJSTORE = [
     TESTCASES_OBJSTORE)
 @simplified_test_function
 def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
+    # pylint: disable=unused-argument
     """
     Simple test inserts one inst of defined type and tests retrievail
     methods.
@@ -488,6 +489,7 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     ],
 )
 def test_repository_method_errs(desc, args, condition, capsys):
+    # pylint: disable=unused-argument
     """
     This is a test of the various methods of the repository that return
     valid responses for all of the types. This test create, update,

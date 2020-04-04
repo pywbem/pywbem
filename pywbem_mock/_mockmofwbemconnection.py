@@ -32,10 +32,8 @@ from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_NAMESPACE, CIMInstanceName
 from pywbem._nocasedict import NocaseDict
 from pywbem._mof_compiler import MOFWBEMConnection
-
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
-from pywbem._nocasedict import NocaseDict
 
 # Issue #2062 TODO/ks Remove this code and use the methods in _WBEMConnection
 # in their place

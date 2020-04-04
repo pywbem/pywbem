@@ -187,11 +187,11 @@ include-naming-hint=no
 # "mixedCaseWithoutUnderscores"; leading underscores for privacy as well as
 # double trailing underscores are allowed.
 # Names matching this expression are compatible with PEP-8.
-function-rgx=_{0,2}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})(__){0,1}$
+function-rgx=_{0,2}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})(__){0,1}$
 # TODO AM: Verify whether two leading underscores are allowed / supported with name mangling.
 
 # Naming hint for function names
-function-name-hint=_{0,2}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})(__){0,1}$
+function-name-hint=_{0,2}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})(__){0,1}$
 
 # Regular expression matching correct variable names.
 #
@@ -200,30 +200,30 @@ function-name-hint=_{0,2}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})(
 # other variables; one leading underscore is allowed, and one trailing
 # underscore is allowed to avoid conflists with built-in names.
 # Names matching this expression are compatible with PEP-8.
-variable-rgx=_{0,1}([A-Z]([A-Z0-9_]{0,38}[A-Z0-9])?|[a-z]([a-z0-9_]{0,38}[a-z0-9])?|[a-z]([a-zA-Z0-9_]{1,39})?)_{0,1}$
+variable-rgx=_{0,1}([A-Z]([A-Z0-9_]{0,48}[A-Z0-9])?|[a-z]([a-z0-9_]{0,48}[a-z0-9])?|[a-z]([a-zA-Z0-9_]{1,49})?)_{0,1}$
 
 # Naming hint for variable names
-variable-name-hint=_{0,1}([A-Z]([A-Z0-9_]{0,38}[A-Z0-9])?|[a-z]([a-z0-9_]{0,38}[a-z0-9])?|[a-z]([a-zA-Z0-9_]{1,39})?)_{0,1}$
+variable-name-hint=_{0,1}([A-Z]([A-Z0-9_]{0,48}[A-Z0-9])?|[a-z]([a-z0-9_]{0,48}[a-z0-9])?|[a-z]([a-zA-Z0-9_]{1,49})?)_{0,1}$
 
 # Regular expression matching correct constant names.
 #
 # The expression below allows "UPPER_CASE_WITH_UNDERSCORES"; leading underscores
 # for privacy are allowed.
 # Names matching this expression are compatible with PEP-8.
-const-rgx=(_{0,1}[A-Z][A-Z0-9_]{0,38}[A-Z0-9]|(__.*__))$
+const-rgx=(_{0,1}[A-Z][A-Z0-9_]{0,48}[A-Z0-9]|(__.*__))$
 
 # Naming hint for constant names
-const-name-hint=(_{0,1}[A-Z][A-Z0-9_]{0,38}[A-Z0-9]|(__.*__))$
+const-name-hint=(_{0,1}[A-Z][A-Z0-9_]{0,48}[A-Z0-9]|(__.*__))$
 
 # Regular expression matching correct attribute names.
 #
 # The expression below allows "lower_case_with_underscores" and
 # "mixedCaseWithoutUnderscores"; leading underscores for privacy are allowed.
 # Names matching this expression are compatible with PEP-8.
-attr-rgx=_{0,2}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})$
+attr-rgx=_{0,2}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})$
 
 # Naming hint for attribute names
-attr-name-hint=_{0,2}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})$
+attr-name-hint=_{0,2}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})$
 
 # Regular expression matching correct argument names.
 #
@@ -232,10 +232,10 @@ attr-name-hint=_{0,2}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})$
 # but one trailing underscore is allowed to avoid conflists with built-in
 # names.
 # Names matching this expression are compatible with PEP-8.
-argument-rgx=([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})_{0,1}$
+argument-rgx=([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})_{0,1}$
 
 # Naming hint for argument names
-argument-name-hint=([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})_{0,1}$
+argument-name-hint=([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})_{0,1}$
 
 # Regular expression matching correct class attribute names.
 #
@@ -243,19 +243,19 @@ argument-name-hint=([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,39})_{0,1}$
 # and "lower_case_with_underscores" and "mixedCaseWithoutUnderscores" for
 # other variables; leading underscores for privacy are allowed.
 # Names matching this expression are compatible with PEP-8.
-class-attribute-rgx=_{0,2}([A-Z][A-Z0-9_]{0,38}[A-Z0-9]|[a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,39}|(__.*__))$
+class-attribute-rgx=_{0,2}([A-Z][A-Z0-9_]{0,48}[A-Z0-9]|[a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,49}|(__.*__))$
 
 # Naming hint for class attribute names
-class-attribute-name-hint=_{0,2}([A-Z][A-Z0-9_]{0,38}[A-Z0-9]|[a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,39}|(__.*__))$
+class-attribute-name-hint=_{0,2}([A-Z][A-Z0-9_]{0,48}[A-Z0-9]|[a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,49}|(__.*__))$
 
 # Regular expression matching correct inline iteration names.
 #
 # The expression below allows "lower_case_with_underscores" and
 # "mixedCaseWithoutUnderscores"; leading underscores for privacy are allowed.
-inlinevar-rgx=_{0,1}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,39})$
+inlinevar-rgx=_{0,1}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,49})$
 
 # Naming hint for inline iteration names
-inlinevar-name-hint=_{0,1}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,39})$
+inlinevar-name-hint=_{0,1}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,49})$
 
 # Regular expression matching correct class names.
 #
@@ -265,10 +265,10 @@ inlinevar-name-hint=_{0,1}([a-z][a-z0-9_]{0,38}[a-z0-9]|[a-z][a-zA-Z0-9_]{0,39})
 # allows that class names for callable classes can use function name syntax.
 # This is not reflected in this regexp; callable classes that follow that
 # convention should disable PyLint message C0103.
-class-rgx=_{0,1}[A-Z][a-zA-Z0-9_]{1,39}$
+class-rgx=_{0,1}[A-Z][a-zA-Z0-9_]{1,49}$
 
 # Naming hint for class names
-class-name-hint=_{0,1}[A-Z][a-zA-Z0-9_]{1,39}$
+class-name-hint=_{0,1}[A-Z][a-zA-Z0-9_]{1,49}$
 
 # Regular expression matching correct module names.
 #

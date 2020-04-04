@@ -304,6 +304,9 @@ class FakedWBEMConnection(WBEMConnection):
 
     @property
     def namespaces(self):
+        """
+        list: List of namespace dictionaries of the in-memory mock repository.
+        """
         return self.cimrepository.namespaces
 
     @property
@@ -358,7 +361,7 @@ class FakedWBEMConnection(WBEMConnection):
         else:
             raise ValueError(
                 _format('Invalid type for disable_pull_operations: {0!A}, '
-                        'must be a boolean,'. disable))
+                        'must be a boolean', disable))
 
     def __str__(self):
         return _format(

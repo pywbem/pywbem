@@ -3178,7 +3178,7 @@ class TestInstanceOperations(object):
 
         # pylint: disable=protected-access
         instance_store = conn._get_instance_store(namespace)
-        # pylint: ENABLE=protected-access
+        # pylint: enable=protected-access
 
         if not exp_exc:
             # since we do not have classes in the repository, we get back only

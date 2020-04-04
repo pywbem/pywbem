@@ -145,7 +145,7 @@ def test_leaks_CIMInstance_property():
     sys.version_info < NOCASEDICT_LEAKFREE_VERSION,
     reason="CIMInstance uses NocaseDict")
 @yagot.garbage_checked()
-def test_leaks_CIMInstance_property():
+def test_leaks_CIMInstance_qualifier():
     """
     Test function with a CIMInstance object that has one qualifier.
     """
