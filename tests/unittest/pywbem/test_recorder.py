@@ -167,6 +167,7 @@ CIMPROPERTY_E1_TCYAML = dict(
         pywbem_object='CIMInstance',
         classname='C_Emb',
         properties=yaml_ordereddict(),
+        qualifiers=yaml_ordereddict(),
         path=None,
     ),
     reference_class=None,
@@ -188,6 +189,7 @@ CIMPROPERTY_E2_TCYAML = dict(
         pywbem_object='CIMInstance',
         classname='C_Emb',
         properties=yaml_ordereddict(),
+        qualifiers=yaml_ordereddict(),
         path=None,
     ),
     reference_class=None,
@@ -212,7 +214,7 @@ CIMPROPERTY_E3_TCYAML = dict(
         properties=yaml_ordereddict(),
         methods=yaml_ordereddict(),
         qualifiers=yaml_ordereddict(),
-        # TODO: Add path attribute once supported
+        path=None,
     ),
     reference_class=None,
     embedded_object=u'object',
@@ -372,6 +374,7 @@ CIMPROPERTY_R1_TCYAML = dict(
         classname='C1',
         keybindings=yaml_ordereddict(),
         namespace=None,
+        host=None,
     ),
     reference_class=None,
     embedded_object=None,
@@ -453,6 +456,7 @@ CIMINSTANCE_ALL_TCYAML = yaml_ordereddict([
         ('R1', CIMPROPERTY_R1_TCYAML),
         ('D1', CIMPROPERTY_D1_TCYAML),
     ])),
+    ('qualifiers', yaml_ordereddict()),
     ('path', None),
 ])
 
@@ -530,6 +534,7 @@ CIMINSTANCE_WP_ALL_TCYAML = yaml_ordereddict([
         ('R1', CIMPROPERTY_R1_TCYAML),
         ('D1', CIMPROPERTY_D1_TCYAML),
     ])),
+    ('qualifiers', yaml_ordereddict()),
     ('path', yaml_ordereddict([
         ('pywbem_object', 'CIMInstanceName'),
         ('classname', 'CIM_Foo'),
@@ -579,6 +584,7 @@ CIMINSTANCES_TCYAML = [
             ('S1', CIMPROPERTY_S1_TCYAML),
             ('S2', CIMPROPERTY_S2_TCYAML),
         ])),
+        ('qualifiers', yaml_ordereddict()),
         ('path', None),
     ]),
     yaml_ordereddict([
@@ -587,6 +593,7 @@ CIMINSTANCES_TCYAML = [
         ('properties', yaml_ordereddict([
             ('S3', CIMPROPERTY_S3_TCYAML),
         ])),
+        ('qualifiers', yaml_ordereddict()),
         ('path', None),
     ]),
 ]
@@ -642,6 +649,7 @@ CIMINSTANCES_WP_TCYAML = [
             ('S1', CIMPROPERTY_S1_TCYAML),
             ('S2', CIMPROPERTY_S2_TCYAML),
         ])),
+        ('qualifiers', yaml_ordereddict()),
         ('path', yaml_ordereddict([
             ('pywbem_object', 'CIMInstanceName'),
             ('classname', 'CIM_Foo'),
@@ -657,6 +665,7 @@ CIMINSTANCES_WP_TCYAML = [
             ('S1', CIMPROPERTY_S1_TCYAML),
             ('S3', CIMPROPERTY_S3_TCYAML),
         ])),
+        ('qualifiers', yaml_ordereddict()),
         ('path', yaml_ordereddict([
             ('pywbem_object', 'CIMInstanceName'),
             ('classname', 'CIM_Foo'),
@@ -1048,7 +1057,7 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
                 pywbem_object='CIMInstanceName',
                 classname=u'CIM_Foo',
                 namespace=u'cimv2',
-                # TODO: Add host attribute once supported
+                host=u'woot.com',
                 keybindings=yaml_ordereddict([
                     (u'Chicken', u'Ham'),
                     (u'Beans', 42),
@@ -1084,8 +1093,8 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
                         qualifiers=yaml_ordereddict(),
                     )),
                 ]),
+                qualifiers=yaml_ordereddict(),
                 path=None,
-                # TODO: Add qualifiers attribute once supported
             ),
         ),
         None, None, True
@@ -1137,7 +1146,7 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
                 ]),
                 methods=yaml_ordereddict(),
                 qualifiers=yaml_ordereddict(),
-                # TODO: Add path attribute once supported
+                path=None,
             ),
         ),
         None, None, True
@@ -1190,7 +1199,7 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
                 name=u'Chicken',
                 type=u'string',
                 reference_class=None,
-                # TODO: Add embedded_object attribute once supported
+                embedded_object=None,
                 is_array=False,
                 array_size=None,
                 qualifiers=yaml_ordereddict(),
@@ -1344,6 +1353,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
                         classname='C1',
                         keybindings=yaml_ordereddict(),
                         namespace=None,
+                        host=None,
                     ),
                     Params=[
                         dict(
@@ -1353,6 +1363,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
                             array_size=None,
                             is_array=False,
                             reference_class=None,
+                            embedded_object=None,
                             qualifiers=yaml_ordereddict(),
                         )
                     ],
@@ -1394,6 +1405,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
                         classname='C1',
                         keybindings=yaml_ordereddict(),
                         namespace=None,
+                        host=None,
                     ),
                     LocalOnly=False,
                     PropertyList=['propertyblah'],
@@ -1404,6 +1416,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
                     pywbem_object='CIMInstance',
                     classname='C1',
                     properties=yaml_ordereddict(),
+                    qualifiers=yaml_ordereddict(),
                     path=None,
                 ),
             ),
@@ -1438,6 +1451,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
                     classname='C1',
                     keybindings=yaml_ordereddict(),
                     namespace=None,
+                    host=None,
                 ),
             ),
         ),

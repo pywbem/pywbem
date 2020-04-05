@@ -1003,7 +1003,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['pywbem_object'] = 'CIMInstance'
             ret_dict['classname'] = self.toyaml(obj.classname)
             ret_dict['properties'] = self.toyaml(obj.properties)
-            # TODO: Add support for qualifiers attribute
+            ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             ret_dict['path'] = self.toyaml(obj.path)
             return ret_dict
         elif isinstance(obj, CIMInstanceName):
@@ -1011,7 +1011,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['pywbem_object'] = 'CIMInstanceName'
             ret_dict['classname'] = self.toyaml(obj.classname)
             ret_dict['namespace'] = self.toyaml(obj.namespace)
-            # TODO: Add support for host attribute
+            ret_dict['host'] = self.toyaml(obj.host)
             ret_dict['keybindings'] = self.toyaml(obj.keybindings)
             return ret_dict
         elif isinstance(obj, CIMClass):
@@ -1022,7 +1022,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['properties'] = self.toyaml(obj.properties)
             ret_dict['methods'] = self.toyaml(obj.methods)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
-            # TODO: Add support for path attribute
+            ret_dict['path'] = self.toyaml(obj.path)
             return ret_dict
         elif isinstance(obj, CIMClassName):
             ret_dict = OrderedDict()
@@ -1061,7 +1061,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['name'] = self.toyaml(obj.name)
             ret_dict['type'] = self.toyaml(obj.type)
             ret_dict['reference_class'] = self.toyaml(obj.reference_class)
-            # TODO: Add support for embedded_object attribute
+            ret_dict['embedded_object'] = self.toyaml(obj.embedded_object)
             ret_dict['is_array'] = self.toyaml(obj.is_array)
             ret_dict['array_size'] = self.toyaml(obj.array_size)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)

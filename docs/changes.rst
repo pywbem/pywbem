@@ -382,6 +382,9 @@ Released: not yet
 
 * Pinned dparse to <0.5.0 on Python 2.7 due to an issue. (See issue #2139)
 
+* Added missing attributes to the test client recorder
+  (class TestClientRecorder) (see issue #2118).
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
