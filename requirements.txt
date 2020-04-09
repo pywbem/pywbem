@@ -9,7 +9,8 @@
 
 # Direct dependencies (except pip, setuptools, wheel):
 
-mock>=2.0.0
+mock>=2.0.0,<4.0.0; python_version < '3.6'
+mock>=2.0.0; python_version >= '3.6'
 ply>=3.10
 # PyYAML 5.3 has removed support for Python 3.4
 PyYAML>=5.1; python_version == '2.7'
