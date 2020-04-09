@@ -21,7 +21,9 @@ PyYAML>=3.11,<3.12; python_version == '2.6'
 PyYAML>=5.1; python_version == '2.7'
 PyYAML>=5.1,<5.3; python_version == '3.4'
 PyYAML>=5.1; python_version > '3.4'
-six>=1.10.0
+# virtualenv 20.0.0 (required on py3.8+) requires six>=0.12.0
+six>=1.10.0; python_version < '3.8'
+six>=1.12.0; python_version >= '3.8'
 backport_collections>=0.1; python_version == '2.6'
 
 
