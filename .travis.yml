@@ -237,6 +237,7 @@ script:
   - make check
   # - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
   - make pylint
+  - make installtest
   - make test
 
 after_success:
