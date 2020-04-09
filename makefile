@@ -284,8 +284,13 @@ endif
 dist_manifest_in_files := \
     LICENSE.txt \
     README.rst \
+    README_PYPI.rst \
     INSTALL.md \
-    *.py \
+    requirements.txt \
+    setup.py \
+    build_moftab.py \
+    mof_compiler \
+    mof_compiler.bat \
     $(package_name)/*.py \
     $(mock_package_name)/*.py \
 
@@ -294,8 +299,13 @@ dist_manifest_in_files := \
 dist_dependent_files := \
     LICENSE.txt \
     README.rst \
+    README_PYPI.rst \
     INSTALL.md \
-    $(wildcard *.py) \
+    requirements.txt \
+    setup.py \
+    build_moftab.py \
+    mof_compiler \
+    mof_compiler.bat \
     $(wildcard $(package_name)/*.py) \
     $(wildcard $(mock_package_name)/*.py) \
 
@@ -317,6 +327,7 @@ help:
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources"
 	@echo "  pylint     - Run PyLint on sources"
+	@echo "  installtest - Run install tests"
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  all        - Do all of the above"
@@ -460,7 +471,7 @@ develop_$(pymn).done: pip_upgrade_$(pymn).done install_$(pymn).done develop_os_$
 	@echo "makefile: Done installing Python development requirements"
 
 .PHONY: build
-build: $(bdist_file) $(sdist_file)
+build: _check_version $(bdist_file) $(sdist_file)
 	@echo "makefile: Target $@ done."
 
 .PHONY: builddoc
@@ -476,7 +487,7 @@ pylint: pylint_$(pymn).done
 	@echo "makefile: Target $@ done."
 
 .PHONY: all
-all: install develop build builddoc check pylint test leaktest
+all: install develop build builddoc check pylint installtest test leaktest
 	@echo "makefile: Target $@ done."
 
 .PHONY: clobber
@@ -604,7 +615,7 @@ endif
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 # Note: Deleting build is a safeguard against picking up partial build products
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
-$(bdist_file) $(sdist_file): _check_version setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+$(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "makefile: Creating the distribution archive files"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
@@ -675,6 +686,16 @@ test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
 	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warning_opts) $(pytest_opts) tests/unittest tests/functiontest -s
 	@echo "makefile: Done running unit and function tests"
+
+.PHONY: installtest
+installtest: $(bdist_file) $(sdist_file) tests/installtest/test_install.sh
+	@echo "makefile: Running install tests"
+ifeq ($(PLATFORM),Windows_native)
+	@echo "makefile: Warning: Skipping install test on native Windows" >&2
+else
+	tests/installtest/test_install.sh $(bdist_file) $(sdist_file)
+endif
+	@echo "makefile: Done running install tests"
 
 .PHONY: leaktest
 leaktest: $(test_deps)
