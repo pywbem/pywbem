@@ -45,6 +45,10 @@ decorator>=4.0.11
 yamlloader>=0.5.5
 backports.statistics>=0.1.0; python_version == '2.7'
 
+# Virtualenv
+virtualenv>=14.0.0; python_version < '3.8'
+virtualenv>=20.0.0; python_version >= '3.8'
+
 # Coverage reporting (no imports, invoked via coveralls script):
 # coverage 5.0 has removed support for py34
 coverage>=4.5.2,<5.0

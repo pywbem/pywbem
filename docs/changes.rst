@@ -393,7 +393,14 @@ Released: not yet
   (see issue #2160)
 
 * Pinned mock to <4.0.0 on Python <3.6 due to an install issue when installing
-  from the source tarball.
+  from the source tarball. (see issue #2150).
+
+* Enabled installation using 'setup.py install' from unpacked source distribution
+  archive, and added install tests for various installation methods including
+  this one. (see issue #2150).
+
+* Increased minimum version of 'six' from 0.10.0 to 0.12.0 when on Python 3.8
+  (or higher). (See issue #2150).
 
 **Enhancements:**
 

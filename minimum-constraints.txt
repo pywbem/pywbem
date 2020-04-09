@@ -59,7 +59,9 @@ mock==2.0.0
 ordereddict==1.1
 ply==3.10
 PyYAML==5.1
-six==1.10.0
+six==1.10.0; python_version < '3.8'
+six==1.12.0; python_version >= '3.8'  # required by virtualenv==20.0.0
+
 requests==2.20.0
 custom-inherit==2.2.2
 
@@ -84,6 +86,10 @@ yagot==0.5.0
 requests-mock==1.6.0
 importlib-metadata==0.12; python_version <= '3.7'
 pytz==2016.10
+
+# Virtualenv
+virtualenv==14.0.0; python_version < '3.8'
+virtualenv==20.0.0; python_version >= '3.8'  # requires six<2,>=1.12.0
 
 # Unit test (indirect dependencies):
 pluggy==0.7.1; python_version >= '2.7' and python_version <= '3.6'
@@ -210,6 +216,5 @@ tornado==4.4.2
 traceback2==1.4.0
 traitlets==4.3.1
 urllib3==1.23
-virtualenv==14.0.0
 wcwidth==0.1.7
 widgetsnbextension==1.2.6
