@@ -392,6 +392,9 @@ Released: not yet
   object raised NotImplementedError, by adding a tzname() method.
   (see issue #2160)
 
+* Pinned mock to <4.0.0 on Python <3.6 due to an install issue when installing
+  from the source tarball.
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
