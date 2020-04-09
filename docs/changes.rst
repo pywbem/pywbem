@@ -22,6 +22,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Pinned mock to <4.0.0 on Python <3.6 due to an install issue when installing
+  from the source tarball. (See issue #2150).
+
 **Cleanup:**
 
 **Known issues:**
