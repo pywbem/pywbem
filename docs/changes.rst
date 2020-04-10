@@ -22,6 +22,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed version incompatibilities reported by pip for tox/pluggy,
+  ipython/prompt-toolkit, and flake8/pyflakes. (See issue #2153)
+
 **Cleanup:**
 
 **Known issues:**
