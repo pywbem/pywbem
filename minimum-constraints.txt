@@ -82,6 +82,7 @@ lxml==4.4.1; python_version >= '3.8'
 requests==2.20.1
 yagot==0.5.0
 requests-mock==1.6.0
+importlib-metadata==0.12; python_version <= '3.7'
 
 # Unit test (indirect dependencies):
 pluggy==0.7.1; python_version >= '2.7' and python_version <= '3.6'
