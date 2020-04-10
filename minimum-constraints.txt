@@ -77,7 +77,8 @@ packaging==16.6
 funcsigs==1.0.2; python_version < '3.3'
 unittest2==1.1.0; python_version == '2.6'
 pytest==3.1.0; python_version == '2.6'
-pytest==4.3.1; python_version > '2.6'
+pytest==4.3.1; python_version >= '2.7' and python_version <= '3.6'
+pytest==4.4.0; python_version >= '3.7'
 testfixtures==4.3.3; python_version == '2.6'
 testfixtures==6.9.0; python_version > '2.6'
 httpretty==0.8.14; python_version == '2.6'
@@ -89,7 +90,8 @@ requests==2.20.1; python_version > '2.6'
 
 # Unit test (indirect dependencies):
 pluggy==0.5.0; python_version == '2.6'
-pluggy==0.13.0; python_version >= '2.7'
+pluggy==0.7.1; python_version >= '2.7' and python_version <= '3.6'
+pluggy==0.13.0; python_version >= '3.7'
 decorator==4.0.11
 yamlordereddictloader==0.4.0; python_version == '2.6'
 yamlloader==0.5.5; python_version > '2.6'
@@ -107,7 +109,7 @@ safety==1.8.4; python_version >= '2.7'
 dparse==0.4.1; python_version >= '2.7'
 
 # Tox
-tox==2.0.0
+tox==2.5.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
 Sphinx==1.7.6
@@ -140,6 +142,8 @@ ipython==5.1.0; python_version == '2.7'
 ipython==6.0; python_version == '3.4'
 ipython==7.0; python_version == '3.5'
 ipython==7.10; python_version >= '3.6'
+jupyter_console==5.0.0; python_version <= '3.4'
+jupyter_console==6.0.0; python_version >= '3.5'
 
 # Pywin32 is used (at least?) by jupyter.
 # Pywin32 version 226 needs to be excluded, see issue #1946.
@@ -185,7 +189,6 @@ ipywidgets==5.2.2
 Jinja2==2.8
 jsonschema==2.5.1
 jupyter_client==4.4.0
-jupyter_console==5.0.0
 jupyter_core==4.2.1
 linecache2==1.0.0
 MarkupSafe==0.23
@@ -197,7 +200,7 @@ pandocfilters==1.4.1
 pexpect==4.2.1
 pickleshare==0.7.4
 pkginfo==1.4.1
-prompt-toolkit==1.0.15
+prompt-toolkit==2.0.1
 ptyprocess==0.5.1
 # py version is determined by pytest:
 py==1.4.32; python_version == '2.6'
