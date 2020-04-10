@@ -261,10 +261,9 @@ function assert_run_ok()
   if [[ $rc != 0 ]]; then
     if [[ -n $msg ]]; then
       failure "$msg"
-    else
-      failure "Command failed with rc=$rc: $cmd, output follows:"
-      cat $CMD_LOG_FILE
     fi
+    failure "Command failed with rc=$rc: $cmd, output follows:"
+    cat $CMD_LOG_FILE
     exit 1
   fi
   rm -f $CMD_LOG_FILE
@@ -286,10 +285,9 @@ function assert_run_fails()
   if [[ $rc == 0 ]]; then
     if [[ -n $msg ]]; then
       failure "$msg"
-    else
-      failure "Command succeeded: $cmd, output follows:<F2>"
-      cat $CMD_LOG_FILE
     fi
+    failure "Command succeeded but should have failed: $cmd, output follows:"
+    cat $CMD_LOG_FILE
     exit 1
   fi
   rm -f $CMD_LOG_FILE
@@ -324,7 +322,7 @@ function assert_import_fails()
 {
   local module
   module="$1"
-  assert_run_fails "python -c \"import ${module}\"" "Python module '${module}' can be imported but should fail"
+  assert_run_fails "python -c \"import ${module}\"" "Python module '${module}' can be imported but should have failed"
 }
 
 function get_ply_version()
