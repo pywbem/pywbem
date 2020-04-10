@@ -385,6 +385,9 @@ Released: not yet
 * Added missing attributes to the test client recorder
   (class TestClientRecorder) (see issue #2118).
 
+* Fixed version incompatibilities reported by pip for tox/pluggy,
+  ipython/prompt-toolkit, and flake8/pyflakes. (See issue #2153)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

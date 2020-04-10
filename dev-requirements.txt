@@ -16,7 +16,8 @@ funcsigs>=1.0.2; python_version < '3.3'
 # pytest 5.0.0 has removed support for Python < 3.5
 # pytest 4.3.1 solves an issue on Python 3 with minimum package levels
 pytest>=4.3.1,<5.0.0; python_version < '3.5'
-pytest>=4.3.1; python_version >= '3.5'
+pytest>=4.3.1; python_version >= '3.5' and python_version <= '3.6'
+pytest>=4.4.0; python_version >= '3.7'
 testfixtures>=6.9.0
 # lxml 4.4.0 removed Python 3.4 support.
 # lxml 4.4.1 added Python 3.8 support. However, while providing binary wheel
@@ -35,7 +36,9 @@ yagot>=0.5.0
 
 # Unit test (indirect dependencies):
 # Pluggy 0.12.0 has a bug causing pytest plugins to fail loading on py38
-pluggy>=0.13.0
+pluggy>=0.7.1; python_version >= '2.7' and python_version <= '3.6'
+pluggy>=0.13.0; python_version >= '3.7'
+
 decorator>=4.0.11
 yamlloader>=0.5.5
 backports.statistics>=0.1.0; python_version == '2.7'
@@ -55,7 +58,7 @@ dparse>=0.4.1,<0.5.0; python_version == '2.7'
 dparse>=0.4.1; python_version >= '3.4'
 
 # Tox
-tox>=2.0.0
+tox>=2.5.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
 # Keep in sync with rtd-requirements.txt
@@ -81,7 +84,8 @@ astroid>=2.1.0; python_version >= '3.4'
 flake8>=3.7.9
 mccabe>=0.6.0
 pycodestyle>=2.5.0
-pyflakes>=2.1.0
+# flake8 3.7.9 pins pyflakes<2.2.0, and since pyflakes 2.2.0 was released this needs to be repeated here
+pyflakes>=2.1.0,<2.2.0
 entrypoints>=0.3.0
 functools32>=3.2.3.post2; python_version == '2.7'  # technically: python_version < '3.2'
 
@@ -102,6 +106,8 @@ ipython>=5.1.0,<6.0; python_version == '2.7'
 ipython>=6.0,<7.0; python_version == '3.4'
 ipython>=7.0,<7.10; python_version == '3.5'
 ipython>=7.10; python_version >= '3.6'
+jupyter_console>=5.0.0,<6.0.0; python_version <= '3.4'
+jupyter_console>=6.0.0; python_version >= '3.5'
 
 # Pywin32 is used (at least?) by jupyter.
 # Pywin32 version 226 needs to be excluded, see issue #1946.
