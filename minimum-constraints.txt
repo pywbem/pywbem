@@ -87,6 +87,7 @@ lxml==4.2.4; python_version <= '3.7'
 lxml==4.4.1; python_version >= '3.8'
 requests==2.19.1; python_version == '2.6'
 requests==2.20.1; python_version > '2.6'
+importlib-metadata==0.12; python_version >= '2.7' and python_version <= '3.7'
 
 # Unit test (indirect dependencies):
 pluggy==0.5.0; python_version == '2.6'
