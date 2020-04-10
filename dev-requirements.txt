@@ -39,7 +39,7 @@ lxml>=4.2.4; python_version >= '3.5' and python_version <= '3.7'
 lxml>=4.4.1; python_version >= '3.8'
 # Note: requests 2.19.1 has a security issue that is fixed in 2.20.0. However,
 #       requests 2.20.0 has dropped support for Python 2.6.
-requests>=2.19.1; python_version == '2.6'
+requests>=2.19.1,<2.20.0; python_version == '2.6'
 requests>=2.20.1; python_version > '2.6'
 
 # Unit test (indirect dependencies):
