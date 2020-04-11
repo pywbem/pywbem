@@ -40,11 +40,12 @@ def skip_if_moftab_regenerated():
     them out to the pywbem installation directory.
     """
 
-    test_installed = os.getenv('TEST_INSTALLED', False)
+    test_installed = os.getenv('TEST_INSTALLED')
 
     pywbem = import_installed('pywbem')
 
     try:
+        # pylint: disable=import-outside-toplevel
         from pywbem import _mofparsetab, _moflextab
     except ImportError:
         if test_installed:
@@ -113,7 +114,7 @@ def import_installed(module_name):
     The number of dots in `from ..utils` depends on where the test program
     containing this code is located, relative to the tests/utils.py file.
     """
-    test_installed = os.getenv('TEST_INSTALLED', False)
+    test_installed = os.getenv('TEST_INSTALLED')
     if test_installed:
 
         # Remove '' directory.

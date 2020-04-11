@@ -369,6 +369,7 @@ def configure_logger(simple_name, log_dest=None,
 
     global _CONN  # pylint: disable=global-statement
     if _CONN is None:
+        # pylint: disable=import-outside-toplevel
         from . import WBEMConnection
         _CONN = WBEMConnection
 

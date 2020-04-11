@@ -201,7 +201,7 @@ class ServerTimeoutTest(ClientTest):
                 execution_time,
                 err_flag))
 
-        return (True if request_result == 1 else False)
+        return (request_result == 1)
 
     def test_all(self):
         """ Tests all of the variations in a loop."""
@@ -302,7 +302,8 @@ def parse_args(argv_):
         if argv[1][0] != '-':
             # Stop at first non-option
             break
-        elif argv[1] == '-t':
+
+        if argv[1] == '-t':
             args_['maxtimeout'] = int(argv[2])
             del argv[1:3]
         elif argv[1] == '-d':

@@ -53,9 +53,9 @@ from pywbem_mock import FakedWBEMConnection
 
 # Ordered dict type created by yamlloader.ordereddict loaders
 if sys.version_info[0:2] >= (3, 7):
-    yaml_ordereddict = dict
+    yaml_ordereddict = dict  # pylint: disable=invalid-name
 else:
-    yaml_ordereddict = OrderedDict
+    yaml_ordereddict = OrderedDict  # pylint: disable=invalid-name
 
 TEST_DIR = os.path.dirname(__file__)
 
@@ -734,6 +734,7 @@ def capture():
 
 @pytest.fixture(scope='function')
 def test_client_recorder(request):
+    # pylint: disable=unused-argument
     """
     Fixture for a TestClientRecorder object that records to TEST_YAML_FILE and
     that is enabled.
@@ -776,7 +777,7 @@ def cleanup_recorder_yaml_file():
     if os.path.exists(TEST_YAML_FILE):
         try:
             os.remove(TEST_YAML_FILE)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             # The file is still open at this point and on Windows,
             # a WindowsError is raised.
             warnings.warn(
@@ -932,8 +933,8 @@ def test_BaseOperationRecorder_open_file(testcase, text, exp_bytes):
     fp.close()
 
     with open(tmp_filename, 'rb') as fp:
-        bytes = fp.read()
-    assert bytes == exp_bytes
+        act_bytes = fp.read()
+    assert act_bytes == exp_bytes
 
     os.remove(tmp_filename)
 
@@ -1512,6 +1513,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
 def test_TestClientRecorder_record(
         desc, op_name, op_kwargs, op_result, op_exc, exp_yaml_items,
         test_client_recorder):
+    # pylint: disable=redefined-outer-name
     """
     Record a single operation using the test client recorder and verify the
     generated YAML file.
@@ -1634,6 +1636,7 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
     """
 
     def test_connection_1(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test log of a WBEMConnection object with default parameters.
         """
@@ -1668,6 +1671,7 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
         )
 
     def test_connection_2(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test log of a WBEMConnection object with most parameters specified,
         and detail level 'all'.
@@ -1708,6 +1712,7 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
         )
 
     def test_connection_summary(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test log of a WBEMConnection object with most parameters specified,
         and detail level 'summary'.
@@ -1747,6 +1752,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
     """
 
     def test_result_exception(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log None return, HTTPError exception.
         """
@@ -1765,6 +1771,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
         )
 
     def test_result_exception_all(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log None return, HTTPError exception.
         """
@@ -1785,6 +1792,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
         )
 
     def test_result_getinstance(self, capture, instancename_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Emulates call to getInstance to test parameter processing.
         Currently creates the pywbem_request component.
@@ -1817,6 +1825,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
     @pytest.mark.parametrize(
         "detail_level", [10, 1000, 'all'])
     def test_result_instance(self, capture, instance_tuple, detail_level):
+        # pylint: disable=redefined-outer-name
         """
         Test the staging of a CIM instance with different detail_level values.
         """
@@ -1845,6 +1854,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
         )
 
     def test_result_instance_paths(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the staging of a CIM instance with path with detail_level 'paths'.
         """
@@ -1863,6 +1873,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
         )
 
     def test_result_instances_paths(self, capture, instances_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the staging of multiple CIM instances with path with
         detail_level 'paths'.
@@ -1883,6 +1894,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
         )
 
     def test_result_pull_instances_paths(self, capture, instances_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the staging of multiple CIM instances with path with
         detail_level 'paths'.
@@ -1955,6 +1967,7 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
         return url, target, method, headers, payload
 
     def test_stage_http_request_all(self, capture, instancename_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test stage of http_request log with detail_level='all'
         """
@@ -1980,6 +1993,7 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
         )
 
     def test_stage_http_request_summary(self, capture, instancename_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test http request log record with summary as detail level
         """
@@ -2003,6 +2017,7 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
         )
 
     def test_stage_http_request_int(self, capture, instancename_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test http log record with integer as detail_level
         """
@@ -2064,6 +2079,7 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         return body
 
     def test_stage_http_response_all(self, capture, instance_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test http response log record with 'all' detail_level
         """
@@ -2088,6 +2104,7 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         )
 
     def test_stage_http_response_summary(self, capture, instance_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test http response log record with 'all' detail_level
         """
@@ -2112,6 +2129,7 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         )
 
     def test_stage_http_response_int(self, capture, instance_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test http response log record with 'all' detail_level
         """
@@ -2143,6 +2161,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
     """
 
     def test_getinstance(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for get instance
         """
@@ -2176,6 +2195,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_getinstance_exception(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for get instance
         """
@@ -2209,6 +2229,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_getinstance_exception_all(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for get instance CIMError exception
         """
@@ -2240,6 +2261,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_getinstance_result_all(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for get instance
         """
@@ -2280,6 +2302,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_enuminstances_result(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for enumerate instances
         """
@@ -2314,6 +2337,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_enuminstancenames_result(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for enumerate instances
         """
@@ -2350,6 +2374,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_openenuminstances_result_all(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for enumerate instances. Returns no instances.
         """
@@ -2396,6 +2421,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_openenuminstances_all(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for enumerate instances paths with
         data in the paths component
@@ -2448,6 +2474,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_associators_result(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for Associators that returns nothing
         """
@@ -2482,6 +2509,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_associators_result_exception(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test the ops result log for associators that returns exception
         """
@@ -2500,6 +2528,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_invokemethod_int(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test invoke method log
         """
@@ -2532,6 +2561,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         )
 
     def test_invokemethod_summary(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Test invoke method log
         """
@@ -2581,6 +2611,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
     """
 
     def test_root_logger(self, capture, instance_wp_tuple):
+        # pylint: disable=redefined-outer-name
         """
         Create a logger using logging.basicConfig and generate logs
         """
@@ -2624,6 +2655,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
 
     @pytest.mark.skip("Test unreliable exception not always the same")
     def test_pywbem_logger(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test executing a connection with an externally created handler. Note
         that this test inconsistently reports the text of the exception
@@ -2738,6 +2770,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         return conn
 
     def test_1(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure the "pywbem.api" logger for summary information output to a
         file and activate that logger for all subsequently created
@@ -2798,6 +2831,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_2(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure and activate a single :class:`~pywbem.WBEMConnection` object
         logger for output of summary information for both "pywbem.api" and
@@ -2830,6 +2864,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_3(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
@@ -2867,6 +2902,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_4(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
@@ -2902,6 +2938,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_5(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a single pywbem connection with standard Python logger
         methods by defining the root logger with basicConfig
@@ -2938,6 +2975,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_6(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -2984,6 +3022,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_7(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a http logger with detail_level='all', log_dest=none
         a log config with just 'http'  (which produces no output because the
@@ -3029,6 +3068,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_8(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -3080,6 +3120,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_9(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -3125,6 +3166,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_10(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Configure a http logger with detail_level='all' and
         a log config with just 'http'  (which produces no output because the
@@ -3169,6 +3211,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         )
 
     def test_err(self, capture):
+        # pylint: disable=redefined-outer-name
         """
         Test configure_logger exception
         """
@@ -3176,11 +3219,9 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
         conn = self.build_repo(namespace)
 
         # Define the detail_level and WBEMConnection object to activate.
-        try:
+
+        with pytest.raises(ValueError):
             configure_logger('api', detail_level='blah', connection=conn,
                              propagate=True)
-            self.fail("Exception expected")
-        except ValueError:
-            pass
 
         capture.check()

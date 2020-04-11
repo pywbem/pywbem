@@ -2376,7 +2376,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 if isinstance(p[2], six.string_types):
                     p2 = p[2].lower()
                     if p2 in ['true', 'false']:  # noqa: E125
-                        end_of_sequence = True if p2 == 'true' else False
+                        end_of_sequence = (p2 == 'true')
                         end_of_sequence_found = True
                     else:
                         raise CIMXMLParseError(

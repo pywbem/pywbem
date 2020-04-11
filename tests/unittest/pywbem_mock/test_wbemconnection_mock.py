@@ -273,7 +273,7 @@ def assert_classes_equal(cls1, cls2):
     class generates data that is difficult to debug.
     """
     classes_equal(cls1, cls2)
-    assert(cls1 == cls2)
+    assert cls1 == cls2
 
 ###################################################################
 #
@@ -3370,32 +3370,34 @@ class TestInstanceOperations(object):
         assert len(rtn_insts) == exp_inst
 
         target_class = conn.GetClass(cln, namespace=ns, LocalOnly=False)
-        cl_props = [p.name for p in six.itervalues(target_class.properties)]
+        cl_props = sorted(list(target_class.properties.keys()))
 
         tst_class_names = conn.EnumerateClassNames(ns, DeepInheritance=True)
 
         for inst in rtn_insts:
             assert isinstance(inst, CIMInstance)
             assert inst.classname in tst_class_names
-            # TODO: This is overkill. Should just be all properties in inst
-            # The set makes us test for dups but should be None
-            inst_props = list(set([p for p in inst]))
-            if di is not True:   # inst props should match cl_props
+
+            # Test property names
+            inst_props = sorted(list(inst.properties.keys()))
+            if di is not True:
+                # inst_props should match cl_props
                 if len(inst_props) != len(cl_props):
                     # TODO: Still have issue with one test. and am therefore
                     # displaying the following as a reminder
-                    print('TODO props %s and %s should match.\nprops=%s\n'
-                          'clprops=%s' % (len(inst_props),
-                                          len(cl_props), inst_props, cl_props))
-
-                assert len(inst_props) == len(cl_props)
-                assert set(inst_props) == set(cl_props)
+                    print("TODO: test_enumerateinstances_di(): "
+                          "inst prop and class prop names should match:\n"
+                          "  inst  prop names ({}): {!r}\n"
+                          "  class prop names ({}): {!r}".
+                          format(len(inst_props), inst_props,
+                                 len(cl_props), cl_props))
+                assert inst_props == cl_props
             else:
                 di_class = conn.GetClass(inst.classname, namespace=ns,
                                          LocalOnly=False)
-                cl_props = [p.name for p in six.itervalues(di_class.properties)]
-                assert len(inst_props) == len(cl_props)
-                assert set(inst_props) == set(cl_props)
+                cl_props = sorted(list(di_class.properties.keys()))
+                assert inst_props == cl_props
+
             # TODO Test actual instance returned
 
     # TODO test for ico and iq
@@ -3581,7 +3583,7 @@ class TestInstanceOperations(object):
                 exp_prop = exp_inst.properties[prop_name]
                 rtn_prop = rtn_inst.properties[prop_name]
                 # assert case-sensitive match
-                assert(rtn_prop.name == exp_prop.name)
+                assert rtn_prop.name == exp_prop.name
 
         else:
             with pytest.raises(CIMError) as exec_info:

@@ -305,8 +305,8 @@ def t_stringValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({1}))*'.format(
-    utf8Char, utf8Char)
+identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({0}))*'.format(
+    utf8Char)
 
 
 @lex.TOKEN(identifier_re)

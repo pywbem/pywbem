@@ -123,30 +123,31 @@ class TestIterEnumerateInstances(object):
         conn.OpenEnumerateInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_inst_pull_operations == use_pull_param)
+        assert conn._use_enum_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in
-                  conn.IterEnumerateInstances('CIM_Foo',
-                                              namespace=ns,
-                                              LocalOnly=lo,
-                                              DeepInheritance=di,
-                                              IncludeQualifiers=iq,
-                                              IncludeClassOrigin=ico,
-                                              PropertyList=pl)]
+        result = list(conn.IterEnumerateInstances(
+            'CIM_Foo',
+            namespace=ns,
+            LocalOnly=lo,
+            DeepInheritance=di,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl))
 
-        conn.EnumerateInstances.assert_called_with('CIM_Foo',
-                                                   namespace=ns,
-                                                   LocalOnly=lo,
-                                                   DeepInheritance=di,
-                                                   IncludeQualifiers=iq,
-                                                   IncludeClassOrigin=ico,
-                                                   PropertyList=pl)
+        conn.EnumerateInstances.assert_called_with(
+            'CIM_Foo',
+            namespace=ns,
+            LocalOnly=lo,
+            DeepInheritance=di,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl)
 
-        assert(conn._use_enum_inst_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_enum_inst_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
         # pylint: disable=no-self-use
@@ -162,20 +163,19 @@ class TestIterEnumerateInstances(object):
         conn.OpenEnumerateInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_enum_inst_pull_operations is True)
+        assert conn._use_enum_inst_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=unused-argument
-            _ = [i for i in conn.IterEnumerateInstances('CIM_Foo')]  # noqa=F841
+            _ = list(conn.IterEnumerateInstances('CIM_Foo'))
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_enum_inst_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_enum_inst_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -217,23 +217,24 @@ class TestIterEnumerateInstances(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_inst_pull_operations == use_pull_param)
+        assert conn._use_enum_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in
-                  conn.IterEnumerateInstances('CIM_Foo',
-                                              namespace=ns,
-                                              LocalOnly=lo,
-                                              DeepInheritance=di,
-                                              IncludeQualifiers=iq,
-                                              IncludeClassOrigin=ico,
-                                              PropertyList=pl,
-                                              FilterQueryLanguage=fl,
-                                              FilterQuery=fq,
-                                              OperationTimeout=ot,
-                                              ContinueOnError=coe,
-                                              MaxObjectCount=moc)]
+        result = list(conn.IterEnumerateInstances(
+            'CIM_Foo',
+            namespace=ns,
+            LocalOnly=lo,
+            DeepInheritance=di,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl,
+            FilterQueryLanguage=fl,
+            FilterQuery=fq,
+            OperationTimeout=ot,
+            ContinueOnError=coe,
+            MaxObjectCount=moc))
+
         conn.OpenEnumerateInstances.assert_called_with(
             'CIM_Foo',
             namespace=ns,
@@ -247,9 +248,9 @@ class TestIterEnumerateInstances(object):
             MaxObjectCount=moc)
 
         # pylint: disable=protected-access
-        assert(conn._use_enum_inst_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_enum_inst_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -272,15 +273,15 @@ class TestIterEnumerateInstances(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_inst_pull_operations == use_pull_param)
+        assert conn._use_enum_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterEnumerateInstances('CIM_Foo')]
+        result = list(conn.IterEnumerateInstances('CIM_Foo'))
 
-        assert(conn._use_enum_inst_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_enum_inst_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -296,10 +297,9 @@ class TestIterEnumerateInstances(object):
         conn.OpenEnumerateInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            result = [inst for inst in  # noqa F841
-                      conn.IterEnumerateInstances('CIM_Foo',
-                                                  MaxObjectCount=max_cnt)]
+            _ = list(conn.IterEnumerateInstances(
+                'CIM_Foo',
+                MaxObjectCount=max_cnt))
 
 
 ########################################################################
@@ -328,21 +328,22 @@ class TestIterEnumerateInstancePaths(object):
         conn.OpenEnumerateInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations == use_pull_param)
+        assert conn._use_enum_path_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterEnumerateInstancePaths(
+        result = list(conn.IterEnumerateInstancePaths(
             'CIM_Foo',
-            namespace=ns)]
+            namespace=ns))
 
-        conn.EnumerateInstanceNames.assert_called_with('CIM_Foo',
-                                                       namespace=ns)
+        conn.EnumerateInstanceNames.assert_called_with(
+            'CIM_Foo',
+            namespace=ns)
 
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_enum_path_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     def test_operation_fail(self, tst_insts):
         # pylint: disable=no-self-use
@@ -356,20 +357,19 @@ class TestIterEnumerateInstancePaths(object):
         conn.OpenEnumerateInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations is True)
+        assert conn._use_enum_path_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=expression-not-assigned
-            [i for i in conn.IterEnumerateInstancePaths('CIM_Foo')]  # noqa=F841
+            _ = list(conn.IterEnumerateInstancePaths('CIM_Foo'))
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_enum_path_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -404,18 +404,18 @@ class TestIterEnumerateInstancePaths(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations == use_pull_param)
+        assert conn._use_enum_path_pull_operations == use_pull_param
 
-        result = [p for p in conn.IterEnumerateInstancePaths(
+        result = list(conn.IterEnumerateInstancePaths(
             'CIM_Foo',
             namespace=ns,
             FilterQueryLanguage=fl,
             FilterQuery=fq,
             OperationTimeout=ot,
             ContinueOnError=coe,
-            MaxObjectCount=moc)]
+            MaxObjectCount=moc))
 
         conn.OpenEnumerateInstancePaths.assert_called_with(
             'CIM_Foo',
@@ -427,9 +427,9 @@ class TestIterEnumerateInstancePaths(object):
             MaxObjectCount=moc)
 
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_enum_path_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -452,17 +452,17 @@ class TestIterEnumerateInstancePaths(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations == use_pull_param)
+        assert conn._use_enum_path_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterEnumerateInstancePaths('CIM_Foo')]
+        result = list(conn.IterEnumerateInstancePaths('CIM_Foo'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_enum_path_pull_operations is True)
+        assert conn._use_enum_path_pull_operations is True
 
-        assert(result == tst_paths)
+        assert result == tst_paths
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -477,11 +477,11 @@ class TestIterEnumerateInstancePaths(object):
         conn.EnumerateInstanceNames = Mock(return_value=tst_paths)
         conn.OpenEnumeratePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            result = [inst for inst in  # noqa F841
-                      conn.IterEnumerateInstancePaths('CIM_Foo',
-                                                      MaxObjectCount=max_cnt)]
+            _ = list(conn.IterEnumerateInstancePaths(
+                'CIM_Foo',
+                MaxObjectCount=max_cnt))
 
 
 ########################################################################
@@ -545,28 +545,29 @@ class TestIterReferenceInstances(object):
         conn.OpenReferenceInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_ref_inst_pull_operations == use_pull_param)
+        assert conn._use_ref_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in
-                  conn.IterReferenceInstances(self.target_path(ns),
-                                              ResultClass=rc,
-                                              Role=ro,
-                                              IncludeQualifiers=iq,
-                                              IncludeClassOrigin=ico,
-                                              PropertyList=pl)]
+        result = list(conn.IterReferenceInstances(
+            self.target_path(ns),
+            ResultClass=rc,
+            Role=ro,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl))
 
-        conn.References.assert_called_with(self.target_path(ns),
-                                           ResultClass=rc,
-                                           Role=ro,
-                                           IncludeQualifiers=iq,
-                                           IncludeClassOrigin=ico,
-                                           PropertyList=pl)
+        conn.References.assert_called_with(
+            self.target_path(ns),
+            ResultClass=rc,
+            Role=ro,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl)
 
-        assert(conn._use_ref_inst_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_ref_inst_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
         # pylint: disable=no-self-use
@@ -582,21 +583,20 @@ class TestIterReferenceInstances(object):
         conn.OpenReferenceInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_ref_inst_pull_operations is True)
+        assert conn._use_ref_inst_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=unused-argument
-            _ = [i for i in conn.IterReferenceInstances(  # noqa=F841
-                self.target_path('root/cimv2'))]
+            _ = list(conn.IterReferenceInstances(
+                self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_ref_inst_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_ref_inst_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -645,21 +645,23 @@ class TestIterReferenceInstances(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_ref_inst_pull_operations == use_pull_param)
-        result = [inst for inst in
-                  conn.IterReferenceInstances(self.target_path(ns),
-                                              ResultClass=rc,
-                                              Role=ro,
-                                              IncludeQualifiers=iq,
-                                              IncludeClassOrigin=ico,
-                                              PropertyList=pl,
-                                              FilterQueryLanguage=fl,
-                                              FilterQuery=fq,
-                                              OperationTimeout=ot,
-                                              ContinueOnError=coe,
-                                              MaxObjectCount=moc)]
+        assert conn._use_ref_inst_pull_operations == use_pull_param
+
+        result = list(conn.IterReferenceInstances(
+            self.target_path(ns),
+            ResultClass=rc,
+            Role=ro,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl,
+            FilterQueryLanguage=fl,
+            FilterQuery=fq,
+            OperationTimeout=ot,
+            ContinueOnError=coe,
+            MaxObjectCount=moc))
+
         conn.OpenReferenceInstances.assert_called_with(
             self.target_path(ns),
             ResultClass=rc,
@@ -673,9 +675,9 @@ class TestIterReferenceInstances(object):
             MaxObjectCount=moc)
 
         # pylint: disable=protected-access
-        assert(conn._use_ref_inst_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_ref_inst_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -700,16 +702,16 @@ class TestIterReferenceInstances(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_ref_inst_pull_operations == use_pull_param)
+        assert conn._use_ref_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterReferenceInstances(
-            self.target_path('root/cimv2'))]
+        result = list(conn.IterReferenceInstances(
+            self.target_path('root/cimv2')))
 
-        assert(conn._use_ref_inst_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_ref_inst_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -724,11 +726,11 @@ class TestIterReferenceInstances(object):
         conn.References = Mock(return_value=tst_insts)
         conn.OpenReferenceInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            result = [inst for inst in  # noqa F841
-                      conn.IterReferenceInstances(self.target_path('root/x'),
-                                                  MaxObjectCount=max_cnt)]
+            _ = list(conn.IterReferenceInstances(
+                self.target_path('root/x'),
+                MaxObjectCount=max_cnt))
 
 
 ########################################################################
@@ -784,22 +786,23 @@ class TestIterReferenceInstancePaths(object):
         conn.OpenReferenceInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_ref_path_pull_operations == use_pull_param)
+        assert conn._use_ref_path_pull_operations == use_pull_param
 
-        result = [inst for inst in
-                  conn.IterReferenceInstancePaths(self.target_path(ns),
-                                                  ResultClass=rc,
-                                                  Role=ro)]
+        result = list(conn.IterReferenceInstancePaths(
+            self.target_path(ns),
+            ResultClass=rc,
+            Role=ro))
 
-        conn.ReferenceNames.assert_called_with(self.target_path(ns),
-                                               ResultClass=rc,
-                                               Role=ro)
+        conn.ReferenceNames.assert_called_with(
+            self.target_path(ns),
+            ResultClass=rc,
+            Role=ro)
 
-        assert(conn._use_ref_path_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_ref_path_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
         # pylint: disable=no-self-use
@@ -815,21 +818,20 @@ class TestIterReferenceInstancePaths(object):
         conn.OpenReferenceInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_ref_path_pull_operations is True)
+        assert conn._use_ref_path_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=unused-argument
-            _ = [i for i in conn.IterReferenceInstancePaths(  # noqa=F841
-                self.target_path('root/cimv2'))]
+            _ = list(conn.IterReferenceInstancePaths(
+                self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_ref_path_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_ref_path_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -869,18 +871,20 @@ class TestIterReferenceInstancePaths(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_ref_path_pull_operations == use_pull_param)
-        result = [inst for inst in
-                  conn.IterReferenceInstancePaths(self.target_path(ns),
-                                                  ResultClass=rc,
-                                                  Role=ro,
-                                                  FilterQueryLanguage=fl,
-                                                  FilterQuery=fq,
-                                                  OperationTimeout=ot,
-                                                  ContinueOnError=coe,
-                                                  MaxObjectCount=moc)]
+        assert conn._use_ref_path_pull_operations == use_pull_param
+
+        result = list(conn.IterReferenceInstancePaths(
+            self.target_path(ns),
+            ResultClass=rc,
+            Role=ro,
+            FilterQueryLanguage=fl,
+            FilterQuery=fq,
+            OperationTimeout=ot,
+            ContinueOnError=coe,
+            MaxObjectCount=moc))
+
         conn.OpenReferenceInstancePaths.assert_called_with(
             self.target_path(ns),
             ResultClass=rc,
@@ -892,9 +896,9 @@ class TestIterReferenceInstancePaths(object):
             MaxObjectCount=moc)
 
         # pylint: disable=protected-access
-        assert(conn._use_ref_path_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_ref_path_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -919,16 +923,16 @@ class TestIterReferenceInstancePaths(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_ref_path_pull_operations == use_pull_param)
+        assert conn._use_ref_path_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterReferenceInstancePaths(
-            self.target_path('root/cimv2'))]
+        result = list(conn.IterReferenceInstancePaths(
+            self.target_path('root/cimv2')))
 
-        assert(conn._use_ref_path_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_ref_path_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -943,11 +947,11 @@ class TestIterReferenceInstancePaths(object):
         conn.ReferenceNames = Mock(return_value=tst_insts)
         conn.OpenReferenceInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            result = [inst for inst in  # noqa F841
-                      conn.IterReferenceInstancePaths(self.target_path('dum'),
-                                                      MaxObjectCount=max_cnt)]
+            _ = list(conn.IterReferenceInstancePaths(
+                self.target_path('dum'),
+                MaxObjectCount=max_cnt))
 
 ########################################################################
 #
@@ -1010,32 +1014,33 @@ class TestIterAssociatorInstances(object):
         conn.OpenAssociatorInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_inst_pull_operations == use_pull_param)
+        assert conn._use_assoc_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in
-                  conn.IterAssociatorInstances(self.target_path(ns),
-                                               AssocClass=ac,
-                                               ResultClass=rc,
-                                               Role=ro,
-                                               ResultRole=rr,
-                                               IncludeQualifiers=iq,
-                                               IncludeClassOrigin=ico,
-                                               PropertyList=pl)]
+        result = list(conn.IterAssociatorInstances(
+            self.target_path(ns),
+            AssocClass=ac,
+            ResultClass=rc,
+            Role=ro,
+            ResultRole=rr,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl))
 
-        conn.Associators.assert_called_with(self.target_path(ns),
-                                            AssocClass=ac,
-                                            ResultClass=rc,
-                                            Role=ro,
-                                            ResultRole=rr,
-                                            IncludeQualifiers=iq,
-                                            IncludeClassOrigin=ico,
-                                            PropertyList=pl)
+        conn.Associators.assert_called_with(
+            self.target_path(ns),
+            AssocClass=ac,
+            ResultClass=rc,
+            Role=ro,
+            ResultRole=rr,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl)
 
-        assert(conn._use_assoc_inst_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_assoc_inst_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
         # pylint: disable=no-self-use
@@ -1051,21 +1056,20 @@ class TestIterAssociatorInstances(object):
         conn.OpenAssociatorInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_assoc_inst_pull_operations is True)
+        assert conn._use_assoc_inst_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=unused-argument
-            _ = [i for i in conn.IterAssociatorInstances(  # noqa=F841
-                self.target_path('root/cimv2'))]
+            _ = list(conn.IterAssociatorInstances(
+                self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_assoc_inst_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_assoc_inst_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -1114,23 +1118,25 @@ class TestIterAssociatorInstances(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_inst_pull_operations == use_pull_param)
-        result = [inst for inst in
-                  conn.IterAssociatorInstances(self.target_path(ns),
-                                               AssocClass=ac,
-                                               ResultClass=rc,
-                                               Role=ro,
-                                               ResultRole=rr,
-                                               IncludeQualifiers=iq,
-                                               IncludeClassOrigin=ico,
-                                               PropertyList=pl,
-                                               FilterQueryLanguage=fl,
-                                               FilterQuery=fq,
-                                               OperationTimeout=ot,
-                                               ContinueOnError=coe,
-                                               MaxObjectCount=moc)]
+        assert conn._use_assoc_inst_pull_operations == use_pull_param
+
+        result = list(conn.IterAssociatorInstances(
+            self.target_path(ns),
+            AssocClass=ac,
+            ResultClass=rc,
+            Role=ro,
+            ResultRole=rr,
+            IncludeQualifiers=iq,
+            IncludeClassOrigin=ico,
+            PropertyList=pl,
+            FilterQueryLanguage=fl,
+            FilterQuery=fq,
+            OperationTimeout=ot,
+            ContinueOnError=coe,
+            MaxObjectCount=moc))
+
         conn.OpenAssociatorInstances.assert_called_with(
             self.target_path(ns),
             AssocClass=ac,
@@ -1146,9 +1152,9 @@ class TestIterAssociatorInstances(object):
             MaxObjectCount=moc)
 
         # pylint: disable=protected-access
-        assert(conn._use_assoc_inst_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_assoc_inst_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -1173,16 +1179,16 @@ class TestIterAssociatorInstances(object):
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_inst_pull_operations == use_pull_param)
+        assert conn._use_assoc_inst_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterAssociatorInstances(
-            self.target_path('root/cimv2'))]
+        result = list(conn.IterAssociatorInstances(
+            self.target_path('root/cimv2')))
 
-        assert(conn._use_assoc_inst_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_insts)
+        assert conn._use_assoc_inst_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -1197,11 +1203,11 @@ class TestIterAssociatorInstances(object):
         conn.Associators = Mock(return_value=tst_insts)
         conn.OpenAssociatorInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            result = [inst for inst in  # noqa F841
-                      conn.IterAssociatorInstances(self.target_path('root/x'),
-                                                   MaxObjectCount=max_cnt)]
+            _ = list(conn.IterAssociatorInstances(
+                self.target_path('root/x'),
+                MaxObjectCount=max_cnt))
 
 ########################################################################
 #
@@ -1257,26 +1263,27 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         conn.OpenAssociatorInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations == use_pull_param)
+        assert conn._use_assoc_path_pull_operations == use_pull_param
 
-        result = [inst for inst in
-                  conn.IterAssociatorInstancePaths(self.target_path(ns),
-                                                   AssocClass=ac,
-                                                   ResultClass=rc,
-                                                   Role=ro,
-                                                   ResultRole=rr)]
+        result = list(conn.IterAssociatorInstancePaths(
+            self.target_path(ns),
+            AssocClass=ac,
+            ResultClass=rc,
+            Role=ro,
+            ResultRole=rr))
 
-        conn.AssociatorNames.assert_called_with(self.target_path(ns),
-                                                AssocClass=ac,
-                                                ResultClass=rc,
-                                                Role=ro,
-                                                ResultRole=rr)
+        conn.AssociatorNames.assert_called_with(
+            self.target_path(ns),
+            AssocClass=ac,
+            ResultClass=rc,
+            Role=ro,
+            ResultRole=rr)
 
-        assert(conn._use_assoc_path_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_assoc_path_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     def test_operation_fail(self, tst_paths):
         # pylint: disable=no-self-use
@@ -1292,21 +1299,20 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         conn.OpenAssociatorInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations is True)
+        assert conn._use_assoc_path_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=unused-argument
-            _ = [i for i in conn.IterAssociatorInstancePaths(  # noqa=F841
-                self.target_path('root/cimv2'))]
+            _ = list(conn.IterAssociatorInstancePaths(
+                self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_assoc_path_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -1346,20 +1352,22 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations == use_pull_param)
-        result = [inst for inst in
-                  conn.IterAssociatorInstancePaths(self.target_path(ns),
-                                                   AssocClass=ac,
-                                                   ResultClass=rc,
-                                                   Role=ro,
-                                                   ResultRole=rr,
-                                                   FilterQueryLanguage=fl,
-                                                   FilterQuery=fq,
-                                                   OperationTimeout=ot,
-                                                   ContinueOnError=coe,
-                                                   MaxObjectCount=moc)]
+        assert conn._use_assoc_path_pull_operations == use_pull_param
+
+        result = list(conn.IterAssociatorInstancePaths(
+            self.target_path(ns),
+            AssocClass=ac,
+            ResultClass=rc,
+            Role=ro,
+            ResultRole=rr,
+            FilterQueryLanguage=fl,
+            FilterQuery=fq,
+            OperationTimeout=ot,
+            ContinueOnError=coe,
+            MaxObjectCount=moc))
+
         conn.OpenAssociatorInstancePaths.assert_called_with(
             self.target_path(ns),
             AssocClass=ac,
@@ -1373,9 +1381,9 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
             MaxObjectCount=moc)
 
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_assoc_path_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -1400,16 +1408,16 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
                                                      eos=True,
                                                      context=None))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations == use_pull_param)
+        assert conn._use_assoc_path_pull_operations == use_pull_param
 
-        result = [inst for inst in conn.IterAssociatorInstancePaths(
-            self.target_path('root/cimv2'))]
+        result = list(conn.IterAssociatorInstancePaths(
+            self.target_path('root/cimv2')))
 
-        assert(conn._use_assoc_path_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result == tst_paths)
+        assert conn._use_assoc_path_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -1424,11 +1432,11 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         conn.AssociatorNames = Mock(return_value=tst_paths)
         conn.OpenAssociatorInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            result = [inst for inst in  # noqa F841
-                      conn.IterAssociatorInstancePaths(self.target_path('dum'),
-                                                       MaxObjectCount=max_cnt)]
+            _ = list(conn.IterAssociatorInstancePaths(
+                self.target_path('dum'),
+                MaxObjectCount=max_cnt))
 
 
 ########################################################################
@@ -1463,19 +1471,19 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         conn.OpenQueryInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_query_pull_operations == use_pull_param)
+        assert conn._use_query_pull_operations == use_pull_param
 
         q_result = conn.IterQueryInstances(ql, query, namespace=ns)
-        result_insts = [inst for inst in q_result.generator]
+        result_insts = list(q_result.generator)
 
         conn.ExecQuery.assert_called_with(ql, query, namespace=ns)
 
-        assert(q_result.query_result_class is None)
-        assert(conn._use_query_pull_operations is False)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result_insts == tst_insts)
+        assert q_result.query_result_class is None
+        assert conn._use_query_pull_operations is False
+        assert conn.use_pull_operations == use_pull_param
+        assert result_insts == tst_insts
 
     def test_operation_fail(self, tst_insts):
         # pylint: disable=no-self-use
@@ -1491,21 +1499,19 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         conn.OpenQueryInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
 
-        assert(conn.use_pull_operations is True)
+        assert conn.use_pull_operations is True
         # pylint: disable=protected-access
-        assert(conn._use_query_pull_operations is True)
+        assert conn._use_query_pull_operations is True
 
         with pytest.raises(CIMError) as exec_info:
-            # pylint: disable=unused-variable
-            q_result = conn.IterQueryInstances(  # noqa=F841
-                'CQL', 'Select from *')
+            conn.IterQueryInstances('CQL', 'Select from *')
 
         exc = exec_info.value
-        assert(exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED')
+        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
 
         # pylint: disable=protected-access
-        assert(conn._use_query_pull_operations is True)
-        assert(conn.use_pull_operations is True)
+        assert conn._use_query_pull_operations is True
+        assert conn.use_pull_operations is True
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -1547,31 +1553,34 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
                                                       context=None,
                                                       query_result_class=qrc))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_query_pull_operations == use_pull_param)
+        assert conn._use_query_pull_operations == use_pull_param
 
-        q_result = conn.IterQueryInstances(ql, query, namespace=ns,
-                                           ReturnQueryResultClass=rqrc_param,
-                                           OperationTimeout=ot,
-                                           ContinueOnError=coe,
-                                           MaxObjectCount=moc)
-
-        conn.OpenQueryInstances.assert_called_with(
-            ql, query, namespace=ns,
+        q_result = conn.IterQueryInstances(
+            ql, query,
+            namespace=ns,
             ReturnQueryResultClass=rqrc_param,
             OperationTimeout=ot,
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
-        result_insts = [inst for inst in q_result.generator]
+        conn.OpenQueryInstances.assert_called_with(
+            ql, query,
+            namespace=ns,
+            ReturnQueryResultClass=rqrc_param,
+            OperationTimeout=ot,
+            ContinueOnError=coe,
+            MaxObjectCount=moc)
 
-        assert(q_result.query_result_class == qrc)
+        result_insts = list(q_result.generator)
+
+        assert q_result.query_result_class == qrc
 
         # pylint: disable=protected-access
-        assert(conn._use_query_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result_insts == tst_insts)
+        assert conn._use_query_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result_insts == tst_insts
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
@@ -1608,14 +1617,15 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
                                                       context=None,
                                                       query_result_class=qrc))
 
-        assert(conn.use_pull_operations == use_pull_param)
+        assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
-        assert(conn._use_assoc_path_pull_operations == use_pull_param)
+        assert conn._use_assoc_path_pull_operations == use_pull_param
 
-        q_result = conn.IterQueryInstances('CQL', 'Select from *',
-                                           ReturnQueryResultClass=rqrc_param)
+        q_result = conn.IterQueryInstances(
+            'CQL', 'Select from *',
+            ReturnQueryResultClass=rqrc_param)
 
-        result_insts = [inst for inst in q_result.generator]
+        result_insts = list(q_result.generator)
 
         conn.OpenQueryInstances.assert_called_with(
             'CQL', 'Select from *',
@@ -1629,9 +1639,9 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         # assert(q_result.query_result_class == rc)
 
         # pylint: disable=protected-access
-        assert(conn._use_query_pull_operations is True)
-        assert(conn.use_pull_operations == use_pull_param)
-        assert(result_insts == tst_insts)
+        assert conn._use_query_pull_operations is True
+        assert conn.use_pull_operations == use_pull_param
+        assert result_insts == tst_insts
 
     @pytest.mark.parametrize(
         "max_cnt", [0, -1]
@@ -1651,6 +1661,6 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
                                                       context=None,
                                                       query_result_class=None))
         with pytest.raises(ValueError):
-            # pylint: disable=unused-variable
-            q_result = conn.IterQueryInstances(  # noqa=F841
-                'CQL', 'Select from *', MaxObjectCount=max_cnt)
+            conn.IterQueryInstances(
+                'CQL', 'Select from *',
+                MaxObjectCount=max_cnt)

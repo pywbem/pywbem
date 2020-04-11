@@ -21,7 +21,7 @@ def unichr2(cp):
 
     Returns None for surrogsate code points.
     """
-    if cp >= SURROGATE_MIN_CP and cp <= SURROGATE_MAX_CP:
+    if SURROGATE_MIN_CP <= cp <= SURROGATE_MAX_CP:
         return None
 
     if sys.maxunicode == MAX_UNICODE_CP:

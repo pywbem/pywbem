@@ -1049,6 +1049,7 @@ def cimtype(obj):
         instancename_type = CIMInstanceName
     except NameError:
         # Defer import due to circular import dependencies:
+        # pylint: disable=import-outside-toplevel
         from pywbem._cim_obj import CIMInstanceName as instancename_type
     if isinstance(obj, instancename_type):
         return 'reference'
@@ -1057,6 +1058,7 @@ def cimtype(obj):
         instance_type = CIMInstance
     except NameError:
         # Defer import due to circular import dependencies:
+        # pylint: disable=import-outside-toplevel
         from pywbem._cim_obj import CIMInstance as instance_type
     if isinstance(obj, instance_type):  # embedded instance
         return 'string'
@@ -1065,6 +1067,7 @@ def cimtype(obj):
         class_type = CIMClass
     except NameError:
         # Defer import due to circular import dependencies:
+        # pylint: disable=import-outside-toplevel
         from pywbem._cim_obj import CIMClass as class_type
     if isinstance(obj, class_type):  # embedded class
         return 'string'
@@ -1137,6 +1140,7 @@ def type_from_name(type_name):
     """
     if type_name == 'reference':
         # Defer import due to circular import dependencies:
+        # pylint: disable=import-outside-toplevel
         from ._cim_obj import CIMInstanceName
         return CIMInstanceName
     try:

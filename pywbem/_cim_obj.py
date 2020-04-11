@@ -305,7 +305,7 @@ _KB_VAL = r'(?:{0}|{1}|{2})'.format(
 # To get all repetitions, capture a repeated group instead of repeating a
 # capturing group: https://www.regular-expressions.info/captureall.html
 WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
-    r'^(\w+={0})((?:,\w+={1})*)$'.format(_KB_VAL, _KB_VAL),
+    r'^(\w+={0})((?:,\w+={0})*)$'.format(_KB_VAL),
     flags=(re.UNICODE | re.IGNORECASE))
 
 WBEM_URI_KB_FINDALL_REGEXP = re.compile(
@@ -751,25 +751,28 @@ def _scalar_value_tomof(
                     "type {1} for conversion to a MOF string",
                     type, builtin_type(value)))
 
-    elif type == 'char16':
+    if type == 'char16':
         return mofstr(value, indent, maxline, line_pos, end_space, avoid_splits,
                       quote_char=u"'")
-    elif type == 'boolean':
+
+    if type == 'boolean':
         val = u'true' if value else u'false'
         return mofval(val, indent, maxline, line_pos, end_space)
-    elif type == 'datetime':
+
+    if type == 'datetime':
         val = six.text_type(value)
         return mofstr(val, indent, maxline, line_pos, end_space, avoid_splits)
-    elif type == 'reference':
+
+    if type == 'reference':
         val = value.to_wbem_uri()
         return mofstr(val, indent, maxline, line_pos, end_space, avoid_splits)
-    else:
-        assert isinstance(value, (CIMFloat, CIMInt)), \
-            _format("Scalar value of CIM type {0} has invalid Python type {1} "
-                    "for conversion to a MOF string",
-                    type, builtin_type(value))
-        val = six.text_type(value)
-        return mofval(val, indent, maxline, line_pos, end_space)
+
+    assert isinstance(value, (CIMFloat, CIMInt)), \
+        _format("Scalar value of CIM type {0} has invalid Python type {1} "
+                "for conversion to a MOF string",
+                type, builtin_type(value))
+    val = six.text_type(value)
+    return mofval(val, indent, maxline, line_pos, end_space)
 
 
 def _value_tomof(

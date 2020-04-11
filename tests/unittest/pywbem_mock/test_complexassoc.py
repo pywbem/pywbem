@@ -333,6 +333,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
     if ns is not None:
         target = CIMClassName(target, namespace=ns)
     if cond == 'pdb':
+        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 
@@ -484,6 +485,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
     conn.compile_mof_string(complex_assoc_mof + mof, namespace=ns)
 
     if cond == 'pdb':
+        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 
@@ -616,6 +618,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
     if ns is not None:
         target = CIMClassName(target, namespace=ns)
     if cond == 'pdb':
+        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 
@@ -1140,6 +1143,7 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
         pytest.skip("Condition for test case not met")
 
     if cond == 'pdb':
+        # pylint: disable=import-outside-toplevel
         import pdb
         pdb.set_trace()
 

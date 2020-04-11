@@ -379,16 +379,20 @@ class FakedWBEMConnection(WBEMConnection):
             s=self, super=super(FakedWBEMConnection, self).__repr__())
 
     def _get_qualifier_store(self, namespace):
+        # pylint: disable=missing-function-docstring,missing-docstring
         return self.cimrepository.get_qualifier_store(namespace)
 
     def _get_class_store(self, namespace):
+        # pylint: disable=missing-function-docstring,missing-docstring
         return self.cimrepository.get_class_store(namespace)
 
     def _get_instance_store(self, namespace):
+        # pylint: disable=missing-function-docstring,missing-docstring
         return self.cimrepository.get_instance_store(namespace)
 
     # TODO: This changes when we add provider concept.
     def _get_method_repo(self, namespace):
+        # pylint: disable=missing-function-docstring,missing-docstring
         self.cimrepository.validate_namespace(namespace)
         if namespace not in self.methods:
             self.methods[namespace] = NocaseDict()
@@ -399,9 +403,11 @@ class FakedWBEMConnection(WBEMConnection):
     # this class. they are considered part of the external API.
 
     def add_namespace(self, namespace):
+        # pylint: disable=missing-function-docstring,missing-docstring
         self.cimrepository.add_namespace(namespace)
 
     def remove_namespace(self, namespace):
+        # pylint: disable=missing-function-docstring,missing-docstring
         self.cimrepository.remove_namespace(namespace)
 
     ###########################################################################
@@ -693,6 +699,7 @@ class FakedWBEMConnection(WBEMConnection):
             if isinstance(obj, CIMClass):
                 cc = obj.copy()
                 if cc.superclass:
+                    # pylint: disable=protected-access
                     if not self.cimrepository._class_exists(cc.superclass,
                                                             namespace):
                         raise ValueError(
@@ -704,6 +711,7 @@ class FakedWBEMConnection(WBEMConnection):
 
                 qualifier_store = self._get_qualifier_store(namespace)
 
+                # pylint: disable=protected-access
                 cc1 = self.cimrepository._resolve_class(cc, namespace,
                                                         qualifier_store,
                                                         verbose=False)
@@ -725,6 +733,7 @@ class FakedWBEMConnection(WBEMConnection):
                     inst.path.host = None
                 instance_store = self._get_instance_store(namespace)
                 try:
+                    # pylint: disable=protected-access
                     if self.cimrepository._find_instance(inst.path,
                                                          instance_store):
                         raise ValueError(
@@ -952,7 +961,7 @@ class FakedWBEMConnection(WBEMConnection):
         else:
             # Display classes and qualifier declarations sorted
             assert obj_type in ['Classes', 'Qualifier Declarations']
-            names = [n for n in object_repo.iter_names()]
+            names = list(object_repo.iter_names())
             if names:
                 for name in sorted(names):
                     obj = object_repo.get(name)
@@ -1067,6 +1076,7 @@ class FakedWBEMConnection(WBEMConnection):
         # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
         # Uses local_only = False to get characteristics from super classes
         # and include_class_origin to get origin of method in hiearchy
+        # pylint: disable=protected-access
         cc = self.cimrepository._get_class(localobject.classname, namespace,
                                            local_only=False,
                                            include_qualifiers=True,
@@ -1085,6 +1095,7 @@ class FakedWBEMConnection(WBEMConnection):
             # Issue #2062: add method to repo that allows privileged users
             # direct access so we don't have to go through _get_class and can
             # test classes directly in repo
+            # pylint: disable=protected-access
             tcc = self.cimrepository._get_class(target_cln, namespace,
                                                 local_only=False,
                                                 include_qualifiers=True,

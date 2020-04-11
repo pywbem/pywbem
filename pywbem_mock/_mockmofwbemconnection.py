@@ -191,6 +191,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         """
         namespace = self.default_namespace
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
+        # pylint: disable=protected-access
         instance_store = self.conn._get_instance_store(namespace)
 
         if self.default_namespace not in self.repo.namespaces:
