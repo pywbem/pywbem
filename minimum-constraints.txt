@@ -83,6 +83,7 @@ requests==2.20.1
 yagot==0.5.0
 requests-mock==1.6.0
 importlib-metadata==0.12; python_version <= '3.7'
+pytz==2016.10
 
 # Unit test (indirect dependencies):
 pluggy==0.7.1; python_version >= '2.7' and python_version <= '3.6'
@@ -195,7 +196,6 @@ pkginfo==1.4.1
 prompt-toolkit==2.0.1
 ptyprocess==0.5.1
 py==1.5.1
-pytz==2016.10
 pyzmq==16.0.4
 qtconsole==4.2.1
 requests-toolbelt==0.7.0
