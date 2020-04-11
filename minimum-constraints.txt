@@ -88,6 +88,7 @@ lxml==4.4.1; python_version >= '3.8'
 requests==2.19.1; python_version == '2.6'
 requests==2.20.1; python_version > '2.6'
 importlib-metadata==0.12; python_version >= '2.7' and python_version <= '3.7'
+pytz==2016.10
 
 # Unit test (indirect dependencies):
 pluggy==0.5.0; python_version == '2.6'
@@ -206,7 +207,6 @@ ptyprocess==0.5.1
 # py version is determined by pytest:
 py==1.4.32; python_version == '2.6'
 py==1.5.1; python_version > '2.6'
-pytz==2016.10
 pyzmq==16.0.4
 qtconsole==4.2.1
 requests-toolbelt==0.7.0
