@@ -388,6 +388,10 @@ Released: not yet
 * Fixed version incompatibilities reported by pip for tox/pluggy,
   ipython/prompt-toolkit, and flake8/pyflakes. (See issue #2153)
 
+* Fixed the issue where formatting the timezone name of a pywbem.MinutesFromUTC
+  object raised NotImplementedError, by adding a tzname() method.
+  (see issue #2160)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

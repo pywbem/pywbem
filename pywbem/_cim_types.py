@@ -254,6 +254,26 @@ class MinutesFromUTC(tzinfo):
         """
         return timedelta(0)
 
+    def tzname(self, dt):  # pylint: disable=unused-argument
+        """
+        An implementation of the corresponding base class method,
+        (see :meth:`py:datetime.tzinfo.tzname` for its description),
+        which needs to return the name of the timezone of the
+        specified datetime object.
+
+        This implementation returns the timezone offset formatted as a
+        signed HH:MM string, where positive values are east of UTC.
+        """
+        # Note that divmod() and // return one less for negative numbers
+        # assuming the remainder would be added on it. For example,
+        # divmod(-5, 60) = -1, 55
+        # That is mathematically consistent, but is not what we want
+        # since we want both return values to be negative, for negative
+        # input. Therefore we handle the sign separately.
+        sign = '-' if self._offset < 0 else ''
+        hh, mm = divmod(abs(self._offset), 60)
+        return "{sign}{hh:02d}:{mm:02d}".format(sign=sign, hh=hh, mm=mm)
+
 
 class CIMType(object):  # pylint: disable=too-few-public-methods
     """Base type for all CIM data types defined in this package."""
