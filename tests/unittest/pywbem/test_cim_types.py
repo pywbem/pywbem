@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 
 import re
 from datetime import timedelta, datetime
+import pytz
 import pytest
 import six
 
@@ -790,6 +791,380 @@ def test_datetime_str(datetime_init_tuple):
 # TODO: Add testcases for get_local_utcoffset()
 # TODO: Add testcases for now()
 # TODO: Add testcases for fromtimestamp()
+
+
+TESTCASES_MINUTESFROMUTC_INIT = [
+
+    # Testcases for MinutesFromUTC.__init__()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * args: Positional args for init.
+    #   * kwargs: Keyword args for init.
+    #   * exp_offset: Expected offset to UTC in minutes.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test with missing required arguments",
+        dict(
+            args=[],
+            kwargs=dict(),
+            exp_offset=None,
+        ),
+        TypeError, None, True
+    ),
+    (
+        "Test with minimal number of positional arguments",
+        dict(
+            args=[30],
+            kwargs=dict(),
+            exp_offset=30,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with minimal number of keyword arguments",
+        dict(
+            args=[],
+            kwargs=dict(
+                offset=30,
+            ),
+            exp_offset=30,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with too many positional arguments",
+        dict(
+            args=[30, 0],
+            kwargs=dict(),
+            exp_offset=None,
+        ),
+        TypeError, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_MINUTESFROMUTC_INIT)
+@simplified_test_function
+def test_MinutesFromUTC_init(testcase, args, kwargs, exp_offset):
+    """
+    Test function for MinutesFromUTC.__init__().
+    """
+
+    # The code to be tested
+    tz = MinutesFromUTC(*args, **kwargs)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    # Verify the UTC offset of the tz object.
+    exp_utcoffset = timedelta(minutes=exp_offset)
+    dt = datetime.now()
+    assert tz.utcoffset(dt) == exp_utcoffset
+
+
+TESTCASES_MINUTESFROMUTC_UTCOFFSET = [
+
+    # Testcases for MinutesFromUTC.utcoffset()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * offset: offset argument for MinutesFromUTC().
+    #   * dt: datetime object as input for utcoffset().
+    #   * exp_utc_offset: Expected offset in minutes returned by utcoffset().
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test with UTC offset 30 and datetime without tzinfo",
+        dict(
+            offset=30,
+            dt=datetime.now(),
+            exp_utc_offset=30,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -30 and datetime without tzinfo",
+        dict(
+            offset=-30,
+            dt=datetime.now(),
+            exp_utc_offset=-30,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 150 and datetime with tzinfo for EST (ignored)",
+        dict(
+            offset=150,
+            dt=datetime.now(pytz.timezone('US/Eastern')),
+            exp_utc_offset=150,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -150 and datetime with tzinfo for EDT (ignored)",
+        dict(
+            offset=-150,
+            dt=pytz.timezone('US/Eastern').
+            localize(datetime.now(), is_dst=True),
+            exp_utc_offset=-150,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_MINUTESFROMUTC_UTCOFFSET)
+@simplified_test_function
+def test_MinutesFromUTC_utcoffset(testcase, offset, dt, exp_utc_offset):
+    """
+    Test function for MinutesFromUTC.utcoffset().
+    """
+
+    tz = MinutesFromUTC(offset)
+
+    # The code to be tested
+    act_utcoffset = tz.utcoffset(dt)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    exp_utcoffset = timedelta(minutes=exp_utc_offset)
+    assert act_utcoffset == exp_utcoffset
+
+
+TESTCASES_MINUTESFROMUTC_DST = [
+
+    # Testcases for MinutesFromUTC.dst()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * offset: offset argument for MinutesFromUTC().
+    #   * dt: datetime object as input for dst().
+    #   * exp_dst_offset: Expected DST offset in minutes returned by dst().
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test with UTC offset 30 and datetime without tzinfo",
+        dict(
+            offset=30,
+            dt=datetime.now(),
+            exp_dst_offset=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -30 and datetime without tzinfo",
+        dict(
+            offset=-30,
+            dt=datetime.now(),
+            exp_dst_offset=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 150 and datetime with tzinfo for EST (ignored)",
+        dict(
+            offset=150,
+            dt=datetime.now(pytz.timezone('US/Eastern')),
+            exp_dst_offset=0,
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -150 and datetime with tzinfo for EDT (ignored)",
+        dict(
+            offset=-150,
+            dt=pytz.timezone('US/Eastern').
+            localize(datetime.now(), is_dst=True),
+            exp_dst_offset=0,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_MINUTESFROMUTC_DST)
+@simplified_test_function
+def test_MinutesFromUTC_dst(testcase, offset, dt, exp_dst_offset):
+    """
+    Test function for MinutesFromUTC.dst().
+    """
+
+    tz = MinutesFromUTC(offset)
+
+    # The code to be tested
+    act_dst = tz.dst(dt)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    exp_dst = timedelta(minutes=exp_dst_offset)
+    assert act_dst == exp_dst
+
+    # Test the condition for sane tzinfo implementations w.r.t. DST
+    dt1 = datetime(2020, 4, 11, 13, 14, 15, tzinfo=tz)
+    diff1 = tz.utcoffset(dt1) - tz.dst(dt1)
+    dt2 = datetime.now(tz)
+    diff2 = tz.utcoffset(dt2) - tz.dst(dt2)
+    assert diff1 == diff2
+
+
+TESTCASES_MINUTESFROMUTC_TZNAME = [
+
+    # Testcases for MinutesFromUTC.tzname()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * offset: offset argument for MinutesFromUTC().
+    #   * dt: datetime object as input for tzname().
+    #   * exp_tzname: Expected return value of tzname().
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test with UTC offset 0 and datetime without tzinfo",
+        dict(
+            offset=0,
+            dt=datetime.now(),
+            exp_tzname='00:00',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 30 and datetime without tzinfo",
+        dict(
+            offset=30,
+            dt=datetime.now(),
+            exp_tzname='00:30',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -30 and datetime without tzinfo",
+        dict(
+            offset=-30,
+            dt=datetime.now(),
+            exp_tzname='-00:30',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 60 and datetime without tzinfo",
+        dict(
+            offset=60,
+            dt=datetime.now(),
+            exp_tzname='01:00',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 719 and datetime without tzinfo",
+        dict(
+            offset=719,
+            dt=datetime.now(),
+            exp_tzname='11:59',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 720 and datetime without tzinfo",
+        dict(
+            offset=720,
+            dt=datetime.now(),
+            exp_tzname='12:00',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 790 and datetime without tzinfo",
+        dict(
+            offset=790,
+            dt=datetime.now(),
+            exp_tzname='13:10',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 999 and datetime without tzinfo",
+        dict(
+            offset=999,
+            dt=datetime.now(),
+            exp_tzname='16:39',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -999 and datetime without tzinfo",
+        dict(
+            offset=-999,
+            dt=datetime.now(),
+            exp_tzname='-16:39',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset 150 and datetime with tzinfo for EST (ignored)",
+        dict(
+            offset=150,
+            dt=datetime.now(pytz.timezone('US/Eastern')),
+            exp_tzname='02:30',
+        ),
+        None, None, True
+    ),
+    (
+        "Test with UTC offset -150 and datetime with tzinfo for EDT (ignored)",
+        dict(
+            offset=-150,
+            dt=pytz.timezone('US/Eastern').
+            localize(datetime.now(), is_dst=True),
+            exp_tzname='-02:30',
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_MINUTESFROMUTC_TZNAME)
+@simplified_test_function
+def test_MinutesFromUTC_tzname(testcase, offset, dt, exp_tzname):
+    """
+    Test function for MinutesFromUTC.tzname().
+    """
+
+    tz = MinutesFromUTC(offset)
+
+    # The code to be tested
+    act_tzname = tz.tzname(dt)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert act_tzname == exp_tzname
 
 
 TESTCASES_CIMTYPE = [
