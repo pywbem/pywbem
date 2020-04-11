@@ -1377,51 +1377,54 @@ class BaseTestLexer(unittest.TestCase):
 
             if act_token is None and exp_token is None:
                 break  # successfully came to the end
-            elif act_token is None and exp_token is not None:
+
+            if act_token is None and exp_token is not None:
                 self.fail("Not enough tokens found, expected: %r" % exp_token)
-            elif act_token is not None and exp_token is None:
+
+            if act_token is not None and exp_token is None:
                 self.fail("Too many tokens found: %r" % act_token)
+
+            # We have both an expected and an actual token
+            if isinstance(exp_token, LexErrorToken):
+                # We expect an error
+                if self.last_error_t is None:
+                    self.fail("t_error() was not called as expected, "
+                              "actual token: %r" % act_token)
+
+                self.assertTrue(
+                    self.last_error_t.type == exp_token.type and
+                    self.last_error_t.value == exp_token.value,
+                    "t_error() was called with an unexpected "
+                    "token: %r (expected: %r)" %
+                    (self.last_error_t, exp_token))
+
             else:
-                # We have both an expected and an actual token
-                if isinstance(exp_token, LexErrorToken):
-                    # We expect an error
-                    if self.last_error_t is None:
-                        self.fail("t_error() was not called as expected, "
-                                  "actual token: %r" % act_token)
-                    else:
-                        self.assertTrue(
-                            self.last_error_t.type == exp_token.type and
-                            self.last_error_t.value == exp_token.value,
-                            "t_error() was called with an unexpected "
-                            "token: %r (expected: %r)" %
-                            (self.last_error_t, exp_token))
-                else:
-                    # We do not expect an error
-                    if self.last_error_t is not None:
-                        self.fail(
-                            "t_error() was unexpectedly called with "
-                            "token: %r" % self.last_error_t)
-                    else:
-                        self.assertTrue(
-                            act_token.type == exp_token.type,
-                            "Unexpected token type: %r (expected: %r) "
-                            "in token: %r" %
-                            (act_token.type, exp_token.type, act_token))
-                        self.assertTrue(
-                            act_token.value == exp_token.value,
-                            "Unexpected token value: %r (expected: %r) "
-                            "in token: %r" %
-                            (act_token.value, exp_token.value, act_token))
-                        self.assertTrue(
-                            act_token.lineno == exp_token.lineno,
-                            "Unexpected token lineno: %r (expected: %r) "
-                            "in token: %r" %
-                            (act_token.lineno, exp_token.lineno, act_token))
-                        self.assertTrue(
-                            act_token.lexpos == exp_token.lexpos,
-                            "Unexpected token lexpos: %r (expected: %r) "
-                            "in token: %r" %
-                            (act_token.lexpos, exp_token.lexpos, act_token))
+                # We do not expect an error
+                if self.last_error_t is not None:
+                    self.fail(
+                        "t_error() was unexpectedly called with "
+                        "token: %r" % self.last_error_t)
+
+                self.assertTrue(
+                    act_token.type == exp_token.type,
+                    "Unexpected token type: %r (expected: %r) "
+                    "in token: %r" %
+                    (act_token.type, exp_token.type, act_token))
+                self.assertTrue(
+                    act_token.value == exp_token.value,
+                    "Unexpected token value: %r (expected: %r) "
+                    "in token: %r" %
+                    (act_token.value, exp_token.value, act_token))
+                self.assertTrue(
+                    act_token.lineno == exp_token.lineno,
+                    "Unexpected token lineno: %r (expected: %r) "
+                    "in token: %r" %
+                    (act_token.lineno, exp_token.lineno, act_token))
+                self.assertTrue(
+                    act_token.lexpos == exp_token.lexpos,
+                    "Unexpected token lexpos: %r (expected: %r) "
+                    "in token: %r" %
+                    (act_token.lexpos, exp_token.lexpos, act_token))
 
 
 class TestLexerSimple(BaseTestLexer):

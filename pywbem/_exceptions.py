@@ -296,7 +296,9 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
 
         See :term:`RFC2616` for a list of HTTP status codes and reason phrases.
         """
-        return self.args[0]
+        # Note: The reporting of unsubscriptable-object seems to be a false
+        # positive in Pylint, see https://github.com/PyCQA/pylint/issues/1498
+        return self.args[0]  # pylint: disable=unsubscriptable-object
 
     @property
     def reason(self):
@@ -307,7 +309,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
 
         See :term:`RFC2616` for a list of HTTP status codes and reason phrases.
         """
-        return self.args[1]
+        return self.args[1]  # pylint: disable=unsubscriptable-object
 
     @property
     def cimerror(self):
@@ -319,7 +321,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
 
         See :term:`DSP0200` for a list of values.
         """
-        return self.args[2]
+        return self.args[2]  # pylint: disable=unsubscriptable-object
 
     @property
     def cimdetails(self):
@@ -332,7 +334,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
         * Key: header field name (e.g. `PGErrorDetail`).
         * Value: header field value.
         """
-        return self.args[3]
+        return self.args[3]  # pylint: disable=unsubscriptable-object
 
     def __str__(self):
         ret_str = "{0} ({1})".format(self.status, self.reason)
@@ -567,7 +569,7 @@ class CIMError(_RequestExceptionMixin, Error):
 
         See :ref:`CIM status codes` for constants defining the numeric CIM
         status code values."""
-        return self.args[0]
+        return self.args[0]  # pylint: disable=unsubscriptable-object
 
     @property
     def status_code_name(self):
@@ -596,7 +598,8 @@ class CIMError(_RequestExceptionMixin, Error):
         the CIM status code is returned. If the CIM status code is invalid,
         the string "Invalid status code <status_code>" is returned.
         """
-        return self.args[1] or _statuscode2string(self.status_code)
+        desc = self.args[1]  # pylint: disable=unsubscriptable-object
+        return desc or _statuscode2string(self.status_code)
 
     @property
     def instances(self):
@@ -609,7 +612,7 @@ class CIMError(_RequestExceptionMixin, Error):
 
         `None` if there are no such instances.
         """
-        return self.args[2]
+        return self.args[2]  # pylint: disable=unsubscriptable-object
 
     def __str__(self):
         inst_str = " ({0} instances)".format(len(self.instances)) \

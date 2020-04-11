@@ -209,8 +209,7 @@ def instance_of(conn, obj_list, classname):
                     "namespace {3!r}".
                     format(conn.server_definition.nickname, conn.url,
                            classname, namespace))
-            else:
-                conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
+            conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
         except Error as exc:
             conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
         ENUM_INST_CACHE.add_list(conn.url, enum_paths_id, enum_paths)

@@ -368,8 +368,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                         "in class {3!A}. Not overridable ",
                                         obj_type, obj_name, inh_qname,
                                         new_class.classname))
-                        else:
-                            new_quals[inh_qname].propagated = True
+                        new_quals[inh_qname].propagated = True
 
                     else:  # not in new class, add it
                         new_quals[inh_qname] = inherited_quals[inh_qname].copy()

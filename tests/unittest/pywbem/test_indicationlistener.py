@@ -109,7 +109,7 @@ def send_indication(url, headers, payload, verbose):
                                                          response.headers,
                                                          response.text))
 
-    return True if(response.status_code == 200) else False
+    return (response.status_code == 200)
 
 
 def _process_indication(indication, host):

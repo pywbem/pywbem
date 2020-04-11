@@ -1065,14 +1065,13 @@ class WBEMServer(object):
                 if exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                     # Current namespace does not exist.
                     continue
-                elif exc.status_code in (CIM_ERR_INVALID_CLASS,
-                                         CIM_ERR_NOT_FOUND):
+                if exc.status_code in (CIM_ERR_INVALID_CLASS,
+                                       CIM_ERR_NOT_FOUND):
                     # Class is not implemented, but current namespace exists.
                     interop_ns = ns
                     break
-                else:
-                    # Some other error happened.
-                    raise
+                # Some other error happened.
+                raise
             else:
                 # Namespace class is implemented in the current namespace.
                 # Use the returned namespace name, if possible.
@@ -1163,9 +1162,8 @@ class WBEMServer(object):
                                        CIM_ERR_NOT_FOUND):
                     # Class is not implemented, try next one.
                     continue
-                else:
-                    # Some other error.
-                    raise
+                # Some other error.
+                raise
             else:
                 # Found a namespace class that is implemented.
                 ns_classname = classname

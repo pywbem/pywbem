@@ -956,32 +956,32 @@ class TestClientRecorder(BaseOperationRecorder):
             # converted to a dictionary first.
             ret_dict = obj._asdict()
             return self.toyaml(ret_dict)
-        elif isinstance(obj, (list, tuple)):
+        if isinstance(obj, (list, tuple)):
             # Note that namedtuple objects are handeled above.
             ret = []
             for item in obj:
                 ret.append(self.toyaml(item))
             return ret
-        elif isinstance(obj, (dict, NocaseDict)):
+        if isinstance(obj, (dict, NocaseDict)):
             ret_dict = OrderedDict()
             for key in obj.keys():  # get keys in original case
                 ret_dict[key] = self.toyaml(obj[key])
             return ret_dict
-        elif obj is None:
+        if obj is None:
             return obj
-        elif isinstance(obj, six.binary_type):
+        if isinstance(obj, six.binary_type):
             return obj.decode("utf-8")
-        elif isinstance(obj, six.text_type):
+        if isinstance(obj, six.text_type):
             return obj
-        elif isinstance(obj, bool):
+        if isinstance(obj, bool):
             # The check for bool must be before any integer checks, because
             # bool is a subclass of int in Python.
             return obj
-        elif isinstance(obj, CIMInt):
+        if isinstance(obj, CIMInt):
             # CIMInt is _Longint and therefore may exceed the value range of
             # int in Python 2. Therefore, we convert it to _Longint.
             return _Longint(obj)
-        elif isinstance(obj, six.integer_types):
+        if isinstance(obj, six.integer_types):
             # This case must be after CIMInt, because CIMInt is _Longint and
             # would match a long value in Python 2.
             # We don't convert six.integer_types to _Longint, because the value
@@ -990,15 +990,15 @@ class TestClientRecorder(BaseOperationRecorder):
             # and long do not inherit from each other, so it is likely best if
             # we just don't convert.
             return obj
-        elif isinstance(obj, CIMFloat):
+        if isinstance(obj, CIMFloat):
             return float(obj)
-        elif isinstance(obj, CIMDateTime):
+        if isinstance(obj, CIMDateTime):
             return str(obj)
-        elif isinstance(obj, datetime):
+        if isinstance(obj, datetime):
             return CIMDateTime(obj)
-        elif isinstance(obj, timedelta):
+        if isinstance(obj, timedelta):
             return CIMDateTime(obj)
-        elif isinstance(obj, CIMInstance):
+        if isinstance(obj, CIMInstance):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMInstance'
             ret_dict['classname'] = self.toyaml(obj.classname)
@@ -1006,7 +1006,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             ret_dict['path'] = self.toyaml(obj.path)
             return ret_dict
-        elif isinstance(obj, CIMInstanceName):
+        if isinstance(obj, CIMInstanceName):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMInstanceName'
             ret_dict['classname'] = self.toyaml(obj.classname)
@@ -1014,7 +1014,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['host'] = self.toyaml(obj.host)
             ret_dict['keybindings'] = self.toyaml(obj.keybindings)
             return ret_dict
-        elif isinstance(obj, CIMClass):
+        if isinstance(obj, CIMClass):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMClass'
             ret_dict['classname'] = self.toyaml(obj.classname)
@@ -1024,14 +1024,14 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             ret_dict['path'] = self.toyaml(obj.path)
             return ret_dict
-        elif isinstance(obj, CIMClassName):
+        if isinstance(obj, CIMClassName):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMClassName'
             ret_dict['classname'] = self.toyaml(obj.classname)
             ret_dict['host'] = self.toyaml(obj.host)
             ret_dict['namespace'] = self.toyaml(obj.namespace)
             return ret_dict
-        elif isinstance(obj, CIMProperty):
+        if isinstance(obj, CIMProperty):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMProperty'
             ret_dict['name'] = self.toyaml(obj.name)
@@ -1045,7 +1045,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['propagated'] = self.toyaml(obj.propagated)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             return ret_dict
-        elif isinstance(obj, CIMMethod):
+        if isinstance(obj, CIMMethod):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMMethod'
             ret_dict['name'] = self.toyaml(obj.name)
@@ -1055,7 +1055,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['parameters'] = self.toyaml(obj.parameters)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             return ret_dict
-        elif isinstance(obj, CIMParameter):
+        if isinstance(obj, CIMParameter):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMParameter'
             ret_dict['name'] = self.toyaml(obj.name)
@@ -1066,7 +1066,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['array_size'] = self.toyaml(obj.array_size)
             ret_dict['qualifiers'] = self.toyaml(obj.qualifiers)
             return ret_dict
-        elif isinstance(obj, CIMQualifier):
+        if isinstance(obj, CIMQualifier):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMQualifier'
             ret_dict['name'] = self.toyaml(obj.name)
@@ -1078,7 +1078,7 @@ class TestClientRecorder(BaseOperationRecorder):
             ret_dict['overridable'] = self.toyaml(obj.overridable)
             ret_dict['translatable'] = self.toyaml(obj.translatable)
             return ret_dict
-        elif isinstance(obj, CIMQualifierDeclaration):
+        if isinstance(obj, CIMQualifierDeclaration):
             ret_dict = OrderedDict()
             ret_dict['pywbem_object'] = 'CIMQualifierDeclaration'
             ret_dict['name'] = self.toyaml(obj.name)

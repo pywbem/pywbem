@@ -166,11 +166,11 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     rtn_obj = xxx_repo.get(name)
     assert rtn_obj == obj
 
-    names = [n for n in xxx_repo.iter_names()]
+    names = list(xxx_repo.iter_names())
     assert len(names) == 1
     assert names[0] == name
 
-    objs = [x for x in xxx_repo.iter_values()]
+    objs = list(xxx_repo.iter_values())
     assert len(objs) == 1
     assert objs[0] == obj
 

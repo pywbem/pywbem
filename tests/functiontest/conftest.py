@@ -129,6 +129,7 @@ Syntax elements:
 
 from __future__ import absolute_import, print_function
 
+import sys
 import doctest
 import socket
 import re
@@ -168,7 +169,6 @@ class ExcThread(threading.Thread):
         try:
             threading.Thread.run(self)
         except Exception:  # pylint: disable=broad-except
-            import sys
             self.exc = sys.exc_info()
 
     def join(self, timeout=None):
@@ -285,7 +285,7 @@ class YamlItem(pytest.Item):
         runtestcase(self.testcase)
 
     @staticmethod
-    def repr_failure(excinfo):
+    def repr_failure(excinfo, style=None):
         """
         Called by py.test when the runtest() method raised an exception, to
         provide details about the failure.
@@ -293,7 +293,7 @@ class YamlItem(pytest.Item):
         exc = excinfo.value
         if isinstance(exc, ClientTestFailure):  # pylint: disable=no-else-return
             return "Failure running test case: %s" % exc
-        elif isinstance(exc, ClientTestError):
+        if isinstance(exc, ClientTestError):
             return "Error in definition of test case: %s" % exc
         return "Error: %s" % exc
 
@@ -922,7 +922,7 @@ def runtestcase(testcase):
                                  "operation %s, but no exception was "
                                  "actually raised." %
                                  (tc_name, exp_exception, op_name))
-        elif raised_exception.__class__.__name__ != exp_exception:
+        if raised_exception.__class__.__name__ != exp_exception:
             raise AssertionError("Testcase %s: A %s exception was "
                                  "expected to be raised by PyWBEM "
                                  "operation %s, but a different "

@@ -18315,6 +18315,9 @@ TESTCASES_CIMPROPERTY_TOMOF = [
         ),
         None, None, True
     ),
+
+    # pylint: disable=line-too-long
+
     (
         "instance string property, with multi-line scalar value",
         dict(
@@ -18327,7 +18330,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            # pylint: disable=line-too-long
             exp_mof=u"""\
             P1 =
                "abc def abc def abc def abc def abc def abc def abc def abc "
@@ -18339,6 +18341,11 @@ TESTCASES_CIMPROPERTY_TOMOF = [
         ),
         None, None, True
     ),
+
+    # pylint: enable=line-too-long
+
+    # pylint: disable=line-too-long
+
     (
         "instance string array property, with multi-line short items",
         dict(
@@ -18351,7 +18358,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            # pylint: disable=line-too-long
             exp_mof=u"""\
             P1 = { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
                "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" };\n""" \
@@ -18371,6 +18377,9 @@ TESTCASES_CIMPROPERTY_TOMOF = [
         ),
         None, None, True
     ),
+
+    # pylint: enable=line-too-long
+
     (
         "instance uint32 property",
         dict(
@@ -23274,6 +23283,9 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
         ),
         None, None, True
     ),
+
+    # pylint: disable=line-too-long
+
     (
         "string array type with multi line value with short items",
         dict(
@@ -23285,7 +23297,6 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            # pylint: disable=line-too-long
             exp_mof=u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04", "abcdef05",
             "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""" \
             if CHECK_0_12_0 else \
@@ -23294,6 +23305,9 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
         ),
         None, None, True
     ),
+
+    # pylint: enable=line-too-long
+
     (
         "string array type with with long items",
         dict(
@@ -27703,7 +27717,6 @@ class C1 : C2 {
                 ],
             ),
             kwargs=dict(),
-            # pylint: disable=line-too-long
             exp_mof=u"""\
 class C1 {
 

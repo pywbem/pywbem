@@ -404,10 +404,10 @@ class ClientTest(unittest.TestCase):
         """
         if ignore_host:
             if path1.host is not None:
-                path1 = path1
+                path1 = path1.copy()
                 path1.host = None
             if path2.host is not None:
-                path2 = path2
+                path2 = path2.copy()
                 path2.host = None
 
         return path1 == path2
@@ -483,10 +483,10 @@ class ClientTest(unittest.TestCase):
                         self.assertTrue(isinstance(inst2, CIMInstance))
                         if ignore_host:
                             if inst1.path.host is not None:
-                                inst1 = inst1
+                                inst1 = inst1.copy()
                                 inst1.path.host = None
                             if inst2.path.host is not None:
-                                inst2 = inst2
+                                inst2 = inst2.copy()
                                 inst2.path.host = None
                         # detailed test of instance components if not equal
                         if inst1 != inst2:
@@ -553,7 +553,7 @@ class ClientTest(unittest.TestCase):
                           (path1, paths2))
             else:
                 for path2 in paths2:
-                    if self.pathsEqual(path2, path1, ignore_host=ignore_host):
+                    if self.pathsEqual(path1, path2, ignore_host=ignore_host):
                         return
                 self.fail('assertPathsEqual fail')
 
@@ -4602,7 +4602,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_instances = [inst for inst in generator]
+        iter_instances = list(generator)
 
         if expected_response_count is not None:
             self.assertEqual(len(iter_instances), expected_response_count)
@@ -4924,7 +4924,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_paths = [path for path in generator]
+        iter_paths = list(generator)
 
         # execute open/pull operation sequence
         result = self.cimcall(self.conn.OpenEnumerateInstancePaths, ClassName,
@@ -5088,7 +5088,7 @@ class IterReferenceInstances(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_instances = [instance for instance in generator]
+        iter_instances = list(generator)
 
         # execute pull operation
         result = self.cimcall(self.conn.OpenReferenceInstances,
@@ -5263,7 +5263,7 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_paths = [path for path in generator]
+        iter_paths = list(generator)
 
         # execute open/pull operation sequence
         result = self.cimcall(self.conn.OpenReferenceInstancePaths,
@@ -5429,7 +5429,7 @@ class IterAssociatorInstances(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_instances = [instance for instance in generator]
+        iter_instances = list(generator)
 
         # execute pull operation
         result = self.cimcall(self.conn.OpenAssociatorInstances,
@@ -5614,7 +5614,7 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
                                  ContinueOnError=ContinueOnError,
                                  MaxObjectCount=MaxObjectCount)
         self.assertTrue(isinstance(generator, types.GeneratorType))
-        iter_paths = [path for path in generator]
+        iter_paths = list(generator)
 
         # execute pull operation
         result = self.cimcall(self.conn.OpenAssociatorInstancePaths,

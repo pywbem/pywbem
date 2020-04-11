@@ -59,8 +59,7 @@ class ServerDefinitionFile(object):
                     "The WBEM server definition file {0!r} was not found; "
                     "copy it from {1!r}".
                     format(self._filepath, EXAMPLE_SERVER_FILE))
-            else:
-                raise
+            raise
         else:
             if data is None:
                 raise ServerDefinitionFileError(
@@ -167,11 +166,11 @@ class ServerDefinitionFile(object):
                         sd_list.append(sd)
                         sd_nick_list.append(sd.nickname)
             return sd_list
-        else:
-            raise ValueError(
-                "Server group or server with nickname {0!r} not found in WBEM "
-                "server definition file {1!r}".
-                format(nickname, self._filepath))
+
+        raise ValueError(
+            "Server group or server with nickname {0!r} not found in WBEM "
+            "server definition file {1!r}".
+            format(nickname, self._filepath))
 
     def list_all_servers(self):
         """

@@ -68,7 +68,7 @@ _python_n = sys.version_info[1]  # pylint: disable=invalid-name
 # Keep these Python versions in sync with setup.py
 if _python_m == 2 and _python_n < 7:
     raise RuntimeError('On Python 2, pywbem requires Python 2.7 or higher')
-elif _python_m == 3 and _python_n < 4:
+if _python_m == 3 and _python_n < 4:
     raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')
 
 # On Python 2, add a NullHandler to suppress the warning "No handlers could be
