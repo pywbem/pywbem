@@ -28,107 +28,138 @@ sudo: required
 # to install Python.
 matrix:
   include:
+
     - os: linux
       language: python
       python: "2.6"
       dist: trusty
       env:
         - PACKAGE_LEVEL=minimum
+
     - os: linux
       language: python
       python: "2.6"
       dist: trusty
       env:
         - PACKAGE_LEVEL=latest
+
     - os: linux
       language: python
       python: "2.7"
       env:
         - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "2.7"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.4"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
     - os: linux
       language: python
       python: "3.4"
       env:
         - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.5"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "3.5"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.6"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "3.6"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
 #    - os: linux
 #      language: python
 #      python: "3.7"
 #      env:
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: linux
 #      language: python
 #      python: "3.7"
 #      env:
 #        - PACKAGE_LEVEL=latest
+
     - os: linux
       language: python
       python: "3.8"
       env:
         - PACKAGE_LEVEL=minimum
+
     - os: linux
       language: python
       python: "3.8"
       env:
         - PACKAGE_LEVEL=latest
+
 # Note: pywbem does not install on pypy, because M2Crypto does not install.
 #    - os: linux
 #      language: python
-#      python: "pypy-5.3.1"  # Python 2.7.10
+#      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
 #      env:
 #        - PACKAGE_LEVEL=minimum
 #    - os: linux
 #      language: python
-#      python: "pypy-5.3.1"  # Python 2.7.10
+#      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
 #      env:
 #        - PACKAGE_LEVEL=latest
+
+# TODO: pypy3 disabled due to install error with typed-ast (from pylint)
+#    - os: linux
+#      language: python
+#      python: "pypy3"  # currently Python 3.6.1, PyPy 7.1.1-beta0
+#      env:
+#        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "pypy3"  # currently Python 3.6.1, PyPy 7.1.1-beta0
+#      env:
+#        - PACKAGE_LEVEL=latest
+
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=2
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=2
 #        - PACKAGE_LEVEL=latest
+
 #    - os: osx
 #      language: generic
 #      python:
 #      env:
 #        - PYTHON=3
 #        - PACKAGE_LEVEL=minimum
+
 #    - os: osx
 #      language: generic
 #      python:
