@@ -29,4 +29,4 @@ Version of the pywbem package.
 #:
 #: * "M.N.P.devD": Development level D of a not yet released version M.N.P
 #: * "M.N.P": A released version M.N.P
-__version__ = '0.17.1.dev1'
+__version__ = '0.17.1'
