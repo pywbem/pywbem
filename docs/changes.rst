@@ -18,7 +18,7 @@ pywbem 1.0.0
 
 This version is currently in development and is shown as |version|.
 
-This version contains all fixes up to pywbem 0.16.0.
+This version contains all fixes up to pywbem 0.17.1.
 
 Released: not yet
 
@@ -401,6 +401,9 @@ Released: not yet
 
 * Increased minimum version of 'six' from 0.10.0 to 0.12.0 when on Python 3.8
   (or higher). (See issue #2150).
+
+* Increased minimum version of 'setuptools' on Python 3.7 from 33.1.1 to 38.4.1
+  to fix a bug with new format of .pyc files. (See issue #2167).
 
 **Enhancements:**
 

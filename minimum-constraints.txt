@@ -43,8 +43,10 @@
 #   wheel       0.33.6
 
 # For Python up to Python 3.7, we use the versions from Ubuntu 17.04:
+# setuptools 38.4.1 fixes a bug on Python 3.7.
 pip==9.0.1; python_version <= '3.7'
-setuptools==33.1.1; python_version <= '3.7'
+setuptools==33.1.1; python_version < '3.7'
+setuptools==38.4.1; python_version == '3.7'
 wheel==0.29.0; python_version <= '3.7'
 
 # For Python 3.8 and above, we use the versions from Python 3.8.0:
