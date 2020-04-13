@@ -117,27 +117,37 @@ Their upstream repos are assumed to have the remote name `origin`.
       Where the items in curly braces (e.g. `{M.N}`) are replaced with their
       actual values.
 
-7.  Perform a complete build (in your favorite Python virtual environment):
+7.  If you released the `master` branch, it will get a new stable branch as
+    its fix stream (further down) and the new stable branch needs to be
+    updated in `.travis.yml` so that the weekly test run for the
+    `manual-ci-run-stable` branch can rebase itself on the current state
+    of that stable branch:
+
+    - `sed -E -e "s/export STABLE_BRANCH=.*/export STABLE_BRANCH=stable_$MN/" -i "" .travis.yml`
+    - `sed -E -e "s/set STABLE_BRANCH=.*/set STABLE_BRANCH=stable_$MN/" -i "" appveyor.yml`
+    - `grep STABLE_BRANCH .travis.yml appveyor.yml` - to double check the updates
+
+8.  Perform a complete build (in your favorite Python virtual environment):
 
     - `make clobber`
     - `make all`
 
     If this fails, fix and iterate over this step until it succeeds.
 
-8.  Commit the changes and push to upstream:
+9.  Commit the changes and push to upstream:
 
     - `git status` - to double check which files have been changed
     - `git commit -asm "Release $MNU"`
     - `git push --set-upstream origin release_$MNU`
 
-9.  On Github, create a Pull Request for branch `release_$MNU`. This will
+10. On Github, create a Pull Request for branch `release_$MNU`. This will
     trigger the CI runs in Travis and Appveyor.
 
     Important: When creating Pull Requests, GitHub by default targets
     the `master` branch. If you are releasing a fix version, you need to
     change the target branch of the Pull Request to `stable_M.N`.
 
-10. Optional: Perform a complete test using Tox:
+11. Optional: Perform a complete test using Tox:
 
     - `tox`
 
@@ -145,30 +155,30 @@ Their upstream repos are assumed to have the remote name `origin`.
     and will invoke `make test` (with its prerequisite make targets) in each
     of them.
 
-11. Optional: Perform a test in a local multi-platform test environment (Andy):
+12. Optional: Perform a test in a local multi-platform test environment (Andy):
 
     - Post the results to the release PR.
 
-12. Optional: Perform a test against a real WBEM server (Karl):
+13. Optional: Perform a test against a real WBEM server (Karl):
 
     - Post the results to the release PR.
 
-13. If any of the tests mentioned above fails, fix the problem and iterate
+14. If any of the tests mentioned above fails, fix the problem and iterate
     back to step 6. until they all succeed.
 
-14. On GitHub, once the CI runs for the Pull Request succeed:
+15. On GitHub, once the CI runs for the Pull Request succeed:
 
     - Merge the Pull Request (no review is needed)
     - Delete the branch of the Pull Request (`release_M.N.U`)
 
-15. Checkout the branch you are releasing, update it from upstream, and
+16. Checkout the branch you are releasing, update it from upstream, and
     delete the local topic branch you created:
 
     - `git checkout $BRANCH`
     - `git pull`
     - `git branch -d release_$MNU`
 
-16. Tag the version:
+17. Tag the version:
 
     This step tags the local repo and pushes it upstream:
 
@@ -177,7 +187,7 @@ Their upstream repos are assumed to have the remote name `origin`.
     - `git tag $MNU`
     - `git push --tags`
 
-17. If you released the `master` branch (for a new minor or major version),
+18. If you released the `master` branch (for a new minor or major version),
     it will be fixed separately, so it needs a new fix stream.
 
     * Create a branch for its fix stream and push it upstream:
@@ -190,15 +200,20 @@ Their upstream repos are assumed to have the remote name `origin`.
     * Log on to [RTD](https://readthedocs.org/), go to the `pywbem` project,
       and activate the new branch `stable_M.N` as a version to be built.
 
-18. On GitHub, edit the new tag, and create a release description on it. This
+    * On Github, modify the pull request for branch `manual-ci-run-stable` to
+      change its target branch to the new fix stream branch `stable_M.N`.
+      See [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/changing-the-base-branch-of-a-pull-request)
+      for details on how to do that.
+
+19. On GitHub, edit the new tag, and create a release description on it. This
     will cause it to appear in the Release tab.
 
-19. On GitHub, close milestone `M.N.U`.
+20. On GitHub, close milestone `M.N.U`.
 
     Note: Issues with that milestone will be moved forward in the section
     "Starting a new version".
 
-20. Upload the package to PyPI:
+21. Upload the package to PyPI:
 
     **Attention!!** This only works once. You cannot re-release the same
     version to PyPI.
@@ -207,19 +222,19 @@ Their upstream repos are assumed to have the remote name `origin`.
 
     Verify that it arrived on PyPI: https://pypi.python.org/pypi/pywbem/
 
-21. Switch to the directory of the `pywbem.github.io` repo and perform the
+22. Switch to the directory of the `pywbem.github.io` repo and perform the
     following steps from that directory:
 
     - `cd ../pywbem.github.io`
 
-22. Check out the `master` branch and update it from upstream:
+23. Check out the `master` branch and update it from upstream:
 
     - `git checkout master`
     - `git pull`
 
     In this repo, we don´t use a topic branch for these changes.
 
-23. Edit the installation page:
+24. Edit the installation page:
 
     - `vi pywbem/installation.html`
 
@@ -233,13 +248,13 @@ Their upstream repos are assumed to have the remote name `origin`.
     `pywbem/installation.html` that the new release shows up correctly,
     and that all of its links work.
 
-24. Commit the changes and push to the upstream repo:
+25. Commit the changes and push to the upstream repo:
 
     - `git status` - to double check which files have been changed
     - `git commit -asm "Release $MNU"`
     - `git push`
 
-25. Announce the new version on the
+26. Announce the new version on the
     [pywbem-devel mailing list](https://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
 
 Starting a new version
@@ -288,8 +303,6 @@ It covers all variants of new versions:
     pywbem 0.10.0.dev1
     ------------------
 
-    This version is currently in development and is shown as |version|.
-
     This version contains all fixes up to pywbem 0.9.x.
 
     Released: not yet
@@ -301,6 +314,8 @@ It covers all variants of new versions:
     **Bug fixes:**
 
     **Enhancements:**
+
+    **Cleanup:**
 
     **Known issues:**
 

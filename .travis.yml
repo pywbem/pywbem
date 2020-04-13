@@ -168,20 +168,51 @@ matrix:
 #        - PACKAGE_LEVEL=latest
 
 before_install:
-  - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
-      export _NEED_REBASE=true;
-    fi
-  - if [[ -n $_NEED_REBASE ]]; then git fetch origin master; fi
-  - if [[ -n $_NEED_REBASE ]]; then git branch master FETCH_HEAD; fi
-  - if [[ -n $_NEED_REBASE ]]; then git rebase master; fi
-  - git branch -av
-  - git tag
 
-# commands to install dependencies
-install:
+  - git --version
+
+  # The scheduled runs in Travis (for the "manual-ci-run-stable" and
+  # "manual-ci-run" branches) are push runs, and they occur regularly even
+  # when no push has happened. We still want these runs to run on the latest
+  # level, so we manually rebase the checked out branch on the target branch
+  # of the PRs for these branches. Since the PR context is not known in a push
+  # run, we need to know its target branch. Finding that out automatically
+  # ended up being too difficult, so we go with a manually updated env var
+  # for now.
+
+  - export STABLE_BRANCH=stable_0.17
+
+  - echo TRAVIS_BRANCH=$TRAVIS_BRANCH
+  - echo TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
+
+  # Push run for branch manual-ci-run-stable:
+  - if [[ "$TRAVIS_BRANCH" == "manual-ci-run-stable" && -n $STABLE_BRANCH ]]; then
+      echo Rebasing to $STABLE_BRANCH;
+      git fetch origin $STABLE_BRANCH;
+      git branch $STABLE_BRANCH FETCH_HEAD;
+      git rebase $STABLE_BRANCH;
+    fi
+
+  # Push run for branch manual-ci-run:
+  - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" ]]; then
+      echo Rebasing to master;
+      git fetch origin master;
+      git branch master FETCH_HEAD;
+      git rebase master;
+    fi
+
+  - git log HEAD~~~~..HEAD --oneline --decorate
+
+  - if [[ "$TRAVIS_BRANCH" == "manual-ci-run-stable" || "$TRAVIS_PULL_REQUEST_BRANCH" == "manual-ci-run-stable" ]]; then
+      export _MANUAL_CI_RUN=true;
+    fi
   - if [[ "$TRAVIS_BRANCH" == "manual-ci-run" || "$TRAVIS_PULL_REQUEST_BRANCH" == "manual-ci-run" ]]; then
       export _MANUAL_CI_RUN=true;
     fi
+  - echo _MANUAL_CI_RUN=$_MANUAL_CI_RUN
+
+# commands to install dependencies
+install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       if [[ "${PYTHON:0:1}" == "2" ]]; then
         export PYTHON_CMD=python2;
@@ -262,11 +293,9 @@ install:
 
 # commands to run builds & tests
 script:
-# make build is always run in order to verify the package version determination
   - make build
-  - if [[ -n $_MANUAL_CI_RUN ]]; then make builddoc; fi
+  - make builddoc
   - make check
-  # - if [[ -n $_MANUAL_CI_RUN ]]; then make pylint; fi
   - make pylint
   - make installtest
   - make test
