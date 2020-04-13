@@ -136,20 +136,41 @@ install:
   - dir C:\
 
   - git --version
-  - if %APPVEYOR_REPO_BRANCH%.==manual-ci-run. set _NEED_REBASE=true
-  # This Git version requires user configuration in rebase step
-  - if %_NEED_REBASE%.==true. git config user.name "dummy"
-  - if %_NEED_REBASE%.==true. git config user.email "dummy@dummy"
-  - if %_NEED_REBASE%.==true. git fetch origin master
-  - if %_NEED_REBASE%.==true. git branch master FETCH_HEAD
-  - if %_NEED_REBASE%.==true. git rebase master
-  - git branch -av
 
+  # Even though push runs are disabled in our Appveyor config, we manually
+  # rebase the 'manual-ci-*' branches on the target branch of their PR, for
+  # consistency with the Travis setup.
+
+  - set STABLE_BRANCH=stable_0.17
+
+  - echo APPVEYOR_REPO_BRANCH=%APPVEYOR_REPO_BRANCH%
+  - echo APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH=%APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%
+
+  # Push run for branch manual-ci-run-stable:
+  - if %APPVEYOR_REPO_BRANCH%.==manual-ci-run-stable. (
+      echo Rebasing to %STABLE_BRANCH% &
+      git fetch origin %STABLE_BRANCH% &
+      git branch %STABLE_BRANCH% FETCH_HEAD &
+      git rebase %STABLE_BRANCH% )
+
+  # Push run for branch manual-ci-run:
+  - if %APPVEYOR_REPO_BRANCH%.==manual-ci-run. (
+      echo Rebasing to master &
+      git fetch origin master &
+      git branch master FETCH_HEAD &
+      git rebase master )
+
+  - git log HEAD~~~~..HEAD --oneline --decorate
+
+  - if %APPVEYOR_REPO_BRANCH%.==manual-ci-run-stable. set _MANUAL_CI_RUN=true
+  - if %APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%.==manual-ci-run-stable. set _MANUAL_CI_RUN=true
   - if %APPVEYOR_REPO_BRANCH%.==manual-ci-run. set _MANUAL_CI_RUN=true
   - if %APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%.==manual-ci-run. set _MANUAL_CI_RUN=true
+  - echo _MANUAL_CI_RUN=%_MANUAL_CI_RUN%
 
   # Set PACKAGE_LEVEL for make
   - set PACKAGE_LEVEL=%configuration%
+  - echo PACKAGE_LEVEL=%PACKAGE_LEVEL%
 
   # For UNIX, reduce the PATH to a minimum (to avoid blanks in directory names)
   - if not "%UNIX_PATH%"=="none" set PATH=C:\Windows\system32;C:\Windows;C:\ProgramData\chocolatey\bin
