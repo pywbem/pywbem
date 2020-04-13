@@ -39,6 +39,9 @@ Released: not yet
 * Increased minimum version of 'six' from 0.10.0 to 0.12.0 when on Python 3.8
   (or higher). (See issue #2150).
 
+* Increased minimum version of 'setuptools' on Python 3.7 from 33.1.1 to 38.4.1
+  to fix a bug with new format of .pyc files. (See issue #2167).
+
 **Cleanup:**
 
 **Known issues:**
