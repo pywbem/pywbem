@@ -24,6 +24,14 @@ Released: not yet
 
 **Bug fixes:**
 
+* Test: Fixed virtualenv related failures during install test.
+  (See issue #2174)
+
+* Dev: Increased the versions of the base packages 'pip', 'setuptools' and
+  'wheel' to the content of Ubuntu 18.04 as a minimum, and to the lowest
+  versions that support a particular Python versions beyond that.
+  This only affects development of pywbem. (See issue #2174)
+
 **Enhancements:**
 
 **Cleanup:**

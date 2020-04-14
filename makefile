@@ -724,7 +724,7 @@ installtest: $(bdist_file) $(sdist_file) tests/installtest/test_install.sh
 ifeq ($(PLATFORM),Windows_native)
 	@echo "makefile: Warning: Skipping install test on native Windows" >&2
 else
-	tests/installtest/test_install.sh $(bdist_file) $(sdist_file)
+	tests/installtest/test_install.sh $(bdist_file) $(sdist_file) $(PYTHON_CMD)
 endif
 	@echo "makefile: Done running install tests"
 
