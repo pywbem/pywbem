@@ -32,6 +32,12 @@ Released: not yet
   versions that support a particular Python versions beyond that.
   This only affects development of pywbem. (See issue #2174)
 
+* Setup: Added the scripts for installing OS-level dependencies
+  (pywbem_os_setup.sh/.bat) to the source distribution archive. Note that
+  starting with the upcoming pywbem 1.0.0, these scripts are no longer needed,
+  so this change will not be rolled forward into 1.0.0.
+  (See issue #2173)
+
 **Enhancements:**
 
 **Cleanup:**

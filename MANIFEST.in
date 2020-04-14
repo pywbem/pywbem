@@ -4,6 +4,8 @@ include README.rst
 include README_PYPI.rst
 include INSTALL.md
 include requirements.txt
+include pywbem_os_setup.sh
+include pywbem_os_setup.bat
 include setup.py
 include build_moftab.py
 include mof_compiler
