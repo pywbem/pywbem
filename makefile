@@ -287,6 +287,8 @@ dist_manifest_in_files := \
     README_PYPI.rst \
     INSTALL.md \
     requirements.txt \
+    pywbem_os_setup.sh \
+    pywbem_os_setup.bat \
     setup.py \
     build_moftab.py \
     mof_compiler \
@@ -305,6 +307,8 @@ dist_dependent_files := \
     README_PYPI.rst \
     INSTALL.md \
     requirements.txt \
+    pywbem_os_setup.sh \
+    pywbem_os_setup.bat \
     setup.py \
     build_moftab.py \
     mof_compiler \
