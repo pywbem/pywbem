@@ -34,10 +34,6 @@ VERBOSE="true"
 MYNAME=$(basename "$0")
 MYDIR=$(dirname "$0")    # Directory of this script, as seen by caller
 
-# Python command for creating virtualenvs.
-# Using just "python" allows using any active virtualenv.
-PYTHON="python"
-
 # Repo root dir, as seen by caller
 # Using MYDIR makes the script run with any caller's CWD.
 ROOT_DIR="$MYDIR/../.."
@@ -147,19 +143,27 @@ function make_virtualenv()
     remove_virtualenv $envname
   fi
 
-  python_cmd=$(which $PYTHON)
+  python_cmd_path=$(which $PYTHON_CMD)
   verbose "Creating virtualenv: $envdir"
-  verbose "..using this Python command: $python_cmd"
-  run "virtualenv -p $python_cmd $envdir"
+  verbose "..using this Python command: $python_cmd_path"
+  verbose "..that has this Python version: $($PYTHON_CMD --version 2>&1)"
+  run "virtualenv -p $python_cmd_path $envdir"
 
-  verbose "Activating virtualenv: $envdir"
-  run "source $envdir/bin/activate"
-  echo "Python command in this virtualenv: $(which python)"
-  echo "Python version in this virtualenv: $(python --version 2>&1)"
+  run "source $envdir/bin/activate" "Activating virtualenv: $envdir"
+  verbose "Python command in this virtualenv: $(which python)"
+  verbose "Python version in this virtualenv: $(python --version 2>&1)"
 
-  verbose "Installing pip, setuptools, wheel with PACKAGE_LEVEL=$PACKAGE_LEVEL"
-  run "pip install pip $PIP_OPTS"
-  run "pip install setuptools wheel $PIP_OPTS"
+  verbose "Packages in this virtualenv before reinstalling base packages:"
+  pip list --format=columns 2>/dev/null || pip list 2>/dev/null
+
+  # If pip is reinstalled (=downgraded) before reinstalling setuptools and wheel,
+  # we get permission errors on Travis when running with minimum package levels.
+  run "pip install setuptools $PIP_OPTS" "Reinstalling setuptools with PACKAGE_LEVEL=$PACKAGE_LEVEL"
+  run "pip install wheel $PIP_OPTS" "Reinstalling wheel with PACKAGE_LEVEL=$PACKAGE_LEVEL"
+  run "pip install pip $PIP_OPTS" "Reinstalling pip with PACKAGE_LEVEL=$PACKAGE_LEVEL"
+
+  verbose "Packages in this virtualenv before actual install test:"
+  pip list --format=columns 2>/dev/null || pip list 2>/dev/null
 }
 
 function remove_virtualenv()
@@ -508,17 +512,22 @@ function test5()
 
 WHL_DISTFILE="$1"  # absolute or relative to caller's cwd
 SRC_DISTFILE="$2"  # absolute or relative to caller's cwd
+PYTHON_CMD="$3"    # Python command to use (outside of the created virtualenvs)
 
-if [[ -z $SRC_DISTFILE ]]; then
-  error "Arguments missing. Usage: $MYNAME WHEEL_DIST_FILE SOURCE_DIST_FILE"
+if [[ -z $PYTHON_CMD ]]; then
+  error "Arguments missing. Usage: $MYNAME WHEEL_DIST_FILE SOURCE_DIST_FILE PYTHON_CMD"
   exit 2
+fi
+if [[ ! -f $WHL_DISTFILE ]]; then
+  error "Wheel distribution archive does not exist: $WHL_DISTFILE"
+  exit 1
 fi
 if [[ ! -f $SRC_DISTFILE ]]; then
   error "Source distribution archive does not exist: $SRC_DISTFILE"
   exit 1
 fi
-if [[ ! -f $WHL_DISTFILE ]]; then
-  error "Wheel distribution archive does not exist: $WHL_DISTFILE"
+if ! which $PYTHON_CMD >/dev/null 2>&1; then
+  error "Cannot find Python command: $PYTHON_CMD"
   exit 1
 fi
 

@@ -41,18 +41,46 @@
 #   pip         19.3.1
 #   setuptools  41.6.0
 #   wheel       0.33.6
+#
+# Info: Python version supported by base packages (added / removed)
+# * Python 2.7 support:
+#   pip         ?
+#   setuptools  ? / 45.0.0
+#   wheel       ?
+# * Python 3.4 support:
+#   pip         ? / 19.2
+#   setuptools  ? / 44.0.0
+#   wheel       ? / 0.34.0
+# * Python 3.5 support:
+#   pip         8.0
+#   setuptools  18.3
+#   wheel       0.30.0
+# * Python 3.6 support:
+#   pip         10.0.0
+#   setuptools  34.0.0
+#   wheel       0.30.0
+# * Python 3.7 support:
+#   pip         18.1
+#   setuptools  40.6.0
+#   wheel       0.32.0
+# * Python 3.8 support:
+#   pip         19.3.1
+#   setuptools  41.5.0
+#   wheel       0.33.5
 
-# For Python up to Python 3.7, we use the versions from Ubuntu 17.04:
-# setuptools 38.4.1 fixes a bug on Python 3.7.
-pip==9.0.1; python_version <= '3.7'
-setuptools==33.1.1; python_version < '3.7'
-setuptools==38.4.1; python_version == '3.7'
-wheel==0.29.0; python_version <= '3.7'
-
-# For Python 3.8 and above, we use the versions from Python 3.8.0:
+# For the base packages, we use the versions from Ubuntu 18.04 as a general
+# minimum, and then increase it to the first version that introduced support
+# for a particular Python version:
+pip==9.0.1; python_version <= '3.5'
+pip==10.0.0; python_version == '3.6'
+pip==18.1; python_version == '3.7'
 pip==19.3.1; python_version >= '3.8'
-setuptools==41.6.0; python_version >= '3.8'
-wheel==0.33.6; python_version >= '3.8'
+setuptools==39.0.1; python_version <= '3.6'
+setuptools==40.6.0; python_version == '3.7'
+setuptools==41.5.0; python_version >= '3.8'
+wheel==0.30.0; python_version <= '3.6'
+wheel==0.32.0; python_version == '3.7'
+wheel==0.33.5; python_version >= '3.8'
 
 
 # Direct dependencies for install (must be consistent with requirements.txt)
@@ -90,7 +118,8 @@ importlib-metadata==0.12; python_version <= '3.7'
 pytz==2016.10
 
 # Virtualenv
-virtualenv==14.0.0; python_version < '3.8'
+virtualenv==14.0.0; python_version < '3.5'
+virtualenv==16.1.0; python_version >= '3.5' and python_version < '3.8'
 virtualenv==20.0.0; python_version >= '3.8'  # requires six<2,>=1.12.0
 
 # Unit test (indirect dependencies):

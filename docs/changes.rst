@@ -405,6 +405,14 @@ Released: not yet
 * Increased minimum version of 'setuptools' on Python 3.7 from 33.1.1 to 38.4.1
   to fix a bug with new format of .pyc files. (See issue #2167).
 
+* Test: Fixed virtualenv related failures during install test.
+  (See issue #2174)
+
+* Dev: Increased the versions of the base packages 'pip', 'setuptools' and
+  'wheel' to the content of Ubuntu 18.04 as a minimum, and to the lowest
+  versions that support a particular Python versions beyond that.
+  This only affects development of pywbem. (See issue #2174)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
