@@ -1156,6 +1156,9 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
+        This method includes the namespace within the InstanceName
+        rather than as a separate element.
+
         Parameters:
 
           params (class:`py:dict`):
@@ -1169,9 +1172,11 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
+        InstanceName = params['InstanceName']
+        if InstanceName.namespace is None:
+            InstanceName.namespace = self.namespace
         instance = self.mainprovider.GetInstance(
-            namespace=self.namespace,
-            InstanceName=params.get('InstanceName', None),
+            InstanceName=InstanceName,
             LocalOnly=params.get('LocalOnly', None),
             IncludeQualifiers=params.get('IncludeQualifiers', None),
             IncludeClassOrigin=params.get('IncludeClassOrigin', None),
@@ -1204,6 +1209,9 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
+        This method includes the namespace within the path element of the
+        ModifiedInstance rather than as a separate element.
+
         Parameters:
 
           params (class:`py:dict`):
@@ -1213,9 +1221,14 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
+
+        ModifiedInstance = params['ModifiedInstance']
+
+        if ModifiedInstance.path.namespace is None:
+            ModifiedInstance.path.namespace = self.namespace
+
         self.mainprovider.ModifyInstance(
-            namespace=self.namespace,
-            ModifiedInstance=params['ModifiedInstance'],
+            ModifiedInstance=ModifiedInstance,
             IncludeQualifiers=params.get('IncludeQualifiers', None),
             PropertyList=params.get('PropertyList', None))
 
@@ -1225,6 +1238,9 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
+        This method includes the namespace within the InstanceName
+        rather than as a separate element.
+
         Parameters:
 
           params (class:`py:dict`):
@@ -1234,9 +1250,12 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
+        InstanceName = params['InstanceName']
+        if InstanceName.namespace is None:
+            InstanceName.namespace = self.namespace
+
         self.mainprovider.DeleteInstance(
-            namespace=self.namespace,
-            InstanceName=params['InstanceName'])
+            InstanceName=InstanceName)
 
     def ExecQuery(self, **params):
         """

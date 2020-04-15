@@ -410,8 +410,8 @@ class MainProvider(ResolverMixin, object):
                 _format("Class {0!A} not found in namespace {1!A}.",
                         classname, namespace))
 
-        # TODO/ks: changing this to cls.copy() causes failures with
-        # class qualifiers not created.
+        # Use deepcopy to assure copying all elements of the class.
+        # cls.copy() does not copy all elements.
         cc = deepcopy(cls)
 
         # local_only server default is True so True or None remove properties
@@ -502,11 +502,18 @@ class MainProvider(ResolverMixin, object):
         Parameters:
 
           namespace (:term:`string`):
-              Namespace containing the instance. This is used only for
-              explanatory data in exception explanations
+            Namespace containing the instance. This is used only for
+            explanatory data in exception explanations
 
           instance_name (:class:`~pywbem.CIMInstanceName`):
-              The instance name of the instance to be retrieved.
+            The instance name of the instance to be retrieved with the
+            following attributes:
+
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+              Must not be None.
+            * `host`: value ignored.
 
           instance_store (:class:`~pywbem_mock.BaseObjectStore):
             The CIM repository to access for this class and subclasses.
@@ -522,15 +529,15 @@ class MainProvider(ResolverMixin, object):
             no properties.
 
           local_only (:class:`pybool`):
-              If `True` only properties with classorigin same as classname
-              are returned.
+             If `True` only properties with classorigin same as classname
+             are returned.
 
-              If `False` or `None` all properties are returned. This method
-              maintains the code to implement local only consistent with
-              version 1.4 of DSP0004. However evert call to _get_instances
-              now sets the default `False` since that was the only way to
-              get around issues between different versions of DSP0200 that
-              defined incompatible behaviors to this request parameter.
+             If `False` or `None` all properties are returned. This method
+             maintains the code to implement local only consistent with
+             version 1.4 of DSP0004. However evert call to _get_instances
+             now sets the default `False` since that was the only way to
+             get around issues between different versions of DSP0200 that
+             defined incompatible behaviors to this request parameter.
 
           include_class_origin (:class:`pybool`):
               If `True`, class_origin included in returned object.
@@ -549,18 +556,21 @@ class MainProvider(ResolverMixin, object):
           Copy of the :class:`~pywbem.CIMInstance` object in the CIM repository
           that is a representation of the retrieved instance with property_list
           filtered, and qualifers removed if include_qualifiers=False and class
-          origin removed if include_class_origin False
-            Its `path` attribute is a :class:`~pywbem.CIMInstanceName` object
-            with its attributes set as follows:
+          origin removed if include_class_origin False.
 
-            * `classname`: Name of the creation class of the instance.
-            * `keybindings`: Keybindings of the instance.
-            * `namespace`: Name of the CIM namespace containing the instance.
-            * `host`: `None`, indicating the WBEM server is unspecified.
+          Its `path` attribute is a :class:`~pywbem.CIMInstanceName` object
+          with its attributes set as follows:
+
+          * `classname`: Name of the creation class of the instance.
+          * `keybindings`: Keybindings of the instance.
+          * `namespace`: Name of the CIM namespace containing the instance.
+          * `host`: `None`, indicating the WBEM server is unspecified.
 
         Raises:
+
             CIMError: (CIM_ERR_NOT_FOUND) if the instance does not exist in
             the repository
+
             CIMError: (CIM_ERR_INVALID_CLASS) if superclasses required for
             resolution of the instance do not exist in the repository
         """  # noqa: E501
@@ -838,7 +848,7 @@ class MainProvider(ResolverMixin, object):
         Raises:
 
           ValueError: Namespace argument must not be None.
-          :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
+          CIMError: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
         """
 
@@ -869,11 +879,11 @@ class MainProvider(ResolverMixin, object):
         Raises:
 
           ValueError: Namespace argument must not be None
-          :exc:`~pywbem.CIMError`:  CIM_ERR_NOT_FOUND if the namespace does
+          CIMError:  CIM_ERR_NOT_FOUND if the namespace does
             not exist in the CIM repository.
-          :exc:`~pywbem.CIMError`:  CIM_ERR_NAMESPACE_NOT_EMPTY if the
+          CIMError:  CIM_ERR_NAMESPACE_NOT_EMPTY if the
             namespace is not empty.
-          :exc:`~pywbem.CIMError`:  CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
+          CIMError:  CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
             to delete the default connection namespace.  This namespace cannot
             be deleted from the CIM repository
         """
@@ -926,7 +936,7 @@ class MainProvider(ResolverMixin, object):
                          IncludeQualifiers=None, IncludeClassOrigin=None):
         """
         Implements a WBEM server responder method for
-        :meth:`~pywbem.WBEMConnection.EnumerateClasses`.
+        :meth:`pywbem.WBEMConnection.EnumerateClasses`.
 
         Enumerate classes from CIM repository. If classname parameter exists,
         use it as the starting point for the hierarchy to get subclasses.
@@ -956,7 +966,7 @@ class MainProvider(ResolverMixin, object):
               per :term:`DSP0200` (server-implemented default is `False`).
 
             Note, the semantics of the `DeepInheritance` parameter in
-            :meth:`~pywbem.WBEMConnection.EnumerateInstances` is different.
+            :meth:`pywbem.WBEMConnection.EnumerateInstances` is different.
 
           LocalOnly (:class:`py:bool`):
             Indicates that inherited properties, methods, and qualifiers are to
@@ -1032,7 +1042,7 @@ class MainProvider(ResolverMixin, object):
                             DeepInheritance=None):
         """
         Implements a WBEM server responder method for
-        :meth:`~pywbem.WBEMConnection.EnumerateClassNames`.
+        :meth:`pywbem.WBEMConnection.EnumerateClassNames`.
 
         Enumerate the class names that are subclasses of the class name in the
         `classname` parameter or from the top of the class hierarchy if
@@ -1066,7 +1076,7 @@ class MainProvider(ResolverMixin, object):
               :term:`DSP0200` (server-implemented default is `False`).
 
             Note, the semantics of the `DeepInheritance` parameter in
-            :meth:`~pywbem.WBEMConnection.EnumerateInstances` is different.
+            :meth:`pywbem.WBEMConnection.EnumerateInstances` is different.
 
         Returns:
 
@@ -1106,7 +1116,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=line-too-long
         """
         Implements a  WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.GetClass`.
+        :meth:`pywbem.WBEMConnection.GetClass`.
 
         Retrieve a CIM class from the CIM repository.
 
@@ -1183,7 +1193,7 @@ class MainProvider(ResolverMixin, object):
     def CreateClass(self, namespace, NewClass):
         """
         Implements a  WBEM request responder for
-        :meth:`~pywbem.WBEMConnection.CreateClass`.
+        :meth:`pywbem.WBEMConnection.CreateClass`.
 
         Creates a new class in the CIM repository.  Nothing is returned.
 
@@ -1256,7 +1266,7 @@ class MainProvider(ResolverMixin, object):
         This method is not implemented and returns CIM_ERR_NOT_SUPPORTED.
 
         Implements a  WBEM server responder method for
-        :meth:`~pywbem.WBEMConnection.MmodifyClass`.
+        :meth:`pywbem.WBEMConnection.MmodifyClass`.
 
         Modifies a class in the CIM repository.  Nothing is returned.
 
@@ -1292,7 +1302,7 @@ class MainProvider(ResolverMixin, object):
     def DeleteClass(self, namespace, ClassName):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.DeleteClass`.
+        :meth:`pywbem.WBEMConnection.DeleteClass`.
 
         Delete a class in the class CIM repository if it exists.
 
@@ -1363,7 +1373,7 @@ class MainProvider(ResolverMixin, object):
     def EnumerateQualifiers(self, namespace):
         """
         Imlements a  WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.EnumerateQualifiers`.
+        :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
 
         Enumerates the qualifier declarations in the local CIM repository of
         namespace.
@@ -1505,7 +1515,7 @@ class MainProvider(ResolverMixin, object):
     def DeleteQualifier(self, namespace, QualifierName):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.DeleteQualifier`.
+        :meth:`pywbem.WBEMConnection.DeleteQualifier`.
 
         Deletes a single qualifier if it is in the
         CIM repository for this class and namespace
@@ -1552,7 +1562,7 @@ class MainProvider(ResolverMixin, object):
     def CreateInstance(self, namespace, NewInstance):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.CreateInstance`.
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
 
         Create a CIM instance in the local CIM repository of this class.
 
@@ -1733,29 +1743,26 @@ class MainProvider(ResolverMixin, object):
     #
     ####################################################################
 
-    def ModifyInstance(self, namespace, ModifiedInstance,
+    def ModifyInstance(self, ModifiedInstance,
                        IncludeQualifiers=None, PropertyList=None):
         # pylint: disable=invalid-name,line-too-long
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.CreateInstance`.
+        :meth:`pywbem.WBEMConnection.CreateInstance`.
 
         Modify a CIM instance in the CIM repository.
 
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
+        NOTE: This method includes namespace within the path element
+        of the ModifiedInstance rather than as a separate input parameter.
 
           ModifiedInstance (:class:`~pywbem.CIMInstance`):
             A representation of the modified instance, also indicating its
             instance path.
 
             The `path` attribute of this object identifies the instance to be
-            modified. Its `keybindings` attribute is required. If its
-            `namespace` attribute is not `None`, it must be the same as the
-            namespace defined by the namespace argument. Its `host` attribute
-            will be ignored.
+            modified. Its `keybindings` attribute is required. Its
+            `namespace` attribute must be the namespace containing the instance
+            to be modified. Its `host` attribute will be ignored.
 
             The `classname` attribute of the instance path and the `classname`
             attribute of the instance must specify the same class name.
@@ -1808,7 +1815,10 @@ class MainProvider(ResolverMixin, object):
         """  # noqa: E501
         # pylint: disable=invalid-name,line-too-long
 
+        # get the namespace from the Modified instance
+        namespace = ModifiedInstance.path.namespace
         self.validate_namespace(namespace)
+
         instance_store = self.get_instance_store(namespace)
         modified_instance = ModifiedInstance.copy()
         property_list = PropertyList
@@ -1850,8 +1860,6 @@ class MainProvider(ResolverMixin, object):
                             "class {0!A} does not exist in namespace {1!A}.",
                             modified_instance.classname, namespace))
             raise
-
-        self._validate_instancename_namespace(namespace, modified_instance.path)
 
         # Get original instance in datastore.
         orig_instance = self._find_instance(modified_instance.path,
@@ -1955,13 +1963,13 @@ class MainProvider(ResolverMixin, object):
     #
     ####################################################################
 
-    def GetInstance(self, namespace, InstanceName, LocalOnly=None,
+    def GetInstance(self, InstanceName, LocalOnly=None,
                     IncludeQualifiers=None, IncludeClassOrigin=None,
                     PropertyList=None):
         # pylint: disable=line-too-long
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.GetInstance`.
+        :meth:`pywbem.WBEMConnection.GetInstance`.
 
         Gets a single instance from the CIM repository based on the
         InstanceName and filters it for PropertyList, etc.
@@ -1969,18 +1977,20 @@ class MainProvider(ResolverMixin, object):
         This method uses a common CIM repository access method _get_instance to
         get, copy, and process the instance.
 
+        NOTE: This method includes namespace within the InstanceName rather
+        than as a separate input argument.
+
         Parameters:
 
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
-
           InstanceName (:class:`~pywbem.CIMInstanceName`):
-            The instance path of the instance to be retrieved.
-            If this object specifies a namespace, it must be the same
-            value as the namespace parameter.
-            Its `host` attribute will be ignored.
+            The instance path of the instance to be retrieved  with the
+            following attributes:
+
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+              Must not be None.
+            * `host`: value ignored.
 
           LocalOnly (:class:`py:bool`):
             This parameter is used to control the exclusion of inherited
@@ -2042,9 +2052,9 @@ class MainProvider(ResolverMixin, object):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
+        namespace = InstanceName.namespace
         self.validate_namespace(namespace)
         iname = InstanceName
-        self._validate_instancename_namespace(namespace, iname)
 
         # Set LocalOnly to False as fixed value.
         LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
@@ -2057,12 +2067,10 @@ class MainProvider(ResolverMixin, object):
                 _format("Class {0!A} for GetInstance of instance {1!A} "
                         "does not exist.", iname.classname, iname))
 
-        inst = self._get_instance(namespace, iname, instance_store,
+        return self._get_instance(namespace, iname, instance_store,
                                   LocalOnly,
                                   IncludeClassOrigin,
                                   IncludeQualifiers, PropertyList)
-
-        return inst
 
     ####################################################################
     #
@@ -2070,13 +2078,13 @@ class MainProvider(ResolverMixin, object):
     #
     ####################################################################
 
-    def DeleteInstance(self, namespace, InstanceName):
+    def DeleteInstance(self, InstanceName):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.DeleteInstance`.
+        :meth:`pywbem.WBEMConnection.DeleteInstance`.
 
         This method deletes a single instance from the CIM repository based on
-        the namespace and InstanceName parameters.
+        the  InstanceName parameter.
 
         It does not attempt to delete referencing instances (associations,
         etc.) that reference this instance.
@@ -2086,18 +2094,21 @@ class MainProvider(ResolverMixin, object):
         of the instance is being deleted in the CIM repository in addition to
         the CIM instance.
 
-        Parameters:
+        NOTE: This method includes namespace within the InstanceName
+        rather than as a separate input argument
 
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
+        Parameters:
 
           InstanceName (:class:`~pywbem.CIMInstanceName`):
             The instance path of the instance to be deleted.
-            If this object specifies a namespace, it must be the same as the
-            namespace argument.
-            Its `host` attribute will be ignored.
+            The instance path of the instance to be retrieved  with the
+            following attributes:
+
+            * `classname`: Name of the creation class of the instance.
+            * `keybindings`: Keybindings of the instance.
+            * `namespace`: Name of the CIM namespace containing the instance.
+              Must not be None.
+            * `host`: value ignored.
 
         Raises:
             CIMError: CIM_ERR_INVALID_NAMESPACE
@@ -2105,11 +2116,10 @@ class MainProvider(ResolverMixin, object):
             CIMError: CIM_ERR_NOT_FOUND
         """
 
+        namespace = InstanceName.namespace
         self.validate_namespace(namespace)
 
         iname = InstanceName
-
-        self._validate_instancename_namespace(namespace, iname)
 
         # Validate namespace and get instance CIM repository
         instance_store = self.get_instance_store(namespace)
@@ -2159,7 +2169,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=line-too-long
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.EnumerateInstances`.
+        :meth:`pywbem.WBEMConnection.EnumerateInstances`.
 
         Enumerate the instances of a class (including instances of its
         subclasses) in a namespace.
@@ -2196,8 +2206,8 @@ class MainProvider(ResolverMixin, object):
               if  the value is `True` in accord with :term:`DSP0200`.
 
             Note, the semantics of the `DeepInheritance` parameter in
-            :meth:`~pywbem.WBEMConnection.EnumerateClasses` and
-            :meth:`~pywbem.WBEMConnection.EnumerateClassNames`
+            :meth:`pywbem.WBEMConnection.EnumerateClasses` and
+            :meth:`pywbem.WBEMConnection.EnumerateClassNames`
             is different.
 
           IncludeQualifiers (:class:`py:bool`):
@@ -2304,7 +2314,7 @@ class MainProvider(ResolverMixin, object):
     def EnumerateInstanceNames(self, namespace, ClassName):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.EnumerateInstanceNames`.
+        :meth:`pywbem.WBEMConnection.EnumerateInstanceNames`.
 
         Enumerate the instance paths of instances of a class (including
         instances of its subclasses) in a namespace.
@@ -2358,7 +2368,7 @@ class MainProvider(ResolverMixin, object):
     def ExecQuery(self, namespace, QueryLanguage, Query):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.ExecQuery`.
+        :meth:`pywbem.WBEMConnection.ExecQuery`.
 
         Executes the the query defined by the QueryLanguage and Query parameter
         in the namespace defined.
@@ -2713,7 +2723,7 @@ class MainProvider(ResolverMixin, object):
                        Role=None):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.ReferenceNames`.
+        :meth:`pywbem.WBEMConnection.ReferenceNames`.
 
         Retrieves the instance paths of the association instances that
         reference a source instance, or the class paths of the association
@@ -2822,7 +2832,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=line-too-long
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.References`.
+        :meth:`pywbem.WBEMConnection.References`.
 
         Parameters:
 
@@ -2980,7 +2990,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=invalid-name
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.AssociatorNames`.
+        :meth:`pywbem.WBEMConnection.AssociatorNames`.
 
         Parameters:
 
@@ -3002,7 +3012,7 @@ class MainProvider(ResolverMixin, object):
               :term:`string`. The string is interpreted as a class name in the
               namespace defined by the namespace parameter (case independent).
 
-          See :meth:`~pywbem.WBEMConnection.AssociatorNames` for description of
+          See :meth:`pywbem.WBEMConnection.AssociatorNames` for description of
           remaining parameters
 
         Returns:
@@ -3079,7 +3089,7 @@ class MainProvider(ResolverMixin, object):
                     IncludeClassOrigin=None, PropertyList=None):
         """
         Implements a WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.Associators`.
+        :meth:`pywbem.WBEMConnection.Associators`.
 
         Parameters:
 
@@ -3101,7 +3111,7 @@ class MainProvider(ResolverMixin, object):
               name in the namespace specified in the namespace parameter
               (case independent).
 
-          See :meth:`~pywbem.WBEMConnection.Associators` for description of
+          See :meth:`pywbem.WBEMConnection.Associators` for description of
           remaining parameters
 
         Returns:
@@ -3471,7 +3481,7 @@ class MainProvider(ResolverMixin, object):
                                    MaxObjectCount=None):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenEnumerateInstancePaths`.
+        :meth:`pywbem.WBEMConnection.OpenEnumerateInstancePaths`.
 
         Parameters:
 
@@ -3563,7 +3573,7 @@ class MainProvider(ResolverMixin, object):
                                MaxObjectCount=None):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenEnumerateInstances`.
+        :meth:`pywbem.WBEMConnection.OpenEnumerateInstances`.
 
         Parameters:
 
@@ -3662,7 +3672,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenReferenceInstancePaths`.
+        :meth:`pywbem.WBEMConnection.OpenReferenceInstancePaths`.
 
         Parameters:
 
@@ -3676,7 +3686,7 @@ class MainProvider(ResolverMixin, object):
             specifies a namespace, it must equal the value of the namespace
             parameter. Its `host` attribute will be ignored.
 
-          See :meth:`~pywbem.WBEMConnection.ReferenceNames` for description of
+          See :meth:`pywbem.WBEMConnection.ReferenceNames` for description of
           ResultClass, Role and _open_response for description of other
           parameters.
 
@@ -3719,7 +3729,7 @@ class MainProvider(ResolverMixin, object):
                                MaxObjectCount=None):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenReferenceInstances`.
+        :meth:`pywbem.WBEMConnection.OpenReferenceInstances`.
 
         Parameters:
 
@@ -3734,13 +3744,13 @@ class MainProvider(ResolverMixin, object):
             value of the namespace parameter.
             Its `host` attribute will be ignored.
 
-        See :meth:`~pywbem.WBEMConnection.References` for description of
+        See :meth:`pywbem.WBEMConnection.References` for description of
         ResultClass, Role, , FilterQueryLanguage, FilterQuery,
         OperationTimeout, ContinueOnError, and MaxObjectCount parameters
 
         Returns:
 
-            See :meth:`~pywbem.WBEMConnection.References` for description
+            See :meth:`pywbem.WBEMConnection.References` for description
             of the returns.
 
         Raises:
@@ -3780,7 +3790,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenAssociatorInstancePaths`.
+        :meth:`pywbem.WBEMConnection.OpenAssociatorInstancePaths`.
 
         Parameters:
 
@@ -3838,7 +3848,7 @@ class MainProvider(ResolverMixin, object):
                                 ContinueOnError=None, MaxObjectCount=None):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenAssociatorInstances`
+        :meth:`pywbem.WBEMConnection.OpenAssociatorInstances`
         with data from the instance store.
 
         Parameters:
@@ -3900,7 +3910,7 @@ class MainProvider(ResolverMixin, object):
         # pylint: disable=invalid-name
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.OpenQueryInstances`.
+        :meth:`pywbem.WBEMConnection.OpenQueryInstances`.
 
         NOTE: Since ExecQuery is not implemented this method returns
         the not implemented exception.
@@ -3912,7 +3922,7 @@ class MainProvider(ResolverMixin, object):
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-        See :meth:`~pywbem.WBEMConnection.OpenQueryInstances` for description
+        See :meth:`pywbem.WBEMConnection.OpenQueryInstances` for description
         of FilterQueryLanguage, FilterQuery, ReturnQueryResultClass,
         OperationTimeout, ContinueOnError, and MaxObjectCount
         parameters.
@@ -3944,7 +3954,7 @@ class MainProvider(ResolverMixin, object):
     def PullInstancesWithPath(self, EnumerationContext, MaxObjectCount):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.PullInstancesWithPath`.
+        :meth:`pywbem.WBEMConnection.PullInstancesWithPath`.
 
         Parameters:
 
@@ -4022,7 +4032,7 @@ class MainProvider(ResolverMixin, object):
     def PullInstancePaths(self, EnumerationContext, MaxObjectCount):
         """
         Implements a WBEM server responder method for
-        :meth:`~pywbem.WBEMConnection.PullInstancePaths`.
+        :meth:`pywbem.WBEMConnection.PullInstancePaths`.
 
         Parameters:
 
@@ -4098,7 +4108,7 @@ class MainProvider(ResolverMixin, object):
     def PullInstances(self, EnumerationContext, MaxObjectCount):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.PullInstances`.
+        :meth:`pywbem.WBEMConnection.PullInstances`.
 
         Parameters:
 
@@ -4171,7 +4181,7 @@ class MainProvider(ResolverMixin, object):
     def CloseEnumeration(self, EnumerationContext):
         """
         Implements WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.CloseEnumeration`.
+        :meth:`pywbem.WBEMConnection.CloseEnumeration`.
 
         If the EnumerationContext is valid and open it removes it from the
         context CIM repository. Otherwise it returns an exception.
