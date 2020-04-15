@@ -1183,7 +1183,7 @@ class TestRepoMethods(object):
         if exp_exc is None:
             # pylint: disable=protected-access
             instance_store = conn._get_instance_store(ns)
-            inst = conn.mainprovider._get_instance(ns, iname, instance_store,
+            inst = conn.mainprovider._get_instance(iname, instance_store,
                                                    lo, ico, iq, pl)
             assert isinstance(inst, CIMInstance)
             assert inst.path.classname.lower() == cln.lower()
@@ -1200,7 +1200,7 @@ class TestRepoMethods(object):
             with pytest.raises(exp_exc.__class__) as exec_info:
                 # pylint: disable=protected-access
                 instance_store = conn._get_instance_store(ns)
-                conn.mainprovider._get_instance(ns, iname,
+                conn.mainprovider._get_instance(iname,
                                                 instance_store, lo,
                                                 ico, iq, pl)
             exc = exec_info.value
