@@ -486,7 +486,7 @@ class MainProvider(ResolverMixin, object):
 
         return None
 
-    def _get_instance(self, namespace, instance_name, instance_store,
+    def _get_instance(self, instance_name, instance_store,
                       local_only, include_class_origin,
                       include_qualifiers, property_list):
         # pylint: disable=line-too-long
@@ -500,10 +500,6 @@ class MainProvider(ResolverMixin, object):
         include_class_origin, and propertylist.
 
         Parameters:
-
-          namespace (:term:`string`):
-            Namespace containing the instance. This is used only for
-            explanatory data in exception explanations
 
           instance_name (:class:`~pywbem.CIMInstanceName`):
             The instance name of the instance to be retrieved with the
@@ -583,7 +579,7 @@ class MainProvider(ResolverMixin, object):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Instance not found in CIM repository namespace {0!A}. "
-                        "Path={1!A}", namespace, instance_name))
+                        "Path={1!A}", instance_name.namespace, instance_name))
 
         # If local_only remove properties where class_origin
         # differs from class of target instance
@@ -597,7 +593,8 @@ class MainProvider(ResolverMixin, object):
             # gets class propertylist which may be local only or all
             # superclasses
             try:
-                cl = self._get_class(namespace, instance_name.classname,
+                cl = self._get_class(instance_name.namespace,
+                                     instance_name.classname,
                                      local_only=local_only)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
@@ -606,7 +603,7 @@ class MainProvider(ResolverMixin, object):
                         _format("Class {0!A} not found for instance {1!A} in "
                                 "CIM repository namespace {2!A}.",
                                 instance_name.classname, instance_name,
-                                namespace))
+                                instance_name.namespace))
 
             class_pl = cl.properties.keys()
 
@@ -2067,7 +2064,7 @@ class MainProvider(ResolverMixin, object):
                 _format("Class {0!A} for GetInstance of instance {1!A} "
                         "does not exist.", iname.classname, iname))
 
-        return self._get_instance(namespace, iname, instance_store,
+        return self._get_instance(iname, instance_store,
                                   LocalOnly,
                                   IncludeClassOrigin,
                                   IncludeQualifiers, PropertyList)
@@ -2296,7 +2293,7 @@ class MainProvider(ResolverMixin, object):
                                                       class_store)
 
         # get and process instances from the instance_store
-        insts = [self._get_instance(namespace, inst.path, instance_store,
+        insts = [self._get_instance(inst.path, instance_store,
                                     LocalOnly,
                                     IncludeClassOrigin,
                                     IncludeQualifiers, pl)
@@ -2960,7 +2957,7 @@ class MainProvider(ResolverMixin, object):
                                                       Role)
 
             instance_store = self.get_instance_store(namespace)
-            rtn_insts = [self._get_instance(namespace, path, instance_store,
+            rtn_insts = [self._get_instance(path, instance_store,
                                             INSTANCE_RETRIEVE_LOCAL_ONLY,
                                             IncludeClassOrigin,
                                             IncludeQualifiers, PropertyList)
@@ -3167,7 +3164,7 @@ class MainProvider(ResolverMixin, object):
             instance_store = self.get_instance_store(namespace)
             for obj_name in assoc_names:
                 results.append(self._get_instance(
-                    namespace, obj_name, instance_store,
+                    obj_name, instance_store,
                     INSTANCE_RETRIEVE_LOCAL_ONLY,
                     IncludeClassOrigin, IncludeQualifiers, PropertyList))
 
