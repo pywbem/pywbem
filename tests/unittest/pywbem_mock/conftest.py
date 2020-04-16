@@ -35,7 +35,8 @@ from pywbem_mock import FakedWBEMConnection
 @pytest.fixture()
 def conn():
     """
-    Create the FakedWBEMConnection and return it
+    Create the FakedWBEMConnection and return it. This includes the
+    standard default namespace.
     """
     # pylint: disable=protected-access
     FakedWBEMConnection._reset_logging_config()
