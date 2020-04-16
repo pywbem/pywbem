@@ -1148,7 +1148,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
-        This method includes the namespace within the InstanceName
+        The method called includes the namespace within the InstanceName
         rather than as a separate element.
 
         Parameters:
@@ -1165,8 +1165,8 @@ class FakedWBEMConnection(WBEMConnection):
           Error: Exceptions from the call
         """
         InstanceName = params['InstanceName']
-        if InstanceName.namespace is None:
-            InstanceName.namespace = namespace
+        assert InstanceName.namespace is None
+        InstanceName.namespace = namespace
         instance = self.mainprovider.GetInstance(
             InstanceName=InstanceName,
             LocalOnly=params.get('LocalOnly', None),
@@ -1201,8 +1201,8 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
-        This method includes the namespace within the path element of the
-        ModifiedInstance rather than as a separate element.
+        The method called includes the namespace within the ModifiedInstance
+        rather than as a separate element.
 
         Parameters:
 
@@ -1215,9 +1215,8 @@ class FakedWBEMConnection(WBEMConnection):
         """
 
         ModifiedInstance = params['ModifiedInstance']
-
-        if ModifiedInstance.path.namespace is None:
-            ModifiedInstance.path.namespace = namespace
+        assert ModifiedInstance.path.namespace is None
+        ModifiedInstance.path.namespace = namespace
 
         self.mainprovider.ModifyInstance(
             ModifiedInstance=ModifiedInstance,
@@ -1230,7 +1229,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
-        This method includes the namespace within the InstanceName
+        The method called includes the namespace within the InstanceName
         rather than as a separate element.
 
         Parameters:
@@ -1243,8 +1242,8 @@ class FakedWBEMConnection(WBEMConnection):
           Error: Exceptions from the call
         """
         InstanceName = params['InstanceName']
-        if InstanceName.namespace is None:
-            InstanceName.namespace = namespace
+        assert InstanceName.namespace is None
+        InstanceName.namespace = namespace
 
         self.mainprovider.DeleteInstance(
             InstanceName=InstanceName)
