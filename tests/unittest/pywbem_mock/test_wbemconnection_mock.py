@@ -81,6 +81,14 @@ TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 INITIAL_NAMESPACES = [DEFAULT_NAMESPACE]
 
 
+# Expand the set of namespaces to include one that is not the default
+# namespace.  This should be used with the methods to add NOT_DEFAULT_NS
+# to the mock before compiling into the mock or adding cim objects.
+# There are methods to accomplish this.
+NOT_DEFAULT_NS = 'root/notdefaultns'
+EXPANDED_NAMESPACES = [DEFAULT_NAMESPACE, NOT_DEFAULT_NS]
+
+
 # Temporarily set this because all of the fixtures generate this warning
 # for every use.  One alternative may be to prefix each fixture name with
 # an underscore
@@ -798,6 +806,27 @@ TST_PERSON_INST_COUNT = 4                                 # num TST_PERSON
 TST_PERSON_SUB_INST_COUNT = 4                             # num SUB
 TST_PERSONWITH_SUB_INST_COUNT = TST_PERSON_INST_COUNT + \
     TST_PERSON_SUB_INST_COUNT                             # num both
+
+
+def add_objects_to_repo(conn, namespace, objects_list):
+    """
+    Test setup.  Conditionally adds namespace to mock repository and adds
+    the lists of objects to the repo.  Each object in the objects_list may
+    be:
+
+    list of CIM objects that will be added using self.add_cimObject
+    or
+    A strings that is MOF that will be compiled.
+    """
+    if namespace and namespace != conn.default_namespace:
+        conn.add_namespace(namespace)
+    assert isinstance(objects_list, (list, tuple))
+
+    for object in objects_list:
+        if isinstance(object, six.string_types):
+            conn.compile_mof_string(object, namespace=namespace)
+        else:
+            conn.add_cimobjects(object, namespace=namespace)
 
 
 #########################################################################
@@ -2119,6 +2148,8 @@ class TestClassOperations(object):
              CIM_ERR_INVALID_NAMESPACE],
             [DEFAULT_NAMESPACE, 'CIM_Foo', DEFAULT_NAMESPACE, None],
             [DEFAULT_NAMESPACE, 'CIM_Foox', None, CIM_ERR_NOT_FOUND],
+            # test with non-default namespace
+            [NOT_DEFAULT_NS, 'CIM_Foo', NOT_DEFAULT_NS, None],
         ]
     )
     def test_getclass(self, conn, tst_qualifiers, tst_class, ns, cln,
@@ -2130,8 +2161,7 @@ class TestClassOperations(object):
           Invalid namespace
           Class Not found
         """
-        conn.add_cimobjects(tst_qualifiers, namespace=ns)
-        conn.add_cimobjects(tst_class, namespace=ns)
+        add_objects_to_repo(conn, ns, [tst_qualifiers, tst_class])
 
         if exp_status is None:
             cl = conn.GetClass(cln, namespace=tst_ns,
@@ -2255,7 +2285,7 @@ class TestClassOperations(object):
             assert prop.qualifiers == class_prop_qualifiers
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     # property list, expected properties in response
     @pytest.mark.parametrize(
         "pl, p_exp", [
@@ -2272,7 +2302,7 @@ class TestClassOperations(object):
         """
         Test get_class property list filtering
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers])
         cn = 'CIM_Foo_sub_sub'
 
         cl = conn.GetClass(cn, namespace=ns, PropertyList=pl,
@@ -2285,7 +2315,7 @@ class TestClassOperations(object):
         assert set(rtn_props) == set(p_exp)
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         # cn - Classname for request (May be None)
         # di - Boolean defines DeepInheritance value for request
@@ -2313,7 +2343,8 @@ class TestClassOperations(object):
         Test EnumerateClassNames mock with parameters for namespace,
         classname, DeepInheritance
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+
+        add_objects_to_repo(conn, ns, tst_classeswqualifiers)
 
         if isinstance(exp_rslt, CIMError):
             with pytest.raises(CIMError) as exec_info:
@@ -2337,7 +2368,7 @@ class TestClassOperations(object):
         assert set(rtn_clns) == set(exp_rslt)
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         # iq: includequalifiers input parameter
         "iq", [None, False, True])
@@ -2394,8 +2425,7 @@ class TestClassOperations(object):
         Tests for correct properties, methods, and qualifiers, returned for
         lo and di and correct number of classes returned
         """
-        conn.add_cimobjects(tst_qualifiers, namespace=ns)
-        conn.add_cimobjects(tst_classes, namespace=ns)
+        add_objects_to_repo(conn, ns, [tst_qualifiers, tst_classes])
 
         if isinstance(exp_rslt, CIMError):
             exp_exc = exp_rslt
@@ -3011,14 +3041,18 @@ class TestInstanceOperations(object):
 
     @pytest.mark.parametrize(
         "ns, cln, inst_id, tst_ns, exp_status", [
+            # verify class and instance in default, use default
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None, None],
-            [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', DEFAULT_NAMESPACE,
-             None],
+            # verify works with explicit tst_ns
+            [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', DEFAULT_NAMESPACE, None],
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'badid', DEFAULT_NAMESPACE,
              CIM_ERR_NOT_FOUND],
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', 'BadNamespace',
              CIM_ERR_INVALID_NAMESPACE],
             [DEFAULT_NAMESPACE, 'CIM_Foox', 'CIM_Foo1', None,
+             CIM_ERR_INVALID_CLASS],
+            # class and instance in ns. test different tst_ns fails
+            [NOT_DEFAULT_NS, 'CIM_Foo', 'CIM_Foo1', DEFAULT_NAMESPACE,
              CIM_ERR_INVALID_CLASS],
         ]
     )
@@ -3029,6 +3063,8 @@ class TestInstanceOperations(object):
         Test with multiple namespaces for successful GetInstance and with
         error for namespace and instance name
         """
+        if ns != DEFAULT_NAMESPACE:
+            conn.add_namespace(ns)
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
 
@@ -3128,7 +3164,7 @@ class TestInstanceOperations(object):
     # TODO KS add error test to this group. cln, exp_cond  and test for
     # bad class, no class should pull in at least test below.
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln", ['cim_foo', 'CIM_Foo'])
     def test_enumerateinstancenames(self, conn, ns, cln,
@@ -3138,8 +3174,8 @@ class TestInstanceOperations(object):
         Test mock EnumerateInstanceNames against instances in tst_instances
         fixture with both classes and instances in the repo.
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
 
@@ -3226,7 +3262,7 @@ class TestInstanceOperations(object):
             assert exc.status_code == exp_exc.status_code
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln, di, exp_cln, exp_prop", [
             # di True, expect all subprops
@@ -3247,8 +3283,8 @@ class TestInstanceOperations(object):
         Test mock EnumerateInstances. Returns instances
         of defined class and subclasses
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
+
+        add_objects_to_repo(conn, ns, (tst_classeswqualifiers, tst_instances))
 
         rtn_insts = conn.EnumerateInstances(cln, namespace=ns,
                                             DeepInheritance=di)
@@ -3466,7 +3502,7 @@ class TestInstanceOperations(object):
             assert exc.status_code == exp_status
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "tst, new_inst, exp_rslt", [
             # TODO: This is a badly designed set of test parameters.
@@ -3559,7 +3595,12 @@ class TestInstanceOperations(object):
         instance and then getting that instance. This also includes error
         tests if exp_exc is not None.
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+
+        add_objects_to_repo(conn, ns, tst_classeswqualifiers)
+
+        # copy input instance to avoid poluting test
+        if isinstance(new_inst, CIMInstance):
+            new_inst = new_inst.copy()
 
         # modify input in accord with the tst parameter
         if tst == 0:   # pass on the new_inst defined in the parameter
@@ -3574,12 +3615,13 @@ class TestInstanceOperations(object):
             new_insts = tst_instances
         else:  # Error. Test not defined.
             assert False, "The tst parameter %s not defined" % tst
-
         if exp_rslt is None:   # exp_status is None
             for inst in new_insts:
                 rtn_inst_name = conn.CreateInstance(inst, ns)
                 rtn_inst = conn.GetInstance(rtn_inst_name)
-                cls = conn.GetClass(inst.classname, LocalOnly=False,
+                cls = conn.GetClass(inst.classname,
+                                    namespace=ns,
+                                    LocalOnly=False,
                                     IncludeQualifiers=True)
                 inst.path.namespace = rtn_inst.path.namespace
                 assert rtn_inst.path == inst.path
@@ -3704,7 +3746,7 @@ class TestInstanceOperations(object):
                 assert exc.status_code == exp_exc.status_code
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES)  # TODO  + [None]
+        "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "tst_mof, exp_rtn, exp_excp",
         [
@@ -3808,7 +3850,7 @@ class TestInstanceOperations(object):
                 assert re.search(exp_excp.msg, exc.msg, re.IGNORECASE)
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "sp, nv, pl, exp_resp", [
             # sp: Special test. integer. 0 means No special test.
@@ -3879,8 +3921,8 @@ class TestInstanceOperations(object):
         Test the mock of modifying an existing instance. Gets the instance
         from the repo, modifies a property and calls ModifyInstance
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         insts = conn.EnumerateInstances('CIM_Foo_sub_sub', namespace=ns)
         assert insts
@@ -3923,6 +3965,7 @@ class TestInstanceOperations(object):
 
             rtn_instance = conn.GetInstance(modify_instance.path)
             tst_class = conn.GetClass(modify_instance.path.classname,
+                                      modify_instance.path.namespace,
                                       LocalOnly=False)
             if exp_resp:
                 for p in rtn_instance:
@@ -3938,7 +3981,8 @@ class TestInstanceOperations(object):
                         tst_class.properties[p].name
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        # defines the namespace to be used.
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln, key, exp_status", [
             # cln : Class name
@@ -3948,7 +3992,7 @@ class TestInstanceOperations(object):
             ['CIM_Foo', None, None],                   # valid class
             ['CIM_Foo_sub', None, None],               # valid subclass
             ['CIM_Foo', 'xxx', CIM_ERR_NOT_FOUND],   # instance not found
-            ['CIM_DoesNotExist', 'blah', CIM_ERR_INVALID_CLASS],  # cl not fnd
+            ['CIM_DoesNotExist', 'blah', CIM_ERR_INVALID_CLASS],  # cls not fnd
             ['CIM_Foo', 'blah', CIM_ERR_INVALID_NAMESPACE],  # ns not fnd
         ]
     )
@@ -3962,8 +4006,8 @@ class TestInstanceOperations(object):
 
         Error cases confirm that exp_status is received
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-        conn.add_cimobjects(tst_instances, namespace=ns)
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         if not exp_status:
             # Test deletes all instances for defined class
@@ -4109,7 +4153,7 @@ class TestPullOperations(object):
     """
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         # src_inst: Source instance definitions (classname and name property
         # ro: Role
@@ -4136,7 +4180,8 @@ class TestPullOperations(object):
         and all parameters are default
         """
         skip_if_moftab_regenerated()
-        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+
+        add_objects_to_repo(conn, ns, [tst_assoc_mof])
 
         source_inst_name = CIMInstanceName(src_inst[0],
                                            keybindings=dict(name=src_inst[1]),
@@ -4485,7 +4530,7 @@ class TestQualifierOperations(object):
             assert exc.status_code == exp_status
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "exp_status", [None, CIM_ERR_INVALID_NAMESPACE])
     def test_enumeratequalifiers(self, conn, ns, exp_status):
@@ -4497,7 +4542,7 @@ class TestQualifierOperations(object):
 
         q_exp_rtn_list = self._build_expected_rtn_qualifiers()
 
-        conn.add_cimobjects(q_list, namespace=ns)
+        add_objects_to_repo(conn, ns, q_list)
 
         if not exp_status:
             q_rtns = conn.EnumerateQualifiers(namespace=ns)
@@ -5001,7 +5046,7 @@ class TestAssociatorOperations(object):
     """
 
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "target_cln", ['TST_Person', 'tst_person'])
     @pytest.mark.parametrize(
@@ -5039,7 +5084,7 @@ class TestAssociatorOperations(object):
         """
         skip_if_moftab_regenerated()
 
-        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+        add_objects_to_repo(conn, ns, [tst_assoc_mof])
 
         if ns is not None:
             target_cln = CIMClassName(target_cln, namespace=ns)

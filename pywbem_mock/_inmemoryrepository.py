@@ -189,6 +189,11 @@ class InMemoryRepository(BaseRepository):
         if initial_namespace:
             self.add_namespace(initial_namespace)
 
+    def __repr__(self):
+        """Display summary of the repository"""
+        return _format(
+            "InMemoryRepository(data={s._repository})", s=self)
+
     def print_repository(self, dest=None, ):
         """
         Print the CIM repository to a destination. This displays information on

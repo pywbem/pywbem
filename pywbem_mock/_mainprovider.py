@@ -1850,7 +1850,7 @@ class MainProvider(ResolverMixin, object):
                 include_classorigin=True,
                 property_list=None)
         except CIMError as ce:
-            if ce.status_code == CIM_ERR_NOT_FOUND:
+            if ce.status_code in [CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_CLASS]:
                 raise CIMError(
                     CIM_ERR_INVALID_CLASS,
                     _format("Cannot modify instance because its creation "
