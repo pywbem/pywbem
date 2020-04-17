@@ -413,6 +413,10 @@ Released: not yet
   versions that support a particular Python versions beyond that.
   This only affects development of pywbem. (See issue #2174)
 
+* Increased the version of 'PyYAML' from 5.1 to 5.3 on Python 2.7, to pick
+  up a fix for dealing with Unicode characters above U+FFFF in narrow Python
+  builds. (See issue #2182)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
