@@ -36,7 +36,6 @@ the CIM repository and defined with the interfaces in `BaseRepository`.
 
 from __future__ import absolute_import, print_function
 
-from copy import deepcopy
 import uuid
 from collections import Counter
 import six
@@ -61,33 +60,18 @@ from pywbem import CIMClass, CIMClassName, \
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
+from pywbem_mock._baseprovider import BaseProvider
+
 from ._resolvermixin import ResolverMixin
 
-# Default Max_Object_Count for Fake Server if not specified by request
-_DEFAULT_MAX_OBJECT_COUNT = 100
-
-# Maximum Open... timeout if not set by request
-OPEN_MAX_TIMEOUT = 40
-
-# Per DSP0200, the default behavior for EnumerateInstance DeepInheritance
-# if not set by server.  Default is True.
-DEFAULT_DEEP_INHERITANCE = True
-
-# Value of LocalOnly parameter for instance retrevial operations.  This is
-# set to False in this implementation because of issues between different
-# versions of the DSP0200 specification that defined incompatible behavior
-# for this parameter that were resolved in Version 1.4 by
-# stating that False was the recommended Server setting for all instance
-# retrevial requests and that clients should use False also to avoid the
-# incompatibility.
-INSTANCE_RETRIEVE_LOCAL_ONLY = False
-
+from ._baseprovider import _DEFAULT_MAX_OBJECT_COUNT, OPEN_MAX_TIMEOUT, \
+    DEFAULT_DEEP_INHERITANCE, INSTANCE_RETRIEVE_LOCAL_ONLY
 
 # None of the request method names conform since they are camel case
 # pylint: disable=invalid-name
 
 
-class MainProvider(ResolverMixin, object):
+class MainProvider(ResolverMixin, BaseProvider):
     """
     A CIM provider in the mock support of pywbem creates WBEM server responses
     to operations defined in DSP0200 and implements them using a CIM
@@ -116,8 +100,7 @@ class MainProvider(ResolverMixin, object):
     For more details, see mocksupport.rst.
     """
 
-    def __init__(self, conn, cimrepository):
-        # pylint: disable=line-too-long
+    def __init__(self, host, disable_pull_operations, cimrepository):
         """
         Parameters:
             conn(:class:`~pywbem_mock.FakedWBEMConnection`):
@@ -125,72 +108,18 @@ class MainProvider(ResolverMixin, object):
               variables are extracted for the repository including
               the host and disable_pull_operations attributes.
 
-            cimrepository(derived from `~pywbem_mock.BaseRepository`):
-             the CIM repository that stores CIM objects.
-        """  # noqa: E501
-        # pylint: enable=line-too-long
+        """
 
-        #   Save required attributes from the connection object
-        self.host = conn.host
-        self.disable_pull_operations = None
-
-        # Implementation of the CIM object repository that is the data store
-        # for CIM classes, CIM instances, CIM qualifier declarations and
-        # CIM methods.
-        # See :py:module:`pywbem_mock/baserepository` for a description of
-        # the repository interface.
         self.cimrepository = cimrepository
+        self.host = host
+        self.disable_pull_operations = disable_pull_operations
 
         # Open Pull Contexts. The key for each context is an enumeration
-        # context id.  The data is the namespace for the pull sequence,
-        # the list of remaining instances/names to be returned with subsequent
-        # pull operations. Any enumeration context in this list is still open.
+        # context id.  The data is the total list of instances/names to
+        # be returned and the current position in the list. Any context in
+        # this list is still open. Defined in MainRepository because only
+        # this provider handles Pull requests.
         self.enumeration_contexts = {}
-
-    def __repr__(self):
-        return _format(
-            "MainProvider("
-            "cimrepository={s.cimrepository}, "
-            "host={s.host}, "
-            "disable_pull_operations={s.disable_pull_operations})",
-            s=self)
-
-    @property
-    def disable_pull_operations(self):
-        """
-        Boolean Flag to set option to disable the execution of the open and
-        pull operation request handlers in the mock CIM repository. This
-        emulates the characteristic in some CIM servers that did not
-        implement pull operations. The default is to allow pull operations.
-        All pull operations requests may be forbidden from executing by
-        setting disable_pull_operations to True.
-
-        This attribute is settable. For details, see the description of the
-        same-named init parameter of
-        :class:`this class <pywbem.FakedWBEMConnection>`.
-        """
-        return self._disable_pull_operations
-
-    @disable_pull_operations.setter
-    def disable_pull_operations(self, disable):
-        """Setter method; for a description see the getter method."""
-        # Attribute will always be boolean
-        if disable is None:
-            disable = False
-        if isinstance(disable, bool):
-            # pylint: disable=attribute-defined-outside-init
-            self._disable_pull_operations = disable
-        else:
-            raise ValueError(
-                _format('Invalid type for disable_pull_operations: {0!A}, '
-                        'must be a boolean', disable))
-
-    @property
-    def namespaces(self):
-        """
-        Return the namespaces that exist in the CIM repository.
-        """
-        return self.cimrepository.namespaces
 
     #####################################################################
     #
@@ -199,18 +128,6 @@ class MainProvider(ResolverMixin, object):
     #     generally private methods.
     #
     #####################################################################
-
-    def _class_exists(self, namespace, classname):
-        """
-        Test if class defined by classname parameter exists in
-        CIM repository defined by namespace parameter.
-
-        Returns `True` if class exists and `False` if it does not exist.
-
-        Exception if the namespace does not exist
-        """
-        class_store = self.get_class_store(namespace)
-        return class_store.exists(classname)
 
     @staticmethod
     def _make_tuple(rtn_value):
@@ -264,7 +181,8 @@ class MainProvider(ResolverMixin, object):
             for method in obj.methods:
                 obj.methods[method].class_origin = None
 
-    def _get_superclass_names(self, classname, class_store):
+    @staticmethod
+    def _get_superclass_names(classname, class_store):
         """
         Get list of superclasses names from the class datastore for the
         defined classname (cln) in the namespace.
@@ -345,96 +263,6 @@ class MainProvider(ResolverMixin, object):
             rtn_classnames.extend(subclass_names)
         return rtn_classnames
 
-    def _get_class(self, namespace, classname, local_only=None,
-                   include_qualifiers=None, include_classorigin=None,
-                   property_list=None):
-        # pylint: disable=invalid-name
-        """
-        Get class from CIM repository.  Gets the class defined by classname
-        from the CIM repository, creates a copy, expands the copied class to
-        include superclass properties if not localonly, and filters the
-        class based on propertylist and includeClassOrigin.
-
-        It also sets the propagated attribute.
-
-        Parameters:
-
-          classname (:term:`string`):
-            Name of class to retrieve
-
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            charactes are ignored.
-
-          local_only (:class:`py:bool`):
-            If `True`, or `None`only properties and methods in this specific
-            class are returned. `None` means not supplied by client and the
-            normal server default is `True`
-            If `False` properties and methods from the superclasses
-            are included.
-
-          include_qualifiers (:class:`py:bool`):
-            If `True` or `None`, include qualifiers.  `None` is the server
-            default if the parameter is not provided by the client.
-            If `False` do not include qualifiers.
-
-          include_classorigin (:class:`py:bool`):
-            If `True` return the class_origin attributes of properties and
-            methods.
-            If `False` or `None` (use server default), class_origin attributes
-            of properties and methods are not returned
-
-          property_list (list of :term:`string`):
-            Properties to be included in returned class.  If None, all
-            properties are returned.  If empty list, no properties are returned
-
-        Returns:
-
-          Copy of the CIM class if found with superclass properties
-          installed and filtered per the method arguments.
-
-        Raises:
-          CIMError: (CIM_ERR_NOT_FOUND) if class Not found in CIM repository or
-          CIMError: (CIM_ERR_INVALID_NAMESPACE) if namespace does not exist
-        """
-
-        class_store = self.get_class_store(namespace)
-
-        # Try to get the target class and create a copy for response
-        try:
-            cls = class_store.get(classname)
-        except KeyError:
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Class {0!A} not found in namespace {1!A}.",
-                        classname, namespace))
-
-        # Use deepcopy to assure copying all elements of the class.
-        # cls.copy() does not copy all elements.
-        cc = deepcopy(cls)
-
-        # local_only server default is True so True or None remove properties
-        if local_only is True or local_only is None:
-            for prop, pvalue in cc.properties.items():
-                if pvalue.propagated:
-                    del cc.properties[prop]
-            for method, mvalue in cc.methods.items():
-                if mvalue.propagated:
-                    del cc.methods[method]
-
-        self._filter_properties(cc, property_list)
-
-        # Remove qualifiers if specified.  Note that the server default
-        # is to include_qualifiers if include_qualifiers is None
-        if include_qualifiers is False:
-            self._remove_qualifiers(cc)
-
-        # class_origin default is False so None or False cause removal
-        if not include_classorigin:
-            self._remove_classorigin(cc)
-        return cc
-
     def _iter_association_classes(self, namespace):
         """
         Return iterator of association classes from the class repo
@@ -452,39 +280,6 @@ class MainProvider(ResolverMixin, object):
             if 'Association' in cl.qualifiers:
                 yield cl
         return
-
-    @staticmethod
-    def _find_instance(instance_name, instance_store, copy_inst=None):
-        """
-        Find an instance in the CIM repository by iname and return
-        that instance. the copy_inst controls whether the original
-        instance in the CIM repository is returned or a copy.  The
-        only time the original should be returned is when the user is
-        certain that the returned object WILL NOT be modified.
-
-        Parameters:
-
-          instance_name: CIMInstancename to find in the instance_store
-
-          instance_store (:class:`~pywbem_mock.BaseObjectStore):
-            The CIM repository to search for the instance
-
-          copy_inst: boolean.
-            If True do copy of the instance and return the copy. Otherwise
-            return the instance in the CIM repository
-
-        Returns:
-            None if the instance defined by iname is not found.
-            If it is found, the complete instance or copy is returned.
-
-        """
-
-        if instance_store.exists(instance_name):
-            if copy_inst:
-                return instance_store.get(instance_name).copy()
-            return instance_store.get(instance_name)
-
-        return None
 
     def _get_instance(self, instance_name, instance_store,
                       local_only, include_class_origin,
@@ -572,8 +367,8 @@ class MainProvider(ResolverMixin, object):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        rtn_inst = self._find_instance(instance_name, instance_store,
-                                       copy_inst=True)
+        rtn_inst = self.find_instance(instance_name, instance_store,
+                                      copy_inst=True)
 
         if rtn_inst is None:
             raise CIMError(
@@ -593,9 +388,9 @@ class MainProvider(ResolverMixin, object):
             # gets class propertylist which may be local only or all
             # superclasses
             try:
-                cl = self._get_class(instance_name.namespace,
-                                     instance_name.classname,
-                                     local_only=local_only)
+                cl = self.get_class(instance_name.namespace,
+                                    instance_name.classname,
+                                    local_only=local_only)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     raise CIMError(
@@ -615,7 +410,7 @@ class MainProvider(ResolverMixin, object):
         if rtn_inst.path.host:
             rtn_inst.path.host = None
 
-        self._filter_properties(rtn_inst, property_list)
+        self.filter_properties(rtn_inst, property_list)
 
         if not include_qualifiers:
             self._remove_qualifiers(rtn_inst)
@@ -653,30 +448,10 @@ class MainProvider(ResolverMixin, object):
         clnsdict[classname] = classname
         return clnsdict
 
-    @staticmethod
-    def _filter_properties(obj, property_list):
-        """
-        Remove properties from an instance or class that aren't in the
-        property_list parameter
-
-        obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance):
-            The class or instance from which properties are to be filtered
-
-        property_list(list of :term:`string`):
-            List of properties which are to be included in the result. If
-            None, remove nothing.  If empty list, remove everything. else
-            remove properties that are not in property_list. Duplicated names
-            are allowed in the list and ignored.
-        """
-        if property_list is not None:
-            property_list = [p.lower() for p in property_list]
-            for pname in obj.properties.keys():
-                if pname.lower() not in property_list:
-                    del obj.properties[pname]
-
     ###############################################################
     #
-    #   Access  to data store
+    #   Access to the datastores (CIMClass, CIMInstance,
+    #   CIMQualifierDeclaration) in the current cimrepository.
     #
     #   The following methods provide access to the data store for
     #   a single namespace. There are separate methods to provide
@@ -770,7 +545,8 @@ class MainProvider(ResolverMixin, object):
 
         return self.cimrepository.get_qualifier_store(namespace)
 
-    def _validate_instancename_namespace(self, namespace, object_name):
+    @staticmethod
+    def _validate_instancename_namespace(namespace, object_name):
         """
         Validates that the namespace in ObjectName is None or same as
         in namespace. This is because we receive both namespace parameter
@@ -1021,10 +797,10 @@ class MainProvider(ResolverMixin, object):
 
         # Get each class and process it for the modifiers.
         classes = [
-            self._get_class(namespace, cln,
-                            local_only=LocalOnly,
-                            include_qualifiers=IncludeQualifiers,
-                            include_classorigin=IncludeClassOrigin)
+            self.get_class(namespace, cln,
+                           local_only=LocalOnly,
+                           include_qualifiers=IncludeQualifiers,
+                           include_classorigin=IncludeClassOrigin)
             for cln in clns]
 
         return classes
@@ -1174,10 +950,10 @@ class MainProvider(ResolverMixin, object):
         self.validate_namespace(namespace)
         assert isinstance(ClassName, six.string_types)
 
-        cc = self._get_class(namespace, ClassName, local_only=LocalOnly,
-                             include_qualifiers=IncludeQualifiers,
-                             include_classorigin=IncludeClassOrigin,
-                             property_list=PropertyList)
+        cc = self.get_class(namespace, ClassName, local_only=LocalOnly,
+                            include_qualifiers=IncludeQualifiers,
+                            include_classorigin=IncludeClassOrigin,
+                            property_list=PropertyList)
 
         return cc
 
@@ -1347,7 +1123,7 @@ class MainProvider(ResolverMixin, object):
             inst_paths = [inst.path for inst in instance_store.iter_values()
                           if inst.path.classname in sub_clns]
 
-            # TODO: Future: This should route through DeleteInstance to
+            # TODO/KS: Future: This should route through DeleteInstance to
             # assure that providers get called rather than calling the
             # CIM repository directly.
             for ipath in inst_paths:
@@ -1552,410 +1328,6 @@ class MainProvider(ResolverMixin, object):
 
     ####################################################################
     #
-    #   CreateInstance server request
-    #
-    ####################################################################
-
-    def CreateInstance(self, namespace, NewInstance):
-        """
-        Implements a WBEM server responder for
-        :meth:`pywbem.WBEMConnection.CreateInstance`.
-
-        Create a CIM instance in the local CIM repository of this class.
-
-        Parameters:
-
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
-
-          NewInstance (:class:`~pywbem.CIMInstance`):
-            A representation of the CIM instance to be created.
-
-            The `classname` attribute of this object specifies the creation
-            class for the new instance.
-
-            The namespace of the `path` attribute must be `None` or the
-            same as the namespace parameter.
-
-            The `properties` attribute of this object specifies initial
-            property values for the new CIM instance.
-
-            Instance-level qualifiers have been deprecated in CIM, so any
-            qualifier values specified using the `qualifiers` attribute
-            of this object are ignored.
-
-        Returns:
-            CIMInstanceName with the server defined instance path
-            for the new instance.
-
-        Raises:
-
-            CIMError: CIM_ERR_ALREADY_EXISTS
-              The instance defined by namespace and instance name already
-              exists.
-
-            CIMError: CIM_ERR_INVALID_CLASS
-              The class defined in NewInstance  does not exist in the
-              namespace.
-        """
-
-        new_instance = NewInstance
-        if not isinstance(new_instance, CIMInstance):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("NewInstance parameter is not a valid CIMInstance. "
-                        "Rcvd type={0}", type(new_instance)))
-
-        self.validate_namespace(namespace)
-        instance_store = self.get_instance_store(namespace)
-
-        # Requires corresponding class to build path to be returned
-        try:
-            target_class = self._get_class(namespace,
-                                           new_instance.classname,
-                                           local_only=False,
-                                           include_qualifiers=True,
-                                           include_classorigin=True)
-        except CIMError as ce:
-            if ce.status_code != CIM_ERR_NOT_FOUND:
-                raise
-
-            raise CIMError(
-                CIM_ERR_INVALID_CLASS,
-                _format("Cannot create instance because its creation "
-                        "class {0!A} does not exist in namespace {1!A}.",
-                        new_instance.classname, namespace))
-
-        # Handle namespace creation, currently hard coded.
-        # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
-        # provider concept
-        classname_lower = new_instance.classname.lower()
-        if classname_lower == 'pg_namespace':
-            ns_classname = 'PG_Namespace'
-        elif classname_lower == 'cim_namespace':
-            ns_classname = 'CIM_Namespace'
-        else:
-            ns_classname = None
-        if ns_classname:
-            try:
-                new_namespace = new_instance['Name']
-            except KeyError:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Namespace creation via CreateInstance: "
-                            "Missing 'Name' property in the {0!A} instance ",
-                            new_instance.classname))
-
-            # Normalize the namespace name
-            # TODO: We should not have to normalize here, that is lower level
-            new_namespace = new_namespace.strip('/')
-
-            # Write it back to the instance in case it was changed
-            new_instance['Name'] = new_namespace
-
-            # These values must match those in
-            # tests/unittest/utils/wbemserver_mock.py.
-            new_instance['CreationClassName'] = ns_classname
-            new_instance['ObjectManagerName'] = 'MyFakeObjectManager'
-            new_instance['ObjectManagerCreationClassName'] = \
-                'CIM_ObjectManager'
-            new_instance['SystemName'] = 'Mock_Test_WBEMServerTest'
-            new_instance['SystemCreationClassName'] = 'CIM_ComputerSystem'
-
-        # Test all key properties in instance. The CIM repository
-        # cannot add values for key properties and does
-        # not allow creating key properties from class defaults.
-        key_props = [p.name for p in six.itervalues(target_class.properties)
-                     if 'key' in p.qualifiers]
-        for pn in key_props:
-            if pn not in new_instance:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Key property {0!A} not in NewInstance ", pn))
-
-        # Exception if property in instance but not class or types do not
-        # match
-        for iprop_name in new_instance:
-            if iprop_name not in target_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} specified in NewInstance is not "
-                            "exposed by class {1!A} in namespace {2!A}",
-                            iprop_name, target_class.classname, namespace))
-
-            cprop = target_class.properties[iprop_name]
-            iprop = new_instance.properties[iprop_name]
-            if iprop.is_array != cprop.is_array or \
-                    iprop.type != cprop.type:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Instance and class property {0!A} types "
-                            "do not match: instance={1!A}, class={2!A}",
-                            iprop_name, iprop, cprop))
-
-            # The class and instnames are the same except for possible case
-            # sensitivity. If case different, set cprop_name into new instance
-            # to maintain case equality
-            cprop_name = cprop.name
-            if cprop_name != iprop_name:
-                new_instance.properties[iprop_name].name = cprop_name
-
-        # If property not in instance, add it from class and use default value
-        # from class
-        for cprop_name in target_class.properties:
-            if cprop_name not in new_instance:
-                default_value = target_class.properties[cprop_name]
-                new_instance[cprop_name] = default_value
-
-        # Build instance path. We build the complete instance path
-        new_instance.path = CIMInstanceName.from_instance(
-            target_class,
-            new_instance,
-            namespace=namespace)
-
-        # Check for duplicate instances
-        if instance_store.exists(new_instance.path):
-            raise CIMError(
-                CIM_ERR_ALREADY_EXISTS,
-                _format("NewInstance {0!A} already exists in namespace "
-                        "{1!A}.", new_instance.path, namespace))
-
-        # Reflect the new namespace in the  CIM repository
-        # TODO: This should not be necessary here when we have provider
-        if ns_classname:
-            self.add_namespace(new_namespace)
-
-        # Store the new instance in the  CIM repository
-        instance_store.create(new_instance.path, new_instance)
-
-        # Create instance returns model path, path relative to namespace
-
-        return new_instance.path.copy()
-
-    ####################################################################
-    #
-    #   ModifyInstance server request
-    #
-    ####################################################################
-
-    def ModifyInstance(self, ModifiedInstance,
-                       IncludeQualifiers=None, PropertyList=None):
-        # pylint: disable=invalid-name,line-too-long
-        """
-        Implements a WBEM server responder for
-        :meth:`pywbem.WBEMConnection.CreateInstance`.
-
-        Modify a CIM instance in the CIM repository.
-
-        NOTE: This method includes namespace within the path element
-        of the ModifiedInstance rather than as a separate input parameter.
-
-          ModifiedInstance (:class:`~pywbem.CIMInstance`):
-            A representation of the modified instance, also indicating its
-            instance path.
-
-            The `path` attribute of this object identifies the instance to be
-            modified. Its `keybindings` attribute is required. Its
-            `namespace` attribute must be the namespace containing the instance
-            to be modified. Its `host` attribute will be ignored.
-
-            The `classname` attribute of the instance path and the `classname`
-            attribute of the instance must specify the same class name.
-
-            The properties defined in this object specify the new property
-            values (including `None` for NULL). If a property is designated to
-            be modified but is not specified in this object, the WBEM server
-            will use the default value of the property declaration if specified
-            (including `None`), and otherwise may update the property to any
-            value (including `None`).
-
-          IncludeQualifiers (:class:`py:bool`):
-            This parameter is ignored by this method.
-            Indicates that qualifiers are to be modified as specified in the
-            `ModifiedInstance` parameter, as follows:
-
-            * If `False`, qualifiers not modified.
-            * If `True`, qualifiers are modified if the WBEM server implements
-              support for this parameter.
-            * If `None`, the  :term:`DSP0200` defined default is `True`.
-
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be modified.
-
-          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
-            This parameter defines which properties are designated to be
-            modified.
-
-            This parameter is an iterable specifying the names of the
-            properties, or a string that specifies a single property name. In
-            all cases, the property names are matched case insensitively.
-            The specified properties are designated to be modified. Properties
-            not specified are not designated to be modified.
-
-            An empty iterable indicates that no properties are designated to be
-            modified.
-
-            If `None`, DSP0200 states that the properties with values different
-            from the current values in the instance are designated to be
-            modified, but for all practical purposes this is equivalent to
-            stating that all properties exposed by the instance are designated
-            to be modified.
-
-        Raises:
-
-            CIMError: CIM_ERR_ALREADY_EXISTS,
-            CIMError: CIM_ERR_INVALID_CLASS
-            CIMError: CIM_ERR_INVALID_PARAMETER
-            CIMError: CIM_ERR_NAMESPACE_NOT_FOUND
-        """  # noqa: E501
-        # pylint: disable=invalid-name,line-too-long
-
-        # get the namespace from the Modified instance
-        namespace = ModifiedInstance.path.namespace
-        self.validate_namespace(namespace)
-
-        instance_store = self.get_instance_store(namespace)
-        modified_instance = ModifiedInstance.copy()
-        property_list = PropertyList
-
-        # Return if empty property list, nothing would be changed
-        if property_list is not None and not property_list:
-            return
-
-        if not isinstance(modified_instance, CIMInstance):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("The ModifiedInstance parameter is not a valid "
-                        "CIMInstance. Rcvd type={0}", type(modified_instance)))
-
-        # Classnames in instance and path must match
-        if modified_instance.classname.lower() != \
-                modified_instance.path.classname.lower():
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("ModifyInstance classname in path and instance do "
-                        "not match. classname={0!A}, path.classname={1!A}",
-                        modified_instance.classname,
-                        modified_instance.path.classname))
-
-        # Get class including properties from superclasses from  CIM repository
-        try:
-            target_class = self._get_class(
-                namespace,
-                modified_instance.classname,
-                local_only=False,
-                include_qualifiers=True,
-                include_classorigin=True,
-                property_list=None)
-        except CIMError as ce:
-            if ce.status_code in [CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_CLASS]:
-                raise CIMError(
-                    CIM_ERR_INVALID_CLASS,
-                    _format("Cannot modify instance because its creation "
-                            "class {0!A} does not exist in namespace {1!A}.",
-                            modified_instance.classname, namespace))
-            raise
-
-        # Get original instance in datastore.
-        orig_instance = self._find_instance(modified_instance.path,
-                                            instance_store,
-                                            copy_inst=True)
-        if orig_instance is None:
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Original Instance {0!A} not found in namespace {1!A}",
-                        modified_instance.path, namespace))
-
-        # Remove duplicate properties from property_list
-        if property_list:
-            if len(property_list) != len(set(property_list)):
-                property_list = list(set(property_list))
-
-        # Test that all properties in modified instance and property list
-        # are in the class
-        if property_list:
-            for p in property_list:
-                if p not in target_class.properties:
-                    raise CIMError(
-                        CIM_ERR_INVALID_PARAMETER,
-                        _format("Property {0!A} in PropertyList not in class "
-                                "{1!A}", p, modified_instance.classname))
-        for p in modified_instance:
-            if p not in target_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in ModifiedInstance not in class "
-                            "{1!A}", p, modified_instance.classname))
-
-        # Set the class value for properties in the property list but not
-        # in the modified_instance. This sets just the value component.
-        mod_inst_props = set([k.lower() for k in modified_instance.keys()])
-        cl_props = [pn.lower() for pn in target_class.properties]
-        chngd_props = mod_inst_props.difference(set(cl_props))
-        if chngd_props:
-            for prop in chngd_props:
-                modified_instance[prop] = \
-                    target_class.properties[prop].value
-
-        # Remove all properties that do not change value between original
-        # instance and modified instance
-        for p in list(modified_instance):
-            if orig_instance[p] == modified_instance[p]:
-                del modified_instance[p]
-
-        # Confirm no key properties in remaining modified instance
-        key_props = [p.name for p in six.itervalues(target_class.properties)
-                     if 'key' in p.qualifiers]
-        for p in key_props:
-            if p in modified_instance:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("ModifyInstance cannot modify key property {0!A}",
-                            p))
-
-        # Remove any properties from modified instance not in the property_list
-        if property_list:
-            for p in list(modified_instance):  # create list before loop
-                if p not in property_list:
-                    del modified_instance[p]
-
-        # Exception if property in instance but not class or types do not
-        # match
-        for pname in modified_instance:
-            if pname not in target_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} specified in ModifiedInstance is "
-                            "not exposed by class {1!A} in namespace {2!A}",
-                            pname, target_class.classname, namespace))
-
-            cprop = target_class.properties[pname]
-            iprop = modified_instance.properties[pname]
-            if iprop.is_array != cprop.is_array \
-                    or iprop.type != cprop.type \
-                    or iprop.array_size != cprop.array_size:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Instance and class property name={0!A} type "
-                            "or other attributes do not match: "
-                            "instance={1!A}, class={2!A}",
-                            pname, iprop, cprop))
-            # If case of modified_instance property != case of class property
-            # change the name in the modified_instance
-            if iprop.name != cprop.name:
-                modified_instance.properties[iprop.name].name = cprop.name
-
-        # Modify the value of properties in the repo with those from
-        # modified instance inserted into the original instance
-        orig_instance.update(modified_instance.properties)
-        instance_store.update(modified_instance.path, orig_instance)
-
-        return
-
-    ####################################################################
-    #
     #   GetInstance server request
     #
     ####################################################################
@@ -2058,7 +1430,7 @@ class MainProvider(ResolverMixin, object):
 
         instance_store = self.get_instance_store(namespace)
 
-        if not self._class_exists(namespace, iname.classname):
+        if not self.class_exists(namespace, iname.classname):
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
                 _format("Class {0!A} for GetInstance of instance {1!A} "
@@ -2068,91 +1440,6 @@ class MainProvider(ResolverMixin, object):
                                   LocalOnly,
                                   IncludeClassOrigin,
                                   IncludeQualifiers, PropertyList)
-
-    ####################################################################
-    #
-    #   DeleteInstance server request
-    #
-    ####################################################################
-
-    def DeleteInstance(self, InstanceName):
-        """
-        Implements a WBEM server responder for
-        :meth:`pywbem.WBEMConnection.DeleteInstance`.
-
-        This method deletes a single instance from the CIM repository based on
-        the  InstanceName parameter.
-
-        It does not attempt to delete referencing instances (associations,
-        etc.) that reference this instance.
-
-        If the creation class of the instance to be deleted is PG_Namespace or
-        CIM_Namespace, then the namespace identified by the 'Name' property
-        of the instance is being deleted in the CIM repository in addition to
-        the CIM instance.
-
-        NOTE: This method includes namespace within the InstanceName
-        rather than as a separate input argument
-
-        Parameters:
-
-          InstanceName (:class:`~pywbem.CIMInstanceName`):
-            The instance path of the instance to be deleted.
-            The instance path of the instance to be retrieved  with the
-            following attributes:
-
-            * `classname`: Name of the creation class of the instance.
-            * `keybindings`: Keybindings of the instance.
-            * `namespace`: Name of the CIM namespace containing the instance.
-              Must not be None.
-            * `host`: value ignored.
-
-        Raises:
-            CIMError: CIM_ERR_INVALID_NAMESPACE
-            CIMError: CIM_ERR_INVALID_CLASS
-            CIMError: CIM_ERR_NOT_FOUND
-        """
-
-        namespace = InstanceName.namespace
-        self.validate_namespace(namespace)
-
-        iname = InstanceName
-
-        # Validate namespace and get instance CIM repository
-        instance_store = self.get_instance_store(namespace)
-
-        if not self._class_exists(namespace, iname.classname):
-            raise CIMError(
-                CIM_ERR_INVALID_CLASS,
-                _format("Class {0!A} in namespace {1!A} not found. "
-                        "Cannot delete instance {2!A}",
-                        iname.classname, namespace, iname))
-
-        if not instance_store.exists(iname):
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Instance {0!A} not found in CIM repository namespace "
-                        "{1!A}", iname, namespace))
-
-        # Handle namespace deletion, currently hard coded.
-        # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
-        # provider concept
-        classname_lower = iname.classname.lower()
-        if classname_lower == 'pg_namespace':
-            ns_classname = 'PG_Namespace'
-        elif classname_lower == 'cim_namespace':
-            ns_classname = 'CIM_Namespace'
-        else:
-            ns_classname = None
-        if ns_classname:
-            namespace = iname.keybindings['Name']
-
-            # Reflect the namespace deletion in the CIM repository
-            # This will check the namespace for being empty.
-            self.remove_namespace(namespace)
-
-        # Delete the instance from the CIM repository
-        instance_store.delete(iname)
 
     ####################################################################
     #
@@ -2275,7 +1562,7 @@ class MainProvider(ResolverMixin, object):
 
         # Get class property list which may be localonly or all
         # superclasses
-        cl = self._get_class(namespace, ClassName, local_only=False)
+        cl = self.get_class(namespace, ClassName, local_only=False)
         class_pl = cl.properties.keys()
 
         # If not DeepInheritance, compute property list to filter
@@ -2426,10 +1713,10 @@ class MainProvider(ResolverMixin, object):
         for cn in rtn_classnames:
             rtn_tups.append((CIMClassName(cn, namespace=namespace,
                                           host=self.host),
-                             self._get_class(namespace, cn,
-                                             include_qualifiers=iq,
-                                             include_classorigin=ico,
-                                             property_list=pl)))
+                             self.get_class(namespace, cn,
+                                            include_qualifiers=iq,
+                                            include_classorigin=ico,
+                                            property_list=pl)))
         return rtn_tups
 
     def _subclasses_lc(self, classname, class_store):
@@ -2455,7 +1742,7 @@ class MainProvider(ResolverMixin, object):
         the TargetClass, AssocClass, and ResultClass for reference and
         associator operations
         """
-        if not self._class_exists(namespace, cln):
+        if not self.class_exists(namespace, cln):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format('Class {0!A} {1} parameter not found in namespace '
@@ -2692,7 +1979,7 @@ class MainProvider(ResolverMixin, object):
         # Get associated instance names
         rtn_instpaths = set()
         for ref_path in ref_paths:
-            inst = self._find_instance(ref_path, instance_store)
+            inst = self.find_instance(ref_path, instance_store)
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     if prop.value == inst_name:
@@ -3065,9 +2352,7 @@ class MainProvider(ResolverMixin, object):
                                                              AssocClass,
                                                              ResultClass,
                                                              ResultRole, Role)
-            # TODO: Future Returns CIMClassName. Should rtn just the classname
-            # from a server since CIMClassName is a client artifact and the
-            # server has no way to send that to client.
+            # returns list of CIMClassName entities
             results = [CIMClassName(classname=cln, host=self.host,
                                     namespace=namespace)
                        for cln in rtn_classnames]

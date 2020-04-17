@@ -47,6 +47,9 @@ from ._inmemoryrepository import InMemoryRepository
 
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
+from ._defaultinstanceprovider import ProviderDispatcher, \
+    DefaultInstanceProvider
+
 from ._dmtf_cim_schema import DMTFCIMSchema
 from ._utils import _uprint
 
@@ -289,11 +292,30 @@ class FakedWBEMConnection(WBEMConnection):
         # See :py:module:`pywbem_mock/inmemoryrepository` for a description of
         # the repository interface.
 
+        # Provider registry defines user added providers.  This is a dictionary
+        # with key equal classname that contains entries for namespaces,
+        # provider type, and provider for each class name defined
+        self.provider_registry = NocaseDict()
+
         # Define the datastore to be used with an initial namespace, the client
         # connection default namespace. This is passed to the mainprovider
         # and not used further in this class.
-        cimrepository = InMemoryRepository(self.default_namespace)
-        self.mainprovider = MainProvider(self, cimrepository)
+        self.cimrepository = InMemoryRepository(self.default_namespace)
+
+        # Initiate the MainProvider with parameters required to execute
+        self.mainprovider = MainProvider(self.host,
+                                         self.disable_pull_operations,
+                                         self.cimrepository)
+
+        # Initiate the DefaultInstanceProvider with the cimrepository
+        self.defaultinstanceprovider = DefaultInstanceProvider(
+            self.cimrepository)
+
+        # Initiate instance of the ProviderDispatcher with required
+        # parameters including the cimrepository
+        self.providerdispatcher = ProviderDispatcher(
+            self.cimrepository, self.provider_registry,
+            self.defaultinstanceprovider)
 
         # Flag to allow or disallow the use of the Open... and Pull...
         # operations. Uses the setter method
@@ -312,7 +334,7 @@ class FakedWBEMConnection(WBEMConnection):
         # The values at the last level are (TBD: method callbacks?).
         # The namespaces are added to the outer dictionary as needed (if
         # permitted as per self.namesaces).
-        # TODO: This must move to provider when provider is defined
+        # TODO/ks: This must move to provider when provider is defined
         self.methods = NocaseDict()
 
         # Open Pull Contexts. The key for each context is an enumeration
@@ -723,8 +745,8 @@ class FakedWBEMConnection(WBEMConnection):
             if isinstance(obj, CIMClass):
                 cc = obj.copy()
                 if cc.superclass:
-                    if not self.mainprovider._class_exists(namespace,
-                                                           cc.superclass):
+                    if not self.mainprovider.class_exists(namespace,
+                                                          cc.superclass):
                         raise ValueError(
                             _format("Class {0!A} defines superclass {1!A} but "
                                     "the superclass does not exist in the "
@@ -757,8 +779,8 @@ class FakedWBEMConnection(WBEMConnection):
                 instance_store = self._get_instance_store(namespace)
                 try:
                     # pylint: disable=protected-access
-                    if self.mainprovider._find_instance(inst.path,
-                                                        instance_store):
+                    if self.mainprovider.find_instance(inst.path,
+                                                       instance_store):
                         raise ValueError(
                             _format("The instance {0!A} already exists in "
                                     "namespace {1!A}", inst, namespace))
@@ -995,6 +1017,120 @@ class FakedWBEMConnection(WBEMConnection):
                     else:
                         _uprint(dest, obj.tomof())
 
+    def register_provider(self, namespaces, classnames, provider_type,
+                          provider):
+        # pylint: disable=line-too-long
+        """
+        Register the provider object for namespace and class. Registering a
+        provider tells the FakedWBEMConnection that the provider implementation
+        provided with this call is to be executed as the request response
+        method for the namespace and class defined in lieu of the default
+        provider.
+
+        Providers can only be registered for request response methods
+        CreateInstance and DeleteInstance and InvokeMethod.
+
+        Multiple providers may be registered for the same classname in
+        different namespaces
+
+        Parameters:
+
+          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
+            Namespace or namespaces for which the provider is being registered.
+            At least one namespace is required.
+
+          classnames (:term:`string` or :class:`py:list` of :term:`string`):
+            Classname or classnames for which the provider is being
+            registered. At least one classname is required.
+
+          provider_type (:term:`string`):
+            Keyword defining the type of request the provider will service.
+            The allowed types are instance (keyword 'instance') which responds
+            to the request responder methods defined in DefaultInstanceProvider
+            (ex. CreateInstance) and method (keyword 'method') which responds
+            to the InvokeMethod.
+
+          provider (subclass of :class::class:`pywbem_mock:DefaultInstanceProvider`):
+            The user provider class which is a subclass of
+            :class:`pywbem_mock:DefaultInstanceProvider`.  The methods in this
+            subclass override the corresponding methods in
+            DefaultInstanceProvider. The method call parameters must be the
+            same as the defult method in DefaultInstanceProvider and it must
+            return data in the same format if the default method returns data.
+        """  # noqa: E501
+        # pylint: enable=line-too-long
+
+        provider_types = ('instance', 'method')
+
+        if provider_type not in provider_types:
+            raise ValueError("provider_type argument {0!A} "
+                             "is not a valid provider type. "
+                             "Valid provider types are {1!A}.", provider_type,
+                             provider_types)
+
+        if not issubclass(provider, DefaultInstanceProvider):
+            raise TypeError(
+                _format("provider argument {0!A} is not a "
+                        "valid subclass of DefaultInstanceProvider. ",
+                        provider))
+
+        if classnames is None:
+            raise ValueError(
+                _format('classnames argument must be string '
+                        'or list of strings. None not allowed.'))
+
+        if namespaces is None:
+            raise ValueError(
+                _format('namespaces argument must be string '
+                        'or list of strings. None not allowed.'))
+
+            if not isinstance(namespaces, (list, tuple, six.string_types)):
+                raise TypeError(
+                    _format('Namespace argument {0|A} must be a string or '
+                            'list/tuple but is {1}',
+                            namespaces, type(namespaces)))
+
+            if isinstance(namespaces, six.string_types):
+                namespaces = [namespaces]
+
+            for namespace in namespaces:
+                if namespace not in self.namespaces:
+                    raise ValueError(
+                        _format('Namespace "{0!A}" in namespaces argument not '
+                                'in CIM repository. '
+                                'Existing namespaces are: {1!A}. ',
+                                namespace, self.namespaces))
+
+        # If classnames is list, recursively call this method
+        if isinstance(classnames, (list, tuple)):
+            for classname in classnames:
+                self.register_provider(namespaces, classname, provider_type,
+                                       provider)
+            return
+
+        # Processing for classnames defining a single classname
+        classname = classnames
+        assert isinstance(classname, six.string_types)
+
+        if isinstance(namespaces, six.string_types):
+            namespaces = [namespaces]
+        for namespace in namespaces:
+            if not self.mainprovider.class_exists(namespace, classname):
+                raise ValueError(
+                    _format('class "{0!A}" does not exist in '
+                            'namespace {1!A} of the CIM repository',
+                            classname, namespace))
+
+        if classname not in self.provider_registry:
+            self.provider_registry[classname] = NocaseDict()
+
+        for namespace in namespaces:
+            if namespace not in self.provider_registry[classname]:
+                # add the provider_type dictionary
+                self.provider_registry[classname][namespace] = {}
+            self.provider_registry[classname][namespace][provider_type] = \
+                provider
+
     ########################################################################
     #
     #   Pywbem functions mocked. WBEMConnection only mocks the WBEMConnection
@@ -1034,8 +1170,8 @@ class FakedWBEMConnection(WBEMConnection):
         Mocks the WBEMConnection._methodcall() method. This calls the
         server execution function of extrinsic methods (InvokeMethod).
         """
-        result = self.ServerInvokeMethod(methodname, localobject,
-                                         Params, **params)
+        result = self._imeth_InvokeMethod(methodname, localobject,
+                                          Params, **params)
 
         # Sleep for defined number of seconds
         if self._response_delay:
@@ -1081,9 +1217,13 @@ class FakedWBEMConnection(WBEMConnection):
     #####################################################################
     #
     #  The following methods map the imethodcall interface (dictionary of
-    #  the method parameters to the arguments required by each method in the
-    #  corresponding CIM repository and call that method. the results
-    #  are mapped back to be compatible with imethodcall return tuple.
+    #  the method parameters to the arguments required by each correspondin
+    #  gmethod in the MainProvider  or DefaultInstanceProvider and call that
+    #  method. the resultsare mapped back to be compatible with imethodcall
+    #  return tuple.
+    #  Methods that allow user providers are routed to the
+    #  DefaultInstanceProvider. All other methods are rounted to the
+    #  MainProvider.
     #
     #####################################################################
 
@@ -1181,6 +1321,9 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
+        This method allows user providers and therefore is passed to the
+        :class:`ProviderDispatcher`.
+
         Parameters:
 
           params (class:`py:dict`):
@@ -1190,7 +1333,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-        new_instance_path = self.mainprovider.CreateInstance(
+        new_instance_path = self.providerdispatcher.CreateInstance(
             namespace=namespace,
             NewInstance=params['NewInstance'])
         return self._make_tuple([new_instance_path])
@@ -1203,6 +1346,9 @@ class FakedWBEMConnection(WBEMConnection):
 
         The method called includes the namespace within the ModifiedInstance
         rather than as a separate element.
+
+        This method allows user providers and therefore is passed to the
+        :class:`ProviderDispatcher`.
 
         Parameters:
 
@@ -1218,7 +1364,7 @@ class FakedWBEMConnection(WBEMConnection):
         assert ModifiedInstance.path.namespace is None
         ModifiedInstance.path.namespace = namespace
 
-        self.mainprovider.ModifyInstance(
+        self.providerdispatcher.ModifyInstance(
             ModifiedInstance=ModifiedInstance,
             IncludeQualifiers=params.get('IncludeQualifiers', None),
             PropertyList=params.get('PropertyList', None))
@@ -1231,6 +1377,9 @@ class FakedWBEMConnection(WBEMConnection):
 
         The method called includes the namespace within the InstanceName
         rather than as a separate element.
+
+        This method allows user providers and therefore is passed to the
+        :class:`ProviderDispatcher`.
 
         Parameters:
 
@@ -1245,7 +1394,7 @@ class FakedWBEMConnection(WBEMConnection):
         assert InstanceName.namespace is None
         InstanceName.namespace = namespace
 
-        self.mainprovider.DeleteInstance(
+        self.providerdispatcher.DeleteInstance(
             InstanceName=InstanceName)
 
     def ExecQuery(self, namespace, **params):
@@ -1282,8 +1431,6 @@ class FakedWBEMConnection(WBEMConnection):
         Call :meth:`~pywbem_mock.MainProvider.EnumerateClasses` with
         parameters defined for that method and map response to tuple response
         for imethodcall.
-
-        TODO: Complete parameter, etc documentation.
         """
         classes = self.mainprovider.EnumerateClasses(
             params.get("namespace", namespace),
@@ -1643,7 +1790,7 @@ class FakedWBEMConnection(WBEMConnection):
     #
     ####################################################################
 
-    def ServerInvokeMethod(self, methodname, objectname, Params, **params):
+    def _imeth_InvokeMethod(self, methodname, objectname, Params, **params):
         # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
@@ -1652,10 +1799,66 @@ class FakedWBEMConnection(WBEMConnection):
         This responder calls a function defined by an entry in the methods
         repository. The return from that function is returned to the user.
 
-        Input params are MethodName, ObjectName, and Params
+        Parameters:
 
-        The return is espected to be the same as the return defined by
-        WBEMConnection.InvokeMethod (ReturnValue, OutputParameters).
+          MethodName (:term:`string`):
+            Name of the method to be invoked (case independent).
+
+          ObjectName:
+            The object path of the target object, as follows:
+
+            * For instance-level use: The instance path of the target
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `host` attribute will be ignored.
+
+            * For class-level use: The class path of the target class, as a
+              :term:`string` or :class:`~pywbem.CIMClassName` object:
+
+              If specified as a string, the string is interpreted as a class
+              name in the default namespace of the connection
+              (case independent).
+
+              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
+              attribute will be ignored. If this object does not specify
+              a namespace, the default namespace of the connection is used.
+
+          Params (:term:`py:iterable`):
+            An iterable of input parameter values for the CIM method. Each item
+            in the iterable is a single parameter value and can be any of:
+
+            * :class:`~pywbem.CIMParameter` representing a parameter value. The
+              `name`, `value`, `type` and `embedded_object` attributes of this
+              object are used.
+
+            * tuple of name, value, with:
+
+                - name (:term:`string`): Parameter name (case independent)
+                - value (:term:`CIM data type`): Parameter value
+
+          **params :
+            Each keyword parameter is an additional input parameter value for
+            the CIM method, with:
+
+            * key (:term:`string`): Parameter name (case independent)
+            * value (:term:`CIM data type`): Parameter value
+
+        Returns:
+
+            A :func:`py:tuple` of (returnvalue, outparams), with these
+            tuple items:
+
+            * returnvalue (:term:`CIM data type`):
+              Return value of the CIM method.
+            * outparams (:ref:`NocaseDict`):
+              Dictionary with all provided output parameters of the CIM method,
+              with:
+
+              * key (:term:`unicode string`):
+                Parameter name, preserving its lexical case
+              * value (:term:`CIM data type`):
+                Parameter value
         """
 
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
@@ -1690,10 +1893,10 @@ class FakedWBEMConnection(WBEMConnection):
         # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
         # Uses local_only = False to get characteristics from super classes
         # and include_class_origin to get origin of method in hiearchy
-        cc = self.mainprovider._get_class(namespace, localobject.classname,
-                                          local_only=False,
-                                          include_qualifiers=True,
-                                          include_classorigin=True)
+        cc = self.mainprovider.get_class(namespace, localobject.classname,
+                                         local_only=False,
+                                         include_qualifiers=True,
+                                         include_classorigin=True)
 
         # Determine if method defined in classname defined in
         # the classorigin of the method
@@ -1708,10 +1911,10 @@ class FakedWBEMConnection(WBEMConnection):
             # Issue #2062: add method to repo that allows privileged users
             # direct access so we don't have to go through _get_class and can
             # test classes directly in repo
-            tcc = self.mainprovider._get_class(namespace, target_cln,
-                                               local_only=False,
-                                               include_qualifiers=True,
-                                               include_classorigin=True)
+            tcc = self.mainprovider.get_class(namespace, target_cln,
+                                              local_only=False,
+                                              include_qualifiers=True,
+                                              include_classorigin=True)
             if methodname not in tcc.methods:
                 raise CIMError(
                     CIM_ERR_METHOD_NOT_FOUND,

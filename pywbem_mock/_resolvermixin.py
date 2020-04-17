@@ -406,10 +406,10 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
         if new_class.superclass:
             try:
-                superclass = self._get_class(namespace, new_class.superclass,
-                                             local_only=False,
-                                             include_qualifiers=True,
-                                             include_classorigin=True)
+                superclass = self.get_class(namespace, new_class.superclass,
+                                            local_only=False,
+                                            include_qualifiers=True,
+                                            include_classorigin=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     raise CIMError(

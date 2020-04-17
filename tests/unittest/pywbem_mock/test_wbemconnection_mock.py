@@ -57,7 +57,8 @@ from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from pywbem._cim_operations import pull_path_result_tuple
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema
+from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
+    DefaultInstanceProvider
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -522,6 +523,16 @@ def tst_instances():
 
 
 @pytest.fixture
+def tst_classeswqualifiersandinsts(tst_classeswqualifiers, tst_instances):
+    """
+    Append tst_instances to tst_classeswqualifiers. This builds a simple
+    package of qualifiers, classes and instances that can be added to
+    repository.
+    """
+    return tst_classeswqualifiers + tst_instances
+
+
+@pytest.fixture
 def tst_insts_big():
     """
     Create Instances of cimfoo for the ide 3 to what is in list_size.  This
@@ -801,6 +812,27 @@ def tst_assoc_mof(tst_assoc_qualdecl_mof, tst_assoc_class_mof):
     return tst_assoc_qualdecl_mof + tst_assoc_class_mof + instances
 
 
+class UserProviderTest(DefaultInstanceProvider):
+    """
+    Basic user provider implements CreateInstance and DeleteInstance
+    """
+    def __init__(self, cimrepository):
+        """
+        Init of test provider
+        """
+        super(UserProviderTest, self).__init__()
+        self.cimrepository = cimrepository
+
+    def CreateInstance(self, namespace, NewInstance):
+        """Test Create instance just calls super class method"""
+        return DefaultInstanceProvider.CreateInstance(namespace,
+                                                      NewInstance)
+
+    def DeleteInstance(self, InstanceName):
+        """Test Create instance just calls super class method"""
+        return DefaultInstanceProvider.DeleteInstance(InstanceName)
+
+
 # Counts of instances for tests of tst_assoc_mof fixture.
 TST_PERSON_INST_COUNT = 4                                 # num TST_PERSON
 TST_PERSON_SUB_INST_COUNT = 4                             # num SUB
@@ -812,11 +844,8 @@ def add_objects_to_repo(conn, namespace, objects_list):
     """
     Test setup.  Conditionally adds namespace to mock repository and adds
     the lists of objects to the repo.  Each object in the objects_list may
-    be:
-
-    list of CIM objects that will be added using self.add_cimObject
-    or
-    A strings that is MOF that will be compiled.
+    be  list of CIM objects that will be added using self.add_cimObject
+    or a string that is MOF that will be compiled.
     """
     if namespace and namespace != conn.default_namespace:
         conn.add_namespace(namespace)
@@ -1003,7 +1032,7 @@ class TestRepoMethods(object):
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         # pylint: disable=protected-access
-        assert conn.mainprovider._class_exists(ns, cln) == exp_rtn
+        assert conn.mainprovider.class_exists(ns, cln) == exp_rtn
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES)
@@ -1114,10 +1143,10 @@ class TestRepoMethods(object):
 
         # _get_class gets a copy of the class filtered by the parameters
         # pylint: disable=protected-access
-        cl = conn.mainprovider._get_class(ns, cln, local_only=lo,
-                                          include_qualifiers=iq,
-                                          include_classorigin=ico,
-                                          property_list=pl)
+        cl = conn.mainprovider.get_class(ns, cln, local_only=lo,
+                                         include_qualifiers=iq,
+                                         include_classorigin=ico,
+                                         property_list=pl)
 
         cl_props = [p.name for p in six.itervalues(cl.properties)]
 
@@ -1273,7 +1302,7 @@ class TestRepoMethods(object):
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn.mainprovider._find_instance(iname, instance_store)
+        inst = conn.mainprovider.find_instance(iname, instance_store)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -2110,6 +2139,332 @@ class TestRepoMethods(object):
         conn.GetInstance(CIMInstanceName('CIM_Foo_sub',
                                          {'InstanceID': 'Alice'},
                                          namespace=tst_ns))
+
+
+class TestProviderRegisterMethods(object):
+    """
+    Test the repository support for use of user providers that are
+    registered and substituted for the default provider.
+    """
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None]
+    )
+    @pytest.mark.parametrize(
+        # desc - description of the test
+        # input - list of lists where the inner lists contain the parameters
+        #         of a single request(testnamespaces, lclassnames
+        #         provider_type, provider)
+        #         * testnamespaces - Namespace or list of namespaces in which
+        #           provider is to be registered
+        #         * classnames - classname or list of classnames to register
+        #           for provider
+        #         * provider_type - String defining provider type
+        #           ('instance', etc.)
+        #         * provider - Class that contains the user provider.
+        # exp_exec - Exception if one is expected
+        # condition - test condition (True, False, 'pdb')
+        "desc, inputs, exp_exec, condition",
+        [
+            ["with  ns='root/cimv2', etc.",
+             [
+                 ["root/cimv2", "CIM_Foo", 'instance', UserProviderTest],
+             ],
+             None, True],
+
+            ["with  ns='root/cimv2', etc.",
+             [
+                 ["root/cimv2", "CIM_Foo_sub_sub", 'instance',
+                  UserProviderTest],
+             ],
+             None, True],
+
+            ["with  ns='root/cimv2', etc.",
+             [["root/cimv2", ["CIM_Foo", "CIM_Foo_sub_sub"], 'instance',
+               UserProviderTest]],
+             None, True],
+
+            ["with  ns='root/cimv2', etc.",
+             [["root/cimv2", "CIM_Foox", 'instance', UserProviderTest]],
+             ValueError, True],
+        ]
+    )
+    def test_register_provider(self, conn, ns, desc, inputs,
+                               exp_exec, condition, tst_classeswqualifiers,
+                               tst_instances):
+        """
+        Test register_provider method.
+        """
+        if not condition:
+            pytest.skip("This test marked to be skipped")
+        skip_if_moftab_regenerated()
+
+        if condition == "pdb":
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
+
+        if exp_exec is None:
+            for input in inputs:
+                tst_ns = input[0]
+                clns = input[1]
+                provider_type = input[2]
+                provider = input[3]
+                conn.register_provider(tst_ns, clns, provider_type, provider)
+
+            pr = conn.provider_registry
+            if not isinstance(clns, (list, tuple)):
+                clns = [clns]
+            for cln in clns:
+                assert cln in pr, desc
+                pr_cln = pr[cln]
+                if isinstance(tst_ns, six.string_types):
+                    tst_ns = [tst_ns]
+                for lns in tst_ns:
+                    assert lns in pr_cln, desc
+                    assert provider_type in pr_cln[lns], desc
+                    # TODO: how can we assert what is in the last dictionary
+                    # is is either a subclass of our provider class or
+                    # a invoke_method callback.
+
+        else:
+            with pytest.raises(exp_exec):
+                for input in inputs:
+                    tst_ns = input[0]
+                    clns = input[1]
+                    provider_type = input[2]
+                    provider = input[3]
+
+                    conn.register_provider(tst_ns, clns, provider_type,
+                                           provider)
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None]
+    )
+    @pytest.mark.parametrize(
+        # desc - description of the test
+        # input - list of lists where the inner lists contain the parameters
+        #         of a single request(testnamespaces, lclassnames
+        #         provider_type, provider)
+        #         * testnamespaces - Namespace or list of namespaces in which
+        #           provider is to be registered
+        #         * classnames - classname or list of classnames to register
+        #           for provider
+        #         * provider_type - String defining provider type
+        #           ('instance', etc.)
+        #         * provider - Class that contains the user provider.
+        # get_ns - namespace parameter for get_registered_provider
+        # get_cln - classname parameter for get_registered_provider
+        # get_pt - provider_type parameter for get_registered_provider
+        # exp_rslt - get_registered_provider expected return (True, None)
+        # condition - test condition (True, False, 'pdb')
+        "desc, inputs, get_ns, get_cln, get_pt, exp_rslt, condition",
+        [
+            ["Verify registry empty returns nothing",
+             [
+             ],
+             'root/cimv2', 'CIM_Foo', 'instance',
+             None, True],
+            ["register single good instance provider and test good result",
+             [
+                 ["root/cimv2", "CIM_Foo", 'instance', UserProviderTest],
+             ],
+             'root/cimv2', 'CIM_Foo', 'instance',
+             True, True],
+
+            ["Verify get returns None namespace not found",
+             [
+                 ["root/cimv2", "CIM_Foo", 'instance', UserProviderTest],
+             ],
+             'root/cimv2x', 'CIM_Foo', 'instance',
+             None, True],
+
+            ["Verify get returns None classname  not found",
+             [
+                 ["root/cimv2", "CIM_Foo", 'instance', UserProviderTest],
+             ],
+             'root/cimv2', 'CIM_Foo_sub_sub', 'instance',
+             None, True],
+
+            ["Verify get v provider type does not match",
+             [
+                 ["root/cimv2", "CIM_Foo", 'method', UserProviderTest],
+             ],
+             'root/cimv2', 'CIM_Foo', 'instance',
+             None, True],
+
+            ["Verify returns provider, with different class",
+             [
+                 ["root/cimv2", "CIM_Foo_sub_sub", 'instance',
+                  UserProviderTest],
+             ],
+             'root/cimv2', 'CIM_Foo_sub_sub', 'instance',
+             True, True],
+
+            ["Verify multiple providers registered, returns OK",
+             [["root/cimv2", ["CIM_Foo", "CIM_Foo_sub_sub"], 'instance',
+               UserProviderTest]],
+             'root/cimv2', 'CIM_Foo', 'instance',
+             True, True],
+
+            ["Verify test, multiple providers registered, returns OK",
+             [["root/cimv2", ["CIM_Foo", "CIM_Foo_sub_sub"], 'instance',
+               UserProviderTest]],
+             'root/cimv2', 'CIM_Foo_sub_sub', 'instance',
+             True, True],
+
+        ]
+    )
+    def test_get_registered_provider(self, conn, ns, desc, inputs, get_ns,
+                                     get_cln, get_pt, exp_rslt, condition,
+                                     tst_classeswqualifiers, tst_instances):
+        """
+        Creates a set of valid provider registrations and tests the
+        get_provider_registration for multiple inputs
+        """
+        if not condition:
+            pytest.skip("This test marked to be skipped")
+        skip_if_moftab_regenerated()
+
+        if condition == "pdb":
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
+
+        # Register multiple providers.  All registrations are must be
+        # accepted
+        for input in inputs:
+            tst_ns = input[0]
+            clns = input[1]
+            provider_type = input[2]
+            provider = input[3]
+
+            conn.register_provider(tst_ns, clns, provider_type, provider)
+
+        # Test provider registration with get_registered_provider
+        if not exp_rslt or exp_rslt is True:
+            rtn = conn.providerdispatcher.get_registered_provider(
+                get_ns, get_pt, get_cln)
+            if exp_rslt is None:
+                assert rtn is None
+            if exp_rslt is True:
+                assert rtn
+                assert issubclass(rtn, DefaultInstanceProvider)
+
+        else:
+            with pytest.raises(exp_rslt):
+                conn.providerdispatcher.get_registered_provider(
+                    get_ns, get_pt, get_cln)
+
+    def test_user_provider1(self, conn, tst_classeswqualifiers,
+                            tst_instances):
+        """
+        Test execution with a user provider and CreateInstance.
+        """
+        class CIM_FooUserProvider(DefaultInstanceProvider):
+            """
+            Define the user provider with only CreateInstance supported
+            """
+            def __init__(self, cimrepository):
+                """
+                Init of test provider
+                """
+                super(CIM_FooUserProvider, self).__init__()
+                self.cimrepository = cimrepository
+
+            def CreateInstance(self, namespace, NewInstance):
+                """
+                My user CreateInstance.  Will change the InstanceID and
+                use the default to commit the NewInstance to the repository.
+                """
+
+                # modify the InstanceID property
+                NewInstance.properties["InstanceID"].value = "MyModifiedID"
+
+                # send back to the superclass to complete insertion into
+                # the repository.
+                return super(CIM_FooUserProvider, self).CreateInstance(
+                    namespace, NewInstance)
+
+        skip_if_moftab_regenerated()
+
+        ns = conn.default_namespace
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
+
+        conn.register_provider(ns, 'CIM_Foo', 'instance', CIM_FooUserProvider)
+
+        new_instance = CIMInstance("CIM_Foo",
+                                   properties={'InstanceID': 'origid'})
+
+        rtnd_path = conn.CreateInstance(new_instance)
+
+        rtnd_instance = conn.GetInstance(rtnd_path)
+
+        assert rtnd_path.keybindings["InstanceId"] == "MyModifiedID"
+        assert rtnd_instance.path == rtnd_path
+
+        conn.DeleteInstance(rtnd_path)
+
+    def test_user_provider2(self, conn, tst_classeswqualifiers,
+                            tst_instances):
+        """
+        Test with a single user defined provider using CIM_Foo_sub as the
+        class and handles ModifyInstance only
+        """
+        class CIM_FooSubUserProvider(DefaultInstanceProvider):
+            """
+            Define the user provider
+            """
+            def __init__(self, cimrepository):
+                """
+                Init of test provider
+                """
+                super(CIM_FooSubUserProvider, self).__init__()
+                self.cimrepository = cimrepository
+
+            def ModifyInstance(self, ModifiedInstance,
+                               IncludeQualifiers=None, PropertyList=None):
+                """
+                My user CreateInstance.  Will change the InstanceID and
+                use the default to commit the NewInstance to the repository.
+                """
+
+                # modify a None key property.
+                ModifiedInstance.properties["cimfoo_sub"].value = "ModProperty"
+
+                # send back to the superclass to complete insertion into
+                # the repository.
+                return super(CIM_FooSubUserProvider, self).ModifyInstance(
+                    ModifiedInstance)
+
+        skip_if_moftab_regenerated()
+
+        ns = conn.default_namespace
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
+
+        conn.register_provider(ns, 'CIM_Foo_sub', 'instance',
+                               CIM_FooSubUserProvider)
+
+        new_instance = CIMInstance(
+            "CIM_Foo_sub",
+            properties={'InstanceID': 'origid',
+                        'cimfoo_sub': "ModProperty"})
+
+        rtnd_path = conn.CreateInstance(new_instance)
+
+        rtnd_instance = conn.GetInstance(rtnd_path)
+
+        conn.ModifyInstance(rtnd_instance)
+
+        rtnd_modified_instance = conn.GetInstance(rtnd_path)
+
+        assert rtnd_modified_instance.properties["cimfoo_sub"].value == \
+            "ModProperty"
+
+        assert rtnd_instance.path == rtnd_path
 
 
 def resolve_class(conn, cls, ns):
@@ -3552,39 +3907,39 @@ class TestInstanceOperations(object):
             [1, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': 'data1'}),
-             CIM_ERR_INVALID_NAMESPACE],
+             CIMError(CIM_ERR_INVALID_NAMESPACE)],
 
             # No key property in new instance
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'cimfoo_sub': 'data2'}),
-             CIM_ERR_INVALID_PARAMETER],
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
 
             # Test instance class not in repository
             [0, CIMInstance('CIM_Foo_subx',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': 'data3'}),
-             CIM_ERR_INVALID_CLASS],
+             CIMError(CIM_ERR_INVALID_CLASS)],
 
             # Test invalid property. Property not in class
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_subx': 'wrong prop name'}),
-             CIM_ERR_INVALID_PARAMETER],
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
 
             # Test invalid property in new instance, type not same as class
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': Uint32(6)}),
-             CIM_ERR_INVALID_PARAMETER],
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
 
             # test array type mismatch
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'InstanceID': 'inst1',
                                         'cimfoo_sub': ['blah', 'blah']}),
-             CIM_ERR_INVALID_PARAMETER],
+             CIMError(CIM_ERR_INVALID_PARAMETER)],
 
             # NewInstance is not an instance
-            [0, CIMClass('CIM_Foo_sub'), CIM_ERR_INVALID_PARAMETER],
+            [0, CIMClass('CIM_Foo_sub'), TypeError()],
         ]
     )
     def test_createinstance(self, conn, ns, tst, new_inst, exp_rslt,
@@ -3646,10 +4001,11 @@ class TestInstanceOperations(object):
                 assert rtn_prop.name == exp_prop.name
 
         else:
-            with pytest.raises(CIMError) as exec_info:
+            with pytest.raises(exp_rslt.__class__) as exec_info:
                 conn.CreateInstance(new_insts[0], ns)
             exc = exec_info.value
-            assert exc.status_code == exp_rslt
+            if isinstance(exp_rslt, CIMError):
+                assert exc.status_code == exp_rslt.status_code
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -3852,7 +4208,7 @@ class TestInstanceOperations(object):
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "sp, nv, pl, exp_resp", [
+        "sp, nv, pl, exp_resp, condition", [
             # sp: Special test. integer. 0 means No special test.
             #     other positive integers demand instance mod before modify
             # nv: (new value) single list containing a property name/value or
@@ -3861,66 +4217,75 @@ class TestInstanceOperations(object):
             #   property list
             # exp_resp: True if change expected. False if none expected.
             #   CIMError exception object if expected
+            # condition: Condition. False, skip test, True, Run test,
+            #                       'pdb'-debug
 
             # change any property that is different
-            [0, ['cimfoo_sub', 'newval'], None, True],
+            [0, ['cimfoo_sub', 'newval'], None, True, OK],
             # change any property that is different with prop case different
-            [0, ['CIMFOO_SUB', 'newval'], None, True],
+            [0, ['CIMFOO_SUB', 'newval'], None, True, OK],
             # change this property only
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub'], True],
+            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub'], True, OK],
             # Duplicate in property list
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'cimfoo_sub'], True],
+            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'cimfoo_sub'], True,
+             OK],
             # empty prop list, no change
-            [0, ['cimfoo_sub', 'newval'], [], False],
+            [0, ['cimfoo_sub', 'newval'], [], False, OK],
             # pl for prop that does not change
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub_sub'], False],
+            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub_sub'], False, OK],
             # change any property that is different
-            [0, ['cimfoo_sub_sub', 'newval'], None, True],
+            [0, ['cimfoo_sub_sub', 'newval'], None, True, OK],
             # change this property
-            [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub_sub'], True],
+            [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub_sub'], True, OK],
             # empty prop list, no change
-            [0, ['cimfoo_sub_sub', 'newval'], [], False],
+            [0, ['cimfoo_sub_sub', 'newval'], [], False, OK],
             # pl for prop that does not change
-            [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub'], False],
+            [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub'], False, OK],
             # Prop name not in class but in Property list
             [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'not_in_class'],
-             CIMError(CIM_ERR_INVALID_PARAMETER)],
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
             # change any property that is different, no prop list
             [0, [('cimfoo_sub', 'newval'),
-                 ('cimfoo_sub_sub', 'newval2'), ], None, True],
+                 ('cimfoo_sub_sub', 'newval2'), ], None, True, OK],
             # change any property that is different, no prop list, p case diff
             [0, [('CIMFOO_SUB', 'newvalx'),
-                 ('CIMFOO_SUB_sub', 'newval2x'), ], None, True],
+                 ('CIMFOO_SUB_sub', 'newval2x'), ], None, True, OK],
             # Invalid change, Key property
-            [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND)],
+            [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND),
+             OK],
             # Bad namespace. Depends on special code in path
             [2, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_NAMESPACE)],
+             CIMError(CIM_ERR_INVALID_NAMESPACE), OK],
             # Path and instance classnames differ. Changes inst classname
             [1, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_PARAMETER)],
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
             # Do one where path has bad classname
             [3, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_PARAMETER)],
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
             # 4 path and inst classnames same but not in repo
             [4, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_CLASS)],
+             CIMError(CIM_ERR_INVALID_CLASS), RUN],
             # 5, no properties in modified instance
-            [5, [], None, False],
+            [5, [], None, False, OK],
 
             # TODO additional tests.
             # 1. only some properties in modifiedinstance and variations of
             #    property list
         ]
     )
-    def test_modifyinstance(self, conn, ns, sp, nv, pl, exp_resp,
-                            tst_classeswqualifiers,
-                            tst_instances):
+    def test_modifyinstance(self, conn, ns, sp, nv, pl, exp_resp, condition,
+                            tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test the mock of modifying an existing instance. Gets the instance
         from the repo, modifies a property and calls ModifyInstance
         """
+        if not condition:
+            pytest.skip("This test marked to be skipped")
+
+        if condition == 'pdb':
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
