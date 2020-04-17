@@ -38,6 +38,11 @@ Released: not yet
   so this change will not be rolled forward into 1.0.0.
   (See issue #2173)
 
+* Increased the version of 'PyYAML' from 5.1 to 5.3 on Python 2.7, to pick
+  up a fix for dealing with Unicode characters above U+FFFF in narrow Python
+  builds. This could not be fixed for Python 2.6 since PyYAML 3.12 dropped
+  support for Python 2.6 (See issue #2182)
+
 **Enhancements:**
 
 **Cleanup:**
