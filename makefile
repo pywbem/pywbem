@@ -386,6 +386,7 @@ platform:
 	@echo "Python command location: $(shell $(WHICH) $(PYTHON_CMD))"
 	@echo "Python version: $(python_version)"
 	@$(PYTHON_CMD) tools/python_bitsize.py
+	@$(PYTHON_CMD) tools/python_unicodesize.py
 	@echo "Pip command name: $(PIP_CMD)"
 	@echo "Pip command location: $(shell $(WHICH) $(PIP_CMD))"
 	@echo "$(package_name) package version: $(package_version)"
