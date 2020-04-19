@@ -46,6 +46,9 @@ Released: not yet
 * Fixed raise error for invalid reference_direction in
   WBEMServer.get_central_instances(). (See issue #2187)
 
+* Fixed raise error for missing ports in WBEMListener.__init__().
+  (See issue #2188)
+
 **Enhancements:**
 
 **Cleanup:**
