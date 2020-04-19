@@ -43,6 +43,9 @@ Released: not yet
   builds. This could not be fixed for Python 2.6 since PyYAML 3.12 dropped
   support for Python 2.6 (See issue #2182)
 
+* Fixed raise error for invalid reference_direction in
+  WBEMServer.get_central_instances(). (See issue #2187)
+
 **Enhancements:**
 
 **Cleanup:**
