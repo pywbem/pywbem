@@ -10,7 +10,7 @@ import sys
 import errno
 import re
 import logging
-from time import time
+from time import time, sleep
 import datetime
 from random import randint
 import requests
@@ -334,6 +334,47 @@ def test_WBEMListener_init(testcase, init_args, init_kwargs, exp_attrs):
     assert obj.https_started is False
 
 
+TESTCASES_WBEMLISTENER_STR = [
+
+    # Testcases for WBEMListener.__str__() / str()
+
+    # Each list item is a testcase tuple with these items:
+    # * obj: WBEMListener object to be tested.
+
+    (
+        WBEMListener(
+            host='woot.com',
+            http_port=6997,
+            https_port=6998,
+            certfile='certfile.pem',
+            keyfile='keyfile.pem')
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    TESTCASES_WBEMLISTENER_STR)
+def test_WBEMListener_str(obj):
+    """
+    Test function for WBEMListener.__str__() / str()
+    """
+
+    # The code to be tested
+    result = str(obj)
+
+    assert re.match(r'^WBEMListener\(', result)
+
+    exp_host_str = _format('_host={0!A}', obj.host)
+    assert exp_host_str in result
+
+    exp_http_port_str = _format('_http_port={0!A}', obj.http_port)
+    assert exp_http_port_str in result
+
+    exp_https_port_str = _format('_https_port={0!A}', obj.https_port)
+    assert exp_https_port_str in result
+
+
 TESTCASES_WBEMLISTENER_REPR = [
 
     # Testcases for WBEMListener.__repr__() / repr()
@@ -361,27 +402,27 @@ def test_WBEMListener_repr(obj):
     """
 
     # The code to be tested
-    r = repr(obj)
+    result = repr(obj)
 
-    assert re.match(r'^WBEMListener\(', r)
+    assert re.match(r'^WBEMListener\(', result)
 
     exp_host_str = _format('_host={0!A}', obj.host)
-    assert exp_host_str in r
+    assert exp_host_str in result
 
     exp_http_port_str = _format('_http_port={0!A}', obj.http_port)
-    assert exp_http_port_str in r
+    assert exp_http_port_str in result
 
     exp_https_port_str = _format('_https_port={0!A}', obj.https_port)
-    assert exp_https_port_str in r
+    assert exp_https_port_str in result
 
     exp_certfile_str = _format('_certfile={0!A}', obj.certfile)
-    assert exp_certfile_str in r
+    assert exp_certfile_str in result
 
     exp_keyfile_str = _format('_keyfile={0!A}', obj.keyfile)
-    assert exp_keyfile_str in r
+    assert exp_keyfile_str in result
 
     exp_logger_str = _format('_logger={0!A}', obj.logger)
-    assert exp_logger_str in r
+    assert exp_logger_str in result
 
 
 def test_WBEMListener_start_stop():
@@ -475,17 +516,6 @@ def test_WBEMListener_context_mgr():
     listener2.stop()
 
 
-# Verbosity in test_WBEMListener_send_indications()
-VERBOSE_DETAILS = False  # Show indications sent and received
-VERBOSE_SUMMARY = False  # Show summary for each run
-
-# Global variables used in test_WBEMListener_send_indications()
-# to communicate between testcase sending the indications and listener thread
-# processing the received indications.
-RCV_COUNT = 0
-RCV_FAIL = False
-
-
 def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
     """
     Create a test indication from the template and input attributes.
@@ -519,69 +549,70 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
         protocol_ver=protocol_ver, msg_id=msg_id)
 
 
-def send_indication(url, headers, payload):
-    """
-    Send a single indication using Python requests.
+# Verbosity in test_WBEMListener_send_indications()
+VERBOSE_DETAILS = False  # Show indications sent and received
+VERBOSE_SUMMARY = False  # Show summary for each run
 
-    Raises:
-      exceptions from request package
-      AssertionError: if HTTP response status from sending is not 200
-    """
-
-    response = requests.post(url, headers=headers, data=payload, timeout=4)
-    #  May raise request exceptions
-
-    if VERBOSE_DETAILS:
-        print("\nTestcase received response from sending indication:")
-        print("  status_code={}".format(response.status_code))
-        print("  headers={}".format(response.headers))
-        print("  payload={}".format(response.text))
-        sys.stdout.flush()
-
-    if response.status_code != 200:
-        raise AssertionError(
-            "Sending the indication failed with HTTP status {}: response={!r}".
-            format(response.status_code, response))
+# Global variables used to communicate between the test case function and
+# the process_indication() function running in context of the listener
+# thread. These must be global, because in Python 2, closure variables
+# cannot be modified.
+RCV_COUNT = 0
+RCV_ERRORS = False
 
 
 def process_indication(indication, host):
     """
-    This function gets called when an indication is received.
-    It receives each indication on a separate thread so the only communication
-    with the rest of the program is RCV_COUNT which it increments for each
-    received indication
+    This function gets called by the listener when an indication is
+    received.
 
     It tests the received indication sequence number against the RCV_COUNT
-    which should catch and indication duplication or missing since the counters
-    would no longer match.
+    which should catch any duplicated or missing indication, since the
+    counters would no longer match in such cases.
 
-    NOTE: Since this function is called in context of the listener thread,
-    it does not report assertion failures by means of raising exceptions,
-    but by printing a message and setting RCV_FAIL=True.
+    This function is invoked in context of the listener thread. Therefore,
+    it is defined as a local function in order to be able to use the
+    variables from its outer function, specifically the RCV_COUNT and
+    RCV_ERRORS variables.
+
+    For the same reason, this function does not report assertion failures
+    by means of raising exceptions, but by printing a message and setting
+    RCV_ERRORS to an error message, so the test function can check it and
+    raise assertion errors.
     """
 
-    global RCV_COUNT  # pylint: disable=global-statement
-    global RCV_FAIL  # pylint: disable=global-statement
+    # Note: Global variables that are modified must be declared global
+    global RCV_COUNT
+    global RCV_ERRORS
 
-    counter = indication.properties['SequenceNumber'].value
-    if int(counter) != RCV_COUNT:
-        RCV_FAIL = True
-        print("ERROR in SequenceNumber in received indication: "
-              "actual={}, expected={}".format(counter, RCV_COUNT))
+    try:
+        if VERBOSE_DETAILS:
+            print("\nListener received indication with:")
+            print("  host={}".format(host))
+            print("  indication(as MOF)={}".
+                  format(indication.tomof().strip('\n')))
+            sys.stdout.flush()
+
+        send_count = int(indication.properties['SequenceNumber'].value)
+        if send_count != RCV_COUNT:
+            print("Error in process_indication(): Assertion error: "
+                  "Unexpected SequenceNumber in received indication: "
+                  "got {}, expected {}".format(send_count, RCV_COUNT))
+            sys.stdout.flush()
+            RCV_ERRORS = True
+
+        RCV_COUNT += 1
+
+    except Exception as exc:
+        print("Error in process_indication(): {}: {}".
+              format(exc.__class__.__name__, exc))
         sys.stdout.flush()
-
-    if VERBOSE_DETAILS:
-        print("\nListener received indication #{} with:".format(counter))
-        print("  host={}".format(host))
-        print("  indication(as MOF)={}".format(indication.tomof().strip('\n')))
-        sys.stdout.flush()
-
-    RCV_COUNT += 1
+        RCV_ERRORS = True
 
 
 @pytest.mark.parametrize(
     "send_count",
-    [1, 10, 100]  # Disabled 1000 because in some environments it takes 30min
+    [1, 10, 100]  # 1000 in some environments takes 30 min
 )
 def test_WBEMListener_send_indications(send_count):
     """
@@ -605,8 +636,9 @@ def test_WBEMListener_send_indications(send_count):
     carries its own sequence number.
     """
 
-    global RCV_COUNT  # pylint: disable=global-statement
-    global RCV_FAIL  # pylint: disable=global-statement
+    # Note: Global variables that are modified must be declared global
+    global RCV_COUNT
+    global RCV_ERRORS
 
     host = 'localhost'
     http_port = 50000
@@ -621,22 +653,24 @@ def test_WBEMListener_send_indications(send_count):
     try:
 
         start_time = time()
-        full_url = 'http://{}:{}'.format(host, http_port)
+        url = 'http://{}:{}'.format(host, http_port)
         cim_protocol_version = '1.4'
-        headers = {'content-type': 'application/xml; charset=utf-8',
-                   'CIMExport': 'MethodRequest',
-                   'CIMExportMethod': 'ExportIndication',
-                   'Accept-Encoding': 'Identity',
-                   'CIMProtocolVersion': cim_protocol_version}
-        # We include accept-encoding because of requests issue.
+        headers = {
+            'Content-Type': 'application/xml; charset=utf-8',
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'Identity',
+            'CIMProtocolVersion': cim_protocol_version,
+        }
+        # We include Accept-Encoding because of requests issue.
         # He supplies it if we don't.  TODO try None
 
         delta_time = time() - start_time
         random_base = randint(1, 10000)
         timer = ElapsedTimer()
 
-        RCV_FAIL = False
         RCV_COUNT = 0
+        RCV_ERRORS = False
 
         for i in range(send_count):
 
@@ -646,11 +680,25 @@ def test_WBEMListener_send_indications(send_count):
 
             if VERBOSE_DETAILS:
                 print("\nTestcase sending indication #{} with:".format(i))
+                print("  url={}".format(url))
                 print("  headers={}".format(headers))
                 print("  payload={}".format(payload))
                 sys.stdout.flush()
 
-            send_indication(full_url, headers, payload)
+            response = requests.post(url, headers=headers, data=payload,
+                                     timeout=4)
+
+            if VERBOSE_DETAILS:
+                print("\nTestcase received response from sending indication:")
+                print("  status_code={}".format(response.status_code))
+                print("  headers={}".format(response.headers))
+                print("  payload={}".format(response.text))
+                sys.stdout.flush()
+
+            if response.status_code != 200:
+                raise AssertionError(
+                    "Sending the indication failed with HTTP status {}: "
+                    "response={!r}".format(response.status_code, response))
 
             if VERBOSE_DETAILS:
                 print("\nTestcase done sending indication #{}".format(i))
@@ -658,15 +706,523 @@ def test_WBEMListener_send_indications(send_count):
 
         endtime = timer.elapsed_sec()
 
+        # Make sure the listener thread has processed all indications
+        sleep(1)
+
         if VERBOSE_SUMMARY:
             print("\nSent {} indications in {} sec or {:.2f} ind/sec".
                   format(send_count, endtime, (send_count / endtime)))
             sys.stdout.flush()
 
+        assert not RCV_ERRORS, \
+            "Errors occurred in process_indication(), as printed to stdout"
+
         assert send_count == RCV_COUNT, \
-            "Mismatch between send cound {} and receive count {}". \
+            "Mismatch between total send count {} and receive count {}". \
             format(send_count, RCV_COUNT)
-        assert not RCV_FAIL, "Error detected in received indication"
+
+    finally:
+        listener.stop()
+
+
+@pytest.mark.parametrize(
+    "method, exp_status", [
+        ('OPTIONS', 405),
+        ('HEAD', 405),
+        ('GET', 405),
+        ('PUT', 405),
+        ('PATCH', 405),
+        ('DELETE', 405),
+        ('TRACE', 405),
+        ('CONNECT', 405),
+        ('M_POST', 405),
+    ])
+def test_WBEMListener_incorrect_method(method, exp_status):
+    """
+    Verify that WBEMListener send fails when an incorrect HTTP method is used.
+    """
+
+    host = 'localhost'
+    http_port = 50000
+    url = 'http://{}:{}'.format(host, http_port)
+    headers = {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'CIMExport': 'MethodRequest',
+        'CIMExportMethod': 'ExportIndication',
+        'Accept-Encoding': 'Identity',
+        'CIMProtocolVersion': '1.4',
+    }
+
+    listener = WBEMListener(host, http_port)
+    listener.add_callback(process_indication)
+    listener.start()
+
+    try:
+
+        # The code to be tested is running in listener thread
+        response = requests.request(method, url, headers=headers, timeout=4)
+
+        assert response.status_code == exp_status
+
+    finally:
+        listener.stop()
+
+
+WBEMLISTENER_INCORRECT_HEADERS_TESTCASES = [
+    (
+        "Invalid Accept-Charset header",
+        {
+            'Content-Type': 'application/xml',
+            'Accept-Charset': 'ASCII',
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'Identity',
+            'CIMProtocolVersion': '1.4',
+        },
+        406,
+        {
+            'CIMErrorDetails': r'Invalid Accept-Charset header .*',
+            'CIMError': r'header-mismatch',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Invalid Accept-Encoding header",
+        {
+            'Content-Type': 'application/xml',
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'foo',
+            'CIMProtocolVersion': '1.4',
+        },
+        406,
+        {
+            'CIMErrorDetails': r'Invalid Accept-Encoding header .*',
+            'CIMError': r'header-mismatch',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Accept-Range header not permitted",
+        {
+            'Content-Type': 'application/xml',
+            'Accept-Range': 'foo',
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'Identity',
+            'CIMProtocolVersion': '1.4',
+        },
+        406,
+        {
+            'CIMErrorDetails': r'Accept-Range header is not permitted .*',
+            'CIMError': r'header-mismatch',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Missing Content-Type header",
+        {
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'Identity',
+            'CIMProtocolVersion': '1.4',
+        },
+        406,
+        {
+            'CIMErrorDetails': r'Content-Type header is required',
+            'CIMError': r'header-mismatch',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Invalid Content-Type header",
+        {
+            'Content-Type': 'foo_application/xml',
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'Identity',
+            'CIMProtocolVersion': '1.4',
+        },
+        406,
+        {
+            'CIMErrorDetails': r'Invalid Content-Type header .*',
+            'CIMError': r'header-mismatch',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Invalid Content-Encoding header",
+        {
+            'Content-Type': 'application/xml',
+            'Content-Encoding': 'foo',
+            'CIMExport': 'MethodRequest',
+            'CIMExportMethod': 'ExportIndication',
+            'Accept-Encoding': 'Identity',
+            'CIMProtocolVersion': '1.4',
+        },
+        406,
+        {
+            'CIMErrorDetails': r'Invalid Content-Encoding header .*',
+            'CIMError': r'header-mismatch',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, headers, exp_status, exp_headers",
+    WBEMLISTENER_INCORRECT_HEADERS_TESTCASES)
+def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
+    """
+    Verify that WBEMListener send fails when incorrect HTTP headers are used
+    (along with the correct POST method).
+    """
+
+    host = 'localhost'
+    http_port = 50000
+    url = 'http://{}:{}'.format(host, http_port)
+    # headers = copy(headers)
+
+    listener = WBEMListener(host, http_port)
+    listener.add_callback(process_indication)
+    listener.start()
+
+    try:
+
+        # The code to be tested is running in listener thread
+        response = requests.post(url, headers=headers, timeout=4)
+
+        assert response.status_code == exp_status
+        for header_name in exp_headers:
+            assert header_name in response.headers
+            exp_header_pattern = exp_headers[header_name]
+            assert re.match(exp_header_pattern, response.headers[header_name])
+
+    finally:
+        listener.stop()
+
+
+WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
+    (
+        "Ill-formed XML in payload",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">""",
+        400,
+        {
+            'CIMErrorDetails': r'XML parsing error .*',
+            'CIMError': r'request-not-well-formed',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Unsupported DTD version (DTDVERSION in CIM element)",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="1.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="ExportIndication">
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        400,
+        {
+            'CIMErrorDetails': r'DTD version 1.4 not supported.*',
+            'CIMError': r'unsupported-dtd-version',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "Unsupported protocol version (PROTOCOLVERSION in MESSAGE element)",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="2.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="ExportIndication">
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        400,
+        {
+            'CIMErrorDetails': r'Protocol version 2.4 not supported.*',
+            'CIMError': r'unsupported-protocol-version',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "CIM-XML: Missing MESSAGE element",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+        </CIM>""",
+        400,
+        {
+            'CIMErrorDetails': r'Element .CIM. missing required '
+            r'child element .*.MESSAGE..*',
+            'CIMError': r'request-not-well-formed',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "CIM-XML: Missing SIMPLEEXPREQ element",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+          </MESSAGE>
+        </CIM>""",
+        400,
+        {
+            'CIMErrorDetails': r'Element .MESSAGE. missing required '
+            r'child element .*.SIMPLEEXPREQ..*',
+            'CIMError': r'request-not-well-formed',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "CIM-XML: Missing EXPMETHODCALL element",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        400,
+        {
+            'CIMErrorDetails': r'Element .SIMPLEEXPREQ. missing required '
+            r'child element .*.EXPMETHODCALL..*',
+            'CIMError': r'request-not-well-formed',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+    (
+        "CIM-XML: Invalid parameter type in ExportIndication export request",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="ExportIndication">
+                <EXPPARAMVALUE NAME="NewIndication">
+                  <INSTANCENAME CLASSNAME="CIM_AlertIndication">
+                  </INSTANCENAME>
+                </EXPPARAMVALUE>
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        400,
+        {
+            'CIMErrorDetails': r'Element .EXPPARAMVALUE. has invalid child '
+            r'element.*INSTANCENAME.*',
+            'CIMError': r'request-not-well-formed',
+            'CIMExport': r'MethodResponse',
+        }
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, payload, exp_status, exp_headers",
+    WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES)
+def test_WBEMListener_incorrect_payload1(
+        desc, payload, exp_status, exp_headers):
+    """
+    Verify that WBEMListener send fails with HTTP error when incorrect HTTP
+    payload is used that triggers HTTP errors.
+    """
+
+    host = 'localhost'
+    http_port = 50000
+    url = 'http://{}:{}'.format(host, http_port)
+    headers = {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'CIMExport': 'MethodRequest',
+        'CIMExportMethod': 'ExportIndication',
+        'Accept-Encoding': 'Identity',
+        'CIMProtocolVersion': '1.4',
+    }
+
+    listener = WBEMListener(host, http_port)
+    listener.add_callback(process_indication)
+    listener.start()
+
+    try:
+
+        # The code to be tested is running in listener thread
+        response = requests.post(url, headers=headers, data=payload, timeout=4)
+
+        assert response.status_code == exp_status
+        for header_name in exp_headers:
+            assert header_name in response.headers
+            exp_header_pattern = exp_headers[header_name]
+            assert re.match(exp_header_pattern, response.headers[header_name])
+
+    finally:
+        listener.stop()
+
+
+WBEMLISTENER_INCORRECT_PAYLOAD2_TESTCASES = [
+    (
+        "Unsupported export method in export request",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="fooExportIndication">
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        200,
+        {
+            'CIMExport': r'MethodResponse',
+        },
+        b'<?xml version="1.0" encoding="utf-8" ?>\n'
+        b'<CIM CIMVERSION="2.0" DTDVERSION="2.4">'
+        b'<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+        b'<SIMPLEEXPRSP>'
+        b'<EXPMETHODRESPONSE NAME="fooExportIndication">'
+        b'<ERROR CODE="7" DESCRIPTION="Unknown export method: '
+        b'\'fooExportIndication\'"/>'
+        b'</EXPMETHODRESPONSE>'
+        b'</SIMPLEEXPRSP>'
+        b'</MESSAGE>'
+        b'</CIM>'
+    ),
+    (
+        "No parameters in ExportIndication export request",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="ExportIndication">
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        200,
+        {
+            'CIMExport': r'MethodResponse',
+        },
+        b'<?xml version="1.0" encoding="utf-8" ?>\n'
+        b'<CIM CIMVERSION="2.0" DTDVERSION="2.4">'
+        b'<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+        b'<SIMPLEEXPRSP>'
+        b'<EXPMETHODRESPONSE NAME="ExportIndication">'
+        b'<ERROR CODE="7" DESCRIPTION="Expecting one parameter '
+        b'NewIndication.*"/>'
+        b'</EXPMETHODRESPONSE>'
+        b'</SIMPLEEXPRSP>'
+        b'</MESSAGE>'
+        b'</CIM>'
+    ),
+    (
+        "Two parameters in ExportIndication export request",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="ExportIndication">
+                <EXPPARAMVALUE NAME="NewIndication">
+                  <INSTANCE CLASSNAME="CIM_AlertIndication">
+                  </INSTANCE>
+                </EXPPARAMVALUE>
+                <EXPPARAMVALUE NAME="foo">
+                  <INSTANCE CLASSNAME="CIM_AlertIndication">
+                  </INSTANCE>
+                </EXPPARAMVALUE>
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        200,
+        {
+            'CIMExport': r'MethodResponse',
+        },
+        b'<?xml version="1.0" encoding="utf-8" ?>\n'
+        b'<CIM CIMVERSION="2.0" DTDVERSION="2.4">'
+        b'<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+        b'<SIMPLEEXPRSP>'
+        b'<EXPMETHODRESPONSE NAME="ExportIndication">'
+        b'<ERROR CODE="7" DESCRIPTION="Expecting one parameter '
+        b'NewIndication.*"/>'
+        b'</EXPMETHODRESPONSE>'
+        b'</SIMPLEEXPRSP>'
+        b'</MESSAGE>'
+        b'</CIM>'
+    ),
+    (
+        "Invalid parameter name in ExportIndication export request",
+        """<?xml version="1.0" encoding="utf-8" ?>
+        <CIM CIMVERSION="2.0" DTDVERSION="2.4">
+          <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+            <SIMPLEEXPREQ>
+              <EXPMETHODCALL NAME="ExportIndication">
+                <EXPPARAMVALUE NAME="fooNewIndication">
+                  <INSTANCE CLASSNAME="CIM_AlertIndication">
+                  </INSTANCE>
+                </EXPPARAMVALUE>
+              </EXPMETHODCALL>
+            </SIMPLEEXPREQ>
+          </MESSAGE>
+        </CIM>""",
+        200,
+        {
+            'CIMExport': r'MethodResponse',
+        },
+        b'<?xml version="1.0" encoding="utf-8" ?>\n'
+        b'<CIM CIMVERSION="2.0" DTDVERSION="2.4">'
+        b'<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+        b'<SIMPLEEXPRSP>'
+        b'<EXPMETHODRESPONSE NAME="ExportIndication">'
+        b'<ERROR CODE="7" DESCRIPTION="Expecting one parameter '
+        b'NewIndication.*"/>'
+        b'</EXPMETHODRESPONSE>'
+        b'</SIMPLEEXPRSP>'
+        b'</MESSAGE>'
+        b'</CIM>'
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, payload, exp_status, exp_headers, exp_payload",
+    WBEMLISTENER_INCORRECT_PAYLOAD2_TESTCASES)
+def test_WBEMListener_incorrect_payload2(
+        desc, payload, exp_status, exp_headers, exp_payload):
+    """
+    Verify that WBEMListener send fails with export response indicating error
+    when incorrect HTTP payload is used that triggers that.
+    """
+
+    host = 'localhost'
+    http_port = 50000
+    url = 'http://{}:{}'.format(host, http_port)
+    headers = {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'CIMExport': 'MethodRequest',
+        'CIMExportMethod': 'ExportIndication',
+        'Accept-Encoding': 'Identity',
+        'CIMProtocolVersion': '1.4',
+    }
+
+    listener = WBEMListener(host, http_port)
+    listener.add_callback(process_indication)
+    listener.start()
+
+    try:
+
+        # The code to be tested is running in listener thread
+        response = requests.post(url, headers=headers, data=payload, timeout=4)
+
+        assert response.status_code == exp_status
+        for header_name in exp_headers:
+            assert header_name in response.headers
+            exp_header_pattern = exp_headers[header_name]
+            assert re.match(exp_header_pattern, response.headers[header_name])
+        act_payload = response.content
+        re.match(exp_payload, act_payload, re.MULTILINE)
 
     finally:
         listener.stop()
