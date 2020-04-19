@@ -13,14 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 0.17.2.dev1
-------------------
+pywbem 0.17.2
+-------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-04-19
 
 **Bug fixes:**
 
@@ -48,16 +44,6 @@ Released: not yet
 
 * Fixed raise error for missing ports in WBEMListener.__init__().
   (See issue #2188)
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.17.1
