@@ -283,22 +283,17 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if tq_list is not None:
             for token, quality in tq_list:
                 quality = 1 if quality == '' else float(quality)
-                if token.lower() == 'identity':
+                if token.lower() in ('identity', '*'):
                     identity_found = True
                     if quality > 0:
                         identity_acceptable = True
                     break
-            if not identity_found:
-                for token, quality in tq_list:
-                    quality = 1 if quality == '' else float(quality)
-                    if token == '*' and quality > 0:
-                        identity_acceptable = True
-                        break
-        if not identity_acceptable:
+        if not identity_found or not identity_acceptable:
             self.send_http_error(
                 406, 'header-mismatch',
                 _format("Invalid Accept-Encoding header value: {0} "
-                        "(need Identity to be acceptable)", accept_encoding))
+                        "(need Identity with quality > 0 to be acceptable)",
+                        accept_encoding))
             return
 
         # Accept-Language header check described in DSP0200.
