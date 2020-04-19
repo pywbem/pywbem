@@ -685,7 +685,7 @@ class WBEMListener(object):
             self._keyfile = None
 
         if self._http_port is None and self._https_port is None:
-            ValueError("Listener requires at least one active port")
+            raise ValueError("Listener requires at least one active port")
 
         self._http_server = None  # ThreadedHTTPServer for HTTP
         self._http_thread = None  # Thread for HTTP
