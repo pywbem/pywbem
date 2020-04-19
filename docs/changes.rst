@@ -417,6 +417,9 @@ Released: not yet
   up a fix for dealing with Unicode characters above U+FFFF in narrow Python
   builds. (See issue #2182)
 
+* Fixed raise error for invalid reference_direction in
+  WBEMServer.get_central_instances(). (See issue #2187)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
