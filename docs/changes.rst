@@ -546,6 +546,8 @@ Released: not yet
   Fake_WBEMConnection. This creates a new file _cimrepository.py that
   implements a CIM server repository. (See issue #2062)
 
+* Test: Converted WBEMListener tests from unittest to pytest. (See issue #2179)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
