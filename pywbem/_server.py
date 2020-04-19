@@ -863,7 +863,7 @@ class WBEMServer(object):
         """
 
         if reference_direction not in ('dmtf', 'snia'):
-            ValueError(
+            raise ValueError(
                 _format("The reference_direction parameter must be 'dmtf' or "
                         "'snia', but is: {0!A}", reference_direction))
 

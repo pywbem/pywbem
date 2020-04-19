@@ -387,6 +387,18 @@ TESTCASES_GET_CENTRAL_INSTANCES = [
         ),
         None, None, True
     ),
+    (
+        "Invalid reference direction",
+        dict(
+            profile_name=('SNIA', 'Server', '1.2.0'),
+            central_class='XXX_StorageComputerSystem',
+            scoping_class=None,
+            scoping_path=None,
+            direction='foo',
+            exp_paths=None
+        ),
+        ValueError, None, True
+    ),
     # TODO add more central instance tests
 ]
 
