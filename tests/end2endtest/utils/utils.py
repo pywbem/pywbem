@@ -230,6 +230,21 @@ class WBEMConnectionAsserted(WBEMConnection):
     specifying keyword argument `asserted=True`.
     """
 
+    def __init__(self, *args, **kwargs):
+        """
+        Parameters:
+
+          server_definition(ServerDefinition): Server to test against
+            (required keyword argument)
+
+          All other positional and keyword arguments are passed to the
+          superclass init.
+        """
+        server_definition = kwargs['server_definition']
+        del kwargs['server_definition']
+        super(WBEMConnectionAsserted, self).__init__(*args, **kwargs)
+        self.server_definition = server_definition
+
     def _call_op(self, funcname, *args, **kwargs):
         """
         Call the specified operation function of the base class.

@@ -582,8 +582,8 @@ def process_indication(indication, host):
     """
 
     # Note: Global variables that are modified must be declared global
-    global RCV_COUNT
-    global RCV_ERRORS
+    global RCV_COUNT  # pylint: disable=global-statement
+    global RCV_ERRORS  # pylint: disable=global-statement
 
     try:
         if VERBOSE_DETAILS:
@@ -603,7 +603,7 @@ def process_indication(indication, host):
 
         RCV_COUNT += 1
 
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         print("Error in process_indication(): {}: {}".
               format(exc.__class__.__name__, exc))
         sys.stdout.flush()
@@ -637,8 +637,8 @@ def test_WBEMListener_send_indications(send_count):
     """
 
     # Note: Global variables that are modified must be declared global
-    global RCV_COUNT
-    global RCV_ERRORS
+    global RCV_COUNT  # pylint: disable=global-statement
+    global RCV_ERRORS  # pylint: disable=global-statement
 
     host = 'localhost'
     http_port = 50000
@@ -874,6 +874,7 @@ WBEMLISTENER_INCORRECT_HEADERS_TESTCASES = [
     "desc, headers, exp_status, exp_headers",
     WBEMLISTENER_INCORRECT_HEADERS_TESTCASES)
 def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
+    # pylint: disable=unused-argument
     """
     Verify that WBEMListener send fails when incorrect HTTP headers are used
     (along with the correct POST method).
@@ -959,7 +960,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         400,
         {
             'CIMErrorDetails': r'Element .CIM. missing required '
-            r'child element .*.MESSAGE..*',
+                               r'child element .*.MESSAGE..*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
         }
@@ -974,7 +975,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         400,
         {
             'CIMErrorDetails': r'Element .MESSAGE. missing required '
-            r'child element .*.SIMPLEEXPREQ..*',
+                               r'child element .*.SIMPLEEXPREQ..*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
         }
@@ -991,7 +992,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         400,
         {
             'CIMErrorDetails': r'Element .SIMPLEEXPREQ. missing required '
-            r'child element .*.EXPMETHODCALL..*',
+                               r'child element .*.EXPMETHODCALL..*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
         }
@@ -1014,7 +1015,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         400,
         {
             'CIMErrorDetails': r'Element .EXPPARAMVALUE. has invalid child '
-            r'element.*INSTANCENAME.*',
+                               r'element.*INSTANCENAME.*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
         }
@@ -1027,6 +1028,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
     WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES)
 def test_WBEMListener_incorrect_payload1(
         desc, payload, exp_status, exp_headers):
+    # pylint: disable=unused-argument
     """
     Verify that WBEMListener send fails with HTTP error when incorrect HTTP
     payload is used that triggers HTTP errors.
@@ -1191,6 +1193,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD2_TESTCASES = [
     WBEMLISTENER_INCORRECT_PAYLOAD2_TESTCASES)
 def test_WBEMListener_incorrect_payload2(
         desc, payload, exp_status, exp_headers, exp_payload):
+    # pylint: disable=unused-argument
     """
     Verify that WBEMListener send fails with export response indicating error
     when incorrect HTTP payload is used that triggers that.
