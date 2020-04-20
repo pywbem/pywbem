@@ -27,9 +27,9 @@ import inspect
 from string import Formatter
 import six
 try:
-    from builtins import ascii
+    from builtins import ascii as _ascii
 except ImportError:  # py2
-    from future_builtins import ascii
+    from future_builtins import ascii as _ascii
 try:
     from collections.abc import Mapping, Set, MutableSequence, Sequence
 except ImportError:  # py2
@@ -255,7 +255,7 @@ def _ascii2(value):
 
     if isinstance(value, six.text_type):
 
-        ret = ascii(value)  # returns type str in py2 and py3
+        ret = _ascii(value)  # returns type str in py2 and py3
         if ret.startswith('u'):
             ret = ret[1:]
 
@@ -269,7 +269,7 @@ def _ascii2(value):
                      r'\\u00\1', ret)
 
     elif isinstance(value, six.binary_type):
-        ret = ascii(value)  # returns type str in py2 and py3
+        ret = _ascii(value)  # returns type str in py2 and py3
         if ret.startswith('b'):
             ret = ret[1:]
 
@@ -283,7 +283,7 @@ def _ascii2(value):
         ret = str(value)
 
     else:
-        ret = ascii(value)  # returns type str in py2 and py3
+        ret = _ascii(value)  # returns type str in py2 and py3
 
     return ret
 
@@ -310,7 +310,7 @@ class _Ascii2Formatter(Formatter):
         elif conversion == 'r':
             return repr(value)
         elif conversion == 'a':
-            return ascii(value)
+            return _ascii(value)
         elif conversion == 'A':
             return _ascii2(value)
         raise ValueError(

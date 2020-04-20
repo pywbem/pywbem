@@ -71,13 +71,13 @@ def wbem_connection(request, server_definition):
     # pylint: disable=redefined-outer-name, unused-argument
     """
     Fixture representing the set of WBEMConnection objects to use for the
-    end2end tests.  This fixture uses the  server_definition
+    end2end tests.  This fixture uses the
     implementation_namespace item from the server_definition as the
     default namespace if that item exists in the server_definition.
 
     Returns the `WBEMConnection` object of each server to test against.
     """
-    sd = server_definition
+    sd = server_definition  # ServerDefinition object
 
     # Skip this server if we had a skip reason in an earlier attempt
     skip_msg = getattr(sd, 'skip_msg', None)
@@ -99,9 +99,8 @@ def wbem_connection(request, server_definition):
         ca_certs=sd.ca_certs,
         no_verification=sd.no_verification,
         default_namespace=sd.implementation_namespace,
-        timeout=10)
-
-    conn.server_definition = sd
+        timeout=10,
+        server_definition=sd)
 
     # Check that the server can be reached and authenticated with, by issuing
     # some quick operation. Operation failures are tolerated (e.g. GetQualifier
