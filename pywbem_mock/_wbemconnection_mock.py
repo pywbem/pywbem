@@ -48,7 +48,7 @@ from ._inmemoryrepository import InMemoryRepository
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
 from ._defaultinstanceprovider import ProviderDispatcher, \
-    DefaultInstanceProvider
+    InstanceWriteProvider
 
 from ._dmtf_cim_schema import DMTFCIMSchema
 from ._utils import _uprint
@@ -307,8 +307,8 @@ class FakedWBEMConnection(WBEMConnection):
                                          self.disable_pull_operations,
                                          self.cimrepository)
 
-        # Initiate the DefaultInstanceProvider with the cimrepository
-        self.defaultinstanceprovider = DefaultInstanceProvider(
+        # Initiate the InstanceWriteProvider with the cimrepository
+        self.defaultinstanceprovider = InstanceWriteProvider(
             self.cimrepository)
 
         # Initiate instance of the ProviderDispatcher with required
@@ -1046,16 +1046,16 @@ class FakedWBEMConnection(WBEMConnection):
           provider_type (:term:`string`):
             Keyword defining the type of request the provider will service.
             The allowed types are instance (keyword 'instance') which responds
-            to the request responder methods defined in DefaultInstanceProvider
+            to the request responder methods defined in InstanceWriteProvider
             (ex. CreateInstance) and method (keyword 'method') which responds
             to the InvokeMethod.
 
-          provider (subclass of :class::class:`pywbem_mock:DefaultInstanceProvider`):
+          provider (subclass of :class::class:`pywbem_mock:InstanceWriteProvider`):
             The user provider class which is a subclass of
-            :class:`pywbem_mock:DefaultInstanceProvider`.  The methods in this
+            :class:`pywbem_mock:InstanceWriteProvider`.  The methods in this
             subclass override the corresponding methods in
-            DefaultInstanceProvider. The method call parameters must be the
-            same as the defult method in DefaultInstanceProvider and it must
+            InstanceWriteProvider. The method call parameters must be the
+            same as the defult method in InstanceWriteProvider and it must
             return data in the same format if the default method returns data.
         """  # noqa: E501
         # pylint: enable=line-too-long
@@ -1068,10 +1068,10 @@ class FakedWBEMConnection(WBEMConnection):
                              "Valid provider types are {1!A}.", provider_type,
                              provider_types)
 
-        if not issubclass(provider, DefaultInstanceProvider):
+        if not issubclass(provider, InstanceWriteProvider):
             raise TypeError(
                 _format("provider argument {0!A} is not a "
-                        "valid subclass of DefaultInstanceProvider. ",
+                        "valid subclass of InstanceWriteProvider. ",
                         provider))
 
         if classnames is None:
@@ -1217,12 +1217,12 @@ class FakedWBEMConnection(WBEMConnection):
     #####################################################################
     #
     #  The following methods map the imethodcall interface (dictionary of
-    #  the method parameters to the arguments required by each correspondin
-    #  gmethod in the MainProvider  or DefaultInstanceProvider and call that
+    #  the method parameters to the arguments required by each corresponding
+    #  method in the MainProvider  or InstanceWriteProvider and call that
     #  method. the resultsare mapped back to be compatible with imethodcall
     #  return tuple.
     #  Methods that allow user providers are routed to the
-    #  DefaultInstanceProvider. All other methods are rounted to the
+    #  InstanceWriteProvider. All other methods are rounted to the
     #  MainProvider.
     #
     #####################################################################
