@@ -22,7 +22,7 @@
 A CIM provider creates WBEM server responses to operations defined in DSP0200.
 
 The BaseProvider WBEM server provider handles provider required data that
-is common to both the MainProvider, DefaultInstanceProvider, and any
+is common to both the MainProvider, InstanceWriteProvider, and any
 registered instance providers including:
 
   * Access to the CIM repository
@@ -76,7 +76,7 @@ class BaseProvider(object):
     """
     BaseProvider is the top level class in the provider hiearchy and includes
     methods required by the subclasses such as MainProvider and
-    DefaultInstanceProvider.  This class is not intended to be executed
+    InstanceWriteProvider.  This class is not intended to be executed
     directly.
     """
 
@@ -85,6 +85,7 @@ class BaseProvider(object):
         Set up dummy instance variables.
         """
         self.cimrepository = None
+        self.provider_registry = None
 
     @property
     def disable_pull_operations(self):
@@ -497,7 +498,7 @@ class BaseProvider(object):
         """
         If there is a provider registered for this namespace, provider_type,
         and classname return that object (the instance of the
-        DefaultInstanceProvider subclass).
+        InstanceWriteProvider subclass).
 
         If no provider is registered, return None.
 

@@ -58,7 +58,7 @@ from pywbem._utils import _format
 from pywbem._cim_operations import pull_path_result_tuple
 pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
-    DefaultInstanceProvider
+    InstanceWriteProvider
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -812,7 +812,7 @@ def tst_assoc_mof(tst_assoc_qualdecl_mof, tst_assoc_class_mof):
     return tst_assoc_qualdecl_mof + tst_assoc_class_mof + instances
 
 
-class UserProviderTest(DefaultInstanceProvider):
+class UserProviderTest(InstanceWriteProvider):
     """
     Basic user provider implements CreateInstance and DeleteInstance
     """
@@ -825,12 +825,11 @@ class UserProviderTest(DefaultInstanceProvider):
 
     def CreateInstance(self, namespace, NewInstance):
         """Test Create instance just calls super class method"""
-        return DefaultInstanceProvider.CreateInstance(namespace,
-                                                      NewInstance)
+        return InstanceWriteProvider.CreateInstance(namespace, NewInstance)
 
     def DeleteInstance(self, InstanceName):
         """Test Create instance just calls super class method"""
-        return DefaultInstanceProvider.DeleteInstance(InstanceName)
+        return InstanceWriteProvider.DeleteInstance(InstanceName)
 
 
 # Counts of instances for tests of tst_assoc_mof fixture.
@@ -2350,7 +2349,7 @@ class TestProviderRegisterMethods(object):
                 assert rtn is None
             if exp_rslt is True:
                 assert rtn
-                assert issubclass(rtn, DefaultInstanceProvider)
+                assert issubclass(rtn, InstanceWriteProvider)
 
         else:
             with pytest.raises(exp_rslt):
@@ -2362,7 +2361,7 @@ class TestProviderRegisterMethods(object):
         """
         Test execution with a user provider and CreateInstance.
         """
-        class CIM_FooUserProvider(DefaultInstanceProvider):
+        class CIM_FooUserProvider(InstanceWriteProvider):
             """
             Define the user provider with only CreateInstance supported
             """
@@ -2413,7 +2412,7 @@ class TestProviderRegisterMethods(object):
         Test with a single user defined provider using CIM_Foo_sub as the
         class and handles ModifyInstance only
         """
-        class CIM_FooSubUserProvider(DefaultInstanceProvider):
+        class CIM_FooSubUserProvider(InstanceWriteProvider):
             """
             Define the user provider
             """
