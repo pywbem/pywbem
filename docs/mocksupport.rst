@@ -271,119 +271,150 @@ repository.
 Faked method invocation operation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. index:: single: User defined providers
+
 The faked method invocation operation (`InvokeMethod`) behaves like
 :meth:`~pywbem.WBEMConnection.InvokeMethod`, but because of the nature of
-`InvokeMethod`, the user must provide a callback function that performs the
-actual task of the CIM method. The mock repository must be in full operation
-mode.
+`InvokeMethod`, the user must provide an implementation of InvokeMethod
+based on the API defined in :meth:`~pywbem_mock.MethodProvider.InvokeMethod`.
 
-The callback function must have the signature defined in the
-:func:`~pywbem_mock.method_callback_interface` function and must be registered
-with the mock repository through
-:meth:`~pywbem_mock.FakedWBEMConnection.add_method_callback` for a particular
+See :ref:`User provider interfaces`
+
+The user method provider must have the signature defined in the
+:class:`~pywbem_mock.MethodProvider` function and must be registered
+as a method provider
+:meth:`~pywbem_mock.FakedWBEMConnection.register_provider` for a particular
 combination of namespace, class, and CIM method name.
 
-When the callback function is invoked on behalf of an `InvokeMethod` operation,
+When the user method provider is invoked on behalf of an `InvokeMethod` operation,
 the target object of the method invocation (class or instance) is provided to
-the callback function, in addition to the method input parameters.
+the InvokeMethod method, in addition to the method input parameters.
 
-The callback function can access the mock repository of the faked connection
-using the normal WBEM operation methods.
+The user provider can access the mock repository of the faked connection
+using the methods defined in :class:`~pywbem_mock.InMemoryRepository`
 
-The callback function is expected to return a tuple consisting of two items:
+The user provider is expected to return a tuple consisting of two items:
 
 * the CIM method return value, as a :term:`CIM data type` value.
-* a :ref:`NocaseDict` containing any output parameters as
+* an iterable containing any output parameters as
   :class:`~pywbem.CIMParameter` objects.
 
-The following is an example for invoking the faked `InvokeMethod` operation
-with a simple callback function.
+TODO: Explain other mocker methods in BaseProvider that are available.
+
+The following is an example for defining a method provider.
 
 .. code-block:: python
 
     import pywbem
     import pywbem_mock
 
-    def method1_callback(conn, methodname, objectname, **params):
+    from pywbem_mock import MethodProvider, CIMParameter, CIMError, \
+        CIM_ERR_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE
+
+    class Method1TestProvider(MethodProvider):
         """
-        Callback function that demonstrates what can be done, without being
-        really useful.
+        User method provider for InvokeMethod using CIM_Foo_sub_sub and method1.
         """
-        print('params: %r' % params )
-        print('object_name %s' % objectname)
+        def __init__(self, cimrepository):
+            self.cimrepository = cimrepository
 
-        # Access input parameters
-        ip1 = params['IP1']
+        def InvokeMethod(self, namespace, methodname, objectname, Params):
+            """
+            The parameters and return for Invoke method are defined in
+            :meth:`~pywbem_mock.MethodProvider.InvokeMethod`
 
-        # Access the mock repository through the faked connection object.
-        # In case of a static CIM method, objectname is a
-        # :class:`~pywbem.CIMClassName` object.
-        cl = conn.GetClass(objectname)
+            This acts as both a static (objectname is only classname) and dynamic
+            (objectname is an instance name) method provider
+            """
+            # validate namespace using method in BaseProvider
+            self.validate_namespace(namespace)
 
-        # Set return value and output parameters
-        rtn_val = 0
-        op1 = CIMParameter('OP1', 'string', value='Some output data')
-        return rtn_val, [op1]
+            # get classname and validate. This provider uses only one class
+            if isinstance(objectname, six.string_types):
+                classname = objectname
+            else:
+                classname = objectname.classname
+            assert classname.lower() == 'tst_class'
 
-    mof = '''
-        Qualifier In : boolean = true,
-            Scope(parameter),
-            Flavor(DisableOverride, ToSubclass);
+            # Test if class exists.
+            if not self.class_exists(namespace, classname):
+                raise CIMError(
+                    CIM_ERR_NOT_FOUND,
+                    _format("class {0|A} does not exist in CIM repository, "
+                            "namespace {1!A}", classname, namespace))
 
-        Qualifier Key : boolean = false,
-            Scope(property, reference),
-            Flavor(DisableOverride, ToSubclass);
+            if isinstance(objectname, CIMInstanceName):
+                instance_store = self.get_instance_store(namespace)
+                inst = self.find_instance(objectname, instance_store,
+                                          copy_inst=False)
+                if inst is None:
+                    raise CIMError(
+                        CIM_ERR_NOT_FOUND,
+                        _format("Instance {0|A} does not exist in CIM repository, "
+                                "namespace {1!A}", objectname, namespace))
 
-        Qualifier Out : boolean = false,
-            Scope(parameter),
-            Flavor(DisableOverride, ToSubclass);
+            if methodname.lower() == 'method1':
 
-        Qualifier Static : boolean = false,
-            Scope(property, method),
-            Flavor(DisableOverride, ToSubclass);
+                rtn_parameters = [CIMParameter('OutputParam1', 'string',
+                                               value=namespace)]
+                else:
+                    rtn_params = None
 
-        class TST_Class {
+                return (return_value, rtn_params)
 
-            string InstanceID;
+            else:
+                raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
 
-              [Static,
-               Description("Static method with input and output parameters")]
-            uint32 Method1(
-                [IN, Description("Input param 1")]
-              string IP1,
-                [IN (false), OUT, Description("Output param 1")]
-              string OP1);
-        };
-    '''
+    def run_invokemethod():
+        mof = '''
+            Qualifier In : boolean = true,
+                Scope(parameter),
+                Flavor(DisableOverride, ToSubclass);
 
-    # Create a faked connection
-    conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')
+            Qualifier Key : boolean = false,
+                Scope(property, reference),
+                Flavor(DisableOverride, ToSubclass);
 
-    # Compile the MOF string and add its CIM objects to the default namespace
-    # of the mock repository
-    conn.compile_mof_string(mof)
+            Qualifier Out : boolean = false,
+                Scope(parameter),
+                Flavor(DisableOverride, ToSubclass);
 
-    # Register the method callback function to the mock repository, for the
-    # default namespace of the connection
-    conn.add_method_callback('TST_Class', 'Method1', method1_callback)
+            Qualifier Static : boolean = false,
+                Scope(property, method),
+                Flavor(DisableOverride, ToSubclass);
 
-    # Invoke static method Method1
-    params = [('IP1', 'someData')]
-    result = conn.InvokeMethod('Method1', 'TST_Class', Params=params)
+            class TST_Class {
 
-    print('Return value: %r' % result[0])
-    print('Output parameters: %r' % (result[1],))
+                string InstanceID;
 
+                  [Static,
+                   Description("Static method with input and output parameters")]
+                uint32 Method1(
+                    [IN, Description("Input param 1")]
+                  string IP1,
+                    [IN (false), OUT, Description("Output param 1")]
+                  string OP1);
+            };
+        '''
 
-.. _`Callback functions for faked method invocation`:
+        # Create a faked connection
+        conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')
 
-Callback functions for faked method invocation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        # Compile the MOF string and add its CIM objects to the default namespace
+        # of the mock repository
+        conn.compile_mof_string(mof)
 
-The callback functions for faked method invocation must have the following
-signature:
+        # Register the method callback function to the mock repository, for the
+        # default namespace of the connection
+        conn.register_provider(conn.default_namespace, 'TST_Class', 'method',
+                               )
 
-.. autofunction:: pywbem_mock.method_callback_interface
+        # Invoke static method Method1
+        params = [('IP1', 'someData')]
+        result = conn.InvokeMethod('Method1', 'TST_Class', Params=params)
+
+        print('Return value: %r' % result[0])
+        print('Output parameters: %r' % (result[1],))
 
 
 .. _`Faked pull operations`:
@@ -916,6 +947,49 @@ Mock inmemory CIM repository
    .. rubric:: Attributes
 
    .. autoautosummary:: pywbem_mock.InMemoryObjectStore
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. index:: pair: User defined providers; user providers
+
+.. _`User provider interfaces`:
+
+User provider interfaces
+------------------------
+
+.. automodule:: pywbem_mock._defaultinstanceprovider
+
+.. autoclass:: pywbem_mock.InstanceWriteProvider
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. autoclass:: pywbem_mock.MethodProvider
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.MethodProvider
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.MethodProvider
       :attributes:
 
    .. rubric:: Details

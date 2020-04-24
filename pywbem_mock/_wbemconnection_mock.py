@@ -28,8 +28,6 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 import time
-import sys
-import traceback
 import re
 from xml.dom import minidom
 from mock import Mock
@@ -38,7 +36,7 @@ import six
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
     cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, \
-    CIM_ERR_METHOD_NOT_FOUND, MOFCompiler
+    MOFCompiler
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from ._mainprovider import MainProvider
@@ -48,12 +46,12 @@ from ._inmemoryrepository import InMemoryRepository
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
 from ._defaultinstanceprovider import ProviderDispatcher, \
-    InstanceWriteProvider
+    InstanceWriteProvider, MethodProvider
 
 from ._dmtf_cim_schema import DMTFCIMSchema
 from ._utils import _uprint
 
-__all__ = ['FakedWBEMConnection', 'method_callback_interface']
+__all__ = ['FakedWBEMConnection', 'MethodProvider', 'InstanceWriteProvider']
 
 # Fake Server default values for parameters that apply to repo and operations
 
@@ -76,85 +74,6 @@ OUTPUT_FORMATS = ['mof', 'xml', 'repr']
 # parameters for the operations in which they are deprecated and we
 # should/could ignore them. We need to document our behavior in relation to the
 # spec.
-
-
-def method_callback_interface(conn, methodname, objectname, **params):
-    # pylint: disable=unused-argument, invalid-name, line-too-long
-    """
-    Interface for user-provided callback functions for CIM method invocation
-    on a faked connection.
-
-    **Experimental:** *New in pywbem 0.12 as experimental.*
-
-    Parameters:
-
-      conn (:class:`~pywbem_mock.FakedWBEMConnection`):
-        Faked connection. This can be used to access the mock repository of the
-        faked connection, via its operation methods (e.g. `GetClass`).
-
-      methodname (:term:`string`):
-        The CIM method name that is being invoked. This is the method name for
-        which the callback function was registered. This parameter allows a
-        single callback function to be registered for multiple methods.
-
-      objectname (:class:`~pywbem.CIMInstanceName` or :class:`~pywbem.CIMClassName`):
-        The object path of the target object of the invoked method, as follows:
-
-        * Instance-level call: The instance path of the target instance, as a
-          :class:`~pywbem.CIMInstanceName` object which has its `namespace`
-          property set to the target namespace of the invocation. Its `host`
-          property will not be set.
-
-        * Class-level call: The class path of the target class, as a
-          :class:`~pywbem.CIMClassName` object which has its `namespace`
-          property set to the target namespace of the invocation. Its `host`
-          property will not be set.
-
-      params (:ref:`NocaseDict`):
-        The input parameters for the method that were passed to the
-        `InvokeMethod` operation.
-
-        Each dictionary item represents a single input parameter for the CIM
-        method and is a :class:`~pywbem.CIMParameter` object, regardless of
-        how the input parameter was passed to the
-        :meth:`~pywbem.WBEMConnection.InvokeMethod` method.
-
-        The :class:`~pywbem.CIMParameter` object will have at least the
-        following properties set:
-
-        * name (:term:`string`): Parameter name (case independent).
-        * type (:term:`string`): CIM data type of the parameter.
-        * value (:term:`CIM data type`): Parameter value.
-
-    Returns:
-
-      tuple: The callback function must return a tuple consisting of:
-
-      * return_value (:term:`CIM data type`): Return value for the CIM
-        method.
-
-      * out_params (:term:`py:iterable` of :class:`~pywbem.CIMParameter`):
-
-        Each item represents a single output parameter of the CIM method.
-        The :class:`~pywbem.CIMParameter` objects must have at least
-        the following properties set:
-
-        * name (:term:`string`): Parameter name (case independent).
-        * type (:term:`string`): CIM data type of the parameter.
-        * value (:term:`CIM data type`): Parameter value.
-
-    Raises:
-
-      : Since the callback function mocks a CIM method invocation, it should
-        raise :exc:`~pywbem.CIMError` exceptions to indicate failures. Any
-        other exceptions raised by the callback function will be mapped to
-        :exc:`~pywbem.CIMError` exceptions with status CIM_ERR_FAILED and
-        a message that contains information about the exception including a
-        traceback.
-    """  # noqa: E501
-    # pylint: enable=line-too-long
-    raise NotImplementedError
-
 
 def _pretty_xml(xml_string):
     """
@@ -310,6 +229,8 @@ class FakedWBEMConnection(WBEMConnection):
         # Initiate the InstanceWriteProvider with the cimrepository
         self.defaultinstanceprovider = InstanceWriteProvider(
             self.cimrepository)
+
+        self.methodprovider = MethodProvider(self.cimrepository)
 
         # Initiate instance of the ProviderDispatcher with required
         # parameters including the cimrepository
@@ -1037,7 +958,8 @@ class FakedWBEMConnection(WBEMConnection):
 
           namespaces (:term:`string` or :class:`py:list` of :term:`string`):
             Namespace or namespaces for which the provider is being registered.
-            At least one namespace is required.
+            If no namespaces are defined, the connection default namespace
+            is used.
 
           classnames (:term:`string` or :class:`py:list` of :term:`string`):
             Classname or classnames for which the provider is being
@@ -1062,27 +984,32 @@ class FakedWBEMConnection(WBEMConnection):
 
         provider_types = ('instance', 'method')
 
-        if provider_type not in provider_types:
+        if provider_type == 'instance':
+            if not issubclass(provider, InstanceWriteProvider):
+                raise TypeError(
+                    _format("provider argument {0!A} is not a "
+                            "valid subclass of InstanceWriteProvider. ",
+                            provider))
+        elif provider_type == 'method':
+            if not issubclass(provider, MethodProvider):
+                raise TypeError(
+                    _format("provider argument {0!A} is not a "
+                            "valid subclass of MethodProvider. ",
+                            provider))
+        else:
+            # pylint: disable=raising-format-tuple
             raise ValueError("provider_type argument {0!A} "
                              "is not a valid provider type. "
                              "Valid provider types are {1!A}.", provider_type,
                              provider_types)
-
-        if not issubclass(provider, InstanceWriteProvider):
-            raise TypeError(
-                _format("provider argument {0!A} is not a "
-                        "valid subclass of InstanceWriteProvider. ",
-                        provider))
 
         if classnames is None:
             raise ValueError(
                 _format('classnames argument must be string '
                         'or list of strings. None not allowed.'))
 
-        if namespaces is None:
-            raise ValueError(
-                _format('namespaces argument must be string '
-                        'or list of strings. None not allowed.'))
+        if not namespaces:
+            namespaces = [self.default_namespace]
 
             if not isinstance(namespaces, (list, tuple, six.string_types)):
                 raise TypeError(
@@ -1170,8 +1097,8 @@ class FakedWBEMConnection(WBEMConnection):
         Mocks the WBEMConnection._methodcall() method. This calls the
         server execution function of extrinsic methods (InvokeMethod).
         """
-        result = self._imeth_InvokeMethod(methodname, localobject,
-                                          Params, **params)
+        result = self._meth_InvokeMethod(methodname, localobject,
+                                         Params, **params)
 
         # Sleep for defined number of seconds
         if self._response_delay:
@@ -1304,11 +1231,11 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-        InstanceName = params['InstanceName']
-        assert InstanceName.namespace is None
-        InstanceName.namespace = namespace
+        instance_name = params['InstanceName']
+        assert instance_name.namespace is None
+        instance_name.namespace = namespace
         instance = self.mainprovider.GetInstance(
-            InstanceName=InstanceName,
+            InstanceName=instance_name,
             LocalOnly=params.get('LocalOnly', None),
             IncludeQualifiers=params.get('IncludeQualifiers', None),
             IncludeClassOrigin=params.get('IncludeClassOrigin', None),
@@ -1390,14 +1317,14 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-        InstanceName = params['InstanceName']
-        assert InstanceName.namespace is None
-        InstanceName.namespace = namespace
+        instance_name = params['InstanceName']
+        assert instance_name.namespace is None
+        instance_name.namespace = namespace
 
         self.providerdispatcher.DeleteInstance(
-            InstanceName=InstanceName)
+            InstanceName=instance_name)
 
-    def ExecQuery(self, namespace, **params):
+    def _imeth_ExecQuery(self, namespace, **params):
         """
         Call :meth:`~pywbem_mock.MainProvider.ExecQuery` with
         parameters defined for that method and map response to tuple response
@@ -1506,6 +1433,7 @@ class FakedWBEMConnection(WBEMConnection):
     # Qualifier declaration operations
 
     def _imeth_EnumerateQualifiers(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Call :meth:`~pywbem_mock.MainProvider.EnumerateQualifiers` with
         parameters defined for that method and map response to tuple response
@@ -1744,6 +1672,7 @@ class FakedWBEMConnection(WBEMConnection):
         return self._make_pull_imethod_resp(*context_tuple)
 
     def _imeth_PullInstancePaths(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Call :meth:`~pywbem_mock.MainProvider.PullInstancePaths` with
         parameters defined for that method and map response to tuple response
@@ -1755,6 +1684,7 @@ class FakedWBEMConnection(WBEMConnection):
         return self._make_pull_imethod_resp(*context_tuple)
 
     def _imeth_PullInstancesWithPath(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Call :meth:`~pywbem_mock.MainProvider.PullInstancesWithPath` with
         parameters defined for that method and map response to tuple response
@@ -1766,6 +1696,7 @@ class FakedWBEMConnection(WBEMConnection):
         return self._make_pull_imethod_resp(*context_tuple)
 
     def _imeth_PullInstances(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Call :meth:`~pywbem_mock.MainProvider.PullInstances` with
         parameters defined for that method and map response to tuple response
@@ -1777,6 +1708,7 @@ class FakedWBEMConnection(WBEMConnection):
         return self._make_pull_imethod_resp(*context_tuple)
 
     def _imeth_CloseEnumeration(self, namespace, **params):
+        # pylint: disable=unused-argument
         """
         Call :meth:`~pywbem_mock.MainProvider.CloseEnumeration` with
         parameters defined for that method. Returns nothing
@@ -1790,7 +1722,7 @@ class FakedWBEMConnection(WBEMConnection):
     #
     ####################################################################
 
-    def _imeth_InvokeMethod(self, methodname, objectname, Params, **params):
+    def _meth_InvokeMethod(self, methodname, objectname, Params, **params):
         # pylint: disable=invalid-name
         """
         Implements a mock WBEM server responder for
@@ -1860,17 +1792,28 @@ class FakedWBEMConnection(WBEMConnection):
               * value (:term:`CIM data type`):
                 Parameter value
         """
-
-        if isinstance(objectname, (CIMInstanceName, CIMClassName)):
+        # pass one the full instance name
+        if isinstance(objectname, CIMInstanceName):
             localobject = objectname.copy()
             if localobject.namespace is None:
                 localobject.namespace = self.default_namespace
                 localobject.host = None
+                namespace = localobject.namespace
+            else:
+                namespace = objectname.namespace
+
+        # pass on only the classname
+        elif isinstance(objectname, (CIMClassName)):
+            localobject = objectname.classname
+            if objectname.namespace is None:
+                namespace = self.default_namespace
+            else:
+                namespace = objectname.namespace
 
         elif isinstance(objectname, six.string_types):
             # a string is always interpreted as a class name
-            localobject = CIMClassName(objectname,
-                                       namespace=self.default_namespace)
+            localobject = objectname
+            namespace = self.default_namespace
 
         else:
             raise TypeError(
@@ -1879,83 +1822,6 @@ class FakedWBEMConnection(WBEMConnection):
                         "- expected one of pywbem.CIMInstanceName, "
                         "pywbem.CIMClassName, or string",
                         methodname, objectname, type(objectname)))
-
-        namespace = localobject.namespace
-
-        # Validate namespace
-        method_repo = self._get_method_repo(namespace)
-
-        # Find the methods entry corresponding to classname. It must be in
-        # the class defined by classname or one of its superclasses that
-        # includes this method. Since the classes in the repo are not
-        # resolved
-
-        # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
-        # Uses local_only = False to get characteristics from super classes
-        # and include_class_origin to get origin of method in hiearchy
-        cc = self.mainprovider.get_class(namespace, localobject.classname,
-                                         local_only=False,
-                                         include_qualifiers=True,
-                                         include_classorigin=True)
-
-        # Determine if method defined in classname defined in
-        # the classorigin of the method
-        try:
-            target_cln = cc.methods[methodname].class_origin
-        except KeyError:
-            raise CIMError(
-                CIM_ERR_METHOD_NOT_FOUND,
-                _format("Method {0!A} not found in class {1!A}.",
-                        methodname, localobject.classname))
-        if target_cln != cc.classname:
-            # Issue #2062: add method to repo that allows privileged users
-            # direct access so we don't have to go through _get_class and can
-            # test classes directly in repo
-            tcc = self.mainprovider.get_class(namespace, target_cln,
-                                              local_only=False,
-                                              include_qualifiers=True,
-                                              include_classorigin=True)
-            if methodname not in tcc.methods:
-                raise CIMError(
-                    CIM_ERR_METHOD_NOT_FOUND,
-                    _format("Method {0!A} not found in origin class {1!A} "
-                            "derived from objectname class {2!A}",
-                            methodname, target_cln, localobject.classname))
-
-        # Test for target class in methods repo
-        try:
-            methods = method_repo[target_cln]
-        except KeyError:
-            raise CIMError(
-                CIM_ERR_METHOD_NOT_FOUND,
-                _format("Class {0!A} for method {1!A} in namespace {2!A} not "
-                        "registered in methods repository",
-                        localobject.classname, methodname, namespace))
-
-        # Test for method in local class.
-        try:
-            cc.methods[methodname]
-        except KeyError:
-            raise CIMError(
-                CIM_ERR_METHOD_NOT_FOUND,
-                _format("Method {0!A} not found in methods repository for "
-                        "class {1!A}", methodname, localobject.classname))
-
-        try:
-            bound_method = methods[methodname]
-        except KeyError:
-            raise CIMError(
-                CIM_ERR_METHOD_NOT_FOUND,
-                _format("Method {0!A} in namespace {1!A} not registered in "
-                        "methods repository. Internal error",
-                        methodname, namespace))
-
-        if bound_method is None:
-            raise CIMError(
-                CIM_ERR_METHOD_NOT_FOUND,
-                _format("Class {0!A} for method {1!A} in registered in "
-                        "methods repository namespace {2!A}",
-                        localobject.classname, methodname, namespace))
 
         # Map the Params and **params into a single no-case dictionary
         # of CIMParameters
@@ -1980,55 +1846,26 @@ class FakedWBEMConnection(WBEMConnection):
         if params:
             for param in params:
                 params_dict[param] = CIMParameter(param,
-                                                  cimtype(param[param]),
-                                                  value=param[param])
-
-        # Call the registered method and catch exceptions.
-        try:
-            result = bound_method(self, methodname, localobject, **params_dict)
-
-        except CIMError:
-            raise
-
-        except Exception:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            tb = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            method_code = bound_method.func_code
-            raise CIMError(
-                CIM_ERR_FAILED,
-                _format("Error in implementation of mocked method {0!A} of "
-                        "class {1!A} (File {2} line {3}): "
-                        "Unhandled Python exception:\n"
-                        "{4}",
-                        methodname, localobject.classname,
-                        method_code.co_filename, method_code.co_firstlineno,
-                        "\n".join(tb)))
+                                                  cimtype(params[param]),
+                                                  value=params[param])
+        result = self.providerdispatcher.InvokeMethod(namespace,
+                                                      methodname,
+                                                      localobject,
+                                                      params_dict)
 
         # test for valid data in response.
         if not isinstance(result, (list, tuple)):
-            method_code = bound_method.func_code
             raise CIMError(
                 CIM_ERR_FAILED,
-                _format("Error in implementation of mocked method {0!A} of "
-                        "class {1!A} (File {2} line {3}): "
-                        "Object returned by mock function has incorrect type "
-                        "{4} - expected list/tuple (CIM value, list/tuple "
-                        "(pywbem.CIMParameter))",
-                        methodname, localobject.classname,
-                        method_code.co_filename, method_code.co_firstlineno,
+                _format("Invalid Response. Must be list or tuple)",
                         type(result)))
         for param in result[1]:
             if not isinstance(param, CIMParameter):
-                method_code = bound_method.func_code
                 raise CIMError(
                     CIM_ERR_FAILED,
-                    _format("Error in implementation of mocked method {0!A} "
-                            "of class {1!A} (File {2} line {3}): "
-                            "Output parameter has incorrect type {4} "
-                            "- expected pywbem.CIMParameter",
-                            methodname, localobject.classname,
-                            method_code.co_filename, method_code.co_firstlineno,
-                            type(param)))
+                    _format('Invalid response {0}. Must be CIMParameter. '
+                            'Type {1} received',
+                            param, type(param)))
 
         # Map output params to NocaseDict to be compatible with return
         # from _methodcall. The input list is just CIMParameters

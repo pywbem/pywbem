@@ -69,7 +69,8 @@ import six
 
 from pywbem import CIMInstance, CIMInstanceName, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
-    CIM_ERR_ALREADY_EXISTS
+    CIM_ERR_ALREADY_EXISTS, CIM_ERR_METHOD_NOT_AVAILABLE, \
+    CIM_ERR_METHOD_NOT_FOUND
 
 from pywbem._utils import _format
 
@@ -78,7 +79,7 @@ from ._baseprovider import BaseProvider
 # None of the request method names conform since they are camel case
 # pylint: disable=invalid-name
 
-__all__ = ['InstanceWriteProvider']
+__all__ = ['InstanceWriteProvider', 'MethodProvider']
 
 
 def validate_inst_props(namespace, target_class, instance):
@@ -308,6 +309,51 @@ class ProviderDispatcher(BaseProvider):
 
         return self.default_instance_provider.DeleteInstance(
             InstanceName)
+
+    def InvokeMethod(self, namespace, methodname, objectname, Params):
+        """
+        Default Method provider.
+        NOTE: There is no default method provider because all method
+        providers provide specific functionality and there is no way
+        to do that in a default method provider.
+        """
+        # Validate input parameters
+        self.validate_namespace(namespace)
+
+        assert isinstance(objectname, (CIMInstanceName, six.string_types))
+
+        classname = objectname.classname \
+            if isinstance(objectname, CIMInstanceName) else objectname
+
+        # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
+        # Uses local_only = False to get characteristics from super classes
+        # and include_class_origin to get origin of method in hierarchy
+        cc = self.get_class(namespace, classname,
+                            local_only=False,
+                            include_qualifiers=True,
+                            include_classorigin=True)
+
+        # Determine if method defined in classname defined in
+        # the classorigin of the method
+        try:
+            cc.methods[methodname].class_origin
+        except KeyError:
+            raise CIMError(
+                CIM_ERR_METHOD_NOT_FOUND,
+                _format("Method {0!A} not found in class {1!A}.",
+                        methodname, classname))
+
+        provider = self.get_registered_provider(namespace,
+                                                'method',
+                                                classname)
+        if provider:
+            providerinst = provider(self.cimrepository)
+            return providerinst.InvokeMethod(namespace, methodname,
+                                             objectname, Params)
+
+        # There is no default method provider so no user InvokeMethod
+        # is defined for namespace and class, exception raise.
+        raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
 
 
 class InstanceWriteProvider(BaseProvider):
@@ -575,7 +621,7 @@ class InstanceWriteProvider(BaseProvider):
         if PropertyList is not None and not PropertyList:
             return
 
-        # Get class including inherited from CIM repository
+        # Get class including inherited properties from CIM repository
         try:
             target_class = self.get_class(
                 namespace,
@@ -667,21 +713,22 @@ class InstanceWriteProvider(BaseProvider):
                             "not exposed by class {1!A} in namespace {2!A}",
                             pname, target_class.classname, namespace))
 
-            cprop = target_class.properties[pname]
-            iprop = modified_instance.properties[pname]
-            if iprop.is_array != cprop.is_array \
-                    or iprop.type != cprop.type \
-                    or iprop.array_size != cprop.array_size:
+            classprop = target_class.properties[pname]
+            instprop = modified_instance.properties[pname]
+            if instprop.is_array != classprop.is_array \
+                    or instprop.type != classprop.type \
+                    or instprop.array_size != classprop.array_size:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Instance and class property name={0!A} type "
                             "or other attributes do not match: "
                             "instance={1!A}, class={2!A}",
-                            pname, iprop, cprop))
+                            pname, instprop, classprop))
             # If case of modified_instance property != case of class property
             # change the name in the modified_instance
-            if iprop.name != cprop.name:
-                modified_instance.properties[iprop.name].name = cprop.name
+            if instprop.name != classprop.name:
+                modified_instance.properties[instprop.name].name = \
+                    classprop.name
 
         # Modify the value of properties in the repo with those from
         # modified instance inserted into the original instance
@@ -761,3 +808,91 @@ class InstanceWriteProvider(BaseProvider):
 
         # Delete the instance from the CIM repository
         instance_store.delete(InstanceName)
+
+
+class MethodProvider(BaseProvider):
+    """
+    This class defines those instance provider methods that may have user-
+    defined providers that override the default provider implementation in this
+    class.
+
+    User providers are defined by creating a subclass of this class and
+    defining an InvokeMethod based on the method in this class.
+
+    """
+    def __init__(self, cimrepository=None):
+        """
+        Initialize the instance variables.
+
+        Parameters:
+
+          cimrepository (:class:`~pywbem_mock.InMemoryRepository` or subclass):
+            Defines the repository to be used by request responders.  The
+            repository is fully initialized.
+        """
+
+        if cimrepository:
+            self.cimrepository = cimrepository
+
+    ####################################################################
+    #
+    #   Server responder for InvokeMethod.
+    #
+    ####################################################################
+
+    def InvokeMethod(self, namespace, methodname, objectname, Params):
+        # pylint: disable=invalid-name
+        """
+        Defines the API and return for a mock WBEM server responder for
+        :meth:`~pywbem.WBEMConnection.InvokeMethod`
+
+        This method should never be called.
+
+        This responder calls a function defined by an entry in the methods
+        repository. The return from that function is returned to the user.
+
+        Parameters:
+
+          MethodName (:term:`string`):
+            Name of the method to be invoked (case independent).
+
+          ObjectName:
+            The object path of the target object, as follows:
+
+            * For instance-level use: The instance path of the target
+              instance, as a :class:`~pywbem.CIMInstanceName` object.
+              If this object does not specify a namespace, the default namespace
+              of the connection is used.
+              Its `namespace`, and `host` attributes will be ignored.
+
+            * For class-level use: The class path of the target class, as a
+              :term:`string`:
+
+              The string is interpreted as a class name in the default
+              namespace of the connection (case independent).
+
+          Params (:term:`py:iterable`):
+            An iterable of input parameter values for the CIM method. Each item
+            in the iterable is a single parameter value and is:
+
+            * :class:`~pywbem.CIMParameter` representing a parameter value. The
+              `name`, `value`, `type` and `embedded_object` attributes of this
+              object are used.
+
+        Returns:
+
+            A :func:`py:tuple` of (returnvalue, outparams), with these
+            tuple items:
+
+            * returnvalue (:term:`CIM data type`):
+              Return value of the CIM method.
+            * outparams (:term:`py:iterable` of :class:`~pywbem.CIMParameter`):
+              Each item represents a single output parameter of the CIM method.
+              The :class:`~pywbem.CIMParameter` objects must have at least
+              the following properties set:
+
+                * name (:term:`string`): Parameter name (case independent).
+                * type (:term:`string`): CIM data type of the parameter.
+                * value (:term:`CIM data type`): Parameter value.
+        """
+        raise NotImplementedError

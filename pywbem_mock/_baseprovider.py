@@ -75,9 +75,10 @@ INSTANCE_RETRIEVE_LOCAL_ONLY = False
 class BaseProvider(object):
     """
     BaseProvider is the top level class in the provider hiearchy and includes
-    methods required by the subclasses such as MainProvider and
-    InstanceWriteProvider.  This class is not intended to be executed
-    directly.
+    methods required by the subclasses such as MainProvider,
+    InstanceWriteProvider, and MethodProvider and by the users that create user
+    providers based on these classes.  This class is not intended to be
+    executed directly.
     """
 
     def __init__(self):
@@ -128,13 +129,13 @@ class BaseProvider(object):
     @property
     def namespaces(self):
         """
-        Return the namespaces that exist in the CIM repository.
+        Return a list of namespaces that exist in the CIM repository.
         """
         return self.cimrepository.namespaces
 
     ###############################################################
     #
-    #   Access  to data store
+    #   Access to data store
     #
     #   The following methods provide access to the data store for
     #   a single namespace. There are separate methods to provide
