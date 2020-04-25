@@ -71,8 +71,8 @@ response into the next request).
 
 The following table shows the possible combinations of protocol, TLS/SSL level
 and HTTP level authentication schemes, which information items need to be
-provided to the WBEM client API, and whether the combination is supported
-by pywbem:
+provided to the :ref:`WBEM client library`, and whether the combination is
+supported by pywbem:
 
 ======== ========== =========== =========== ============ ======== =========
 Protocol SSL auth.  HTTP auth.  Credentials Client cert. CA cert. Supported
@@ -110,8 +110,8 @@ WBEM server are set by the user when creating the
 * The `cred` parameter may specify credentials (userid/password). If specified,
   pywbem uses them for Basic Authentication at the HTTP level. Pywbem provides
   an ``Authenticate`` HTTP header on each request, and also handles server
-  challenges transparently to the user of the WBEM client API, by retrying the
-  original request.
+  challenges transparently to the user of the :ref:`WBEM client library`, by
+  retrying the original request.
 * The `x509` parameter may specify an X.509 client certificate and key. If
   specified, pywbem uses 2-way authentication; otherwise it uses 1-way
   authentication at the TLS/SSL level.

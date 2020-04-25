@@ -2496,7 +2496,7 @@ def _print_logger(msg):
 
 class MOFCompiler(object):
     """
-    A MOF compiler. See :ref:`MOF Compiler API` for an explanation of MOF
+    A MOF compiler. See :ref:`MOF Compiler` for an explanation of MOF
     compilers in general.
 
     A MOF compiler may be associated with one CIM repository. The repository is

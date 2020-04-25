@@ -1,8 +1,8 @@
 
-.. _`WBEM server API`:
+.. _`WBEM server library`:
 
-WBEM server API
-===============
+WBEM server library
+===================
 
 .. automodule:: pywbem._server
 

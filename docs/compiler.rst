@@ -1,8 +1,8 @@
 
-.. _`MOF compiler API`:
+.. _`MOF compiler`:
 
-MOF compiler API
-================
+MOF compiler
+============
 
 .. automodule:: pywbem._mof_compiler
 
