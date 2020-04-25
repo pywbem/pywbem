@@ -17,17 +17,20 @@
 """
 *New in pywbem 0.9 as experimental and finalized in 0.10.*
 
-The WBEM server API encapsulates certain functionality of a WBEM server for use
-by a WBEM client application, such as determining the Interop namespace of the
-server, or the management profiles advertised by the server.
+The WBEM server library API of pywbem encapsulates certain functionality of a
+WBEM server for use by a WBEM client application, such as determining the
+Interop namespace and other basic information about the server, or the
+management profiles advertised by the server.
 
 This chapter has the following sections:
 
-* :ref:`Example <Server Example>` - An example on how to use the API.
+* :ref:`Example <Server Example>` - An example on how to use the WBEM server
+  library API.
 
 * :ref:`WBEMServer` - The :class:`~pywbem.WBEMServer` class serves as a general
   access point for clients to WBEM servers. It allows determining the Interop
-  namespace of the server, or the advertised management profiles.
+  namespace of the server and other basic information about the server, or the
+  advertised management profiles.
 
 .. _`Server Example`:
 

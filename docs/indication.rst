@@ -1,21 +1,18 @@
 
-.. _`WBEM indication API`:
+.. _`WBEM indication listener`:
 
-WBEM indication API
-===================
+WBEM indication listener
+========================
 
 *New in pywbem 0.9 as experimental and finalized in 0.10.*
 
-The WBEM indication API supports subscription for and receiving of CIM
-indications.
+The WBEM indication listener API supports creating and managing a thread-based
+WBEM listener that waits for indications (i.e. events) emitted by a WBEM
+server using the CIM-XML protocol. The API supports registering callback
+functions that get called when indications are received by the listener.
 
-This chapter has the following sections:
-
-* :ref:`WBEMListener` - The :class:`~pywbem.WBEMListener` class provides a
-  thread-based WBEM listener service for receiving indications.
-
-* :ref:`WBEMSubscriptionManager` - The :class:`~pywbem.WBEMSubscriptionManager`
-  class provides for managing subscriptions for indications.
+See :ref:`WBEM subscription manager` for the API for viewing and managing
+subscriptions for indications on a WBEM server.
 
 
 .. _`WBEMListener`:
@@ -42,27 +39,3 @@ WBEMListener
    .. rubric:: Details
 
 .. autofunction:: pywbem.callback_interface
-
-
-.. _`WBEMSubscriptionManager`:
-
-WBEMSubscriptionManager
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: pywbem._subscription_manager
-
-.. autoclass:: pywbem.WBEMSubscriptionManager
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.WBEMSubscriptionManager
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.WBEMSubscriptionManager
-      :attributes:
-
-   .. rubric:: Details

@@ -13,40 +13,65 @@ Introduction
 Functionality
 -------------
 
-Pywbem supports the following functionality:
+The pywbem components all run on the client side and communicate with a remote
+WBEM server using the standard CIM operations over HTTP (CIM-XML) protocol
+defined in the DMTF standards :term:`DSP0200` and :term:`DSP0201`.
 
-* :ref:`WBEM client library API`
+Pywbem provides the following Python APIs:
 
-  This API supports issuing WBEM operations to a WBEM server, using the CIM
+* :ref:`WBEM client library`
+
+  An API that supports issuing WBEM operations to a WBEM server, using the CIM
   operations over HTTP (CIM-XML) protocol defined in the DMTF standards
   :term:`DSP0200` and :term:`DSP0201`.
 
-* :ref:`WBEM server API`
+* :ref:`WBEM server library`
 
-  This API encapsulates certain functionality of a WBEM server for use by a
-  WBEM client application, such as determining the Interop namespace of the
-  server, or the management profiles advertised by the server.
+  An API that encapsulates certain functionality of a WBEM server for use by a
+  WBEM client application, such as determining the Interop namespace and other
+  basic information about the server, or the management profiles advertised by
+  the server.
 
-* :ref:`WBEM indication API`
+* :ref:`WBEM indication listener`
 
-  This API supports starting and stopping a WBEM listener that waits for
-  indications (i.e. events) emitted by a WBEM server using the CIM-XML
-  protocol. The API also supports managing subscriptions for such indications.
+  An API for creating and managing a thread-based WBEM listener that waits for
+  indications (i.e. event notifications) emitted by a WBEM server using the
+  CIM-XML protocol. The API supports registering callback functions that get
+  called when indications are received by the listener.
 
-* :ref:`MOF compiler API`
+* :ref:`WBEM subscription manager`
 
-  This API provides for invoking the MOF compiler and for plugging in your own
-  CIM repository into the MOF compiler.
+  An API for viewing and managing subscriptions for indications on a WBEM
+  server.
 
-* :ref:`WBEM utility commands`
+* :ref:`MOF compiler`
 
-  Pywbem includes a few utility commands:
+  An API for compiling MOF files or strings into a CIM repository (e.g. on a
+  WBEM server), or for test-compiling MOF.
 
-  * :ref:`mof_compiler`
+* :ref:`Mock support`
 
-    A MOF compiler that takes MOF files as input and updates the CIM repository
-    of a WBEM server with the result. See :term:`DSP0004` for a definition of
-    MOF.
+  An API for setting up a mocked WBEM server that is used instead of a real
+  WBEM server. This allows setting up well-defined WBEM servers locally that
+  can be used for example for prototyping or testing user applications.
+
+Pywbem also provides a command line utility:
+
+* :ref:`mof_compiler`
+
+  A MOF compiler that takes MOF files as input and compiles them into a CIM
+  repository (e.g. on a WBEM server). See :term:`DSP0004` for a definition of
+  MOF.
+
+The related `pywbemtools project`_ provides this command line utility:
+
+* `pywbemcli`_
+
+  A client-side command line interface for a WBEM server, supporting a command
+  line mode and an interactive (repl) mode.
+
+.. _pywbemtools project: https://github.com/pywbem/pywbemtools
+.. _pywbemcli: https://pywbemtools.readthedocs.io/en/stable/pywbemcli
 
 
 .. _`Supported environments`:
@@ -379,10 +404,10 @@ to the standards:
 
 * The mechanisms for discovering the Interop namespace of a WBEM server and the
   management profiles advertised by a WBEM server and their central instances
-  in the :ref:`WBEM server API` conform to :term:`DSP1033`.
+  in the :ref:`WBEM server library` conform to :term:`DSP1033`.
 
 * The mechanisms for subscribing for CIM indications in the
-  :ref:`WBEM indication API` conform to :term:`DSP1054`.
+  :ref:`WBEM indication listener` conform to :term:`DSP1054`.
 
 
 .. _`Deprecation and compatibility policy`:
@@ -479,7 +504,7 @@ New sub-modules added since pywbem v0.8 have a leading underscore in their name
 in order to document that they are considered an implementation detail and that
 they should not be imported by users.
 
-With pywbem versions prior to v0.11, the :ref:`MOF compiler API` was only
+With pywbem versions prior to v0.11, the :ref:`MOF compiler` API was only
 available in the ``pywbem.mof_compiler`` namespace. Starting with pywbem
 version v0.11, it is also available in the ``pywbem`` namespace and should be
 used from there.
