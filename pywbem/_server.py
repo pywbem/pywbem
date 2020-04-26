@@ -17,7 +17,7 @@
 """
 *New in pywbem 0.9 as experimental and finalized in 0.10.*
 
-The WBEM server library API of pywbem encapsulates certain functionality of a
+The WBEM server library API of pywbem encapsulates selected functionality of a
 WBEM server for use by a WBEM client application, such as determining the
 Interop namespace and other basic information about the server, or the
 management profiles advertised by the server.

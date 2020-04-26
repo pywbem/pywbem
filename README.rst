@@ -49,13 +49,14 @@ Functionality
 
 The major components of pywbem are shown in this diagram:
 
-.. image:: images/pywbemcomponents.png
-    :width: 400px
-    :align: right
-    :height: 250px
-    :alt: alternate text
+.. image:: images/pywbemcomponents.svg
+   :alt: mywbem components
 
-These pywbem components all run on the client side and communicate with a remote
+The green components all have Python APIs for use by user applications.
+The yellow components are command line utilities.
+The blue components are not part of the pywbem or pywbemtools packages.
+
+The pywbem components all run on the client side and communicate with a remote
 WBEM server using the standard CIM operations over HTTP (CIM-XML) protocol
 defined by the DMTF.
 
@@ -65,7 +66,7 @@ Pywbem provides the following Python APIs:
   WBEM server, using the CIM operations over HTTP (CIM-XML) protocol defined
   by the DMTF.
 
-* `WBEM Server Library`_ - An API that encapsulates certain functionality of a
+* `WBEM Server Library`_ - An API that encapsulates selected functionality of a
   WBEM server for use by a WBEM client application, such as determining the
   Interop namespace and other basic information about the server, or the
   management profiles advertised by the server.
