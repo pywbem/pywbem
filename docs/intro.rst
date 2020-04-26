@@ -27,7 +27,7 @@ Pywbem provides the following Python APIs:
 
 * :ref:`WBEM server library`
 
-  An API that encapsulates certain functionality of a WBEM server for use by a
+  An API that encapsulates selected functionality of a WBEM server for use by a
   WBEM client application, such as determining the Interop namespace and other
   basic information about the server, or the management profiles advertised by
   the server.
