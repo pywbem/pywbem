@@ -438,7 +438,7 @@ class BaseProvider(object):
         Exception if the namespace does not exist
         """
         class_store = self.get_class_store(namespace)
-        return class_store.exists(classname)
+        return class_store.object_exists(classname)
 
     @staticmethod
     def filter_properties(obj, property_list):
@@ -487,7 +487,7 @@ class BaseProvider(object):
 
         """
 
-        if instance_store.exists(instance_name):
+        if instance_store.object_exists(instance_name):
             if copy_inst:
                 return instance_store.get(instance_name).copy()
             return instance_store.get(instance_name)

@@ -96,7 +96,7 @@ class BaseObjectStore(object):
         self._cim_object_type = cim_object_type
 
     @abstractmethod
-    def exists(self, name):
+    def object_exists(self, name):
         """
         Test if the CIM object identified by name exists in the object store.
 

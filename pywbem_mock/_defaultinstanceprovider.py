@@ -293,7 +293,7 @@ class ProviderDispatcher(BaseProvider):
                         InstanceName.classname, namespace, InstanceName))
 
         instance_store = self.get_instance_store(namespace)
-        if not instance_store.exists(InstanceName):
+        if not instance_store.object_exists(InstanceName):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Instance {0!A} not found in CIM repository namespace "

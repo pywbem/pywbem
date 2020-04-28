@@ -157,7 +157,7 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     xxx_repo.create(name, obj)
 
     # confirm that exists works
-    assert xxx_repo.exists(name)
+    assert xxx_repo.object_exists(name)
 
     # Test len()
     assert xxx_repo.len() == 1
@@ -183,7 +183,7 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
 
     # Test valid delete of object
     xxx_repo.delete(name)
-    assert not xxx_repo.exists(name)
+    assert not xxx_repo.object_exists(name)
     assert xxx_repo.len() == 0
 
     # Test errors
@@ -209,7 +209,7 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
         pass
 
     # Test exists; entity should not exist
-    assert not xxx_repo.exists(name)
+    assert not xxx_repo.object_exists(name)
 
     # Test create with existing object
     xxx_repo.create(name, obj)
@@ -421,8 +421,8 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     for type_dict, obj_dict in input_items.items():
         xxx_repo = repos[type_dict]
         for name, obj in obj_dict.items():
-            assert xxx_repo.exists(name), '{} exists() fail {}'.format(desc,
-                                                                       name)
+            assert xxx_repo.object_exists(name), '{} exists() fail {}' \
+                .format(desc, name)
 
             rtnd_obj = xxx_repo.get(name)
             assert rtnd_obj == input_items[type_dict][name]
