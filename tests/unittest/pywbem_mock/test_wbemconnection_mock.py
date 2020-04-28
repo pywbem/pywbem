@@ -1705,15 +1705,15 @@ class TestRepoMethods(object):
         # pylint: disable=protected-access
         qual_repo = conn._get_qualifier_store(exp_ns)
 
-        assert qual_repo.exists('Association')
+        assert qual_repo.object_exists('Association')
         conn.compile_mof_string(q2, ns)
 
         qual_repo = conn._get_qualifier_store(exp_ns)
         # pylint: enable=protected-access
 
-        assert qual_repo.exists('Association')
-        assert qual_repo.exists('Description')
-        assert qual_repo.exists('Key')
+        assert qual_repo.object_exists('Association')
+        assert qual_repo.object_exists('Description')
+        assert qual_repo.object_exists('Key')
 
         assert conn.GetQualifier('Association', namespace=ns)
         assert conn.GetQualifier('Description', namespace=ns)

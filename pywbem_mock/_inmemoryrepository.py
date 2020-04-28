@@ -101,7 +101,7 @@ class InMemoryObjectStore(BaseObjectStore):
                        self._cim_object_type, type(self._data),
                        len(self._data))
 
-    def exists(self, name):
+    def object_exists(self, name):
         return name in self._data
 
     def get(self, name, copy=True):

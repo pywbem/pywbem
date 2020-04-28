@@ -81,7 +81,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         """
         if qualifier_store is None:
             return
-        if not qualifier_store.exists(qualifier.name):
+        if not qualifier_store.object_exists(qualifier.name):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Qualifier declaration {0!A} required by CreateClass "
@@ -101,7 +101,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         5. Whether the qualifier should be propagated to the subclass.
         """
         for qname, qvalue in qualifier_list.items():
-            if not qualifier_store.exists(qname):
+            if not qualifier_store.object_exists(qname):
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Qualifier {0!A} used in new class {1!A} "
@@ -151,7 +151,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         Initialize the flavors of a qualifier declaration if they are not
         already set.
         """
-        assert qualifier_store.exists(qualifier_decl.name)
+        assert qualifier_store.object_exists(qualifier_decl.name)
         if qualifier_decl.tosubclass is None:
             qualifier_decl.tosubclass = True
         if qualifier_decl.overridable is None:

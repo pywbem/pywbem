@@ -167,7 +167,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         # Exception if duplicate. NOTE: compiler overrides this with
         # modify instance.
         instance_store = self.repo.get_instance_store(namespace)
-        if instance_store.exists(inst.path):
+        if instance_store.object_exists(inst.path):
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
                 _format('CreateInstance failed. Instance with path {0!A} '
@@ -201,7 +201,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
-        if not instance_store.exists(mod_inst.path):
+        if not instance_store.object_exists(mod_inst.path):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format('ModifyInstance failed. No instance exists. '
@@ -360,7 +360,7 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         # If the class exists, update it. Otherwise create it
         # TODO: Validate that this is correct behavior. That is what the
         # original MOFWBEMConnection does.
-        if class_store.exists(ccr.classname):
+        if class_store.object_exists(ccr.classname):
             class_store.update(ccr.classname, ccr)
         else:
             class_store.create(ccr.classname, ccr)

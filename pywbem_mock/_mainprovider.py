@@ -434,7 +434,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             CIMError: (CIM_ERR_INVALID_CLASS) if classname not in CIM repository
         """
 
-        if not class_store.exists(classname):
+        if not class_store.object_exists(classname):
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
                 _format("Class {0!A} not found in namespace {1!A}.",
@@ -785,7 +785,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         if ClassName:
             assert(isinstance(ClassName, six.string_types))
-            if not class_store.exists(ClassName):
+            if not class_store.object_exists(ClassName):
                 raise CIMError(
                     CIM_ERR_INVALID_CLASS,
                     _format("The class {0!A} defined by 'ClassName' parameter "
@@ -867,7 +867,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         if ClassName:
             assert(isinstance(ClassName, six.string_types))
-            if not class_store.exists(ClassName):
+            if not class_store.object_exists(ClassName):
                 raise CIMError(
                     CIM_ERR_INVALID_CLASS,
                     _format("The class {0!A} defined by 'ClassName' parameter "
@@ -1012,7 +1012,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         self.validate_namespace(namespace)
         class_store = self.get_class_store(namespace)
 
-        if class_store.exists(NewClass.classname):
+        if class_store.object_exists(NewClass.classname):
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
                 _format("Class {0!A} already exists in namespace {1!A}.",
@@ -1104,7 +1104,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         class_store = self.get_class_store(namespace)
         instance_store = self.get_instance_store(namespace)
 
-        if not class_store.exists(ClassName):
+        if not class_store.object_exists(ClassName):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Class {0!A} in namespace {1!A} not in CIM repository. "
@@ -1312,7 +1312,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         self.validate_namespace(namespace)
         qualifier_store = self.get_qualifier_store(namespace)
 
-        if qualifier_store.exists(QualifierName):
+        if qualifier_store.object_exists(QualifierName):
             qualifier_store.delete(QualifierName)
         else:
             raise CIMError(
@@ -1853,7 +1853,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         class_store = self.get_class_store(namespace)
 
         # DSP0200 specifies INVALID_PARAMETER and not INVALID_CLASS
-        if not class_store.exists(instname.classname):
+        if not class_store.object_exists(instname.classname):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Class {0!A} not found in namespace {1!A}.",
