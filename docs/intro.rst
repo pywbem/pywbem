@@ -13,60 +13,61 @@ Introduction
 Functionality
 -------------
 
+The major components of pywbem are shown in this diagram:
+
+.. image:: ../images/pywbemcomponents.svg
+   :alt: pywbem components
+
+The green components all have Python APIs for use by user applications.
+The yellow components are command line utilities.
+The blue components are not part of the pywbem or pywbemtools packages.
+
 The pywbem components all run on the client side and communicate with a remote
 WBEM server using the standard CIM operations over HTTP (CIM-XML) protocol
 defined in the DMTF standards :term:`DSP0200` and :term:`DSP0201`.
 
 Pywbem provides the following Python APIs:
 
-* :ref:`WBEM client library`
-
+* :ref:`WBEM client library` -
   An API that supports issuing WBEM operations to a WBEM server, using the CIM
   operations over HTTP (CIM-XML) protocol defined in the DMTF standards
   :term:`DSP0200` and :term:`DSP0201`.
 
-* :ref:`WBEM server library`
-
+* :ref:`WBEM server library` -
   An API that encapsulates selected functionality of a WBEM server for use by a
   WBEM client application, such as determining the Interop namespace and other
   basic information about the server, or the management profiles advertised by
   the server.
 
-* :ref:`WBEM indication listener`
-
+* :ref:`WBEM indication listener` -
   An API for creating and managing a thread-based WBEM listener that waits for
   indications (i.e. event notifications) emitted by a WBEM server using the
   CIM-XML protocol. The API supports registering callback functions that get
   called when indications are received by the listener.
 
-* :ref:`WBEM subscription manager`
-
+* :ref:`WBEM subscription manager` -
   An API for viewing and managing subscriptions for indications on a WBEM
   server.
 
-* :ref:`MOF compiler`
-
+* :ref:`MOF compiler` -
   An API for compiling MOF files or strings into a CIM repository (e.g. on a
   WBEM server), or for test-compiling MOF.
 
-* :ref:`Mock support`
-
+* :ref:`Mock support` -
   An API for setting up a mocked WBEM server that is used instead of a real
   WBEM server. This allows setting up well-defined WBEM servers locally that
   can be used for example for prototyping or testing user applications.
 
 Pywbem also provides a command line utility:
 
-* :ref:`mof_compiler`
-
+* :ref:`mof_compiler` -
   A MOF compiler that takes MOF files as input and compiles them into a CIM
   repository (e.g. on a WBEM server). See :term:`DSP0004` for a definition of
   MOF.
 
 The related `pywbemtools project`_ provides this command line utility:
 
-* `pywbemcli`_
-
+* `pywbemcli`_ -
   A client-side command line interface for a WBEM server, supporting a command
   line mode and an interactive (repl) mode.
 

@@ -50,7 +50,7 @@ Functionality
 The major components of pywbem are shown in this diagram:
 
 .. image:: images/pywbemcomponents.svg
-   :alt: mywbem components
+   :alt: pywbem components
 
 The green components all have Python APIs for use by user applications.
 The yellow components are command line utilities.
