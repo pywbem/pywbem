@@ -98,15 +98,15 @@ The related `pywbemtools project`_ provides this command line utility:
 * `pywbemcli`_ - A client-side command line interface for a WBEM server,
   supporting a command line mode and an interactive (repl) mode.
 
-.. _WBEM Client Library: https://pywbem.readthedocs.io/en/stable/client.html
-.. _WBEM Server Library: https://pywbem.readthedocs.io/en/stable/server.html
-.. _WBEM Indication Listener: https://pywbem.readthedocs.io/en/stable/indication.html
-.. _WBEM Subscription Manager: https://pywbem.readthedocs.io/en/stable/subscription.html
-.. _MOF Compiler: https://pywbem.readthedocs.io/en/stable/compiler.html
-.. _Mock Support: https://pywbem.readthedocs.io/en/stable/mocksupport.html
-.. _mof_compiler: https://pywbem.readthedocs.io/en/stable/utilities.html#mof-compiler
+.. _WBEM Client Library: https://pywbem.readthedocs.io/en/latest/client.html
+.. _WBEM Server Library: https://pywbem.readthedocs.io/en/latest/server.html
+.. _WBEM Indication Listener: https://pywbem.readthedocs.io/en/latest/indication.html
+.. _WBEM Subscription Manager: https://pywbem.readthedocs.io/en/latest/subscription.html
+.. _MOF Compiler: https://pywbem.readthedocs.io/en/latest/compiler.html
+.. _Mock Support: https://pywbem.readthedocs.io/en/latest/mocksupport.html
+.. _mof_compiler: https://pywbem.readthedocs.io/en/latest/utilities.html#mof-compiler
 .. _pywbemtools project: https://github.com/pywbem/pywbemtools
-.. _pywbemcli: https://pywbemtools.readthedocs.io/en/stable/pywbemcli
+.. _pywbemcli: https://pywbemtools.readthedocs.io/en/latest/pywbemcli
 
 
 Installation
@@ -126,7 +126,7 @@ Since version 1.0.0, pywbem has no more OS-level prerequisite packages.
 For more details and alternative ways to install, see the
 `Installation section`_ in the pywbem documentation.
 
-.. _Installation section: https://pywbem.readthedocs.io/en/stable/intro.html#installation
+.. _Installation section: https://pywbem.readthedocs.io/en/latest/intro.html#installation
 
 Documentation
 -------------
@@ -134,16 +134,16 @@ Documentation
 * `Documentation`_ - Concepts, tutorials, Python API, command line tools,
   and developer documentation.
 
-.. _Documentation: https://pywbem.readthedocs.io/en/stable/
+.. _Documentation: https://pywbem.readthedocs.io/en/latest/
 
 * `Tutorial`_ - The tutorials in the documentation are provided as Jupyter
   notebooks and provide working examples of pywbem API usage.
 
-.. _Tutorial: https://pywbem.readthedocs.io/en/stable/tutorial.html
+.. _Tutorial: https://pywbem.readthedocs.io/en/latest/tutorial.html
 
 * `Change log`_ - Detailed change history in the documentation.
 
-.. _Change log: https://pywbem.readthedocs.io/en/stable/changes.html
+.. _Change log: https://pywbem.readthedocs.io/en/latest/changes.html
 
 * `Presentations`_ - status, concepts, and implementation of pywbem.
 
@@ -203,7 +203,7 @@ Contributing
 For information on how to contribute to pywbem, see the
 `Contributing section`_ in the pywbem documentation.
 
-.. _Contributing section: https://pywbem.readthedocs.io/en/stable/development.html#contributing
+.. _Contributing section: https://pywbem.readthedocs.io/en/latest/development.html#contributing
 
 
 License
