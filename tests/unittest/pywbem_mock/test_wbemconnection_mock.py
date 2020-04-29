@@ -970,7 +970,7 @@ class TestFakedWBEMConnection(object):
             operation_fail(conn.OpenReferenceInstancePaths, path)
             operation_fail(conn.OpenAssociatorInstancePaths, path)
             operation_fail(conn.OpenAssociatorInstancePaths, path)
-            # TODO: Future add this tfail(conn.OpenQueryInstances,
+            # Future add this tfail(conn.OpenQueryInstances,
             #                     tst_class, 'WQL', "SELECT FROM CIM_Foo" )
 
         else:
@@ -980,7 +980,7 @@ class TestFakedWBEMConnection(object):
             conn.OpenReferenceInstancePaths(path)
             conn.OpenAssociatorInstancePaths(path)
             conn.OpenAssociatorInstancePaths(path)
-            # TODO: Future conn.OpenQueryInstances
+            # TFuture conn.OpenQueryInstances
             #       (tst_class, 'WQL', "SELECT FROM CIM_Foo" )
 
     def test_repr(self):
@@ -1265,9 +1265,11 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        lo = False   # TODO: expand test to use lo parameterized.
-        # since lo is deprecated we might just drop it and always
-        # go false.
+        lo = False
+
+        # Issue # 2327 TODO : xpand test to use lo parameterized.
+        # since lo is deprecated with a default  and options in config.py
+        # we need to test all these options.
 
         assert ns is not None
 
@@ -1370,20 +1372,10 @@ class TestRepoMethods(object):
         """
         pass
 
-    @staticmethod
-    def fuzzy_callback(conn, methodname, object_name, **params):
-        """
-        TODO: Remove this code. It is obsolete.
-        Test callback function for fuzzy method. Not really used but
-           installed to define function
-        """
-        pass
-
     @pytest.mark.skip(reason="Used only to display repo so not real test.")
     def test_disp_repo_tostdout(self, conn, tst_instances_mof):
         """
         Test method used only for manual tests.
-        TODO: This test can be removed before we finalize mock
         """
         skip_if_moftab_regenerated()
         namespaces = ['interop']
@@ -1497,15 +1489,24 @@ class TestRepoMethods(object):
         assert os.path.isfile(tst_file)
         with open(tst_file, 'r') as f:
             data = f.read()
+        # test key parts of resulting file.
         assert data.startswith(
             "// ========Mock Repo Display fmt=mof namespaces=all")
         assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in data
+        assert "NAMESPACE 'root/cimv2'"
+        assert "Namespace 'root/cimv2': contains 9 Qualifier Declarations"
         assert 'instance of CIM_Foo {' in data
         assert 'Qualifier Abstract : boolean = false,' in data
-        os.remove(tst_file)
+        assert "// Namespace 'root/cimv2': contains 5 Classes"
+        assert "class CIM_Foo {"
 
-    # TODO: Add test of format of the repo output with a very simple schema
-    #       to keep the comparison small.
+        assert '[Description ( "blah blah" )]'
+        assert "class CIM_Foo_nokey {"
+        assert "class CIM_Foo_sub_sub : CIM_Foo_sub {"
+        assert "// Namespace 'root/cimv2': contains 8 Instances"
+        assert 'cimfoo_sub_sub = "data sub_sub22";'
+        assert "// ============End Repository================="
+        os.remove(tst_file)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -1646,7 +1647,7 @@ class TestRepoMethods(object):
         """
         Test _remove_namespace()
         """
-        # TODO: This test goes back and forth between the methods in
+        # Issue #2327 TODO: This test goes back and forth between the methods in
         # wbemconnectionfake, mainprovider, and datastore. Make consistent
 
         conn = FakedWBEMConnection()
@@ -1686,11 +1687,6 @@ class TestRepoMethods(object):
             Scope(property, reference),
             Flavor(DisableOverride, ToSubclass);
         """
-
-        # TODO: KS need to allow set of existing qualifier.
-        # Qualifier Description : string = null,
-        #    Scope(any),
-        #    Flavor(EnableOverride, ToSubclass, Translatable);
 
         cmof = u"""
         class CIM_Foo {
@@ -1762,10 +1758,9 @@ class TestRepoMethods(object):
         i3 = """
         instance of CIM_Foo as $foo3 { InstanceID = "CIM_Foo3"; };
         """
-        # TODO: Remove alias once inst without alias properly generates path
-        # IN MOF compiler
+
         i4 = """
-        instance of CIM_Foo as $foo4 { InstanceID = "CIM_Foo4"; };
+        instance of CIM_Foo { InstanceID = "CIM_Foo4"; };
         """
         skip_if_moftab_regenerated()
 
@@ -1928,10 +1923,14 @@ class TestRepoMethods(object):
         insts = conn.EnumerateInstances('TST_Lineage', namespace=ns)
         assert len(inst_names) == 3
 
-        for inst_name in inst_names:
-            conn.GetInstance(inst_name)
+        insts_dict = {}
+        for inst in insts:
+            insts_dict[inst.path] = inst
 
-        # TODO: test returned instance for match with what was created
+        # compare EnumerateInstances and GetInstance returns
+        for inst_name in inst_names:
+            inst = conn.GetInstance(inst_name)
+            assert inst == insts_dict[inst.path]
 
     def test_compile_complete_dmtf_schema(self, conn):
         # pylint: disable=no-self-use
@@ -2467,9 +2466,7 @@ class TestUserDefinedProviders(object):
              'root/cimv2', 'CIM_Foo', 'method',
              None, FAIL],
 
-            # TODO: Should we return provider with subclass of class
-            # defined for provider. Right now we do not.
-            ["Verify returns provider, with different class",
+            ["Verify returns provider, with class",
              [
                  ["root/cimv2", UserInstanceTestProvider],
              ],
@@ -2502,12 +2499,12 @@ class TestUserDefinedProviders(object):
         """
         if not condition:
             pytest.skip("This test marked to be skipped")
-        skip_if_moftab_regenerated()
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
             pdb.set_trace()  # pylint: disable=no-member
 
+        skip_if_moftab_regenerated()
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         # Register multiple providers.  All registrations are must be accepted
@@ -2641,7 +2638,7 @@ class TestUserDefinedProviders(object):
             if not isinstance(tst_ns, list):
                 tst_ns = [tst_ns]
             for ns in tst_ns:
-                # TODO: Should add_obj support None as namespace
+                # Issue #2327 TODO: Test with ns=None
                 add_objects_to_repo(conn, ns,
                                     tst_classeswqualifiersandinsts)
                 nss.append(ns)
@@ -3089,8 +3086,7 @@ class TestClassOperations(object):
         NOTE: This is the mock implementation.  The DMTF specification leaves
         this as ambiguous.
         """
-        conn.add_cimobjects(tst_qualifiers, namespace=ns)
-        conn.add_cimobjects(tst_classes, namespace=ns)
+        add_objects_to_repo(conn, ns, [tst_qualifiers, tst_classes])
 
         # The code to be tested
         rslt_cl = conn.GetClass(cln, namespace=ns, LocalOnly=lo,
@@ -3827,9 +3823,9 @@ class TestClassOperations(object):
                                            IncludeQualifiers=True,
                                            IncludeClassOrigin=True,
                                            LocalOnly=False)
-            # TODO: most of the following is generic and just retests what
-            # we defined for resolve.  Need to do it with each testcase, not
-            # in general.
+            # Issue #2327, 18: TODO: We need more specific tests for the
+            # characteristics of resolving to assure that all resolved
+            # parameters are correct for each test case.
             if superclass:
                 for prop in superclass.properties:
                     assert prop in get_cl.properties
@@ -3894,9 +3890,10 @@ class TestClassOperations(object):
                         else:
                             assert mvalue.propagated is False
                             assert mvalue.class_origin == get_cl.classname
-                # TODO: test each parameter also. Currently we stop at methods
+                # Issue# 2327: TODO: est each parameter also. Currently we stop
+                #              at methods
 
-    # Issue # 2210, implement a specifc test for ModifyClass
+    # Issue # 2210, TODO: mplement a specifc test for ModifyClass
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4164,8 +4161,8 @@ class TestInstanceOperations(object):
         assert set([x.lower() for x in exp_pl]) ==  \
             set([x.lower() for x in rslt_inst.keys()])
 
-    # TODO: KS add error test to this group. cln, exp_cond  and test for
-    # bad class, no class should pull in at least test below.
+    # Issue #2327 KS TODO: Add error test to this group. cln, exp_cond
+    # and test for bad class, no class should pull in at least test below.
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -4241,22 +4238,23 @@ class TestInstanceOperations(object):
         """
         conn.add_cimobjects(tst_classeswqualifiers, namespace=tst_ns)
         conn.add_cimobjects(tst_instances, namespace=tst_ns)
+        enum_classname = 'CIM_Foo'
+        exp_clns = [enum_classname, 'CIM_Foo_sub', 'CIM_Foo_sub2',
+                    'CIM_Foo_sub_sub']
 
-        instance_store = conn.cimrepository.get_instance_store(tst_ns)
+        ns = tst_ns or conn.default_namespace
+        instance_store = conn.cimrepository.get_instance_store(ns)
 
         if not exp_exc:
-            # since we do not have classes in the repository, we get back only
-            # instances of the defined class
+            rtn_inst_names = conn.EnumerateInstanceNames(enum_classname, tst_ns)
 
-            # The code to be tested
-            rslt_instnames = conn.EnumerateInstanceNames(cln, in_ns)
-
+            # pylint: disable=protected-access
             request_inst_names = [i.path for i in instance_store.iter_values()
                                   if i.classname in exp_clns]
 
-            assert len(rslt_instnames) == len(request_inst_names)
+            assert len(rtn_inst_names) == len(request_inst_names)
 
-            for inst_name in rslt_instnames:
+            for inst_name in rtn_inst_names:
                 assert isinstance(inst_name, CIMInstanceName)
                 assert inst_name in request_inst_names
                 assert inst_name.classname in exp_clns
@@ -4310,7 +4308,8 @@ class TestInstanceOperations(object):
         for inst in tst_instances:
             tst_inst_dict[str(model_path(inst.path))] = inst
 
-        # TODO: Future compute number should be returned. Right now fixed number
+        # Issue: 2327 TODO: Future compute number returned. Right now fixed
+        # number
         assert len(rslt_insts) == 8
         for inst in rslt_insts:
             assert isinstance(inst, CIMInstance)
@@ -4325,8 +4324,8 @@ class TestInstanceOperations(object):
                 assert set(inst.keys()) == set(exp_pl)
             else:
                 # di so properties differ instances of each different class.
-                # TODO: improve algorithm so we define exactly what properties
-                # we should receive.
+                # Issue # 2327: 18 TODO: Improve algorithm so we define exactly
+                # what properties we should receive.
                 assert set(inst.keys()).issubset(exp_pl)
 
     @pytest.mark.parametrize(
@@ -4466,9 +4465,9 @@ class TestInstanceOperations(object):
             if di is not True:
                 # inst_props should match cl_props
                 if len(inst_props) != len(cl_props):
-                    # TODO: Still have issue with one test. and am therefore
-                    # displaying the following as a reminder
-                    print("TODO: test_enumerateinstances_di(): "
+                    # Issue # 2327: TODO Still have issue with one test. and
+                    # am therefore displaying the following as a reminder
+                    print("test_enumerateinstances_di(): "
                           "inst prop and class prop names should match:\n"
                           "  inst  prop names ({}): {!r}\n"
                           "  class prop names ({}): {!r}".
@@ -4481,11 +4480,7 @@ class TestInstanceOperations(object):
                 cl_props = sorted(list(di_class.properties.keys()))
                 assert inst_props == cl_props
 
-            # TODO: Test actual instance returned, including exp_pl
-
-    # TODO: test for ico and iq
-    # TODO: test for pl where repository contains classes
-    # TODO: test for instances do not exist.
+            # Issue #2327 TODO Test actual instance returned, including exp_pl
 
     @pytest.mark.parametrize(
         "tst_ns, cln, in_ns, exp_exc",
@@ -4533,8 +4528,8 @@ class TestInstanceOperations(object):
     @pytest.mark.parametrize(
         "test, new_inst, exp_rslt",
         [
-            # TODO: This is a badly designed set of test parameters.
-            # TODO: it only allows testing against tst_classeswqualifiers
+            # Issue: 2327,17: TODOThis is a badly designed set of test
+            # parameters. It only allows testing against tst_classeswqualifiers
             # test: integer that defines special modification within test
             #      execution. 0. Use new_instance as defined,
             #                 1. Set namespace to bad namespace,
@@ -4568,7 +4563,6 @@ class TestInstanceOperations(object):
                                      'cimfoo_sub': 'blah'})],
 
             # test new instance has correct case on property names.
-            # TODO: Broken for some reason
             [0, CIMInstance('CIM_Foo_sub',
                             properties={'instanceid': 'inst1',
                                         'CIMFOO_SUB': 'blah'}),
@@ -4770,7 +4764,7 @@ class TestInstanceOperations(object):
         """
 
         pytest.skip("This test marked to be skipped")
-        # TODO: Fix testcase, it does not perform CreateInstance()
+        # Issue # 2327 TODO Fix testcase, it does not perform CreateInstance()
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                                verbose=False)
@@ -4981,7 +4975,7 @@ class TestInstanceOperations(object):
             # 7, Invalid type for PropertyList
             [7, [], None, TypeError(), OK],
 
-            # TODO: additional tests.
+            # Issue # 2327: TODO add additional tests.
             # 1. only some properties in modifiedinstance and variations of
             #    property list
         ]
@@ -5231,7 +5225,8 @@ class TestInstanceOperations(object):
         """
 
         pytest.skip("This test marked to be skipped, superceeded")
-        # TODO: Clarify which test supercedes it, and if test can be deleted
+        # Issue # 2327: TODO Clarify which test supercedes it, and if test can
+        # be deleted
 
         conn.add_namespace(interop_ns)
         conn.add_cimobjects(tst_qualifiers, namespace=interop_ns)
@@ -5251,12 +5246,12 @@ class TestInstanceOperations(object):
             conn.add_cimobjects(additional_objs[ns], namespace=ns)
 
         if not exp_exc:
-
             # The code to be tested
             conn.DeleteInstance(new_path)
 
             act_ns = new_path.keybindings['Name']
             assert act_ns not in conn.namespaces
+
         else:
             with pytest.raises(type(exp_exc)) as exec_info:
 
@@ -5639,8 +5634,8 @@ class TestPullOperations(object):
             rslt_paths = [inst.path for inst in result_tuple.instances]
 
             assert_equal_ciminstancenames(rslt_paths, exp_paths)
-            # TODO: test instances returned rather than just paths and
-            # test for propertylist specifically
+            # Issue #2327: TODO Tst instances returned rather than just paths
+            # and test for propertylist specifically
 
         else:
             exp_exc = exp_rslt
@@ -5680,7 +5675,6 @@ class TestPullOperations(object):
             # Execute close with valid context but after sequence complete
             [2, 'CIM_Foo', 0, 100,
              CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT)],
-            # TODO: FUTURE: test with timer
         ]
     )
     def test_closeenumeration(self, conn, tst_classeswqualifiers, tst_instances,
@@ -6144,8 +6138,7 @@ class TestReferenceOperations(object):
     @pytest.mark.parametrize(
         # Don't really need this since results are tied to class.
         # target instance name
-        "targ_iname", [PERSON_MIKE_NME,
-                       PERSONS_MIKE_NME, ]
+        "targ_iname", [PERSON_MIKE_NME, PERSONS_MIKE_NME, ]
     )
     @pytest.mark.parametrize(
         "rc, ro, exp_rslt",
@@ -6247,9 +6240,9 @@ class TestReferenceOperations(object):
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
-    # TODO: not sure we really need this testcase? Combine with next case
-    # The only thing special about this test is it sets all parameters to
-    # default
+    # Issue # 2327 TODO: not sure we really need this testcase? Combine with
+    # next case. The only thing special about this test is it sets all
+    # parameters to default
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_reference_instances_min(self, conn, tst_assoc_mof, ns):
@@ -6282,6 +6275,9 @@ class TestReferenceOperations(object):
 
         assert isinstance(rslt_insts, list)
         assert_equal_ciminstances(exp_insts, rslt_insts)
+
+    # Issue # 2327: TODO: Add test parameter for property list and do complete
+    # instance compare on result
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -6363,8 +6359,6 @@ class TestReferenceOperations(object):
             exp_paths.append(path)
 
         assert_equal_ciminstancenames(exp_paths, paths)
-
-    # TODO: test for references propertylist.
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -6540,7 +6534,6 @@ class TestAssociatorOperations(object):
             # Execute invalid namespace test
             ['Parent', 'TST_Lineage', 'child', 'TST_Person',
              CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")],
-            # TODO: add more tests
         ]
     )
     def test_associator_instnames(self, conn, tst_assoc_mof, ns, targ_iname,
@@ -6550,7 +6543,6 @@ class TestAssociatorOperations(object):
         Test getting associators with parameters for the response filters
         including role, etc.
         """
-        # TODO: Add test for IncludeQualifiers, PropertyList, IncludeClassOrigin
         skip_if_moftab_regenerated()
 
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
@@ -6705,7 +6697,8 @@ class TestAssociatorOperations(object):
         """
         Test Associators() operation at instance level.
         """
-        # TODO: Add test for IncludeQualifiers, PropertyList, IncludeClassOrigin
+        # Issue #2327 TODO: Add test for IncludeQualifiers, PropertyList,
+        # IncludeClassOrigin
         skip_if_moftab_regenerated()
 
         conn.compile_mof_string(tst_assoc_mof, namespace=tst_ns)
@@ -6766,8 +6759,8 @@ class TestAssociatorOperations(object):
             # rc: associator operation ResultClass parameter
             # exp_rslt: Either list of names of expected classes returned,
             #           or expected exception object
-            # TODO: Review this and its results. I am uncomfortable I have not
-            #       covered all the essentials
+            # Issue # 2327 TODO:Review this and its results. I am uncomfortable
+            #       I have not covered all the essential options
 
             [None, None, None, None, ['TST_Person']],
             [None, 'TST_Lineage', None, None, ['TST_Person']],
@@ -6837,8 +6830,8 @@ class TestAssociatorOperations(object):
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
-        # TODO: expand associator classes test to test for correct properties
-        # in response
+        # Issue #2327: TODO: Expand associator classes test to test for correct
+        # properties in response
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -7193,7 +7186,6 @@ def test_schema_root_dir():
         shutil.rmtree(schema_dir)
 
 
-# TODO: ks Rewrite the following tests into a single test with parameterization
 class TestDMTFCIMSchema(object):
     """
     Test the DMTFCIMSchema class in pywbem_mock.  Since we do not want to always

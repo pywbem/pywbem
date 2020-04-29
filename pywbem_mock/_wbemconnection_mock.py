@@ -459,9 +459,9 @@ class FakedWBEMConnection(WBEMConnection):
           error encountered in the installation of the provider.
         """
 
-        # TODO: sort out possible issue where the Interop namespace is not
-        # what this method defines in the input parameter. The alternative
-        # is to make the Interop namespace creation a separate function.
+        # Determine if an interop namespace already exists and confirm that
+        # we are using a valid interop namespace name to add the
+        # new namespace.
         if not self.find_interop_namespace():
             self.add_namespace(interop_namespace)
 
@@ -666,17 +666,16 @@ class FakedWBEMConnection(WBEMConnection):
         if isinstance(schema_pragma_files, six.string_types):
             schema_pragma_files = [schema_pragma_files]
 
-        search_paths = [os.path.dirname(file) for file in schema_pragma_files]
-
-        # TODO: extend so that we can compile on any file where we find
-        # our target class(es)
-        schema_pragma_file = schema_pragma_files[0]
-
-        compile_pragma = build_schema_mof(class_names, schema_pragma_file)
-        self.compile_mof_string(compile_pragma,
-                                namespace=namespace,
-                                search_paths=search_paths,
-                                verbose=verbose)
+        # Build the pragma file and compile for each pragma file in
+        # schema_pragma_files. The search path for each compile is the
+        # directory containing that schema_pragma_file
+        for schema_pragma_file in schema_pragma_files:
+            search_path = os.path.dirname(schema_pragma_file)
+            compile_pragma = build_schema_mof(class_names, schema_pragma_file)
+            self.compile_mof_string(compile_pragma,
+                                    namespace=namespace,
+                                    search_paths=search_path,
+                                    verbose=verbose)
 
     ######################################################################
     #
