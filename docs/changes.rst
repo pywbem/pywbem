@@ -62,6 +62,11 @@ Released: not yet
 
 **Cleanup:**
 
+* Document the TODOs in pywbem_mock and
+  tests/unittest/pywbem_mock.test_wbemconnection.py and create an issue to
+  document these issues (issue #2327) except for the ones we fixed in place or
+  removed because they are obsolete.  (See issue #1240)
+
 **Known issues:**
 
 * See `list of open issues`_.
