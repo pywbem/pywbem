@@ -28,8 +28,8 @@ following functionality:
   * Managing namespaces in the CIM repository
   * Methods that provide access to specific objects in the CIM repository
     including the processing consistent with filtering the returned objects.
-    For example, `get_class(...) the internal equilavent of the GetClass
-    and `find_instance(...) the internal equivalent of GetInstance.
+    For example, `get_class(...)` the internal equilavent of the GetClass
+    and `find_instance(...)` the internal equivalent of GetInstance.
 """
 
 from __future__ import absolute_import, print_function
@@ -51,10 +51,8 @@ from pywbem._utils import _format
 class BaseProvider(object):
     """
     BaseProvider is the top level class in the provider hiearchy and includes
-    methods required by the subclasses such as MainProvider,
-    InstanceWriteProvider, and MethodProvider and by the users that create user
-    providers based on these classes.  This class is not intended to be
-    executed directly.
+    methods required by both buildin providers and user-defined providers.
+    This class is not intended to be executed directly.
     """
 
     def __init__(self, cimrepository):
