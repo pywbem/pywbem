@@ -150,6 +150,8 @@ class ProviderRegistry(object):
         4. Adding the provider to the registry of user_providers so that any
            of the request methods defined for the `provider_type` are
            passed to this provider in place of the default request processors.
+        5. Execute post_register_setup() call to the provider to allow the
+           provider to perform any special setup functionality.
 
         Providers can only be registered for the following request response
         methods:
@@ -186,7 +188,7 @@ class ProviderRegistry(object):
 
             If `None`, the default namespace of the connection will be set to
             the built-in default namespace
-.
+
           schema_pragma_files (:term:`py:iterable` of :term:`string` or :term:`string`):
             Path names of schema pragma files for the set of CIM
             classes that make up a schema such as the DMTF schema. These files
@@ -199,16 +201,19 @@ class ProviderRegistry(object):
             see :class:`pywbem.MOFCompiler` for more information on the
             `search_paths` parameter.
 
+          verbose (:class:`py:bool`):
+            Display details on actions
+
         Raises:
 
             TypeError: Invalid provider_type retrieved from provider or
                        provider_type does not match superlclass. or the
                        namespace parameter is invalid.
-.           ValueError: provider_type retrieved from provider is not a
+            ValueError: provider_type retrieved from provider is not a
                         valid type string.
             ValueError: classnames parameter not a valid string or iterable or
                         namespace does not exist in repository.
-.        """  # noqa: E501
+        """  # noqa: E501
         # pylint: enable=line-too-long
 
         if schema_pragma_files:
@@ -289,7 +294,7 @@ class ProviderRegistry(object):
                             classname,
                             schema_pragma_files,
                             namespace=namespace,
-                            verbose=False)
+                            verbose=verbose)
                     else:
                         raise ValueError(
                             _format('Class "{0!A}" does not exist in '
@@ -297,7 +302,6 @@ class ProviderRegistry(object):
                                     'and no schema pragma files were specified',
                                     classname, namespace))
 
-            # Insert this classname if not already there
             if classname not in self._registry:
                 self._registry[classname] = NocaseDict()
 
@@ -306,6 +310,19 @@ class ProviderRegistry(object):
                 if namespace not in self._registry[classname]:
                     self._registry[classname][namespace] = {}
                 self._registry[classname][namespace][provider_type] = provider
+
+            if verbose:
+                _format("Provider {0!A} registered: classes:[{1!A}],  "
+                        "type: {1!A} namespaces:{2!A}",
+                        provider.__class__.__name__,
+                        ", ".join(provider_classnames),
+                        provider_type, ", ".join(namespaces))
+
+            try:
+                provider.post_register_setup(conn)
+            except AttributeError:
+                if verbose:
+                    _format("Register_Provider post_register_setup not found")
 
     def get_registered_provider(self, namespace, provider_type, classname):
         """
@@ -686,8 +703,8 @@ class FakedWBEMConnection(WBEMConnection):
         the interop namespace where the proposed interop_namespace is defined
         by the parameter interop_namespace
 
-        Because this provider require a set of classes from the
-        DMTF schema, the parameters to install the schema are required.
+        Because this provider requires a set of classes from the
+        DMTF schema, the schema_pragma_file install the schema is required.
 
         This method should only be called once at the creation of the
         mock environment.
@@ -710,13 +727,23 @@ class FakedWBEMConnection(WBEMConnection):
           verbose (:class:`py:bool`):
             If True, displays progress information as providers are installed.
 
+        Raises:
+          TODO
+
         """
+
+        # TODO: sort out possible issue where the interop namespace is not
+        # what this method defines in the input parameter. The alternative
+        # is to make the interop namespace creation a separate function.
+        if not self.find_interop_namespace():
+            self.add_namespace(interop_namespace)
 
         provider = CIMNamespaceProvider(self.cimrepository)
 
-        provider.install_provider(self, interop_namespace,
-                                  schema_pragma_file=schema_pragma_file,
-                                  verbose=verbose)
+        self.register_provider(provider,
+                               namespaces=interop_namespace,
+                               schema_pragma_files=schema_pragma_file,
+                               verbose=verbose)
 
     ###########################################################################
     #
@@ -1311,7 +1338,7 @@ class FakedWBEMConnection(WBEMConnection):
         implementation provided with this method as the `provider` parameter is
         to be executed as the request response method for the namespaces
         defined in the `namespaces` parameter, the provider type defined in the
-        provider 'provider_type` attribute of the `provider` and the class(es)
+        'provider_type` attribute of the `provider` and the class(es)
         defined in the provider `provider_classnames` attribute of the
         `provider`.
 
@@ -1327,6 +1354,8 @@ class FakedWBEMConnection(WBEMConnection):
         4. Adding the provider to the registry of user_providers so that any
            of the request methods defined for the `provider_type` are
            passed to this provider in place of the default request processors.
+        5. Execute post_register_setup() call to the provider to allow the
+           provider to perform any special setup functionality.
 
         Providers can only be registered for the following request response
         methods:

@@ -45,65 +45,6 @@ from .config import OBJECTMANAGERNAME, SYSTEMNAME, SYSTEMCREATIONCLASSNAME, \
     OBJECTMANAGERCREATIONCLASSNAME
 
 
-def create_cimnamespace_instance(conn, namespace, interop_namespace, klass):
-    """
-    Build and execute CreateInstance for an instance of CIM_Namespace using
-    the `namespace` as the value of the name property in the instance. The
-    instance is created in the `interop_namespace`
-
-    Parameters:
-
-      namespace (:term:`string`):
-        Namespace that this instance defines.
-
-      interop_namespace (:term:`string`):
-        Interop namespace for this environment.
-
-      klass (:class:`CIM_Namespace`):
-        The CIM class CIM_Namespace which is used to define each instance.
-
-    Raises:
-
-        :exc:'~pywbem.CIMError':: For errors encountered with CreateInstance
-
-    """
-    properties = NocaseDict(
-        [('Name', namespace),
-         ('CreationClassName', klass.classname),
-         ('ObjectManagerName', OBJECTMANAGERNAME),
-         ('ObjectManagerCreationClassName', OBJECTMANAGERCREATIONCLASSNAME),
-         ('SystemName', SYSTEMNAME),
-         ('SystemCreationClassName', SYSTEMCREATIONCLASSNAME)])
-
-    new_instance = CIMInstance.from_class(klass, property_values=properties)
-    conn.CreateInstance(new_instance, interop_namespace)
-
-
-def create_cimnamespace_instances(conn, interop_namespace):
-    """
-    Create an instance of CIM_Namespace for every existing namespace
-
-    """
-    insts = conn.EnumerateInstances('CIM_Namespace',
-                                    namespace=interop_namespace,
-                                    LocalOnly=False,
-                                    DeepInheritance=False)
-    ns_dict = NocaseDict([(inst.name, None) for inst in insts])
-
-    # Get the current namespaces directly from the repository since the
-    # instances of CIM_Namespace not yet set up.
-    namespaces = conn.cimrepository.namespaces
-
-    classname = 'CIM_Namespace'
-    klass = conn.GetClass(classname, interop_namespace, LocalOnly=False,
-                          IncludeQualifiers=True,
-                          IncludeClassOrigin=True)
-
-    for ns in namespaces:
-        if ns not in ns_dict:
-            create_cimnamespace_instance(conn, ns, interop_namespace, klass)
-
-
 class CIMNamespaceProvider(InstanceWriteProvider):
     # pylint: disable=line-too-long
     """
@@ -119,26 +60,19 @@ class CIMNamespaceProvider(InstanceWriteProvider):
     This class __init__ saves the  cimrepository variable used by methods in
     this class and by methods of its superclasses (i.e.  InstanceWriteProvider).
 
-    The provider defines the class level attributes `provider_type` (this
-    is an instance provider )and `provider_classnames` (CIM_Namespace)
+    The provider defines the class level attribute `provider_classnames` (CIM_Namespace)
 
-    Attributes:
+    This provider presumes that an interop namespace has been created before
+    the provider object is constructed and fails the constructor if
+    there is not interop_namespace
 
-          provider_type (:term:`string`):
-            Provided by the superclass.
-
-          provider_classnames (:term:`py:iterable` of :term:`string` or :term:`string`):
-            The classnames for the classes for which the provider is
-            responsible and for which it should be registered..
-
-            This attribute is supplied by the constructor of the provider
-            when the provider is registered.
     """  # noqa: E501
     # pylint: enable=line-too-long
 
-    # This class level attribute must exist to define the CIM classname(s) .
+    # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-
+    #: provider_classnames (:term:`string`):
+    #:        The classname for this provider
     provider_classnames = 'CIM_Namespace'
 
     def __init__(self, cimrepository):
@@ -148,9 +82,22 @@ class CIMNamespaceProvider(InstanceWriteProvider):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the CIM repository to be used by request responders.  The
             repository is fully initialized except for CIM classes or instances
-            required by this user_defined provider.
+            required by this user-defined provider.
         """
         super(CIMNamespaceProvider, self).__init__(cimrepository)
+
+        # NOTE: conn is only required for the following operation and
+        # is not kept in the constructed object.
+
+        if not self.find_interop_namespace():
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("No Interop namespace found. "
+                        "Construction of CIM_Namespace provider aborted."
+                        "Namespaces found: ",
+                        ", ".join(self.interop_namespace_names())))
+
+        self.installed = False  # test if provider previously installed.
 
     def __repr__(self):
         return _format(
@@ -314,7 +261,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                         remove_namespace))
 
         # Reflect the namespace deletion in the CIM repository
-        # This call implementes the CIM repository remove namespace which
+        # This call implements the CIM repository remove namespace which
         # checks for empty namespace.
         self.remove_namespace(remove_namespace)
 
@@ -322,81 +269,86 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         instance_store = self.get_instance_store(InstanceName.namespace)
         instance_store.delete(InstanceName)
 
-    @staticmethod
-    def install_provider(conn, interop_namespace, schema_pragma_file,
-                         verbose=None):
-        """
-        FakedWBEMConnection user method to install the namespace provider in
-        the interop namespace where the proposed interop_namespace is defined
-        by the parameter interop_namespace
+    def post_register_setup(self, conn):
+        """i
+        Method called by FakedWBEMConnection.register_provider to complete
+        initialization of this provider.  This method is called after
+        the required classes are installed in the cim_repository
 
-        Because this provider requires a set of classes from the
-        pragma file for the schema that contains CIM_Namespace is required.
+        This is necessary because pywbem_mock does not allow user-defined
+        providers for the instance read operations such as EnumerateInstances
+        so the instance for each namespace must be exist in the repository.
 
         This method:
 
-        1. Confirms that an interop namespace exists or adds an interop
-           namespace using the `interop_namespace` parameter.
+        1. Inserts instances of CIM_Namespace for every namespace in the
+           CIM repository.
 
-        2. Registers this provider with the connection.
+        """
+        assert self.installed is False
 
-        3. Creates instances of CIM_Namespace for all existing namespaces.
+        self.installed = True
 
-        This method should only be called once at the creation of the
-        mock environment.
+        # Temp code to validate class installed.  Will generate exception
+        # if class does not exist.
+        interop_namespace = conn.find_interop_namespace()
+        provider_classname = self.provider_classnames
+        conn.GetClass(provider_classname, interop_namespace)
+
+        # Create instance CIM_Namespace for each existing namespace
+
+        insts = conn.EnumerateInstances('CIM_Namespace',
+                                        namespace=conn.find_interop_namespace(),
+                                        LocalOnly=False,
+                                        DeepInheritance=False)
+
+        # NocaseDict for case-insensitive tests
+        nsinsts_dict = NocaseDict([(inst.name, None) for inst in insts])
+
+        # Get the current namespaces directly from the repository since the
+        # instances of CIM_Namespace not yet set up.
+        namespaces = conn.cimrepository.namespaces
+
+        klass = conn.GetClass(provider_classname, interop_namespace,
+                              LocalOnly=False,
+                              IncludeQualifiers=True,
+                              IncludeClassOrigin=True)
+
+        for ns in namespaces:
+            if ns not in nsinsts_dict:
+                self.create_cimnamespace_instance(conn, ns, interop_namespace,
+                                                  klass)
+
+    @staticmethod
+    def create_cimnamespace_instance(conn, namespace, interop_namespace, klass):
+        """
+        Build and execute CreateInstance for an instance of CIM_Namespace using
+        the `namespace` parameter as the value of the name property in the
+        instance. The instance is created in the `interop_namespace`
 
         Parameters:
 
-          conn (:class:`~pywbem_mock.FakedWBEMConnection`):
-            Defines the attributes of the connection. Used to issue requests to
-            create instances in the interop namespace for all existing
-            namespaces that do not have instances of CIM_Namespace defined
+          namespace (:term:`string`):
+            Namespace that this instance defines.
 
           interop_namespace (:term:`string`):
-            The interop namespace defined for this environment.  This is
-            the namespace for which this provider is to be registered and
-            and where instances of CIM_Namespace are created and deleted
-            representing the set of existing namespaces in the CIM repository.
+            Interop namespace for this environment.
 
-          schema_pragma_file (:term:`string`):
-            File path defining a CIM schema pragma file for the set of
-            CIM classes that make up a schema such as the DMTF schema.
-            This file must contain a pragma statement for each of the
-            classes defined in the schema.
+          klass (:class:`CIM_Namespace`):
+            The CIM class CIM_Namespace which is used to create the instance.
 
-            None: Assumes the schema in already installed, in particular
-            the CIM_Namespace class and its dependencies.
+        Raises:
 
-          verbose (:class:`py:bool`):
-            If True, displays progress information as providers are installed.
+            :exc:'~pywbem.CIMError':: For errors encountered with CreateInstance
 
         """
+        properties = NocaseDict(
+            [('Name', namespace),
+             ('CreationClassName', klass.classname),
+             ('ObjectManagerName', OBJECTMANAGERNAME),
+             ('ObjectManagerCreationClassName', OBJECTMANAGERCREATIONCLASSNAME),
+             ('SystemName', SYSTEMNAME),
+             ('SystemCreationClassName', SYSTEMCREATIONCLASSNAME)])
 
-        # Determine if an interop namespace already exists and add it if
-        # it does not exist.
-        if not conn.is_interop_namespace(interop_namespace):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Namespace {0!A} is not a valid interop namespace. "
-                        "Valid interop namespace names are: {1!A}.",
-                        interop_namespace,
-                        ", ".join(conn.interop_namespace_names())))
-
-        # Directly call the cim_repositoory namespace method since the
-        # FakedWBEMConnection method will attempt to add the instance
-        # to the namespace and we do that below.
-        if interop_namespace not in conn.namespaces:
-            conn.mainprovider.add_namespace(interop_namespace)
-
-        # TODO: There is no check on the reuse of this method, i.e. multiple
-        # attempts to install the CIM_namespace provider.
-        # add test. If CIM_Namespace class exists, exception with KeyError
-
-        # Register the provider
-        conn.register_provider(
-            CIMNamespaceProvider(conn.cimrepository),
-            interop_namespace,
-            schema_pragma_files=schema_pragma_file, verbose=verbose)
-
-        # Create instance CIM_Namespace for each existing namespace
-        create_cimnamespace_instances(conn, interop_namespace)
+        new_instance = CIMInstance.from_class(klass, property_values=properties)
+        conn.CreateInstance(new_instance, interop_namespace)
