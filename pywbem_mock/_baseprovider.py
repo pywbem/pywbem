@@ -40,8 +40,6 @@ the CIM repository and defined with the interfaces in `BaseRepository`.
 
 from __future__ import absolute_import, print_function
 
-from copy import deepcopy
-
 from pywbem import CIMError, \
     CIM_ERR_NOT_FOUND, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
@@ -346,6 +344,12 @@ class BaseProvider(object):
         include superclass properties if not localonly, and filters the
         class based on propertylist and includeClassOrigin.
 
+        This method executes all of the filter actions on the class that are
+        defined for the GetClass operation and so returns a class that
+        satisfies the behavior requirements of the GetClass client request
+        operation defined in :term:`DSP0200` .
+        (see: :meth:`pywbem.WBEMConnection.GetClass`)
+
         It also sets the propagated attribute.
 
         Parameters:
@@ -356,7 +360,7 @@ class BaseProvider(object):
           namespace (:term:`string`):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
-            charactes are ignored.
+            characters are ignored.
 
           local_only (:class:`py:bool`):
             If `True`, or `None`only properties and methods in this specific
@@ -382,11 +386,12 @@ class BaseProvider(object):
 
         Returns:
 
-          Copy of the CIM class if found with superclass properties
-          installed and filtered per the method arguments.
+          Copy of the CIM class in the cim repository if found. Includes
+          superclass properties installed and filtered in accord with the the
+          local_only, etc. arguments.
 
         Raises:
-          CIMError: (CIM_ERR_NOT_FOUND) if class Not found in CIM repository or
+          CIMError: (CIM_ERR_NOT_FOUND) if class not found in CIM repository.
           CIMError: (CIM_ERR_INVALID_NAMESPACE) if namespace does not exist
         """
 
@@ -394,37 +399,33 @@ class BaseProvider(object):
 
         # Try to get the target class and create a copy for response
         try:
-            cls = class_store.get(classname)
+            klass = class_store.get(classname, copy=True)
         except KeyError:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Class {0!A} not found in namespace {1!A}.",
                         classname, namespace))
 
-        # Use deepcopy to assure copying all elements of the class.
-        # cls.copy() does not copy all elements.
-        cc = deepcopy(cls)
-
         # local_only server default is True so True or None remove properties
         if local_only is True or local_only is None:
-            for prop, pvalue in cc.properties.items():
+            for prop, pvalue in klass.properties.items():
                 if pvalue.propagated:
-                    del cc.properties[prop]
-            for method, mvalue in cc.methods.items():
+                    del klass.properties[prop]
+            for method, mvalue in klass.methods.items():
                 if mvalue.propagated:
-                    del cc.methods[method]
+                    del klass.methods[method]
 
-        self.filter_properties(cc, property_list)
+        self.filter_properties(klass, property_list)
 
         # Remove qualifiers if specified.  Note that the server default
         # is to include_qualifiers if include_qualifiers is None
         if include_qualifiers is False:
-            self._remove_qualifiers(cc)
+            self._remove_qualifiers(klass)
 
         # class_origin default is False so None or False cause removal
         if not include_classorigin:
-            self._remove_classorigin(cc)
-        return cc
+            self._remove_classorigin(klass)
+        return klass
 
     def class_exists(self, namespace, classname):
         """
@@ -487,14 +488,13 @@ class BaseProvider(object):
             return the instance in the CIM repository
 
         Returns:
-            `None` if the instance defined by iname is not found.
-            If it is found, the complete instance or copy is returned.
+            None if the instance defined by iname is not found.
+            If it is found, the complete instance or copy of the instance
+            is returned.
         """
 
         if instance_store.object_exists(instance_name):
-            if copy_inst:
-                return instance_store.get(instance_name).copy()
-            return instance_store.get(instance_name)
+            return instance_store.get(instance_name, copy=copy_inst)
 
         return None
 
