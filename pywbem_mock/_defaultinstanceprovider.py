@@ -67,6 +67,8 @@ from __future__ import absolute_import, print_function
 
 import six
 
+from copy import deepcopy
+
 from pywbem import CIMInstance, CIMInstanceName, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_METHOD_NOT_AVAILABLE, \
@@ -620,7 +622,7 @@ class InstanceWriteProvider(BaseProvider):
         namespace = ModifiedInstance.path.namespace
 
         instance_store = self.get_instance_store(namespace)
-        modified_instance = ModifiedInstance.copy()
+        modified_instance = deepcopy(ModifiedInstance)
 
         # Return if empty property list, nothing would be changed
         if PropertyList is not None and not PropertyList:

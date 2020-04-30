@@ -55,6 +55,7 @@ The following classes implement this repository:
 from __future__ import absolute_import, print_function
 
 import six
+from copy import deepcopy
 
 from pywbem import CIMClass, CIMQualifierDeclaration, CIMInstance
 
@@ -105,10 +106,14 @@ class InMemoryObjectStore(BaseObjectStore):
         return name in self._data
 
     def get(self, name, copy=True):
+        """
+        Get with deepcopy because the pywbem .copy is only middle level and
+        we need to completely isolate the repository.
+        """
         # pylint: disable=no-else-return
         if name in self._data:
             if copy:
-                return self._data[name].copy()
+                return deepcopy(self._data[name])
             return self._data[name]
         else:
             raise KeyError('Name {} not in {} object store'
@@ -120,8 +125,8 @@ class InMemoryObjectStore(BaseObjectStore):
         if name in self._data:
             raise ValueError('Name "{}" already in {} object store'
                              .format(name, self._cim_object_type))
-
-        self._data[name] = cim_object.copy()
+        # Add with deepcopy to completely isolate the copy in the repository
+        self._data[name] = deepcopy(cim_object)
 
     def update(self, name, cim_object):
         assert isinstance(cim_object, self._cim_object_type)
@@ -131,7 +136,7 @@ class InMemoryObjectStore(BaseObjectStore):
                            .format(name, self._cim_object_type))
 
         # Replace the existing object with a copy of the input object
-        self._data[name] = cim_object.copy()
+        self._data[name] = (cim_object)
 
     def delete(self, name):
         if name in self._data:
@@ -141,8 +146,13 @@ class InMemoryObjectStore(BaseObjectStore):
                            .format(name, self._cim_object_type))
 
     def iter_names(self):
+        """
+        Only copies the names for those objects that use CIMNamespaceName
+        as the name. The others are immutable ex. classname.
+        """
         for name in six.iterkeys(self._data):
             if self._copy_names:
+                # Using .copy is sufficient for CIMNamespace name.
                 yield(name.copy())
             else:
                 yield(name)
@@ -150,7 +160,7 @@ class InMemoryObjectStore(BaseObjectStore):
     def iter_values(self, copy=True):
         for value in six.itervalues(self._data):
             if copy:
-                yield(value.copy())
+                yield(deepcopy(value))
             else:
                 yield(value)
 

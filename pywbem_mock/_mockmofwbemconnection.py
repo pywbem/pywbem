@@ -35,9 +35,6 @@ from pywbem._mof_compiler import MOFWBEMConnection
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
 
-# Issue #2062 TODO/ks Remove this code and use the methods in _WBEMConnection
-# in their place
-
 
 class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
     """
