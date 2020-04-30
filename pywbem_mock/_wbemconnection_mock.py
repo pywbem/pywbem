@@ -38,8 +38,7 @@ import six
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
-    cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, \
-    MOFCompiler
+    cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, MOFCompiler
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from ._mainprovider import MainProvider
@@ -54,29 +53,21 @@ from ._defaultinstanceprovider import ProviderDispatcher, \
 from ._dmtf_cim_schema import DMTFCIMSchema, build_schema_mof
 from ._utils import _uprint
 
-__all__ = ['FakedWBEMConnection', 'MethodProvider', 'InstanceWriteProvider']
+from ._namespaceprovider import CIMNamespaceProvider
+
+__all__ = ['FakedWBEMConnection']
 
 # Fake Server default values for parameters that apply to repo and operations
 
-# Default Max_Object_Count for Fake Server if not specified by request
-_DEFAULT_MAX_OBJECT_COUNT = 100
-
-# Maximum Open... timeout if not set by request
-OPEN_MAX_TIMEOUT = 40
-
-# per DSP0200, the default behavior for EnumerateInstance DeepInheritance
-# if not set by server.  Default is True.
-DEFAULT_DEEP_INHERITANCE = True
-
 # allowed output formats for the repository display
 OUTPUT_FORMATS = ['mof', 'xml', 'repr']
-
 
 # Issue #2065. We have not considered that iq and ico are deprecated in
 # on DSP0200 for get_instance, etc. We could  set up a default to ignore these
 # parameters for the operations in which they are deprecated and we
 # should/could ignore them. We need to document our behavior in relation to the
 # spec.
+
 
 def _pretty_xml(xml_string):
     """
@@ -117,6 +108,244 @@ def _cvt_obj_name(objname):
     if isinstance(objname, CIMClassName):
         return objname.classname
     return objname
+
+
+class ProviderRegistry(object):
+    """
+    This class defines the provider registry with methods to register
+    a provider and to get the registered provider for a particular classname
+    namespace, and provider_type.
+    """
+    def __init__(self):
+        self._registry = NocaseDict()
+
+    def __repr__(self):
+        return _format(
+            "ProviderRegistry("
+            "registry={s._registry}, ",
+            s=self)
+
+    def register_provider(self, conn, provider, namespaces=None,
+                          schema_pragma_files=None, verbose=None):
+        # pylint: disable=line-too-long
+        """
+        Register the provider object for specific namespaces and CIM classes.
+        Registering a provider tells the FakedWBEMConnection that the provider
+        implementation provided with this call as the `provider` parameter is
+        to be executed as the request response method for the namespaces
+        defined in the `namespaces` parameter, the provider type defined in the
+        provider 'provider_type` attribute of the `provider` and the classes
+        defined in the provider `provider_classnames` attribute of the
+        `provider`.
+
+        The provider registration process includes:
+
+        1. Validation that the namespaces defined for the provider exist.
+        2. Validation that the superclass of the provider is consistent with
+           the `provider_type` attribute defined in the provider.
+        3. Installation of any CIM classes defined by the provider
+           (`provider_classnames` attribute) including installation of
+           dependencies for these classes using the `schema_pragma_files` to
+           locate the search directories for dependencies.
+        4. Adding the provider to the registry of user_providers so that any
+           of the request methods defined for the `provider_type` are
+           passed to this provider in place of the default request processors.
+
+        Providers can only be registered for the following request response
+        methods:
+
+        1. provider_type = 'instance': CreateInstance, ModifyInstance, and
+           DeleteInstance
+
+        2. provider_type = 'method': InvokeMethod.
+
+        Each classname in a particular namespace may have at most one provider
+        registered
+
+        Parameters:
+
+          conn  (:class:`~pywbem_mock.FakedWBEMConnection`):
+            Defines the attributes of the connection. Used to issue requests to
+            create instances in the interop namespace for all existing
+            namespaces that do not have instances of CIM_Namespace defined
+
+          provider (instance of subclass of :class:`pywbem_mock:InstanceWriteProvider` or :class:`pywbem_mock:MethodProvider`):
+            The methods in this subclass override the corresponding methods in
+            the superclass. The method call parameters must be the same
+            as the default method in the superclass and it must return
+            data in the same format if the default method returns data.
+             This
+            class must contain variables `provider_type` and
+            `provider_classnames` that define the type of provider and the CIM
+            classes that the provider serves.
+
+          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
+            Namespace or namespaces for which the provider is being registered.
+
+            If `None`, the default namespace of the connection will be set to
+            the built-in default namespace
+.
+          schema_pragma_files (:term:`py:iterable` of :term:`string` or :term:`string`):
+            File paths defining a schema pragma file MOF for the set of CIM
+            classes that make up a schema such as the DMTF schema. These files
+            must contain include pragams defining the file location of the
+            classes to be compiled for the defined provider and for any
+            dependencies required to compile those classes.  The directory
+            containing each pragma file is passed to the MOF compiler as the
+            search path for compile dependencies.
+
+            see :class:`pywbem.MofCompiler` for more information on the
+            `search_paths` parameter.
+
+        Raises:
+
+            TypeError: Invalid provider_type retrieved from provider or
+                       provider_type does not match superlclass. or the
+                       namespace parameter is invalid.
+.           ValueError: provider_type retrieved from provider is not a
+                        valid type string.
+            ValueError: classnames parameter not a valid string or iterable or
+                        namespace does not exist in repository.
+.        """  # noqa: E501
+        # pylint: enable=line-too-long
+
+        if schema_pragma_files:
+            if isinstance(schema_pragma_files, six.string_types):
+                schema_pragma_files = [schema_pragma_files]
+
+        provider_types = ["instance", "method"]
+        try:
+            provider_type = provider.provider_type
+            provider_classnames = provider.provider_classnames
+        except AttributeError as ae:
+            raise TypeError(
+                _format("Attributes provider_type and provider_classnames "
+                        "required in provider. exception {}",
+                        ae))
+        if provider_type == 'instance':
+            if not isinstance(provider, InstanceWriteProvider):
+                raise TypeError(
+                    _format("Provider argument {0!A} is not a "
+                            "valid subclass of InstanceWriteProvider. ",
+                            provider))
+        elif provider_type == 'method':
+            if not isinstance(provider, MethodProvider):
+                raise TypeError(
+                    _format("Provider argument {0!A} is not a "
+                            "valid subclass of MethodProvider. ",
+                            provider))
+        else:
+            raise ValueError(
+                _format("Provider_type argument {0!A} is not a valid provider "
+                        "type. Valid provider types are {1!A}.",
+                        provider_type, provider_types))
+
+        if provider_classnames is None:
+            raise ValueError(
+                _format('Classnames argument must be string '
+                        'or list of strings. None not allowed.'))
+
+        if namespaces is None:
+            namespaces = [conn.default_namespace]
+
+        if isinstance(namespaces, six.string_types):
+            namespaces = [namespaces]
+
+        if not isinstance(namespaces, (list, tuple)):
+            raise TypeError(
+                _format('Namespace argument {0|A} must be a string or '
+                        'list/tuple but is {1}',
+                        namespaces, type(namespaces)))
+
+        for namespace in namespaces:
+            if not isinstance(namespace, six.string_types):
+                raise TypeError(
+                    _format('Namespace "{0!A}" in namespaces argument not '
+                            'a string. ', namespace))
+
+            if namespace not in conn.namespaces:
+                raise ValueError(
+                    _format('Namespace "{0!A}" in namespaces argument not '
+                            'in CIM repository. '
+                            'Existing namespaces are: {1!A}. ',
+                            namespace, conn.namespaces))
+
+        if isinstance(provider_classnames, six.string_types):
+            provider_classnames = [provider_classnames]
+        assert isinstance(provider_classnames, (list, tuple))
+        for classname in provider_classnames:
+            assert isinstance(classname, six.string_types)
+
+            # For each namespace in which the provider is to be registered,
+            # if the class is not in that namespace, either compile it in if
+            # pragmas exist or generate an exception if no pragmas exist
+
+            for namespace in namespaces:
+                if not conn.mainprovider.class_exists(namespace, classname):
+                    if schema_pragma_files:
+                        conn.compile_schema_classes(
+                            classname,
+                            schema_pragma_files,
+                            namespace=namespace,
+                            verbose=False)
+                    else:
+                        raise ValueError(
+                            _format('Class "{0!A}" does not exist in '
+                                    'namespace {1!A} of the CIM repository '
+                                    'and no pragma files',
+                                    classname, namespace))
+
+            # Insert this classname if not already there
+            if classname not in self._registry:
+                self._registry[classname] = NocaseDict()
+
+            # Add namespace entry for all namespaces to registry
+            for namespace in namespaces:
+                if namespace not in self._registry[classname]:
+                    self._registry[classname][namespace] = {}
+                self._registry[classname][namespace][provider_type] = provider
+
+    def get_registered_provider(self, namespace, provider_type, classname):
+        """
+        Get the  user-defined provider registered for this namespace,
+        provider_type, and classname.
+
+        If no provider is registered, return `None`.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The namespace in which the request will be executed.
+
+          provider_type (:term:`string`):
+            String containing keyword ('instance' or 'method') defining the
+            type of provider.
+
+          classname (:term:`string`):
+            Name of the class defined for the operation
+
+        Returns:
+
+          Instance of
+          :class:`~pywbem_mock.BaseProvider`: The registered provider.
+
+          None if the registry is empty, the classname is not in the registry
+          or the namespace is not in the registry or the entry for the
+          classname, namespace and provider type is not defined.
+        """
+
+        if not self._registry or classname not in self._registry:
+            return None
+
+        if namespace not in self._registry[classname]:
+            return None
+
+        provider_types = self._registry[classname][namespace]
+
+        if provider_type not in provider_types:
+            return None
+
+        return provider_types[provider_type]
 
 
 class FakedWBEMConnection(WBEMConnection):
@@ -217,7 +446,7 @@ class FakedWBEMConnection(WBEMConnection):
         # Provider registry defines user added providers.  This is a dictionary
         # with key equal classname that contains entries for namespaces,
         # provider type, and provider for each class name defined
-        self.provider_registry = NocaseDict()
+        self.provider_registry = ProviderRegistry()
 
         # Define the datastore to be used with an initial namespace, the client
         # connection default namespace. This is passed to the mainprovider
@@ -238,7 +467,8 @@ class FakedWBEMConnection(WBEMConnection):
         # Initiate instance of the ProviderDispatcher with required
         # parameters including the cimrepository
         self.providerdispatcher = ProviderDispatcher(
-            self.cimrepository, self.provider_registry,
+            self.cimrepository,
+            self.provider_registry,
             self.defaultinstanceprovider)
 
         # Flag to allow or disallow the use of the Open... and Pull...
@@ -248,16 +478,6 @@ class FakedWBEMConnection(WBEMConnection):
         # Defines the connection for the compiler. The compiler uses this
         # instance of this class as the client interface.
         self._mofwbemconnection = _MockMOFWBEMConnection(self)
-
-        # The CIM methods with callback in the mock repository.
-        # This is a dictionary of dictionaries of dictionaries, where the top
-        # level key is the CIM namespace name, the second level key is the
-        # CIM class name, and the third level key is the CIM method name.
-        # The values at the last level are (TBD: method callbacks?).
-        # The namespaces are added to the outer dictionary as needed (if
-        # permitted as per self.namesaces).
-        # TODO/ks: This must move to provider when provider is defined
-        self.methods = NocaseDict()
 
         # Open Pull Contexts. The key for each context is an enumeration
         # context id.  The data is the total list of instances/names to
@@ -301,7 +521,6 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def disable_pull_operations(self):
         """
-        ::`allow`:
           Boolean Flag to set option to disable the execution of the open and
           pull operation request handlers in the CIM repository. This
           emulates the characteristic in some CIM servers that did not
@@ -358,21 +577,21 @@ class FakedWBEMConnection(WBEMConnection):
         # pylint: disable=missing-function-docstring,missing-docstring
         return self.mainprovider.get_instance_store(namespace)
 
-    # TODO: This changes when we add provider concept.
-    def _get_method_repo(self, namespace):
-        # pylint: disable=missing-function-docstring,missing-docstring
-        self.mainprovider.validate_namespace(namespace)
-        if namespace not in self.methods:
-            self.methods[namespace] = NocaseDict()
-        return self.methods[namespace]
-
     # The namespace management methods must be in the this class directly
     # so they can be access with call to the methods from instance of
     # this class. they are considered part of the external API.
 
     def add_namespace(self, namespace):
         """
-        Add a CIM namespace to the CIM repository.
+
+        This method provides a public interface for a
+        FakedWBEMConnection user to add namespaces to the mock environment.
+
+        This method will add the namespace defined by the namespace parameter
+        to the cim repository.
+
+        Uses the add_namespace method in mainprovider to add a namespace
+        to the server.
 
         The namespace must not yet exist in the CIM repository.
 
@@ -386,9 +605,12 @@ class FakedWBEMConnection(WBEMConnection):
         Raises:
 
           ValueError: Namespace argument must not be None.
-          CIMError: CIM_ERR_ALREADY_EXISTS if the namespace
+
+          :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
         """
+        # pylint: disable=missing-function-docstring,missing-docstring
+
         self.mainprovider.add_namespace(namespace)
 
     def remove_namespace(self, namespace):
@@ -396,6 +618,9 @@ class FakedWBEMConnection(WBEMConnection):
         Remove a CIM namespace from the CIM repository.
 
         The namespace must exist in the CIM repository and must be empty.
+
+        This method provides the public interface for users of
+        FakedWBEMConnection to remove a namespace from the mock environment.
 
         Parameters:
 
@@ -407,15 +632,89 @@ class FakedWBEMConnection(WBEMConnection):
         Raises:
 
           ValueError: Namespace argument must not be None
-          CIMError:  CIM_ERR_NOT_FOUND if the namespace does
+          :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND if the namespace does
             not exist in the CIM repository.
-          CIMError:  CIM_ERR_NAMESPACE_NOT_EMPTY if the
+          :class:`~pywbem.CIMError`: CIM_ERR_NAMESPACE_NOT_EMPTY if the
             namespace is not empty.
-          CIMError:  CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
+          :class:`~pywbem.CIMError`: CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
             to delete the default connection namespace.  This namespace cannot
             be deleted from the CIM repository
         """
         self.mainprovider.remove_namespace(namespace)
+
+    def interop_namespace_names(self):
+        """
+        Returns an iterable of the valid interop namespace names where
+        the names are considered case insensitive.
+        """
+        return self.mainprovider.interop_namespace_names()
+
+    def is_interop_namespace(self, namespace):
+        """
+        Tests if the `namespace` parameter defines a namespace name that is one
+        of the allowed  names for the interop namespace.
+
+        Parameters:
+
+            namespace (:term:`string`):
+                The namespace name that to be tested.
+
+        Returns:
+            True: If the name is one of the valid interop namespace names
+            False: if the name is not an interop namespace valid name.
+        """
+        return self.mainprovider.is_interop_namespace(namespace)
+
+    def find_interop_namespace(self):
+        """
+        Determine if there is an interop namespace defined in the repository.
+
+        Returns:
+          The name of the interop namespace if one exists or None if there
+          is no interop namespace in the connection.
+
+        """
+        return self.mainprovider.find_interop_namespace()
+
+    def install_namespace_provider(self, interop_namespace,
+                                   schema_pragma_file=None,
+                                   verbose=None):
+        """
+        FakedWBEMConnection user method to install the namespace provider in
+        the interop namespace where the proposed interop_namespace is defined
+        by the parameter interop_namespace
+
+        Because this provider require a set of classes from the
+        DMTF schema, the parameters to install the schema are required.
+
+        This method should only be called once at the creation of the
+        mock environment.
+
+        Parameters:
+
+          interop_namespace  (:term:`string`):
+                The interop namespace defined for this environment
+
+          schema_pragma_file (:term:`string`):
+            File path defining a CIM schema pragma file for the set of
+            CIM classes that make up a schema such as the DMTF schema.
+            This file must contain a pragma statement for each of the
+            classes defined in the schema.
+
+            If None, no attempt is made to any CIM classes required for the
+            provider and it is assumed that the CIM classes are already
+            installed
+
+          verbose (:class:`py:bool`):
+            If True, displays progress information as providers are installed.
+
+        """
+
+        provider = CIMNamespaceProvider(self.cimrepository)
+
+        provider.install_provider(self, interop_namespace,
+                                  schema_pragma_file=schema_pragma_file,
+                                  verbose=verbose)
 
     ###########################################################################
     #
@@ -546,20 +845,20 @@ class FakedWBEMConnection(WBEMConnection):
 
         mofcomp.compile_string(mof_str, namespace)
 
-    def compile_schema_classes(self, class_names, schema_pragma_file,
+    def compile_schema_classes(self, class_names, schema_pragma_files,
                                namespace=None, verbose=False):
         # pylint: disable=line-too-long
         """
-        Compile the classes defined by `class_names`  and all of their dependences.
-        The class names must be classes in the define schema and with
-        pragma statements in `schema_pragma_file`.
-        `schema_pragma_file` must be in a directory that also encompasses
-        the MOF files for all of the classes defined in the
-        `schema_pragma_file` and the dependencies of those classes. While
-        the relative paths of all of the CIM class files is defined in the
-        `schema_pragma_file` the pywbem MOF compiler may also search for
-        dependencies (ex. superclasses, references, etc.) that are not
-        specifically listed in the `class_names` and the path of the
+        Compile the classes defined by `class_names`  and all of their
+        dependences. The class names must be classes in the defined schema and
+        with pragma statements in a `schema_pragma_file`. Each
+        `schema_pragma_file` in the `pragma_files` parameter must be in a
+        directory that also encompasses the MOF files for all of the classes
+        defined in the `schema_pragma_file` and the dependencies of those
+        classes. While the relative paths of all of the CIM class files is
+        defined in the `schema_pragma_file` the pywbem MOF compiler may also
+        search for dependencies (ex. superclasses, references, etc.) that are
+        not specifically listed in the `class_names` and the path of the
         `schema_pragma_file` is the top level directory for that search. The
         mof schema directory must include:
 
@@ -581,15 +880,14 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          class_names (:term:`string` or :class:`py:list` of :term:`string):
-            Class names of the classes to be compiled. These class names must be
-            a subset of the classes defined in `schema_pragma_file`.
+          class_names (:term:`string` or :class:`py:list` of :term:`string`):
+            Class names of the classes to be compiled. These class names must
+            be a subset of the classes defined in `schema_pragma_file`.
 
-          schema_pragma_file (:term:`string`):
-            Relative or absolute file path of the schema mof pragma file that
-            includes a MOF pragma for each CIM class file in the schema. See
-            :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file` This file
-            path is available from
+          schema_pragma_files (:term:`string` or :class:`py:list` of :term:`string`):
+            Relative or absolute file path of schema pragma files that include
+            a MOF pragma include statement for each CIM class to be
+            compiled.  This file path is available from
             :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`
 
           namespace (:term:`string`):
@@ -604,20 +902,24 @@ class FakedWBEMConnection(WBEMConnection):
           MOFCompileError: For errors in MOF parsing, finding MOF dependencies
             or issues with the cim repository.
 
-          CIMError: Other errors relating to the target server environment.
+          :class:`~pywbem.CIMError`: Other errors relating to the target server
+          environment.
         """  # noqa: E501
         # pylint: enable:line-too-long
 
-        # Find the schema pragma file in the schema_mof_dir.
+        if isinstance(schema_pragma_files, six.string_types):
+            schema_pragma_files = [schema_pragma_files]
 
-        schema_mof_dir = os.path.split(schema_pragma_file)[0]
+        search_paths = [os.path.dirname(file) for file in schema_pragma_files]
 
-        compile_list = build_schema_mof(class_names,
-                                        schema_pragma_file)
+        # TODO: extend so that we can compile on any file where we find
+        # our target class(es)
+        schema_pragma_file = schema_pragma_files[0]
 
-        self.compile_mof_string(compile_list,
+        compile_pragma = build_schema_mof(class_names, schema_pragma_file)
+        self.compile_mof_string(compile_pragma,
                                 namespace=namespace,
-                                search_paths=[schema_mof_dir],
+                                search_paths=search_paths,
                                 verbose=verbose)
 
     def compile_dmtf_schema(self, schema_version, schema_root_dir, class_names,
@@ -627,7 +929,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         **Deprecated:** This method has been deprecated in pywbem 1.0.0
         in favor of
-        :method:`pywbem_mock.FakedWBEMConnection.compile_dmtf_classes`.
+        :meth:`pywbem_mock.FakedWBEMConnection.compile_dmtf_classes`.
 
         Compile the classes defined by `schema_class_names` and their
         dependent classes from the CIM schema version defined by
@@ -811,8 +1113,6 @@ class FakedWBEMConnection(WBEMConnection):
                                                        qualifier_store,
                                                        verbose=False)
 
-                # TODO: ks. Originally this impled set whether exists or not
-                # using create changes semantic to only add
                 class_store.create(cc.classname, cc1.copy())
 
             elif isinstance(obj, CIMInstance):
@@ -838,7 +1138,7 @@ class FakedWBEMConnection(WBEMConnection):
                     raise CIMError(
                         CIM_ERR_FAILED,
                         _format("Internal failure of add_cimobject operation. "
-                                "Rcvd CIMError {0}", ce))
+                                "Rcvd CIMError {0!A}", ce))
                 instance_store.create(inst.path, inst)
 
             elif isinstance(obj, CIMQualifierDeclaration):
@@ -851,70 +1151,6 @@ class FakedWBEMConnection(WBEMConnection):
                 assert False, \
                     _format("Object to add_cimobjects. {0} invalid type",
                             type(obj))
-
-    def add_method_callback(self, classname, methodname, method_callback,
-                            namespace=None,):
-        """
-        Register a callback function for a CIM method that will be called when
-        the CIM method is invoked via `InvokeMethod`.
-
-        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
-        CIM_ERR_INVALID_NAMESPACE is raised.
-
-        Parameters:
-
-          classname (:term:`string`):
-            The CIM class name for which the callback function is registered.
-
-            The faked `InvokeMethod` implementation uses this information to
-            look up the callback function from its parameters.
-
-            For method invocations on a target instance, this must be the class
-            name of the creation class of the target instance.
-
-            For method invocations on a target class, this must be the class
-            name of the target class.
-
-          methodname (:term:`string`):
-            The CIM method name for which the callback function is registered.
-
-            The faked `InvokeMethod` implementation uses this information to
-            look up the callback function from its parameters.
-
-          method_callback (:func:`~pywbem_mock.method_callback_interface`):
-            The callback function.
-
-          namespace (:term:`string`):
-            The CIM namespace for which the callback function is registered.
-
-            If `None`, the callback function is registered for the default
-            namespace of the connection.
-
-            The faked `InvokeMethod` implementation uses this information to
-            look up the callback function from its parameters.
-
-        Raises:
-
-          ValueError: Duplicate method specification.
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-        """
-
-        if namespace is None:
-            namespace = self.default_namespace
-
-        # Validate namespace
-        method_repo = self._get_method_repo(namespace)
-
-        # TODO: Future, when we add provider, this should move to provider
-        # support
-        if classname not in method_repo:
-            method_repo[classname] = NocaseDict()
-
-        if methodname in method_repo[classname]:
-            raise ValueError("Duplicate method specification")
-
-        method_repo[classname][methodname] = method_callback
 
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
@@ -980,9 +1216,6 @@ class FakedWBEMConnection(WBEMConnection):
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
             self._display_objects('Instances', self._get_instance_store(ns), ns,
-                                  cmt_begin, cmt_end, dest=dest,
-                                  summary=summary, output_format=output_format)
-            self._display_objects('Methods', self._get_method_repo(ns), ns,
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
 
@@ -1067,124 +1300,91 @@ class FakedWBEMConnection(WBEMConnection):
                     else:
                         _uprint(dest, obj.tomof())
 
-    def register_provider(self, namespaces, classnames, provider_type,
-                          provider):
+    def register_provider(self, provider, namespaces=None,
+                          schema_pragma_files=None, verbose=None):
         # pylint: disable=line-too-long
         """
-        Register the provider object for namespace and class. Registering a
-        provider tells the FakedWBEMConnection that the provider implementation
-        provided with this call is to be executed as the request response
-        method for the namespace and class defined in lieu of the default
-        provider.
+        Register the provider object for specific namespaces and CIM classes.
+        Registering a provider tells the FakedWBEMConnection that the provider
+        implementation provided with this method as the `provider` parameter is
+        to be executed as the request response method for the namespaces
+        defined in the `namespaces` parameter, the provider type defined in the
+        provider 'provider_type` attribute of the `provider` and the classes
+        defined in the provider `provider_classnames` attribute of the
+        `provider`.
 
-        Providers can only be registered for request response methods
-        CreateInstance and DeleteInstance and InvokeMethod.
+        The provider registration process includes:
 
-        Multiple providers may be registered for the same classname in
-        different namespaces
+        1. Validation that the namespaces defined for the provider exist.
+        2. Validation that the superclass of the provider is consistent with
+           the `provider_type` attribute defined in the provider.
+        3. Installation of any CIM classes defined by the provider
+           (`provider_classnames` attribute) including installation of
+           dependencies for these classes using the `schema_pragma_files` to
+           locate the search directories for dependencies.
+        4. Adding the provider to the registry of user_providers so that any
+           of the request methods defined for the `provider_type` are
+           passed to this provider in place of the default request processors.
+
+        Providers can only be registered for the following request response
+        methods:
+
+        1. provider_type = 'instance': CreateInstance, ModifyInstance, and
+           DeleteInstance
+
+        2. provider_type = 'method': InvokeMethod.
+
+        Each classname in a particular namespace may have at most one provider
+        registered
 
         Parameters:
 
-          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
-            Namespace or namespaces for which the provider is being registered.
-            If no namespaces are defined, the connection default namespace
-            is used.
-
-          classnames (:term:`string` or :class:`py:list` of :term:`string`):
-            Classname or classnames for which the provider is being
-            registered. At least one classname is required.
-
-          provider_type (:term:`string`):
-            Keyword defining the type of request the provider will service.
-            The allowed types are instance (keyword 'instance') which responds
-            to the request responder methods defined in InstanceWriteProvider
-            (ex. CreateInstance) and method (keyword 'method') which responds
-            to the InvokeMethod.
-
-          provider (subclass of :class::class:`pywbem_mock:InstanceWriteProvider`):
-            The user provider class which is a subclass of
+          provider (instance of subclass of :class:`pywbem_mock:InstanceWriteProvider`):
+            An instance of the user provider class which is a subclass of
             :class:`pywbem_mock:InstanceWriteProvider`.  The methods in this
             subclass override the corresponding methods in
             InstanceWriteProvider. The method call parameters must be the
             same as the defult method in InstanceWriteProvider and it must
             return data in the same format if the default method returns data.
+
+          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
+            Namespace or namespaces for which the provider is to be registered.
+
+            If `None`, the default namespace of the connection will be used.
+
+          schema_pragma_files  (:term:`string` or :class:`py:list` of :term:`string`):
+            File paths defining a schema pragma file MOF for the set of CIM
+            classes that make up a schema such as the DMTF schema. These files
+            must contain include pragams defining the file location of the
+            classes to be compiled for the defined provider and for any
+            dependencies required to compile those classes.  The directory
+            containing each pragma file is passed to the MOF compiler as the
+            search path for compile dependencies.
+
+            See :class:`pywbem.MofCompiler` for more information on the
+            `search_paths` parameter.
+
+          verbose ():
+            Flag to enable detailed display of actions
+
+        Raises:
+            TypeError: Invalid provider_type retrieved from provider or
+                       provider_type does not match superlclass or the
+                       namespace parameter is invalid.
+
+.           ValueError: Provider_type retrieved from provider is not a
+                        valid string.
+
+            ValueError: Classnames parameter retrieved from provider not a
+                        valid string or iterable or namespace does not exist
+                        in repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        provider_types = ('instance', 'method')
-
-        if provider_type == 'instance':
-            if not issubclass(provider, InstanceWriteProvider):
-                raise TypeError(
-                    _format("provider argument {0!A} is not a "
-                            "valid subclass of InstanceWriteProvider. ",
-                            provider))
-        elif provider_type == 'method':
-            if not issubclass(provider, MethodProvider):
-                raise TypeError(
-                    _format("provider argument {0!A} is not a "
-                            "valid subclass of MethodProvider. ",
-                            provider))
-        else:
-            raise ValueError(
-                _format("provider_type argument {0!A} is not a valid provider "
-                        "type. Valid provider types are {1!A}.",
-                        provider_type, provider_types))
-
-        if classnames is None:
-            raise ValueError(
-                _format('classnames argument must be string '
-                        'or list of strings. None not allowed.'))
-
-        if not namespaces:
-            namespaces = [self.default_namespace]
-
-            if not isinstance(namespaces, (list, tuple, six.string_types)):
-                raise TypeError(
-                    _format('Namespace argument {0|A} must be a string or '
-                            'list/tuple but is {1}',
-                            namespaces, type(namespaces)))
-
-            if isinstance(namespaces, six.string_types):
-                namespaces = [namespaces]
-
-            for namespace in namespaces:
-                if namespace not in self.namespaces:
-                    raise ValueError(
-                        _format('Namespace "{0!A}" in namespaces argument not '
-                                'in CIM repository. '
-                                'Existing namespaces are: {1!A}. ',
-                                namespace, self.namespaces))
-
-        # If classnames is list, recursively call this method
-        if isinstance(classnames, (list, tuple)):
-            for classname in classnames:
-                self.register_provider(namespaces, classname, provider_type,
-                                       provider)
-            return
-
-        # Processing for classnames defining a single classname
-        classname = classnames
-        assert isinstance(classname, six.string_types)
-
-        if isinstance(namespaces, six.string_types):
-            namespaces = [namespaces]
-        for namespace in namespaces:
-            if not self.mainprovider.class_exists(namespace, classname):
-                raise ValueError(
-                    _format('class "{0!A}" does not exist in '
-                            'namespace {1!A} of the CIM repository',
-                            classname, namespace))
-
-        if classname not in self.provider_registry:
-            self.provider_registry[classname] = NocaseDict()
-
-        for namespace in namespaces:
-            if namespace not in self.provider_registry[classname]:
-                # add the provider_type dictionary
-                self.provider_registry[classname][namespace] = {}
-            self.provider_registry[classname][namespace][provider_type] = \
-                provider
+        self.provider_registry.register_provider(
+            self, provider, namespaces=namespaces,
+            schema_pragma_files=schema_pragma_files,
+            verbose=verbose)
 
     ########################################################################
     #
@@ -1388,6 +1588,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
+
         new_instance_path = self.providerdispatcher.CreateInstance(
             namespace=namespace,
             NewInstance=params['NewInstance'])
@@ -1475,7 +1676,7 @@ class FakedWBEMConnection(WBEMConnection):
             namespace=namespace,
             QueryLanguage=params['QueryLanguage'],
             Query=params['Query'])
-        # TODO: The following is untested because the
+        # Issue 2064: The following is untested because the
         # mainprovider ExecQuery only generates exception.
         return self._make_tuple([instances])
 

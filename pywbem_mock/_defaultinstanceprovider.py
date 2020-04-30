@@ -20,19 +20,19 @@
 
 """
 This module adds support for user-defined providers.  User defined
-providers may be created by the use of pywbem_mock to extend the capability
-of the mocker for special processing for certain classes to be mocked.
+providers may be created within pywbem_mock to extend the capability
+of the mocker for special processing for selected classes.
 
 This module contains two classes:
 
 1. ProviderDispatcher - Routes the calls for request methods that allow
-user-defined providers either to the default method in InstanceWriteProvider
-or to a user defined method in the provider registry.
+   user-defined providers either to the default method in InstanceWriteProvider
+   or to a user defined method in the provider registry.
 
 2. InstanceWriteProvider - The default implementation for the request
-responders that may include user defined providers.  This is the method that
-will be called if there is no provider registered for a namespace and class
-name.
+   responders that may include user defined providers.  This is the method that
+   will be called if there is no provider registered for a namespace and class
+   name.
 
 User defined providers may be created for specific CIM classes and specific
 namespaces to override one or more of the operation request methods defined in
@@ -41,12 +41,22 @@ subclass of :class:`~pywbem_mock.InstanceWriteProvider`.
 
 A user defined provider is created as follows:
 
-1. Define the subclass of :class:`~pywbem_mock.InstanceWriteProvider` with an
-__init__ method and the methods that will override any of the request methods
-defined in :class:`~pywbem_mock.InstanceWriteProvider`.  Note that not all of
-the requests methods in :class:`~pywbem_mock.InstanceWriteProvider` need to
-be implemented, just those for which user provider will manipulate the incoming
-request parameters.
+1. Create the subclass of :class:`~pywbem_mock.InstanceWriteProvider`  or
+   :class:`~pywbem_mock.MethodProvider` with an
+   __init__ method and the methods that will override any of the request methods
+   defined in :class:`~pywbem_mock.InstanceWriteProvider`.  Note that not all of
+   the requests methods in :class:`~pywbem_mock.InstanceWriteProvider` need to
+   be implemented, just those for which user provider will manipulate the
+   incoming request parameters.
+
+This class must include the following 2 class or instance variables:
+
+  * `provider_type` (:term:`string` or list of :term`string`): defining the
+     operation type(s) the provider will serve. The legal provider types are
+     "instance", "method".
+
+  * `provider_classnames` (:term:`string` or list of :term`string`): defines the
+    class(es) that this provider may serve.
 
 Thus, a user provider can override the
 :meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance` method to modify the
@@ -55,7 +65,7 @@ to the CIM repository within the user provider or call the
 :meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance` in the superclass to
 complete submission of the ``NewInstance``.
 
-2. Define registraton of the user provider using
+2. Register the user provider using
 :meth:`~pywbem_mock.WBEMConnection.register_provider` to define the namespaces
 and classes for which the user provider will override the corresponding method
 in the :class:`~pywbem_mock.InstanceWriteProvider`.  The registration of the
@@ -65,9 +75,8 @@ registration have been added to the CIM repository.
 
 from __future__ import absolute_import, print_function
 
-import six
-
 from copy import deepcopy
+import six
 
 from pywbem import CIMInstance, CIMInstanceName, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
@@ -162,10 +171,11 @@ class ProviderDispatcher(BaseProvider):
         """
         Set instance parameters passed from FakedWBEMConnection
         """
-        super(ProviderDispatcher, self).__init__(
-            cimrepository, provider_registry)
+        super(ProviderDispatcher, self).__init__(cimrepository)
 
-        # defines the instance of InstanceWriteProvider that will
+        self.provider_registry = provider_registry
+
+        # Defines the instance of InstanceWriteProvider that will
         # be called to dispatch operation to default provider.
         self.default_instance_provider = default_instance_provider
 
@@ -194,12 +204,11 @@ class ProviderDispatcher(BaseProvider):
                         "class {0!A} does not exist in namespace {1!A}.",
                         NewInstance.classname, namespace))
 
-        provider = self.get_registered_provider(namespace, 'instance',
-                                                NewInstance.classname)
+        provider = self.provider_registry.get_registered_provider(
+            namespace, 'instance', NewInstance.classname)
 
         if provider:
-            providerinst = provider(self.cimrepository)
-            return providerinst.CreateInstance(namespace, NewInstance)
+            return provider.CreateInstance(namespace, NewInstance)
 
         return self.default_instance_provider.CreateInstance(
             namespace, NewInstance)
@@ -261,12 +270,11 @@ class ProviderDispatcher(BaseProvider):
                 _format("Original Instance {0!A} not found in namespace {1!A}",
                         ModifiedInstance.path, namespace))
 
-        provider = self.get_registered_provider(namespace,
-                                                'instance',
-                                                ModifiedInstance.classname)
+        provider = self.provider_registry.get_registered_provider(
+            namespace, 'instance', ModifiedInstance.classname)
+
         if provider:
-            providerinst = provider(self.cimrepository)
-            return providerinst.ModifyInstance(
+            return provider.ModifyInstance(
                 ModifiedInstance,
                 IncludeQualifiers=IncludeQualifiers,
                 PropertyList=PropertyList)
@@ -305,12 +313,11 @@ class ProviderDispatcher(BaseProvider):
                 _format("Instance {0!A} not found in CIM repository namespace "
                         "{1!A}", InstanceName, namespace))
 
-        provider = self.get_registered_provider(InstanceName.namespace,
-                                                'instance',
-                                                InstanceName.classname)
+        provider = self.provider_registry.get_registered_provider(
+            InstanceName.namespace, 'instance', InstanceName.classname)
+
         if provider:
-            providerinst = provider(self.cimrepository)
-            return providerinst.DeleteInstance(InstanceName)
+            return provider.DeleteInstance(InstanceName)
 
         return self.default_instance_provider.DeleteInstance(
             InstanceName)
@@ -348,13 +355,11 @@ class ProviderDispatcher(BaseProvider):
                 _format("Method {0!A} not found in class {1!A}.",
                         methodname, classname))
 
-        provider = self.get_registered_provider(namespace,
-                                                'method',
-                                                classname)
+        provider = self.provider_registry.get_registered_provider(
+            namespace, 'method', classname)
         if provider:
-            providerinst = provider(self.cimrepository)
-            return providerinst.InvokeMethod(namespace, methodname,
-                                             objectname, Params)
+            return provider.InvokeMethod(namespace, methodname,
+                                         objectname, Params)
 
         # There is no default method provider so no user InvokeMethod
         # is defined for namespace and class, exception raise.
@@ -373,7 +378,15 @@ class InstanceWriteProvider(BaseProvider):
 
     Note that user-defined providers may, in turn, call the default providers
     in this class.
+
+    Attributes:
+
+      provider_type (:term:`string`):
+        Keyword defining the type of request the provider will service.
+        The type for this class is predefined as 'instance'
     """
+
+    provider_type = 'instance'
 
     def __init__(self, cimrepository=None):
         """
@@ -460,41 +473,6 @@ class InstanceWriteProvider(BaseProvider):
                                       include_qualifiers=True,
                                       include_classorigin=True)
 
-        # Handle namespace creation, currently hard coded.
-        # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
-        # provider concept
-        classname_lower = new_instance.classname.lower()
-        if classname_lower == 'pg_namespace':
-            ns_classname = 'PG_Namespace'
-        elif classname_lower == 'cim_namespace':
-            ns_classname = 'CIM_Namespace'
-        else:
-            ns_classname = None
-        if ns_classname:
-            try:
-                new_namespace = new_instance['Name']
-            except KeyError:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Namespace creation via CreateInstance: "
-                            "Missing 'Name' property in the {0!A} instance ",
-                            new_instance.classname))
-
-            # Normalize the namespace name
-            new_namespace = new_namespace.strip('/')
-
-            # Write it back to the instance in case it was changed
-            new_instance['Name'] = new_namespace
-
-            # These values must match those in
-            # tests/unittest/utils/wbemserver_mock.py.
-            new_instance['CreationClassName'] = ns_classname
-            new_instance['ObjectManagerName'] = 'MyFakeObjectManager'
-            new_instance['ObjectManagerCreationClassName'] = \
-                'CIM_ObjectManager'
-            new_instance['SystemName'] = 'Mock_Test_WBEMServerTest'
-            new_instance['SystemCreationClassName'] = 'CIM_ComputerSystem'
-
         # Test all key properties in instance. The CIM repository
         # cannot add values for key properties and does
         # not allow creating key properties from class defaults.
@@ -515,11 +493,6 @@ class InstanceWriteProvider(BaseProvider):
             target_class,
             new_instance,
             namespace=namespace)
-
-        # Reflect the new namespace in the  CIM repository
-        # TODO/ks: This should not be necessary here when we have provider
-        if ns_classname:
-            self.add_namespace(new_namespace)
 
         # Store the new instance in the  CIM repository if it is not
         # already in the repository
@@ -774,8 +747,7 @@ class InstanceWriteProvider(BaseProvider):
         Parameters:
 
           InstanceName (:class:`~pywbem.CIMInstanceName`):
-            The instance path of the instance to be deleted.
-            The instance path of the instance to be retrieved  with the
+            The instance path of the instance to be deleted with the
             following attributes:
 
             * `classname`: Name of the creation class of the instance.
@@ -785,9 +757,9 @@ class InstanceWriteProvider(BaseProvider):
             * `host`: value ignored.
 
         Raises:
-            CIMError: CIM_ERR_INVALID_NAMESPACE
-            CIMError: CIM_ERR_INVALID_CLASS
-            CIMError: CIM_ERR_NOT_FOUND
+            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
+            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS
+            :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND
         """
 
         instance_store = self.get_instance_store(InstanceName.namespace)
@@ -821,7 +793,15 @@ class MethodProvider(BaseProvider):
 
     User providers are defined by creating a subclass of this class and
     defining an InvokeMethod based on the method in this class.
+
+    Attributes:
+
+      provider_type (:term:`string`):
+        Keyword defining the type of request the provider will service.
+        The type for this class is 'method'
     """
+
+    provider_type = 'method'
 
     def __init__(self, cimrepository=None):
         """

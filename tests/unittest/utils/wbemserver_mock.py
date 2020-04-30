@@ -16,6 +16,9 @@ from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
     CIMInstanceName  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
+from pywbem_mock import OBJECTMANAGERCREATIONCLASSNAME, \
+    SYSTEMCREATIONCLASSNAME, OBJECTMANAGERNAME, \
+    SYSTEMNAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -52,9 +55,9 @@ TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 DEFAULT_WBEM_SERVER_MOCK_DICT = {
     'dmtf_schema': {'version': DMTF_TEST_SCHEMA_VER,
                     'dir': TESTSUITE_SCHEMA_DIR},
-    'pg_schema': {
-        'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'OpenPegasus'),
-        'files': ['PG_Namespace.mof']},
+    'tst_schema': {
+        'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'FakeWBEMServer'),
+        'files': []},
 
     'class_names': ['CIM_Namespace',
                     'CIM_ObjectManager',
@@ -63,10 +66,10 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
                     'CIM_ReferencedProfile',
                     'CIM_ComputerSystem'],
     'class-mof': ["class XXX_StorageComputerSystem : CIM_ComputerSystem{};", ],
-    'system_name': 'Mock_Test_WBEMServerTest',
-    'object_manager': {'Name': 'MyFakeObjectManager',
-                       'ElementName': 'Pegasus',
-                       'Description': 'Pegasus CIM Server Version 2.15.0'
+    'system_name': SYSTEMNAME,
+    'object_manager': {'Name': OBJECTMANAGERNAME,
+                       'ElementName': 'Mock_Test',
+                       'Description': 'Mock_Test CIM Server Version 2.15.0'
                                       ' Released', },
     'interop_namspace': 'interop',
     'other_namespaces': [],
@@ -151,8 +154,8 @@ class WbemServerMock(object):
 
         self.dmtf_schema_ver = self.server_mock_data['dmtf_schema']['version']
         self.schema_dir = self.server_mock_data['dmtf_schema']['dir']
-        self.pg_schema_dir = self.server_mock_data['pg_schema']['dir']
-        self.pg_schema_files = self.server_mock_data['pg_schema']['files']
+        self.tst_schema_dir = self.server_mock_data['tst_schema']['dir']
+        self.tst_schema_files = self.server_mock_data['tst_schema']['files']
         self.registered_profiles = self.server_mock_data['registered_profiles']
         self.wbem_server = self.build_mock()
 
@@ -201,10 +204,10 @@ class WbemServerMock(object):
             schema.schema_pragma_file,
             verbose=False)
 
-        for fn in self.pg_schema_files:
-            pg_file = os.path.join(self.pg_schema_dir, fn)
+        for fn in self.tst_schema_files:
+            pg_file = os.path.join(self.tst_schema_dir, fn)
             conn.compile_mof_file(pg_file, namespace=default_namespace,
-                                  search_paths=[self.pg_schema_dir],
+                                  search_paths=[self.tst_schema_dir],
                                   verbose=False)
 
         # compile the mof defined in the 'class-mof definitions
@@ -241,8 +244,8 @@ class WbemServerMock(object):
         fixed data defined in this method and data from the init parameter
         mock data.
         """
-        omdict = {"SystemCreationClassName": "CIM_ComputerSystem",
-                  "CreationClassName": "CIM_ObjectManager",
+        omdict = {"SystemCreationClassName": SYSTEMCREATIONCLASSNAME,
+                  "CreationClassName": OBJECTMANAGERCREATIONCLASSNAME,
                   "SystemName": system_name,
                   "Name": object_manager_name,
                   "ElementName": object_manager_element_name,
@@ -262,31 +265,6 @@ class WbemServerMock(object):
             "Expected 1 ObjetManager instance, got %r" % rtn_ominsts
 
         return ominst
-
-    def build_cimnamespace_insts(self, conn, namespaces=None):
-        """
-        Build instances of CIM_Namespace defined by test_namespaces list. These
-        instances are built into the interop namespace
-        """
-        for ns in namespaces:
-            nsdict = {"SystemName": self.system_name,
-                      "ObjectManagerName": self.object_manager_name,
-                      'Name': ns,
-                      'CreationClassName': 'PG_Namespace',
-                      'ObjectManagerCreationClassName': 'CIM_ObjectManager',
-                      'SystemCreationClassName': 'CIM_ComputerSystem'}
-
-            nsinst = self.inst_from_classname(conn, "PG_Namespace",
-                                              namespace=self.interop_ns,
-                                              property_values=nsdict,
-                                              include_missing_properties=False,
-                                              include_path=True)
-            conn.add_cimobjects(nsinst, namespace=self.interop_ns)
-
-        rtn_namespaces = conn.EnumerateInstances("CIM_Namespace",
-                                                 namespace=self.interop_ns)
-        assert len(rtn_namespaces) == len(namespaces), \
-            "Expected namespaces: %r, got %s" % (namespaces, rtn_namespaces)
 
     def build_reg_profile_insts(self, conn, profiles):
         """
@@ -478,7 +456,9 @@ class WbemServerMock(object):
         if self.server_mock_data['other_namespaces']:
             namespaces.extend(self.server_mock_data['other_namespaces'])
 
-        self.build_cimnamespace_insts(conn, namespaces)
+        conn.install_namespace_provider(self.interop_ns,
+                                        None,
+                                        verbose=None)
 
         self.build_reg_profile_insts(conn, self.registered_profiles)
 

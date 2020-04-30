@@ -73,6 +73,7 @@ classes) so that generally only the leaf CIM classes required for the
 repository need to be in the class list. This speeds up the process of
 compiling DMTF CIM classes for any test significantly.
 """
+
 import warnings
 import os
 from zipfile import ZipFile
@@ -93,12 +94,12 @@ __all__ = ['DMTFCIMSchema']
 def build_schema_mof(class_names, schema_pragma_file):
     """
     Build a string that includes the ``#include pragma`` statements for the
-    DMTF schema CIM classes defined in `class_names` using the DMTF CIM
-    schema defined by this object.
+    schema CIM classes defined in `class_names` using the CIM schema defined by
+    this object.
 
     The class names in `class_names` can be just leaf classes. The pywbem
     MOF compiler will search for dependent classes including superclasses,
-    and other classes referenced as the classes are compiled.
+    and other classes referenced as the defined classes are compiled.
 
     It builds a compilable MOF string in the form::
 
@@ -135,12 +136,12 @@ def build_schema_mof(class_names, schema_pragma_file):
         classes defined in the schema.
 
     Returns:
-        :term:`string`: Valid MOF containing pragma statements for
-        all of the classes in `schema_classes`.
+        :term:`string`: Valid MOF containing pragma statements from the
+        `CIM schema pragma file` for all of the classes in `schema_classes`.
 
     Raises:
         ValueError: If any of the classnames in `schema_classes` are not in
-        the DMTF CIM schema installed
+        the `CIM schema pragma file`.
     """
     if isinstance(class_names, six.string_types):
         class_names = [class_names]
@@ -167,7 +168,7 @@ def build_schema_mof(class_names, schema_pragma_file):
     classes_not_found = set(class_names) - set(found_classes)
     if classes_not_found:
         raise ValueError(
-            _format("Classes {0!A} not in DMTF CIM schema {1!A}",
+            _format("Classes {0!A} not in the CIM schema pragma file {1!A}",
                     ', '.join(classes_not_found), schema_pragma_file))
 
     # Sort the list so the result is in the same order as the pragmas
@@ -331,22 +332,23 @@ class DMTFCIMSchema(object):
     def schema_mof_file(self):
         """
         **Deprecated:** This attribute has been deprecated in pywbem 1.0.0
-        in favor of
-        :method:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`.
+        in favor of :meth:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`.
+
         :term:`string`: Path name of the schema pragma file
         which defines MOF pragmas to compile the complete CIM schema. This file
         contains the `#pragama include` statements for all of the classes in
         the schema and the qualifier declaration `#pragma include` statements
         to compile `qualifiers.mof` and `qualifiers_optional.mof`.
 
-        This filename is of the general form::
+        This file pathname is of the general form::
 
             <schema_mof_dir>/cim_schema_<schema_version_str>.mof
 
             ex: schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
+
         """
         warnings.warn("The attribute schema_mof_file has been deprecated. Use "
-                      " the attribute schema_pragma_file.",
+                      "the attribute schema_pragma_file.",
                       DeprecationWarning, stacklevel=2)
         return self._schema_pragma_file
 

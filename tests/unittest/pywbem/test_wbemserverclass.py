@@ -88,8 +88,8 @@ class TestServerClass(BaseMethodsForTests):
 
         assert server.url == 'http://FakedUrl:5988'
 
-        assert server.brand == "OpenPegasus"
-        assert server.version == "2.15.0"
+        assert server.brand == "Mock_Test"
+        # assert server.version == "2.15.0"
         assert server.interop_ns == tst_namespace
         assert set(server.namespaces) == set([tst_namespace])
 
@@ -143,7 +143,7 @@ class TestServerClass(BaseMethodsForTests):
         kb = NocaseDict([('SystemCreationClassName', 'CIM_ComputerSystem'),
                          ('SystemName', mock_wbemserver.system_name),
                          ('CreationClassName', 'CIM_ObjectManager'),
-                         ('Name', 'MyFakeObjectManager'), ])
+                         ('Name', 'FakeObjectManager'), ])
         assert insts[0] == CIMInstanceName('CIM_ObjectManager', keybindings=kb,
                                            namespace=tst_namespace,
                                            host=server.conn.host)
@@ -202,7 +202,6 @@ TESTCASES_CREATE_NAMESPACE = [
         ),
         CIMError, None, True
     ),
-
 ]
 
 
@@ -210,8 +209,7 @@ TESTCASES_CREATE_NAMESPACE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CREATE_NAMESPACE)
 @simplified_test_function
-def test_create_namespace_2(testcase,
-                            new_namespace, exp_namespace):
+def test_create_namespace(testcase, new_namespace, exp_namespace):
     """
     Test creation of a namespace using approach 2.
     """

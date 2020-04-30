@@ -41,33 +41,17 @@ the CIM repository and defined with the interfaces in `BaseRepository`.
 from __future__ import absolute_import, print_function
 
 from pywbem import CIMError, \
-    CIM_ERR_NOT_FOUND, \
+    CIM_ERR_NOT_FOUND, CIMInstance, CIMClass, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
-    CIM_ERR_NAMESPACE_NOT_EMPTY
+    CIM_ERR_NAMESPACE_NOT_EMPTY, \
+    WBEMServer
+
+from pywbem._nocasedict import NocaseDict
 
 from pywbem._utils import _format
 
 # pywbem_mock implementation configuration variables that are used in
 # request responsders.
-
-# Default Max_Object_Count for Fake Server if not specified by request
-_DEFAULT_MAX_OBJECT_COUNT = 100
-
-# Maximum Open... timeout if not set by request
-OPEN_MAX_TIMEOUT = 40
-
-# Per DSP0200, the default behavior for EnumerateInstance DeepInheritance
-# if not set by server.  Default is True.
-DEFAULT_DEEP_INHERITANCE = True
-
-# Value of LocalOnly parameter for instance retrevial operations.  This is
-# set to False in this implementation because of issues between different
-# versions of the DSP0200 specification that defined incompatible behavior
-# for this parameter that were resolved in Version 1.4 by
-# stating that False was the recommended Server setting for all instance
-# retrevial requests and that clients should use False also to avoid the
-# incompatibility.
-INSTANCE_RETRIEVE_LOCAL_ONLY = False
 
 
 class BaseProvider(object):
@@ -79,55 +63,20 @@ class BaseProvider(object):
     executed directly.
     """
 
-    def __init__(self, cimrepository=None, provider_registry=None):
+    def __init__(self, cimrepository):
         """
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by request responders.  The
             repository is fully initialized.
-
-          provider_registry (dict): Provider registry.
         """
         self.cimrepository = cimrepository
-        self.provider_registry = provider_registry
-
-    @property
-    def disable_pull_operations(self):
-        """
-        Boolean Flag to set option to disable the execution of the open and
-        pull operation request handlers in the mock CIM repository. This
-        emulates the characteristic in some CIM servers that did not
-        implement pull operations. The default is to allow pull operations.
-        All pull operations requests may be forbidden from executing by
-        setting disable_pull_operations to True.
-
-        This attribute is settable. For details, see the description of the
-        same-named init parameter of
-        :class:`this class <pywbem.FakedWBEMConnection>`.
-        """
-        return self._disable_pull_operations
-
-    @disable_pull_operations.setter
-    def disable_pull_operations(self, disable):
-        """Setter method; for a description see the getter method."""
-        # Attribute will always be boolean
-        if disable is None:
-            disable = False
-        if isinstance(disable, bool):
-            # pylint: disable=attribute-defined-outside-init
-            self._disable_pull_operations = disable
-        else:
-            raise ValueError(
-                _format('Invalid type for disable_pull_operations: {0!A}, '
-                        'must be a boolean', disable))
 
     def __repr__(self):
         return _format(
-            "MainProvider("
-            "cimrepository={s.cimrepository}, "
-            "host={s.host}, "
-            "disable_pull_operations={s.disable_pull_operations})",
+            "(self.__class__.__name__)("
+            "cimrepository={s.cimrepository}, ",
             s=self)
 
     @property
@@ -253,7 +202,8 @@ class BaseProvider(object):
 
         Raises:
 
-          CIMError: CIM_ERR_INVALID_NAMESPACE: Namespace does not exist.
+          :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
+          not exist.
         """
         try:
             self.cimrepository.validate_namespace(namespace)
@@ -267,7 +217,8 @@ class BaseProvider(object):
         """
         Add a CIM namespace to the CIM repository.
 
-        The namespace must not yet exist in the CIM repository.
+        The namespace must not yet exist in the CIM repository and the
+        repository can contain only one interop namespace.
 
         Parameters:
 
@@ -281,11 +232,22 @@ class BaseProvider(object):
           ValueError: Namespace argument must not be None.
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
+          :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
+            is one of the possible interop namespace names and an interop
+            namespace already exists in the CIM repository.
         """
 
         if namespace is None:
             raise ValueError("Namespace argument must not be None")
 
+        # Cannot add more than one of the possible interop namespace names
+        if self.is_interop_namespace(namespace):
+            if self.find_interop_namespace():
+                raise CIMError(
+                    CIM_ERR_ALREADY_EXISTS,
+                    _format("An interop Namespace {0!A} already exists in the "
+                            "CIM repository. {1!A} cannot be added. ",
+                            self.find_interop_namespace(), namespace))
         try:
             self.cimrepository.add_namespace(namespace)
         except ValueError:
@@ -309,11 +271,11 @@ class BaseProvider(object):
 
         Raises:
 
-          ValueError: Namespace argument must not be None
+          ValueError: Namespace argument must not be None.
           :exc:`~pywbem.CIMError`:  CIM_ERR_NOT_FOUND if the namespace does
             not exist in the CIM repository.
           :exc:`~pywbem.CIMError`:  CIM_ERR_NAMESPACE_NOT_EMPTY if the
-            namespace is not empty.
+            namespace icontains objects.
           :exc:`~pywbem.CIMError`:  CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
             to delete the default connection namespace.  This namespace cannot
             be deleted from the CIM repository
@@ -333,12 +295,113 @@ class BaseProvider(object):
                 CIM_ERR_NAMESPACE_NOT_EMPTY,
                 _format("Namespace {0!A} contains objects.", namespace))
 
+    @staticmethod
+    def interop_namespace_names():  # pylint: disable=no-self-use
+        """
+        Returns an iterable of the valid interop namespace names where
+        the names are considered case insensitive.
+
+        Returns:
+
+          List of :term:`string` containing the valid names for
+          namespaces that can be interop namespaces. Any name not on this list
+          cannot be an interop provider
+
+        """
+        return WBEMServer.INTEROP_NAMESPACES
+
+    def is_interop_namespace(self, namespace):  # pylint: disable=no-self-use
+        """
+        Tests if the namespace parameter defines a namespace name that is one
+        of the allowed set of DMTF names for the interop namespace.
+
+        This test is independent of the test in WBEMServer since it is just
+        confirming that there is an namespace with one of the valid interop
+        namespace names in the physical cim repository.
+
+        Parameters:
+
+            namespace (:term:`string`):
+                The namespace name that is to be tested.
+
+        Returns:
+            True: If the name is one of the valid interop namespace names
+            False: if the name is not an interop namespace valid name.
+
+        """
+        ns_lower = [ns.lower() for ns in self.interop_namespace_names()]
+        return namespace.lower() in ns_lower
+
+    def find_interop_namespace(self):
+        """
+        Find  an interop namespace if one exists in the CIM repository.
+        The interop namespace is identified by it name and the list of
+        possible names is defined by the method `interop_namespace_names`.
+
+        Returns:
+          The name of the interop namespace if one exists or None if there
+          is no interop namespace in the CIM repository.
+
+        """
+        ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
+        for name in self.interop_namespace_names():
+            if name in ns_dict:
+                return ns_dict[name]
+        return None
+
     ################################################################
     #
     #   Common Repository access methods used by MainProvider and
     #   InstanceProviders
     #
     ################################################################
+
+    @staticmethod
+    def _remove_qualifiers(obj):
+        """
+        Remove all qualifiers from the input object where the object may
+        be an CIMInstance or CIMClass. Removes qualifiers from the object and
+        from properties, methods, and parameters
+
+        This is used to process the IncludeQualifier parameter for CIMClass
+        and CIMInstance objects.
+
+        Parameters:
+
+          obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.Instance`)
+            Object from which qualifiers are to be removed
+        """
+        assert isinstance(obj, (CIMInstance, CIMClass))
+        obj.qualifiers = NocaseDict()
+        for prop in obj.properties:
+            obj.properties[prop].qualifiers = NocaseDict()
+        if isinstance(obj, CIMClass):
+            for method in obj.methods:
+                obj.methods[method].qualifiers = NocaseDict()
+                for param in obj.methods[method].parameters:
+                    obj.methods[method].parameters[param].qualifiers = \
+                        NocaseDict()
+
+    @staticmethod
+    def _remove_classorigin(obj):
+        """
+        Remove all ClassOrigin attributes from the input object. The object
+        may be a CIMInstance or CIMClass.
+
+        Used to process the IncludeClassOrigin parameter of CIMInstance and
+        CIMClass objects
+
+        Parameters:
+
+          obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.Instance`)
+            Object from which classorigin attribute is to be removed.
+        """
+        assert isinstance(obj, (CIMInstance, CIMClass))
+        for prop in obj.properties:
+            obj.properties[prop].class_origin = None
+        if isinstance(obj, CIMClass):
+            for method in obj.methods:
+                obj.methods[method].class_origin = None
 
     def get_class(self, namespace, classname, local_only=None,
                   include_qualifiers=None, include_classorigin=None,
@@ -397,8 +460,11 @@ class BaseProvider(object):
           local_only, etc. arguments.
 
         Raises:
-          CIMError: (CIM_ERR_NOT_FOUND) if class not found in CIM repository.
-          CIMError: (CIM_ERR_INVALID_NAMESPACE) if namespace does not exist
+          :class:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if class not found in
+          CIM repository.
+
+          :class:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) if namespace
+          does not exist
         """
 
         class_store = self.get_class_store(namespace)
@@ -475,8 +541,8 @@ class BaseProvider(object):
     @staticmethod
     def find_instance(instance_name, instance_store, copy_inst=None):
         """
-        Find an instance in the CIM repository by iname and return
-        that instance. the copy_inst controls whether the original
+        Find an instance in the CIM repository by `instance_name` and return
+        that instance. the `copy_inst` parameter controls whether the original
         instance in the CIM repository is returned or a copy.  The
         only time the original should be returned is when the user is
         certain that the returned object WILL NOT be modified.
@@ -494,52 +560,13 @@ class BaseProvider(object):
             return the instance in the CIM repository
 
         Returns:
-            None if the instance defined by iname is not found.
-            If it is found, the complete instance or copy of the instance
-            is returned.
+            None if the instance defined by `instance_name` is not found.
+
+            The complete CIM instance or copy of the CIMinstance
+            is returned if it is found in the cim repository.
         """
 
         if instance_store.object_exists(instance_name):
             return instance_store.get(instance_name, copy=copy_inst)
 
         return None
-
-    def get_registered_provider(self, namespace, provider_type, classname):
-        """
-        If there is a provider registered for this namespace, provider_type,
-        and classname return it.
-
-        If no provider is registered, return `None`.
-
-        Parameters:
-
-          namespace (:term:`string`):
-            The namespace in which the request will be executed.
-
-          provider_type (:term:`string`):
-            String containing keyword ('instance' or 'method') defining the
-            type of provider.
-
-          classname (:term:`string`):
-            Name of the class defined for the operation
-
-        Returns:
-
-          :class:`~pywbem_mock.BaseProvider`: The registered provider.
-        """
-
-        if not self.provider_registry:
-            return None
-
-        if classname not in self.provider_registry:
-            return None
-
-        if namespace not in self.provider_registry[classname]:
-            return None
-
-        tp = self.provider_registry[classname][namespace]
-
-        if provider_type not in tp:
-            return None
-
-        return tp[provider_type]
