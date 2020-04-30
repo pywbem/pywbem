@@ -2122,36 +2122,40 @@ class UserProviderTest(InstanceWriteProvider):
     """
     Basic user provider implements CreateInstance and DeleteInstance
     """
+
     def __init__(self, cimrepository):
         """
         Init of test provider
         """
-        super(UserProviderTest, self).__init__()
-        self.cimrepository = cimrepository
+        super(UserProviderTest, self).__init__(cimrepository)
 
     def CreateInstance(self, namespace, NewInstance):
         """Test Create instance just calls super class method"""
-        return InstanceWriteProvider.CreateInstance(namespace, NewInstance)
+        # pylint: disable=useless-super-delegation
+        return super(UserProviderTest, self).CreateInstance(
+            namespace, NewInstance)
 
     def DeleteInstance(self, InstanceName):
         """Test Create instance just calls super class method"""
-        return InstanceWriteProvider.DeleteInstance(InstanceName)
+        # pylint: disable=useless-super-delegation
+        return super(UserProviderTest, self).DeleteInstance(
+            InstanceName)
 
 
 class UserMethodProviderTest(MethodProvider):
     """
     Basic user provider implements CreateInstance and DeleteInstance
     """
+
     def __init__(self, cimrepository):
         """
         Init of test provider
         """
-        super(UserMethodProviderTest, self).__init__()
-        self.cimrepository = cimrepository
+        super(UserMethodProviderTest, self).__init__(cimrepository)
 
     def InvokeMethod(self, namespace, methodname, objectname, Params):
         """Test InvokeMethod provider with InvokeMethod"""
-        # return retur-value 0 and no output parameters
+        # return return-value 0 and no output parameters
         return (0, None)
 
 
@@ -2160,6 +2164,7 @@ class TestProviderRegisterMethods(object):
     Test the repository support for use of user providers that are
     registered and substituted for the default provider.
     """
+
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None]
     )
@@ -2209,6 +2214,7 @@ class TestProviderRegisterMethods(object):
     def test_register_provider(self, conn, ns, desc, inputs,
                                exp_exec, condition, tst_classeswqualifiers,
                                tst_instances):
+        # pylint: disable=no-self-use
         """
         Test register_provider method.
         """
@@ -2339,6 +2345,7 @@ class TestProviderRegisterMethods(object):
     def test_get_registered_provider(self, conn, ns, desc, inputs, get_ns,
                                      get_cln, get_pt, exp_rslt, condition,
                                      tst_classeswqualifiers, tst_instances):
+        # pylint: disable=no-self-use,unused-argument
         """
         Creates a set of valid provider registrations and tests the
         get_provider_registration for multiple inputs
@@ -2383,16 +2390,17 @@ class TestProviderRegisterMethods(object):
         """
         Test execution with a user provider and CreateInstance.
         """
+
         class CIM_FooUserProvider(InstanceWriteProvider):
             """
             Define the user provider with only CreateInstance supported
             """
+
             def __init__(self, cimrepository):
                 """
                 Init of test provider
                 """
-                super(CIM_FooUserProvider, self).__init__()
-                self.cimrepository = cimrepository
+                super(CIM_FooUserProvider, self).__init__(cimrepository)
 
             def CreateInstance(self, namespace, NewInstance):
                 """
@@ -2434,16 +2442,17 @@ class TestProviderRegisterMethods(object):
         Test with a single user defined provider using CIM_Foo_sub as the
         class and handles ModifyInstance only
         """
+
         class CIM_FooSubUserProvider(InstanceWriteProvider):
             """
             Define the user provider
             """
+
             def __init__(self, cimrepository):
                 """
                 Init of test provider
                 """
-                super(CIM_FooSubUserProvider, self).__init__()
-                self.cimrepository = cimrepository
+                super(CIM_FooSubUserProvider, self).__init__(cimrepository)
 
             def ModifyInstance(self, ModifiedInstance,
                                IncludeQualifiers=None, PropertyList=None):
@@ -5788,8 +5797,9 @@ class Method1TestProvider(MethodProvider):
     provider, normally the value of the parameter defined with the input
     parameter. Test for existence of method named method1
     """
+
     def __init__(self, cimrepository):
-        self.cimrepository = cimrepository
+        super(Method1TestProvider, self).__init__(cimrepository)
 
     def InvokeMethod(self, namespace, methodname, objectname, Params):
         """
@@ -5872,11 +5882,11 @@ class Method1TestProvider(MethodProvider):
 
             return (return_value, rtn_params)
 
-        else:
-            raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
+        raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
 
 
 class TestInvokeMethod(object):
+    # pylint: disable=too-few-public-methods
     """
     Test invoking extrinsic methods in Fake_WBEMConnection
     """
@@ -5965,19 +5975,20 @@ class TestInvokeMethod(object):
                               keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
               'Params': [CIMParameter('InputParam1', type='string',
                                       value='objectname')]},
-             {'return': 0, 'params':
-                 [CIMParameter('InputParam1', type='string',
-                               value=CIMInstanceName(
-                                   'CIM_Foo_sub_sub',
-                                   keybindings={'InstanceID':
-                                                'CIM_Foo_sub_sub21'}))]},
+             {'return': 0,
+              'params': [CIMParameter('InputParam1', type='string',
+                                      value=CIMInstanceName(
+                                          'CIM_Foo_sub_sub',
+                                          keybindings={
+                                              'InstanceID':
+                                              'CIM_Foo_sub_sub21'}))]},
              None, OK],
 
         ]
     )
     def test_invokemethod1(self, conn, ns, desc, inputs, exp_output,
                            exp_exc, tst_instances_mof, run_tst):
-        # pylint: disable=unused-argument
+        # pylint: disable=no-self-use,unused-argument
         """
         Test extrinsic method invocation through the
         WBEMConnection.InovkeMethod method

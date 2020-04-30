@@ -72,7 +72,7 @@ from ._baseprovider import _DEFAULT_MAX_OBJECT_COUNT, OPEN_MAX_TIMEOUT, \
 # pylint: disable=invalid-name
 
 
-class MainProvider(ResolverMixin, BaseProvider):
+class MainProvider(BaseProvider, ResolverMixin):
     """
     A CIM provider in the mock support of pywbem creates WBEM server responses
     to operations defined in DSP0200 and implements them using a CIM
@@ -111,8 +111,8 @@ class MainProvider(ResolverMixin, BaseProvider):
               the host and disable_pull_operations attributes.
 
         """
+        super(MainProvider, self).__init__(cimrepository)
 
-        self.cimrepository = cimrepository
         self.host = host
         self.disable_pull_operations = disable_pull_operations
 
@@ -1037,7 +1037,7 @@ class MainProvider(ResolverMixin, BaseProvider):
     ####################################################################
 
     def ModifyClass(self, namespace, ModifiedClass):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         This method is not implemented and returns CIM_ERR_NOT_SUPPORTED.
 
@@ -1673,6 +1673,7 @@ class MainProvider(ResolverMixin, BaseProvider):
     ####################################################################
 
     def ExecQuery(self, namespace, QueryLanguage, Query):
+        # pylint: disable=unused-argument
         """
         Implements a WBEM server responder for
         :meth:`pywbem.WBEMConnection.ExecQuery`.
@@ -3212,7 +3213,7 @@ class MainProvider(ResolverMixin, BaseProvider):
                            ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
                            MaxObjectCount=None):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,unused-argument
         """
         Implements WBEM server responder for
         :meth:`pywbem.WBEMConnection.OpenQueryInstances`.

@@ -156,14 +156,14 @@ class ProviderDispatcher(BaseProvider):
     provder method or the provider defined for processing the defined class in
     the defined namespace.
     """
+
     def __init__(self, cimrepository, provider_registry,
                  default_instance_provider):
         """
         Set instance parameters passed from FakedWBEMConnection
         """
-
-        self.cimrepository = cimrepository
-        self.provider_registry = provider_registry
+        super(ProviderDispatcher, self).__init__(
+            cimrepository, provider_registry)
 
         # defines the instance of InstanceWriteProvider that will
         # be called to dispatch operation to default provider.
@@ -373,21 +373,17 @@ class InstanceWriteProvider(BaseProvider):
 
     Note that user-defined providers may, in turn, call the default providers
     in this class.
-
     """
+
     def __init__(self, cimrepository=None):
         """
-        Initialize the instance variables.
-
         Parameters:
 
-          cimrepository (:class:`~pywbem_mock.InMemoryRepository` or subclass):
+          cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by request responders.  The
             repository is fully initialized.
         """
-
-        if cimrepository:
-            self.cimrepository = cimrepository
+        super(InstanceWriteProvider, self).__init__(cimrepository)
 
     ####################################################################
     #
@@ -546,7 +542,7 @@ class InstanceWriteProvider(BaseProvider):
 
     def ModifyInstance(self, ModifiedInstance,
                        IncludeQualifiers=None, PropertyList=None):
-        # pylint: disable=invalid-name,line-too-long
+        # pylint: disable=invalid-name,line-too-long,unused-argument
         """
         Implements a WBEM server responder for
         :meth:`pywbem.WBEMConnection.CreateInstance`.
@@ -825,21 +821,17 @@ class MethodProvider(BaseProvider):
 
     User providers are defined by creating a subclass of this class and
     defining an InvokeMethod based on the method in this class.
-
     """
+
     def __init__(self, cimrepository=None):
         """
-        Initialize the instance variables.
-
         Parameters:
 
-          cimrepository (:class:`~pywbem_mock.InMemoryRepository` or subclass):
+          cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by request responders.  The
             repository is fully initialized.
         """
-
-        if cimrepository:
-            self.cimrepository = cimrepository
+        super(MethodProvider, self).__init__(cimrepository)
 
     ####################################################################
     #
