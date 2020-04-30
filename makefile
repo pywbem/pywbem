@@ -207,27 +207,8 @@ doc_dependent_files := \
     $(wildcard $(doc_conf_dir)/*.rst) \
     $(wildcard $(doc_conf_dir)/client/*.rst) \
     $(wildcard $(doc_conf_dir)/notebooks/*.ipynb) \
-    $(package_name)/__init__.py \
-    $(package_name)/_listener.py \
-    $(package_name)/_logging.py \
-    $(package_name)/_recorder.py \
-    $(package_name)/_server.py \
-    $(package_name)/_statistics.py \
-    $(package_name)/_subscription_manager.py \
-    $(package_name)/_valuemapping.py \
-    $(package_name)/_version.py \
-    $(package_name)/_nocasedict.py \
-    $(package_name)/_cim_constants.py \
-    $(package_name)/_cim_http.py \
-    $(package_name)/_cim_obj.py \
-    $(package_name)/_cim_operations.py \
-    $(package_name)/_cim_types.py \
-    $(package_name)/_exceptions.py \
-    $(package_name)/_mof_compiler.py \
-    $(package_name)/config.py \
-    $(mock_package_name)/__init__.py \
-    $(mock_package_name)/_wbemconnection_mock.py\
-    $(mock_package_name)/_dmtf_cim_schema.py\
+		$(wildcard $(package_name)/*.py) \
+		$(wildcard $(mock_package_name)/*.py) \
 
 # PyLint config file
 pylint_rc_file := pylintrc

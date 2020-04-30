@@ -36,29 +36,29 @@ name.
 
 User defined providers may be created for specific CIM classes and specific
 namespaces to override one or more of the operation request methods defined in
-:class:`~pywbem_mock:InstanceWriteProvider` with user methods defined in a
-subclass of :class:`~pywbem_mock:InstanceWriteProvider`.
+:class:`~pywbem_mock.InstanceWriteProvider` with user methods defined in a
+subclass of :class:`~pywbem_mock.InstanceWriteProvider`.
 
 A user defined provider is created as follows:
 
-1. Define the subclass of :class:`~pywbem_mock:InstanceWriteProvider` with an
+1. Define the subclass of :class:`~pywbem_mock.InstanceWriteProvider` with an
 __init__ method and the methods that will override any of the request methods
-defined in :class:`~pywbem_mock:InstanceWriteProvider`.  Note that not all of
-the requests methods in :class:`~pywbem_mock:InstanceWriteProvider` need to
+defined in :class:`~pywbem_mock.InstanceWriteProvider`.  Note that not all of
+the requests methods in :class:`~pywbem_mock.InstanceWriteProvider` need to
 be implemented, just those for which user provider will manipulate the incoming
 request parameters.
 
 Thus, a user provider can override the
-:meth:`~pywbem_mock:InstanceWriteProvider.CreateInstance` method to modify the
+:meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance` method to modify the
 ``NewInstance`` input parameter to change properties, etc. and either submit it
 to the CIM repository within the user provider or call the
-:meth:`~pywbem_mock:InstanceWriteProviderCreateInstance` in the superclass to
+:meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance` in the superclass to
 complete submission of the ``NewInstance``.
 
 2. Define registraton of the user provider using
-:meth:`~pywbem_mock:WBEMConnection.register_provider' to define the namespaces
+:meth:`~pywbem_mock.WBEMConnection.register_provider` to define the namespaces
 and classes for which the user provider will override the corresponding method
-in the :class:`~pywbem_mock:InstanceWriteProvider`.  The registration of the
+in the :class:`~pywbem_mock.InstanceWriteProvider`.  The registration of the
 user provider must occur after the namespaces and classnames defined in the
 registration have been added to the CIM repository.
 """
@@ -550,6 +550,8 @@ class InstanceWriteProvider(BaseProvider):
 
         NOTE: This method includes namespace within the path element
         of the ModifiedInstance rather than as a separate input parameter.
+
+        Parameters:
 
           ModifiedInstance (:class:`~pywbem.CIMInstance`):
             A representation of the modified instance, also indicating its

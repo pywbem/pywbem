@@ -911,10 +911,46 @@ DMTF CIM schema download support
    .. rubric:: Details
 
 
-.. _`Mock inmemory CIM repository`:
+.. _`Mock CIM repository`:
 
-Mock inmemory CIM repository
-----------------------------
+Mock CIM repository
+-------------------
+
+.. automodule:: pywbem_mock._baserepository
+
+.. autoclass:: pywbem_mock.BaseRepository
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.BaseRepository
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.BaseRepository
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. autoclass:: pywbem_mock.BaseObjectStore
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.BaseObjectStore
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.BaseObjectStore
+      :attributes:
+
+   .. rubric:: Details
+
 
 .. automodule:: pywbem_mock._inmemoryrepository
 
@@ -958,6 +994,25 @@ Mock inmemory CIM repository
 
 User provider interfaces
 ------------------------
+
+.. automodule:: pywbem_mock._baseprovider
+
+.. autoclass:: pywbem_mock.BaseProvider
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.BaseProvider
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.BaseProvider
+      :attributes:
+
+   .. rubric:: Details
+
 
 .. automodule:: pywbem_mock._defaultinstanceprovider
 

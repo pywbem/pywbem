@@ -163,9 +163,8 @@ class BaseProvider(object):
 
         Returns:
 
-          Instance of class derived from :class:`~pywbem_mock.`BaseObjectStore`
-          which is the object store for classes in the CIM repository.
-
+          :class:`~pywbem_mock.BaseObjectStore`: Object store for classes
+          in the CIM repository.
         """
         return self.cimrepository.get_class_store(namespace)
 
@@ -181,16 +180,15 @@ class BaseProvider(object):
 
         Parameters:
 
-          namespace(:term:`string`):
+          namespace (:term:`string`):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
         Returns:
 
-           Instance of CIM Repository class
-           derived:class:`~pywbem_mock.`BaseObjectStore` which is the object
-           store for instances in the CIM repository.
+          :class:`~pywbem_mock.BaseObjectStore`: Object store for instances
+          in the CIM repository.
 
         Raises:
 
@@ -212,16 +210,15 @@ class BaseProvider(object):
 
         Parameters:
 
-          namespace(:term:`string`):
+          namespace (:term:`string`):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
         Returns:
 
-          Instance of CIM Repository class derived
-          from:class:`~pywbem_mock.`BaseObjectStore` which is the object store
-          for qualifier declarations in the CIM repository.
+          :class:`~pywbem_mock.BaseObjectStore`: Object store for qualifier
+          declarations in the CIM repository.
 
         Raises:
 
@@ -243,16 +240,16 @@ class BaseProvider(object):
         Returns only if namespace is valid. Otherwise it generates an
         exception.
 
-          Parameters:
+        Parameters:
 
-            namespace (:term:`string`):
-              The name of the CIM namespace in the CIM repository (case
-              insensitive). Must not be `None`. Any leading or trailing
-              slash characters are ignored.
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository (case
+            insensitive). Must not be `None`. Any leading or trailing
+            slash characters are ignored.
 
-          Raises:
+        Raises:
 
-            CIMError: CIM_ERR_INVALID_NAMESPACE: Namespace does not exist.
+          CIMError: CIM_ERR_INVALID_NAMESPACE: Namespace does not exist.
         """
         try:
             self.cimrepository.validate_namespace(namespace)
@@ -434,9 +431,13 @@ class BaseProvider(object):
         Test if class defined by classname parameter exists in
         CIM repository defined by namespace parameter.
 
-        Returns `True` if class exists and `False` if it does not exist.
+        Returns:
 
-        Exception if the namespace does not exist
+          bool: `True` if class exists and `False` if it does not exist.
+
+        Raises:
+
+          Exception if the namespace does not exist
         """
         class_store = self.get_class_store(namespace)
         return class_store.object_exists(classname)
@@ -445,12 +446,14 @@ class BaseProvider(object):
     def filter_properties(obj, property_list):
         """
         Remove properties from an instance or class that aren't in the
-        property_list parameter
+        property_list parameter.
 
-        obj(:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance):
+        Parameters:
+
+          obj (:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance`):
             The class or instance from which properties are to be filtered
 
-        property_list(list of :term:`string`):
+          property_list (list of :term:`string`):
             List of properties which are to be included in the result. If
             None, remove nothing.  If empty list, remove everything. else
             remove properties that are not in property_list. Duplicated names
@@ -473,19 +476,19 @@ class BaseProvider(object):
 
         Parameters:
 
-          instance_name: CIMInstancename to find in the instance_store
+          instance_name (:class:`~pywbem.CIMInstanceName`):
+            Instance path of the instance to find in the CIM repository
 
-          instance_store (:class:`~pywbem_mock.BaseObjectStore):
-            The CIM repository to search for the instance
+          instance_store (:class:`~pywbem_mock.BaseObjectStore`):
+            Instance store of the CIM repository to search for the instance
 
-          copy_inst: boolean.
+          copy_inst (bool):
             If True do copy of the instance and return the copy. Otherwise
             return the instance in the CIM repository
 
         Returns:
-            None if the instance defined by iname is not found.
+            `None` if the instance defined by iname is not found.
             If it is found, the complete instance or copy is returned.
-
         """
 
         if instance_store.object_exists(instance_name):
@@ -498,10 +501,9 @@ class BaseProvider(object):
     def get_registered_provider(self, namespace, provider_type, classname):
         """
         If there is a provider registered for this namespace, provider_type,
-        and classname return that object (the instance of the
-        InstanceWriteProvider subclass).
+        and classname return it.
 
-        If no provider is registered, return None.
+        If no provider is registered, return `None`.
 
         Parameters:
 
@@ -514,6 +516,10 @@ class BaseProvider(object):
 
           classname (:term:`string`):
             Name of the class defined for the operation
+
+        Returns:
+
+          :class:`~pywbem_mock.BaseProvider`: The registered provider.
         """
 
         if not self.provider_registry:

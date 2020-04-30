@@ -370,11 +370,50 @@ class FakedWBEMConnection(WBEMConnection):
     # this class. they are considered part of the external API.
 
     def add_namespace(self, namespace):
-        # pylint: disable=missing-function-docstring,missing-docstring
+        """
+        Add a CIM namespace to the CIM repository.
+
+        The namespace must not yet exist in the CIM repository.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository. Must not be
+            `None`. Any leading or trailing slash characters are removed before
+            the string is used to define the namespace name.
+
+        Raises:
+
+          ValueError: Namespace argument must not be None.
+          CIMError: CIM_ERR_ALREADY_EXISTS if the namespace
+            already exists in the CIM repository.
+        """
         self.mainprovider.add_namespace(namespace)
 
     def remove_namespace(self, namespace):
-        # pylint: disable=missing-function-docstring,missing-docstring
+        """
+        Remove a CIM namespace from the CIM repository.
+
+        The namespace must exist in the CIM repository and must be empty.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The name of the CIM namespace in the CIM repository (case
+            insensitive). Must not be `None`. Leading or trailing
+            slash characters are ignored.
+
+        Raises:
+
+          ValueError: Namespace argument must not be None
+          CIMError:  CIM_ERR_NOT_FOUND if the namespace does
+            not exist in the CIM repository.
+          CIMError:  CIM_ERR_NAMESPACE_NOT_EMPTY if the
+            namespace is not empty.
+          CIMError:  CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
+            to delete the default connection namespace.  This namespace cannot
+            be deleted from the CIM repository
+        """
         self.mainprovider.remove_namespace(namespace)
 
     ###########################################################################
