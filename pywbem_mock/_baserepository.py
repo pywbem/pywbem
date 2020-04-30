@@ -89,9 +89,9 @@ class BaseObjectStore(object):
 
         Parameters:
 
-            cim_object_type(:term:`CIM object`):
-              The Pywbem CIM object type as defined in cim_types.py for the
-              objects in the data store. Used to verify values on create.
+          cim_object_type(:term:`CIM object`):
+            The Pywbem CIM object type as defined in cim_types.py for the
+            objects in the data store. Used to verify values on create.
         """
         self._cim_object_type = cim_object_type
 
@@ -262,7 +262,8 @@ class BaseRepository(object):
        and getting a list of the existing namespaces.
     2. Access the object store for each CIM object type in the repository for
        the objects of the following CIM types: (:class:`~pywbem.CIMClass`,
-       :class:`~pywbem.CIMInstance`, and :class:`~pywbem.QualifierDeclaration`)
+       :class:`~pywbem.CIMInstance`, and
+       :class:`~pywbem.CIMQualifierDeclaration`)
        so that methods of the BaseObjectStore are used to access and manipulate
        CIM objects of a single CIM type by namespace in the repository.
     """
