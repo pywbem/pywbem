@@ -286,6 +286,7 @@ class YamlItem(pytest.Item):
 
     @staticmethod
     def repr_failure(excinfo, style=None):
+        # pylint: disable=unused-argument
         """
         Called by py.test when the runtest() method raised an exception, to
         provide details about the failure.

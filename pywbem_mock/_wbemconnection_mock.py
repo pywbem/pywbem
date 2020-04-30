@@ -1034,11 +1034,10 @@ class FakedWBEMConnection(WBEMConnection):
                             "valid subclass of MethodProvider. ",
                             provider))
         else:
-            # pylint: disable=raising-format-tuple
-            raise ValueError("provider_type argument {0!A} "
-                             "is not a valid provider type. "
-                             "Valid provider types are {1!A}.", provider_type,
-                             provider_types)
+            raise ValueError(
+                _format("provider_type argument {0!A} is not a valid provider "
+                        "type. Valid provider types are {1!A}.",
+                        provider_type, provider_types))
 
         if classnames is None:
             raise ValueError(
@@ -1324,12 +1323,12 @@ class FakedWBEMConnection(WBEMConnection):
           Error: Exceptions from the call
         """
 
-        ModifiedInstance = params['ModifiedInstance']
-        assert ModifiedInstance.path.namespace is None
-        ModifiedInstance.path.namespace = namespace
+        modified_instance = params['ModifiedInstance']
+        assert modified_instance.path.namespace is None
+        modified_instance.path.namespace = namespace
 
         self.providerdispatcher.ModifyInstance(
-            ModifiedInstance=ModifiedInstance,
+            ModifiedInstance=modified_instance,
             IncludeQualifiers=params.get('IncludeQualifiers', None),
             PropertyList=params.get('PropertyList', None))
 

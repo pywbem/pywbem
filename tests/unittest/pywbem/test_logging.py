@@ -348,9 +348,9 @@ def test_loggers_from_string(testcase, param, expected_result, log_file,
     http_logger.handlers = []
 
     if connection_defined:
-        assert 'TODO: Test with connections not yet implemented'
         conn = WBEMConnection('http:/blah')
-    else:
+        raise AssertionError('TODO: Test with connections not yet implemented')
+    else:  # pylint: disable=no-else-raise
         conn = True  # for all future connections
 
     configure_loggers_from_string(param, log_filename=log_file,
@@ -384,8 +384,9 @@ def test_loggers_from_string(testcase, param, expected_result, log_file,
         if connection_defined:
             # TODO add test for when connection param exists
             # need to get to recorder and test detail level
-            assert'TODO: Test with connections not yet implemented'
-        else:
+            raise AssertionError(
+                'TODO: Test with connections not yet implemented')
+        else:  # pylint: disable=no-else-raise
             detail_levels = WBEMConnection._log_detail_levels
             assert detail_levels['api'], exp_detail_levels[0] is True
             assert detail_levels['http'], exp_detail_levels[1]

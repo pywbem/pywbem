@@ -79,12 +79,18 @@ class BaseProvider(object):
     executed directly.
     """
 
-    def __init__(self):
+    def __init__(self, cimrepository=None, provider_registry=None):
         """
-        Set up dummy instance variables.
+        Parameters:
+
+          cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
+            Defines the repository to be used by request responders.  The
+            repository is fully initialized.
+
+          provider_registry (dict): Provider registry.
         """
-        self.cimrepository = None
-        self.provider_registry = None
+        self.cimrepository = cimrepository
+        self.provider_registry = provider_registry
 
     @property
     def disable_pull_operations(self):
