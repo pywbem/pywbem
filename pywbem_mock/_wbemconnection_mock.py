@@ -242,11 +242,9 @@ class FakedWBEMConnection(WBEMConnection):
         # operations. Uses the setter method
         self.disable_pull_operations = disable_pull_operations
 
-        # Defines the connection for the compiler.  The compiler uses
-        # its local repo for work but sends new objects back to the
-        # methods in the mainprovider attached to this class.
-        self._mofwbemconnection = _MockMOFWBEMConnection(self,
-                                                         self.mainprovider)
+        # Defines the connection for the compiler. The compiler uses this
+        # instance of this class as the client interface.
+        self._mofwbemconnection = _MockMOFWBEMConnection(self)
 
         # The CIM methods with callback in the mock repository.
         # This is a dictionary of dictionaries of dictionaries, where the top

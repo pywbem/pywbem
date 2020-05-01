@@ -4134,10 +4134,7 @@ class TestInstanceOperations(object):
             # Mocker builds path
             ['instance of TST_Person { name = "Mike"; };',
              ('TST_Person', {'name': "Mike"}), None],
-            # Works because mock repo allows modification of existing instance
-            ['instance of TST_Person { name = "Mike"; };\n'
-             'instance of TST_Person { name = "Mike"; };',
-             ('TST_Person', {'name': "Mike"}), None],
+
             # Fails, because key property not in new instance
             ['instance of TST_Person {extraProperty = "Blah"; };',
              ('TST_Person', {}),
