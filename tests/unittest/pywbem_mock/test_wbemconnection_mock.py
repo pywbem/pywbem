@@ -3376,7 +3376,9 @@ class TestClassOperations(object):
                         else:
                             assert mvalue.propagated is False
                             assert mvalue.class_origin == rtn_class.classname
-                # TODO test each parameter also
+                # TODO test each parameter also. Currently we stop at methods
+
+    # Issue # 2210, implement a specifc test for ModifyClass
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])

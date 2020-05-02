@@ -64,8 +64,6 @@ class BaseMethodsForTests(object):
         """
         skip_if_moftab_regenerated()
 
-        import pdb; pdb.set_trace()
-
         server = WbemServerMock(interop_ns='interop')
         # pylint: disable=attribute-defined-outside-init
         self.conn = server.wbem_server.conn

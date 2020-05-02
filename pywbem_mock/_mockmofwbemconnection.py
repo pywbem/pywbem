@@ -28,10 +28,9 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, CIM_ERR_FAILED, \
-    CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_NAMESPACE, CIMInstanceName
+    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_INVALID_SUPERCLASS
 from pywbem._nocasedict import NocaseDict
-from pywbem._mof_compiler import MOFWBEMConnection
+from pywbem._mof_compiler import BaseRepositoryConnection
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
 
@@ -39,7 +38,7 @@ from ._resolvermixin import ResolverMixin
 # in their place
 
 
-class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
+class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
     """
     Create an adaption of the MOF compiler MOFWBEMConnection class to interface
     through the client API to the FakedWBEMConnection acting as the
@@ -58,12 +57,11 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
               This allows us to use the same objects for qualifiers, instances
               and classes as that object
         """
-        super(_MockMOFWBEMConnection, self).__init__(conn=faked_conn_object)
 
         self.classes = NocaseDict()
 
         self.conn = faked_conn_object
-        self.conn_id = self.conn_id
+        self.conn_id = self.conn.conn_id
 
     def _getns(self):
         """
@@ -104,30 +102,25 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
     )
 
     def EnumerateInstanceNames(self, *args, **kwargs):
-        """This method is used by the MOF compiler only when it creates a
-        namespace in the course of handling CIM_ERR_NAMESPACE_NOT_FOUND.
-        Because the operations of this class silently create every namespace
-        that is needed and never return that error, this method is never
-        called, and is therefore not implemented.
+        """
+        Not Implemented because not used with the MOF compiler.
         """
 
         raise CIMError(
-            CIM_ERR_FAILED, 'This should not happen!',
+            CIM_ERR_FAILED, 'EnumerateInstanceNames not implemented!',
             conn_id=self.conn_id)
 
     def CreateInstance(self, *args, **kwargs):
         """
-        Create a CIM instance in the local repository of this class.
-        This method is derived from the the same method in the pywbem
-        mof compiler but modified to:
-        1. Use a dictionary as the container for instances where the
-           key is the path. This means that all instances must have a
-           path component to be inserted into the repository. Normally
-           the path component is built within the compiler by using the
-           instance alias.
-        2. Fail with a CIMError exception if the instance already exists
-           in the repository.
+        Create a CIM instance through the connected client.
 
+        This method:
+
+        1. Validates properties and the class
+        2. Sets the instance path to None to assuming that the
+           conn.CreateInstance creates a complete path.
+        3. Passes the NewInstance to conn.CreateInstance (the client
+           that is connected to a repository)
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateInstance`.
@@ -152,11 +145,12 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                             'class {1!A} but not in new_instance: {2!A}',
                             pname, cln, str(inst)))
 
-	# insure inst.path is empty before calling CreateInstance so that
+        # Insure inst.path is empty before calling CreateInstance so that
         # the path is built by CreateInstance. This is logical because
         # the mock environment always requires a complete path to insert
         # an instance into the repository.
-	inst.path = None
+        inst.path = None
+
         try:
             self.conn.CreateInstance(inst)
         except KeyError:
@@ -165,54 +159,32 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         return inst.path
 
     def ModifyInstance(self, *args, **kwargs):
-        """This method is used by the MOF compiler only in the course of
+        """
+        This method is used by the MOF compiler only in the course of
         handling CIM_ERR_ALREADY_EXISTS after trying to create an instance.
 
         NOTE: It does NOT support the propertylist attribute that is part
-        of the CIM/XML defintion of ModifyInstance and it requires that
+        of the CIM/XML definition of ModifyInstance and it requires that
         each created instance include the instance path which means that
         the MOF must include the instance alias on each created instance.
         """
-        # namespace = self.default_namespace
+
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
-        # # pylint: disable=protected-access
-        # instance_store = self.conn._get_instance_store(namespace)
 
-        # if self.default_namespace not in self.repo.namespaces:
-            # raise CIMError(
-                # CIM_ERR_INVALID_NAMESPACE,
-                # _format('ModifyInstance failed. No instance repo exists. '
-                        # 'Use compiler instance alias to set path on '
-                        # 'instance declaration. inst: {0!A}', mod_inst))
-
-        # if not instance_store.object_exists(mod_inst.path):
-            # raise CIMError(
-                # CIM_ERR_NOT_FOUND,
-                # _format('ModifyInstance failed. No instance exists. '
-                        # 'Use compiler instance alias to set path on '
-                        # 'instance declaration. inst: {0!A}', mod_inst))
-
-        # Update the instance in the repository from the modified inst
-        #orig_inst = instance_store.get(mod_inst.path)
-        #orig_inst.update(mod_inst.properties)
-        #instance_store.update(mod_inst.path, orig_inst)
-        # TODO: Do I have to do the update or does ModifyInstance
-        #orig_inst = self.conn.GetInstance(mod_inst.path)
-        #orig_inst.update(mod_inst.properties)
         self.conn.ModifyInstance(mod_inst.path)
 
     def DeleteInstance(self, *args, **kwargs):
-        """This method is only invoked by :meth:`rollback` (on the underlying
-        repository), and never by the MOF compiler, and is therefore not
-        implemented."""
+        """
+        Not implemented because not used by the MOF compiler
+        """
 
         raise CIMError(
-            CIM_ERR_FAILED, 'This should not happen!',
+            CIM_ERR_FAILED, 'DeleteInstance not implemented!',
             conn_id=self.conn_id)
 
     def GetClass(self, *args, **kwargs):
         """Retrieve a CIM class from the local classes store if it exists
-        there or from the cim repository reached through conn.
+        there or from the client interface defined by self.conn.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetClass`.
@@ -230,8 +202,6 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                 self.classes[self.default_namespace] = \
                     NocaseDict({cc.classname: cc})
 
-        # TODO: Do we even need this except for when we get class from
-        # the local store?
         if 'LocalOnly' in kwargs and not kwargs['LocalOnly']:
             if cc.superclass:
                 try:
@@ -251,10 +221,14 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
     def CreateClass(self, *args, **kwargs):
         """
-        Override the CreateClass method in MOFWBEMConnection. NOTE: This is
-        currently only used by the compiler.  The methods of Fake_WBEMConnectin
-        go directly to the repository, not through this method.
-        This modifies the overridden method to add validation.
+        Override the CreateClass method in BaseRepositoryConnection.
+        Implements creation of the class through the connected client and
+        also sets it in the local client (NocaseDict).
+
+        This Create class implementation is special for the MOF compiler
+        because it includes the logic to retrieve classes missing from the
+        repository but required to define a correct repository.  That includes
+        superclasses and other classes referenced by the class being defined.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateClass`.
@@ -287,7 +261,8 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
             # The following generates an exception for each new ns
             self.classes[self.default_namespace][cc.classname] = cc
         except KeyError:
-            self.classes[self.default_namespace] = NocaseDict({cc.classname: cc})
+            self.classes[self.default_namespace] = \
+                NocaseDict({cc.classname: cc})
 
         # Validate that references and embedded instance properties, methods,
         # etc. have classes that exist in repo. This  also institates the
@@ -306,7 +281,6 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                 except KeyError:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
                                    obj.reference_class)
-                # TODO: When we hook to server this returns to CIMError
                 except CIMError as ce:
                     if ce.status_code == CIM_ERR_NOT_FOUND:
                         raise CIMError(
@@ -347,22 +321,40 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
         self.conn.CreateClass(cc)
 
+    def ModifyClass(self, *args, **kwargs):
+        """
+        This method is used by the MOF compiler only in the course of
+        handling CIM_ERR_ALREADY_EXISTS after trying to execute CreateClass.
+
+        It executes a ModifyClass on the connected client
+
+        """
+        modified_class = args[0] if args else kwargs['ModifiedClass']
+
+        self.conn.ModifyClass(modified_class)
+
+    def DeleteClass(self, *args, **kwargs):
+        """
+        Not implemented because not called from the MOF compiler
+        """
+
+        raise CIMError(
+            CIM_ERR_FAILED, 'DeleteClass not implemented!',
+            conn_id=self.conn_id)
+
     def EnumerateQualifiers(self, *args, **kwargs):
-        """Enumerate the qualifier types in the local repository of this class.
+        """Enumerate the qualifier types throught the connected client.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
         """
 
         rv = self.conn.EnumerateQualifiers(*args, **kwargs)
-        try:
-            rv += list(self.qualifiers[self.default_namespace].values())
-        except KeyError:
-            pass
+
         return rv
 
     def GetQualifier(self, *args, **kwargs):
-        """Retrieve a qualifier type from the local repository of this class.
+        """Retrieve a qualifier type from the connected client.
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.GetQualifier`.
@@ -376,36 +368,19 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
         return qual
 
     def SetQualifier(self, *args, **kwargs):
-        """Create or modify a qualifier type in the local repository of this
-        class.
+        """Create or modify a qualifier type in the connected client
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.SetQualifier`.
         """
-        #namespace = self.default_namespace
         qual = args[0] if args else kwargs['QualifierDeclaration']
-        #qualifier_store = self.repo.get_qualifier_store(namespace)
         self.conn.SetQualifier(qual)
 
     def DeleteQualifier(self, *args, **kwargs):
-        """This method is only invoked by :meth:`rollback` (on the underlying
-        repository), and never by the MOF compiler, and is therefore not
-        implemented."""
+        """
+        Not implemented because not called from the MOF compiler
+        """
 
         raise CIMError(
-            CIM_ERR_FAILED, 'This should not happen!',
+            CIM_ERR_FAILED, 'DeleteQualifier not implemented!',
             conn_id=self.conn_id)
-
-    def _get_class(self, superclass, namespace=None,
-                   local_only=False, include_qualifiers=True,
-                   include_classorigin=True):
-        """
-        This method is just rename of GetClass to support same method
-        with both MOFWBEMConnection and FakedWBEMConnection
-        """
-        # TODO: Should we delete this???
-        return self.GetClass(superclass,
-                             namespace=namespace,
-                             local_only=local_only,
-                             include_qualifiers=include_qualifiers,
-                             include_classorigin=include_classorigin)
