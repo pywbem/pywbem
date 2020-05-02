@@ -27,8 +27,8 @@ from ...utils import import_installed
 pywbem = import_installed('pywbem')  # noqa: E402
 from pywbem._cim_operations import CIMError
 from pywbem._mof_compiler import MOFCompiler, MOFWBEMConnection, \
-    MOFParseError, MOFDependencyError, MOFRepositoryError
-from pywbem._cim_constants import CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS, \
+    MOFParseError, MOFDependencyError
+from pywbem._cim_constants import CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
 from pywbem._cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
@@ -2572,7 +2572,8 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
         """
         Create a CIM instance in the local repository of this class. This
         implementation tests for duplicate instances and returns an error if
-        they exist.
+        they exist.  Note that the CreateInstance must build the instance.path
+        since the compiler leaves the NewInstance path as None
 
         For a description of the parameters, see
         :meth:`pywbem.WBEMConnection.CreateInstance`.
@@ -2580,12 +2581,11 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
 
         inst = args[0] if args else kwargs['NewInstance']
 
-        if inst.path is None or not inst.path.keybindings:
-            raise CIMError(
-                CIM_ERR_FAILED,
-                _format('CreateInstance failed. No path in new_instance. '
-                        'Use compiler instance alias to set path on '
-                        'instance declaration. inst: {0!A}', inst))
+        cls = self.GetClass(inst.classname,
+                            LocalOnly=False,
+                            IncludeQualifiers=True)
+        inst.path = CIMInstanceName.from_instance(
+            cls, inst, namespace=self.default_namespace)
 
         if self.default_namespace in self.instances:
             if inst.path in self.instances[self.default_namespace]:
@@ -2631,7 +2631,9 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
                 os.remove(self.partial_schema_file)
 
     def test_nopath(self):
-        """Test missing alias on instance"""
+        """
+        Test no alias on instance. Result should include path in the repo
+        """
 
         mof_str = """
         Qualifier Key : boolean = false,
@@ -2646,14 +2648,17 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
         instance of TST_Person { name = "Mike"; value = 1;};
         """
         skip_if_moftab_regenerated()
-        try:
-            self.mofcomp.compile_string(mof_str, NAME_SPACE)
-            self.fail("Test must generate exception")
-        except MOFRepositoryError as pe:
-            assert re.search(
-                r"Cannot compile instance .* error for CreateInstance",
-                pe.msg, re.IGNORECASE)
-            assert pe.cim_error.status_code == CIM_ERR_FAILED
+
+        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        repo = self.mofcomp.handle
+
+        path = CIMInstanceName("TST_Person", keybindings={'name': "Mike"},
+                               namespace=NAME_SPACE)
+
+        # This test because there is no GetInstance in MOFWBEMConnectionInstDups
+        assert len(repo.instances) == 1
+        assert len(repo.instances[NAME_SPACE]) == 1
+        assert path in repo.instances[NAME_SPACE]
 
     def test_dup(self):
         """Test that dup instance logic works"""

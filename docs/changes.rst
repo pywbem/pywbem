@@ -600,6 +600,17 @@ Released: not yet
   support multiple return objects. The IRETURNVALUE element is not used in the
   pywbem client, though.
 
+* Fixed issue where the MOF compiler was using an instance path defined when
+  the compiler built the instance as the instance alias instead of the
+  instance path returned by the CreateInstance method. The issue is that
+  the instance path defined in the compiler may not be complete and the
+  only correct instance path is the path returned by the CreateInstance.
+  Mof compiler alias now build with return from CreateInstance and the creation
+  of the path has been moved from the compiler instanceDeclaration to the
+  CreateInstance method defined in the compiler repo.  For the tests that
+  means that the path creation is in MOFWBEMConnection.CreateInstance.
+  (See issue # 1911)
+
 **Known issues:**
 
 * See `list of open issues`_.
