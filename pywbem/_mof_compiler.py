@@ -730,12 +730,19 @@ def p_mp_createClass(p):
 
 def p_mp_createInstance(p):
     """mp_createInstance : instanceDeclaration"""
-    inst = p[1]
+
+    # p[1] is a list of instance and any alias defined in instanceDeclaration
+    input = p[1]
+    inst = input[0]
+    alias = input[1]
+
     if p.parser.verbose:
         p.parser.log(
             _format("Creating instance of {0!A}.", inst.classname))
     try:
-        p.parser.handle.CreateInstance(inst)
+        instpath = p.parser.handle.CreateInstance(inst)
+        # Set the returned instance path into the alias table
+        p.parser.aliases[alias] = instpath
     except CIMError as ce:
         if ce.status_code == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
@@ -1684,9 +1691,7 @@ def p_instanceDeclaration(p):
                 parser_token=p,
                 cim_error=ce)
 
-    path = CIMInstanceName(cname, namespace=ns)
-    inst = CIMInstance(cname, qualifiers=quals, path=path)
-    keybindings = NocaseDict()   # dictionary to build kb if alias exists
+    inst = CIMInstance(cname, qualifiers=quals)
 
     for prop in props:
         pname = prop[1]
@@ -1717,9 +1722,6 @@ def p_instanceDeclaration(p):
             pprop.qualifiers = NocaseDict(None)
             pprop.value = cimvalue(pval, cprop.type)
             inst.properties[pname] = pprop
-            # if alias and this is key property, add keybinding
-            if alias and 'key' in cprop.qualifiers:
-                keybindings[pname] = pprop.value
         except ValueError as ve:
             raise MOFParseError(
                 msg=_format(
@@ -1728,12 +1730,8 @@ def p_instanceDeclaration(p):
                     cname, pname, pval, ve),
                 parser_token=p)
 
-    if alias:
-        if keybindings:
-            inst.path.keybindings = keybindings
-        p.parser.aliases[alias] = inst.path
-
-    p[0] = inst
+    # Returns both the created instance and either the alias name or None
+    p[0] = [inst, alias]
 
 
 def p_valueInitializerList(p):
