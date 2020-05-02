@@ -152,23 +152,11 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                             'class {1!A} but not in new_instance: {2!A}',
                             pname, cln, str(inst)))
 
-        # Build path from instance and class
-        #if inst.path is None or not inst.path.keybindings:
-        #    inst.path = CIMInstanceName.from_instance(
-        #        cls, inst, namespace=self.default_namespace)
-        # Force CreateInstance to build path
-        inst.path = None
-
-        # Exception if duplicate. NOTE: compiler overrides this with
-        # modify instance.
-
-        # TODO: CreateInstance actually covers the case where it exists.
-        # confirm error type return
-        #if self.conn.GetInstance(inst.path):
-        #    raise CIMError(
-        #        CIM_ERR_ALREADY_EXISTS,
-        #        _format('CreateInstance failed. Instance with path {0!A} '
-        #                'already exists in mock repository', inst.path))
+	# insure inst.path is empty before calling CreateInstance so that
+        # the path is built by CreateInstance. This is logical because
+        # the mock environment always requires a complete path to insert
+        # an instance into the repository.
+	inst.path = None
         try:
             self.conn.CreateInstance(inst)
         except KeyError:
@@ -357,18 +345,6 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
                         del self.classes[self.default_namespace][cc.classname]
                         raise
 
-        # TODO: Review this. Changed from conn to repo
-        # ccr = self.repo._resolve_class(  # pylint: disable=protected-access
-            # cc, namespace, self.repo.get_qualifier_store(namespace))
-
-        # # If the class exists, update it. Otherwise create it
-        # # TODO: Validate that this is correct behavior. That is what the
-        # # original MOFWBEMConnection does.
-        # if class_store.object_exists(ccr.classname):
-            # class_store.update(ccr.classname, ccr)
-        # else:
-            # class_store.create(ccr.classname, ccr)
-        # self.classes[namespace][ccr.classname] = ccr
         self.conn.CreateClass(cc)
 
     def EnumerateQualifiers(self, *args, **kwargs):
@@ -394,9 +370,6 @@ class _MockMOFWBEMConnection(MOFWBEMConnection, ResolverMixin):
 
         qualname = args[0] if args else kwargs['QualifierName']
         try:
-            # TODO: This should get from real repo I think
-            #qualifier_store = self.repo.get_qualifier_store(namespace)
-            #qual = qualifier_store.get(qualname)
             qual = self.conn.GetQualifier(qualname)
         except KeyError:
             raise

@@ -448,6 +448,69 @@ class MainProvider(ResolverMixin, BaseProvider):
         clnsdict[classname] = classname
         return clnsdict
 
+def validate_modified_class(self, namespace, modified_class, original_class,
+                            super_class=None):
+    """
+    Validate and possibly modify the modified class against the original_class
+    and possibly against superclasses.
+
+    This method validates the modified class using the rules defined in
+    :term:`DSP0200`
+
+    Returns:
+        Update class ready to commit to repository
+
+    Raises:
+        TODO:
+    """
+
+    def clean_mod_class_objects(modified_dict, original_dict, classname,
+                                name_list = None):
+        """
+        For the objects collection defined (methods and properties)
+        validate and set the existing attributes. Insures that class_origin
+        is this class and that the entity is in the original class.
+        """
+        for name in modified_dict:
+            if name_list is not None and name in name_list or name_list is None:
+                value = modified_dict[name]
+                if name not in original_dict:
+                    del modified_dict[pname]
+                if value.class_origin != classname:
+                    value.class_origin = classname
+
+    def names_only_in_subclass(subclass_dict, super_class_dict)
+        """
+        Return list of object names only in the subclass dictionary for the
+        object
+        """
+        subc_names = [name for name in subclass_dict]
+        sc_names = [name for name in super_class_dict]
+        return list(set(subc_names) - set(sc_names))
+
+    if super_class:
+        # find and clean modified_class properties:
+        sub_class_only_pnames = names_only_in_subclass(
+            ModifiedClass.properties, superclass.properties)
+        clean_existing_attributes(ModifiedClass.properties,
+                                  original_class.properties, classname
+                                  subclcass_only_pnames)
+        sub_class_only_mnames = names_only_in_subclass(
+            ModifiedClass.methods, superclass.methods)
+        clean_existing_attributes(ModifiedClass.methods,
+                                  original_class.methods, classname,
+                                  sub_class_only_mnames)
+        # now process names that are in superclass
+        # class defined in superclass but not in subclass is inherited without
+        # modification.  This is the normal role of resolution.
+
+    else:
+        clean_existing_attributes(ModifiedClass.properties,
+                                  original_class.properties, classname)
+        clean_existing_attributes(ModifiedClass.methods,
+                                  original_class.methods, classname)
+
+
     ###############################################################
     #
     #   Access to the datastores (CIMClass, CIMInstance,
@@ -1060,11 +1123,35 @@ class MainProvider(ResolverMixin, BaseProvider):
 
             CIMError: CIM_ERR_NOT_SUPPORTED
         """
-
         self.validate_namespace(namespace)
-        raise CIMError(
-            CIM_ERR_NOT_SUPPORTED,
-            "Currently ModifyClass not supported in MainProvider")
+
+        # copy because we may modify the class
+        modified_class = deepcopy(ModifiedClass)
+
+        classname = ModifiedClass.classname
+
+        original_class = self.getclass(namespace, classname,
+                                       LocalOnly=False,
+                                       IncludeClassOrigin=True,
+                                       IncludeQualifiers=True)
+        if ModifiedClass.superclass:
+            superclass = self.getclass(namespace, ModifiecClass.superclass,
+                                       LocalOnly=False,
+                                       IncludeClassOrigin=True,
+                                       IncludeQualifiers=True)
+        else:
+            superclass = None
+
+        # validate and cleanup the modified class. This method may generate
+        # CIMError exceptions
+        modified_class = self.validate_modified_class(namespace,
+                                                      modified_class,
+                                                      original_class,
+                                                      superclass)
+
+
+        # Add new class to CIM repository
+        class_store.update(modified_class.classname, modified_class)
 
     ####################################################################
     #
