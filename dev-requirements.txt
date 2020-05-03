@@ -54,7 +54,9 @@ lxml>=4.2.4; python_version >= '3.5' and python_version <= '3.7'
 lxml>=4.4.1; python_version >= '3.8'
 
 # Virtualenv
-virtualenv>=14.0.0; python_version < '3.5'
+# Virtualenv 20.0.19 does not install pip into the virtualenv on Python 3.4.
+# TODO: Remove the circumvention of pinning virtualenv once solved.
+virtualenv>=14.0.0,<20.0.19; python_version < '3.5'
 virtualenv>=16.1.0; python_version >= '3.5' and python_version < '3.8'
 virtualenv>=20.0.0; python_version >= '3.8'
 
