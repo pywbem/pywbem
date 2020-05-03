@@ -39,11 +39,11 @@ matrix:
       env:
         - PACKAGE_LEVEL=latest
 
-#    - os: linux
-#      language: python
-#      python: "3.4"
-#      env:
-#        - PACKAGE_LEVEL=minimum
+    - os: linux
+      language: python
+      python: "3.4"
+      env:
+        - PACKAGE_LEVEL=minimum
 
     - os: linux
       language: python
@@ -99,17 +99,17 @@ matrix:
       env:
         - PACKAGE_LEVEL=latest
 
-#    - os: linux
-#      language: python
-#      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
-#      env:
-#        - PACKAGE_LEVEL=minimum
+    - os: linux
+      language: python
+      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
+      env:
+        - PACKAGE_LEVEL=minimum
 
-#    - os: linux
-#      language: python
-#      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
-#      env:
-#        - PACKAGE_LEVEL=latest
+    - os: linux
+      language: python
+      python: "pypy"  # currently Python 2.7.13, PyPy 7.1.1
+      env:
+        - PACKAGE_LEVEL=latest
 
 # TODO: pypy3 disabled due to install error with typed-ast (from pylint)
 #    - os: linux
