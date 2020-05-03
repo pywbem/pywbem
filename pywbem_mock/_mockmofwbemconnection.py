@@ -28,7 +28,7 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, CIM_ERR_INVALID_SUPERCLASS
+    CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_SUPERCLASS
 from pywbem._nocasedict import NocaseDict
 from pywbem._mof_compiler import BaseRepositoryConnection
 from pywbem._utils import _format
@@ -40,9 +40,9 @@ from ._resolvermixin import ResolverMixin
 
 class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
     """
-    Create an adaption of the MOF compiler MOFWBEMConnection class to interface
-    through the client API to the FakedWBEMConnection acting as the
-    interface to the CIM repository
+    Create an adaption of the MOF compiler BaseRepositoryConnection class to
+    interface through the client API to the FakedWBEMConnection acting as the
+    interface to the CIM repository for mocking a WBEM server
 
     This class adaption is private to pywbem_mock
     """
@@ -53,9 +53,8 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
           Parameters:
 
             faked_conn_object (FakedWBEMConnection):
-              The instance of _FakeWBEMConnection to which this is attached.
-              This allows us to use the same objects for qualifiers, instances
-              and classes as that object
+              The instance of :class:~`pywbem_mock._FakeWBEMConnection`
+              which provides the WBEM connection for access to CIM objects.
         """
 
         self.classes = NocaseDict()
@@ -81,8 +80,7 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         """
         self.conn.default_namespace = value
 
-    getns = _getns  # for compatibility
-    setns = _setns  # for compatibility
+    getns = _getns  # for compatibility, used in the MOF compiler
 
     default_namespace = property(
         _getns, _setns, None,
@@ -106,13 +104,11 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         Not Implemented because not used with the MOF compiler.
         """
 
-        raise CIMError(
-            CIM_ERR_FAILED, 'EnumerateInstanceNames not implemented!',
-            conn_id=self.conn_id)
+        assert False, 'EnumerateInstanceNames not implemented!'
 
     def CreateInstance(self, *args, **kwargs):
         """
-        Create a CIM instance through the connected client.
+        Create a CIM instance in the connected client.
 
         This method:
 
@@ -129,7 +125,6 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         inst = args[0] if args else kwargs['NewInstance']
 
         # Get list of properties in class defined for this instance
-        # TODO should this get from conn
         cln = inst.classname
         cls = self.GetClass(cln, IncludeQualifiers=True, LocalOnly=False)
 
@@ -152,11 +147,10 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         inst.path = None
 
         try:
-            self.conn.CreateInstance(inst)
+            path = self.conn.CreateInstance(inst)
         except KeyError:
             raise
-
-        return inst.path
+        return path
 
     def ModifyInstance(self, *args, **kwargs):
         """
@@ -177,10 +171,7 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         """
         Not implemented because not used by the MOF compiler
         """
-
-        raise CIMError(
-            CIM_ERR_FAILED, 'DeleteInstance not implemented!',
-            conn_id=self.conn_id)
+        assert False, 'DeleteInstance not implemented!'
 
     def GetClass(self, *args, **kwargs):
         """Retrieve a CIM class from the local classes store if it exists
@@ -338,9 +329,7 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         Not implemented because not called from the MOF compiler
         """
 
-        raise CIMError(
-            CIM_ERR_FAILED, 'DeleteClass not implemented!',
-            conn_id=self.conn_id)
+        assert False, 'DeleteClass not implemented!'
 
     def EnumerateQualifiers(self, *args, **kwargs):
         """Enumerate the qualifier types throught the connected client.
@@ -381,6 +370,4 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         Not implemented because not called from the MOF compiler
         """
 
-        raise CIMError(
-            CIM_ERR_FAILED, 'DeleteQualifier not implemented!',
-            conn_id=self.conn_id)
+        assert False, 'DeleteQualifier not implemented!'

@@ -734,7 +734,7 @@ def p_mp_createInstance(p):
     # p[1] is a list of instance and any alias defined in instanceDeclaration
     input = p[1]
     inst = input[0]
-    alias = input[1]
+    alias = input[1]  # alias may be valid alias or None
 
     if p.parser.verbose:
         p.parser.log(
@@ -742,7 +742,8 @@ def p_mp_createInstance(p):
     try:
         instpath = p.parser.handle.CreateInstance(inst)
         # Set the returned instance path into the alias table
-        p.parser.aliases[alias] = instpath
+        if alias:
+            p.parser.aliases[alias] = instpath
     except CIMError as ce:
         if ce.status_code == CIM_ERR_ALREADY_EXISTS:
             if p.parser.verbose:
@@ -1730,7 +1731,9 @@ def p_instanceDeclaration(p):
                     cname, pname, pval, ve),
                 parser_token=p)
 
-    # Returns both the created instance and either the alias name or None
+    # Returns the created instance and either the alias name or None
+    # This allows the alias to be created from the CreateInstance
+    # returned path rather than trying to build the path in the compiler.
     p[0] = [inst, alias]
 
 
@@ -1916,7 +1919,8 @@ class BaseRepositoryConnection(object):
     Raises:
 
       : Implementation classes should raise only exceptions derived from
-        :exc:`~pywbem.Error`. Other exceptions are considered programming
+        :exc:`~pywbem.Error` or use assert for methods that are not implemented.
+        Other exceptions are considered programming
         errors.
     """
 
