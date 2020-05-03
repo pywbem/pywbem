@@ -38,6 +38,7 @@ from __future__ import absolute_import, print_function
 
 import uuid
 from collections import Counter
+from copy import deepcopy
 import six
 
 # pylint: disable=ungrouped-imports
@@ -101,6 +102,7 @@ class MainProvider(ResolverMixin, BaseProvider):
     """
 
     def __init__(self, host, disable_pull_operations, cimrepository):
+        # pylint: disable=super-init-not-called
         """
         Parameters:
             conn(:class:`~pywbem_mock.FakedWBEMConnection`):
@@ -1018,7 +1020,8 @@ class MainProvider(ResolverMixin, BaseProvider):
                 _format("Class {0!A} already exists in namespace {1!A}.",
                         NewClass.classname, namespace))
 
-        new_class = NewClass.copy()
+        # Create copy because resolve_class modifies elements of class
+        new_class = deepcopy(NewClass)
 
         qualifier_store = self.get_qualifier_store(namespace)
         self._resolve_class(new_class, namespace, qualifier_store,
@@ -1068,9 +1071,6 @@ class MainProvider(ResolverMixin, BaseProvider):
                 _format("ModifyClass not valid CIMClass. Rcvd type={0}",
                         type(ModifiedClass)))
 
-        # Validate namespace in class store and get the class CIM repository
-        # for this namespace.
-        self.validate_namespace(namespace)
         class_store = self.get_class_store(namespace)
 
         if not class_store.object_exists(ModifiedClass.classname):
@@ -1079,13 +1079,14 @@ class MainProvider(ResolverMixin, BaseProvider):
                 _format("Class {0!A} does not exist in namespace {1!A}.",
                         ModifiedClass.classname, namespace))
 
-        modified_class = ModifiedClass.copy()
+        # create copy because resolve_class can modify elements of class
+        modified_class = deepcopy(ModifiedClass)
 
         qualifier_store = self.get_qualifier_store(namespace)
         self._resolve_class(modified_class, namespace, qualifier_store,
                             verbose=False)
 
-        # Add new class to CIM repository
+        # Update class in CIM repository
         class_store.update(modified_class.classname, modified_class)
 
     ####################################################################

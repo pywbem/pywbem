@@ -829,11 +829,11 @@ def add_objects_to_repo(conn, namespace, objects_list):
         conn.add_namespace(namespace)
     assert isinstance(objects_list, (list, tuple))
 
-    for object in objects_list:
-        if isinstance(object, six.string_types):
-            conn.compile_mof_string(object, namespace=namespace)
+    for obj in objects_list:
+        if isinstance(obj, six.string_types):
+            conn.compile_mof_string(obj, namespace=namespace)
         else:
-            conn.add_cimobjects(object, namespace=namespace)
+            conn.add_cimobjects(obj, namespace=namespace)
 
 
 #########################################################################
@@ -1272,8 +1272,7 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        instance_store = \
-            conn._get_instance_store(ns)  # pylint: disable=protected-access
+        instance_store = conn.mainprovider.get_instance_store(ns)
 
         iname = CIMInstanceName(cln,
                                 keybindings={'InstanceID': key},
@@ -1810,8 +1809,8 @@ class TestRepoMethods(object):
         assert 'TST_Person' in clns
         assert 'TST_Lineage' in clns
         assert 'TST_Personsub' in clns
-        assert 'TST_MemberOfFamilyCollection'
-        assert 'TST_FamilyCollection'
+        assert 'TST_MemberOfFamilyCollection' in clns
+        assert 'TST_FamilyCollection' in clns
         assert len(clns) == 5
 
         inst_names = conn.EnumerateInstanceNames('TST_Person', namespace=ns)
@@ -2147,7 +2146,7 @@ class UserMethodProviderTest(MethodProvider):
         """
         Init of test provider
         """
-        super(UserProviderTest, self).__init__()
+        super(UserMethodProviderTest, self).__init__()
         self.cimrepository = cimrepository
 
     def InvokeMethod(self, namespace, methodname, objectname, Params):
@@ -2219,16 +2218,16 @@ class TestProviderRegisterMethods(object):
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()
+            pdb.set_trace()  # pylint: disable=no-member
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         if exp_exec is None:
-            for input in inputs:
-                tst_ns = input[0]
-                clns = input[1]
-                provider_type = input[2]
-                provider = input[3]
+            for item in inputs:
+                tst_ns = item[0]
+                clns = item[1]
+                provider_type = item[2]
+                provider = item[3]
                 conn.register_provider(tst_ns, clns, provider_type, provider)
 
             pr = conn.provider_registry
@@ -2245,11 +2244,11 @@ class TestProviderRegisterMethods(object):
 
         else:
             with pytest.raises(exp_exec):
-                for input in inputs:
-                    tst_ns = input[0]
-                    clns = input[1]
-                    provider_type = input[2]
-                    provider = input[3]
+                for item in inputs:
+                    tst_ns = item[0]
+                    clns = item[1]
+                    provider_type = item[2]
+                    provider = item[3]
 
                     conn.register_provider(tst_ns, clns, provider_type,
                                            provider)
@@ -2350,17 +2349,17 @@ class TestProviderRegisterMethods(object):
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()
+            pdb.set_trace()  # pylint: disable=no-member
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         # Register multiple providers.  All registrations are must be
         # accepted
-        for input in inputs:
-            tst_ns = input[0]
-            clns = input[1]
-            provider_type = input[2]
-            provider = input[3]
+        for item in inputs:
+            tst_ns = item[0]
+            clns = item[1]
+            provider_type = item[2]
+            provider = item[3]
 
             conn.register_provider(tst_ns, clns, provider_type, provider)
 
@@ -4306,7 +4305,7 @@ class TestInstanceOperations(object):
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()
+            pdb.set_trace()  # pylint: disable=no-member
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
