@@ -173,11 +173,9 @@ function make_virtualenv()
     pip list --format=columns 2>/dev/null || pip list 2>/dev/null
   fi
 
-  # If pip is reinstalled (=downgraded) before reinstalling setuptools and wheel,
-  # we get permission errors on Travis when running with minimum package levels.
+  run "pip install pip $PIP_OPTS" "Reinstalling pip with PACKAGE_LEVEL=$PACKAGE_LEVEL"
   run "pip install setuptools $PIP_OPTS" "Reinstalling setuptools with PACKAGE_LEVEL=$PACKAGE_LEVEL"
   run "pip install wheel $PIP_OPTS" "Reinstalling wheel with PACKAGE_LEVEL=$PACKAGE_LEVEL"
-  run "pip install pip $PIP_OPTS" "Reinstalling pip with PACKAGE_LEVEL=$PACKAGE_LEVEL"
 
   verbose "Virtualenv before actual install test:"
   verbose "Pip version: $(pip --version 2>&1)"
