@@ -136,25 +136,37 @@ function make_virtualenv()
   envnamep="${ENVPREFIX}$envname"
   envdir=$VIRTUALENV_DIR/$envnamep
 
-  echo "Saving current virtualenv: $VIRTUAL_ENV"
+  echo "Saving location of current virtualenv: $VIRTUAL_ENV"
   VIRTUAL_ENV_SAVED=$VIRTUAL_ENV
 
   if [[ -d $envdir ]]; then
+    verbose "Removing new virtualenv: $envdir"
     remove_virtualenv $envname
   fi
 
   python_cmd_path=$(which $PYTHON_CMD)
-  verbose "Creating virtualenv: $envdir"
-  verbose "..using this Python command: $python_cmd_path"
-  verbose "..that has this Python version: $($PYTHON_CMD --version 2>&1)"
-  run "virtualenv -p $python_cmd_path $envdir"
+  verbose "Before creating virtualenv: $envdir"
+  verbose "Python version: $($PYTHON_CMD --version 2>&1) from $(which $PYTHON_CMD)"
+  verbose "Pip version: $(pip --version 2>&1)"
+  if [[ "$DEBUG" == "true" ]]; then
+    echo "Debug: Python module path:"
+    python -c "import sys, pprint; pprint.pprint(sys.path)"
+    echo "Debug: Packages:"
+    pip list --format=columns 2>/dev/null || pip list 2>/dev/null
+  fi
 
+  run "virtualenv -p $python_cmd_path $envdir" "Creating virtualenv: $envdir"
   run "source $envdir/bin/activate" "Activating virtualenv: $envdir"
-  verbose "Python command in this virtualenv: $(which python)"
-  verbose "Python version in this virtualenv: $(python --version 2>&1)"
 
-  verbose "Packages in this virtualenv before reinstalling base packages:"
-  pip list --format=columns 2>/dev/null || pip list 2>/dev/null
+  verbose "Virtualenv before reinstalling base packages:"
+  verbose "Python version: $(python --version 2>&1) from $(which python)"
+  verbose "Pip version: $(pip --version 2>&1)"
+  if [[ "$DEBUG" == "true" ]]; then
+    echo "Debug: Python module path:"
+    python -c "import sys, pprint; pprint.pprint(sys.path)"
+    echo "Debug: Packages:"
+    pip list --format=columns 2>/dev/null || pip list 2>/dev/null
+  fi
 
   # If pip is reinstalled (=downgraded) before reinstalling setuptools and wheel,
   # we get permission errors on Travis when running with minimum package levels.
@@ -162,7 +174,9 @@ function make_virtualenv()
   run "pip install wheel $PIP_OPTS" "Reinstalling wheel with PACKAGE_LEVEL=$PACKAGE_LEVEL"
   run "pip install pip $PIP_OPTS" "Reinstalling pip with PACKAGE_LEVEL=$PACKAGE_LEVEL"
 
-  verbose "Packages in this virtualenv before actual install test:"
+  verbose "Virtualenv before actual install test:"
+  verbose "Pip version: $(pip --version 2>&1)"
+  verbose "Packages:"
   pip list --format=columns 2>/dev/null || pip list 2>/dev/null
 }
 
@@ -213,6 +227,7 @@ function run()
     echo "Debug: running in this shell: $cmd"
     eval "$cmd"
     rc=$?
+    echo "Debug: command returns: rc=$rc"
   else
     eval "$cmd" >$CMD_LOG_FILE 2>&1
     rc=$?
@@ -312,20 +327,15 @@ function assert_import_ok()
 {
   local module
   module="$1"
-  if [[ "$DEBUG" == "true" ]]; then
-    echo "Debug: module=$module"
-    details=""
-    #details="; sys.path=$(python -c 'import sys; print(sys.path)')"
-  else
-    details=""
-  fi
-  assert_run_ok "python -c \"import ${module}\"" "Python module '${module}' cannot be imported$details"
+  verbose "Checking for successful import of module: $module"
+  assert_run_ok "python -c \"import ${module}\"" "Python module '${module}' cannot be imported"
 }
 
 function assert_import_fails()
 {
   local module
   module="$1"
+  verbose "Checking for failing import of module: $module"
   assert_run_fails "python -c \"import ${module}\"" "Python module '${module}' can be imported but should have failed"
 }
 
