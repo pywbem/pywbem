@@ -28,7 +28,7 @@ function abspath()
     fi
 }
 
-DEBUG="false"
+DEBUG="true"
 VERBOSE="true"
 
 MYNAME=$(basename "$0")
@@ -155,7 +155,12 @@ function make_virtualenv()
     pip list --format=columns 2>/dev/null || pip list 2>/dev/null
   fi
 
-  run "virtualenv -p $python_cmd_path $envdir" "Creating virtualenv: $envdir"
+  if [[ "$DEBUG" == "true" ]]; then
+    virtualenv_debug_opts="-vvv"
+  else
+    virtualenv_debug_opts=""
+  fi
+  run "virtualenv -p $python_cmd_path $virtualenv_debug_opts $envdir" "Creating virtualenv: $envdir"
   run "source $envdir/bin/activate" "Activating virtualenv: $envdir"
 
   verbose "Virtualenv before reinstalling base packages:"
