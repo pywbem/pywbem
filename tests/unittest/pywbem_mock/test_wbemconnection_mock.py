@@ -6156,8 +6156,8 @@ class TestDMTFCIMSchema(object):
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
         exp_mof = '#pragma locale ("en_US")\n' \
-                  '#pragma include ("System/CIM_ComputerSystem.mof")\n' \
-                  '#pragma include ("Device/CIM_Door.mof")\n'
+                  '#pragma include ("Device/CIM_Door.mof")\n' \
+                  '#pragma include ("System/CIM_ComputerSystem.mof")\n'
 
         assert schema_mof == exp_mof
 
@@ -6280,8 +6280,8 @@ class TestDMTFCIMSchema(object):
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
         exp_mof = '#pragma locale ("en_US")\n' \
-                  '#pragma include ("System/CIM_ComputerSystem.mof")\n' \
-                  '#pragma include ("Device/CIM_Door.mof")\n'
+                  '#pragma include ("Device/CIM_Door.mof")\n' \
+                  '#pragma include ("System/CIM_ComputerSystem.mof")\n'
 
         assert schema_mof == exp_mof
 
@@ -6311,7 +6311,31 @@ class TestDMTFCIMSchema(object):
         with pytest.raises(excep):
             DMTFCIMSchema(schema_version, test_schema_root_dir, verbose=False)
 
-    def test_schema_build(self):
+    @pytest.mark.parametrize(
+        # classes - iterable of leaf classnames or string with single classname
+        # result = String defining the resulting cim_schema build list OR
+        #          Exception expected
+        "classes, result", [
+            [['CIM_ComputerSystem', 'CIM_Door'],
+             '#pragma locale ("en_US")\n' \
+             '#pragma include ("Device/CIM_Door.mof")\n' \
+             '#pragma include ("System/CIM_ComputerSystem.mof")\n'],
+
+            [['CIM_Door'],
+             '#pragma locale ("en_US")\n' \
+             '#pragma include ("Device/CIM_Door.mof")\n'],
+
+            ['CIM_Door',
+             '#pragma locale ("en_US")\n' \
+             '#pragma include ("Device/CIM_Door.mof")\n'],
+
+            [['CIM_Blah'], ValueError],
+
+            [['CIM_ComputerSystem', 'CIM_Door', 'CIM_Blah'], ValueError],
+
+        ]
+    )
+    def test_schema_build(self, classes, result):
         # pylint: disable=no-self-use
         """
         Test case we use the existing DMTF schema used by other tests and
@@ -6320,10 +6344,16 @@ class TestDMTFCIMSchema(object):
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                                verbose=False)
 
-        schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
+        if isinstance(result, six.string_types):
+            schema_mof = schema.build_schema_mof(classes)
 
-        exp_mof = '#pragma locale ("en_US")\n' \
-                  '#pragma include ("System/CIM_ComputerSystem.mof")\n' \
-                  '#pragma include ("Device/CIM_Door.mof")\n'
-
-        assert schema_mof == exp_mof
+            assert schema_mof == result
+        else:
+            try:
+                schema_mof = schema.build_schema_mof(classes)
+                assert True
+            except result as re:
+                print(re)
+                re_str = "{}".format(re)
+                for item in classes:
+                    assert re_str.find(item)
