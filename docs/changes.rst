@@ -423,6 +423,12 @@ Released: not yet
 * Fixed raise error for missing ports in WBEMListener.__init__().
   (See issue #2188)
 
+* Fixed issue where DMTFCIMSchema/build_schema_mof creates the new cim_schema
+  pragma list in order different than the DMTF defined file.  In some rare
+  cases this could cause an issue because the DMTF carefully ordered the
+  class pragmas to avoid and issues of dependencies, etc. Note that if only
+  leaf classes are use there should never be an issue. (See issue # 2223)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

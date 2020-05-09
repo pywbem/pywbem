@@ -75,6 +75,7 @@ import os
 from zipfile import ZipFile
 import shutil
 import six
+import re
 try:
     from urllib.request import urlopen
 except ImportError:  # py2
@@ -223,9 +224,9 @@ class DMTFCIMSchema(object):
     def schema_mof_dir(self):
         """
         :term:`string`: Path name of the directory in which the DMTF CIM Schema
-        MOF files are extracted from the downloaded zip file. This property is
-        useful since it can be used as the MOF compiler search path for
-        compiling classes in the DMTF CIM schema.
+        MOF files are extracted from the downloaded zip file. This property can
+        be used as the MOF compiler search path for compiling classes in the
+        DMTF CIM schema.
         """
         return self._schema_mof_dir
 
@@ -251,7 +252,6 @@ class DMTFCIMSchema(object):
         """
         :term:`string`: Path name of the DMTF CIM schema zip file
         downloaded from the DMTF web site.
-
         """
         return self._schema_zip_file
 
@@ -398,7 +398,12 @@ class DMTFCIMSchema(object):
             #pragma include ("System/CIM_ComputerSystem.mof")
 
         with a ``#pragma include`` for each classname in the `schema_classes`
-        list
+        list.
+
+        The resulting set of #pragma statements is in the same order as the
+        original pragmas.  In some cases that could be important because the
+        DMTF list is ordered to missing dependencies and conflicts between
+        class mof compiles
 
         Parameters:
 
@@ -409,7 +414,8 @@ class DMTFCIMSchema(object):
             to be included.
 
             If the returned string is compiled, the MOF compiler will search
-            the directory defined by `schema_mof_dir` for dependent classes.
+            the directory defined by `schema_mof_dir` for dependent classes
+            for each class in this list.
 
         Returns:
             :term:`string`: Valid MOF containing pragma statements for
@@ -426,19 +432,35 @@ class DMTFCIMSchema(object):
         with open(self.schema_mof_file, 'r') as f:
             schema_lines = f.readlines()
 
-        output_lines = ['#pragma locale ("en_US")\n']
-        for cln in schema_classes:
-            test_cln = '/{0}.mof'.format(cln)  # May contain Unicode
-            found = False
-            for line in schema_lines:
-                if line.find(test_cln) != -1:
-                    output_lines.append(line)
-                    found = True
-                    break
-            if not found:
-                raise ValueError(
-                    _format("Class {0!A} not in DMTF CIM schema {1!A}",
-                            cln, self.schema_mof_file))
+        # Build list  classname/line number pairs
+        classname_pattern = ' *#.*include.*/(.*)\\.mof'
+        schema_classes_lc = [cln.lower() for cln in schema_classes]
+        lines_list = []
+        found_classes = []
+        for line_no, line in enumerate(schema_lines, 0):
+            result = re.search(classname_pattern, line)
+            if result:
+                cln = result.group(1)
+                if cln.lower() in schema_classes_lc:
+                    lines_list.append(line_no)
+                    found_classes.append(cln)
+            line_no += 1
+
+        # Create list of the line numbers in schema_lines containing
+        # pragmas that will be part of the build.
+        classes_not_found = set(schema_classes) - set(found_classes)
+        if classes_not_found:
+            raise ValueError(
+                _format("Classes {0!A} not in DMTF CIM schema {1!A}",
+                        ', '.join(classes_not_found), self.schema_mof_file))
+
+        # Sort the list so the result is in the same order as the pragmas
+        # in the cim_schema file.
+        lines_list.sort()
+
+        output_lines = [schema_lines[line_number] for line_number in lines_list]
+
+        output_lines.insert(0, '#pragma locale ("en_US")\n')
 
         return ''.join(output_lines)
 
