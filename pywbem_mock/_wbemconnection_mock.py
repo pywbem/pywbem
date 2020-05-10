@@ -27,11 +27,14 @@ For documentation, see mocksupport.rst.
 
 from __future__ import absolute_import, print_function
 
+import os
+import warnings
 import time
 import re
 from xml.dom import minidom
 from mock import Mock
 import six
+
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
@@ -48,7 +51,7 @@ from ._mockmofwbemconnection import _MockMOFWBEMConnection
 from ._defaultinstanceprovider import ProviderDispatcher, \
     InstanceWriteProvider, MethodProvider
 
-from ._dmtf_cim_schema import DMTFCIMSchema
+from ._dmtf_cim_schema import DMTFCIMSchema, build_schema_mof
 from ._utils import _uprint
 
 __all__ = ['FakedWBEMConnection', 'MethodProvider', 'InstanceWriteProvider']
@@ -543,20 +546,101 @@ class FakedWBEMConnection(WBEMConnection):
 
         mofcomp.compile_string(mof_str, namespace)
 
+    def compile_schema_classes(self, class_names, schema_pragma_file,
+                               namespace=None, verbose=False):
+        # pylint: disable=line-too-long
+        """
+        Compile the classes defined by `class_names`  and all of their dependences.
+        The class names must be classes in the define schema and with
+        pragma statements in `schema_pragma_file`.
+        `schema_pragma_file` must be in a directory that also encompasses
+        the MOF files for all of the classes defined in the
+        `schema_pragma_file` and the dependencies of those classes. While
+        the relative paths of all of the CIM class files is defined in the
+        `schema_pragma_file` the pywbem MOF compiler may also search for
+        dependencies (ex. superclasses, references, etc.) that are not
+        specifically listed in the `class_names` and the path of the
+        `schema_pragma_file` is the top level directory for that search. The
+        mof schema directory must include:
+
+        1. Qualifier declarations defined in a single file with the name
+           `qualifiers.mof` defined within the directory defined by the
+           `schema_mof_dir` parameter
+
+        2. The file `schema_mof_file` that defines the location of all
+           of the CIM class files within the a schema mof directory
+           hierarchy. This is the `schema_pragma_file` attribute of the
+           DMTFCIMSchema class.
+
+        3. The MOF files, one for each class, for the classes that could be
+           compiled within the directory hierarchy defined by `schema_mof_dir`.
+
+        Only the leaf class names need be included in the `class_names` list
+        since the compiler will find all dependencies as part of the dependency
+        resolution for the compile of each class in `class_names`.
+
+        Parameters:
+
+          class_names (:term:`string` or :class:`py:list` of :term:`string):
+            Class names of the classes to be compiled. These class names must be
+            a subset of the classes defined in `schema_pragma_file`.
+
+          schema_pragma_file (:term:`string`):
+            Relative or absolute file path of the schema mof pragma file that
+            includes a MOF pragma for each CIM class file in the schema. See
+            :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file` This file
+            path is available from
+            :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`
+
+          namespace (:term:`string`):
+            Namespace into which the classes and qualifier declarations will
+            be installed.
+
+          verbose (:class:`py:bool`):
+            If `True`, progress messages are output to stdout as the schema is
+            downloaded and expanded. Default is `False`.
+
+        Raises:
+          MOFCompileError: For errors in MOF parsing, finding MOF dependencies
+            or issues with the cim repository.
+
+          CIMError: Other errors relating to the target server environment.
+
+        """  # noqa: E501
+        # pylint: enable:line-too-long
+
+        # Find the schema pragma file in the schema_mof_dir.
+
+        schema_mof_dir = os.path.split(schema_pragma_file)[0]
+
+        compile_list = build_schema_mof(class_names,
+                                        schema_pragma_file)
+
+        self.compile_mof_string(compile_list,
+                                namespace=namespace,
+                                search_paths=[schema_mof_dir],
+                                verbose=verbose)
+
     def compile_dmtf_schema(self, schema_version, schema_root_dir, class_names,
                             use_experimental=False, namespace=None,
                             verbose=False):
+        # pylint: disable:line-too-long
         """
-        Compile the classes defined by `class_names` and their dependent
-        classes from the DMTF CIM schema version defined by
-        `schema_version` and keep the downloaded DMTF CIM schema in the
-        directory defined by `schema_dir`.
+        **Deprecated:** This method has been deprecated in pywbem 1.0.0
+        in favor of
+        :method:`pywbem_mock.FakedWBEMConnection.compile_dmtf_classes`.
+
+        Compile the classes defined by `schema_class_names` and their
+        dependent classes from the CIM schema version defined by
+        `schema_version`. If the DMTF schema defined by
+        `schema_vesion` is not installed in path `schema_root_dir`
+        it is first downloaded from the DMTF and installed in that directory.
 
         This method uses the :class:`~pywbem_mock.DMTFCIMSchema` class to
         download the DMTF CIM schema defined by `schema_version` from the DMTF,
         into the `schema_root_dir` directory, extract the MOF files, create a
         MOF file with the `#include pragma` statements for the files in
-        `class_names` and attempt to compile this set of files.
+        `schema_class_names`..
 
         It automatically compiles all of the DMTF qualifier declarations that
         are in the files `qualifiers.mof` and `qualifiers_optional.mof`.
@@ -592,15 +676,18 @@ class FakedWBEMConnection(WBEMConnection):
 
           class_names (:term:`py:list` of :term:`string` or :term:`string`):
             List of class names from the DMTF CIM Schema to be included in the
-            repository.
+            MOF compile and inserted into the CIM repository.
 
-            A single class may be defined as a string not in a list.
+            A single class may be defined as a single string.
 
             These must be classes in the defined DMTF CIM schema and can be a
             list of just the leaf classes required The MOF compiler will search
             the DMTF CIM schema MOF classes for superclasses, classes defined
             in reference properties, and classes defined in EmbeddedInstance
             qualifiers  and compile them also.
+
+            This parameter corresponds to the `schema_classnames` parameter in
+            the method `compile_schema_classes`.
 
           use_experimental (:class:`py:bool`):
             If `True` the expermental version of the DMTF CIM Schema
@@ -626,14 +713,20 @@ class FakedWBEMConnection(WBEMConnection):
           TypeError: The 'schema_version' is not a valid tuple with 3
             integer components
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
-        """
+        """  # noqa: E501
+        # pylint: enable:line-too-long
+
+        warnings.warn(
+            "Calling compile_dmtf_schema is deprecated; it will be removed "
+            "in the next pywbem release after 1.0.0. Use",
+            DeprecationWarning, 2)
 
         schema = DMTFCIMSchema(schema_version, schema_root_dir,
                                use_experimental=use_experimental,
                                verbose=verbose)
-        schema_mof = schema.build_schema_mof(class_names)
+        schema_pragma_mof = schema.build_schema_mof(class_names)
         search_paths = schema.schema_mof_dir
-        self.compile_mof_string(schema_mof, namespace=namespace,
+        self.compile_mof_string(schema_pragma_mof, namespace=namespace,
                                 search_paths=[search_paths],
                                 verbose=verbose)
 
