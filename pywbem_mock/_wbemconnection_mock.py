@@ -605,7 +605,6 @@ class FakedWBEMConnection(WBEMConnection):
             or issues with the cim repository.
 
           CIMError: Other errors relating to the target server environment.
-
         """  # noqa: E501
         # pylint: enable:line-too-long
 
