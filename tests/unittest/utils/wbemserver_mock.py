@@ -7,7 +7,7 @@ from __future__ import print_function, absolute_import
 
 import os
 
-from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
+from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER, DMTFCIMSchema
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -193,9 +193,13 @@ class WbemServerMock(object):
         FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection(default_namespace=default_namespace)
 
-        conn.compile_dmtf_schema(
-            self.dmtf_schema_ver, self.schema_dir,
-            class_names=self.server_mock_data['class_names'], verbose=False)
+        schema = DMTFCIMSchema(self.dmtf_schema_ver, self.schema_dir,
+                               verbose=False)
+
+        conn.compile_schema_classes(
+            self.server_mock_data['class_names'],
+            schema.schema_pragma_file,
+            verbose=False)
 
         for fn in self.pg_schema_files:
             pg_file = os.path.join(self.pg_schema_dir, fn)

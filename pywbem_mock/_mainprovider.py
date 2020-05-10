@@ -1718,6 +1718,8 @@ class MainProvider(BaseProvider, ResolverMixin):
             CIM_ERR_NOT_SUPPORTED,
             "ExecQuery not implemented!")
 
+        return []
+
     #####################################################################
     #
     #  Faked WBEMConnection Reference and Associator methods

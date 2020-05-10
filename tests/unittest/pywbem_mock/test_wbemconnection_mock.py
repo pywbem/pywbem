@@ -1841,11 +1841,11 @@ class TestRepoMethods(object):
 
         # TODO test returned instance for match with what was created
 
-    def test_compile_dmtf_schema(self, conn):
+    def test_compile_complete_dmtf_schema(self, conn):
         # pylint: disable=no-self-use
         """
-        Test Compiling DMTF CIM schema. This test compiles the
-        complete DMTF schema that is defined in the test suite.
+        Test Compiling the complete DMTF CIM schema. This test compiles all
+        classes of  the DMTF schema that is defined in the test suite.
         """
         skip_if_moftab_regenerated()
 
@@ -1860,6 +1860,9 @@ class TestRepoMethods(object):
         assert conn._get_class_store(ns).len() == TOTAL_CLASSES
         assert conn._get_qualifier_store(ns).len() == TOTAL_QUALIFIERS
 
+    @ pytest.mark.parametrize(
+        # Test use of both compile_dmtf_schema and compile_schema_classes
+        "use_compile_dmtf_schema", [True, False])
     @pytest.mark.parametrize(
         # Description - Description of the test
         # classnames - List of classnames to compile
@@ -2027,9 +2030,10 @@ class TestRepoMethods(object):
              True],
         ]
     )
-    def test_compile_dmtf_schema_method(self, conn, description, classnames,
-                                        extra_exp_classnames, exp_class,
-                                        run_tst):
+    def test_compile_partial_dmtf_schema(self, conn, use_compile_dmtf_schema,
+                                         description, classnames,
+                                         extra_exp_classnames, exp_class,
+                                         run_tst):
         # pylint: disable=no-self-use,unused-argument
         """
         Test Compiling DMTF CIM schema using the compile_dmtf_schema method.
@@ -2044,10 +2048,20 @@ class TestRepoMethods(object):
         skip_if_moftab_regenerated()
 
         ns = 'root/cimv2'
-        conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                                 class_names=classnames, verbose=True)
+        if use_compile_dmtf_schema:
+            conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                                     class_names=classnames,
+                                     verbose=True)
 
-        # test the set of created classnames for match to exp_classnames
+        else:  # use compile_schema_classes
+            schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                                   verbose=True)
+
+            conn.compile_schema_classes(classnames,
+                                        schema.schema_pragma_file,
+                                        verbose=True)
+
+        # Test the set of created classnames for match to exp_classnames
         exp_classnames = classnames
         exp_classnames.extend(extra_exp_classnames)
         rslt_classnames = conn.EnumerateClassNames(DeepInheritance=True,
@@ -6129,7 +6143,9 @@ class TestDMTFCIMSchema(object):
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
         assert os.path.isfile(schema.schema_mof_file)
+        assert os.path.isfile(schema.schema_pragma_file)
         assert os.path.isfile(schema.schema_zip_file)
+        assert schema.schema_mof_file == schema.schema_pragma_file
 
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
@@ -6143,12 +6159,13 @@ class TestDMTFCIMSchema(object):
                                'schema_version=%s, ' \
                                'schema_root_dir=%s, schema_zip_file=%s, ' \
                                'schema_mof_dir=%s, ' \
-                               'schema_mof_file=%s, schema_zip_url=%s)' % \
+                               'schema_pragma_file=%s, ' \
+                               'schema_zip_url=%s)' % \
                                (DMTF_TEST_SCHEMA_VER,
                                 TESTSUITE_SCHEMA_DIR,
                                 schema.schema_zip_file,
                                 test_schema_mof_dir,
-                                schema.schema_mof_file,
+                                schema.schema_pragma_file,
                                 schema.schema_zip_url)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
@@ -6158,9 +6175,6 @@ class TestDMTFCIMSchema(object):
                   '#pragma include ("System/CIM_ComputerSystem.mof")\n'
 
         assert schema_mof == exp_mof
-
-        assert os.path.isfile(schema.schema_zip_file)
-        assert os.path.isfile(schema.schema_mof_file)
 
     def test_schema_final_load(self, test_schema_root_dir):
         # pylint: disable=no-self-use
@@ -6182,7 +6196,9 @@ class TestDMTFCIMSchema(object):
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
         assert os.path.isfile(schema.schema_mof_file)
+        assert os.path.isfile(schema.schema_pragma_file)
         assert os.path.isfile(schema.schema_zip_file)
+        assert schema.schema_mof_file == schema.schema_pragma_file
 
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(test_schema_root_dir, mof_dir)
@@ -6206,8 +6222,8 @@ class TestDMTFCIMSchema(object):
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
         exp_mof = '#pragma locale ("en_US")\n' \
-                  '#pragma include ("System/CIM_ComputerSystem.mof")\n' \
-                  '#pragma include ("Device/CIM_Door.mof")\n'
+                  '#pragma include ("Device/CIM_Door.mof")\n' \
+                  '#pragma include ("System/CIM_ComputerSystem.mof")\n'
 
         assert schema_mof == exp_mof
 
