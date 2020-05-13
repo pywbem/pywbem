@@ -12,8 +12,8 @@ import pytest
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: disable=redefined-builtin
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import Warning, ToleratedServerIssueWarning
+pywbem = import_installed('pywbem')
+from pywbem import Warning, ToleratedServerIssueWarning  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: enable=redefined-builtin
 

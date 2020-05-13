@@ -34,23 +34,23 @@ from tests.unittest.utils.unittest_extensions import RegexpMixin
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_INVALID_QUERY, \
     CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_METHOD_NOT_FOUND, CIM_ERR_ALREADY_EXISTS, DEFAULT_NAMESPACE, \
-    MinutesFromUTC
+    MinutesFromUTC  # noqa: E402
 from pywbem import WBEMConnection, WBEMServer, CIMError, Error, WBEMListener, \
     WBEMSubscriptionManager, CIMInstance, CIMInstanceName, CIMClass, \
     CIMClassName, CIMProperty, CIMQualifier, CIMQualifierDeclaration, \
     CIMMethod, ValueMapping, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, TestClientRecorder, \
-    configure_logger
-from pywbem.mof_compiler import MOFCompiler
+    configure_logger  # noqa: E402
+from pywbem.mof_compiler import MOFCompiler  # noqa: E402
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
-    DESTINATION_CLASSNAME, FILTER_CLASSNAME
+    DESTINATION_CLASSNAME, FILTER_CLASSNAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

@@ -23,9 +23,9 @@ from .utils.pytest_extensions import assert_association_func  # noqa: F401
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import ToleratedServerIssueWarning
-from pywbem._utils import _format
+pywbem = import_installed('pywbem')
+from pywbem import ToleratedServerIssueWarning  # noqa: E402
+from pywbem._utils import _format  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

@@ -12,8 +12,8 @@ import os
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem._nocasedict import NocaseDict
+pywbem = import_installed('pywbem')
+from pywbem._nocasedict import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

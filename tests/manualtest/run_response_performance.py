@@ -19,9 +19,9 @@ import six
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import tupletree, __version__
-from pywbem._cliutils import SmartFormatter as _SmartFormatter
+pywbem = import_installed('pywbem')
+from pywbem import tupletree, __version__  # noqa: E402
+from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # In pywbem 0.13, parse_cim() changed from a function to a method:
