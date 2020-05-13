@@ -21,8 +21,8 @@ except ImportError:
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import CIMInstanceName, CIMClass, CIMProperty, Uint8
+pywbem = import_installed('pywbem')
+from pywbem import CIMInstanceName, CIMClass, CIMProperty, Uint8  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

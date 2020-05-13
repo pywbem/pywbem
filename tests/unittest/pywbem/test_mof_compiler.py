@@ -24,19 +24,19 @@ from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem._cim_operations import CIMError
+pywbem = import_installed('pywbem')
+from pywbem._cim_operations import CIMError  # noqa: E402
 from pywbem._mof_compiler import MOFCompiler, MOFWBEMConnection, \
-    MOFParseError, MOFDependencyError
+    MOFParseError, MOFDependencyError  # noqa: E402
 from pywbem._cim_constants import CIM_ERR_ALREADY_EXISTS, \
-    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
+    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND  # noqa: E402
 from pywbem._cim_obj import CIMClass, CIMProperty, CIMQualifier, \
-    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
-from pywbem import _mof_compiler
-from pywbem._utils import _format
-from pywbem._nocasedict import NocaseDict
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import FakedWBEMConnection
+    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName  # noqa: E402
+from pywbem import _mof_compiler  # noqa: E402
+from pywbem._utils import _format  # noqa: E402
+from pywbem._nocasedict import NocaseDict  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Location of the schema for use by test_mof_compiler.

@@ -10,9 +10,10 @@ import yagot
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIMClassName, CIMInstanceName, CIMClass, CIMInstance, \
-    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # NocaseDict uses collections.OrderedDict which fixed its reference cycles in

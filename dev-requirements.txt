@@ -112,8 +112,7 @@ typed-ast>=1.4.0; python_version >= '3.8'
 flake8>=3.7.9
 mccabe>=0.6.0
 pycodestyle>=2.5.0
-# flake8 3.7.9 pins pyflakes<2.2.0, and since pyflakes 2.2.0 was released this needs to be repeated here
-pyflakes>=2.1.0,<2.2.0
+pyflakes>=2.1.0
 entrypoints>=0.3.0
 functools32>=3.2.3.post2; python_version == '2.7'  # technically: python_version < '3.2'
 

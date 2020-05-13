@@ -44,7 +44,7 @@ from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, Uint32, MOFCompileError, MOFRepositoryError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
@@ -52,13 +52,13 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE
-from pywbem._nocasedict import NocaseDict
-from pywbem._utils import _format
-from pywbem._cim_operations import pull_path_result_tuple
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE  # noqa: E402
+from pywbem._nocasedict import NocaseDict  # noqa: E402
+from pywbem._utils import _format  # noqa: E402
+from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
-    InstanceWriteProvider, MethodProvider
+    InstanceWriteProvider, MethodProvider  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -2980,7 +2980,7 @@ class TestClassOperations(object):
                                  propagated=False)},
                          class_origin='CIM_Foo',
                          propagated=False), },
-                 ),
+             ),
              None, OK],
 
             ['Validate CreateClass creates valid subclass from 2 superclasses',
@@ -3037,7 +3037,7 @@ class TestClassOperations(object):
                              propagated=True)},
                          class_origin='CIM_Foo',
                          propagated=True), },
-                 ),
+             ),
              None, OK],
 
             ["Create valid 2nd level subclass from fixture defined classes.",
@@ -3062,11 +3062,10 @@ class TestClassOperations(object):
                                      class_origin='CIM_Foo', propagated=True,
                                      is_array=False, array_size=None,
                                      qualifiers={
-                                         'key': CIMQualifier('Key', True,
-                                                             propagated=True,
-                                                             tosubclass=True,
-                                                             overridable=False),
-                                         }),
+                                         'key': CIMQualifier(
+                                             'Key', True, propagated=True,
+                                             tosubclass=True,
+                                             overridable=False)}),
                      'cimfoo_sub': CIMProperty(
                          'cimfoo_sub', None,
                          qualifiers={
@@ -3089,7 +3088,7 @@ class TestClassOperations(object):
                                  propagated=False)},
                          type='string', class_origin='CIM_Foo_sub_sub',
                          propagated=False),
-                     },
+                 },
                  methods={
                      'Delete': CIMMethod(
                          'Delete', 'uint32',
@@ -3111,10 +3110,9 @@ class TestClassOperations(object):
                                                 tosubclass=True,
                                                 overridable=True,
                                                 translatable=True)}),
-                     },
-                 ),
-             None, OK
-            ],
+                 },
+             ),
+             None, OK],
 
             [
                 'Create valid 2nd level subclass with key override. '
@@ -3160,7 +3158,7 @@ class TestClassOperations(object):
                                         tosubclass=True,
                                         overridable=True,
                                         translatable=True)})
-                        },
+                    },
                     methods={
                         'Delete': CIMMethod(
                             'Delete', 'uint32',
@@ -3182,8 +3180,8 @@ class TestClassOperations(object):
                                     tosubclass=True,
                                     overridable=True,
                                     translatable=True)}),
-                        },
-                    ),
+                    },
+                ),
                 None, OK
             ],
 

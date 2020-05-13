@@ -11,10 +11,11 @@ from mock import Mock
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIMClass, CIMProperty, CIMMethod, CIMParameter, \
-    CIMQualifier, WBEMServer, WBEMConnection, ValueMapping, ModelError
-from pywbem._cim_types import type_from_name
+    CIMQualifier, WBEMServer, WBEMConnection, ValueMapping, \
+    ModelError  # noqa: E402
+from pywbem._cim_types import type_from_name  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

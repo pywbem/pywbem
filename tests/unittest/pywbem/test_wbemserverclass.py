@@ -33,10 +33,10 @@ from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import ValueMapping, CIMInstanceName, CIMError, \
-    CIMQualifierDeclaration, CIMClass
-from pywbem._nocasedict import NocaseDict
+    CIMQualifierDeclaration, CIMClass  # noqa: E402
+from pywbem._nocasedict import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
