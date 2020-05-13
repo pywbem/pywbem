@@ -35,9 +35,10 @@ from ...utils import skip_if_moftab_regenerated
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import CIMInstanceName, CIMClassName, DEFAULT_NAMESPACE
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
+pywbem = import_installed('pywbem')
+from pywbem import CIMInstanceName, CIMClassName, \
+    DEFAULT_NAMESPACE  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # List of initially existing namespaces in the mock repository

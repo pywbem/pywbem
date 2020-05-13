@@ -22,8 +22,8 @@ from .utils.pytest_extensions import single_profile_definition  # noqa: F401
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import WBEMServer, ValueMapping
+pywbem = import_installed('pywbem')
+from pywbem import WBEMServer, ValueMapping  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

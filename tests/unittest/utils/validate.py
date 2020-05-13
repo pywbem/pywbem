@@ -71,8 +71,8 @@ from lxml import etree
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem._utils import _ensure_bytes, _ensure_unicode
+pywbem = import_installed('pywbem')
+from pywbem._utils import _ensure_bytes, _ensure_unicode  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

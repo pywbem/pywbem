@@ -35,11 +35,11 @@ from ..utils.wbemserver_mock import WbemServerMock
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
-    CIMInstance
+    CIMInstance  # noqa: E402
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
-    DESTINATION_CLASSNAME, FILTER_CLASSNAME
+    DESTINATION_CLASSNAME, FILTER_CLASSNAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
