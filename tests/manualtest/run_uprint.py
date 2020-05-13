@@ -41,8 +41,8 @@ from tests.unittest.utils.unichr2 import unichr2
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock._wbemconnection_mock import _uprint
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock._wbemconnection_mock import _uprint  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

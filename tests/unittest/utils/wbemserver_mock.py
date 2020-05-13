@@ -11,11 +11,11 @@ from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
-    CIMInstanceName
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import FakedWBEMConnection
+    CIMInstanceName  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

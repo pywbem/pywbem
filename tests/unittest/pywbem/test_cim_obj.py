@@ -22,18 +22,18 @@ from ..utils.pytest_extensions import simplified_test_function, ignore_warnings
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, tocimobj, MinutesFromUTC, \
-    __version__
-from pywbem._nocasedict import NocaseDict
-from pywbem.cim_types import _Longint
-from pywbem.cim_obj import mofstr
-from pywbem._utils import _format
+    __version__  # noqa: E402
+from pywbem._nocasedict import NocaseDict  # noqa: E402
+from pywbem.cim_types import _Longint  # noqa: E402
+from pywbem.cim_obj import mofstr  # noqa: E402
+from pywbem._utils import _format  # noqa: E402
 try:
-    from pywbem import cimvalue
+    from pywbem import cimvalue  # noqa: E402
 except ImportError:
     pass
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name

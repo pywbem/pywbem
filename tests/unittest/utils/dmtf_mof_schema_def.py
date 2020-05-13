@@ -38,8 +38,8 @@ import os
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import DMTFCIMSchema
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import DMTFCIMSchema  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

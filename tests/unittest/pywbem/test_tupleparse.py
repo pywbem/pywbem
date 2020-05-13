@@ -10,13 +10,13 @@ from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import tupletree, tupleparse
+pywbem = import_installed('pywbem')
+from pywbem import tupletree, tupleparse  # noqa: E402
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
-    Real32, Real64, ParseError, ToleratedServerIssueWarning
+    Real32, Real64, ParseError, ToleratedServerIssueWarning  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

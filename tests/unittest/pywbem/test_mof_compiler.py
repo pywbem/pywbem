@@ -23,19 +23,20 @@ from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem.cim_operations import CIMError
-from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, MOFParseError
+pywbem = import_installed('pywbem')
+from pywbem.cim_operations import CIMError  # noqa: E402
+from pywbem.mof_compiler import MOFCompiler, MOFWBEMConnection, \
+    MOFParseError  # noqa: E402
 from pywbem.cim_constants import CIM_ERR_FAILED, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_CLASS, CIM_ERR_ALREADY_EXISTS, \
-    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND
+    CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND  # noqa: E402
 from pywbem.cim_obj import CIMClass, CIMProperty, CIMQualifier, \
-    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName
-from pywbem import mof_compiler
-from pywbem._utils import _format
-from pywbem._nocasedict import NocaseDict
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import FakedWBEMConnection
+    CIMQualifierDeclaration, CIMDateTime, CIMInstanceName  # noqa: E402
+from pywbem import mof_compiler  # noqa: E402
+from pywbem._utils import _format  # noqa: E402
+from pywbem._nocasedict import NocaseDict  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import FakedWBEMConnection  # noqa: E402
 
 if sys.version_info[0:2] == (2, 6):
     import unittest2 as unittest  # we use assertRaises(exc) introduced in py27

@@ -16,11 +16,11 @@ from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
     Sint8, Sint16, Sint32, Sint64, Real32, Real64, CIMDateTime, \
     MinutesFromUTC, CIMClass, CIMInstance, CIMInstanceName, CIMClassName, \
-    cimtype, type_from_name
+    cimtype, type_from_name  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

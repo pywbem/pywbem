@@ -11,10 +11,10 @@ import pytest
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError,\
     ParseError, CIMXMLParseError, XMLParseError, VersionError, CIMError, \
-    ModelError, CIMInstance
+    ModelError, CIMInstance  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

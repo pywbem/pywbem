@@ -21,9 +21,10 @@ from tabulate import tabulate
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem._cliutils import SmartFormatter as _SmartFormatter
-from pywbem import WBEMConnection, Error, Uint64, TestClientRecorder
+pywbem = import_installed('pywbem')
+from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
+from pywbem import WBEMConnection, Error, Uint64, \
+    TestClientRecorder  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Pegasus class/namespace to use for test

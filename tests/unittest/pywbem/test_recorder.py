@@ -31,17 +31,19 @@ from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
+pywbem = import_installed('pywbem')
 from pywbem import CIMInstanceName, CIMInstance, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMProperty, CIMDateTime, CIMError, \
-    HTTPError, WBEMConnection, LogOperationRecorder, configure_logger
+    HTTPError, WBEMConnection, LogOperationRecorder, \
+    configure_logger  # noqa: E402
 # Renamed the following import to not have py.test pick it up as a test class:
-from pywbem import TestClientRecorder as _TestClientRecorder
-from pywbem.cim_operations import pull_path_result_tuple, pull_inst_result_tuple
-from pywbem._utils import _format
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import FakedWBEMConnection
+from pywbem import TestClientRecorder as _TestClientRecorder  # noqa: E402
+from pywbem.cim_operations import pull_path_result_tuple, \
+    pull_inst_result_tuple  # noqa: E402
+from pywbem._utils import _format  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import FakedWBEMConnection  # noqa: E402
 
 if sys.version_info[0:2] == (2, 6):
     import unittest2 as unittest  # we use @skip introduced in py27

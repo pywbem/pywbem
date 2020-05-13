@@ -17,13 +17,15 @@ from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-pywbem = import_installed('pywbem')  # noqa: E402
-from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, CIMError
-from pywbem._recorder import LogOperationRecorder
-from pywbem._recorder import TestClientRecorder as MyTestClientRecorder
-from pywbem.cim_operations import is_subclass
-pywbem_mock = import_installed('pywbem_mock')  # noqa: E402
-from pywbem_mock import FakedWBEMConnection
+pywbem = import_installed('pywbem')
+from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, \
+    CIMError  # noqa: E402
+from pywbem._recorder import LogOperationRecorder  # noqa: E402
+from pywbem._recorder import TestClientRecorder as \
+    MyTestClientRecorder  # noqa: E402
+from pywbem.cim_operations import is_subclass  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
