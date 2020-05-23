@@ -70,12 +70,11 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
     # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-    #: provider_classnames (:term:`py:iterable` of :term:`string` or :term:`string`):
-    #:        The classnames for the classes for which the provider is
-    #:        responsible and for which it should be registered.
+    #: provider_classnames (:term:`string`):
+    #:        The classname for this provider
     provider_classnames = 'CIM_Namespace'
 
-    def __init__(self, cimrepository, conn):
+    def __init__(self, cimrepository):
         """
         Parameters:
 
@@ -85,17 +84,6 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             required by this user-defined provider.
         """
         super(CIMNamespaceProvider, self).__init__(cimrepository)
-	
-        # NOTE: conn is only required for the following operation and
-        # is not kept in the constructed object.	
-
-        if not conn.find_interop_namespace():
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("No Interop namespace found. "
-                        "Construction of CIM_Namespace provider aborted."
-                        "Namespaces found: ,
-                        ", ".join(conn.interop_namespace_names())))
 
         # NOTE: conn is only required for the following operation and
         # is not kept in the constructed object.
