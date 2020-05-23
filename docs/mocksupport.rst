@@ -129,6 +129,8 @@ Pywbem mock supports:
 3. Gathering time statistics and delaying responses for a predetermined time.
 4. :class:`~pywbem.WBEMConnection` logging except that there are no HTTP entries
    in the log.
+5. Creating user-defined providers that can create specialized versions of
+   some of the responder methods.
 
 Pywbem mock does NOT support:
 
@@ -156,9 +158,7 @@ Pywbem mock does NOT support:
    HTTP requests or responses.
 7. Generating CIM indications.
 8. Some of the functionality that may be implemented in real WBEM servers such
-   as the `__Namespace__` class/provider or the `CIM_Namespace`
-   class/provider, because these are WBEM server-specific implementations and
-   not WBEM request level capabilities.  Note that such capabilities can be at
+   as the `__Namespace__` class/provider.  Note that such capabilities can be at
    least partly built on top of the existing capabilities by inserting
    corresponding CIM instances into the mock repository.
 
@@ -271,27 +271,26 @@ repository.
 Faked method invocation operation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: single: User defined providers
+.. index:: single: User-defined providers
 
 The faked method invocation operation (`InvokeMethod`) behaves like
 :meth:`~pywbem.WBEMConnection.InvokeMethod`, but because of the nature of
 `InvokeMethod`, the user must provide an implementation of InvokeMethod
 based on the API defined in :meth:`~pywbem_mock.MethodProvider.InvokeMethod`.
 
-See :ref:`User provider interfaces`
+See :ref:`User-defined providers` for more information on writing a
+user-defined provider.
 
-The user method provider must have the signature defined in the
+The user-defined method provider must have the signature defined in the
 :class:`~pywbem_mock.MethodProvider` function and must be registered
 as a method provider
 :meth:`~pywbem_mock.FakedWBEMConnection.register_provider` for a particular
 combination of namespace, class, and CIM method name.
 
-When the user method provider is invoked on behalf of an `InvokeMethod` operation,
-the target object of the method invocation (class or instance) is provided to
-the InvokeMethod method, in addition to the method input parameters.
-
-The user provider can access the mock repository of the faked connection
-using the methods defined in :class:`~pywbem_mock.InMemoryRepository`
+When the user-defined method provider is invoked on behalf of an `InvokeMethod`
+operation, the target object of the method invocation (class or instance) is
+provided to the InvokeMethod method, in addition to the method input
+parameters.
 
 The user provider is expected to return a tuple consisting of two items:
 
@@ -299,7 +298,11 @@ The user provider is expected to return a tuple consisting of two items:
 * an iterable containing any output parameters as
   :class:`~pywbem.CIMParameter` objects.
 
-TODO: Explain other mocker methods in BaseProvider that are available.
+The user-defined provider has access to:
+   * methods defined in it superclass
+   * methods defined in :class:~pywbem_mock.BaseProvider`
+   * methods to access the CIM repository using the methods defined in
+     :class:`~pywbem_mock.InMemoryRepository`
 
 The following is an example for defining a method provider.
 
@@ -318,22 +321,22 @@ The following is an example for defining a method provider.
         def __init__(self, cimrepository):
             self.cimrepository = cimrepository
 
-        def InvokeMethod(self, namespace, methodname, objectname, Params):
+        def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
             """
             The parameters and return for Invoke method are defined in
             :meth:`~pywbem_mock.MethodProvider.InvokeMethod`
 
-            This acts as both a static (objectname is only classname) and dynamic
-            (objectname is an instance name) method provider
+            This acts as both a static (ObjectName is only classname) and dynamic
+            (ObjectName is an instance name) method provider
             """
             # validate namespace using method in BaseProvider
             self.validate_namespace(namespace)
 
             # get classname and validate. This provider uses only one class
-            if isinstance(objectname, six.string_types):
-                classname = objectname
+            if isinstance(ObjectName, six.string_types):
+                classname = ObjectName
             else:
-                classname = objectname.classname
+                classname = ObjectName.classname
             assert classname.lower() == 'tst_class'
 
             # Test if class exists.
@@ -343,17 +346,17 @@ The following is an example for defining a method provider.
                     _format("class {0|A} does not exist in CIM repository, "
                             "namespace {1!A}", classname, namespace))
 
-            if isinstance(objectname, CIMInstanceName):
+            if isinstance(ObjectName, CIMInstanceName):
                 instance_store = self.get_instance_store(namespace)
                 inst = self.find_instance(objectname, instance_store,
-                                          copy_inst=False)
+                                          copy=False)
                 if inst is None:
                     raise CIMError(
                         CIM_ERR_NOT_FOUND,
                         _format("Instance {0|A} does not exist in CIM repository, "
-                                "namespace {1!A}", objectname, namespace))
+                                "namespace {1!A}", ObjectName, namespace))
 
-            if methodname.lower() == 'method1':
+            if MethodName.lower() == 'method1':
 
                 rtn_parameters = [CIMParameter('OutputParam1', 'string',
                                                value=namespace)]
@@ -864,6 +867,15 @@ This adds the instances to the repository display of the previous example:
     };
 
 
+
+.. _`User-defined providers`:
+
+User-defined providers
+----------------------
+
+TODO: Write this section. It should include defining them and registering them.
+
+
 .. _`FakedWBEMConnection`:
 
 FakedWBEMConnection
@@ -909,6 +921,16 @@ DMTF CIM schema download support
       :attributes:
 
    .. rubric:: Details
+
+
+
+.. _`config`:
+
+config
+------
+
+.. automodule:: pywbem_mock.config
+   :members:
 
 
 .. _`Mock CIM repository`:

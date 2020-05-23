@@ -170,6 +170,12 @@ Released: not yet
   namespace. If you miss a symbol in the pywbem namespace, it was likely a
   symbol that is not part of the public pywbem API. (See issue #1925)
 
+* Removed the method `add_method_callback()` and the FakeWBEMConnection
+  `methods` property from python_mock. This has been replaced by
+  the user-defined provider concept where the user defines and registers a
+  subclass to the class MethodProvider whichimplements the InvokeMethod
+  responder in that user-defined provider. (See issue #2062).
+
 **Deprecations:**
 
   Deprecated the method FakedWBEMConnection.compile_dmtf_schema in favor of
@@ -562,6 +568,14 @@ Released: not yet
   implements a CIM server repository. (See issue #2062)
 
 * Test: Converted WBEMListener tests from unittest to pytest. (See issue #2179)
+
+* Enhance FakeWBEMConnection to allow user-defined providers for specific
+  WBEM request operations.  This allows user-defined providers for selected
+  instance requests (CreateInstance, ModifyInstance, DeleteInstance) and for
+  the InvokeMethod.  Includes the capability to register these providers with
+  a method `register_provider` in Faked_WBEMConnection.  This also creates
+  a CIM_Namespace provider to handle the CIM_Namespace class in the interop
+  namespace.  See issue #2062)
 
 **Cleanup:**
 
