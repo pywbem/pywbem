@@ -65,17 +65,17 @@ class CIMNamespaceProvider(InstanceWriteProvider):
     This provider presumes that an Interop namespace has been created before
     the provider object is constructed and fails the constructor if
     there is not interop_namespace
-
     """  # noqa: E501
     # pylint: enable=line-too-long
 
     # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-    #: provider_classnames (:term:`string`):
-    #:        The classname for this provider
+    #: provider_classnames (:term:`py:iterable` of :term:`string` or :term:`string`):
+    #:        The classnames for the classes for which the provider is
+    #:        responsible and for which it should be registered.
     provider_classnames = 'CIM_Namespace'
 
-    def __init__(self, cimrepository):
+    def __init__(self, cimrepository, conn):
         """
         Parameters:
 
@@ -85,6 +85,17 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             required by this user-defined provider.
         """
         super(CIMNamespaceProvider, self).__init__(cimrepository)
+	
+        # NOTE: conn is only required for the following operation and
+        # is not kept in the constructed object.	
+
+        if not conn.find_interop_namespace():
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("No Interop namespace found. "
+                        "Construction of CIM_Namespace provider aborted."
+                        "Namespaces found: ,
+                        ", ".join(conn.interop_namespace_names())))
 
         # NOTE: conn is only required for the following operation and
         # is not kept in the constructed object.
@@ -273,7 +284,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         instance_store.delete(InstanceName)
 
     def post_register_setup(self, conn):
-        """i
+        """
         Method called by FakedWBEMConnection.register_provider to complete
         initialization of this provider.  This method is called after
         the required classes are installed in the cim_repository
