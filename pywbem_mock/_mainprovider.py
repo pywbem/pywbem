@@ -376,8 +376,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        rtn_inst = self.find_instance(instance_name, instance_store,
-                                      copy_inst=True)
+        rtn_inst = self.find_instance(instance_name, instance_store, copy=True)
 
         if rtn_inst is None:
             raise CIMError(

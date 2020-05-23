@@ -321,22 +321,22 @@ The following is an example for defining a method provider.
         def __init__(self, cimrepository):
             self.cimrepository = cimrepository
 
-        def InvokeMethod(self, namespace, methodname, objectname, Params):
+        def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
             """
             The parameters and return for Invoke method are defined in
             :meth:`~pywbem_mock.MethodProvider.InvokeMethod`
 
-            This acts as both a static (objectname is only classname) and dynamic
-            (objectname is an instance name) method provider
+            This acts as both a static (ObjectName is only classname) and dynamic
+            (ObjectName is an instance name) method provider
             """
             # validate namespace using method in BaseProvider
             self.validate_namespace(namespace)
 
             # get classname and validate. This provider uses only one class
-            if isinstance(objectname, six.string_types):
-                classname = objectname
+            if isinstance(ObjectName, six.string_types):
+                classname = ObjectName
             else:
-                classname = objectname.classname
+                classname = ObjectName.classname
             assert classname.lower() == 'tst_class'
 
             # Test if class exists.
@@ -346,17 +346,17 @@ The following is an example for defining a method provider.
                     _format("class {0|A} does not exist in CIM repository, "
                             "namespace {1!A}", classname, namespace))
 
-            if isinstance(objectname, CIMInstanceName):
+            if isinstance(ObjectName, CIMInstanceName):
                 instance_store = self.get_instance_store(namespace)
                 inst = self.find_instance(objectname, instance_store,
-                                          copy_inst=False)
+                                          copy=False)
                 if inst is None:
                     raise CIMError(
                         CIM_ERR_NOT_FOUND,
                         _format("Instance {0|A} does not exist in CIM repository, "
-                                "namespace {1!A}", objectname, namespace))
+                                "namespace {1!A}", ObjectName, namespace))
 
-            if methodname.lower() == 'method1':
+            if MethodName.lower() == 'method1':
 
                 rtn_parameters = [CIMParameter('OutputParam1', 'string',
                                                value=namespace)]
@@ -929,21 +929,8 @@ DMTF CIM schema download support
 config
 ------
 
-.. autoclass:: pywbem_mock.config
+.. automodule:: pywbem_mock.config
    :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.config
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.config
-      :attributes:
-
-   .. rubric:: Details
 
 
 .. _`Mock CIM repository`:

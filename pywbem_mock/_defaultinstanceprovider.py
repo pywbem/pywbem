@@ -66,11 +66,11 @@ to the CIM repository within the user provider or call the
 complete submission of the ``NewInstance``.
 
 2. Register the user provider using
-:meth:`~pywbem_mock.WBEMConnection.register_provider` to define the namespaces
-and classes for which the user provider will override the corresponding method
-in the :class:`~pywbem_mock.InstanceWriteProvider`.  The registration of the
-user provider must occur after the namespaces and classnames defined in the
-registration have been added to the CIM repository.
+:meth:`~pywbem_mock.FakedWBEMConnection.register_provider` to define the
+namespaces and classes for which the user provider will override the
+corresponding method in the :class:`~pywbem_mock.InstanceWriteProvider`.  The
+registration of the user provider must occur after the namespaces and
+classnames defined in the registration have been added to the CIM repository.
 """
 
 from __future__ import absolute_import, print_function
@@ -261,9 +261,10 @@ class ProviderDispatcher(BaseProvider):
 
         # Test original instance exists.
         instance_store = self.get_instance_store(namespace)
+        # Do not copy because not modified or passed on
         orig_instance = self.find_instance(ModifiedInstance.path,
                                            instance_store,
-                                           copy_inst=False)
+                                           copy=False)
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
@@ -378,14 +379,10 @@ class InstanceWriteProvider(BaseProvider):
 
     Note that user-defined providers may, in turn, call the default providers
     in this class.
-
-    Attributes:
-
-      provider_type (:term:`string`):
-        Keyword defining the type of request the provider will service.
-        The type for this class is predefined as 'instance'
     """
-
+    #:  provider_type (:term:`string`):
+    #:    Keyword defining the type of request the provider will service.
+    #:    The type for this class is predefined as 'instance'
     provider_type = 'instance'
 
     def __init__(self, cimrepository=None):
@@ -616,9 +613,10 @@ class InstanceWriteProvider(BaseProvider):
             raise
 
         # Get original instance in datastore.
+        # Copy because it will be modified.
         orig_instance = self.find_instance(modified_instance.path,
                                            instance_store,
-                                           copy_inst=True)
+                                           copy=True)
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
@@ -787,20 +785,14 @@ class InstanceWriteProvider(BaseProvider):
 
 class MethodProvider(BaseProvider):
     """
-    This class defines those instance provider methods that may have user-
-    defined providers that override the default provider implementation in this
-    class.
+    This class defines the provider class that handles the default InvokeMethod.
 
-    User providers are defined by creating a subclass of this class and
+    User  method providers are defined by creating a subclass of this class and
     defining an InvokeMethod based on the method in this class.
-
-    Attributes:
-
-      provider_type (:term:`string`):
-        Keyword defining the type of request the provider will service.
-        The type for this class is 'method'
     """
-
+    #:  provider_type (:term:`string`):
+    #:    Keyword defining the type of request the provider will service.
+    #:    The type for this class is predefined as 'method'
     provider_type = 'method'
 
     def __init__(self, cimrepository=None):
@@ -819,18 +811,25 @@ class MethodProvider(BaseProvider):
     #
     ####################################################################
 
-    def InvokeMethod(self, namespace, methodname, objectname, Params):
+    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
         # pylint: disable=invalid-name
         """
         Defines the API and return for a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.InvokeMethod`
 
-        This method should never be called.
+        This method should never be called because there is no concept of a
+        default InvokeMethod in WBEM.  All method providers specify specific
+        actions.
 
         This responder calls a function defined by an entry in the methods
         repository. The return from that function is returned to the user.
 
         Parameters:
+
+          namespace  (:term:`string`):
+            The name of the CIM namespace in the CIM repository (case
+            insensitive). Must not be `None`. Leading or trailing slash
+            characters are ignored.
 
           MethodName (:term:`string`):
             Name of the method to be invoked (case independent).

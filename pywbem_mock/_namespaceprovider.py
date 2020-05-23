@@ -314,7 +314,8 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                         remove_namespace))
 
         # Reflect the namespace deletion in the CIM repository
-        # This will check the namespace for being empty.
+        # This call implementes the CIM repository remove namespace which
+        # checks for empty namespace.
         self.remove_namespace(remove_namespace)
 
         # Delete the instance from the CIM repository

@@ -2181,7 +2181,7 @@ class UserMethodTestProvider(MethodProvider):
             "provider_classnames={s.provider_classnames})",
             s=self)
 
-    def InvokeMethod(self, namespace, methodname, objectname, Params):
+    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
         """Test InvokeMethod provider with InvokeMethod"""
         # return return-value 0 and no output parameters
         return (0, None)
@@ -5833,7 +5833,7 @@ class Method1TestProvider(MethodProvider):
     def __init__(self, cimrepository):
         super(Method1TestProvider, self).__init__(cimrepository)
 
-    def InvokeMethod(self, namespace, methodname, objectname, Params):
+    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
         """
         Simplistic test method. Validates methodname, objectname, Params
         and returns rtn value 0 and one parameter
@@ -5845,10 +5845,10 @@ class Method1TestProvider(MethodProvider):
         self.validate_namespace(namespace)
 
         # get classname and validate. This provider uses only one class
-        if isinstance(objectname, six.string_types):
-            classname = objectname
+        if isinstance(ObjectName, six.string_types):
+            classname = ObjectName
         else:
-            classname = objectname.classname
+            classname = ObjectName.classname
         assert classname.lower() == 'cim_foo_sub_sub'
 
         # Test if class exists.
@@ -5858,15 +5858,14 @@ class Method1TestProvider(MethodProvider):
                 _format("class {0|A} does not exist in CIM repository, "
                         "namespace {1!A}", classname, namespace))
 
-        if isinstance(objectname, CIMInstanceName):
+        if isinstance(ObjectName, CIMInstanceName):
             instance_store = self.get_instance_store(namespace)
-            inst = self.find_instance(objectname, instance_store,
-                                      copy_inst=False)
+            inst = self.find_instance(ObjectName, instance_store, copy=False)
             if inst is None:
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,
                     _format("Instance {0|A} does not exist in CIM repository, "
-                            "namespace {1!A}", objectname, namespace))
+                            "namespace {1!A}", ObjectName, namespace))
         # This method expects a single parameter input
         # Used to test the inputs.  The single input parameter is a string
         # and the value determines the method actions:
@@ -5874,7 +5873,7 @@ class Method1TestProvider(MethodProvider):
         # value = 'methodname' return the method name in output parameter
         # value = 'objectname' return the object name in output parameter
         # value = 'returnvalue' return value 1
-        if methodname.lower() == 'method1':
+        if MethodName.lower() == 'method1':
             if Params:
                 # This should not be an assert.
                 assert len(Params) == 1
@@ -5901,10 +5900,10 @@ class Method1TestProvider(MethodProvider):
                                                value=namespace)]
                 elif val == 'methodname':
                     rtn_params = [CIMParameter('OutputParam1', 'string',
-                                               value=methodname)]
+                                               value=MethodName)]
                 elif val == 'objectname':
                     rtn_params = [CIMParameter('OutputParam1', 'string',
-                                               value=objectname)]
+                                               value=ObjectName)]
                 elif val == 'returnvalue':
                     return_value = 1
                     rtn_params = [CIMParameter('OutputParam1', 'string',

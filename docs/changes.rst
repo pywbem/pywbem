@@ -170,6 +170,12 @@ Released: not yet
   namespace. If you miss a symbol in the pywbem namespace, it was likely a
   symbol that is not part of the public pywbem API. (See issue #1925)
 
+* Removed the method `add_method_callback()` and the FakeWBEMConnection
+  `methods` property from python_mock. This has been replaced by
+  the user-defined provider concept where the user defines and registers a
+  subclass to the class MethodProvider whichimplements the InvokeMethod
+  responder in that user-defined provider. (See issue #2062).
+
 **Deprecations:**
 
   Deprecated the method FakedWBEMConnection.compile_dmtf_schema in favor of

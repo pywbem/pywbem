@@ -154,10 +154,12 @@ class ProviderRegistry(object):
         Providers can only be registered for the following request response
         methods:
 
-        1. provider_type = 'instance': CreateInstance, ModifyInstance, and
-           DeleteInstance
+        1. provider_type = 'instance': defines methods for CreateInstance,
+           ModifyInstance, and DeleteInstance requests within a subclass of
+           the `InstanceWriteProvider` class.
 
-        2. provider_type = 'method': InvokeMethod.
+        2. provider_type = 'method': defines a InvokeMethod method within
+           a subclass of the `MethodProvider` class.
 
         Each classname in a particular namespace may have at most one provider
         registered
@@ -169,7 +171,7 @@ class ProviderRegistry(object):
             create instances in the interop namespace for all existing
             namespaces that do not have instances of CIM_Namespace defined
 
-          provider (instance of subclass of :class:`pywbem_mock:InstanceWriteProvider` or :class:`pywbem_mock:MethodProvider`):
+          provider (instance of subclass of :class:`pywbem_mock.InstanceWriteProvider` or :class:`pywbem_mock.MethodProvider`):
             The methods in this subclass override the corresponding methods in
             the superclass. The method call parameters must be the same
             as the default method in the superclass and it must return
@@ -186,15 +188,15 @@ class ProviderRegistry(object):
             the built-in default namespace
 .
           schema_pragma_files (:term:`py:iterable` of :term:`string` or :term:`string`):
-            File paths defining a schema pragma file MOF for the set of CIM
+            Path names of schema pragma files for the set of CIM
             classes that make up a schema such as the DMTF schema. These files
             must contain include pragams defining the file location of the
             classes to be compiled for the defined provider and for any
             dependencies required to compile those classes.  The directory
-            containing each pragma file is passed to the MOF compiler as the
-            search path for compile dependencies.
+            containing each schema pragma file is passed to the MOF compiler as
+            the search path for compile dependencies.
 
-            see :class:`pywbem.MofCompiler` for more information on the
+            see :class:`pywbem.MOFCompiler` for more information on the
             `search_paths` parameter.
 
         Raises:
@@ -292,7 +294,7 @@ class ProviderRegistry(object):
                         raise ValueError(
                             _format('Class "{0!A}" does not exist in '
                                     'namespace {1!A} of the CIM repository '
-                                    'and no pragma files',
+                                    'and no schema pragma files were specified',
                                     classname, namespace))
 
             # Insert this classname if not already there
@@ -851,10 +853,10 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Compile the classes defined by `class_names`  and all of their
         dependences. The class names must be classes in the defined schema and
-        with pragma statements in a `schema_pragma_file`. Each
-        `schema_pragma_file` in the `pragma_files` parameter must be in a
+        with pragma statements in a schema pragma file. Each
+        schema pragma file in the `schema_pragma_files` parameter must be in a
         directory that also encompasses the MOF files for all of the classes
-        defined in the `schema_pragma_file` and the dependencies of those
+        defined in the schema pragma file and the dependencies of those
         classes. While the relative paths of all of the CIM class files is
         defined in the `schema_pragma_file` the pywbem MOF compiler may also
         search for dependencies (ex. superclasses, references, etc.) that are
@@ -1304,12 +1306,12 @@ class FakedWBEMConnection(WBEMConnection):
                           schema_pragma_files=None, verbose=None):
         # pylint: disable=line-too-long
         """
-        Register the provider object for specific namespaces and CIM classes.
+        Register the `provider` object for specific namespaces and CIM classes.
         Registering a provider tells the FakedWBEMConnection that the provider
         implementation provided with this method as the `provider` parameter is
         to be executed as the request response method for the namespaces
         defined in the `namespaces` parameter, the provider type defined in the
-        provider 'provider_type` attribute of the `provider` and the classes
+        provider 'provider_type` attribute of the `provider` and the class(es)
         defined in the provider `provider_classnames` attribute of the
         `provider`.
 
@@ -1319,9 +1321,9 @@ class FakedWBEMConnection(WBEMConnection):
         2. Validation that the superclass of the provider is consistent with
            the `provider_type` attribute defined in the provider.
         3. Installation of any CIM classes defined by the provider
-           (`provider_classnames` attribute) including installation of
-           dependencies for these classes using the `schema_pragma_files` to
-           locate the search directories for dependencies.
+           `provider_classnames` attribute including dependencies for these
+           classes using the `schema_pragma_files` parameter to define the MOF
+           compiler search directories for dependencies.
         4. Adding the provider to the registry of user_providers so that any
            of the request methods defined for the `provider_type` are
            passed to this provider in place of the default request processors.
@@ -1329,19 +1331,21 @@ class FakedWBEMConnection(WBEMConnection):
         Providers can only be registered for the following request response
         methods:
 
-        1. provider_type = 'instance': CreateInstance, ModifyInstance, and
-           DeleteInstance
+        1. provider_type = 'instance': defines methods for CreateInstance,
+           ModifyInstance, and DeleteInstance requests within a subclass of
+           the `InstanceWriteProvider` class.
 
-        2. provider_type = 'method': InvokeMethod.
+        2. provider_type = 'method': defines a InvokeMethod method within
+           a subclass of the `MethodProvider` class.
 
         Each classname in a particular namespace may have at most one provider
         registered
 
         Parameters:
 
-          provider (instance of subclass of :class:`pywbem_mock:InstanceWriteProvider`):
+          provider (instance of subclass of :class:`pywbem_mock.InstanceWriteProvider` or :class:`pywbem_mock.MethodProvider`):
             An instance of the user provider class which is a subclass of
-            :class:`pywbem_mock:InstanceWriteProvider`.  The methods in this
+            :class:`pywbem_mock.InstanceWriteProvider`.  The methods in this
             subclass override the corresponding methods in
             InstanceWriteProvider. The method call parameters must be the
             same as the defult method in InstanceWriteProvider and it must
@@ -1355,16 +1359,16 @@ class FakedWBEMConnection(WBEMConnection):
           schema_pragma_files  (:term:`string` or :class:`py:list` of :term:`string`):
             File paths defining a schema pragma file MOF for the set of CIM
             classes that make up a schema such as the DMTF schema. These files
-            must contain include pragams defining the file location of the
-            classes to be compiled for the defined provider and for any
+            must contain include pragma statements defining the file location
+            of the classes to be compiled for the defined provider and for any
             dependencies required to compile those classes.  The directory
-            containing each pragma file is passed to the MOF compiler as the
-            search path for compile dependencies.
+            containing each schema pragma file is passed to the MOF compiler as
+            the search path for compile dependencies.
 
-            See :class:`pywbem.MofCompiler` for more information on the
+            See :class:`pywbem.MOFCompiler` for more information on the
             `search_paths` parameter.
 
-          verbose ():
+          verbose (:class:`py:bool`):
             Flag to enable detailed display of actions
 
         Raises:
@@ -1372,7 +1376,7 @@ class FakedWBEMConnection(WBEMConnection):
                        provider_type does not match superlclass or the
                        namespace parameter is invalid.
 
-.           ValueError: Provider_type retrieved from provider is not a
+            ValueError: Provider_type retrieved from provider is not a
                         valid string.
 
             ValueError: Classnames parameter retrieved from provider not a

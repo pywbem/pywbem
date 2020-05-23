@@ -21,21 +21,15 @@
 """
 A CIM provider creates WBEM server responses to operations defined in DSP0200.
 
-The BaseProvider WBEM server provider handles provider required data that
-is common to both the MainProvider, InstanceWriteProvider, and any
-registered instance providers including:
+The BaseProvider module contains methods required by both builtin
+providers and user-defined providers. This module includes methods for the
+following functionality:
 
-  * Access to the CIM repository
-  * Access to the Method repository
-  * Local provider methods that are common to both the main provider and other
-    providers.
-  * CIMInstance request operations except for selected operations that are
-    handled by the BaseInstanceProvider to allow for specialized
-    instance providers to be implemented.
-  * Associator request operations
-
-This provider uses a separate CIM repository for the objects maintained by
-the CIM repository and defined with the interfaces in `BaseRepository`.
+  * Managing namespaces in the CIM repository
+  * Methods that provide access to specific objects in the CIM repository
+    including the processing consistent with filtering the returned objects.
+    For example, `get_class(...) the internal equilavent of the GetClass
+    and `find_instance(...) the internal equivalent of GetInstance.
 """
 
 from __future__ import absolute_import, print_function
@@ -303,7 +297,7 @@ class BaseProvider(object):
 
         Returns:
 
-          List of :term:`string` containing the valid names for
+          List of :term:`string`: containing the valid names for
           namespaces that can be interop namespaces. Any name not on this list
           cannot be an interop provider
 
@@ -325,9 +319,9 @@ class BaseProvider(object):
                 The namespace name that is to be tested.
 
         Returns:
-            True: If the name is one of the valid interop namespace names
-            False: if the name is not an interop namespace valid name.
 
+            Bool: If the name is one of the valid interop namespace names if
+              `True` and is not a valid interop namespace name if `False`.
         """
         ns_lower = [ns.lower() for ns in self.interop_namespace_names()]
         return namespace.lower() in ns_lower
@@ -339,8 +333,8 @@ class BaseProvider(object):
         possible names is defined by the method `interop_namespace_names`.
 
         Returns:
-          The name of the interop namespace if one exists or None if there
-          is no interop namespace in the CIM repository.
+          :term:`string`: The name of the interop namespace if one exists or
+          `None` if there is no interop namespace in the CIM repository.
 
         """
         ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
@@ -455,9 +449,9 @@ class BaseProvider(object):
 
         Returns:
 
-          Copy of the CIM class in the cim repository if found. Includes
-          superclass properties installed and filtered in accord with the the
-          local_only, etc. arguments.
+          :class:`~pywbem.CIMClass`: Copy of the CIM class in the CIM
+          repository if found. Includes superclass properties installed and
+          filtered in accord with the local_only, etc. arguments.
 
         Raises:
           :class:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if class not found in
@@ -539,10 +533,10 @@ class BaseProvider(object):
                     del obj.properties[pname]
 
     @staticmethod
-    def find_instance(instance_name, instance_store, copy_inst=None):
+    def find_instance(instance_name, instance_store, copy=None):
         """
         Find an instance in the CIM repository by `instance_name` and return
-        that instance. the `copy_inst` parameter controls whether the original
+        that instance. the `copy` parameter controls whether the original
         instance in the CIM repository is returned or a copy.  The
         only time the original should be returned is when the user is
         certain that the returned object WILL NOT be modified.
@@ -555,18 +549,20 @@ class BaseProvider(object):
           instance_store (:class:`~pywbem_mock.BaseObjectStore`):
             Instance store of the CIM repository to search for the instance
 
-          copy_inst (bool):
+          copy (bool):
             If True do copy of the instance and return the copy. Otherwise
             return the instance in the CIM repository
 
         Returns:
-            None if the instance defined by `instance_name` is not found.
+            :class:`~pywbem.CIMInstance`: the complete CIM instance or copy of
+            the CIM instance is returned if it is found in the cim repository
+            or `None` if the instance defined by `instance_name` is not found
+            in the CIM repository.
 
-            The complete CIM instance or copy of the CIMinstance
-            is returned if it is found in the cim repository.
+
         """
 
         if instance_store.object_exists(instance_name):
-            return instance_store.get(instance_name, copy=copy_inst)
+            return instance_store.get(instance_name, copy=copy)
 
         return None
