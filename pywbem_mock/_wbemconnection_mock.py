@@ -119,7 +119,13 @@ class ProviderRegistry(object):
     a provider and to get the registered provider for a particular classname
     namespace, and provider_type.
     """
+    #: Allowed provider types
+    PROVIDER_TYPES = ["instance", "method"]
+
     def __init__(self):
+        # Dictionary of registered providers.
+        # Hierarchy of dictionaries is [namespace][classname][type]
+        # value is provider object.
         self._registry = NocaseDict()
 
     def __repr__(self):
@@ -127,6 +133,52 @@ class ProviderRegistry(object):
             "ProviderRegistry("
             "registry={s._registry}, ",
             s=self)
+
+    def display_registered_providers(self, dest=None):
+        """
+        Generate display of registry in readable form and return the string
+        Output format is:
+        <namespace>:
+          <classname>: CIM_Namespace provider: NamespaceProvider type: instance
+
+        For example:
+
+            Registered Providers:
+            namespace: root/cimv2
+              CIM_Foo      instance  UserInstanceTestProvider
+              CIM_Foo      method    UserMethodTestProvider
+            namespace: root/cimv3
+              CIM_Foo      instance  UserInstanceTestProvider
+              CIM_Foo      method    UserMethodTestProvider
+
+        Parameters:
+
+          dest (:term:`string`):
+            File path of an output file. If `None`, the output is written to
+            stdout.
+        """
+        def print_ljust(rows):
+            """
+            Print left justified and column aligned row of rows where each item
+            is either a string or list of strings
+            """
+
+            widths = [max(map(len, col)) for col in zip(*rows)]
+            for row in rows:
+                _uprint(dest, u"  {0}".format(
+                    u"  ".join((val.ljust(width) for
+                                (val, width) in zip(row, widths)))))
+
+        _uprint(dest, "Registered Providers:")
+        for ns in self.provider_namespaces():
+            rows = []
+            _uprint(dest, _format(u'namespace: {0}', ns))
+            for class_name in sorted(self.provider_classes(ns)):
+                for type_ in sorted(self.provider_types(ns, class_name)):
+                    provider = self.provider_obj(ns, class_name, type_)
+                    provider_cn = provider.__class__.__name__
+                    rows.append([class_name, type_, provider_cn])
+            print_ljust(rows)
 
     def register_provider(self, conn, provider, namespaces=None,
                           schema_pragma_files=None, verbose=None):
@@ -223,7 +275,6 @@ class ProviderRegistry(object):
             if isinstance(schema_pragma_files, six.string_types):
                 schema_pragma_files = [schema_pragma_files]
 
-        provider_types = ["instance", "method"]
         try:
             provider_type = provider.provider_type
             provider_classnames = provider.provider_classnames
@@ -248,7 +299,7 @@ class ProviderRegistry(object):
             raise ValueError(
                 _format("Provider_type argument {0!A} is not a valid provider "
                         "type. Valid provider types are {1!A}.",
-                        provider_type, provider_types))
+                        provider_type, self.PROVIDER_TYPES))
 
         if provider_classnames is None:
             raise ValueError(
@@ -283,18 +334,21 @@ class ProviderRegistry(object):
         if isinstance(provider_classnames, six.string_types):
             provider_classnames = [provider_classnames]
         assert isinstance(provider_classnames, (list, tuple))
+
         for classname in provider_classnames:
             assert isinstance(classname, six.string_types)
 
-            # For each namespace in which the provider is to be registered,
-            # if the class is not in that namespace, either compile it in if
-            # pragmas exist or generate an exception if no pragmas exist
+        # For each namespace in which the provider is to be registered,
+        # if the class is not in that namespace, either compile it in if
+        # pragmas exist or generate an exception if no pragmas exist
 
-            for namespace in namespaces:
+        for namespace in namespaces:
+            for classname in provider_classnames:
+                # pylint: disable=protected-access
                 if not conn._mainprovider.class_exists(namespace, classname):
                     if schema_pragma_files:
                         conn.compile_schema_classes(
-                            classname,
+                            provider_classnames,
                             schema_pragma_files,
                             namespace=namespace,
                             verbose=verbose)
@@ -304,28 +358,27 @@ class ProviderRegistry(object):
                                     'namespace {1!A} of the CIM repository '
                                     'and no schema pragma files were specified',
                                     classname, namespace))
+            if namespace not in self._registry:
+                self._registry[namespace] = NocaseDict()
 
-            if classname not in self._registry:
-                self._registry[classname] = NocaseDict()
+            # Add classnames for the namespace
+            for classname in provider_classnames:
+                if classname not in self._registry[namespace]:
+                    self._registry[namespace][classname] = {}
+                self._registry[namespace][classname][provider_type] = provider
 
-            # Add namespace entry for all namespaces to registry
-            for namespace in namespaces:
-                if namespace not in self._registry[classname]:
-                    self._registry[classname][namespace] = {}
-                self._registry[classname][namespace][provider_type] = provider
+        if verbose:
+            _format("Provider {0!A} registered: classes:[{1!A}],  "
+                    "type: {1!A} namespaces:{2!A}",
+                    provider.__class__.__name__,
+                    ", ".join(provider_classnames),
+                    provider_type, ", ".join(namespaces))
 
+        try:
+            provider.post_register_setup(conn)
+        except AttributeError:
             if verbose:
-                _format("Provider {0!A} registered: classes:[{1!A}],  "
-                        "type: {1!A} namespaces:{2!A}",
-                        provider.__class__.__name__,
-                        ", ".join(provider_classnames),
-                        provider_type, ", ".join(namespaces))
-
-            try:
-                provider.post_register_setup(conn)
-            except AttributeError:
-                if verbose:
-                    _format("Register_Provider post_register_setup not found")
+                _format("Register_Provider post_register_setup not found")
 
     def get_registered_provider(self, namespace, provider_type, classname):
         """
@@ -348,26 +401,103 @@ class ProviderRegistry(object):
 
         Returns:
 
-          Instance of
-          :class:`~pywbem_mock.BaseProvider`: The registered provider.
+          Instance of :class:`~pywbem_mock.BaseProvider`: The registered
+          provider.
 
           None if the registry is empty, the classname is not in the registry
           or the namespace is not in the registry or the entry for the
           classname, namespace and provider type is not defined.
         """
 
-        if not self._registry or classname not in self._registry:
+        if not self._registry or \
+                namespace not in self.provider_namespaces():
             return None
 
-        if namespace not in self._registry[classname]:
+        if classname not in self.provider_classes(namespace):
             return None
 
-        provider_types = self._registry[classname][namespace]
-
-        if provider_type not in provider_types:
+        # Return None if requested type is not registered type
+        if provider_type not in self.provider_types(namespace, classname):
             return None
 
-        return provider_types[provider_type]
+        return self.provider_obj(namespace, classname, provider_type)
+
+    def provider_namespaces(self):
+        """
+        Get iterable of namespaces for registered providers
+
+        Returns:
+            case-insensitive :term:`py:iterable` of :term:`string`: namespaces
+            for which providers are registered.
+        """
+        return self._registry
+
+    def provider_classes(self, namespace):
+        """
+        Get case insensitive iterable  of the classes for providers registered
+        for a namespace.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The namespace in which the request will be executed.
+
+        Returns:
+            case-insensitive :term:`py:iterable` of :term:`string`:
+            Names of classes registered for namespace
+
+        Raises:
+          KeyError: if namespace invalid
+        """
+
+        return self._registry[namespace]
+
+    def provider_types(self, namespace, classname):
+        """
+        Get provider types for a namespace and classname.  This is
+        a case-sensitive list.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The namespace in which the request will be executed.
+
+          classname (:term:`string`):
+            Name of the class defined for the operation.
+
+        Returns:
+            :class:`py:list` of :term:`string`: Strings defining provider
+            types for the defined namespace and classname
+
+        Raises:
+          KeyError: if namespace invalid
+        """
+        return list(self._registry[namespace][classname].keys())
+
+    def provider_obj(self, namespace, classname, provider_type):
+        """
+        Get the registered provider object (instance of the registered
+        provider) for namespace, provider classname, and provider_type.
+
+        Parameters:
+
+          namespace (:term:`string`):
+            The namespace in which the request will be executed.
+
+          classname (:term:`string`):
+            Name of the class defined for the operation.
+
+          provider_type (:term:`string`):
+            String containing keyword ('instance' or 'method') defining the
+            type of provider.
+
+        Returns:
+            The registered object
+
+        Raises:
+          KeyError: if namespace or classname invalid
+        """
+        return self._registry[namespace][classname][provider_type]
 
 
 class FakedWBEMConnection(WBEMConnection):
@@ -1413,6 +1543,18 @@ class FakedWBEMConnection(WBEMConnection):
             self, provider, namespaces=namespaces,
             schema_pragma_files=schema_pragma_files,
             verbose=verbose)
+
+    def display_registered_providers(self):
+        """
+        Display information on the currently registered providers.
+
+        Parameters:
+
+          dest (:term:`string`):
+            File path of an output file. If `None`, the output is written to
+            stdout.
+        """
+        self._provider_registry.display_registered_providers()
 
     ########################################################################
     #

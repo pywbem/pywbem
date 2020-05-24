@@ -292,7 +292,7 @@ def assert_classes_equal(cls1, cls2):
 ###################################################################
 
 
-@ pytest.fixture
+@pytest.fixture
 def tst_qualifiers():
     """
     CIM_Qualifierdecl definition of qualifiers used by tst_classes
@@ -1361,16 +1361,16 @@ class TestRepoMethods(object):
         namespaces = INITIAL_NAMESPACES
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
-
+        print('')  # required to force output from capsys for some reason
         # Test basic display repo output
         conn.display_repository()
         captured = capsys.readouterr()
 
         result = captured.out
-        print('RESULT\n%s' % result)
+        # print('RESULT\n%s' % result)
 
         assert result.startswith(
-            "// ========Mock Repo Display fmt=mof namespaces=all")
+            "\n// ========Mock Repo Display fmt=mof namespaces=all")
         assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
         assert "instance of CIM_Foo {" in result
         for ns in namespaces:
@@ -2163,6 +2163,39 @@ class UserInstanceTestProvider(InstanceWriteProvider):
             InstanceName)
 
 
+class UserInstanceTestProvider2(InstanceWriteProvider):
+    """
+    User provider defined to server multiple classes. This class does
+    not include ModifiedInstance
+    """
+    provider_classnames = ['CIM_Foo', 'CIM_Foo_Sub']
+
+    def __init__(self, cimrepository):
+        """
+        Init of test provider
+        """
+        super(UserInstanceTestProvider2, self).__init__(cimrepository)
+
+    def __repr__(self):
+        return _format(
+            "UserInstanceTestProvider2("
+            "provider_type={s.provider_type}, "
+            "provider_classnames={s.provider_classnames})",
+            s=self)
+
+    def CreateInstance(self, namespace, NewInstance):
+        """Test Create instance just calls super class method"""
+        # pylint: disable=useless-super-delegation
+        return super(UserInstanceTestProvider2, self).CreateInstance(
+            namespace, NewInstance)
+
+    def DeleteInstance(self, InstanceName):
+        """Test Create instance just calls super class method"""
+        # pylint: disable=useless-super-delegation
+        return super(UserInstanceTestProvider2, self).DeleteInstance(
+            InstanceName)
+
+
 class UserMethodTestProvider(MethodProvider):
     """
     Basic user provider implements CreateInstance and DeleteInstance
@@ -2199,41 +2232,31 @@ class TestUserDefinedProviders(object):
     )
     @pytest.mark.parametrize(
         # desc - description of the test
-        # input - list of lists where the inner lists contain the parameters
-        #         of a single request(testnamespaces, lclassnames
-        #         provider_type, provider)
-        #         * testnamespaces - Namespace or list of namespaces in which
-        #           provider is to be registered
-        #         * classnames - classname or list of classnames to register
-        #           for provider
-        #         * provider_type - String defining provider type
-        #           ('instance', etc.)
-        #         * provider - Class that contains the user provider.
+        # inputs - list of lists where the inner lists contain the parameters
+        #          of a single request(testnamespaces, lclassnames
+        #          provider_type, provider)
+        #          * tns -testnamespaces - Namespace or list of namespaces in
+        #           which provider is to be registered
+        #          * pr -provider object
+        #          * exp_ns -expected namespaces defined by provider
+        #          * exp_type - expected provider_type
         # exp_exec - Exception if one is expected
         # condition - test condition (True, False, 'pdb')
-        "desc, inputs, exp_exec, condition",
+        "desc,  inputs, exp_exec, condition",
         [
             ["validate ns='root/cimv2', etc.",
-             [
-                 ["root/cimv2", UserInstanceTestProvider],
-             ],
-             None, OK],
-
-            ["validate  ns=None, etc.",
-             [
-                 [None, UserInstanceTestProvider],
-             ],
+             [["root/cimv3", UserInstanceTestProvider, 'CIM_Foo', 'instance']],
              None, OK],
 
             ["validate  ns='root/cimv2x' fails",
-             [["root/cimv2x", UserInstanceTestProvider]],
+             [["root/cimv2x", UserInstanceTestProvider, 'CIM_Foo', 'instance']],
              ValueError, OK],
         ]
     )
     def test_register_provider(self, conn, ns, desc, inputs,
-                               exp_exec, condition, tst_classeswqualifiers,
-                               tst_instances):
-        # pylint: disable=unused-argument,no-self-use
+                               exp_exec, condition,
+                               tst_classeswqualifiersandinsts):
+        # pylint: disable=no-self-use
         """
         Test register_provider method.
         """
@@ -2245,11 +2268,13 @@ class TestUserDefinedProviders(object):
             import pdb  # pylint: disable=import-outside-toplevel
             pdb.set_trace()  # pylint: disable=no-member
 
-        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
+        add_objects_to_repo(conn, ns, tst_classeswqualifiersandinsts)
 
         if exp_exec is None:
             for item in inputs:
                 tst_ns = item[0]
+                add_objects_to_repo(conn, tst_ns,
+                                    [tst_classeswqualifiersandinsts])
                 provider = item[1]
                 conn.register_provider(provider(conn.cimrepository), tst_ns)
 
@@ -2258,17 +2283,22 @@ class TestUserDefinedProviders(object):
 
             if not isinstance(provider_classnames, (list, tuple)):
                 provider_classnames = [provider_classnames]
-            for cln in provider_classnames:
-                assert cln in conn._provider_registry._registry
-                if isinstance(tst_ns, six.string_types):
-                    tst_ns = [tst_ns]
 
-                if tst_ns:
-                    for _ns in tst_ns:
-                        assert _ns in conn._provider_registry._registry[cln]
-                else:
-                    assert conn.default_namespace in \
-                        conn._provider_registry._registry[cln]
+            if isinstance(tst_ns, six.string_types):
+                tst_ns = [tst_ns]
+
+            if not tst_ns:
+                tst_ns = [conn.default_namespace]
+
+            for _ns in tst_ns:
+                # pylint: disable=protected-access
+                assert _ns in conn._provider_registry.provider_namespaces()
+
+            for _ns in tst_ns:
+                # pylint: disable=protected-access
+                clns = conn._provider_registry.provider_classes(_ns)
+                for cln in clns:
+                    assert cln in clns
 
         else:
             with pytest.raises(exp_exec):
@@ -2310,6 +2340,14 @@ class TestUserDefinedProviders(object):
                  ["root/cimv2", UserInstanceTestProvider],
              ],
              'root/cimv2', 'CIM_Foo', 'instance',
+             True, True],
+
+            ["Register single good instance provider and test good result "
+             "with lower case classname.",
+             [
+                 ["root/cimv2", UserInstanceTestProvider],
+             ],
+             'root/cimv2', 'cim_foo', 'instance',
              True, True],
 
             ["Verify get returns None namespace not found",
@@ -2385,6 +2423,7 @@ class TestUserDefinedProviders(object):
 
         # Test provider registration with get_registered_provider()
         if not exp_rslt or exp_rslt is True:
+            # pylint: disable=protected-access
             rtn = conn._provider_registry.get_registered_provider(
                 get_ns, get_pt, get_cln)
             if exp_rslt is None:
@@ -2397,6 +2436,132 @@ class TestUserDefinedProviders(object):
             with pytest.raises(exp_rslt):
                 conn.providerdispatcher.get_registered_provider(
                     get_ns, get_pt, get_cln)
+
+    @pytest.mark.parametrize(
+        # desc - description of the test
+        # input - list of lists where the inner lists contain the parameters
+        #         of a single request(testnamespaces, lclassnames
+        #         provider_type, provider)
+        #         * testnamespaces - Namespace or list of namespaces in which
+        #           provider is to be registered
+        #         * provider - Class that contains the user provider.
+        # result - List of regex to test result of display
+        # condition - test condition (True, False, 'pdb')
+        "desc, inputs, output, condition",
+
+        [
+            ["validate single existing  ns='root/cimv2', etc.",
+             [
+                 ["root/cimv2", UserInstanceTestProvider],
+             ],
+             "\nRegistered Providers:\n"
+             "namespace: root/cimv2\n"
+             "  CIM_Foo  instance  UserInstanceTestProvider\n",
+             OK],
+
+            ["validate snamespace is None, etc.",
+             [
+                 [None, UserInstanceTestProvider],
+             ],
+             "\nRegistered Providers:\n"
+             "namespace: root/cimv2\n"
+             "  CIM_Foo  instance  UserInstanceTestProvider\n",
+             OK],
+
+            ["validate multiple namespaces , etc.",
+             [
+                 [["root/cimv2", "root/cimv3"], UserInstanceTestProvider],
+             ],
+             '\nRegistered Providers:\n'
+             'namespace: root/cimv2\n'
+             '  CIM_Foo  instance  UserInstanceTestProvider\n'
+             'namespace: root/cimv3\n'
+             '  CIM_Foo  instance  UserInstanceTestProvider\n',
+             OK],
+
+            ["validate ns='root/cimv2, root/cimv3', etc.",
+             [
+                 ["root/cimv2", UserInstanceTestProvider],
+                 ["root/cimv3", UserInstanceTestProvider],
+             ],
+             '\nRegistered Providers:\n'
+             'namespace: root/cimv2\n'
+             '  CIM_Foo  instance  UserInstanceTestProvider\n'
+             'namespace: root/cimv3\n'
+             '  CIM_Foo  instance  UserInstanceTestProvider\n',
+             OK],
+
+            ["validate single existing ns, provider with multiple classnames",
+             [
+                 ["root/cimv2", UserInstanceTestProvider2],
+             ],
+             '\nRegistered Providers:\n'
+             'namespace: root/cimv2\n'
+             '  CIM_Foo      instance  UserInstanceTestProvider2\n'
+             '  CIM_Foo_Sub  instance  UserInstanceTestProvider2\n',
+             OK],
+
+            ["validate multiple  ns, provider with multiple classnames",
+             [
+                 [["root/cimv2", 'root/cimv3'], UserInstanceTestProvider2],
+             ],
+             '\nRegistered Providers:\n'
+             'namespace: root/cimv2\n'
+             '  CIM_Foo      instance  UserInstanceTestProvider2\n'
+             '  CIM_Foo_Sub  instance  UserInstanceTestProvider2\n'
+             'namespace: root/cimv3\n'
+             '  CIM_Foo      instance  UserInstanceTestProvider2\n'
+             '  CIM_Foo_Sub  instance  UserInstanceTestProvider2\n',
+             OK],
+
+        ]
+    )
+    def test_display_registered_providers(self, conn, desc, inputs, output,
+                                          condition,
+                                          tst_classeswqualifiersandinsts,
+                                          capsys):
+        # pylint: disable=unused-argument,no-self-use
+        """
+        Test register_provider method.
+        """
+        if not condition:
+            pytest.skip("This test marked to be skipped")
+        skip_if_moftab_regenerated()
+
+        if condition == "pdb":
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()  # pylint: disable=no-member
+
+        nss = []
+        for item in inputs:
+            tst_ns = item[0]
+            provider = item[1]
+            if tst_ns is None:
+                tst_ns = [conn.default_namespace]
+            if not isinstance(tst_ns, list):
+                tst_ns = [tst_ns]
+            for ns in tst_ns:
+                # TODO: Should add_obj support None as namespace
+                add_objects_to_repo(conn, ns,
+                                    tst_classeswqualifiersandinsts)
+                nss.append(ns)
+
+            conn.register_provider(provider(conn.cimrepository),
+                                   item[0])
+
+        print('')  # Added because issues with getting captured without it.
+        conn.display_registered_providers()
+        captured = capsys.readouterr()
+        result = captured.out
+        if output:
+            assert output == result
+        else:
+            assert result.startswith("\nRegistered Providers:")
+
+            assert "CIM_Foo  instance  UserInstanceTestProvider" in result
+
+            for ns in nss:
+                assert "namespace: {0}".format(ns) in result
 
     def test_user_provider1(self, conn, tst_classeswqualifiers,
                             tst_instances):
@@ -2601,6 +2766,8 @@ class TestUserDefinedProviders(object):
                     InstanceName)
 
             def post_register_setup(self, conn):
+                """Sets flag to show method run"""
+                # pylint: disable unused_argument
                 self.postregistersetup = True
 
         skip_if_moftab_regenerated()
