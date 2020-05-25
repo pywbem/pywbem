@@ -113,11 +113,13 @@ def validate_inst_props(namespace, target_class, instance):
           The CIM instance to be validated.
 
     Returns:
-       Nothing is returned but instance may have been modified.
+
+        Nothing is returned but instance may have been modified.
 
     Raises:
-        CIMError: CIM_ERR_INVALID_PARAMETER for invalid conditions in the
-        input instance.
+
+        :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER) for invalid
+          conditions in the input instance.
     """
 
     for iprop_name in instance:
@@ -169,9 +171,9 @@ class InstanceWriteProvider(BaseProvider):
     Note that user-defined providers may, in turn, call the default providers
     in this class.
     """
-    #:  provider_type (:term:`string`):
-    #:    Keyword defining the type of request the provider will service.
-    #:    The type for this class is predefined as 'instance'
+
+    #: :term:`string`: Keyword defining the type of request the provider will
+    #: service. The type for this provider class is predefined as 'instance'.
     provider_type = 'instance'
 
     def __init__(self, cimrepository=None):
@@ -233,16 +235,16 @@ class InstanceWriteProvider(BaseProvider):
             of this object are ignored.
 
         Returns:
-            CIMInstanceName with the server defined instance path
-            for the new instance.
+
+            :class:`~pywbem.CIMInstanceName`: Instance path of the new CIM
+            instance.
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS
+            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
               The instance defined by namespace and instance name already
               exists.
-
-            :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
               The class defined in NewInstance  does not exist in the
               namespace.
         """
@@ -366,10 +368,10 @@ class InstanceWriteProvider(BaseProvider):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS,
-            :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS
-            :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
-            :exc:`~pywbem.CIMError`: CIM_ERR_NAMESPACE_NOT_FOUND
+            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NAMESPACE_NOT_FOUND)
         """  # noqa: E501
         # pylint: disable=invalid-name,line-too-long
 
@@ -544,9 +546,10 @@ class InstanceWriteProvider(BaseProvider):
             * `host`: value ignored.
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
         instance_store = self.get_instance_store(InstanceName.namespace)

@@ -294,17 +294,20 @@ class DMTFCIMSchema(object):
     @property
     def schema_version(self):
         """
-        :func:`py:tuple`: of 3 integers with major version, minor version, and
-        update version of the DMTF Schema installed. Ex (2, 49, 0) defines DMTF
-        schema version 2.49.0.
+        :func:`py:tuple`: The DMTF CIM schema version as a tuple of 3 integers
+        with major version, minor version, and update version.
+
+        Example: (2, 49, 0) defines DMTF CIM schema version 2.49.0.
         """
         return self._schema_version
 
     @property
     def schema_version_str(self):
         """
-        :term:`string`: with the DMTF CIM schema version in the form
-        <major version>.<minor version>.<update version>.
+        :term:`string`: The DMTF CIM schema version as a string in the form
+        ``major version>.<minor version>.<update version>``.
+
+        Example: "2.49.0" defines DMTF CIM schema version 2.49.0.
         """
         return '{0}.{1}.{2}'.format(*self.schema_version)
 
@@ -312,8 +315,8 @@ class DMTFCIMSchema(object):
     def schema_root_dir(self):
         """
         :term:`string`: Path name of the directory in which the DMTF CIM
-        Schema zip file is downloaded. the MOF files are extracted into a
-        subdirectory, `schema_mof_dir`.
+        schema zip file is downloaded. The MOF files are extracted into the
+        subdirectory indicated by :attr:`schema_mof_dir`.
         """
         return self._schema_root_dir
 
@@ -323,56 +326,63 @@ class DMTFCIMSchema(object):
         :term:`string`: Path name of the directory in which the DMTF CIM Schema
         MOF files are extracted from the downloaded zip file. This property can
         be used as the MOF compiler search path for compiling classes in the
-        DMTF CIM schema. This directory should also contain the
-        schema mof pragma file.
+        DMTF CIM schema. This directory will also contain the
+        schema pragma file.
         """
         return self._schema_mof_dir
 
     @property
     def schema_mof_file(self):
         """
-        **Deprecated:** This attribute has been deprecated in pywbem 1.0.0
-        in favor of :meth:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`.
+        :term:`string`: Path name of the schema pragma file for the DMTF CIM
+        schema. This file contains `#pragama include` statements for all of
+        the classes and qualifier declarations of the schema.
 
-        :term:`string`: Path name of the schema pragma file
-        which defines MOF pragmas to compile the complete CIM schema. This file
-        contains the `#pragama include` statements for all of the classes in
-        the schema and the qualifier declaration `#pragma include` statements
-        to compile `qualifiers.mof` and `qualifiers_optional.mof`.
+        The classes are represented with one file per class, and the qualifier
+        declarations are in the files `qualifiers.mof` and
+        `qualifiers_optional.mof`.
 
-        This file pathname is of the general form::
+        The path name of the schema pragma file is of the general form::
 
             <schema_mof_dir>/cim_schema_<schema_version_str>.mof
 
-            ex: schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
+        Example::
 
+            schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
+
+        **Deprecated:** This property has been deprecated in pywbem 1.0.0
+        in favor of :attr:`schema_pragma_file`.
         """
-        warnings.warn("The attribute schema_mof_file has been deprecated. Use "
-                      "the attribute schema_pragma_file.",
+        warnings.warn("The property schema_mof_file has been deprecated. Use "
+                      "the property schema_pragma_file.",
                       DeprecationWarning, stacklevel=2)
         return self._schema_pragma_file
 
     @property
     def schema_pragma_file(self):
         """
-        :term:`string`: Path name of the DMTF CIM schema pragma MOF file
-        which defines MOF pragmas to compile the complete CIM schema. This file
-        contains the `#pragama include` statements for all of the classes in
-        the schema and the qualifier declaration `#pragma include` statements
-        to compile `qualifiers.mof` and `qualifiers_optional.mof`.
+        :term:`string`: Path name of the schema pragma file for the DMTF CIM
+        schema. This file contains `#pragama include` statements for all of
+        the classes and qualifier declarations of the schema.
 
-        This filename is of the general form::
+        The classes are represented with one file per class, and the qualifier
+        declarations are in the files `qualifiers.mof` and
+        `qualifiers_optional.mof`.
+
+        The path name of the schema pragma file is of the general form::
 
             <schema_mof_dir>/cim_schema_<schema_version_str>.mof
 
-            ex: schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
+        Example::
+
+            schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
         """
         return self._schema_pragma_file
 
     @property
     def schema_zip_file(self):
         """
-        :term:`string`: Path name of the DMTF CIM schema zip file
+        :term:`string`: Path name of the DMTF CIM schema zip file after being
         downloaded from the DMTF web site.
         """
         return self._schema_zip_file
@@ -380,8 +390,8 @@ class DMTFCIMSchema(object):
     @property
     def schema_zip_url(self):
         """
-        :term:`string`: Url for the DMTF CIM Schema version that is
-        downloaded.
+        :term:`string`: URL of the DMTF CIM schema zip file that is
+        downloaded from the DMTF web site.
 
         """
         return self._schema_zip_url
@@ -550,7 +560,7 @@ class DMTFCIMSchema(object):
 
         Raises:
             ValueError: If any of the classnames in `schema_classes` are not in
-            the DMTF CIM schema installed
+              the DMTF CIM schema installed
         """
         return build_schema_mof(class_names, self.schema_mof_file)
 

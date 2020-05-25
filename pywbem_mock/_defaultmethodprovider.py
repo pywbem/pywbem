@@ -151,9 +151,9 @@ class MethodProvider(BaseProvider):
 
         Raises:
 
-          :exc:`~pywbem.CIMError`: CIM_ERR_METHOD_NOT_AVAILABLE because the
-          default method is only a placeholder for the API and documentation
-          and not a real InvokeMethod action implementation.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_METHOD_NOT_AVAILABLE) because the
+              default method is only a placeholder for the API and documentation
+              and not a real InvokeMethod action implementation.
         """
         # No default MethodProvider is implemented because all method
         # providers define specific actions in their implementations.

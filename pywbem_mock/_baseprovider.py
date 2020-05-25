@@ -74,7 +74,8 @@ class BaseProvider(object):
     @property
     def namespaces(self):
         """
-        Return a list of namespaces that exist in the CIM repository.
+        list of :term:`string`: List of the namespaces that exist in the CIM
+        repository.
         """
         return self.cimrepository.namespaces
 
@@ -194,8 +195,8 @@ class BaseProvider(object):
 
         Raises:
 
-          :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-          not exist.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+              Namespace does not exist.
         """
         try:
             self.cimrepository.validate_namespace(namespace)
@@ -210,7 +211,7 @@ class BaseProvider(object):
         Add a CIM namespace to the CIM repository.
 
         The namespace must not yet exist in the CIM repository and the
-        repository can contain only one interop namespace.
+        repository can contain only one Interop namespace.
 
         Parameters:
 
@@ -225,19 +226,19 @@ class BaseProvider(object):
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
-            is one of the possible interop namespace names and an interop
+            is one of the possible Interop namespace names and an interop
             namespace already exists in the CIM repository.
         """
 
         if namespace is None:
             raise ValueError("Namespace argument must not be None")
 
-        # Cannot add more than one of the possible interop namespace names
+        # Cannot add more than one of the possible Interop namespace names
         if self.is_interop_namespace(namespace):
             if self.find_interop_namespace():
                 raise CIMError(
                     CIM_ERR_ALREADY_EXISTS,
-                    _format("An interop Namespace {0!A} already exists in the "
+                    _format("An Interop namespace {0!A} already exists in the "
                             "CIM repository. {1!A} cannot be added. ",
                             self.find_interop_namespace(), namespace))
         try:
@@ -290,50 +291,54 @@ class BaseProvider(object):
     @staticmethod
     def interop_namespace_names():  # pylint: disable=no-self-use
         """
-        Returns an iterable of the valid interop namespace names where
-        the names are considered case insensitive.
+        Returns a list of the valid Interop namespace names.
+
+        Only the valid Interop namespace names can be used to register Interop
+        namespace providers.
+
+        This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
+
+        Namespace names need to be considered case insensitive.
 
         Returns:
 
-          List of :term:`string`: containing the valid names for
-          namespaces that can be interop namespaces. Any name not on this list
-          cannot be an interop provider
-
+          list of :term:`string`: The valid Interop namespace names.
         """
         return WBEMServer.INTEROP_NAMESPACES
 
     def is_interop_namespace(self, namespace):  # pylint: disable=no-self-use
         """
-        Tests if the namespace parameter defines a namespace name that is one
-        of the allowed set of DMTF names for the interop namespace.
+        Tests if a namespace name is a valid Interop namespace name.
 
-        This test is independent of the test in WBEMServer since it is just
-        confirming that there is an namespace with one of the valid interop
-        namespace names in the physical cim repository.
+        This method does not access the CIM repository for this test; it
+        merely compares the specified namespace name against the list of valid
+        Interop namespace names returned by :meth:`interop_namespace_names`.
 
         Parameters:
 
-            namespace (:term:`string`):
-                The namespace name that is to be tested.
+          namespace (:term:`string`):
+            The namespace name that is to be tested.
 
         Returns:
 
-            Bool: If the name is one of the valid interop namespace names if
-              `True` and is not a valid interop namespace name if `False`.
+          :class:`py:bool`: Indicates whether the namespace name is a valid
+          Interop namespace name.
         """
         ns_lower = [ns.lower() for ns in self.interop_namespace_names()]
         return namespace.lower() in ns_lower
 
     def find_interop_namespace(self):
         """
-        Find  an interop namespace if one exists in the CIM repository.
-        The interop namespace is identified by it name and the list of
-        possible names is defined by the method `interop_namespace_names`.
+        Find the Interop namespace in the CIM repository, or return `None`.
+
+        The Interop namespace is identified by comparing all namespace names
+        in the CIM repository against the list of valid Interop namespace names
+        returned by :meth:`interop_namespace_names`.
 
         Returns:
-          :term:`string`: The name of the interop namespace if one exists or
-          `None` if there is no interop namespace in the CIM repository.
 
+          :term:`string`: The name of the Interop namespace if one exists in
+          the CIM repository or otherwise `None`.
         """
         ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
         for name in self.interop_namespace_names():
@@ -424,19 +429,19 @@ class BaseProvider(object):
             characters are ignored.
 
           local_only (:class:`py:bool`):
-            If `True`, or `None`only properties and methods in this specific
+            If `True` or `None`, only properties and methods in this specific
             class are returned. `None` means not supplied by client and the
-            normal server default is `True`
-            If `False` properties and methods from the superclasses
+            normal server default is `True`.
+            If `False`, properties and methods from the superclasses
             are included.
 
           include_qualifiers (:class:`py:bool`):
             If `True` or `None`, include qualifiers.  `None` is the server
             default if the parameter is not provided by the client.
-            If `False` do not include qualifiers.
+            If `False`, do not include qualifiers.
 
           include_classorigin (:class:`py:bool`):
-            If `True` return the class_origin attributes of properties and
+            If `True`, return the class_origin attributes of properties and
             methods.
             If `False` or `None` (use server default), class_origin attributes
             of properties and methods are not returned
@@ -447,16 +452,16 @@ class BaseProvider(object):
 
         Returns:
 
-          :class:`~pywbem.CIMClass`: Copy of the CIM class in the CIM
-          repository if found. Includes superclass properties installed and
-          filtered in accord with the local_only, etc. arguments.
+            :class:`~pywbem.CIMClass`: Copy of the CIM class in the CIM
+            repository if found. Includes superclass properties installed and
+            filtered in accord with the local_only, etc. arguments.
 
         Raises:
-          :class:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if class not found in
-          CIM repository.
 
-          :class:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) if namespace
-          does not exist
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if class not found in
+              CIM repository.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) if namespace
+              does not exist.
         """
 
         class_store = self.get_class_store(namespace)
@@ -553,7 +558,7 @@ class BaseProvider(object):
 
         Returns:
             :class:`~pywbem.CIMInstance`: the complete CIM instance or copy of
-            the CIM instance is returned if it is found in the cim repository
+            the CIM instance is returned if it is found in the CIM repository
             or `None` if the instance defined by `instance_name` is not found
             in the CIM repository.
 

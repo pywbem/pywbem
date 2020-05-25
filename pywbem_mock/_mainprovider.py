@@ -367,12 +367,12 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if the instance does
-            not exist in the repository
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if the instance does
+              not exist in the repository.
 
-            :class:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) if superclasses
-            required for resolution of the instance do not exist in the
-            repository
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) if superclasses
+              required for resolution of the instance do not exist in the
+              repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -434,12 +434,14 @@ class MainProvider(BaseProvider, ResolverMixin):
         classname is included in this dictionary.
 
         Returns:
-           NocaseDict where only the keys are important, This allows case
-           insensitive matches of the names with Python "for cln in clns".
+
+          NocaseDict where only the keys are important, This allows case
+          insensitive matches of the names with Python "for cln in clns".
 
         Raises:
 
-            CIMError: (CIM_ERR_INVALID_CLASS) if classname not in CIM repository
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) if classname not
+              in CIM repository.
         """
 
         if not class_store.object_exists(classname):
@@ -469,8 +471,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER if both exist
-            and they don't match.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER) if both exist
+              and they don't match.
         """
 
         assert isinstance(object_name, CIMInstanceName)
@@ -583,16 +585,14 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: invalid
-            namespace,
-
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND: A class that should
-            be a subclass of either the root or "ClassName" parameter was not
-            found in the CIM repository. This is probably a CIM repository
-            build error.
-
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS: class defined by
-            the classname parameter does not exist.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) invalid
+              namespace.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) A class that should
+              be a subclass of either the root or "ClassName" parameter was not
+              found in the CIM repository. This is probably a CIM repository
+              build error.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) class defined by
+              the classname parameter does not exist.
         """
         self.validate_namespace(namespace)
         class_store = self.get_class_store(namespace)
@@ -672,11 +672,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: invalid
-            namespace,
-
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS: class defined by
-            the classname parameter does not exist
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) invalid
+              namespace.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) class defined by
+              the classname parameter does not exist.
         """
         self.validate_namespace(namespace)
         class_store = self.get_class_store(namespace)
@@ -753,13 +752,16 @@ class MainProvider(BaseProvider, ResolverMixin):
             If `None`, all properties are included.
 
         Returns:
+
             :class:`~pywbem.CIMClass` object that is a representation of the
             retrieved class
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: invalid namespace,
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS: class defined by the ClassName
-            parameter does not exist in the CIM repository
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+              invalid namespace.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) class defined by
+              the ClassName parameter does not exist in the CIM repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -808,14 +810,12 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_SUPERCLASS if superclass
-            specified bu does not exist.
-
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER if NewClass
-            parameter not a class.
-
-            :class:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if class already
-            exists.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_SUPERCLASS)
+              if superclass specified in the class does not exist.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+              if NewClass parameter not a class.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
+              if class already exists.
         """
 
         if not isinstance(NewClass, CIMClass):
@@ -876,7 +876,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_SUPPORTED
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
         """
         self.validate_namespace(namespace)
 
@@ -934,8 +934,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND if ClassName defines
-            class not in CIM repository
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if ClassName defines
+              class not in CIM repository.
         """
 
         self.validate_namespace(namespace)
@@ -998,11 +998,13 @@ class MainProvider(BaseProvider, ResolverMixin):
             slash characters are ignored.
 
         Returns:
-          A list of :class:`~pywbem.CIMQualifierDeclaration` objects that are
-          representations of the enumerated qualifier declarations.
+
+            A list of :class:`~pywbem.CIMQualifierDeclaration` objects that are
+            representations of the enumerated qualifier declarations.
 
         Raises:
-          :class:`~pywbem.CIMError`: CIM_ERROR_INVALID_NAMESPACE
+
+            :exc:`~pywbem.CIMError`: (CIM_ERROR_INVALID_NAMESPACE)
         """
 
         self.validate_namespace(namespace)
@@ -1040,12 +1042,13 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Returns:
 
-          A :class:`~pywbem.CIMQualifierDeclaration` object that is a
-            representation of the retrieved qualifier declaration.
+          :class:`~pywbem.CIMQualifierDeclaration`: a representation of the
+          retrieved qualifier declaration.
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
         self.validate_namespace(namespace)
@@ -1090,8 +1093,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
-            :class:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
         """
 
         self.validate_namespace(namespace)
@@ -1142,10 +1145,10 @@ class MainProvider(BaseProvider, ResolverMixin):
           QualifierName (:term:`string`):
             Name of the qualifier declaration to be deleted (case independent).
 
-        Raises;
+        Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE,
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE,)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
         self.validate_namespace(namespace)
@@ -1255,8 +1258,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`:  CIM_ERR_INVALID_NAMESPACE, CIM_ERR_INVALID_PARAMETER
-              CIM_ERR_NOT_FOUND
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -1372,11 +1376,10 @@ class MainProvider(BaseProvider, ResolverMixin):
           * `namespace`: Name of the CIM namespace containing the instance.
           * `host`: `None`, indicating the WBEM server is unspecified.
 
-
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_CLASS_NOT_FOUND
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_CLASS_NOT_FOUND)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -1453,6 +1456,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             Name of the class to be enumerated (case independent).
 
         Returns:
+
           A list of :class:`~pywbem.CIMInstanceName` objects that are the
           enumerated instance paths, with its attributes set
           as follows:
@@ -1463,7 +1467,8 @@ class MainProvider(BaseProvider, ResolverMixin):
           * `host`: `None`, indicating the WBEM server is unspecified.
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_CLASS_NOT_FOUND
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_CLASS_NOT_FOUND)
         """
 
         assert isinstance(ClassName, six.string_types)
@@ -1526,7 +1531,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_NOT_SUPPORTED
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
         """
 
         self.validate_namespace(namespace)
@@ -1919,8 +1924,9 @@ class MainProvider(BaseProvider, ResolverMixin):
                 information.
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self.validate_namespace(namespace)
@@ -2072,8 +2078,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -2170,8 +2176,9 @@ class MainProvider(BaseProvider, ResolverMixin):
                 the CIM namespace.
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self.validate_namespace(namespace)
@@ -2273,10 +2280,10 @@ class MainProvider(BaseProvider, ResolverMixin):
                 class, with its `path` attribute set to the `classpath` tuple
                 item.
 
-
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self.validate_namespace(namespace)
@@ -2359,7 +2366,7 @@ class MainProvider(BaseProvider, ResolverMixin):
               proposed timeout for the enumeration session. A value of 0
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
-              :class:`~pywbem.CIMError` to be raised with status code
+              :exc:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
@@ -2372,7 +2379,7 @@ class MainProvider(BaseProvider, ResolverMixin):
               sending an error response. Not all servers support continuation
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
-              :class:`~pywbem.CIMError` to be raised with status code
+              :exc:`~pywbem.CIMError` to be raised with status code
               :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
@@ -2436,8 +2443,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -2495,11 +2502,13 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         This method assumes the same context_id throughout the sequence.
 
-        Returns: Tuple of CIM objects, EndOfSequence flag, EnumerationContext
+        Returns:
+
+            Tuple of CIM objects, EndOfSequence flag, EnumerationContext
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_ENUMERATION_CONTEXT
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
         try:
@@ -2665,11 +2674,10 @@ class MainProvider(BaseProvider, ResolverMixin):
               makes sense to specify a different one in subsequent
               operations on the same enumeration session.
 
-
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
         self._test_pull_operations_disabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
@@ -2761,8 +2769,9 @@ class MainProvider(BaseProvider, ResolverMixin):
               operations on the same enumeration session.
 
         Raises:
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self._test_pull_operations_disabled()
@@ -2821,8 +2830,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self._test_pull_operations_disabled()
@@ -2879,8 +2888,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self._test_pull_operations_disabled()
@@ -2940,8 +2949,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
         self._test_pull_operations_disabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
@@ -3000,8 +3009,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
         self._test_pull_operations_disabled()
@@ -3140,8 +3149,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_ENUMERATION_CONTEXT
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
         self._test_pull_operations_disabled()
         return self._pull_response('PullInstancesWithPath',
@@ -3216,8 +3225,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_ENUMERATION_CONTEXT
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
         self._test_pull_operations_disabled()
         return self._pull_response('PullInstancePaths',
@@ -3289,8 +3298,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_ENUMERATION_CONTEXT
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
         self._test_pull_operations_disabled()
         return self._pull_response('PullInstances',
@@ -3318,7 +3327,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :class:`~pywbem.CIMError`: CIM_ERR_INVALID_ENUMERATION_CONTEXT
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
         self._test_pull_operations_disabled()
 

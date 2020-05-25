@@ -89,7 +89,7 @@ class BaseObjectStore(object):
 
         Parameters:
 
-          cim_object_type(:term:`CIM object`):
+          cim_object_type (:term:`CIM object`):
             The Pywbem CIM object type as defined in cim_types.py for the
             objects in the data store. Used to verify values on create.
         """
@@ -103,11 +103,12 @@ class BaseObjectStore(object):
         Parameters:
 
           name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
-            Name by which the object is identified in the object store
+            Name by which the object is identified in the object store.
 
         Returns:
 
-            True if the object exists; False if it does not exist
+            :class:`py:bool`: Indicates whether the CIM object exists in the
+            object store.
         """
         pass
 
@@ -128,6 +129,7 @@ class BaseObjectStore(object):
             behavior is True .  If copy is False, the object in the object
             store is returned but if it is modified by the user, the object in
             the store may be modified also.
+
         Returns:
 
             :term:`CIM object`: Returns the CIM object identified by the
@@ -247,7 +249,6 @@ class BaseObjectStore(object):
         Returns:
 
             int: Integer that is count of objects in this object store.
-
         """
         pass
 
@@ -278,7 +279,9 @@ class BaseRepository(object):
         the namespaces returned with this property.
 
         Returns:
-            List of :term:`string` items containing the namespace names.
+
+            list of :term:`string`: List containing the namespace names in this
+            repository.
         """
         pass
 
@@ -321,7 +324,7 @@ class BaseRepository(object):
         Raises:
 
           ValueError: If the namespace argument is None or the
-           namespace already exists.
+            namespace already exists.
         """
         pass
 
@@ -343,7 +346,7 @@ class BaseRepository(object):
         Raises:
 
           ValueError: Namespace argument is None or the repository namespace
-            is not empty
+            is not empty.
           KeyError:  Namespace does not exist in the CIM repository.
         """
         pass
@@ -388,7 +391,7 @@ class BaseRepository(object):
 
         Returns:
 
-          :class:`~pywbem_mock.InMemoryObjectStore` : CIM instance object store
+          :class:`~pywbem_mock.InMemoryObjectStore`: CIM instance object store
           for the namespace provided.
 
         Raises:
