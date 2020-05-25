@@ -1036,7 +1036,7 @@ User provider interfaces
    .. rubric:: Details
 
 
-.. automodule:: pywbem_mock._defaultinstanceprovider
+.. automodule:: pywbem_mock._instancewriteprovider
 
 .. autoclass:: pywbem_mock.InstanceWriteProvider
    :members:
@@ -1054,6 +1054,7 @@ User provider interfaces
 
    .. rubric:: Details
 
+.. automodule:: pywbem_mock._methodprovider
 
 .. autoclass:: pywbem_mock.MethodProvider
    :members:

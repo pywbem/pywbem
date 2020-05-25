@@ -91,8 +91,13 @@ class ProviderDispatcher(BaseProvider):
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance', NewInstance.classname)
 
+        # Execute the method in the provider if the method exists. Otherwise
+        # fall back to the default provider
         if provider:
-            return provider.CreateInstance(namespace, NewInstance)
+            try:
+                return provider.CreateInstance(namespace, NewInstance)
+            except AttributeError:
+                pass
 
         return self.default_instance_provider.CreateInstance(
             namespace, NewInstance)
@@ -158,11 +163,16 @@ class ProviderDispatcher(BaseProvider):
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance', ModifiedInstance.classname)
 
+        # Execute the method in the provider if the method exists. Otherwise
+        # fall back to the default provider
         if provider:
-            return provider.ModifyInstance(
-                ModifiedInstance,
-                IncludeQualifiers=IncludeQualifiers,
-                PropertyList=PropertyList)
+            try:
+                return provider.ModifyInstance(
+                    ModifiedInstance,
+                    IncludeQualifiers=IncludeQualifiers,
+                    PropertyList=PropertyList)
+            except AttributeError:
+                pass
 
         return self.default_instance_provider.ModifyInstance(
             ModifiedInstance,
@@ -201,8 +211,13 @@ class ProviderDispatcher(BaseProvider):
         provider = self.provider_registry.get_registered_provider(
             InstanceName.namespace, 'instance', InstanceName.classname)
 
+        # Execute the method in the provider if the method exists. Otherwise
+        # fall back to the default provider
         if provider:
-            return provider.DeleteInstance(InstanceName)
+            try:
+                return provider.DeleteInstance(InstanceName)
+            except AttributeError:
+                pass
 
         return self.default_instance_provider.DeleteInstance(
             InstanceName)
@@ -242,6 +257,8 @@ class ProviderDispatcher(BaseProvider):
 
         provider = self.provider_registry.get_registered_provider(
             namespace, 'method', classname)
+
+        # The provider method MUST exist.
         if provider:
             return provider.InvokeMethod(namespace, methodname,
                                          objectname, Params)
