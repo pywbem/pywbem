@@ -55,14 +55,14 @@ class CIMNamespaceProvider(InstanceWriteProvider):
     deleted in a pywbem mock environment.
 
     This class and the instances of this class only exist in the WBEM server
-    interop namespace per DMTF definitions.
+    Interop namespace per DMTF definitions.
 
     This class __init__ saves the  cimrepository variable used by methods in
     this class and by methods of its superclasses (i.e.  InstanceWriteProvider).
 
     The provider defines the class level attribute `provider_classnames` (CIM_Namespace)
 
-    This provider presumes that an interop namespace has been created before
+    This provider presumes that an Interop namespace has been created before
     the provider object is constructed and fails the constructor if
     there is not interop_namespace
 
@@ -108,12 +108,12 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
     def CreateInstance(self, namespace, NewInstance):
         """
-        Create an instance of the CIM_Namespace class in the interop namespace
+        Create an instance of the CIM_Namespace class in the Interop namespace
         with the required parameters.  If the namespace defined in
         NewInstance.name does not exist, it creates the namespace in the
         cimrepository.
 
-        The interop namespace must already exist in the CIM repository when
+        The Interop namespace must already exist in the CIM repository when
         this method is executed.
 
         If the namespace defined in the the NewInstance.Name property does
@@ -126,7 +126,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         Parameters:
           namespace (:term:`string`):
-            The name of the interop namespace in the CIM repository (case
+            The name of the Interop namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
@@ -142,10 +142,11 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             which this instance will represent
 
         Raises:
-            CIMError: CIM_ERR_INVALID_PARAMETER  if namespace is not the
-            the interop namespace in the CIM repository or the Name property
-            does not exist or the other properties cannot be added to the
-            instance.
+
+          :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER) if namespace
+            is not the Interop namespace in the CIM repository or the Name
+            property does not exist or the other properties cannot be added to
+            the instance.
         """
         self.validate_namespace(namespace)
 
@@ -155,8 +156,8 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format(
-                    "Instances of {0!A} are only allowed in the interop "
-                    "namespace for the server. {1!A} is not an interop "
+                    "Instances of {0!A} are only allowed in the Interop "
+                    "namespace for the server. {1!A} is not an Interop "
                     "namespace. It must be one of {2!A} ",
                     NewInstance.classname, namespace,
                     ", ".join(self.cimrepository.interop_namespace_names())))
@@ -221,7 +222,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         The namespace must be empty to be removed otherwise an exception is
         generated.
 
-        This method does not allow removing the interop namespace.
+        This method does not allow removing the Interop namespace.
 
         Parameters:
 
@@ -237,15 +238,17 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             * `host`: value ignored.
 
         Raises:
-            CIMError: CIM_ERR_INVALID_NAMESPACE if the namespace defined in
-              InstanceName does not exist in the CIM repository.
-            CIMError: CIM_ERR_INVALID_CLASS if the classname does not exist in
-              the CIM repository.
-            CIMError: CIM_ERR_NOT_FOUND if the instance to be deleted is not
-               found in the ICM repository.
-            CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
-              to delete the default connection namespace.  This namespace cannot
-              be deleted from the CIM repository
+
+          :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) if the
+            namespace defined in InstanceName does not exist in the CIM
+            repository.
+          :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) if the classname
+            does not exist in the CIM repository.
+          :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if the instance to be
+            deleted is not found in the ICM repository.
+          :exc:`~pywbem.CIMError`: (CIM_ERR_NAMESPACE_NOT_EMPTY) if attempting
+            to delete the default connection namespace.  This namespace cannot
+            be deleted from the CIM repository.
         """
 
         assert InstanceName.classname.lower() == \
@@ -256,7 +259,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         if self.is_interop_namespace(remove_namespace):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("Namespace deletion of the interop namespace {0|A} "
+                _format("Namespace deletion of the Interop namespace {0|A} "
                         "is not allowed by the namespace provider.",
                         remove_namespace))
 
@@ -339,8 +342,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         Raises:
 
-            :exc:'~pywbem.CIMError':: For errors encountered with CreateInstance
-
+            :exc:`~pywbem.CIMError`: For errors encountered with CreateInstance
         """
         properties = NocaseDict(
             [('Name', namespace),

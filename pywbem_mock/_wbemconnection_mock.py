@@ -173,7 +173,7 @@ class ProviderRegistry(object):
 
           conn  (:class:`~pywbem_mock.FakedWBEMConnection`):
             Defines the attributes of the connection. Used to issue requests to
-            create instances in the interop namespace for all existing
+            create instances in the Interop namespace for all existing
             namespaces that do not have instances of CIM_Namespace defined
 
           provider (instance of subclass of :class:`pywbem_mock.InstanceWriteProvider` or :class:`pywbem_mock.MethodProvider`):
@@ -447,7 +447,7 @@ class FakedWBEMConnection(WBEMConnection):
         # fail with this attribute not found
         self._response_delay = response_delay
 
-        # define attribute here to assure it is defined before cim repository
+        # define attribute here to assure it is defined before CIM repository
         # created. Reset again after repository created.
         self._disable_pull_operations = disable_pull_operations
 
@@ -543,7 +543,8 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def disable_pull_operations(self):
         """
-          Boolean Flag to set option to disable the execution of the open and
+        :class:`py:bool`:
+          Boolean flag to set option to disable the execution of the open and
           pull operation request handlers in the CIM repository. This
           emulates the characteristic in some CIM servers that did not
           implement pull operations. The default is to allow pull operations.
@@ -605,44 +606,30 @@ class FakedWBEMConnection(WBEMConnection):
 
     def add_namespace(self, namespace):
         """
-
-        This method provides a public interface for a
-        FakedWBEMConnection user to add namespaces to the mock environment.
-
-        This method will add the namespace defined by the namespace parameter
-        to the cim repository.
-
-        Uses the add_namespace method in mainprovider to add a namespace
-        to the server.
+        Add a CIM namespace to the CIM repository of the faked connection.
 
         The namespace must not yet exist in the CIM repository.
 
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository. Must not be
-            `None`. Any leading or trailing slash characters are removed before
-            the string is used to define the namespace name.
+            The name of the CIM namespace to be added to the CIM repository.
+            Must not be `None`. Any leading or trailing slash characters are
+            removed before the string is used to define the namespace name.
 
         Raises:
 
           ValueError: Namespace argument must not be None.
-
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
         """
-        # pylint: disable=missing-function-docstring,missing-docstring
-
         self.mainprovider.add_namespace(namespace)
 
     def remove_namespace(self, namespace):
         """
-        Remove a CIM namespace from the CIM repository.
+        Remove a CIM namespace from the CIM repository of the faked connection.
 
         The namespace must exist in the CIM repository and must be empty.
-
-        This method provides the public interface for users of
-        FakedWBEMConnection to remove a namespace from the mock environment.
 
         Parameters:
 
@@ -654,11 +641,11 @@ class FakedWBEMConnection(WBEMConnection):
         Raises:
 
           ValueError: Namespace argument must not be None
-          :class:`~pywbem.CIMError`: CIM_ERR_NOT_FOUND if the namespace does
+          :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if the namespace does
             not exist in the CIM repository.
-          :class:`~pywbem.CIMError`: CIM_ERR_NAMESPACE_NOT_EMPTY if the
+          :exc:`~pywbem.CIMError`: (CIM_ERR_NAMESPACE_NOT_EMPTY) if the
             namespace is not empty.
-          :class:`~pywbem.CIMError`: CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
+          :exc:`~pywbem.CIMError`: (CIM_ERR_NAMESPACE_NOT_EMPTY) if attempting
             to delete the default connection namespace.  This namespace cannot
             be deleted from the CIM repository
         """
@@ -666,35 +653,53 @@ class FakedWBEMConnection(WBEMConnection):
 
     def interop_namespace_names(self):
         """
-        Returns an iterable of the valid interop namespace names where
-        the names are considered case insensitive.
+        Returns a list of the valid Interop namespace names.
+
+        Only the valid Interop namespace names can be used to register Interop
+        namespace providers.
+
+        This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
+
+        Note that namespace names need to be considered case insensitive.
+
+        Returns:
+
+          list of :term:`string`: The valid Interop namespace names.
         """
         return self.mainprovider.interop_namespace_names()
 
     def is_interop_namespace(self, namespace):
         """
-        Tests if the `namespace` parameter defines a namespace name that is one
-        of the allowed  names for the interop namespace.
+        Tests if a namespace name is a valid Interop namespace name.
+
+        This method does not access the CIM repository for this test; it
+        merely compares the specified namespace name against the list of valid
+        Interop namespace names returned by :meth:`interop_namespace_names`.
 
         Parameters:
 
-            namespace (:term:`string`):
-                The namespace name that to be tested.
+          namespace (:term:`string`):
+            The namespace name that is to be tested.
 
         Returns:
-            True: If the name is one of the valid interop namespace names
-            False: if the name is not an interop namespace valid name.
+
+          :class:`py:bool`: Indicates whether the namespace name is a valid
+          Interop namespace name.
         """
         return self.mainprovider.is_interop_namespace(namespace)
 
     def find_interop_namespace(self):
         """
-        Determine if there is an interop namespace defined in the repository.
+        Find the Interop namespace in the CIM repository, or return `None`.
+
+        The Interop namespace is identified by comparing all namespace names
+        in the CIM repository against the list of valid Interop namespace names
+        returned by :meth:`interop_namespace_names`.
 
         Returns:
-          The name of the interop namespace if one exists or None if there
-          is no interop namespace in the connection.
 
+          :term:`string`: The name of the Interop namespace if one exists in
+          the CIM repository or otherwise `None`.
         """
         return self.mainprovider.find_interop_namespace()
 
@@ -703,7 +708,7 @@ class FakedWBEMConnection(WBEMConnection):
                                    verbose=None):
         """
         FakedWBEMConnection user method to install the namespace provider in
-        the interop namespace where the proposed interop_namespace is defined
+        the Interop namespace where the proposed interop_namespace is defined
         by the parameter interop_namespace
 
         Because this provider requires a set of classes from the
@@ -715,7 +720,7 @@ class FakedWBEMConnection(WBEMConnection):
         Parameters:
 
           interop_namespace  (:term:`string`):
-                The interop namespace defined for this environment
+            The Interop namespace defined for this environment
 
           schema_pragma_file (:term:`string`):
             File path defining a CIM schema pragma file for the set of
@@ -732,12 +737,11 @@ class FakedWBEMConnection(WBEMConnection):
 
         Raises:
           TODO
-
         """
 
-        # TODO: sort out possible issue where the interop namespace is not
+        # TODO: sort out possible issue where the Interop namespace is not
         # what this method defines in the input parameter. The alternative
-        # is to make the interop namespace creation a separate function.
+        # is to make the Interop namespace creation a separate function.
         if not self.find_interop_namespace():
             self.add_namespace(interop_namespace)
 
@@ -931,11 +935,11 @@ class FakedWBEMConnection(WBEMConnection):
             downloaded and expanded. Default is `False`.
 
         Raises:
-          MOFCompileError: For errors in MOF parsing, finding MOF dependencies
-            or issues with the cim repository.
 
-          :class:`~pywbem.CIMError`: Other errors relating to the target server
-          environment.
+          :class:`~pywbem.MOFCompileError`: For errors in MOF parsing, finding
+            MOF dependencies or issues with the CIM repository.
+          :exc:`~pywbem.CIMError`: Other errors relating to the target server
+            environment.
         """  # noqa: E501
         # pylint: enable:line-too-long
 
@@ -960,20 +964,19 @@ class FakedWBEMConnection(WBEMConnection):
         # pylint: disable:line-too-long
         """
         **Deprecated:** This method has been deprecated in pywbem 1.0.0
-        in favor of
-        :meth:`pywbem_mock.FakedWBEMConnection.compile_dmtf_classes`.
+        in favor of :meth:`compile_schema_classes`.
 
         Compile the classes defined by `schema_class_names` and their
         dependent classes from the CIM schema version defined by
         `schema_version`. If the DMTF schema defined by
-        `schema_vesion` is not installed in path `schema_root_dir`
+        `schema_version` is not installed in path `schema_root_dir`
         it is first downloaded from the DMTF and installed in that directory.
 
         This method uses the :class:`~pywbem_mock.DMTFCIMSchema` class to
         download the DMTF CIM schema defined by `schema_version` from the DMTF,
         into the `schema_root_dir` directory, extract the MOF files, create a
         MOF file with the `#include pragma` statements for the files in
-        `schema_class_names`..
+        `schema_class_names`.
 
         It automatically compiles all of the DMTF qualifier declarations that
         are in the files `qualifiers.mof` and `qualifiers_optional.mof`.
@@ -1404,16 +1407,14 @@ class FakedWBEMConnection(WBEMConnection):
             Flag to enable detailed display of actions
 
         Raises:
-            TypeError: Invalid provider_type retrieved from provider or
-                       provider_type does not match superlclass or the
-                       namespace parameter is invalid.
-
-            ValueError: Provider_type retrieved from provider is not a
-                        valid string.
-
-            ValueError: Classnames parameter retrieved from provider not a
-                        valid string or iterable or namespace does not exist
-                        in repository.
+          TypeError: Invalid provider_type retrieved from provider or
+            provider_type does not match superlclass or the
+            namespace parameter is invalid.
+          ValueError: Provider_type retrieved from provider is not a
+            valid string.
+          ValueError: Classnames parameter retrieved from provider not a
+            valid string or iterable or namespace does not exist
+            in repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
