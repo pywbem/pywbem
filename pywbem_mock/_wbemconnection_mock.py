@@ -47,8 +47,11 @@ from ._inmemoryrepository import InMemoryRepository
 
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
-from ._defaultinstanceprovider import ProviderDispatcher, \
-    InstanceWriteProvider, MethodProvider
+from ._providerdispatcher import ProviderDispatcher
+
+from ._defaultinstanceprovider import InstanceWriteProvider
+
+from ._defaultmethodprovider import MethodProvider
 
 from ._dmtf_cim_schema import DMTFCIMSchema, build_schema_mof
 from ._utils import _uprint
