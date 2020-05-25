@@ -49,9 +49,9 @@ from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
 from ._providerdispatcher import ProviderDispatcher
 
-from ._defaultinstanceprovider import InstanceWriteProvider
+from ._instancewriteprovider import InstanceWriteProvider
 
-from ._defaultmethodprovider import MethodProvider
+from ._methodprovider import MethodProvider
 
 from ._dmtf_cim_schema import DMTFCIMSchema, build_schema_mof
 from ._utils import _uprint

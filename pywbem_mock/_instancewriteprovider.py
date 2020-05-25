@@ -34,7 +34,9 @@ user-defined subclasses of the :class:`~pywbem_mock.InstanceWrite`.
 User-defined providers may be created for specific CIM classes and specific
 namespaces to override one or more of the operation request methods defined in
 :class:`~pywbem_mock.InstanceWriteProvider` with user methods defined in a
-subclass of :class:`~pywbem_mock.InstanceWriteProvider`.
+subclass of :class:`~pywbem_mock.InstanceWriteProvider`.  If any of the
+InstanceWriteProviders do not exist in the user-defined provider, the
+corresponding default method is executed.
 
 A user-defined provider is created as follows:
 
@@ -47,6 +49,10 @@ A user-defined provider is created as follows:
    validated in :meth:`~pywbem_mock.ProviderDispatcher`
 
 This class must include the following class variable:
+
+   The created method should implement any exceptions based on
+   :class:`pywbem.CIMError` using the error codes defined in :term:`DSP0200`
+   which will be passed back to the client.
 
   * `provider_classnames` (:term:`string` or list of :term`string`): defines the
     class(es) that this provider will serve.

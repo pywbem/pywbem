@@ -26,7 +26,11 @@ A user-defined method provider is created as follows:
    `InvokeMethod that will override the same method defined in
    :class:`~pywbem_mock.MethodProvider`.  The input parameters for the
    InvokeMethod will have been already validated in
-   :class:`~pywbem_mock.ProviderDispatcher.ProviderDispatcher`
+   :class:`~pywbem_mock.ProviderDispatcher.ProviderDispatcher`.
+
+   The created method should implement any exceptions based on
+   :class:`pywbem.CIMError` using the error codes defined in :term:`DSP0200`
+   which will be passed back to the client.
 
    The user-defined class must include the following class variables:
 

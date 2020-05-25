@@ -39,7 +39,7 @@ from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
 # TODO: Should be able to import from pywbem_mock
-from ._defaultinstanceprovider import InstanceWriteProvider
+from ._instancewriteprovider import InstanceWriteProvider
 
 from .config import OBJECTMANAGERNAME, SYSTEMNAME, SYSTEMCREATIONCLASSNAME, \
     OBJECTMANAGERCREATIONCLASSNAME
