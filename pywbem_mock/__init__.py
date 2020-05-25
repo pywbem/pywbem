@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2003-2007 InovaDevelopment.com
+# (C) Copyright 2003-2020 InovaDevelopment.com
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,8 @@ from ._baserepository import *             # noqa: F403,F401
 from ._inmemoryrepository import *         # noqa: F403,F401
 from ._baseprovider import *               # noqa: F403,F401
 from ._mainprovider import *               # noqa: F403,F401
+from ._providerdispatcher import *         # noqa: F403,F401
 from ._defaultinstanceprovider import *    # noqa: F403,F401
+from ._defaultmethodprovider import *      # noqa: F403,F401
 from ._namespaceprovider import *          # noqa: F403,F401
 from ._utils import *                      # noqa: F403,F401

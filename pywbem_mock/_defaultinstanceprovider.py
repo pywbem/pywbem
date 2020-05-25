@@ -19,51 +19,50 @@
 #
 
 """
-This module adds support for user-defined providers.  User defined
-providers may be created within pywbem_mock to extend the capability
-of the mocker for special processing for selected classes.
+This module contains the InstanceWriteProvider with the default implementation
+for the WBEM request responders for `CreateInstance`, `ModifyInstance` and
+`DeleteInstance`.  These the methods will be executed if there is no provider
+registered for a namespace and class name.
 
-This module contains two classes:
+This module adds support for user-defined instance providers.  User-defined
+instance providers may be created within pywbem_mock to modify the
+functionality of these WBEM requests. :class:`~pywbem_mock.InstanceWrite`
+defines the  default implementation of `CreateInstance`, `ModifyInstance` and
+`DeleteInstance` default server responder methods that may be overwritten by
+user-defined subclasses of the :class:`~pywbem_mock.InstanceWrite`.
 
-1. ProviderDispatcher - Routes the calls for request methods that allow
-   user-defined providers either to the default method in InstanceWriteProvider
-   or to a user defined method in the provider registry.
-
-2. InstanceWriteProvider - The default implementation for the request
-   responders that may include user defined providers.  This is the method that
-   will be called if there is no provider registered for a namespace and class
-   name.
-
-User defined providers may be created for specific CIM classes and specific
+User-defined providers may be created for specific CIM classes and specific
 namespaces to override one or more of the operation request methods defined in
 :class:`~pywbem_mock.InstanceWriteProvider` with user methods defined in a
 subclass of :class:`~pywbem_mock.InstanceWriteProvider`.
 
-A user defined provider is created as follows:
+A user-defined provider is created as follows:
 
-1. Create the subclass of :class:`~pywbem_mock.InstanceWriteProvider`  or
-   :class:`~pywbem_mock.MethodProvider` with an
-   __init__ method and the methods that will override any of the request methods
-   defined in :class:`~pywbem_mock.InstanceWriteProvider`.  Note that not all of
-   the requests methods in :class:`~pywbem_mock.InstanceWriteProvider` need to
-   be implemented, just those for which user provider will manipulate the
-   incoming request parameters.
+1. Create the subclass of :class:`~pywbem_mock.InstanceWriteProvider` with an
+   __init__ method, an optional post_register_setup() method and the methods
+   that overrides the request methods defined in
+   :class:`~pywbem_mock.InstanceWriteProvider`. The input parameters for the
+   each of the request methods (valid namespace, valid parameter types,
+   existence of required enties in the CIM repository) will have been already
+   validated in :meth:`~pywbem_mock.ProviderDispatcher`
 
-This class must include the following 2 class or instance variables:
-
-  * `provider_type` (:term:`string` or list of :term`string`): defining the
-     operation type(s) the provider will serve. The legal provider types are
-     "instance", "method".
+This class must include the following class variable:
 
   * `provider_classnames` (:term:`string` or list of :term`string`): defines the
-    class(es) that this provider may serve.
+    class(es) that this provider will serve.
 
-Thus, a user provider can override the
+Thus, for example, a user-defined provider can override the
 :meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance` method to modify the
 ``NewInstance`` input parameter to change properties, etc. and either submit it
-to the CIM repository within the user provider or call the
+to the CIM repository within the user-defined provider or call the
 :meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance` in the superclass to
 complete submission of the ``NewInstance``.
+
+2. Define a `optional post_register_setup()` method in the new class that
+   will be called by :meth:`~pywbem_mock.FakedWBEMConnection.register_provider`
+   when the provider has been successfully registered so that the provider
+   may execute any specific setup (ex. creating instances) using its own
+   WBEM responder methods.
 
 2. Register the user provider using
 :meth:`~pywbem_mock.FakedWBEMConnection.register_provider` to define the
@@ -78,10 +77,9 @@ from __future__ import absolute_import, print_function
 from copy import deepcopy
 import six
 
-from pywbem import CIMInstance, CIMInstanceName, CIMError, \
+from pywbem import CIMInstanceName, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
-    CIM_ERR_ALREADY_EXISTS, CIM_ERR_METHOD_NOT_AVAILABLE, \
-    CIM_ERR_METHOD_NOT_FOUND
+    CIM_ERR_ALREADY_EXISTS
 
 from pywbem._utils import _format
 
@@ -90,7 +88,7 @@ from ._baseprovider import BaseProvider
 # None of the request method names conform since they are camel case
 # pylint: disable=invalid-name
 
-__all__ = ['InstanceWriteProvider', 'MethodProvider']
+__all__ = ['InstanceWriteProvider']
 
 
 def validate_inst_props(namespace, target_class, instance):
@@ -156,215 +154,6 @@ def validate_inst_props(namespace, target_class, instance):
                 add_props[cprop_name] = default_value
 
     instance.update(add_props)
-
-
-class ProviderDispatcher(BaseProvider):
-    """
-    This class dispatches requests destined for the instance provider methods
-    defined in InstanceWriteProvider  to the either the default instance
-    provder method or the provider defined for processing the defined class in
-    the defined namespace.
-    """
-
-    def __init__(self, cimrepository, provider_registry,
-                 default_instance_provider):
-        """
-        Set instance parameters passed from FakedWBEMConnection
-        """
-        super(ProviderDispatcher, self).__init__(cimrepository)
-
-        self.provider_registry = provider_registry
-
-        # Defines the instance of InstanceWriteProvider that will
-        # be called to dispatch operation to default provider.
-        self.default_instance_provider = default_instance_provider
-
-    def CreateInstance(self, namespace, NewInstance):
-        """
-        Dispatcher for CreateInstance.
-
-        This method validates input parameters against the repository and
-        provider required parameter types and if successful, routes the method
-        either to the default provider or to a provider registered for the
-        namespace and class in InstanceName
-        """
-        # Validate input parameters
-
-        self.validate_namespace(namespace)
-
-        if not isinstance(NewInstance, CIMInstance):
-            raise TypeError(
-                _format("NewInstance parameter is not a valid CIMInstance. "
-                        "Rcvd type={0}", type(NewInstance)))
-
-        if not self.class_exists(namespace, NewInstance.classname):
-            raise CIMError(
-                CIM_ERR_INVALID_CLASS,
-                _format("Cannot create instance because its creation "
-                        "class {0!A} does not exist in namespace {1!A}.",
-                        NewInstance.classname, namespace))
-
-        provider = self.provider_registry.get_registered_provider(
-            namespace, 'instance', NewInstance.classname)
-
-        if provider:
-            return provider.CreateInstance(namespace, NewInstance)
-
-        return self.default_instance_provider.CreateInstance(
-            namespace, NewInstance)
-
-    def ModifyInstance(self, ModifiedInstance,
-                       IncludeQualifiers=None, PropertyList=None):
-        """
-        Dispatcher for the ModifyInstance method.
-
-        This method validates input parameters against the repository and
-        provider required types and if successful, routes the method either to
-        the default provider or to a provider registered for the namespace and
-        class in ModifiedInstance.
-
-        Validates basic characteristics of parameters including:
-
-        1. Namespace xists.
-        2. Modified instance is valid instance.
-        3. ClassName same in instance and instance.path
-        4. Class exists in repository
-        5. Instance exists in repository.
-        """
-
-        namespace = ModifiedInstance.path.namespace
-        self.validate_namespace(namespace)
-
-        if not isinstance(ModifiedInstance, CIMInstance):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("The ModifiedInstance parameter is not a valid "
-                        "CIMInstance. Rcvd type={0}", type(ModifiedInstance)))
-
-        # Classnames in instance and path must match
-        if ModifiedInstance.classname.lower() != \
-                ModifiedInstance.path.classname.lower():
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("ModifyInstance classname in path and instance do "
-                        "not match. classname={0!A}, path.classname={1!A}",
-                        ModifiedInstance.classname,
-                        ModifiedInstance.path.classname))
-
-        if not self.class_exists(namespace, ModifiedInstance.classname):
-            raise CIMError(
-                CIM_ERR_INVALID_CLASS,
-                _format("ModifyInstance classn {0!A} does not exist in"
-                        "CIM repository for namespace {1!A}.",
-                        ModifiedInstance.classname,
-                        namespace))
-
-        # Test original instance exists.
-        instance_store = self.get_instance_store(namespace)
-        # Do not copy because not modified or passed on
-        orig_instance = self.find_instance(ModifiedInstance.path,
-                                           instance_store,
-                                           copy=False)
-        if orig_instance is None:
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Original Instance {0!A} not found in namespace {1!A}",
-                        ModifiedInstance.path, namespace))
-
-        provider = self.provider_registry.get_registered_provider(
-            namespace, 'instance', ModifiedInstance.classname)
-
-        if provider:
-            return provider.ModifyInstance(
-                ModifiedInstance,
-                IncludeQualifiers=IncludeQualifiers,
-                PropertyList=PropertyList)
-
-        return self.default_instance_provider.ModifyInstance(
-            ModifiedInstance,
-            IncludeQualifiers=IncludeQualifiers,
-            PropertyList=PropertyList)
-
-    def DeleteInstance(self, InstanceName):
-        """
-        Dispatcher for the DeleteInstance method.
-
-        This method validates input parameters against the repository and
-        provider required types and if successful, routes the method either to
-        the default provider or to a provider registered for the namespace and
-        class in InstanceName
-        """
-
-        # Validate input parameters
-        namespace = InstanceName.namespace
-        self.validate_namespace(namespace)
-
-        # Test if corresponding class and instance already exist
-        if not self.class_exists(namespace, InstanceName.classname):
-            raise CIMError(
-                CIM_ERR_INVALID_CLASS,
-                _format("Class {0!A} in namespace {1!A} not found. "
-                        "Cannot delete instance {2!A}",
-                        InstanceName.classname, namespace, InstanceName))
-
-        instance_store = self.get_instance_store(namespace)
-        if not instance_store.object_exists(InstanceName):
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Instance {0!A} not found in CIM repository namespace "
-                        "{1!A}", InstanceName, namespace))
-
-        provider = self.provider_registry.get_registered_provider(
-            InstanceName.namespace, 'instance', InstanceName.classname)
-
-        if provider:
-            return provider.DeleteInstance(InstanceName)
-
-        return self.default_instance_provider.DeleteInstance(
-            InstanceName)
-
-    def InvokeMethod(self, namespace, methodname, objectname, Params):
-        """
-        Default Method provider.
-        NOTE: There is no default method provider because all method
-        providers provide specific functionality and there is no way
-        to do that in a default method provider.
-        """
-        # Validate input parameters
-        self.validate_namespace(namespace)
-
-        assert isinstance(objectname, (CIMInstanceName, six.string_types))
-
-        classname = objectname.classname \
-            if isinstance(objectname, CIMInstanceName) else objectname
-
-        # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
-        # Uses local_only = False to get characteristics from super classes
-        # and include_class_origin to get origin of method in hierarchy
-        cc = self.get_class(namespace, classname,
-                            local_only=False,
-                            include_qualifiers=True,
-                            include_classorigin=True)
-
-        # Determine if method defined in classname defined in
-        # the classorigin of the method
-        try:
-            cc.methods[methodname].class_origin
-        except KeyError:
-            raise CIMError(
-                CIM_ERR_METHOD_NOT_FOUND,
-                _format("Method {0!A} not found in class {1!A}.",
-                        methodname, classname))
-
-        provider = self.provider_registry.get_registered_provider(
-            namespace, 'method', classname)
-        if provider:
-            return provider.InvokeMethod(namespace, methodname,
-                                         objectname, Params)
-
-        # There is no default method provider so no user InvokeMethod
-        # is defined for namespace and class, exception raise.
-        raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
 
 
 class InstanceWriteProvider(BaseProvider):
@@ -449,11 +238,11 @@ class InstanceWriteProvider(BaseProvider):
 
         Raises:
 
-            CIMError: CIM_ERR_ALREADY_EXISTS
+            :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS
               The instance defined by namespace and instance name already
               exists.
 
-            CIMError: CIM_ERR_INVALID_CLASS
+            :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS
               The class defined in NewInstance  does not exist in the
               namespace.
         """
@@ -577,10 +366,10 @@ class InstanceWriteProvider(BaseProvider):
 
         Raises:
 
-            CIMError: CIM_ERR_ALREADY_EXISTS,
-            CIMError: CIM_ERR_INVALID_CLASS
-            CIMError: CIM_ERR_INVALID_PARAMETER
-            CIMError: CIM_ERR_NAMESPACE_NOT_FOUND
+            :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS,
+            :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_CLASS
+            :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_PARAMETER
+            :exc:`~pywbem.CIMError`: CIM_ERR_NAMESPACE_NOT_FOUND
         """  # noqa: E501
         # pylint: disable=invalid-name,line-too-long
 
@@ -781,96 +570,3 @@ class InstanceWriteProvider(BaseProvider):
 
         # Delete the instance from the CIM repository
         instance_store.delete(InstanceName)
-
-
-class MethodProvider(BaseProvider):
-    """
-    This class defines the provider class that handles the default InvokeMethod.
-
-    User  method providers are defined by creating a subclass of this class and
-    defining an InvokeMethod based on the method in this class.
-    """
-    #:  provider_type (:term:`string`):
-    #:    Keyword defining the type of request the provider will service.
-    #:    The type for this class is predefined as 'method'
-    provider_type = 'method'
-
-    def __init__(self, cimrepository=None):
-        """
-        Parameters:
-
-          cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.  The
-            repository is fully initialized.
-        """
-        super(MethodProvider, self).__init__(cimrepository)
-
-    ####################################################################
-    #
-    #   Server responder for InvokeMethod.
-    #
-    ####################################################################
-
-    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
-        # pylint: disable=invalid-name
-        """
-        Defines the API and return for a mock WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.InvokeMethod`
-
-        This method should never be called because there is no concept of a
-        default InvokeMethod in WBEM.  All method providers specify specific
-        actions.
-
-        This responder calls a function defined by an entry in the methods
-        repository. The return from that function is returned to the user.
-
-        Parameters:
-
-          namespace  (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
-
-          MethodName (:term:`string`):
-            Name of the method to be invoked (case independent).
-
-          ObjectName:
-            The object path of the target object, as follows:
-
-            * For instance-level use: The instance path of the target
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
-              If this object does not specify a namespace, the default namespace
-              of the connection is used.
-              Its `namespace`, and `host` attributes will be ignored.
-
-            * For class-level use: The class path of the target class, as a
-              :term:`string`:
-
-              The string is interpreted as a class name in the default
-              namespace of the connection (case independent).
-
-          Params (:term:`py:iterable`):
-            An iterable of input parameter values for the CIM method. Each item
-            in the iterable is a single parameter value and is:
-
-            * :class:`~pywbem.CIMParameter` representing a parameter value. The
-              `name`, `value`, `type` and `embedded_object` attributes of this
-              object are used.
-
-        Returns:
-
-            A :func:`py:tuple` of (returnvalue, outparams), with these
-            tuple items:
-
-            * returnvalue (:term:`CIM data type`):
-              Return value of the CIM method.
-            * outparams (:term:`py:iterable` of :class:`~pywbem.CIMParameter`):
-              Each item represents a single output parameter of the CIM method.
-              The :class:`~pywbem.CIMParameter` objects must have at least
-              the following properties set:
-
-                * name (:term:`string`): Parameter name (case independent).
-                * type (:term:`string`): CIM data type of the parameter.
-                * value (:term:`CIM data type`): Parameter value.
-        """
-        raise NotImplementedError
