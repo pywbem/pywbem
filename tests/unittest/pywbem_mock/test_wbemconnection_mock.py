@@ -4688,12 +4688,50 @@ class TestInstanceOperations(object):
 
 class TestPullOperations(object):
     """
-    Mock the open and pull operations
-        ClassName, namespace=None,
-        FilterQueryLanguage=None, FilterQuery=None,
-        OperationTimeout=None, ContinueOnError=None,
-        MaxObjectCount=None,
+    Test the Open and pull operations.
     """
+
+    @pytest.mark.parametrize(
+        "ns", EXPANDED_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        # src_class: Source instance definitions (classname and name property
+        # maxobj: Max object count for each operation
+        # exp_eos: If True, eos expected on open request
+        "src_class,  maxobj, exp_rslt, open_eos", [
+            ['TST_Person', 100, True],
+
+            ['TST_Person', 1, False],
+        ]
+    )
+    def test_openenumerateinstancepaths(self, conn, ns, src_class, maxobj,
+                                        exp_eos, tst_assoc_mof):
+        # pylint: disable=no-self-use,invalid-name
+        """
+        Test openenueratepaths for a variety of MaxObjectCount values.
+        """
+        skip_if_moftab_regenerated()
+
+        add_objects_to_repo(conn, ns, [tst_assoc_mof])
+
+        orig_rtnd_instnames = conn.EnumerateInstanceNames(source_inst_class)
+
+        rtnd_instnames = []
+
+        result_tuple = conn.OpenEnumerateInstancePaths(
+            source_inst_class, MaxObjectCount=maxobj)
+
+        rtnd_instnames.extend(result_tuple.paths)
+
+        assert result_tuple.eos = exp_eos
+
+        If exp_eos is False:
+            while result_tuple.eos is False:
+                result_tuple = conn.PullInstancesWithPath(result_tuple)
+                rtnd_instnames.extend(result_tuple.paths)
+
+        assert len(rtnd_instnames) == len(orig_rtnd_instnames)
+
+        assert set(rtnd_instnames)== set(orig_rtnd_instnames)
 
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])

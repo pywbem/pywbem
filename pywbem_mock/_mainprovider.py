@@ -1567,8 +1567,8 @@ class MainProvider(BaseProvider, ResolverMixin):
     def _return_assoc_class_tuples(self, rtn_classnames, namespace, iq, ico,
                                    pl):
         """
-        Creates the correct tuples of for associator and references class
-        level responses from a list of classnames.  This is special because
+        Creates the correct tuples for associator and references class
+        level responses from a list of classnames.  This is unique because
         the class level references and associators return a tuple of
         CIMClassName and CIMClass for every entry.
         """
@@ -2125,8 +2125,9 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                         ResultClass, Role)
         # returns list of tuples of (CIMClassname, CIMClass)
         return self._return_assoc_class_tuples(rtn_classnames, namespace,
-                                               PropertyList, IncludeClassOrigin,
-                                               IncludeQualifiers)
+                                               IncludeQualifiers,
+                                               IncludeClassOrigin,
+                                               PropertyList)
 
     ####################################################################
     #
@@ -2329,8 +2330,9 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                          ResultRole, Role)
         # returns list of tuples of (CIMClassname, CIMClass)
         return self._return_assoc_class_tuples(rtn_classnames, namespace,
-                                               PropertyList, IncludeClassOrigin,
-                                               IncludeQualifiers)
+                                               IncludeQualifiers,
+                                               IncludeClassOrigin,
+                                               PropertyList)
 
     #####################################################################
     #
@@ -2557,14 +2559,14 @@ class MainProvider(BaseProvider, ResolverMixin):
             eos = u'TRUE'
             rtn_objs_list = objs_list
             del self.enumeration_contexts[EnumerationContext]
-            context_id = ""
+            EnumerationContest = ""
         else:
             eos = u'FALSE'
             rtn_objs_list = objs_list[0: max_obj_cnt]
             del objs_list[0: max_obj_cnt]
 
-        # returns tuple of list of insts, eos, and context_id
-        return (rtn_objs_list, eos, context_id)
+        # returns tuple of list of insts, eos, and EnumerationContext
+        return (rtn_objs_list, eos, EnumerationContest)
 
     @staticmethod
     def _validate_open_params(FilterQueryLanguage, FilterQuery,
