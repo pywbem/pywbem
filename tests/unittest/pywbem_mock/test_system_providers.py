@@ -30,20 +30,17 @@ import six
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function
-
+from ..utils.dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from ...utils import skip_if_moftab_regenerated
 
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
-
-from pywbem import CIMError, WBEMServer
-
-pywbem = import_installed('pywbem')  # noqa: E402
-
+pywbem = import_installed('pywbem')
+from pywbem import CIMError, WBEMServer  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema  # noqa: E402
-from ..utils.dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER  # noqa: E402
-
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
 # Location of DMTF schema directory used by all tests.
 # This directory is permanent and should not be removed.
 TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
