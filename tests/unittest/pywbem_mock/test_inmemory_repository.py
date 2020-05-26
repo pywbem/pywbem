@@ -20,15 +20,19 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
-from pywbem import CIMClass, CIMInstance, CIMInstanceName, CIMProperty, \
-    CIMQualifierDeclaration, CIMQualifier
-
-from pywbem._nocasedict import NocaseDict
-
-from pywbem_mock import InMemoryRepository
-from pywbem_mock._inmemoryrepository import InMemoryObjectStore
-
 from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
+pywbem = import_installed('pywbem')
+from pywbem import CIMClass, CIMInstance, CIMInstanceName, CIMProperty, \
+    CIMQualifierDeclaration, CIMQualifier  # noqa: E402
+from pywbem._nocasedict import NocaseDict  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import InMemoryRepository  # noqa: E402
+from pywbem_mock._inmemoryrepository import InMemoryObjectStore  # noqa: E402
+# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
 
 ########################################################################
 #
