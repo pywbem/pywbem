@@ -354,12 +354,9 @@ class TestRemove(MOFTest):
 
         # Remove the mof defined by the testfile
         # create rollback definition
-        conn_mof = MOFWBEMConnection(conn=conn)
-        conn_mof.default_namespace = conn.default_namespace
-        conn_mof.url = conn.url
 
         conn_mof_mofcomp = MOFCompiler(
-            conn_mof,
+            MOFWBEMConnection(conn=conn),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
             verbose=False,
             log_func=moflog)
