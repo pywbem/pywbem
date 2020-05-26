@@ -54,8 +54,8 @@ The following classes implement this repository:
 
 from __future__ import absolute_import, print_function
 
-import six
 from copy import deepcopy
+import six
 
 from pywbem import CIMClass, CIMQualifierDeclaration, CIMInstance
 
@@ -285,6 +285,7 @@ class InMemoryRepository(BaseRepository):
 
     @property
     def namespaces(self):
+        # pylint: disable=invalid-overridden-method
         return list(self._repository)
 
     def get_class_store(self, namespace):

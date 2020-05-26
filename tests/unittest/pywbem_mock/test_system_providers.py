@@ -94,6 +94,7 @@ TESTCASES_IS_INTEROP_NAMESPACE = [
     TESTCASES_IS_INTEROP_NAMESPACE)
 @simplified_test_function
 def test_is_interop_namespace(testcase, ns, exp_rtn):
+    # pylint: disable=unused-argument
     """
     Test the method _is_interop_namespace() which should return True
     or False depending on whether the tst_ns is a valid interop namespace
@@ -148,6 +149,7 @@ TESTCASES_FIND_INTEROP_NAMESPACE = [
     TESTCASES_FIND_INTEROP_NAMESPACE)
 @simplified_test_function
 def test_find_interop_namespace(testcase, deflt, nss, exp_ns):
+    # pylint: disable=unused-argument
     """
     Test the method
     """

@@ -64,6 +64,7 @@ class ProviderDispatcher(BaseProvider):
         self.default_instance_provider = default_instance_provider
 
     def CreateInstance(self, namespace, NewInstance):
+        # pylint: disable=invalid-name
         """
         Dispatcher for CreateInstance.
 
@@ -104,6 +105,7 @@ class ProviderDispatcher(BaseProvider):
 
     def ModifyInstance(self, ModifiedInstance,
                        IncludeQualifiers=None, PropertyList=None):
+        # pylint: disable=invalid-name
         """
         Dispatcher for the ModifyInstance method.
 
@@ -180,6 +182,7 @@ class ProviderDispatcher(BaseProvider):
             PropertyList=PropertyList)
 
     def DeleteInstance(self, InstanceName):
+        # pylint: disable=invalid-name
         """
         Dispatcher for the DeleteInstance method.
 
@@ -223,6 +226,7 @@ class ProviderDispatcher(BaseProvider):
             InstanceName)
 
     def InvokeMethod(self, namespace, methodname, objectname, Params):
+        # pylint: disable=invalid-name
         """
         Default Method provider.
         NOTE: There is no default method provider because all method

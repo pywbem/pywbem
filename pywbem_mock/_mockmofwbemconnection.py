@@ -145,7 +145,7 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
 
         try:
             path = self.conn.CreateInstance(inst)
-        except KeyError:
+        except KeyError:  # pylint: disable=try-except-raise
             raise
         return path
 
@@ -349,7 +349,7 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         qualname = args[0] if args else kwargs['QualifierName']
         try:
             qual = self.conn.GetQualifier(qualname)
-        except KeyError:
+        except KeyError:  # pylint: disable=try-except-raise
             raise
         return qual
 

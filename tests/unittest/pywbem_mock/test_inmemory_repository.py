@@ -169,9 +169,9 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     # Test that the properties have changed indicating the deepcopy
     # Uses only class and instance because we they have properties
     if isinstance(obj, (CIMClass, CIMInstance)):
-        for property in obj.properties:
-            assert rtn_obj.properties[property] is not \
-                obj.properties[property]
+        for prop in obj.properties:
+            assert rtn_obj.properties[prop] is not \
+                obj.properties[prop]
 
     # Test same object return on two gets
     rtn_obj2 = xxx_repo.get(name)
@@ -184,9 +184,9 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     # Test that with copy=True the property ids have changed between the
     # two gets indicating that the deepcopy was executed.
     if isinstance(obj, (CIMClass, CIMInstance)):
-        for property in obj.properties:
-            assert rtn_obj.properties[property] is not \
-                rtn_obj3.properties[property]
+        for prop in obj.properties:
+            assert rtn_obj.properties[prop] is not \
+                rtn_obj3.properties[prop]
 
     names = list(xxx_repo.iter_names())
     assert len(names) == 1
@@ -201,9 +201,9 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     assert objs[0] == obj
 
     if isinstance(obj, (CIMClass, CIMInstance)):
-        for property in obj.properties:
-            assert objs[0].properties[property] is not \
-                obj.properties[property]
+        for prop in obj.properties:
+            assert objs[0].properties[prop] is not \
+                obj.properties[prop]
 
     # Test update
 
