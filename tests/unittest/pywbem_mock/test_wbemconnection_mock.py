@@ -1352,6 +1352,7 @@ class TestRepoMethods(object):
         conn.display_repository(dest=tst_file)
 
     def test_display_repository(self, conn, tst_instances_mof, capsys):
+        # pylint: disable=no-self-use
         """
         Test the display of the repository with it various options.
         This is done in a single test method for simplicity
@@ -2172,7 +2173,7 @@ class UserMethodTestProvider(MethodProvider):
         """
         Init of test provider
         """
-        super(UserInstanceTestProvider, self).__init__(cimrepository)
+        super(UserMethodTestProvider, self).__init__(cimrepository)
 
     def __repr__(self):
         return _format(
@@ -2232,7 +2233,7 @@ class TestRegisterProviderMethods(object):
     def test_register_provider(self, conn, ns, desc, inputs,
                                exp_exec, condition, tst_classeswqualifiers,
                                tst_instances):
-        # pylint: disable=no-self-use
+        # pylint: disable=unused-argument,no-self-use
         """
         Test register_provider method.
         """
@@ -2264,8 +2265,8 @@ class TestRegisterProviderMethods(object):
                     tst_ns = [tst_ns]
 
                 if tst_ns:
-                    for ns in tst_ns:
-                        assert ns in conn.provider_registry._registry[cln]
+                    for _ns in tst_ns:
+                        assert _ns in conn.provider_registry._registry[cln]
                 else:
                     assert conn.default_namespace in \
                         conn.provider_registry._registry[cln]
@@ -4129,7 +4130,11 @@ class TestInstanceOperations(object):
         """
         Test the faked CreateInstance with a namespace instance to create ns.
         """
-        return  # TODO this is temp because test does
+
+        # TODO this is temp because test does
+        return
+        # pylint: disable=unreachable
+
         conn.install_privileged_providers(interop_ns, DMTF_TEST_SCHEMA_VER,
                                           TESTSUITE_SCHEMA_DIR)
 
@@ -4531,7 +4536,11 @@ class TestInstanceOperations(object):
         """
         Test the faked DeleteInstance with a namespace instance to delete ns.
         """
-        return  # TODO this all goes away
+
+        # TODO this all goes away
+        return
+        # pylint: disable=unreachable
+
         conn.add_namespace(interop_ns)
         conn.add_cimobjects(tst_qualifiers, namespace=interop_ns)
         conn.add_cimobjects(tst_pg_namespace_class, namespace=interop_ns)

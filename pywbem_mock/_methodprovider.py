@@ -91,7 +91,7 @@ class MethodProvider(BaseProvider):
     ####################################################################
 
     def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,no-self-use
         """
         Defines the API and return for a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.InvokeMethod` for both static (ObjectName

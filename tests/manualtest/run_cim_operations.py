@@ -4076,7 +4076,7 @@ class PegasusServerTestBase(ClientTest):
         # TODO ks 5/16 figure out why we could not get instances of a class
         #  and whether we should continue. do more than raise. This
         #  is an assert
-        except CIMError:
+        except CIMError:  # pylint: disable=try-except-raise
             raise
 
     def get_registered_profiles(self):
