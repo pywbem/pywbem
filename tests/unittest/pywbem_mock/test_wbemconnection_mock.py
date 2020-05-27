@@ -29,6 +29,7 @@ from __future__ import absolute_import, print_function
 import os
 import shutil
 import re
+from copy import deepcopy
 from datetime import datetime
 try:
     from collections import OrderedDict
@@ -59,8 +60,6 @@ from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
     InstanceWriteProvider, MethodProvider  # noqa: E402
-from pywbem_mock.config import OBJECTMANAGERNAME, SYSTEMNAME, \
-    SYSTEMCREATIONCLASSNAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -2188,7 +2187,7 @@ class UserMethodTestProvider(MethodProvider):
         return (0, None)
 
 
-class TestRegisterProviderMethods(object):
+class TestUserDefinedProviders(object):
     """
     Test the repository support for use of user providers that are
     registered and substituted for the default provider.
@@ -2407,9 +2406,13 @@ class TestRegisterProviderMethods(object):
 
         class CIM_FooUserProvider(InstanceWriteProvider):
             """
-            Define the user provider with only CreateInstance supported
+            Define the user provider with only CreateInstance supported.
+            Test that CreateInstance calls the user-defined provider and that
+            ModifyInstance and DeleteInstance work meaning that they used
+            the default provider
             """
-            provider_classnames = 'CIM_Foo'
+            # Use CIMFoo_sub because it has a property to manipulate cimfoo_sub
+            provider_classnames = 'CIM_Foo_sub'
 
             def __init__(self, cimrepository):
                 """
@@ -2421,10 +2424,10 @@ class TestRegisterProviderMethods(object):
                 """
                 My user CreateInstance.  Will change the InstanceID and
                 use the default to commit the NewInstance to the repository.
+                No implementation of ModifyInstance or DeleteInstance
                 """
-
                 # modify the InstanceID property
-                NewInstance.properties["InstanceID"].value = "MyModifiedID"
+                NewInstance.properties["InstanceID"].value = "USER_PROVIDER1"
 
                 # send back to the superclass to complete insertion into
                 # the repository.
@@ -2432,24 +2435,39 @@ class TestRegisterProviderMethods(object):
                     namespace, NewInstance)
 
         skip_if_moftab_regenerated()
-
         ns = conn.default_namespace
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
-
         conn.register_provider(CIM_FooUserProvider(conn.cimrepository), ns)
 
-        new_instance = CIMInstance("CIM_Foo",
+        new_instance = CIMInstance("CIM_Foo_sub",
                                    properties={'InstanceID': 'origid'})
 
         rtnd_path = conn.CreateInstance(new_instance)
-
         rtnd_instance = conn.GetInstance(rtnd_path)
 
-        assert rtnd_path.keybindings["InstanceId"] == "MyModifiedID"
+        # Test that the instance was created with the InstanceID defined
+        # by the user-defined provider
+        assert rtnd_path.keybindings["InstanceId"] == "USER_PROVIDER1"
         assert rtnd_instance.path == rtnd_path
 
+        # add the extra property to modified instance
+        modified_instance = deepcopy(rtnd_instance)
+        modified_instance.update([('cimfoo_sub', CIMProperty('cimfoo_sub',
+                                                             "NewProperty"))])
+
+        # do ModifyInstance, get modified instance and compare new property
+        conn.ModifyInstance(modified_instance)
+        rtnd_mod_inst = conn.GetInstance(rtnd_path)
+        assert rtnd_mod_inst.get('cimfoo_sub') == "NewProperty"
+
+        # Delete instance and test the delete
         conn.DeleteInstance(rtnd_path)
+        try:
+            conn.DeleteInstance(rtnd_path)
+            assert False
+        except CIMError as ce:
+            assert ce.status_code == CIM_ERR_NOT_FOUND
 
     def test_user_provider2(self, conn, tst_classeswqualifiers,
                             tst_instances):
@@ -2471,21 +2489,15 @@ class TestRegisterProviderMethods(object):
                 """
                 super(CIM_FooSubUserProvider, self).__init__(cimrepository)
 
-            def __repr__(self):
-                return _format(
-                    "CIM_FooSubUserProvider("
-                    "provider_type={s.provider_type}, "
-                    "provider_classnames={s.provider_classnames})",
-                    s=self)
-
             def ModifyInstance(self, ModifiedInstance,
                                IncludeQualifiers=None, PropertyList=None):
                 """
-                My user CreateInstance.  Will change the InstanceID and
-                use the default to commit the NewInstance to the repository.
+                My user ModifyInstance.  Will change the value of the
+                property as a flag
                 """
 
                 # modify a None key property.
+                assert ModifiedInstance.get("InstanceID") == 'origid'
                 ModifiedInstance.properties["cimfoo_sub"].value = "ModProperty"
 
                 # send back to the superclass to complete insertion into
@@ -2496,28 +2508,139 @@ class TestRegisterProviderMethods(object):
         skip_if_moftab_regenerated()
 
         ns = conn.default_namespace
-
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
-
         conn.register_provider(CIM_FooSubUserProvider(conn.cimrepository), ns)
 
+        # Build the new instance and put in repository with CreateInstance
         new_instance = CIMInstance(
             "CIM_Foo_sub",
             properties={'InstanceID': 'origid',
-                        'cimfoo_sub': "ModProperty"})
+                        'cimfoo_sub': 'OrigProperty'})
+        rtnd_path = conn.CreateInstance(new_instance)
+        rtnd_instance = conn.GetInstance(rtnd_path)
+
+        # Modify the cimfoo_sub property and put modification in repository
+        mod_instance = deepcopy(rtnd_instance)
+        mod_instance.update_existing([('cimfoo_sub',
+                                       CIMProperty('cimfoo_sub',
+                                                   'ModProperty'))])
+        conn.ModifyInstance(mod_instance)
+
+        # Get modified instance and compare property for change
+        rtnd_modified_instance = conn.GetInstance(rtnd_path)
+        assert rtnd_modified_instance.properties["cimfoo_sub"].value == \
+            "ModProperty"
+
+        assert rtnd_instance.path == rtnd_path
+
+        # Confirm that DeleteInstance works
+        conn.DeleteInstance(rtnd_path)
+        try:
+            conn.DeleteInstance(rtnd_path)
+            assert False
+        except CIMError as ce:
+            assert ce.status_code == CIM_ERR_NOT_FOUND
+
+    def test_user_provider3(self, conn, tst_classeswqualifiers,
+                            tst_instances):
+        """
+        Test execution with a user provider that handles all  of the
+        opeations and confirm each is called
+        """
+
+        class CIM_FooSubUserProvider(InstanceWriteProvider):
+            """
+            Define the user provider with all defined methods and the
+            setup method.  Each sets object flag when set to test it was
+            called
+            """
+            # Use CIMFoo_sub because it has a property to manipulate cimfoo_sub
+            provider_classnames = 'CIM_Foo_sub'
+
+            def __init__(self, cimrepository):
+                """
+                Test user-defined provider that has only the DeleteInstance
+                method.  Note that this provider constructor includes conn
+                """
+                super(CIM_FooSubUserProvider, self).__init__(cimrepository)
+
+                self.conn = conn
+                self.createinstance = False
+                self.modifyinstance = False
+                self.deleteinstance = False
+                self.postregistersetup = False
+
+            def CreateInstance(self, namespace, NewInstance):
+                """
+                Change the InstanceID and use the default to commit the
+                NewInstance to the repository.
+                """
+                self.createinstance = True
+                # modify the InstanceID property
+                NewInstance.properties["InstanceID"].value = "USER_PROVIDER1"
+
+                return super(CIM_FooSubUserProvider, self).CreateInstance(
+                    namespace, NewInstance)
+
+            def ModifyInstance(self, ModifiedInstance,
+                               IncludeQualifiers=None, PropertyList=None):
+                """
+                My user ModifyInstance.  Change value of the property as a flag
+                """
+                self.modifyinstance = True
+                return super(CIM_FooSubUserProvider, self).ModifyInstance(
+                    ModifiedInstance)
+
+            def DeleteInstance(self, InstanceName):
+                """
+                Delete the defined instance
+                """
+                self.deleteinstance = True
+                return super(CIM_FooSubUserProvider, self).DeleteInstance(
+                    InstanceName)
+
+            def post_register_setup(self, conn):
+                self.postregistersetup = True
+
+        skip_if_moftab_regenerated()
+
+        ns = conn.default_namespace
+
+        add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
+        test_provider = CIM_FooSubUserProvider(conn.cimrepository)
+        conn.register_provider(test_provider, ns)
+
+        new_instance = CIMInstance("CIM_Foo_sub",
+                                   properties={'InstanceID': 'origid'})
 
         rtnd_path = conn.CreateInstance(new_instance)
 
         rtnd_instance = conn.GetInstance(rtnd_path)
 
-        conn.ModifyInstance(rtnd_instance)
-
-        rtnd_modified_instance = conn.GetInstance(rtnd_path)
-
-        assert rtnd_modified_instance.properties["cimfoo_sub"].value == \
-            "ModProperty"
-
+        # Test that the instance was created with the InstanceID defined
+        # by the user-defined provider
+        assert rtnd_path.keybindings["InstanceId"] == "USER_PROVIDER1"
         assert rtnd_instance.path == rtnd_path
+
+        modified_instance = rtnd_instance
+        modified_instance.update([('cimfoo_sub', CIMProperty('cimfoo_sub',
+                                                             "InstMod"))])
+        conn.ModifyInstance(modified_instance)
+        rtnd_mod_inst = conn.GetInstance(rtnd_path)
+        assert rtnd_mod_inst.get('cimfoo_sub') == "InstMod"
+
+        conn.DeleteInstance(rtnd_path)
+        try:
+            conn.DeleteInstance(rtnd_path)
+            assert False
+        except CIMError as ce:
+            assert ce.status_code == CIM_ERR_NOT_FOUND
+
+        # Test that the methods were called
+        assert test_provider.createinstance is True
+        assert test_provider.modifyinstance is True
+        assert test_provider.deleteinstance is True
+        assert test_provider.postregistersetup is True
 
 
 def resolve_class(conn, cls, ns):
@@ -4090,22 +4213,20 @@ class TestInstanceOperations(object):
         ['interop', 'root/interop', 'root/PG_InterOp']
     )
     @pytest.mark.parametrize(
-        "desc, additional_ns, new_inst, exp_ns, exp_exc",
+        "desc, additional_ns, new_ns, exp_ns, exp_exc",
         [
             (
                 "Create namespace that does not exist yet, with already "
                 "normalized name",
                 [],
-                CIMInstance('CIM_Namespace',
-                            properties=dict(Name='root/blah')),
+                'root/blah',
                 'root/blah', None
             ),
             (
                 "Create namespace that does not exist yet, with not yet "
                 "normalized name",
                 [],
-                CIMInstance('CIM_Namespace',
-                            properties=dict(Name='//root/blah//')),
+                '//root/blah//',
                 'root/blah', None
             ),
             (
@@ -4124,44 +4245,36 @@ class TestInstanceOperations(object):
         ]
     )
     def test_createinstance_namespace(self, conn, tst_pg_namespace_class,
-                                      desc, interop_ns, additional_ns, new_inst,
+                                      desc, interop_ns, additional_ns, new_ns,
                                       exp_ns, exp_exc):
         # pylint: disable=no-self-use,unused-argument
         """
         Test the faked CreateInstance with a namespace instance to create ns.
         """
+        pytest.skip("This test marked to be skipped")
+        schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                               verbose=False)
 
-        # TODO this is temp because test does
-        return
-        # pylint: disable=unreachable
-
-        conn.install_privileged_providers(interop_ns, DMTF_TEST_SCHEMA_VER,
-                                          TESTSUITE_SCHEMA_DIR)
+        conn.install_namespace_provider(
+            interop_ns,
+            schema_pragma_file=schema.schema_pragma_file,
+            verbose=None)
 
         for ns in additional_ns:
             conn.add_namespace(ns)
 
         if not exp_exc:
             # The code to be tested
-            properties = [('Name', interop_ns),
-                          ('CreationClassName', new_inst.classname),
-                          ('ObjectManagerName', OBJECTMANAGERNAME),
-                          ('ObjectManagerCreationClassName',
-                           'CIM_ObjectManager'),
-                          ('SystemName', SYSTEMNAME),
-                          ('SystemCreationClassName', SYSTEMCREATIONCLASSNAME)]
-            new_inst.properties = properties
-            new_path = conn.CreateInstance(new_inst, namespace=interop_ns,
-                                           )
+            conn.add_namespace(new_ns)
+            exp_namespaces = additional_ns
+            exp_namespaces.extend([conn.default_namespace, interop_ns, new_ns])
 
-            act_ns = new_path.keybindings['Name']
-            assert act_ns == exp_ns
-            assert act_ns in conn.namespaces
+            assert set(conn.namespaces) == set(exp_namespaces)
+
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
-
                 # The code to be tested
-                conn.CreateInstance(new_inst, namespace=interop_ns)
+                conn.add_namespace(new_ns)
 
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
@@ -4536,11 +4649,7 @@ class TestInstanceOperations(object):
         """
         Test the faked DeleteInstance with a namespace instance to delete ns.
         """
-
-        # TODO this all goes away
-        return
-        # pylint: disable=unreachable
-
+        pytest.skip("This test marked to be skipped, superceeded")
         conn.add_namespace(interop_ns)
         conn.add_cimobjects(tst_qualifiers, namespace=interop_ns)
         conn.add_cimobjects(tst_pg_namespace_class, namespace=interop_ns)
