@@ -94,8 +94,8 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                 CIM_ERR_INVALID_PARAMETER,
                 _format("No Interop namespace found. "
                         "Construction of CIM_Namespace provider aborted."
-                        "Namespaces found: ",
-                        ", ".join(self.interop_namespace_names())))
+                        "Namespaces found: ", ", ".
+                        join(self.interop_namespace_names)))
 
         self.installed = False  # test if provider previously installed.
 
@@ -160,7 +160,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                     "namespace for the server. {1!A} is not an Interop "
                     "namespace. It must be one of {2!A} ",
                     NewInstance.classname, namespace,
-                    ", ".join(self.cimrepository.interop_namespace_names())))
+                    ", ".join(self.interop_namespace_names)))
 
         try:
             new_namespace = new_instance['Name']

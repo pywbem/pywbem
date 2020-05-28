@@ -922,14 +922,14 @@ class TestFakedWBEMConnection(object):
             assert disable is None
             assert conn.disable_pull_operations is False
 
-        # Test if the attribute correctly set in conn.mainprovider
+        # Test if the attribute correctly set in conn._mainprovider
         if disable:
-            assert conn.mainprovider.disable_pull_operations is True
+            assert conn._mainprovider.disable_pull_operations is True
         elif disable is False:
-            assert conn.mainprovider.disable_pull_operations is False
+            assert conn._mainprovider.disable_pull_operations is False
         else:
             assert disable is None
-            assert conn.mainprovider.disable_pull_operations is False
+            assert conn._mainprovider.disable_pull_operations is False
 
         conn.add_cimobjects(tst_classeswqualifiers)
         conn.add_cimobjects(tst_instances)
@@ -1010,7 +1010,7 @@ class TestRepoMethods(object):
         else:
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         # pylint: disable=protected-access
-        assert conn.mainprovider.class_exists(ns, cln) == exp_rtn
+        assert conn._mainprovider.class_exists(ns, cln) == exp_rtn
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES)
@@ -1044,11 +1044,11 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
 
         # pylint: disable=protected-access
-        class_store = conn._get_class_store(ns)
+        class_store = conn.cimrepository.get_class_store(ns)
 
-        assert set(conn.mainprovider._get_subclass_names(cln,
-                                                         class_store,
-                                                         di)) == \
+        assert set(conn._mainprovider._get_subclass_names(cln,
+                                                          class_store,
+                                                          di)) == \
             set(exp_clns)
 
     @pytest.mark.parametrize(
@@ -1078,8 +1078,8 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
 
         # pylint: disable=protected-access
-        class_store = conn._get_class_store(ns)
-        clns = conn.mainprovider._get_superclass_names(cln, class_store)
+        class_store = conn.cimrepository.get_class_store(ns)
+        clns = conn._mainprovider._get_superclass_names(cln, class_store)
         assert clns == exp_cln
 
     @pytest.mark.parametrize(
@@ -1121,14 +1121,14 @@ class TestRepoMethods(object):
 
         # _get_class gets a copy of the class filtered by the parameters
         # pylint: disable=protected-access
-        cl = conn.mainprovider.get_class(ns, cln, local_only=lo,
-                                         include_qualifiers=iq,
-                                         include_classorigin=ico,
-                                         property_list=pl)
+        cl = conn._mainprovider.get_class(ns, cln, local_only=lo,
+                                          include_qualifiers=iq,
+                                          include_classorigin=ico,
+                                          property_list=pl)
 
         cl_props = [p.name for p in six.itervalues(cl.properties)]
 
-        class_store = conn._get_class_store(ns)
+        class_store = conn.cimrepository.get_class_store(ns)
         tst_class = class_store.get(cln)
 
         if ico:
@@ -1218,9 +1218,9 @@ class TestRepoMethods(object):
                                 namespace=ns)
         if exp_exc is None:
             # pylint: disable=protected-access
-            instance_store = conn._get_instance_store(ns)
-            inst = conn.mainprovider._get_instance(iname, instance_store,
-                                                   lo, ico, iq, pl)
+            instance_store = conn.cimrepository.get_instance_store(ns)
+            inst = conn._mainprovider._get_instance(iname, instance_store,
+                                                    lo, ico, iq, pl)
             assert isinstance(inst, CIMInstance)
             assert inst.path.classname.lower() == cln.lower()
             assert iname == inst.path
@@ -1235,10 +1235,10 @@ class TestRepoMethods(object):
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
                 # pylint: disable=protected-access
-                instance_store = conn._get_instance_store(ns)
-                conn.mainprovider._get_instance(iname,
-                                                instance_store, lo,
-                                                ico, iq, pl)
+                instance_store = conn.cimrepository.get_instance_store(ns)
+                conn._mainprovider._get_instance(iname,
+                                                 instance_store, lo,
+                                                 ico, iq, pl)
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
@@ -1272,14 +1272,14 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        instance_store = conn.mainprovider.get_instance_store(ns)
+        instance_store = conn.cimrepository.get_instance_store(ns)
 
         iname = CIMInstanceName(cln,
                                 keybindings={'InstanceID': key},
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn.mainprovider.find_instance(iname, instance_store)
+        inst = conn._mainprovider.find_instance(iname, instance_store)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -1451,10 +1451,10 @@ class TestRepoMethods(object):
         exp_ns = ns or conn.default_namespace
 
         # pylint: disable=protected-access
-        class_store = conn._get_class_store(exp_ns)
+        class_store = conn.cimrepository.get_class_store(exp_ns)
         assert class_store.len() == len(tst_classes)
 
-        instance_store = conn._get_instance_store(exp_ns)
+        instance_store = conn.cimrepository.get_instance_store(exp_ns)
         assert instance_store.len() == len(tst_instances) + len(tst_insts_big)
 
     @pytest.mark.parametrize(
@@ -1680,12 +1680,12 @@ class TestRepoMethods(object):
 
         conn.compile_mof_string(q1, ns)
         # pylint: disable=protected-access
-        qual_repo = conn._get_qualifier_store(exp_ns)
+        qual_repo = conn.cimrepository.get_qualifier_store(exp_ns)
 
         assert qual_repo.object_exists('Association')
         conn.compile_mof_string(q2, ns)
 
-        qual_repo = conn._get_qualifier_store(exp_ns)
+        qual_repo = conn.cimrepository.get_qualifier_store(exp_ns)
         # pylint: enable=protected-access
 
         assert qual_repo.object_exists('Association')
@@ -1856,8 +1856,9 @@ class TestRepoMethods(object):
                               search_paths=[dmtf_schema.schema_mof_dir])
 
         # pylint: disable=protected-access
-        assert conn._get_class_store(ns).len() == TOTAL_CLASSES
-        assert conn._get_qualifier_store(ns).len() == TOTAL_QUALIFIERS
+        assert conn.cimrepository.get_class_store(ns).len() == TOTAL_CLASSES
+        assert conn.cimrepository.get_qualifier_store(ns).len() == \
+            TOTAL_QUALIFIERS
 
     @ pytest.mark.parametrize(
         # Test use of both compile_dmtf_schema and compile_schema_classes
@@ -2251,8 +2252,7 @@ class TestRegisterProviderMethods(object):
             for item in inputs:
                 tst_ns = item[0]
                 provider = item[1]
-                conn.register_provider(provider(conn.cimrepository),
-                                       tst_ns)
+                conn.register_provider(provider(conn.cimrepository), tst_ns)
 
             assert provider.provider_type == 'instance'
             provider_classnames = provider.provider_classnames
@@ -2260,16 +2260,16 @@ class TestRegisterProviderMethods(object):
             if not isinstance(provider_classnames, (list, tuple)):
                 provider_classnames = [provider_classnames]
             for cln in provider_classnames:
-                assert cln in conn.provider_registry._registry
+                assert cln in conn._provider_registry._registry
                 if isinstance(tst_ns, six.string_types):
                     tst_ns = [tst_ns]
 
                 if tst_ns:
                     for _ns in tst_ns:
-                        assert _ns in conn.provider_registry._registry[cln]
+                        assert _ns in conn._provider_registry._registry[cln]
                 else:
                     assert conn.default_namespace in \
-                        conn.provider_registry._registry[cln]
+                        conn._provider_registry._registry[cln]
 
         else:
             with pytest.raises(exp_exec):
@@ -2386,7 +2386,7 @@ class TestRegisterProviderMethods(object):
 
         # Test provider registration with get_registered_provider()
         if not exp_rslt or exp_rslt is True:
-            rtn = conn.provider_registry.get_registered_provider(
+            rtn = conn._provider_registry.get_registered_provider(
                 get_ns, get_pt, get_cln)
             if exp_rslt is None:
                 assert rtn is None
@@ -2528,9 +2528,9 @@ def resolve_class(conn, cls, ns):
     """
     ns = ns or conn.default_namespace
     # pylint: disable=protected-access
-    qualifier_store = conn._get_qualifier_store(ns)
+    qualifier_store = conn.cimrepository.get_qualifier_store(ns)
     # pylint: disable=protected-access
-    rslvd_cls = conn.mainprovider._resolve_class(cls, ns, qualifier_store)
+    rslvd_cls = conn._mainprovider._resolve_class(cls, ns, qualifier_store)
     return rslvd_cls
 
 
@@ -3327,8 +3327,8 @@ class TestClassOperations(object):
                                       IncludeClassOrigin=True,
                                       LocalOnly=False)
             ns = ns or conn.default_namespace
-            class_store = conn._get_class_store(ns)
-            superclasses = conn.mainprovider._get_superclass_names(
+            class_store = conn.cimrepository.get_class_store(ns)
+            superclasses = conn._mainprovider._get_superclass_names(
                 new_class.classname, class_store)
 
             if new_class.superclass is None:
@@ -3590,16 +3590,16 @@ class TestInstanceOperations(object):
         namespace = conn.default_namespace if ns is None else ns
 
         # pylint: disable=protected-access
-        class_store = conn._get_class_store(namespace)
-        exp_subclasses = conn.mainprovider._get_subclass_names(cln,
-                                                               class_store,
-                                                               True)
+        class_store = conn.cimrepository.get_class_store(namespace)
+        exp_subclasses = conn._mainprovider._get_subclass_names(cln,
+                                                                class_store,
+                                                                True)
         exp_subclasses.append(cln)
         sub_class_dict = NocaseDict()
         for name in exp_subclasses:
             sub_class_dict[name] = name
 
-        instance_store = conn._get_instance_store(namespace)
+        instance_store = conn.cimrepository.get_instance_store(namespace)
         request_inst_names = [i.path for i in instance_store.iter_values()
                               if i.classname in sub_class_dict]
 
@@ -3639,7 +3639,7 @@ class TestInstanceOperations(object):
         namespace = ns or conn.default_namespace
 
         # pylint: disable=protected-access
-        instance_store = conn._get_instance_store(namespace)
+        instance_store = conn.cimrepository.get_instance_store(namespace)
         # pylint: enable=protected-access
 
         if not exp_exc:
@@ -3893,8 +3893,9 @@ class TestInstanceOperations(object):
             rtn_inst_names = conn.EnumerateInstanceNames(cln, ns)
 
             # pylint: disable=protected-access
-            request_inst_names = [i.path for i in conn._get_instance_store(ns)
-                                  if i.classname == cln]
+            request_inst_names = \
+                [i.path for i in conn.cimrepository.get_instance_store(ns)
+                 if i.classname == cln]
 
             assert len(rtn_inst_names) == len(request_inst_names)
 
@@ -5868,7 +5869,7 @@ class Method1TestProvider(MethodProvider):
                         "namespace {1!A}", classname, namespace))
 
         if isinstance(ObjectName, CIMInstanceName):
-            instance_store = self.get_instance_store(namespace)
+            instance_store = self.cimrepository.get_instance_store(namespace)
             inst = self.find_instance(ObjectName, instance_store, copy=False)
             if inst is None:
                 raise CIMError(

@@ -60,7 +60,7 @@ def test_interop_namespace_names():
     """
     conn = FakedWBEMConnection()
 
-    interop_ns = conn.interop_namespace_names()
+    interop_ns = conn.interop_namespace_names
 
     # get valid set from WBEMServer.
     interop_namespaces = WBEMServer.INTEROP_NAMESPACES
@@ -246,4 +246,4 @@ def test_install_namespace_provider(testcase, default_ns, ns):
         if namespace != ns:
             assert len(conn.EnumerateClasses(namespace=namespace)) == 0
 
-# TODO. Test add and remove namespaces more completely.
+# TODO. Test add and remove namespaces with more variations
