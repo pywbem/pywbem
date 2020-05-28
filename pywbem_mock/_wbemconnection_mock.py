@@ -291,7 +291,7 @@ class ProviderRegistry(object):
             # pragmas exist or generate an exception if no pragmas exist
 
             for namespace in namespaces:
-                if not conn.mainprovider.class_exists(namespace, classname):
+                if not conn._mainprovider.class_exists(namespace, classname):
                     if schema_pragma_files:
                         conn.compile_schema_classes(
                             classname,
@@ -457,41 +457,35 @@ class FakedWBEMConnection(WBEMConnection):
             use_pull_operations=use_pull_operations,
             stats_enabled=stats_enabled, timeout=timeout)
 
-        # Implementation of the CIM object repository that contains the server
-        # handler methods for each of the WBEM operations and is the data store
-        # for CIM classes, CIM instances, CIM qualifier declarations and
-        # CIM methods for the mocker.  All access to the mocker CIM data must
-        # pass through this variable to the CIM repository.
-        # See :py:module:`pywbem_mock/inmemoryrepository` for a description of
-        # the repository interface.
+        # See the cimrepository property for more information
+        self._cimrepository = None
 
         # Provider registry defines user added providers.  This is a dictionary
         # with key equal classname that contains entries for namespaces,
         # provider type, and provider for each class name defined
-        self.provider_registry = ProviderRegistry()
+        self._provider_registry = ProviderRegistry()
 
         # Define the datastore to be used with an initial namespace, the client
         # connection default namespace. This is passed to the mainprovider
         # and not used further in this class.
-        self.cimrepository = InMemoryRepository(self.default_namespace)
 
         # Initiate the MainProvider with parameters required to execute
-        self.mainprovider = MainProvider(self.host,
-                                         self.disable_pull_operations,
-                                         self.cimrepository)
+        self._mainprovider = MainProvider(self.host,
+                                          self.disable_pull_operations,
+                                          self.cimrepository)
 
         # Initiate the InstanceWriteProvider with the cimrepository
-        self.defaultinstanceprovider = InstanceWriteProvider(
-            self.cimrepository)
+        self._defaultinstanceprovider = InstanceWriteProvider(
+            self._cimrepository)
 
-        self.methodprovider = MethodProvider(self.cimrepository)
+        # self.methodprovider = MethodProvider(self.cimrepository)
 
         # Initiate instance of the ProviderDispatcher with required
         # parameters including the cimrepository
-        self.providerdispatcher = ProviderDispatcher(
-            self.cimrepository,
-            self.provider_registry,
-            self.defaultinstanceprovider)
+        self._providerdispatcher = ProviderDispatcher(
+            self._cimrepository,
+            self._provider_registry,
+            self._defaultinstanceprovider)
 
         # Flag to allow or disallow the use of the Open... and Pull...
         # operations. Uses the setter method
@@ -501,21 +495,43 @@ class FakedWBEMConnection(WBEMConnection):
         # instance of this class as the client interface.
         self._mofwbemconnection = _MockMOFWBEMConnection(self)
 
-        # Open Pull Contexts. The key for each context is an enumeration
-        # context id.  The data is the total list of instances/names to
-        # be returned and the current position in the list. Any context in
-        # this list is still open.
-        self.enumeration_contexts = {}
-
         self._imethodcall = Mock(side_effect=self._mock_imethodcall)
         self._methodcall = Mock(side_effect=self._mock_methodcall)
 
     @property
     def namespaces(self):
         """
-        list: List of namespaces in the repository.
+        list: List of namespaces in the CIM repository.
         """
-        return self.mainprovider.namespaces
+        return self._mainprovider.namespaces
+
+    @property
+    def interop_namespace_names(self):
+        """
+        list of :term:`string`: List of the valid Interop namespace names.
+        Only these names may be the Interop namespace and only one
+        Interop namespace may exist in a WBEM server environment.
+        This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
+
+        Namespace names need to be considered case insensitive.
+        """
+        return self._mainprovider.interop_namespace_names
+
+    @property
+    def cimrepository(self):
+        """
+        :class:`~pywbem.InMemoryRepository`: CIM instance of class
+        `InMemoryRepository`  that represents the CIM repository instance.
+
+        The CIM repository instance  is the data store for CIM classes, CIM
+        instances, and CIM qualifier declarations.  All access to the mocker
+        CIM data must pass through this variable to the CIM repository.
+        See :py:module:`pywbem_mock/inmemoryrepository` for a description of
+        the repository interface.
+        """
+        if self._cimrepository is None:
+            self._cimrepository = InMemoryRepository(self.default_namespace)
+        return self._cimrepository
 
     @property
     def response_delay(self):
@@ -567,7 +583,7 @@ class FakedWBEMConnection(WBEMConnection):
             # pylint: disable=attribute-defined-outside-init
             self._disable_pull_operations = disable
             # modify the parameter in the mainprovider
-            self.mainprovider.disable_pull_operations = disable
+            self._mainprovider.disable_pull_operations = disable
         else:
             raise ValueError(
                 _format('Invalid type for disable_pull_operations: {0!A}, '
@@ -587,18 +603,6 @@ class FakedWBEMConnection(WBEMConnection):
             "disable_pull_operations={s.disable_pull_operations} "
             "super={super})",
             s=self, super=super(FakedWBEMConnection, self).__repr__())
-
-    def _get_qualifier_store(self, namespace):
-        # pylint: disable=missing-function-docstring,missing-docstring
-        return self.mainprovider.get_qualifier_store(namespace)
-
-    def _get_class_store(self, namespace):
-        # pylint: disable=missing-function-docstring,missing-docstring
-        return self.mainprovider.get_class_store(namespace)
-
-    def _get_instance_store(self, namespace):
-        # pylint: disable=missing-function-docstring,missing-docstring
-        return self.mainprovider.get_instance_store(namespace)
 
     # The namespace management methods must be in the this class directly
     # so they can be access with call to the methods from instance of
@@ -623,7 +627,7 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
         """
-        self.mainprovider.add_namespace(namespace)
+        self._mainprovider.add_namespace(namespace)
 
     def remove_namespace(self, namespace):
         """
@@ -649,24 +653,7 @@ class FakedWBEMConnection(WBEMConnection):
             to delete the default connection namespace.  This namespace cannot
             be deleted from the CIM repository
         """
-        self.mainprovider.remove_namespace(namespace)
-
-    def interop_namespace_names(self):
-        """
-        Returns a list of the valid Interop namespace names.
-
-        Only the valid Interop namespace names can be used to register Interop
-        namespace providers.
-
-        This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
-
-        Note that namespace names need to be considered case insensitive.
-
-        Returns:
-
-          list of :term:`string`: The valid Interop namespace names.
-        """
-        return self.mainprovider.interop_namespace_names()
+        self._mainprovider.remove_namespace(namespace)
 
     def is_interop_namespace(self, namespace):
         """
@@ -686,7 +673,7 @@ class FakedWBEMConnection(WBEMConnection):
           :class:`py:bool`: Indicates whether the namespace name is a valid
           Interop namespace name.
         """
-        return self.mainprovider.is_interop_namespace(namespace)
+        return self._mainprovider.is_interop_namespace(namespace)
 
     def find_interop_namespace(self):
         """
@@ -701,7 +688,7 @@ class FakedWBEMConnection(WBEMConnection):
           :term:`string`: The name of the Interop namespace if one exists in
           the CIM repository or otherwise `None`.
         """
-        return self.mainprovider.find_interop_namespace()
+        return self._mainprovider.find_interop_namespace()
 
     def install_namespace_provider(self, interop_namespace,
                                    schema_pragma_file=None,
@@ -736,7 +723,8 @@ class FakedWBEMConnection(WBEMConnection):
             If True, displays progress information as providers are installed.
 
         Raises:
-          TODO
+          :exc:`~pywbem.CIMError`: with status code appropriate for any
+          error encountered in the installation of the provider.
         """
 
         # TODO: sort out possible issue where the Interop namespace is not
@@ -810,7 +798,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
 
         namespace = namespace or self.default_namespace
-        self.mainprovider.validate_namespace(namespace)
+        self._mainprovider.validate_namespace(namespace)
 
         # issue #2063 refactor this so there is cleaner interface to
         # WBEMConnection
@@ -873,7 +861,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         namespace = namespace or self.default_namespace
 
-        self.mainprovider.validate_namespace(namespace)
+        self._mainprovider.validate_namespace(namespace)
 
         mofcomp = MOFCompiler(self._mofwbemconnection,
                               search_paths=search_paths,
@@ -1121,7 +1109,7 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable=line-too-long
         namespace = namespace or self.default_namespace
-        self.mainprovider.validate_namespace(namespace)
+        self._mainprovider.validate_namespace(namespace)
 
         if isinstance(objects, list):
             for obj in objects:
@@ -1132,22 +1120,21 @@ class FakedWBEMConnection(WBEMConnection):
             if isinstance(obj, CIMClass):
                 cc = obj.copy()
                 if cc.superclass:
-                    if not self.mainprovider.class_exists(namespace,
-                                                          cc.superclass):
+                    if not self._mainprovider.class_exists(namespace,
+                                                           cc.superclass):
                         raise ValueError(
                             _format("Class {0!A} defines superclass {1!A} but "
                                     "the superclass does not exist in the "
                                     "repository.",
                                     cc.classname, cc.superclass))
-                class_store = self._get_class_store(namespace)
-
-                qualifier_store = self._get_qualifier_store(namespace)
 
                 # pylint: disable=protected-access
-                cc1 = self.mainprovider._resolve_class(cc, namespace,
-                                                       qualifier_store,
-                                                       verbose=False)
+                cc1 = self._mainprovider._resolve_class(
+                    cc, namespace,
+                    self.cimrepository.get_qualifier_store(namespace),
+                    verbose=False)
 
+                class_store = self.cimrepository.get_class_store(namespace)
                 class_store.create(cc.classname, cc1.copy())
 
             elif isinstance(obj, CIMInstance):
@@ -1161,11 +1148,12 @@ class FakedWBEMConnection(WBEMConnection):
                     inst.path.namespace = namespace
                 if inst.path.host is not None:
                     inst.path.host = None
-                instance_store = self._get_instance_store(namespace)
+                instance_store = \
+                    self.cimrepository.get_instance_store(namespace)
                 try:
                     # pylint: disable=protected-access
-                    if self.mainprovider.find_instance(inst.path,
-                                                       instance_store):
+                    if self._mainprovider.find_instance(inst.path,
+                                                        instance_store):
                         raise ValueError(
                             _format("The instance {0!A} already exists in "
                                     "namespace {1!A}", inst, namespace))
@@ -1178,7 +1166,8 @@ class FakedWBEMConnection(WBEMConnection):
 
             elif isinstance(obj, CIMQualifierDeclaration):
                 qual = obj.copy()
-                qualifier_store = self._get_qualifier_store(namespace)
+                qualifier_store = \
+                    self.cimrepository.get_qualifier_store(namespace)
                 qualifier_store.create(qual.name, qual)
 
             else:
@@ -1244,13 +1233,15 @@ class FakedWBEMConnection(WBEMConnection):
                     _format(u"\n{0}NAMESPACE {1!A}{2}\n",
                             cmt_begin, ns, cmt_end))
             self._display_objects('Qualifier Declarations',
-                                  self._get_qualifier_store(ns),
+                                  self.cimrepository.get_qualifier_store(ns),
                                   ns, cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
-            self._display_objects('Classes', self._get_class_store(ns), ns,
+            self._display_objects('Classes',
+                                  self.cimrepository.get_class_store(ns), ns,
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
-            self._display_objects('Instances', self._get_instance_store(ns), ns,
+            self._display_objects('Instances',
+                                  self.cimrepository.get_instance_store(ns), ns,
                                   cmt_begin, cmt_end, dest=dest,
                                   summary=summary, output_format=output_format)
 
@@ -1418,7 +1409,7 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        self.provider_registry.register_provider(
+        self._provider_registry.register_provider(
             self, provider, namespaces=namespaces,
             schema_pragma_files=schema_pragma_files,
             verbose=verbose)
@@ -1540,7 +1531,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-        instance_paths = self.mainprovider.EnumerateInstanceNames(
+        instance_paths = self._mainprovider.EnumerateInstanceNames(
             ClassName=_cvt_rqd_classname(params['ClassName']),
             namespace=namespace)
         return self._make_tuple(instance_paths)
@@ -1564,7 +1555,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-        instances = self.mainprovider.EnumerateInstances(
+        instances = self._mainprovider.EnumerateInstances(
             ClassName=_cvt_rqd_classname(params['ClassName']),
             namespace=namespace,
             LocalOnly=params.get('LocalOnly', None),
@@ -1599,7 +1590,7 @@ class FakedWBEMConnection(WBEMConnection):
         instance_name = params['InstanceName']
         assert instance_name.namespace is None
         instance_name.namespace = namespace
-        instance = self.mainprovider.GetInstance(
+        instance = self._mainprovider.GetInstance(
             InstanceName=instance_name,
             LocalOnly=params.get('LocalOnly', None),
             IncludeQualifiers=params.get('IncludeQualifiers', None),
@@ -1626,7 +1617,7 @@ class FakedWBEMConnection(WBEMConnection):
           Error: Exceptions from the call
         """
 
-        new_instance_path = self.providerdispatcher.CreateInstance(
+        new_instance_path = self._providerdispatcher.CreateInstance(
             namespace=namespace,
             NewInstance=params['NewInstance'])
         return self._make_tuple([new_instance_path])
@@ -1657,7 +1648,7 @@ class FakedWBEMConnection(WBEMConnection):
         assert modified_instance.path.namespace is None
         modified_instance.path.namespace = namespace
 
-        self.providerdispatcher.ModifyInstance(
+        self._providerdispatcher.ModifyInstance(
             ModifiedInstance=modified_instance,
             IncludeQualifiers=params.get('IncludeQualifiers', None),
             PropertyList=params.get('PropertyList', None))
@@ -1687,7 +1678,7 @@ class FakedWBEMConnection(WBEMConnection):
         assert instance_name.namespace is None
         instance_name.namespace = namespace
 
-        self.providerdispatcher.DeleteInstance(
+        self._providerdispatcher.DeleteInstance(
             InstanceName=instance_name)
 
     def _imeth_ExecQuery(self, namespace, **params):
@@ -1709,7 +1700,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-        instances = self.mainprovider.ExecQuery(
+        instances = self._mainprovider.ExecQuery(
             namespace=namespace,
             QueryLanguage=params['QueryLanguage'],
             Query=params['Query'])
@@ -1725,7 +1716,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        classes = self.mainprovider.EnumerateClasses(
+        classes = self._mainprovider.EnumerateClasses(
             params.get("namespace", namespace),
             ClassName=_cvt_opt_classname(params.get('ClassName', None)),
             DeepInheritance=params.get('DeepInheritance', None),
@@ -1740,7 +1731,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        classnames = self.mainprovider.EnumerateClassNames(
+        classnames = self._mainprovider.EnumerateClassNames(
             params.get("namespace", namespace),
             ClassName=_cvt_opt_classname(params.get('ClassName', None)),
             DeepInheritance=params.get('DeepInheritance', None))
@@ -1757,7 +1748,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        klass = self.mainprovider.GetClass(
+        klass = self._mainprovider.GetClass(
             params.get("namespace", namespace),
             ClassName=_cvt_rqd_classname(params['ClassName']),
             LocalOnly=params.get('LocalOnly', None),
@@ -1772,7 +1763,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        self.mainprovider.CreateClass(
+        self._mainprovider.CreateClass(
             namespace,
             NewClass=params['NewClass'])
 
@@ -1782,7 +1773,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        self.mainprovider.ModifyClass(
+        self._mainprovider.ModifyClass(
             namespace,
             ModifiedClass=params['ModifiedClass'])
 
@@ -1792,7 +1783,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        self.mainprovider.DeleteClass(
+        self._mainprovider.DeleteClass(
             namespace,
             ClassName=_cvt_rqd_classname(params['ClassName']))
 
@@ -1805,7 +1796,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        qualifiers = self.mainprovider.EnumerateQualifiers(
+        qualifiers = self._mainprovider.EnumerateQualifiers(
             namespace=namespace)
         return self._make_tuple(qualifiers)
 
@@ -1815,7 +1806,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        qualifier = self.mainprovider.GetQualifier(
+        qualifier = self._mainprovider.GetQualifier(
             namespace=namespace,
             QualifierName=params['QualifierName'])
         return self._make_tuple([qualifier])
@@ -1826,7 +1817,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        self.mainprovider.DeleteQualifier(
+        self._mainprovider.DeleteQualifier(
             namespace=namespace,
             QualifierName=params['QualifierName'])
 
@@ -1836,7 +1827,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        self.mainprovider.SetQualifier(
+        self._mainprovider.SetQualifier(
             namespace=namespace,
             QualifierDeclaration=params['QualifierDeclaration'])
 
@@ -1848,7 +1839,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.,
         """
-        object_names = self.mainprovider.ReferenceNames(
+        object_names = self._mainprovider.ReferenceNames(
             namespace=namespace,
             ObjectName=_cvt_obj_name(params['ObjectName']),
             ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
@@ -1861,7 +1852,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        objects = self.mainprovider.References(
+        objects = self._mainprovider.References(
             namespace=namespace,
             ObjectName=_cvt_obj_name(params['ObjectName']),
             ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
@@ -1877,7 +1868,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        object_names = self.mainprovider.AssociatorNames(
+        object_names = self._mainprovider.AssociatorNames(
             namespace=namespace,
             ObjectName=_cvt_obj_name(params['ObjectName']),
             AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
@@ -1892,7 +1883,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        objects = self.mainprovider.Associators(
+        objects = self._mainprovider.Associators(
             namespace=namespace,
             ObjectName=_cvt_obj_name(params['ObjectName']),
             AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
@@ -1912,7 +1903,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.OpenEnumerateInstancePaths(
+        context_tuple = self._mainprovider.OpenEnumerateInstancePaths(
             namespace=namespace,
             ClassName=_cvt_rqd_classname(params['ClassName']),
             FilterQueryLanguage=params.get('FilterQueryLanguage', None),
@@ -1929,7 +1920,7 @@ class FakedWBEMConnection(WBEMConnection):
         for imethodcall.
         """
 
-        context_tuple = self.mainprovider.OpenEnumerateInstances(
+        context_tuple = self._mainprovider.OpenEnumerateInstances(
             namespace=namespace,
             ClassName=_cvt_rqd_classname(params['ClassName']),
             IncludeClassOrigin=params.get('IncludeClassOrigin', None),
@@ -1947,7 +1938,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.OpenReferenceInstancePaths(
+        context_tuple = self._mainprovider.OpenReferenceInstancePaths(
             namespace=namespace,
             InstanceName=params['InstanceName'],
             ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
@@ -1965,7 +1956,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.OpenReferenceInstances(
+        context_tuple = self._mainprovider.OpenReferenceInstances(
             namespace=namespace,
             InstanceName=params['InstanceName'],
             ResultClass=_cvt_opt_classname(params.get('ResultClass', None)),
@@ -1985,7 +1976,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.OpenAssociatorInstances(
+        context_tuple = self._mainprovider.OpenAssociatorInstances(
             namespace=namespace,
             InstanceName=params['InstanceName'],
             AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
@@ -2007,7 +1998,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.OpenAssociatorInstancePaths(
+        context_tuple = self._mainprovider.OpenAssociatorInstancePaths(
             namespace=namespace,
             InstanceName=params['InstanceName'],
             AssocClass=_cvt_opt_classname(params.get('AssocClass', None)),
@@ -2027,7 +2018,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.OpenQueryInstances(
+        context_tuple = self._mainprovider.OpenQueryInstances(
             namespace=namespace,
             FilterQueryLanguage=params.get('FilterQueryLanguage', None),
             FilterQuery=params.get('FilterQuery', None),
@@ -2044,7 +2035,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.PullInstancePaths(
+        context_tuple = self._mainprovider.PullInstancePaths(
             EnumerationContext=params['EnumerationContext'],
             MaxObjectCount=params['MaxObjectCount'])
         return self._make_pull_imethod_resp(*context_tuple)
@@ -2056,7 +2047,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.PullInstancesWithPath(
+        context_tuple = self._mainprovider.PullInstancesWithPath(
             EnumerationContext=params['EnumerationContext'],
             MaxObjectCount=params['MaxObjectCount'])
         return self._make_pull_imethod_resp(*context_tuple)
@@ -2068,7 +2059,7 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
         """
-        context_tuple = self.mainprovider.PullInstances(
+        context_tuple = self._mainprovider.PullInstances(
             EnumerationContext=params['EnumerationContext'],
             MaxObjectCount=params['MaxObjectCount'])
         return self._make_pull_imethod_resp(*context_tuple)
@@ -2079,7 +2070,7 @@ class FakedWBEMConnection(WBEMConnection):
         Call :meth:`~pywbem_mock.MainProvider.CloseEnumeration` with
         parameters defined for that method. Returns nothing
         """
-        self.mainprovider.CloseEnumeration(
+        self._mainprovider.CloseEnumeration(
             EnumerationContext=params['EnumerationContext'])
 
     ####################################################################
@@ -2214,10 +2205,10 @@ class FakedWBEMConnection(WBEMConnection):
                 params_dict[param] = CIMParameter(param,
                                                   cimtype(params[param]),
                                                   value=params[param])
-        result = self.providerdispatcher.InvokeMethod(namespace,
-                                                      methodname,
-                                                      localobject,
-                                                      params_dict)
+        result = self._providerdispatcher.InvokeMethod(namespace,
+                                                       methodname,
+                                                       localobject,
+                                                       params_dict)
 
         # test for valid data in response.
         if not isinstance(result, (list, tuple)):

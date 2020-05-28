@@ -118,6 +118,10 @@ class MainProvider(BaseProvider, ResolverMixin):
     The MainProvider class also includes methods to add namespaces, remove
     namespaces and get a list of namespaces in the CIM repository.
 
+    There MUST BE only one instance of MainProvider created for each
+    FakedWBEMConnection attributes since some of the instance level structures
+    depend on a single instance of the attribute throughout a connection.
+
     For more details, see mocksupport.rst.
     """
 
@@ -125,15 +129,28 @@ class MainProvider(BaseProvider, ResolverMixin):
         # pylint: disable=super-init-not-called
         """
         Parameters:
-            conn(:class:`~pywbem_mock.FakedWBEMConnection`):
-              The current instance of the connection from which some
-              variables are extracted for the repository including
-              the host and disable_pull_operations attributes.
+            host (:term:`string`):
+                Value of the host attribute from the class that called
+                this constructor, normally FakedWBEMConnection.  This
+                attribute is used to contstruct the host component of
+                CIMNamespaces in some responses.
 
+          disable_pull_operations (:class:`py:bool`):
+            Flag to allow user to disable the pull operations ( Open... and
+            Pull.. requests). The default is None which enables pull operations
+            to execute. Setting the variable to True causes pull operation
+            requests to the mock CIM repository to return CIM_ERR_NOT_SUPPORTED.
+            cim_repository
+
+          cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
+            Defines the repository to be used by request responders.  The
+            repository is fully initialized.
         """
         super(MainProvider, self).__init__(cimrepository)
 
+        # value of the host name.  This should be considered read-only
         self.host = host
+
         self.disable_pull_operations = disable_pull_operations
 
         # Open Pull Contexts. The key for each context is an enumeration
@@ -283,7 +300,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                  association class
         """
 
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
         for cl in class_store.iter_values():
             if 'Association' in cl.qualifiers:
                 yield cl
@@ -595,7 +612,7 @@ class MainProvider(BaseProvider, ResolverMixin):
               the classname parameter does not exist.
         """
         self.validate_namespace(namespace)
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         if ClassName:
             assert(isinstance(ClassName, six.string_types))
@@ -678,7 +695,7 @@ class MainProvider(BaseProvider, ResolverMixin):
               the classname parameter does not exist.
         """
         self.validate_namespace(namespace)
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         if ClassName:
             assert(isinstance(ClassName, six.string_types))
@@ -827,7 +844,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Validate namespace in class store and get the class CIM repository
         # for this namespace.
         self.validate_namespace(namespace)
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         if class_store.object_exists(NewClass.classname):
             raise CIMError(
@@ -838,7 +855,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Create copy because resolve_class modifies elements of class
         new_class = deepcopy(NewClass)
 
-        qualifier_store = self.get_qualifier_store(namespace)
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
         self._resolve_class(new_class, namespace, qualifier_store,
                             verbose=False)
 
@@ -886,7 +903,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                 _format("ModifyClass not valid CIMClass. Rcvd type={0}",
                         type(ModifiedClass)))
 
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         if not class_store.object_exists(ModifiedClass.classname):
             raise CIMError(
@@ -897,7 +914,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # create copy because resolve_class can modify elements of class
         modified_class = deepcopy(ModifiedClass)
 
-        qualifier_store = self.get_qualifier_store(namespace)
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
         self._resolve_class(modified_class, namespace, qualifier_store,
                             verbose=False)
 
@@ -939,8 +956,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         """
 
         self.validate_namespace(namespace)
-        class_store = self.get_class_store(namespace)
-        instance_store = self.get_instance_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
 
         if not class_store.object_exists(ClassName):
             raise CIMError(
@@ -1008,7 +1025,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """
 
         self.validate_namespace(namespace)
-        qualifier_store = self.get_qualifier_store(namespace)
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         # pylint: disable=unnecessary-comprehension
         qualifiers = [q for q in qualifier_store.iter_values()]
@@ -1052,7 +1069,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """
 
         self.validate_namespace(namespace)
-        qualifier_store = self.get_qualifier_store(namespace)
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         try:
             qualifier = qualifier_store.get(QualifierName)
@@ -1098,7 +1115,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """
 
         self.validate_namespace(namespace)
-        qualifier_store = self.get_qualifier_store(namespace)
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         qual_decl = QualifierDeclaration
         if not isinstance(qual_decl, CIMQualifierDeclaration):
@@ -1152,7 +1169,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """
 
         self.validate_namespace(namespace)
-        qualifier_store = self.get_qualifier_store(namespace)
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         if qualifier_store.object_exists(QualifierName):
             qualifier_store.delete(QualifierName)
@@ -1271,7 +1288,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Set LocalOnly to False as fixed value.
         LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
 
-        instance_store = self.get_instance_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
 
         if not self.class_exists(namespace, iname.classname):
             raise CIMError(
@@ -1384,8 +1401,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         # pylint: enable=line-too-long
 
         self.validate_namespace(namespace)
-        instance_store = self.get_instance_store(namespace)
-        class_store = self.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         assert isinstance(ClassName, six.string_types)
 
@@ -1474,8 +1491,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         assert isinstance(ClassName, six.string_types)
 
         self.validate_namespace(namespace)
-        instance_store = self.get_instance_store(namespace)
-        class_store = self.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         clns = self._get_subclass_list_for_enums(ClassName, namespace,
                                                  class_store)
@@ -1654,7 +1671,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         Returns:
             list of classnames that satisfy the criteria.
         """
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
         self._validate_class_exists(namespace, classname, "TargetClass")
 
         if result_class:
@@ -1696,8 +1713,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         the original, not a copy so the user must copy them
         """
 
-        instance_store = self.get_instance_store(namespace)
-        class_store = self.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         # DSP0200 specifies INVALID_PARAMETER and not INVALID_CLASS
         if not class_store.object_exists(instname.classname):
@@ -1749,7 +1766,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """
 
         # Validate namespace and get class_store for this namespace
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
         if assoc_class:
             self._validate_class_exists(namespace, assoc_class, "AssocClass")
 
@@ -1804,8 +1821,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         the original, not a copy so the user must copy them
         """
 
-        instance_store = self.get_instance_store(namespace)
-        class_store = self.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         if assoc_class:
             self._validate_class_exists(namespace, assoc_class, "AssocClass")
@@ -2091,7 +2108,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                       ResultClass,
                                                       Role)
 
-            instance_store = self.get_instance_store(namespace)
+            instance_store = self.cimrepository.get_instance_store(namespace)
             rtn_insts = [self._get_instance(path, instance_store,
                                             INSTANCE_RETRIEVE_LOCAL_ONLY,
                                             IncludeClassOrigin,
@@ -2295,7 +2312,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                              ResultClass,
                                                              ResultRole, Role)
             results = []
-            instance_store = self.get_instance_store(namespace)
+            instance_store = self.cimrepository.get_instance_store(namespace)
             for obj_name in assoc_names:
                 results.append(self._get_instance(
                     obj_name, instance_store,

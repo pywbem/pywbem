@@ -79,40 +79,18 @@ class BaseProvider(object):
         """
         return self.cimrepository.namespaces
 
-    ###############################################################
-    #
-    #   Access to data store
-    #
-    #   The following methods provide access to the data store for
-    #   a single namespace. There are separate methods to provide
-    #   access to each of the 3 object stores within each namespace of
-    #   the CIM Repository CIMClass, CIMInstance, and CIMQualifierDeclaration.
-    #
-    ##################################################################
-
-    def get_class_store(self, namespace):
+    @property
+    def interop_namespace_names(self):
         """
-        Returns the class object store for the specified CIM namespace within
-        the CIM repository.  This method validates that the namespace exists in
-        the data store.
+        list of :term:`string`: List of the valid Interop namespace names.
+        Only these names may be the Interop namespace and only one
+        Interop namespace may exist in a WBEM server environment.
 
-        This method does not validate that the namespace exists. Be certain
-        namespace is validated against CIM repository before calling this
-        method
+        This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
 
-        Parameters:
-
-          namespace(:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing
-            slash charactes are ignored.
-
-        Returns:
-
-          :class:`~pywbem_mock.BaseObjectStore`: Object store for classes
-          in the CIM repository.
+        Namespace names need to be considered case insensitive.
         """
-        return self.cimrepository.get_class_store(namespace)
+        return WBEMServer.INTEROP_NAMESPACES
 
     def get_instance_store(self, namespace):
         """
@@ -288,24 +266,6 @@ class BaseProvider(object):
                 CIM_ERR_NAMESPACE_NOT_EMPTY,
                 _format("Namespace {0!A} contains objects.", namespace))
 
-    @staticmethod
-    def interop_namespace_names():  # pylint: disable=no-self-use
-        """
-        Returns a list of the valid Interop namespace names.
-
-        Only the valid Interop namespace names can be used to register Interop
-        namespace providers.
-
-        This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
-
-        Namespace names need to be considered case insensitive.
-
-        Returns:
-
-          list of :term:`string`: The valid Interop namespace names.
-        """
-        return WBEMServer.INTEROP_NAMESPACES
-
     def is_interop_namespace(self, namespace):  # pylint: disable=no-self-use
         """
         Tests if a namespace name is a valid Interop namespace name.
@@ -324,7 +284,7 @@ class BaseProvider(object):
           :class:`py:bool`: Indicates whether the namespace name is a valid
           Interop namespace name.
         """
-        ns_lower = [ns.lower() for ns in self.interop_namespace_names()]
+        ns_lower = [ns.lower() for ns in self.interop_namespace_names]
         return namespace.lower() in ns_lower
 
     def find_interop_namespace(self):
@@ -341,7 +301,7 @@ class BaseProvider(object):
           the CIM repository or otherwise `None`.
         """
         ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
-        for name in self.interop_namespace_names():
+        for name in self.interop_namespace_names:
             if name in ns_dict:
                 return ns_dict[name]
         return None
@@ -464,7 +424,7 @@ class BaseProvider(object):
               does not exist.
         """
 
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
 
         # Try to get the target class and create a copy for response
         try:
@@ -509,7 +469,7 @@ class BaseProvider(object):
 
           Exception if the namespace does not exist
         """
-        class_store = self.get_class_store(namespace)
+        class_store = self.cimrepository.get_class_store(namespace)
         return class_store.object_exists(classname)
 
     @staticmethod
