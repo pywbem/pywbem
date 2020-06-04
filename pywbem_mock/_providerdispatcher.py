@@ -35,7 +35,7 @@ import six
 
 from pywbem import CIMInstance, CIMInstanceName, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
-    CIM_ERR_METHOD_NOT_AVAILABLE, CIM_ERR_METHOD_NOT_FOUND
+    CIM_ERR_METHOD_NOT_FOUND
 
 from pywbem._utils import _format
 
@@ -269,4 +269,4 @@ class ProviderDispatcher(BaseProvider):
 
         # There is no default method provider so no user InvokeMethod
         # is defined for namespace and class, exception raise.
-        raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
+        raise CIMError(CIM_ERR_METHOD_NOT_FOUND)

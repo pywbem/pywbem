@@ -153,16 +153,6 @@ def validate_inst_props(namespace, target_class, instance):
         if cprop_name != iprop_name:
             instance.properties[iprop_name].name = cprop_name
 
-        # If property not in instance, add it from class and use default value
-        # from class
-        add_props = dict()
-        for cprop_name in target_class.properties:
-            if cprop_name not in instance:
-                default_value = target_class.properties[cprop_name]
-                add_props[cprop_name] = default_value
-
-    instance.update(add_props)
-
 
 class InstanceWriteProvider(BaseProvider):
     """
