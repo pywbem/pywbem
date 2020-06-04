@@ -2441,7 +2441,8 @@ class TestUserDefinedProviders(object):
         conn.register_provider(CIM_FooUserProvider(conn.cimrepository), ns)
 
         new_instance = CIMInstance("CIM_Foo_sub",
-                                   properties={'InstanceID': 'origid'})
+                                   properties={'InstanceID': 'origid',
+                                               'cimfoo_sub': 'OrigValue'})
 
         rtnd_path = conn.CreateInstance(new_instance)
         rtnd_instance = conn.GetInstance(rtnd_path)
@@ -2577,7 +2578,7 @@ class TestUserDefinedProviders(object):
                 """
                 self.createinstance = True
                 # modify the InstanceID property
-                NewInstance.properties["InstanceID"].value = "USER_PROVIDER1"
+                NewInstance.properties["InstanceID"].value = "USER_PROVIDER3"
 
                 return super(CIM_FooSubUserProvider, self).CreateInstance(
                     namespace, NewInstance)
@@ -2605,13 +2606,13 @@ class TestUserDefinedProviders(object):
         skip_if_moftab_regenerated()
 
         ns = conn.default_namespace
-
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
         test_provider = CIM_FooSubUserProvider(conn.cimrepository)
         conn.register_provider(test_provider, ns)
 
         new_instance = CIMInstance("CIM_Foo_sub",
-                                   properties={'InstanceID': 'origid'})
+                                   properties={'InstanceID': 'origid',
+                                               'cimfoo_sub': 'OrigValue'})
 
         rtnd_path = conn.CreateInstance(new_instance)
 
@@ -2619,7 +2620,7 @@ class TestUserDefinedProviders(object):
 
         # Test that the instance was created with the InstanceID defined
         # by the user-defined provider
-        assert rtnd_path.keybindings["InstanceId"] == "USER_PROVIDER1"
+        assert rtnd_path.keybindings["InstanceId"] == "USER_PROVIDER3"
         assert rtnd_instance.path == rtnd_path
 
         modified_instance = rtnd_instance
@@ -4697,14 +4698,15 @@ class TestPullOperations(object):
         # src_class: Source instance definitions (classname and name property
         # maxobj: Max object count for each operation
         # exp_eos: If True, eos expected on open request
-        "src_class,  maxobj, exp_rslt, open_eos", [
+        "src_class,  maxobj, exp_open_eos", [
             ['TST_Person', 100, True],
-
             ['TST_Person', 1, False],
+            ['TST_Person', 2, False],
+
         ]
     )
     def test_openenumerateinstancepaths(self, conn, ns, src_class, maxobj,
-                                        exp_eos, tst_assoc_mof):
+                                        exp_open_eos, tst_assoc_mof):
         # pylint: disable=no-self-use,invalid-name
         """
         Test openenueratepaths for a variety of MaxObjectCount values.
@@ -4713,25 +4715,67 @@ class TestPullOperations(object):
 
         add_objects_to_repo(conn, ns, [tst_assoc_mof])
 
-        orig_rtnd_instnames = conn.EnumerateInstanceNames(source_inst_class)
+        orig_rtnd_instnames = conn.EnumerateInstanceNames(src_class)
 
         rtnd_instnames = []
 
         result_tuple = conn.OpenEnumerateInstancePaths(
-            source_inst_class, MaxObjectCount=maxobj)
+            src_class, MaxObjectCount=maxobj)
 
         rtnd_instnames.extend(result_tuple.paths)
 
-        assert result_tuple.eos = exp_eos
-
-        If exp_eos is False:
+        assert result_tuple.eos == exp_open_eos
+        if exp_open_eos is False:
             while result_tuple.eos is False:
-                result_tuple = conn.PullInstancesWithPath(result_tuple)
+                result_tuple = conn.PullInstancePaths(
+                    result_tuple.context, MaxObjectCount=maxobj)
                 rtnd_instnames.extend(result_tuple.paths)
 
         assert len(rtnd_instnames) == len(orig_rtnd_instnames)
 
-        assert set(rtnd_instnames)== set(orig_rtnd_instnames)
+        assert set(rtnd_instnames) == set(orig_rtnd_instnames)
+
+    @pytest.mark.parametrize(
+        "ns", EXPANDED_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        # src_class: Source instance definitions (classname and name property
+        # maxobj: Max object count for each operation
+        # exp_eos: If True, eos expected on open request
+        "src_class,  maxobj, exp_open_eos", [
+            ['TST_Person', 100, True],
+            ['TST_Person', 1, False],
+            ['TST_Person', 2, False],
+
+        ]
+    )
+    def test_openenumerateinstances(self, conn, ns, src_class, maxobj,
+                                    exp_open_eos, tst_assoc_mof):
+        # pylint: disable=no-self-use,invalid-name
+        """
+        Test openenueratepaths for a variety of MaxObjectCount values.
+        """
+        skip_if_moftab_regenerated()
+
+        add_objects_to_repo(conn, ns, [tst_assoc_mof])
+
+        orig_rtnd_instances = conn.EnumerateInstances(src_class)
+
+        rtnd_instances = []
+        result_tuple = conn.OpenEnumerateInstances(
+            src_class, MaxObjectCount=maxobj)
+
+        rtnd_instances.extend(result_tuple.instances)
+
+        assert result_tuple.eos == exp_open_eos
+        if exp_open_eos is False:
+            while result_tuple.eos is False:
+                result_tuple = conn.PullInstancesWithPath(
+                    result_tuple.context, MaxObjectCount=maxobj)
+                rtnd_instances.extend(result_tuple.instances)
+
+        assert len(rtnd_instances) == len(orig_rtnd_instances)
+
+        assert set(rtnd_instances) == set(orig_rtnd_instances)
 
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])

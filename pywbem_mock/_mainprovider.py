@@ -2508,8 +2508,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return(rtn_objects, eos, context_id)
 
-    def _pull_response(self, req_type, EnumerationContext,
-                       MaxObjectCount):
+    def _pull_response(self, req_type, EnumerationContext, MaxObjectCount):
         """
         Common method for all of the Pull methods. Since all of the pull
         methods operate independent of the type of data, this single function
@@ -2559,14 +2558,15 @@ class MainProvider(BaseProvider, ResolverMixin):
             eos = u'TRUE'
             rtn_objs_list = objs_list
             del self.enumeration_contexts[EnumerationContext]
-            EnumerationContest = ""
+            context_id = ""
         else:
             eos = u'FALSE'
             rtn_objs_list = objs_list[0: max_obj_cnt]
             del objs_list[0: max_obj_cnt]
+            context_id = EnumerationContext
 
-        # returns tuple of list of insts, eos, and EnumerationContext
-        return (rtn_objs_list, eos, EnumerationContest)
+        # returns tuple of list of insts, eos, and context_id
+        return (rtn_objs_list, eos, context_id)
 
     @staticmethod
     def _validate_open_params(FilterQueryLanguage, FilterQuery,
