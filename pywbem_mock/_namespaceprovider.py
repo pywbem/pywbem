@@ -65,7 +65,6 @@ class CIMNamespaceProvider(InstanceWriteProvider):
     This provider presumes that an Interop namespace has been created before
     the provider object is constructed and fails the constructor if
     there is not interop_namespace
-
     """  # noqa: E501
     # pylint: enable=line-too-long
 
@@ -273,7 +272,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         instance_store.delete(InstanceName)
 
     def post_register_setup(self, conn):
-        """i
+        """
         Method called by FakedWBEMConnection.register_provider to complete
         initialization of this provider.  This method is called after
         the required classes are installed in the cim_repository

@@ -51,7 +51,7 @@ from pywbem._utils import _format
 class BaseProvider(object):
     """
     BaseProvider is the top level class in the provider hiearchy and includes
-    methods required by both buildin providers and user-defined providers.
+    methods required by both builtin providers and user-defined providers.
     This class is not intended to be executed directly.
     """
 
