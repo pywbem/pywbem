@@ -40,18 +40,26 @@ from pywbem import CIMInstance, CIMInstanceName, CIMError, \
 from pywbem._utils import _format
 
 from ._baseprovider import BaseProvider
+from ._instancewriteprovider import InstanceWriteProvider
+from ._methodprovider import MethodProvider
 
 
 class ProviderDispatcher(BaseProvider):
     """
-    This class dispatches requests destined for the instance provider methods
-    defined in InstanceWriteProvider  to the either the default instance
-    provder method or the provider defined for processing the defined class in
-    the defined namespace.
+    This class dispatches requests destined for the provider methods defined in
+    InstanceWriteProvider or MethodProvider  to the either the default provider
+    method or the provider registered for processing the defined class in the
+    defined namespace.
+
+    It handles the following requests:
+
+    * CreateInstance: default is InstanceWriteProvider.CreateInstance
+    * ModifyInstance: default is InstanceWriteProvider.ModifyInstance
+    * DeleteInstance: default is InstanceWriteProvider.DeleteInstance
+    * InvokeMethod: default is MethodProvider.InvokeMethod
     """
 
-    def __init__(self, cimrepository, provider_registry,
-                 default_instance_provider):
+    def __init__(self, cimrepository, provider_registry):
         """
         Set instance parameters passed from FakedWBEMConnection
         """
@@ -59,9 +67,33 @@ class ProviderDispatcher(BaseProvider):
 
         self.provider_registry = provider_registry
 
-        # Defines the instance of InstanceWriteProvider that will
-        # be called to dispatch operation to default provider.
-        self.default_instance_provider = default_instance_provider
+        # Define the instances of the default implementations for the
+        # InstanceWriteProvider and MethodProvider. The default providers
+        # are constructed on first call.
+        self._default_instance_write_provider = None
+        self._default_method_provider = None
+
+    @property
+    def default_instance_write_provider(self):
+        """
+        Instance object for default instance provider. Constructed on first
+        call
+        """
+        if self._default_instance_write_provider is None:
+            self._default_instance_write_provider = InstanceWriteProvider(
+                self.cimrepository)
+        return self._default_instance_write_provider
+
+    @property
+    def default_method_provider(self):
+        """
+        Instance object for default method provider. Constructed on first
+        call
+        """
+        if self._default_method_provider is None:
+            self._default_method_provider = MethodProvider(
+                self.cimrepository)
+        return self._default_method_provider
 
     def CreateInstance(self, namespace, NewInstance):
         # pylint: disable=invalid-name
@@ -100,7 +132,7 @@ class ProviderDispatcher(BaseProvider):
             except AttributeError:
                 pass
 
-        return self.default_instance_provider.CreateInstance(
+        return self.default_instance_write_provider.CreateInstance(
             namespace, NewInstance)
 
     def ModifyInstance(self, ModifiedInstance,
@@ -176,7 +208,7 @@ class ProviderDispatcher(BaseProvider):
             except AttributeError:
                 pass
 
-        return self.default_instance_provider.ModifyInstance(
+        return self.default_instance_write_provider.ModifyInstance(
             ModifiedInstance,
             IncludeQualifiers=IncludeQualifiers,
             PropertyList=PropertyList)
@@ -222,7 +254,7 @@ class ProviderDispatcher(BaseProvider):
             except AttributeError:
                 pass
 
-        return self.default_instance_provider.DeleteInstance(
+        return self.default_instance_write_provider.DeleteInstance(
             InstanceName)
 
     def InvokeMethod(self, namespace, methodname, objectname, Params):
@@ -267,6 +299,7 @@ class ProviderDispatcher(BaseProvider):
             return provider.InvokeMethod(namespace, methodname,
                                          objectname, Params)
 
-        # There is no default method provider so no user InvokeMethod
-        # is defined for namespace and class, exception raise.
-        raise CIMError(CIM_ERR_METHOD_NOT_FOUND)
+        # Call the default provider.  Since there is not really a default
+        # provider for a method, this generates a NOT_FOUND exception
+        return self.default_method_provider.InvokeMethod(namespace, methodname,
+                                                         objectname, Params)

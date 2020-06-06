@@ -604,18 +604,10 @@ class FakedWBEMConnection(WBEMConnection):
                                           self.disable_pull_operations,
                                           self.cimrepository)
 
-        # Initiate the InstanceWriteProvider with the cimrepository
-        self._defaultinstanceprovider = InstanceWriteProvider(
-            self._cimrepository)
-
-        # self.methodprovider = MethodProvider(self.cimrepository)
-
         # Initiate instance of the ProviderDispatcher with required
-        # parameters including the cimrepository
+        # parameters including the CIM repository
         self._providerdispatcher = ProviderDispatcher(
-            self._cimrepository,
-            self._provider_registry,
-            self._defaultinstanceprovider)
+            self._cimrepository, self._provider_registry)
 
         # Flag to allow or disallow the use of the Open... and Pull...
         # operations. Uses the setter method

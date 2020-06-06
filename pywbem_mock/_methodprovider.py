@@ -52,7 +52,7 @@ A user-defined method provider is created as follows:
 
 from __future__ import absolute_import, print_function
 
-from pywbem import CIMError, CIM_ERR_METHOD_NOT_AVAILABLE
+from pywbem import CIMError, CIM_ERR_METHOD_NOT_FOUND
 
 from ._baseprovider import BaseProvider
 
@@ -161,4 +161,4 @@ class MethodProvider(BaseProvider):
         """
         # No default MethodProvider is implemented because all method
         # providers define specific actions in their implementations.
-        raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
+        raise CIMError(CIM_ERR_METHOD_NOT_FOUND)
