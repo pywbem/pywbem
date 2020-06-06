@@ -409,11 +409,10 @@ class ProviderRegistry(object):
           classname, namespace and provider type is not defined.
         """
 
-        if not self._registry or \
-                namespace not in self.provider_namespaces():
+        if not self._registry or namespace not in self._registry:
             return None
 
-        if classname not in self.provider_classes(namespace):
+        if classname not in self._registry[namespace]:
             return None
 
         # Return None if requested type is not registered type
@@ -424,18 +423,19 @@ class ProviderRegistry(object):
 
     def provider_namespaces(self):
         """
-        Get iterable of namespaces for registered providers
+        Get list of namespaces for registered providers. The returned
+        list is case sensitive.
 
         Returns:
-            case-insensitive :term:`py:iterable` of :term:`string`: namespaces
+            :class:`py:list` of :term:`string`: namespaces
             for which providers are registered.
         """
-        return self._registry
+        return list(self._registry.keys())
 
     def provider_classes(self, namespace):
         """
         Get case insensitive iterable  of the classes for providers registered
-        for a namespace.
+        for a namespace. The returned list is case sensitive.
 
         Parameters:
 
@@ -443,14 +443,14 @@ class ProviderRegistry(object):
             The namespace in which the request will be executed.
 
         Returns:
-            case-insensitive :term:`py:iterable` of :term:`string`:
+            :class:`py:list` of :term:`string`:
             Names of classes registered for namespace
 
         Raises:
           KeyError: if namespace invalid
         """
 
-        return self._registry[namespace]
+        return list(self._registry[namespace].keys())
 
     def provider_types(self, namespace, classname):
         """

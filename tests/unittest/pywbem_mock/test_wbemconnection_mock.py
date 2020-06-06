@@ -2290,15 +2290,16 @@ class TestUserDefinedProviders(object):
             if not tst_ns:
                 tst_ns = [conn.default_namespace]
 
+            reg_ns = [n.lower() for n in
+                      conn._provider_registry.provider_namespaces()]
             for _ns in tst_ns:
-                # pylint: disable=protected-access
-                assert _ns in conn._provider_registry.provider_namespaces()
+                assert _ns.lower() in reg_ns
 
+            exp_clns = [c.lower() for c in
+                        conn._provider_registry.provider_classes(_ns)]
             for _ns in tst_ns:
-                # pylint: disable=protected-access
-                clns = conn._provider_registry.provider_classes(_ns)
-                for cln in clns:
-                    assert cln in clns
+                for cln in provider_classnames:
+                    assert cln.lower() in exp_clns
 
         else:
             with pytest.raises(exp_exec):
