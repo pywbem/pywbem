@@ -59,6 +59,8 @@ from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
+from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \
+    IGNORE_INSTANCE_ICO_PARAM
 from pywbem_mock._baseprovider import BaseProvider
 
 from ._resolvermixin import ResolverMixin
@@ -360,12 +362,18 @@ class MainProvider(BaseProvider, ResolverMixin):
               If `False` or `None` class_origin is not included in the
               returned object
 
+              The value of this argument may be overridden by the
+              IGNORE_INSTANCE_ICO_PARAM config variable.
+
           include_qualifiers (:class:`pybool`):
               If `True`, any qualifiers in the stored instance the instance and
               properties are returned
 
               If `False` or None no qualifiers in the instance or properties
               are returned.
+
+              The value of this argument may be overridden by the
+              IGNORE_INSTANCE_IQ_PARAM config variable.
 
         Returns:
 
@@ -437,10 +445,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         self.filter_properties(rtn_inst, property_list)
 
-        if not include_qualifiers:
+        if IGNORE_INSTANCE_IQ_PARAM or not include_qualifiers:
             self._remove_qualifiers(rtn_inst)
 
-        if not include_class_origin:
+        if IGNORE_INSTANCE_ICO_PARAM or not include_class_origin:
             self._remove_classorigin(rtn_inst)
         return rtn_inst
 

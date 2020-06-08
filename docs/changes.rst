@@ -176,6 +176,12 @@ Released: not yet
   subclass to the class MethodProvider whichimplements the InvokeMethod
   responder in that user-defined provider. (See issue #2062).
 
+* Added pywbem_mock/config.py variables to control use of the IncludeQualifiers
+  and IncludeClassOrigin arguments on the GetInstance and EnumerateInstances
+  operations.  The default is not to ignore the request variables and
+  never return either attribute in the return instances.  This may be
+  modified by modifying the config variables. ()See issue # 2065)
+
 **Deprecations:**
 
   Deprecated the method FakedWBEMConnection.compile_dmtf_schema in favor of

@@ -3742,15 +3742,15 @@ class TestInstanceOperations(object):
             # verify class and instance in default, use default
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None, None],
             # verify works with explicit tst_ns
-            [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', DEFAULT_NAMESPACE, None],
+            [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None, None],
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'badid', DEFAULT_NAMESPACE,
              CIM_ERR_NOT_FOUND],
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', 'BadNamespace',
              CIM_ERR_INVALID_NAMESPACE],
             [DEFAULT_NAMESPACE, 'CIM_Foox', 'CIM_Foo1', None,
              CIM_ERR_INVALID_CLASS],
-            # class and instance in ns. test different tst_ns fails
-            [NOT_DEFAULT_NS, 'CIM_Foo', 'CIM_Foo1', DEFAULT_NAMESPACE,
+            # Invalid classname on instance
+            [DEFAULT_NAMESPACE, 'CIM_Foox', 'CIM_Foo1', None,
              CIM_ERR_INVALID_CLASS],
         ]
     )
@@ -3765,18 +3765,41 @@ class TestInstanceOperations(object):
             conn.add_namespace(ns)
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
-
         req_inst_path = CIMInstanceName(cln, {'InstanceID': inst_id},
-                                        namespace=tst_ns)
+                                        namespace=ns)
+
         if not exp_status:
             inst = conn.GetInstance(req_inst_path)
-            req_inst_path.namespace = ns
+
+            # Get the original instance inserted into the repository
+            req_instance = None
+            req_inst_path.namespace = None
+            for inst in tst_instances:
+                if inst.path == req_inst_path:
+                    req_instance = inst
+                    break
+            if not req_instance:
+                print("req_path %s\ninst_id %s" % (req_inst_path, inst_id))
+            assert req_instance is not None  # Must find to execute test
+
             assert inst.path == req_inst_path
-            # TODO test returned instance. Right now only comparing
-            # the paths
+            inst.classname == req_instance.classname
+            assert not inst.qualifiers
+            for pname in inst.properties:
+                pvalue = inst.properties[pname]
+                reqvalue = req_instance.properties[pname]
+                assert not pvalue.qualifiers
+                assert not pvalue.class_origin
+                assert pvalue.name == reqvalue.name
+                assert pvalue.value == reqvalue.value
+                assert pvalue.value == reqvalue.value
+                assert pvalue.type == reqvalue.type
+                assert pvalue.array_size == reqvalue.array_size
+                assert pvalue.reference_class == reqvalue.reference_class
 
         else:
             with pytest.raises(CIMError) as exec_info:
+                req_inst_path.namespace = tst_ns
                 conn.GetInstance(req_inst_path)
             exc = exec_info.value
             assert exc.status_code == exp_status
@@ -3785,32 +3808,70 @@ class TestInstanceOperations(object):
         "ns", INITIAL_NAMESPACES + [None]
     )
     @pytest.mark.parametrize(
+        "inst_id", ['CIM_Foo1', 'CIM_Foo2']
+    )
+    @pytest.mark.parametrize(
         "lo, iq, ico", [
             [None, None, None],
             [None, True, None],
             [None, True, True],
         ]
     )
-    def test_getinstance_opts(self, conn, ns, lo, iq, ico,
+    def test_getinstance_opts(self, conn, ns, inst_id, lo, iq, ico,
                               tst_classeswqualifiers, tst_instances):
         # pylint: disable=no-self-use
         """
         Test getting an instance from the repository with GetInstance and
-        the options set
+        the various request options set
         """
-        # TODO extend to test lo and iq
+
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
 
-        request_inst_path = CIMInstanceName(
-            'CIM_Foo', {'InstanceID': 'CIM_Foo1'}, namespace=ns)
+        req_inst_path = CIMInstanceName(
+            'CIM_Foo', {'InstanceID': inst_id}, namespace=ns)
 
-        inst = conn.GetInstance(request_inst_path, LocalOnly=lo,
+        inst = conn.GetInstance(req_inst_path, LocalOnly=lo,
                                 IncludeClassOrigin=ico, IncludeQualifiers=iq)
 
         inst.path.namespace = ns
-        assert inst.path == request_inst_path
-        # TODO test complete instances returned. Now only testing paths
+        assert inst.path == req_inst_path
+
+        # Because of the config variables qualifiers and classorigin are always
+        # removed.
+        for prop_value in inst.properties.values():
+            assert not prop_value.qualifiers
+
+        assert not inst.qualifiers
+
+        req_instance = None
+        req_inst_path.namespace = None
+
+        # find the original instance that went into the repository
+        for inst in tst_instances:
+            if inst.path == req_inst_path:
+                req_instance = inst
+                break
+        if not req_instance:
+            print("req_path %s\ninst_id %s" % (req_inst_path, inst_id))
+        assert req_instance is not None  # Must find to execute test
+
+        for prop_value in inst.properties.values():
+            assert not prop_value.class_origin
+            assert inst.path == req_inst_path
+            inst.classname == req_instance.classname
+            assert not inst.qualifiers
+            for pname in inst.properties:
+                pvalue = inst.properties[pname]
+                reqvalue = req_instance.properties[pname]
+                assert not pvalue.qualifiers
+                assert not pvalue.class_origin
+                assert pvalue.name == reqvalue.name
+                assert pvalue.value == reqvalue.value
+                assert pvalue.value == reqvalue.value
+                assert pvalue.type == reqvalue.type
+                assert pvalue.array_size == reqvalue.array_size
+                assert pvalue.reference_class == reqvalue.reference_class
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None]
