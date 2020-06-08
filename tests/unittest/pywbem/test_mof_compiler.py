@@ -135,8 +135,6 @@ class TestInstancesUnicode(MOFTest):
 
         skip_if_moftab_regenerated()
 
-        repo = self.mofcomp.handle
-
         class_mof = \
             'class PyWBEM_TestUnicode {\n' \
             '    string uprop;\n' \
@@ -152,6 +150,8 @@ class TestInstancesUnicode(MOFTest):
                     u"\u0438 \u044f \u00e0"
 
         self.mofcomp.compile_string(inst_mof, NAME_SPACE)
+
+        repo = self.mofcomp.handle
 
         for inst in repo.instances[NAME_SPACE]:
             if inst.classname == 'PyWBEM_TestUnicode':
@@ -171,8 +171,6 @@ class TestInstancesUnicode(MOFTest):
 
         skip_if_moftab_regenerated()
 
-        repo = self.mofcomp.handle
-
         class_mof = \
             'class PyWBEM_TestUnicode {\n' \
             '    string uprop;\n' \
@@ -188,6 +186,8 @@ class TestInstancesUnicode(MOFTest):
                     u"\u0438 \u044f \u00e0"
 
         self.mofcomp.compile_string(inst_mof, NAME_SPACE)
+
+        repo = self.mofcomp.handle
 
         for inst in repo.instances[NAME_SPACE]:
             if inst.classname == 'PyWBEM_TestUnicode':
@@ -388,23 +388,27 @@ class TestAliases(MOFTest):
         """
 
         skip_if_moftab_regenerated()
-
         # compile the mof. The DMTF schema mof is installed by the setup
         self.mofcomp.compile_file(
             os.path.join(TEST_DIR, 'test.mof'), NAME_SPACE)
 
+        repo = self.mofcomp.handle
+
+        # set the connection default namespace to the test namespace name
+        repo.default_namespace = NAME_SPACE
+
         # test for valid classes since we do not do that elsewhere
-        pywbem_person_class = self.mofcomp.handle.GetClass(
+        pywbem_person_class = repo.GetClass(
             'PyWBEM_Person', LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(pywbem_person_class.properties['Name'].type, 'string')
 
-        ccs = self.mofcomp.handle.GetClass(
+        ccs = repo.GetClass(
             'PyWBEM_MemberOfPersonCollection',
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(ccs.properties['Member'].type, 'reference')
 
         # get the instances
-        insts = self.mofcomp.handle.instances[NAME_SPACE]
+        insts = repo.instances[NAME_SPACE]
 
         # get a particular instance of PyWBEM_Person.  This is
         # equivalent to getInstance('PyWBEM_PERSON.name=Alice')
@@ -493,7 +497,12 @@ class TestAliases(MOFTest):
         skip_if_moftab_regenerated()
 
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+        # set the connection default namespace to the test namespace name
+        # Setting default_namespace because MOFWBEMConnection GetClass does not
+        # support namespace parameter
         repo = self.mofcomp.handle
+        repo.default_namespace = NAME_SPACE
 
         cl = repo.GetClass(
             'TST_Person',
@@ -597,12 +606,19 @@ class TestSchemaSearch(MOFTest):
                                                'CIM_ComputerSystem.mof'),
                                   NAME_SPACE)
 
-        ccs = self.mofcomp.handle.GetClass(
+        repo = self.mofcomp.handle
+
+        # assert compile has not changed default_namespace in MOFWBEMConnection
+        assert repo.default_namespace == 'root/cimv2'
+
+        repo.default_namespace = NAME_SPACE
+
+        ccs = repo.GetClass(
             'CIM_ComputerSystem',
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(ccs.properties['RequestedState'].type, 'uint16')
         self.assertEqual(ccs.properties['Dedicated'].type, 'uint16')
-        cele = self.mofcomp.handle.GetClass(
+        cele = repo.GetClass(
             'CIM_EnabledLogicalElement',
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cele.properties['RequestedState'].type, 'uint16')
@@ -629,7 +645,11 @@ class TestSchemaSearch(MOFTest):
                                           'System',
                                           'CIM_ComputerSystem.mof'),
                              NAME_SPACE)
-        mofcomp.handle.GetClass(
+
+        repo = mofcomp.handle
+        repo.default_namespace = NAME_SPACE
+
+        repo.GetClass(
             'CIM_ComputerSystem',
             LocalOnly=False, IncludeQualifiers=True)
 
@@ -884,7 +904,11 @@ class TestPropertyAlternatives(MOFTest):
 
         mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[];\n};"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
-        cl = self.mofcomp.handle.GetClass(
+
+        repo = self.mofcomp.handle
+        repo.default_namespace = NAME_SPACE
+
+        cl = repo.GetClass(
             'PyWBEM_TestArray',
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cl.properties['arrayprop'].type, 'uint32')
@@ -898,7 +922,11 @@ class TestPropertyAlternatives(MOFTest):
 
         mof_str = "class PyWBEM_TestArray{\n    Uint32 arrayprop[9];\n};"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
-        cl = self.mofcomp.handle.GetClass(
+
+        repo = self.mofcomp.handle
+        repo.default_namespace = NAME_SPACE
+
+        cl = repo.GetClass(
             'PyWBEM_TestArray',
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cl.properties['arrayprop'].type, 'uint32')
@@ -937,8 +965,8 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
                                   NAME_SPACE)
         test_class = 'EX_AllTypes'
         repo = self.mofcomp.handle
-
         classes = repo.classes[NAME_SPACE]
+
         self.assertTrue(test_class in classes)
 
         ac_class = classes[test_class]
@@ -1240,18 +1268,21 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
                   '};'
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
+        repo = self.mofcomp.handle
+        repo.default_namespace = NAME_SPACE
+
         # compare qualifier declaration
         scope_def = _build_scope(set_true=['CLASS'])
-        qld = self.mofcomp.handle.GetQualifier('Tst')
+        qld = repo.GetQualifier('Tst')
         cmp_qld = CIMQualifierDeclaration('Tst', 'boolean', value=True,
                                           scopes=scope_def,
                                           tosubclass=True)
         self.assertEqual(qld, cmp_qld)
 
         # compare classes
-        cl = self.mofcomp.handle.GetClass('Py_ToInst',
-                                          LocalOnly=False,
-                                          IncludeQualifiers=True)
+        cl = repo.GetClass('Py_ToInst',
+                           LocalOnly=False,
+                           IncludeQualifiers=True)
 
         cmp_cl = CIMClass('Py_ToInst',
                           qualifiers={'Tst': CIMQualifier('Tst', True,
@@ -1272,18 +1303,21 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
                   '};'
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
+        repo = self.mofcomp.handle
+        repo.default_namespace = NAME_SPACE
+
         # compare qualifier declaration
         scope_def = _build_scope(set_true=['CLASS'])
-        qld = self.mofcomp.handle.GetQualifier('Tst')
+        qld = repo.GetQualifier('Tst')
         cmp_qld = CIMQualifierDeclaration('Tst', 'boolean', value=True,
                                           scopes=scope_def,
                                           tosubclass=True, toinstance=True)
         self.assertEqual(qld, cmp_qld)
 
         # compare classes
-        cl = self.mofcomp.handle.GetClass('Py_ToInst',
-                                          LocalOnly=False,
-                                          IncludeQualifiers=True)
+        cl = repo.GetClass('Py_ToInst',
+                           LocalOnly=False,
+                           IncludeQualifiers=True)
 
         cmp_cl = CIMClass('Py_ToInst',
                           qualifiers={'Tst': CIMQualifier('Tst', True,
@@ -2268,6 +2302,7 @@ class TestPartialSchema(MOFTest):
 
         repo = self.mofcomp.handle
         qualrepo = repo.qualifiers[NAME_SPACE]
+
         clsrepo = repo.classes[NAME_SPACE]
         # assert that at least some qualifiers exist
         self.assertTrue('Abstract' in qualrepo)
@@ -2298,6 +2333,7 @@ class TestPartialSchema(MOFTest):
 
         repo = self.mofcomp.handle
         clsrepo = repo.classes[NAME_SPACE]
+
         self.assertEqual(len(exp_classes), len(clsrepo))
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
@@ -2325,6 +2361,7 @@ class TestPartialSchema(MOFTest):
 
         repo = self.mofcomp.handle
         clsrepo = repo.classes[NAME_SPACE]
+
         self.assertEqual(len(exp_classes), len(clsrepo))
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
@@ -2381,8 +2418,10 @@ class TestPartialSchema(MOFTest):
                        'CIM_ManagedElement', 'CIM_Collection',
                        'CIM_CredentialStore', 'CIM_Keystore']
         self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+
         repo = self.mofcomp.handle
         clsrepo = repo.classes[NAME_SPACE]
+
         self.assertEqual(len(exp_classes), len(clsrepo))
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
@@ -2441,8 +2480,10 @@ class TestPartialSchema(MOFTest):
         exp_classes = ['My_ClassWithEmbeddedInst', 'CIM_SettingData',
                        'CIM_ManagedElement']
         self.mofcomp.compile_string(schema_mof, NAME_SPACE)
+
         repo = self.mofcomp.handle
         clsrepo = repo.classes[NAME_SPACE]
+
         self.assertEqual(len(exp_classes), len(clsrepo))
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
@@ -2680,7 +2721,9 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
         """
         skip_if_moftab_regenerated()
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
         repo = self.mofcomp.handle
+        repo.default_namespace = NAME_SPACE
 
         cl = repo.GetClass(
             'TST_Person',

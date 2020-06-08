@@ -2659,9 +2659,11 @@ class MOFCompiler(object):
 
           MOFCompileError: Error compiling the MOF.
         """
-
         lexer = self.lexer.clone()
         lexer.parser = self.parser
+
+        # Save any previous parser.file and parser.mof to restore when
+        # this compile successful
         try:
             oldfile = self.parser.file
         except AttributeError:
@@ -2672,7 +2674,15 @@ class MOFCompiler(object):
         except AttributeError:
             oldmof = None
         self.parser.mof = mof
+
+        # Save default_namepace so it can be restored after the parse.
+        # Note that there may be nested calls to compile_string
+        try:
+            oldns = self.parser.handle.default_namespace
+        except AttributeError:
+            oldns = None
         self.parser.handle.default_namespace = ns
+
         if ns not in self.parser.qualcache:
             self.parser.qualcache[ns] = NocaseDict()
         if ns not in self.parser.classnames:
@@ -2687,6 +2697,7 @@ class MOFCompiler(object):
             rv = self.parser.parse(mof, lexer=lexer)
             self.parser.file = oldfile
             self.parser.mof = oldmof
+            self.parser.handle.default_namespace = oldns
             return rv
         except MOFCompileError as pe:
             # Generate the error message into log and reraise error
