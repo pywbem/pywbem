@@ -121,9 +121,12 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
 
         inst = args[0] if args else kwargs['NewInstance']
 
+        ns = kwargs.get('namespace', self.default_namespace)
+
         # Get list of properties in class defined for this instance
         cln = inst.classname
-        cls = self.GetClass(cln, IncludeQualifiers=True, LocalOnly=False)
+        cls = self.GetClass(cln, namespace=ns, IncludeQualifiers=True,
+                            LocalOnly=False)
 
         cls_key_properties = [p for p, v in cls.properties.items()
                               if 'key' in v.qualifiers]
@@ -144,7 +147,7 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         inst.path = None
 
         try:
-            path = self.conn.CreateInstance(inst)
+            path = self.conn.CreateInstance(inst, namespace=ns)
         except KeyError:  # pylint: disable=try-except-raise
             raise
         return path
@@ -179,16 +182,16 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         """
 
         cname = args[0] if args else kwargs['ClassName']
+        ns = kwargs.get('namespace', self.default_namespace)
 
         try:
-            cc = self.classes[self.default_namespace][cname]
+            cc = self.classes[ns][cname]
         except KeyError:
             cc = self.conn.GetClass(*args, **kwargs)
             try:
-                self.classes[self.default_namespace][cc.classname] = cc
+                self.classes[ns][cc.classname] = cc
             except KeyError:
-                self.classes[self.default_namespace] = \
-                    NocaseDict({cc.classname: cc})
+                self.classes[ns] = NocaseDict({cc.classname: cc})
 
         if 'LocalOnly' in kwargs and not kwargs['LocalOnly']:
             if cc.superclass:
@@ -222,13 +225,14 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         :meth:`pywbem.WBEMConnection.CreateClass`.
         """
         cc = args[0] if args else kwargs['NewClass']
+        ns = kwargs.get('namespace', self.default_namespace)
 
         if cc.superclass:
             # Since this may cause additional GetClass calls
             # IncludeQualifiers = True insures reference properties on
             # instances with aliases get built correctly.
             try:
-                self.GetClass(cc.superclass, LocalOnly=True,
+                self.GetClass(cc.superclass, namespace=ns, LocalOnly=True,
                               IncludeQualifiers=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
@@ -247,10 +251,9 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         # the repository defined by conn.
         try:
             # The following generates an exception for each new ns
-            self.classes[self.default_namespace][cc.classname] = cc
+            self.classes[ns][cc.classname] = cc
         except KeyError:
-            self.classes[self.default_namespace] = \
-                NocaseDict({cc.classname: cc})
+            self.classes[ns] = NocaseDict({cc.classname: cc})
 
         # Validate that references and embedded instance properties, methods,
         # etc. have classes that exist in repo. This  also institates the
@@ -264,8 +267,8 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
             # Validate that reference_class exists in repo
             if obj.type == 'reference':
                 try:
-                    self.GetClass(obj.reference_class, LocalOnly=True,
-                                  IncludeQualifiers=True)
+                    self.GetClass(obj.reference_class, namespace=ns,
+                                  LocalOnly=True, IncludeQualifiers=True)
                 except KeyError:
                     raise CIMError(CIM_ERR_INVALID_PARAMETER,
                                    obj.reference_class)
@@ -280,14 +283,15 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
                                     cc.classname, self.getns()),
                             conn_id=self.conn_id)
                     # NOTE: Only delete when this is total failure
-                    del self.classes[self.conn.default_namespace][cc.classname]
+                    del self.classes[ns][cc.classname]
                     raise
 
             elif obj.type == 'string':
                 if 'EmbeddedInstance' in obj.qualifiers:
                     eiqualifier = obj.qualifiers['EmbeddedInstance']
                     try:
-                        self.GetClass(eiqualifier.value, LocalOnly=True,
+                        self.GetClass(eiqualifier.value, namespace=ns,
+                                      LocalOnly=True,
                                       IncludeQualifiers=False)
                     except KeyError:
                         raise CIMError(CIM_ERR_INVALID_PARAMETER,
@@ -304,10 +308,10 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
                                         cc.classname, self.getns()),
                                 conn_id=self.conn_id)
                         # Only delete when total failure
-                        del self.classes[self.default_namespace][cc.classname]
+                        del self.classes[ns][cc.classname]
                         raise
 
-        self.conn.CreateClass(cc)
+        self.conn.CreateClass(cc, namespace=ns)
 
     def ModifyClass(self, *args, **kwargs):
         """
@@ -318,8 +322,9 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
 
         """
         modified_class = args[0] if args else kwargs['ModifiedClass']
+        ns = kwargs.get('namespace', self.default_namespace)
 
-        self.conn.ModifyClass(modified_class)
+        self.conn.ModifyClass(modified_class, namespace=ns)
 
     def DeleteClass(self, *args, **kwargs):
         """
@@ -347,8 +352,10 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         """
 
         qualname = args[0] if args else kwargs['QualifierName']
+        ns = kwargs.get('namespace', self.default_namespace)
+
         try:
-            qual = self.conn.GetQualifier(qualname)
+            qual = self.conn.GetQualifier(qualname, namespace=ns)
         except KeyError:  # pylint: disable=try-except-raise
             raise
         return qual
@@ -360,7 +367,9 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
         :meth:`pywbem.WBEMConnection.SetQualifier`.
         """
         qual = args[0] if args else kwargs['QualifierDeclaration']
-        self.conn.SetQualifier(qual)
+        ns = kwargs.get('namespace', self.default_namespace)
+
+        self.conn.SetQualifier(qual, namespace=ns)
 
     def DeleteQualifier(self, *args, **kwargs):
         """

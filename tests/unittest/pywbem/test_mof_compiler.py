@@ -386,7 +386,6 @@ class TestAliases(MOFTest):
         This was easier than trying to create a test case in memory since that
         would involve 3 classes and multiple instances.
         """
-
         skip_if_moftab_regenerated()
         # compile the mof. The DMTF schema mof is installed by the setup
         self.mofcomp.compile_file(
@@ -394,16 +393,14 @@ class TestAliases(MOFTest):
 
         repo = self.mofcomp.handle
 
-        # set the connection default namespace to the test namespace name
-        repo.default_namespace = NAME_SPACE
-
         # test for valid classes since we do not do that elsewhere
         pywbem_person_class = repo.GetClass(
-            'PyWBEM_Person', LocalOnly=False, IncludeQualifiers=True)
+            'PyWBEM_Person', namespace=NAME_SPACE,
+            LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(pywbem_person_class.properties['Name'].type, 'string')
 
         ccs = repo.GetClass(
-            'PyWBEM_MemberOfPersonCollection',
+            'PyWBEM_MemberOfPersonCollection', namespace=NAME_SPACE,
             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(ccs.properties['Member'].type, 'reference')
 
@@ -502,11 +499,9 @@ class TestAliases(MOFTest):
         # Setting default_namespace because MOFWBEMConnection GetClass does not
         # support namespace parameter
         repo = self.mofcomp.handle
-        repo.default_namespace = NAME_SPACE
 
-        cl = repo.GetClass(
-            'TST_Person',
-            LocalOnly=False, IncludeQualifiers=True)
+        cl = repo.GetClass('TST_Person', namespace=NAME_SPACE,
+                           LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cl.properties['name'].type, 'string')
         instances = repo.instances[NAME_SPACE]
 
@@ -611,16 +606,12 @@ class TestSchemaSearch(MOFTest):
         # assert compile has not changed default_namespace in MOFWBEMConnection
         assert repo.default_namespace == 'root/cimv2'
 
-        repo.default_namespace = NAME_SPACE
-
-        ccs = repo.GetClass(
-            'CIM_ComputerSystem',
-            LocalOnly=False, IncludeQualifiers=True)
+        ccs = repo.GetClass('CIM_ComputerSystem', namespace=NAME_SPACE,
+                            LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(ccs.properties['RequestedState'].type, 'uint16')
         self.assertEqual(ccs.properties['Dedicated'].type, 'uint16')
-        cele = repo.GetClass(
-            'CIM_EnabledLogicalElement',
-            LocalOnly=False, IncludeQualifiers=True)
+        cele = repo.GetClass('CIM_EnabledLogicalElement', namespace=NAME_SPACE,
+                             LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cele.properties['RequestedState'].type, 'uint16')
 
     def test_search_single_string(self):
@@ -647,11 +638,9 @@ class TestSchemaSearch(MOFTest):
                              NAME_SPACE)
 
         repo = mofcomp.handle
-        repo.default_namespace = NAME_SPACE
 
-        repo.GetClass(
-            'CIM_ComputerSystem',
-            LocalOnly=False, IncludeQualifiers=True)
+        repo.GetClass('CIM_ComputerSystem', namespace=NAME_SPACE,
+                      LocalOnly=False, IncludeQualifiers=True)
 
     def test_search_None(self):
         """
@@ -906,11 +895,9 @@ class TestPropertyAlternatives(MOFTest):
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         repo = self.mofcomp.handle
-        repo.default_namespace = NAME_SPACE
 
-        cl = repo.GetClass(
-            'PyWBEM_TestArray',
-            LocalOnly=False, IncludeQualifiers=True)
+        cl = repo.GetClass('PyWBEM_TestArray', namespace=NAME_SPACE,
+                           LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cl.properties['arrayprop'].type, 'uint32')
         self.assertEqual(cl.properties['arrayprop'].is_array, True)
         self.assertEqual(cl.properties['arrayprop'].array_size, None)
@@ -924,11 +911,9 @@ class TestPropertyAlternatives(MOFTest):
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         repo = self.mofcomp.handle
-        repo.default_namespace = NAME_SPACE
 
-        cl = repo.GetClass(
-            'PyWBEM_TestArray',
-            LocalOnly=False, IncludeQualifiers=True)
+        cl = repo.GetClass('PyWBEM_TestArray', namespace=NAME_SPACE,
+                           LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cl.properties['arrayprop'].type, 'uint32')
         self.assertEqual(cl.properties['arrayprop'].is_array, True)
         self.assertEqual(cl.properties['arrayprop'].array_size, 9)
@@ -1269,18 +1254,18 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         repo = self.mofcomp.handle
-        repo.default_namespace = NAME_SPACE
+#        repo.default_namespace = NAME_SPACE
 
         # compare qualifier declaration
         scope_def = _build_scope(set_true=['CLASS'])
-        qld = repo.GetQualifier('Tst')
+        qld = repo.GetQualifier('Tst', namespace=NAME_SPACE)
         cmp_qld = CIMQualifierDeclaration('Tst', 'boolean', value=True,
                                           scopes=scope_def,
                                           tosubclass=True)
         self.assertEqual(qld, cmp_qld)
 
         # compare classes
-        cl = repo.GetClass('Py_ToInst',
+        cl = repo.GetClass('Py_ToInst', namespace=NAME_SPACE,
                            LocalOnly=False,
                            IncludeQualifiers=True)
 
@@ -1304,18 +1289,17 @@ class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
         repo = self.mofcomp.handle
-        repo.default_namespace = NAME_SPACE
 
         # compare qualifier declaration
         scope_def = _build_scope(set_true=['CLASS'])
-        qld = repo.GetQualifier('Tst')
+        qld = repo.GetQualifier('Tst', namespace=NAME_SPACE)
         cmp_qld = CIMQualifierDeclaration('Tst', 'boolean', value=True,
                                           scopes=scope_def,
                                           tosubclass=True, toinstance=True)
         self.assertEqual(qld, cmp_qld)
 
         # compare classes
-        cl = repo.GetClass('Py_ToInst',
+        cl = repo.GetClass('Py_ToInst', namespace=NAME_SPACE,
                            LocalOnly=False,
                            IncludeQualifiers=True)
 
@@ -2588,23 +2572,24 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
         the MOF must include the instance alias on each created instance.
         """
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
-        if self.default_namespace not in self.instances:
+        ns = mod_inst.path.namespace
+        if ns not in self.instances:
             raise CIMError(
                 CIM_ERR_INVALID_NAMESPACE,
                 _format('ModifyInstance failed. No instance repo exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
-        if mod_inst.path not in self.instances[self.default_namespace]:
+        if mod_inst.path not in self.instances[ns]:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format('ModifyInstance failed. No instance exists. '
                         'Use compiler instance alias to set path on '
                         'instance declaration. inst: {0!A}', mod_inst))
 
-        orig_instance = self.instances[self.default_namespace][mod_inst.path]
+        orig_instance = self.instances[ns][mod_inst.path]
         orig_instance.update(mod_inst.properties)
-        self.instances[self.default_namespace][mod_inst.path] = orig_instance
+        self.instances[ns][mod_inst.path] = orig_instance
 
     def CreateInstance(self, *args, **kwargs):
         """
@@ -2619,23 +2604,27 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
 
         inst = args[0] if args else kwargs['NewInstance']
 
-        cls = self.GetClass(inst.classname,
-                            LocalOnly=False,
+        ns = kwargs.get('namespace', self.default_namespace)
+
+        cls = self.GetClass(inst.classname, namespace=ns, LocalOnly=False,
                             IncludeQualifiers=True)
         inst.path = CIMInstanceName.from_instance(
-            cls, inst, namespace=self.default_namespace)
+            cls, inst, namespace=ns)
 
-        if self.default_namespace in self.instances:
-            if inst.path in self.instances[self.default_namespace]:
+        if ns not in self.instances:
+            self.instances[ns] = {}
+
+        if ns in self.instances:
+            if inst.path in self.instances[ns]:
                 raise CIMError(
                     CIM_ERR_ALREADY_EXISTS,
                     _format('CreateInstance failed. Instance with path {0!A} '
                             'already exists in mock repository', inst.path))
         try:
-            self.instances[self.default_namespace][inst.path] = inst
+            self.instances[ns][inst.path] = inst
         except KeyError:
-            self.instances[self.default_namespace] = {}
-            self.instances[self.default_namespace][inst.path] = inst
+            self.instances[ns] = {}
+            self.instances[ns][inst.path] = inst
         return inst.path
 
 
@@ -2698,40 +2687,50 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
         assert len(repo.instances[NAME_SPACE]) == 1
         assert path in repo.instances[NAME_SPACE]
 
-    def test_dup(self):
-        """Test that dup instance logic works"""
 
-        mof_str = """
-        Qualifier Key : boolean = false,
-            Scope(property, reference),
-            Flavor(DisableOverride, ToSubclass);
+class TestNamespacePragma(MOFTest):
+    """Test use of the namespace pragma"""
 
-        class TST_Person{
-            [Key] string name;
-            Uint32 value;
-        };
-
-        instance of TST_Person as $Mike { name = "Mike"; value = 1;};
-
-        instance of TST_Person as $Fred { name = "Fred"; value = 2;};
-
-        // Duplicate instance path
-        instance of TST_Person as $Mike2 { name = "Mike"; value = 3;};
+    def test_single_namespace(self):
 
         """
+        Test that uses namespace pragma. NOTE: This only tests the use
+        of the pragma, not using it for different namespace
+        """
+
+        mof_str = """
+            #pragma namespace ("root/test")
+            Qualifier Key : boolean = false,
+                Scope(property, reference),
+                Flavor(DisableOverride, ToSubclass);
+
+            class TST_Person{
+                [Key] string name;
+                Uint32 value;
+            };
+
+            instance of TST_Person as $Mike { name = "Mike"; value = 1;};
+
+            instance of TST_Person as $Fred { name = "Fred"; value = 2;};
+        """
         skip_if_moftab_regenerated()
-        self.mofcomp.compile_string(mof_str, NAME_SPACE)
+
+        test_namespace = 'root/test'
+        self.mofcomp.compile_string(mof_str, test_namespace)
 
         repo = self.mofcomp.handle
-        repo.default_namespace = NAME_SPACE
 
-        cl = repo.GetClass(
-            'TST_Person',
-            LocalOnly=False, IncludeQualifiers=True)
+        namespaces = repo.classes.keys()
+
+        assert len(namespaces) == 1
+        assert test_namespace in namespaces
+
+        cl = repo.GetClass('TST_Person', namespace=test_namespace,
+                           LocalOnly=False, IncludeQualifiers=True)
+
         self.assertEqual(cl.properties['name'].type, 'string')
-        instances = repo.instances[NAME_SPACE]
 
-        self.assertEqual(len(instances), 2)
+        self.assertEqual(len(repo.instances[NAME_SPACE]), 2)
 
 
 if __name__ == '__main__':

@@ -575,7 +575,7 @@ def p_mp_createClass(p):
                       """
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-locals
-    ns = p.parser.handle.default_namespace
+    ns = p.parser.target_namespace
     cc = p[1]
     try:
         fixedNS = fixedRefs = fixedSuper = False
@@ -584,7 +584,7 @@ def p_mp_createClass(p):
                 if p.parser.verbose:
                     p.parser.log(
                         _format("Creating class {0!A}:{1!A}", ns, cc.classname))
-                p.parser.handle.CreateClass(cc)
+                p.parser.handle.CreateClass(cc, namespace=ns)
                 if p.parser.verbose:
                     p.parser.log(
                         _format("Created class {0!A}:{1!A}", ns, cc.classname))
@@ -667,6 +667,7 @@ def p_mp_createClass(p):
                             # special WBEMConnection subclass used for
                             # removing schema elements
                             p.parser.handle.GetClass(cln,
+                                                     namespace=ns,
                                                      LocalOnly=False,
                                                      IncludeQualifiers=True)
                         except CIMError:
@@ -735,12 +736,13 @@ def p_mp_createInstance(p):
     input = p[1]
     inst = input[0]
     alias = input[1]  # alias may be valid alias or None
+    ns = p.parser.target_namespace
 
     if p.parser.verbose:
         p.parser.log(
             _format("Creating instance of {0!A}.", inst.classname))
     try:
-        instpath = p.parser.handle.CreateInstance(inst)
+        instpath = p.parser.handle.CreateInstance(inst, namespace=ns)
         # Set the returned instance path into the alias table
         if alias:
             p.parser.aliases[alias] = instpath
@@ -774,12 +776,12 @@ def p_mp_createInstance(p):
 def p_mp_setQualifier(p):
     """mp_setQualifier : qualifierDeclaration"""
     qualdecl = p[1]
-    ns = p.parser.handle.default_namespace
+    ns = p.parser.target_namespace
     if p.parser.verbose:
         p.parser.log(
             _format("Setting qualifier {0!A}", qualdecl.name))
     try:
-        p.parser.handle.SetQualifier(qualdecl)
+        p.parser.handle.SetQualifier(qualdecl, namespace=ns)
     except CIMError as ce:
         if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
@@ -789,7 +791,7 @@ def p_mp_setQualifier(p):
             if p.parser.verbose:
                 p.parser.log(
                     _format("Setting qualifier {0!A}", qualdecl.name))
-            p.parser.handle.SetQualifier(qualdecl)
+            p.parser.handle.SetQualifier(qualdecl, namespace=ns)
         elif ce.status_code == CIM_ERR_NOT_SUPPORTED:
             if p.parser.verbose:
                 p.parser.log(
@@ -799,7 +801,7 @@ def p_mp_setQualifier(p):
             if p.parser.verbose:
                 p.parser.log(
                     _format("Setting qualifier {0!A}", qualdecl.name))
-            p.parser.handle.SetQualifier(qualdecl)
+            p.parser.handle.SetQualifier(qualdecl, namespace=ns)
         else:
             raise MOFRepositoryError(
                 msg=_format(
@@ -821,9 +823,9 @@ def p_compilerDirective(p):
             if os.path.dirname(p.parser.file):
                 fname = os.path.join(os.path.dirname(p.parser.file),
                                      fname)
-        p.parser.mofcomp.compile_file(fname, p.parser.handle.default_namespace)
+        p.parser.mofcomp.compile_file(fname, p.parser.target_namespace)
     elif directive == 'namespace':
-        p.parser.handle.default_namespace = param
+        p.parser.target_namespace = param
         if param not in p.parser.qualcache:
             p.parser.qualcache[param] = NocaseDict()
 
@@ -962,7 +964,7 @@ def p_qualifier(p):
 
     # pylint: disable=too-many-branches
     qname = p[1]
-    ns = p.parser.handle.default_namespace
+    ns = p.parser.target_namespace
     qval = None
     flavorlist = []
     if len(p) == 3:
@@ -1643,7 +1645,7 @@ def p_instanceDeclaration(p):
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     alias = None
     quals = OrderedDict()
-    ns = p.parser.handle.default_namespace
+    ns = p.parser.target_namespace
     if isinstance(p[1], six.string_types):  # no qualifiers
         cname = p[3]
         if p[4] == '{':
@@ -1661,7 +1663,7 @@ def p_instanceDeclaration(p):
             alias = p[5]
 
     try:
-        cc = p.parser.handle.GetClass(cname, LocalOnly=False,
+        cc = p.parser.handle.GetClass(cname, namespace=ns, LocalOnly=False,
                                       IncludeQualifiers=True)
         p.parser.classnames[ns].append(cc.classname.lower())
     except CIMError as ce:
@@ -1681,7 +1683,7 @@ def p_instanceDeclaration(p):
                         cname),
                     parser_token=p)
             p.parser.mofcomp.compile_file(file_, ns)
-            cc = p.parser.handle.GetClass(cname, LocalOnly=False,
+            cc = p.parser.handle.GetClass(cname, namespace=ns, LocalOnly=False,
                                           IncludeQualifiers=True)
         else:
             raise MOFRepositoryError(
@@ -2211,20 +2213,21 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         inst = args[0] if args else kwargs['NewInstance']
+        ns = kwargs.get('namespace', self.default_namespace)
 
         # If the path or keybindings do not exist, create the path from
         # the class and instance and set it into NewInstance
         if not inst.path or not inst.path.keybindings:
             cls = self.GetClass(inst.classname,
+                                namespace=ns,
                                 LocalOnly=False,
                                 IncludeQualifiers=True)
             inst.path = CIMInstanceName.from_instance(
-                cls, inst, namespace=self.default_namespace)
-
+                cls, inst, namespace=ns)
         try:
-            self.instances[self.default_namespace].append(inst)
-        except KeyError:  # default_namespace does not exist. Create it
-            self.instances[self.default_namespace] = [inst]
+            self.instances[ns].append(inst)
+        except KeyError:  # namespace ns does not exist. Create it
+            self.instances[ns] = [inst]
         return inst.path
 
     def DeleteInstance(self, *args, **kwargs):
@@ -2244,18 +2247,19 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         cname = args[0] if args else kwargs['ClassName']
+        ns = kwargs.get('namespace', self.default_namespace)
+
         try:
-            cc = self.classes[self.default_namespace][cname]
+            cc = self.classes[ns][cname]
         except KeyError:
             if self.conn is None:
                 ce = CIMError(CIM_ERR_NOT_FOUND, cname)
                 raise ce
             cc = self.conn.GetClass(*args, **kwargs)
             try:
-                self.classes[self.default_namespace][cc.classname] = cc
+                self.classes[ns][cc.classname] = cc
             except KeyError:
-                self.classes[self.default_namespace] = \
-                    NocaseDict({cc.classname: cc})
+                self.classes[ns] = NocaseDict({cc.classname: cc})
         if 'LocalOnly' in kwargs and not kwargs['LocalOnly']:
             if cc.superclass:
                 try:
@@ -2292,12 +2296,15 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         cc = args[0] if args else kwargs['NewClass']
+
+        ns = kwargs.get('namespace', self.default_namespace)
+
         if cc.superclass:
             try:
                 # Since this may cause additional GetClass calls
                 # IncludeQualifiers = True insures reference properties on
                 # instances with aliases get built correctly.
-                self.GetClass(cc.superclass, LocalOnly=True,
+                self.GetClass(cc.superclass, namespace=ns, LocalOnly=True,
                               IncludeQualifiers=True)
             except CIMError as ce:
                 if ce.status_code == CIM_ERR_NOT_FOUND:
@@ -2315,7 +2322,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         # Class created in local repo before tests because that allows
         # tests that may actually include this class to succeed in
         # the test code below.
-        this_ns = self.default_namespace
+        this_ns = ns
         try:
             # The following generates an exception for each new ns
             self.classes[this_ns][cc.classname] = cc
@@ -2330,7 +2337,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             # Validate that reference_class exists in repo
             if obj.type == 'reference':
                 try:
-                    self.GetClass(obj.reference_class, LocalOnly=True,
+                    self.GetClass(obj.reference_class, namespace=ns,
+                                  LocalOnly=True,
                                   IncludeQualifiers=True)
                 except CIMError as ce:
                     if ce.status_code == CIM_ERR_NOT_FOUND:
@@ -2350,7 +2358,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 if 'EmbeddedInstance' in obj.qualifiers:
                     eiqualifier = obj.qualifiers['EmbeddedInstance']
                     try:
-                        self.GetClass(eiqualifier.value, LocalOnly=True,
+                        self.GetClass(eiqualifier.value, namespace=ns,
+                                      LocalOnly=True,
                                       IncludeQualifiers=False)
                     except CIMError as ce:
                         if ce.status_code == CIM_ERR_NOT_FOUND:
@@ -2393,12 +2402,14 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
         """
 
+        ns = kwargs.get('namespace', self.default_namespace)
+
         if self.conn is not None:
             rv = self.conn.EnumerateQualifiers(*args, **kwargs)
         else:
             rv = []
         try:
-            rv += list(self.qualifiers[self.default_namespace].values())
+            rv += list(self.qualifiers[ns].values())
         except KeyError:
             pass
         return rv
@@ -2411,8 +2422,10 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         qualname = args[0] if args else kwargs['QualifierName']
+        ns = kwargs.get('namespace', self.default_namespace)
+
         try:
-            qual = self.qualifiers[self.default_namespace][qualname]
+            qual = self.qualifiers[ns][qualname]
         except KeyError:
             if self.conn is None:
                 raise CIMError(
@@ -2429,11 +2442,12 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         qual = args[0] if args else kwargs['QualifierDeclaration']
+        ns = kwargs.get('namespace', self.default_namespace)
+
         try:
-            self.qualifiers[self.default_namespace][qual.name] = qual
+            self.qualifiers[ns][qual.name] = qual
         except KeyError:
-            self.qualifiers[self.default_namespace] = \
-                NocaseDict({qual.name: qual})
+            self.qualifiers[ns] = NocaseDict({qual.name: qual})
 
     def DeleteQualifier(self, *args, **kwargs):
         """This method is only invoked by :meth:`rollback` (on the underlying
@@ -2626,6 +2640,9 @@ class MOFCompiler(object):
         self.parser.verbose = verbose
         self.parser.aliases = {}
         self.parser.log = self._log
+        # Set by compile_string to define the namespace used by the compiler
+        # for the current compilation
+        self.parser.target_namespace = None
 
     def _log(self, msg):
         """
@@ -2675,13 +2692,8 @@ class MOFCompiler(object):
             oldmof = None
         self.parser.mof = mof
 
-        # Save default_namepace so it can be restored after the parse.
-        # Note that there may be nested calls to compile_string
-        try:
-            oldns = self.parser.handle.default_namespace
-        except AttributeError:
-            oldns = None
-        self.parser.handle.default_namespace = ns
+        # Save the namespace parameter in variable known to the parser.
+        self.parser.target_namespace = ns
 
         if ns not in self.parser.qualcache:
             self.parser.qualcache[ns] = NocaseDict()
@@ -2697,7 +2709,6 @@ class MOFCompiler(object):
             rv = self.parser.parse(mof, lexer=lexer)
             self.parser.file = oldfile
             self.parser.mof = oldmof
-            self.parser.handle.default_namespace = oldns
             return rv
         except MOFCompileError as pe:
             # Generate the error message into log and reraise error
