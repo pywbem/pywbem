@@ -444,6 +444,16 @@ Released: not yet
   class pragmas to avoid and issues of dependencies, etc. Note that if only
   leaf classes are use there should never be an issue. (See issue # 2223)
 
+* Fixed issue in MOF compiler where compile_string() modifies the
+  default_namespace of the MOF_Compiler handle parameter which is some subclass
+  of WBEMConnection. This impacts at least the pywbem_mock environment since
+  compiling MOF into a namespace that is not the connection default_namespace
+  changes the default_namespace to that defined for the compile_string. This
+  required extending all subclasses of MOFCompiler.BaseRepository to handle an
+  optional namespace parameter on CreateClass, ModifyClass, GetClass,
+  CreateInstance, etc. methods including the implementation in pywbem_mock.
+  (See issue #2247)
+
 **Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()

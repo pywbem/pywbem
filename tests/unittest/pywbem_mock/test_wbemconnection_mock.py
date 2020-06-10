@@ -4883,12 +4883,13 @@ class TestPullOperations(object):
 
         add_objects_to_repo(conn, ns, [tst_assoc_mof])
 
-        orig_rtnd_instnames = conn.EnumerateInstanceNames(src_class)
+        orig_rtnd_instnames = conn.EnumerateInstanceNames(src_class,
+                                                          namespace=ns)
 
         rtnd_instnames = []
 
         result_tuple = conn.OpenEnumerateInstancePaths(
-            src_class, MaxObjectCount=maxobj)
+            src_class, namespace=ns, MaxObjectCount=maxobj)
 
         rtnd_instnames.extend(result_tuple.paths)
 
@@ -4926,11 +4927,11 @@ class TestPullOperations(object):
 
         add_objects_to_repo(conn, ns, [tst_assoc_mof])
 
-        orig_rtnd_instances = conn.EnumerateInstances(src_class)
+        orig_rtnd_instances = conn.EnumerateInstances(src_class, namespace=ns)
 
         rtnd_instances = []
         result_tuple = conn.OpenEnumerateInstances(
-            src_class, MaxObjectCount=maxobj)
+            src_class, namespace=ns, MaxObjectCount=maxobj)
 
         rtnd_instances.extend(result_tuple.instances)
 
