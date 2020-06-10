@@ -2256,7 +2256,7 @@ class TestUserDefinedProviders(object):
     def test_register_provider(self, conn, ns, desc, inputs,
                                exp_exec, condition,
                                tst_classeswqualifiersandinsts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test register_provider method.
         """
@@ -2294,10 +2294,8 @@ class TestUserDefinedProviders(object):
                       conn._provider_registry.provider_namespaces()]
             for _ns in tst_ns:
                 assert _ns.lower() in reg_ns
-
-            exp_clns = [c.lower() for c in
-                        conn._provider_registry.provider_classes(_ns)]
-            for _ns in tst_ns:
+                exp_clns = [c.lower() for c in
+                            conn._provider_registry.provider_classes(_ns)]
                 for cln in provider_classnames:
                     assert cln.lower() in exp_clns
 
@@ -2768,7 +2766,7 @@ class TestUserDefinedProviders(object):
 
             def post_register_setup(self, conn):
                 """Sets flag to show method run"""
-                # pylint: disable unused_argument
+                # pylint: disable=unused-argument
                 self.postregistersetup = True
 
         skip_if_moftab_regenerated()

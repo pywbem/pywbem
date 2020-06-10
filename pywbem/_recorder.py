@@ -657,11 +657,10 @@ class LogOperationRecorder(BaseOperationRecorder):
 
             else:    # format result
                 # test if type is tuple (subclass of tuple but not type tuple)
-                # pylint: disable=unidiomatic-typecheck
                 qrc = ""
                 # format open/pull response
-                if isinstance(ret, tuple) and \
-                        type(ret) is not tuple:  # pylint: disable=C0123
+                # pylint: disable=unidiomatic-typecheck
+                if isinstance(ret, tuple) and type(ret) is not tuple:
                     try:    # test if field instances or paths
                         rtn_data = ret.instances
                         data_str = 'instances'
