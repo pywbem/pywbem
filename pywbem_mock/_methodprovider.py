@@ -114,7 +114,7 @@ class MethodProvider(BaseProvider):
           MethodName (:term:`string`):
             Name of the method to be invoked (case independent).
 
-          ObjectName:
+          ObjectName: (:class: `CIMInstanceName` or :term:`string`):
             The object path of the target object, as follows:
 
             * For instance-level use: The instance path of the target
@@ -123,19 +123,23 @@ class MethodProvider(BaseProvider):
               of the connection is used.
               Its `namespace`, and `host` attributes will be ignored.
 
-            * For class-level use: The class path of the target class, as a
-              :term:`string`:
+            * For class-level use: The class name of the target class, as a
+              :term:`string`. This should be one of the classes defined in
+              the class variable `classnames`.
 
-              The string is interpreted as a class name in the default
-              namespace of the connection (case independent).
+              The string is interpreted as a class name in the namespace defined
+              in the namespace parameter(case independent).
 
-          Params (:term:`py:iterable`):
-            An iterable of input parameter values for the CIM method. Each item
-            in the iterable is a single parameter value and is:
+          Params (:term:`py:NocaseDict`):
+            Each item in Params is a name/parameter-value for the CIM
+            method and is:
 
-            * :class:`~pywbem.CIMParameter` representing a parameter value. The
-              `name`, `value`, `type` and `embedded_object` attributes of this
-              object are used.
+            * :term:`string_types` - The case-insensitive name of the
+              parameter
+            * :class:`~pywbem.CIMParameter`  the item value representing a
+              parameter value. The `name`, `value`, `type` and
+              `embedded_object` attributes of this object are guaranteed
+              present..
 
         Returns:
 
@@ -146,6 +150,8 @@ class MethodProvider(BaseProvider):
               Return value of the CIM method.
             * outparams (:term:`py:iterable` of :class:`~pywbem.CIMParameter`):
               Each item represents a single output parameter of the CIM method.
+              If the iterable is a dictionary, the key is the parameter name
+              and the value is :class:`~pywbem.CIMParameter`.
               The :class:`~pywbem.CIMParameter` objects must have at least
               the following properties set:
 
@@ -155,9 +161,9 @@ class MethodProvider(BaseProvider):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_METHOD_NOT_AVAILABLE) because the
-              default method is only a placeholder for the API and documentation
-              and not a real InvokeMethod action implementation.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_METHOD_NOT_FOUND) because the
+              default method is only a placeholder for the API and
+              documentation and not a real InvokeMethod action implementation.
         """
         # No default MethodProvider is implemented because all method
         # providers define specific actions in their implementations.

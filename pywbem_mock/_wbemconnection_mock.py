@@ -1961,18 +1961,21 @@ class FakedWBEMConnection(WBEMConnection):
                 CIM_ERR_FAILED,
                 _format("Invalid Response. Must be list or tuple)",
                         type(result)))
-        for param in result[1]:
-            if not isinstance(param, CIMParameter):
+
+        # Map output params to NocaseDict to be compatible with return
+        # from _methodcall. The input list (result[1]) is an iterable of
+        # CIMParameters
+        output_params_dict = NocaseDict()
+        result_params = result[1] if isinstance(result[1], (tuple, list)) \
+            else result[1].values()
+        for param in result_params:
+            if isinstance(param, CIMParameter):
+                output_params_dict[param.name] = param.value
+            else:
                 raise CIMError(
                     CIM_ERR_FAILED,
                     _format('Invalid response {0}. Must be CIMParameter. '
                             'Type {1} received',
                             param, type(param)))
 
-        # Map output params to NocaseDict to be compatible with return
-        # from _methodcall. The input list is just CIMParameters
-        output_params = NocaseDict()
-        for param in result[1]:
-            output_params[param.name] = param.value
-
-        return (result[0], output_params)
+        return (result[0], output_params_dict)
