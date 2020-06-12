@@ -1963,14 +1963,14 @@ class FakedWBEMConnection(WBEMConnection):
                         type(result)))
 
         # Map output params to NocaseDict to be compatible with return
-        # from _methodcall. The input list is an iterable of CIMParameters
-        output_params = NocaseDict()
-        rtn_params = result[1]
-        rtn_params = rtn_params if isinstance(rtn_params, (tuple, list)) \
-            else rtn_params.values()
-        for param in rtn_params:
+        # from _methodcall. The input list (result[1]) is an iterable of
+        # CIMParameters
+        output_params_dict = NocaseDict()
+        result_params = result[1] if isinstance(result[1], (tuple, list)) \
+            else result[1].values()
+        for param in result_params:
             if isinstance(param, CIMParameter):
-                output_params[param.name] = param.value
+                output_params_dict[param.name] = param.value
             else:
                 raise CIMError(
                     CIM_ERR_FAILED,
@@ -1978,4 +1978,4 @@ class FakedWBEMConnection(WBEMConnection):
                             'Type {1} received',
                             param, type(param)))
 
-        return (result[0], output_params)
+        return (result[0], output_params_dict)
