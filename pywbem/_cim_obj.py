@@ -1986,11 +1986,13 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             * ``"standard"`` - Standard format that is conformant to untyped
               WBEM URIs for instance paths defined in :term:`DSP0207`.
+              The order of keybindings is in lexical order of the original
+              keybinding names.
 
             * ``"canonical"`` - Like ``"standard"``, except that the following
               items have been converted to lower case: host, namespace,
-              classname, and the names of any keybindings, and except that the
-              order of keybindings is in lexical order of the (lower-cased)
+              classname, and the names of any keybindings.
+              The order of keybindings is in lexical order of the lower-cased
               keybinding names.
               This format guarantees that two instance paths that are
               considered equal according to :term:`DSP0004` result in equal
@@ -2047,7 +2049,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         Raises:
 
           TypeError: Invalid type in keybindings
-          ValueError: Invalid format
+          ValueError: Invalid format argument
         """
 
         ret = []
@@ -2061,8 +2063,9 @@ class CIMInstanceName(_CIMComparisonMixin):
         def case_sorted(keys):
             """Return the keys in the correct order for the format."""
             if format == 'canonical':
-                case_keys = [case(k) for k in keys]
-                keys = sorted(case_keys)
+                return sorted([case(k) for k in keys])
+            if format == 'standard':
+                return sorted(keys)
             return keys
 
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):

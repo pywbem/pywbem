@@ -593,6 +593,9 @@ Released: not yet
   a CIM_Namespace provider to handle the CIM_Namespace class in the interop
   namespace.  See issue #2062)
 
+* Changed format 'standard' of `CIMInstanceName.to_wbem_uri()` to sort the
+  keys in the resulting WBEM URI. (See issue #2264)
+
 **Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)

@@ -15,7 +15,7 @@ except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
 import pytest
 import six
-import packaging
+from packaging.version import parse as parse_version
 
 from ..utils.validate import validate_cim_xml_obj
 from ..utils.pytest_extensions import simplified_test_function, ignore_warnings
@@ -89,7 +89,7 @@ unimplemented = pytest.mark.skipif(True, reason="test not implemented")
 #   the next patch version, which was not always the intended next version.
 # - Starting with 0.15.0, dev versions of an upcoming version always show the
 #   intended next version.
-version_info = packaging.version.parse(__version__).release
+version_info = parse_version(__version__).release
 
 # Controls whether the new behavior for CIM objects in 0.12 is checked.
 # Because of the behavior for dev versions described above, a dev version of
@@ -5025,7 +5025,8 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         None, None, CHECK_0_12_0
     ),
     (
-        "multiple keys (bool) in non-alphabetical order, standard format",
+        "multiple keys (bool) in non-alphabetical order in lower case, "
+        "standard format",
         dict(
             obj=CIMInstanceName(
                 classname=u'C',
@@ -5035,7 +5036,23 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             kwargs=dict(
                 format='standard',
             ),
-            exp_uri='/n:C.k2=TRUE,k1=FALSE',
+            exp_uri='/n:C.k1=FALSE,k2=TRUE',
+        ),
+        None, None, CHECK_0_12_0
+    ),
+    (
+        "multiple keys (bool) in non-alphabetical order in mixed case, "
+        "standard format",
+        dict(
+            obj=CIMInstanceName(
+                classname=u'C',
+                keybindings=NocaseDict([('K2', True), ('k1', False)]),
+                namespace=u'n',
+                host=None),
+            kwargs=dict(
+                format='standard',
+            ),
+            exp_uri='/n:C.K2=TRUE,k1=FALSE',
         ),
         None, None, CHECK_0_12_0
     ),
@@ -5060,12 +5077,12 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         dict(
             obj=CIMInstanceName(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', 0), ('k2', -1), ('k3', -32769),
+                keybindings=NocaseDict([('k1', 0), ('k3', -32769), ('k2', -1),
                                         ('k4', 42), ('k5', 42),
-                                        ('kmax32', 4294967295),
                                         ('kmin32', -4294967296),
-                                        ('kmax64', 9223372036854775807),
+                                        ('kmax32', 4294967295),
                                         ('kmin64', -9223372036854775808),
+                                        ('kmax64', 9223372036854775807),
                                         ('klong', 9223372036854775808)]),
                 namespace=u'n',
                 host=None),
@@ -5073,11 +5090,11 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                 format='standard',
             ),
             exp_uri='/n:C.k1=0,k2=-1,k3=-32769,k4=42,k5=42,'
+            'klong=9223372036854775808,'
             'kmax32=4294967295,'
-            'kmin32=-4294967296,'
             'kmax64=9223372036854775807,'
-            'kmin64=-9223372036854775808,'
-            'klong=9223372036854775808',
+            'kmin32=-4294967296,'
+            'kmin64=-9223372036854775808',
         ),
         None, None, CHECK_0_12_0
     ),
@@ -5086,12 +5103,12 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         dict(
             obj=CIMInstanceName(
                 classname=u'C',
-                keybindings=NocaseDict([('k1', 0.0), ('k2', -0.1), ('k3', 0.1),
+                keybindings=NocaseDict([('k1', 0.0), ('k3', 0.1), ('k2', -0.1),
                                         ('k4', 31.4E-1), ('k5', 0.4E1),
-                                        ('kmax32', 3.402823466E38),
                                         ('kmin32', 1.175494351E-38),
-                                        ('kmax64', 1.7976931348623157E308),
-                                        ('kmin64', 2.2250738585072014E-308)]),
+                                        ('kmax32', 3.402823466E38),
+                                        ('kmin64', 2.2250738585072014E-308),
+                                        ('kmax64', 1.7976931348623157E308)]),
                 namespace=u'n',
                 host=None),
             kwargs=dict(
@@ -5099,8 +5116,8 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1=0.0,k2=-0.1,k3=0.1,k4=3.14,k5=4.0,'
             'kmax32=3.402823466e+38,'
-            'kmin32=1.175494351e-38,'
             'kmax64=1.7976931348623157e+308,'
+            'kmin32=1.175494351e-38,'
             'kmin64=2.2250738585072014e-308',
         ),
         None, None, CHECK_0_12_0
@@ -5195,7 +5212,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             kwargs=dict(
                 format='standard',
             ),
-            exp_uri='/n:C.k1="a",k3="\\"",k2="1",k4="\'",k5="\\\\"',
+            exp_uri='/n:C.k1="a",k2="1",k3="\\"",k4="\'",k5="\\\\"',
         ),
         None, None, CHECK_0_12_0
     ),
