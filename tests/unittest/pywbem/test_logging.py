@@ -134,11 +134,14 @@ class TestLoggingConfigure(object):
             ['stderr', 10, TEST_OUTPUT_LOG, None],
             ['file', 'summary', TEST_OUTPUT_LOG, None],
             ['stderr', 'summary', TEST_OUTPUT_LOG, None],
+            ['stderr', None, TEST_OUTPUT_LOG, None],
             # Error tests
             ['blah', 'all', TEST_OUTPUT_LOG, ValueError],
             ['blah', 'all', TEST_OUTPUT_LOG, ValueError],
             ['file', 'blah', TEST_OUTPUT_LOG, ValueError],
+            ['file', 'all', None, ValueError],
             ['file', -9, TEST_OUTPUT_LOG, ValueError],
+            ['file', [-9], TEST_OUTPUT_LOG, ValueError],
         ]
     )
     def test_configure_logger(self, log_name, log_dest, detail_level,

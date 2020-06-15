@@ -208,17 +208,6 @@ def _to_pretty_xml(xml_item):
     return re.sub(r'>( *[\r\n]+)+( *)<', r'>\n\2<', pretty_result)
 
 
-def _check_classname(val):
-    """
-    Validate a classname.
-
-    At this point, only the type is validated to be a string.
-    """
-    if not isinstance(val, six.string_types):
-        raise ValueError(
-            _format("string expected for classname, not {0!A}", val))
-
-
 def _iparam_propertylist(property_list):
     """
     Validate property_list input parameter and return it as a tuple/list,
