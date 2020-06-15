@@ -19,7 +19,8 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, \
-    CIMError, CIMClass  # noqa: E402
+    CIMError, CIMInstanceName, CIMClassName, CIMInstance, \
+    CIMClass  # noqa: E402
 from pywbem._recorder import LogOperationRecorder  # noqa: E402
 from pywbem._recorder import TestClientRecorder as \
     MyTestClientRecorder  # noqa: E402
@@ -27,9 +28,15 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+OK = True     # mark tests OK when they execute correctly
+RUN = True    # Mark OK = False and current test case being created RUN
+FAIL = False  # Any test currently FAILING or not tested yet
+SKIP = False
 
-TESTCASES_INIT = [
 
+TESTCASES_INIT_WBEMCONNECTION = [
+
+    # Test WBEMConnection itit
     # the testcase items are tuples with these items:
     # * desc: Testcase description
     # * files: empty files to be created before the test
@@ -153,6 +160,46 @@ TESTCASES_INIT = [
         TypeError, "cert_file.* must be a string"
     ),
     (
+        "x509 parameter that is a dict with cert_file=3 (invalid) "
+        " Must be a string",
+        [],
+        dict(
+            x509=dict(
+                cert_file=3,
+                key_file=None,
+            ),
+        ),
+        dict(),
+        TypeError, "The 'cert_file' item in the x509 parameter must be a string"
+    ),
+    (
+        "x509 parameter that is a dict with cert_file='mycertfile.tmp' "
+        " keyfile invalid type",
+        [],
+        dict(
+            x509=dict(
+                cert_file='mycertfile.tmp',
+                key_file=3,
+            ),
+        ),
+        dict(),
+        TypeError, "The 'key_file' item in the x509 parameter must be a string",
+    ),
+    (
+        "x509 parameter that is a dict with no cert_file key "
+        "and key_file=None",
+        [],
+        dict(
+            x509=dict(
+                key_file=None,
+            ),
+        ),
+        dict(),
+        ValueError, "The x509 parameter does not have the required key "
+        "'cert_file'"
+    ),
+
+    (
         "x509 parameter that is an existing file (invalid)",
         ['mycertfile.tmp'],
         dict(
@@ -227,7 +274,7 @@ class TestCreateConnection(object):
 
     @pytest.mark.parametrize(
         'desc, files, init_kwargs, exp_attrs, exp_exc, exp_exc_regex',
-        TESTCASES_INIT)
+        TESTCASES_INIT_WBEMCONNECTION)
     def test_init(self, desc, files, init_kwargs, exp_attrs, exp_exc,
                   exp_exc_regex):
         # pylint: disable=no-self-use,unused-argument
@@ -552,3 +599,287 @@ def test_is_subclass(testcase, init_args, exp_attrs):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
     assert exp_attrs == result
+
+
+# TODO List of failure tests to be tested with following test
+# methodcall. test objectname
+# Test Iter invalid maxcount >- 0 and OperationTimeout < 0
+# line 2008, methodcall request with classname no namespace  - not a failue case
+# line 2010, methodcall request with classname, use string  - not a failure case
+# request with object name not CIMInstanceName, CIMClassName, not string - DONE
+# test _iparam_objectname type error if not CIMClassname, instancename,
+#     string - DONE
+# iparam_classname not CIMClassName or string - DONE
+# iparam_instancename not CIMInstanceName or None  - DONE
+# modified instance. no path,
+# Modified instance no class in path
+# modified_instance no classname in modifiedinstance line 3022
+# line 4595, iterenumerateinstances CIMClassName input no namespace
+# line 4612, close iterenum early.  Not sure this can be done.
+
+TESTCASES_REQUEST_INVALID_PARAMS = [
+
+    # Testcases for WBEMConnection  method calls with invalid params.
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_kwargs: keyword args for WBEMConnection __init
+    #   * method: operation method to call
+    #   * args=: Arguments for the operation method being called
+    #   * kwargs: Dict of keyword arguments for the WBEMConnection __init
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for
+    #   debugger
+    (
+        "Test invalid invokemethod objectname (integer)",
+        dict(
+            init_kwargs={},
+            method='invokemethod',
+            args=["MethodName", 1],
+            kwargs={},
+        ),
+        TypeError, None, OK
+    ),
+    (
+        "Test invalid invokemethod objectname is None",
+        dict(
+            init_kwargs={},
+            method='invokemethod',
+            args=["MethodName", None],
+            kwargs={},
+        ),
+        TypeError, None, OK
+    ),
+    (
+        "Test invalid invokemethod objectname None",
+        dict(
+            init_kwargs={},
+            method='invokemethod',
+            args=[None, "ObjectName"],
+            kwargs={},
+        ),
+        TypeError, None, False  # Fails with connection failure.
+    ),
+    (
+        "Test enumerateinstances, fails, classname is not CIMClassname or Str",
+        dict(
+            init_kwargs={},
+            method='enumerateinstances',
+            args=[CIMInstanceName("CIM_Blah")],
+            kwargs={},
+        ),
+        TypeError, None, OK
+    ),
+    (
+        "Test GetInstance, invalid InstanceName tyhpe",
+        dict(
+            init_kwargs={},
+            method='getinstance',
+            args=[CIMClassName("CIM_Blah")],
+            kwargs={},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
+        "Test ModifyInstance, No path in ModifiedInstance",
+        dict(
+            init_kwargs={},
+            method='modifyinstance',
+            args=[CIMInstance("CIMBlah")],
+            kwargs={},
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test EnumerateInstances, Invalid args type",
+        dict(
+            init_kwargs={},
+            method='enumerateinstances',
+            args=[CIMClass("CIMBlah")],
+            kwargs={},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
+        "Test pullinstancewithpath, Invalid context type",
+        dict(
+            init_kwargs={},
+            method='pullinstanceswithpath',
+            args=[1, 0],
+            kwargs={},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
+        "Test pullinstancewithpath, context list len ",
+        dict(
+            init_kwargs={},
+            method='pullinstanceswithpath',
+            args=[[], 0],
+            kwargs={},
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstances, invalid timeout.lt 0",
+        dict(
+            init_kwargs={},
+            method='iterenumerateinstances',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(OperationTimeout=-1),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstances, invalid maxobjectcount == 0",
+        dict(
+            init_kwargs={},
+            method='iterenumerateinstances',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(MaxObjectCount=0),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstances, Pull not allowed. with Filterquery",
+        dict(
+            init_kwargs=dict(use_pull_operations=False),
+            method='iterenumerateinstances',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(FilterQuery="blah"),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstances, Pull not allowed. with FilterQueryLang",
+        dict(
+            init_kwargs=dict(use_pull_operations=False),
+            method='iterenumerateinstances',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(FilterQueryLanguage="blah"),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstancePaths, invalid timeout.lt 0",
+        dict(
+            init_kwargs={},
+            method='iterenumerateinstancepaths',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(OperationTimeout=-1),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstancePaths, invalid maxobjectcount == 0",
+        dict(
+            init_kwargs={},
+            method='iterenumerateinstancepaths',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(MaxObjectCount=0),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstancePaths, Pull not allowed. with Filterquery",
+        dict(
+            init_kwargs=dict(use_pull_operations=False),
+            method='iterenumerateinstancepaths',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(FilterQuery="blah"),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstancePaths, Pull not allowed. with "
+        "FilterQueryLang",
+        dict(
+            init_kwargs=dict(use_pull_operations=False),
+            method='iterenumerateinstancepaths',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(FilterQueryLanguage="blah"),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstances, Pull not allowed. with "
+        "ContinueOnError True",
+        dict(
+            init_kwargs=dict(use_pull_operations=False),
+            method='iterenumerateinstances',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(ContinueOnError=True),
+        ),
+        ValueError, None, OK
+    ),
+
+    (
+        "Test IterEnumerateInstancePaths, Pull not allowed. with "
+        "ContinueOnError True",
+        dict(
+            init_kwargs=dict(use_pull_operations=False),
+            method='iterenumerateinstancepaths',
+            args=[CIMClassName("CIMBlah")],
+            kwargs=dict(ContinueOnError=True),
+        ),
+        ValueError, None, OK
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_REQUEST_INVALID_PARAMS)
+@simplified_test_function
+def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
+    """Execute the defined method expecting exception"""
+
+    conn = WBEMConnection('http://localhost', **init_kwargs)
+
+    if method == 'invokemethod':
+        _ = conn.InvokeMethod(*args, **kwargs)
+
+    elif method == 'enumerateinstances':
+        _ = conn.EnumerateInstances(*args, **kwargs)
+
+    elif method == 'getinstance':
+        _ = conn.GetInstance(*args, **kwargs)
+
+    elif method == 'modifyinstance':
+        conn.ModifyInstance(*args, **kwargs)
+
+    elif method == 'openenumerateinstances':
+        _ = conn.OpenEnumerateInstances(*args, **kwargs)
+
+    elif method == 'pullinstanceswithpath':
+        _ = conn.PullInstancesWithPath(*args, **kwargs)
+
+    elif method == 'iterenumerateinstances':
+        _ = list(conn.IterEnumerateInstances(*args, **kwargs))
+
+    elif method == 'iterenumerateinstancepaths':
+        _ = list(conn.IterEnumerateInstancePaths(*args, **kwargs))
+
+    else:
+        assert False, "Test failed. Incomplete. "  \
+            "method {0} not found".format(method)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
