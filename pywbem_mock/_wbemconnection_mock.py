@@ -1388,7 +1388,6 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
-
         modified_instance = params['ModifiedInstance']
         assert modified_instance.path.namespace is None
         modified_instance.path.namespace = namespace

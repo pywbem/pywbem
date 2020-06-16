@@ -2245,11 +2245,13 @@ class TestUserDefinedProviders(object):
         "desc,  inputs, exp_exec, condition",
         [
             ["validate ns='root/cimv2', etc.",
-             [["root/cimv3", UserInstanceTestProvider, 'CIM_Foo', 'instance']],
+             [["root/cimv3", UserInstanceTestProvider, 'CIM_Foo',
+               'instance-write']],
              None, OK],
 
             ["validate  ns='root/cimv2x' fails",
-             [["root/cimv2x", UserInstanceTestProvider, 'CIM_Foo', 'instance']],
+             [["root/cimv2x", UserInstanceTestProvider, 'CIM_Foo',
+               'instance-write']],
              ValueError, OK],
         ]
     )
@@ -2278,7 +2280,7 @@ class TestUserDefinedProviders(object):
                 provider = item[1]
                 conn.register_provider(provider(conn.cimrepository), tst_ns)
 
-            assert provider.provider_type == 'instance'
+            assert provider.provider_type == 'instance-write'
             provider_classnames = provider.provider_classnames
 
             if not isinstance(provider_classnames, (list, tuple)):
@@ -2320,7 +2322,7 @@ class TestUserDefinedProviders(object):
         #         * classnames - classname or list of classnames to register
         #           for provider
         #         * provider_type - String defining provider type
-        #           ('instance', etc.)
+        #           ('instance-write', etc.)
         #         * provider - Class that contains the user provider.
         # get_ns - namespace parameter for get_registered_provider
         # get_cln - classname parameter for get_registered_provider
@@ -2331,14 +2333,14 @@ class TestUserDefinedProviders(object):
         [
             ["Verify registry empty returns nothing",
              [],
-             'root/cimv2', 'CIM_Foo', 'instance',
+             'root/cimv2', 'CIM_Foo', 'instance-write',
              None, True],
 
             ["Register single good instance provider and test good result",
              [
                  ["root/cimv2", UserInstanceTestProvider],
              ],
-             'root/cimv2', 'CIM_Foo', 'instance',
+             'root/cimv2', 'CIM_Foo', 'instance-write',
              True, True],
 
             ["Register single good instance provider and test good result "
@@ -2346,21 +2348,21 @@ class TestUserDefinedProviders(object):
              [
                  ["root/cimv2", UserInstanceTestProvider],
              ],
-             'root/cimv2', 'cim_foo', 'instance',
+             'root/cimv2', 'cim_foo', 'instance-write',
              True, True],
 
             ["Verify get returns None namespace not found",
              [
                  ["root/cimv2", UserInstanceTestProvider],
              ],
-             'root/cimv2x', 'CIM_Foo', 'instance',
+             'root/cimv2x', 'CIM_Foo', 'instance-write',
              None, True],
 
             ["Verify get returns None classname  not found",
              [
                  ["root/cimv2", UserInstanceTestProvider],
              ],
-             'root/cimv2', 'CIM_Foo_sub_sub', 'instance',
+             'root/cimv2', 'CIM_Foo_sub_sub', 'instance-write',
              None, True],
 
             ["Verify get v provider type does not match",
@@ -2376,22 +2378,22 @@ class TestUserDefinedProviders(object):
              [
                  ["root/cimv2", UserInstanceTestProvider],
              ],
-             'root/cimv2', 'CIM_Foo_sub_sub', 'instance',
+             'root/cimv2', 'CIM_Foo_sub_sub', 'instance-write',
              True, None],
 
             ["Verify multiple providers registered, returns OK",
              [["root/cimv2", UserInstanceTestProvider]],
-             'root/cimv2', 'CIM_Foo', 'instance',
+             'root/cimv2', 'CIM_Foo', 'instance-write',
              True, True],
 
             ["Verify test, multiple classes registered, returns OK",
              [["root/cimv2", UserInstanceTestProvider]],
-             'root/cimv2', 'CIM_Foo', 'instance',
+             'root/cimv2', 'CIM_Foo', 'instance-write',
              True, OK],
 
             ["Verify test, register with None as namespace, returns OK",
              [[None, UserInstanceTestProvider]],
-             'root/cimv2', 'CIM_Foo', 'instance',
+             'root/cimv2', 'CIM_Foo', 'instance-write',
              True, OK],
         ]
     )
@@ -2455,7 +2457,7 @@ class TestUserDefinedProviders(object):
              ],
              "\nRegistered Providers:\n"
              "namespace: root/cimv2\n"
-             "  CIM_Foo  instance  UserInstanceTestProvider\n",
+             "  CIM_Foo  instance-write  UserInstanceTestProvider\n",
              OK],
 
             ["validate snamespace is None, etc.",
@@ -2464,7 +2466,7 @@ class TestUserDefinedProviders(object):
              ],
              "\nRegistered Providers:\n"
              "namespace: root/cimv2\n"
-             "  CIM_Foo  instance  UserInstanceTestProvider\n",
+             "  CIM_Foo  instance-write  UserInstanceTestProvider\n",
              OK],
 
             ["validate multiple namespaces , etc.",
@@ -2473,9 +2475,9 @@ class TestUserDefinedProviders(object):
              ],
              '\nRegistered Providers:\n'
              'namespace: root/cimv2\n'
-             '  CIM_Foo  instance  UserInstanceTestProvider\n'
+             '  CIM_Foo  instance-write  UserInstanceTestProvider\n'
              'namespace: root/cimv3\n'
-             '  CIM_Foo  instance  UserInstanceTestProvider\n',
+             '  CIM_Foo  instance-write  UserInstanceTestProvider\n',
              OK],
 
             ["validate ns='root/cimv2, root/cimv3', etc.",
@@ -2485,9 +2487,9 @@ class TestUserDefinedProviders(object):
              ],
              '\nRegistered Providers:\n'
              'namespace: root/cimv2\n'
-             '  CIM_Foo  instance  UserInstanceTestProvider\n'
+             '  CIM_Foo  instance-write  UserInstanceTestProvider\n'
              'namespace: root/cimv3\n'
-             '  CIM_Foo  instance  UserInstanceTestProvider\n',
+             '  CIM_Foo  instance-write  UserInstanceTestProvider\n',
              OK],
 
             ["validate single existing ns, provider with multiple classnames",
@@ -2496,8 +2498,8 @@ class TestUserDefinedProviders(object):
              ],
              '\nRegistered Providers:\n'
              'namespace: root/cimv2\n'
-             '  CIM_Foo      instance  UserInstanceTestProvider2\n'
-             '  CIM_Foo_Sub  instance  UserInstanceTestProvider2\n',
+             '  CIM_Foo      instance-write  UserInstanceTestProvider2\n'
+             '  CIM_Foo_Sub  instance-write  UserInstanceTestProvider2\n',
              OK],
 
             ["validate multiple  ns, provider with multiple classnames",
@@ -2506,11 +2508,11 @@ class TestUserDefinedProviders(object):
              ],
              '\nRegistered Providers:\n'
              'namespace: root/cimv2\n'
-             '  CIM_Foo      instance  UserInstanceTestProvider2\n'
-             '  CIM_Foo_Sub  instance  UserInstanceTestProvider2\n'
+             '  CIM_Foo      instance-write  UserInstanceTestProvider2\n'
+             '  CIM_Foo_Sub  instance-write  UserInstanceTestProvider2\n'
              'namespace: root/cimv3\n'
-             '  CIM_Foo      instance  UserInstanceTestProvider2\n'
-             '  CIM_Foo_Sub  instance  UserInstanceTestProvider2\n',
+             '  CIM_Foo      instance-write  UserInstanceTestProvider2\n'
+             '  CIM_Foo_Sub  instance-write  UserInstanceTestProvider2\n',
              OK],
 
         ]
@@ -2643,7 +2645,7 @@ class TestUserDefinedProviders(object):
 
         class CIM_FooSubUserProvider(InstanceWriteProvider):
             """
-            Define the user provider
+            Define the user provider. Only implements ModifyInstance
             """
             # CIM classes this provider serves
             provider_classnames = 'CIM_Foo_Sub'
@@ -2660,10 +2662,14 @@ class TestUserDefinedProviders(object):
                 My user ModifyInstance.  Will change the value of the
                 property as a flag
                 """
-
                 # modify a None key property.
                 assert ModifiedInstance.get("InstanceID") == 'origid'
-                ModifiedInstance.properties["cimfoo_sub"].value = "ModProperty"
+                # modify the defined property value
+                assert ModifiedInstance.properties["cimfoo_sub"].value == \
+                    "ModProperty"
+
+                ModifiedInstance.properties["cimfoo_sub"].value = \
+                    "ModProperty2"
 
                 # send back to the superclass to complete insertion into
                 # the repository.
@@ -2671,7 +2677,6 @@ class TestUserDefinedProviders(object):
                     ModifiedInstance)
 
         skip_if_moftab_regenerated()
-
         ns = conn.default_namespace
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
         conn.register_provider(CIM_FooSubUserProvider(conn.cimrepository), ns)
@@ -2686,15 +2691,13 @@ class TestUserDefinedProviders(object):
 
         # Modify the cimfoo_sub property and put modification in repository
         mod_instance = deepcopy(rtnd_instance)
-        mod_instance.update_existing([('cimfoo_sub',
-                                       CIMProperty('cimfoo_sub',
-                                                   'ModProperty'))])
+        mod_instance.update_existing([('cimfoo_sub', 'ModProperty')])
         conn.ModifyInstance(mod_instance)
 
         # Get modified instance and compare property for change
         rtnd_modified_instance = conn.GetInstance(rtnd_path)
         assert rtnd_modified_instance.properties["cimfoo_sub"].value == \
-            "ModProperty"
+            "ModProperty2"
 
         assert rtnd_instance.path == rtnd_path
 

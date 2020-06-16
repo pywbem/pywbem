@@ -264,7 +264,7 @@ class InstanceWriteProvider(BaseProvider):
 
     #: :term:`string`: Keyword defining the type of request the provider will
     #: service. The type for this provider class is predefined as 'instance'.
-    provider_type = 'instance'
+    provider_type = 'instance-write'
 
     def __init__(self, cimrepository=None):
         """
