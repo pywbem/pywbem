@@ -569,3 +569,20 @@ class InstanceWriteProvider(BaseProvider):
 
         # Delete the instance from the CIM repository
         instance_store.delete(InstanceName)
+
+    def post_register_setup(self, conn):
+        """
+        Method called by provider registration after registation of provider
+        is successful. Using this method is optional for registration cases
+        where the provider must execute some activity (ex. modify the
+        CIM repository after successful provider registration).
+
+        Override this method in the user-defined provider subclass to execute
+        this method.
+
+        Parameters:
+
+          conn (:class:`~pywbem.WBEMConnection`):
+            Current connection which allows client methods to be executed
+            from within this method.
+        """

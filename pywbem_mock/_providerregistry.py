@@ -305,11 +305,10 @@ class ProviderRegistry(object):
                     ", ".join(provider_classnames),
                     provider_type, ", ".join(namespaces))
 
-        try:
-            provider.post_register_setup(conn)
-        except AttributeError:
-            if verbose:
-                _format("Register_Provider post_register_setup not found")
+        # Call post_register_setup.  Since this method is defined in the
+        # default provider methods (MethodProvider, etc.) any exception is
+        # caught as an error.
+        provider.post_register_setup(conn)
 
     def get_registered_provider(self, namespace, provider_type, classname):
         """
