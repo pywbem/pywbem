@@ -190,7 +190,7 @@ class InMemoryRepository(BaseRepository):
         # namespaces in the repository. The keys of this dictionary
         # are namespace names and the values are dictionaries
         # defining the CIM classes, CIM instances, and CIM qualifier
-        # declarations where the keys are "classes", "instance", and
+        # declarations where the keys are "classes", "instances", and
         # "qualifiers" and the value for each is an instance of the
         # class InMemoryObjectStore that containe the CIM objects.
         self._repository = NocaseDict()

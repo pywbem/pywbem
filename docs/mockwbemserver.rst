@@ -869,14 +869,14 @@ can be executed for each provider type.
 
 .. table:: Pywbem_mock provider types
 
-    ====================== ============ ========================  ================================
-    Provider Type          type name    CIM Request Operations    Default provider class
-    ====================== ============ ========================  ================================
-    method                 "method"      InvokeMethod             :ref:`Method Provider`
-    instance write         "instance"    CreateInstance           :ref:`Instance Write Provider`
-    instance write         "instance"    ModifyInstance           :ref:`Instance Write Provider`
-    instance write         "instance"    DeleteInstance           :ref:`Instance Write Provider`
-    ====================== ============ ========================  ================================
+    ====================== =================== ========================  ================================
+    Provider Type          type name           CIM Request Operations    Default provider class
+    ====================== =================== ========================  ================================
+    method                 "method"            InvokeMethod             :ref:`Method Provider`
+    instance write         "instance-write"    CreateInstance           :ref:`Instance Write Provider`
+    instance write         "instance-write"    ModifyInstance           :ref:`Instance Write Provider`
+    instance write         "instance-write"    DeleteInstance           :ref:`Instance Write Provider`
+    ====================== ============ ====== ========================  ================================
 
 Each user-defined provider is a Python class which is a subclass
 of the corresponding default provider for the provider type as defined in

@@ -122,7 +122,7 @@ class ProviderDispatcher(BaseProvider):
                         NewInstance.classname, namespace))
 
         provider = self.provider_registry.get_registered_provider(
-            namespace, 'instance', NewInstance.classname)
+            namespace, 'instance-write', NewInstance.classname)
 
         # Execute the method in the provider if the method exists. Otherwise
         # fall back to the default provider
@@ -195,7 +195,7 @@ class ProviderDispatcher(BaseProvider):
                         ModifiedInstance.path, namespace))
 
         provider = self.provider_registry.get_registered_provider(
-            namespace, 'instance', ModifiedInstance.classname)
+            namespace, 'instance-write', ModifiedInstance.classname)
 
         # Execute the method in the provider if the method exists. Otherwise
         # fall back to the default provider
@@ -244,7 +244,7 @@ class ProviderDispatcher(BaseProvider):
                         "{1!A}", InstanceName, namespace))
 
         provider = self.provider_registry.get_registered_provider(
-            InstanceName.namespace, 'instance', InstanceName.classname)
+            InstanceName.namespace, 'instance-write', InstanceName.classname)
 
         # Execute the method in the provider if the method exists. Otherwise
         # fall back to the default provider

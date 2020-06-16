@@ -51,7 +51,7 @@ class ProviderRegistry(object):
     namespace, and provider_type.
     """
     #: Allowed provider types
-    PROVIDER_TYPES = ["instance", "method"]
+    PROVIDER_TYPES = ["instance-write", "method"]
 
     def __init__(self):
         # Dictionary of registered providers.
@@ -142,7 +142,7 @@ class ProviderRegistry(object):
         Providers can only be registered for the following request response
         methods:
 
-        1. provider_type = 'instance': defines methods for CreateInstance,
+        1. provider_type = 'instance-write': defines methods for CreateInstance,
            ModifyInstance, and DeleteInstance requests within a subclass of
            the `InstanceWriteProvider` class.
 
@@ -214,7 +214,7 @@ class ProviderRegistry(object):
                 _format("Attributes provider_type and provider_classnames "
                         "required in provider. exception {}",
                         ae))
-        if provider_type == 'instance':
+        if provider_type == 'instance-write':
             if not isinstance(provider, InstanceWriteProvider):
                 raise TypeError(
                     _format("Provider argument {0!A} is not a "
@@ -324,8 +324,8 @@ class ProviderRegistry(object):
             The namespace in which the request will be executed.
 
           provider_type (:term:`string`):
-            String containing keyword ('instance' or 'method') defining the
-            type of provider.
+            String containing keyword ('instance-write' or 'method') defining
+            the type of provider.
 
           classname (:term:`string`):
             Name of the class defined for the operation
@@ -419,8 +419,8 @@ class ProviderRegistry(object):
             Name of the class defined for the operation.
 
           provider_type (:term:`string`):
-            String containing keyword ('instance' or 'method') defining the
-            type of provider.
+            String containing keyword ('instance-write' or 'method') defining
+            the type of provider.
 
         Returns:
             The registered object
