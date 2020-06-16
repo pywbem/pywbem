@@ -113,25 +113,17 @@ A user-defined method provider can be created as follows:
    :class:`~pywbem_mock.ProviderDispatcher.ProviderDispatcher` including:
 
    a. The namespace defined in the namespace parameter exists.
-
    b. The classname defined in the ObjectName parameter exists in the
-      namespace
-
+      namespace.
    c. The method defined in the MethodName parameter exists.
-
    d. The method provider is registered for this classname in this namespace.
 
-   The correspondence between parameters in the Params argument and in
-   the class have not be verified.
+   The correspondence between parameters in the ``Params`` argument and in
+   the class have not been verified.
 
    The created method should implement any exceptions based on
-   :class:`pywbem.CIMError` using the error codes defined in :term:`DSP0200`
-   which will be passed back to the client.
-
-   The user-defined class must include the following class variable:
-
-   * `provider_classnames` (:term:`string` or list of :term`string`): defines
-     the class(es) that this provider will serve.
+   :class:`pywbem.CIMError` (as a server would) using the error codes defined
+   in :term:`DSP0200` which will be passed back to the client.
 
    Thus, a user-defined method provider defines a subclass to
    :class:`~pywbem_mock.MethodProvider and defines a `InvokeMethod` method in
@@ -197,14 +189,12 @@ class MethodProvider(BaseProvider):
         """
         Defines the API and return for a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.InvokeMethod` for both static (ObjectName
-        is a class name) and dynamic (ObjectName is a CIMInstanceName) methods
+        is a class name) and dynamic (ObjectName is a CIMInstanceName) CIM
+        methods.
 
         This method should never be called because there is no concept of a
-        default InvokeMethod in WBEM.  All method providers specify specific
+        default InvokeMethod in CIM.  All method providers specify specific
         actions.
-
-        This responder calls a function defined by an entry in the methods
-        repository. The return from that function is returned to the user.
 
         Parameters:
 
@@ -214,7 +204,9 @@ class MethodProvider(BaseProvider):
             characters are ignored.
 
           MethodName (:term:`string`):
-            Name of the method to be invoked (case independent).
+            Name of the method to be invoked (case independent) The method
+            name must be a method of the class defined in the ``ObjectName``
+            parameter.
 
           ObjectName: (:class: `CIMInstanceName` or :term:`string`):
             The object path of the target object, as follows:

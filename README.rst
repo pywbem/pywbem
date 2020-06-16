@@ -83,7 +83,7 @@ Pywbem provides the following Python APIs:
 * `MOF Compiler`_ - An API for compiling MOF files or strings into a CIM
   repository (e.g. on a WBEM server), or for test-compiling MOF.
 
-* `Mock Support`_ - An API for setting up a mocked WBEM server that is used
+* `Mock WBEM server`_ - An API for setting up a mocked WBEM server that is used
   instead of a real WBEM server. This allows setting up well-defined WBEM
   servers locally that can be used for example for prototyping or testing user
   applications.

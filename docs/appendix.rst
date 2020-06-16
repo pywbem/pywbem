@@ -95,7 +95,7 @@ This documentation uses a few special terms to refer to Python types:
    interop namespace
       A :term:`CIM namespace`  is the interop namespace if it has one of the
       following names: DMTF definition; ('interop', 'root/interop') pywbem
-      implementation; ('interop', 'root/interop', 'root/PG_Interop''),
+      implementation; ('interop', 'root/interop', 'root/PG_Interop'),
       Only one interop namespace is allowed in a WBEM Server. The interop
       namespace contains CIM classes that the client needs to discover
       characteristics of the WBEM server (namespaces, coniguration of server

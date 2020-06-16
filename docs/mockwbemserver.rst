@@ -125,7 +125,7 @@ Pywbem mock supports:
 1. All of the :class:`~pywbem.WBEMConnection` operation methods that communicate
    with the WBEM server (see below for list of operations supported and their
    limitations) except for specific limitations
-   (``DeleteClass and ``ExecQuery``).
+   (``DeleteClass`` and ``ExecQuery``).
 2. Multiple CIM namespaces and a default namespace on the faked connection.
 3. Gathering time statistics and delaying responses for a predetermined time.
 4. :class:`~pywbem.WBEMConnection` logging except that there are no HTTP entries
@@ -848,9 +848,10 @@ that somewhere an instance the class must be created each time a namespace is
 created or the responder must get the set of namespaces from the CIM repository
 to generate responses to ``GetInstance``, ``EnumerateInstance``, etc.
 
-Also, the :meth:`pywbem_mock.FakedWBEMConnection.InvokeMethod` client operation
-depends on a specific responder method in the WBEM server since the behavior of
-WBEM server methods is dependent on the specific method.
+Also, the :meth:`pywbem_mock.WBEMConnection.InvokeMethod` on
+:class:`pywbem_mock.FakedWBEMConnection` client operation depends on a specific
+responder method in the WBEM server since the behavior of WBEM server methods
+is dependent on the specific method.
 
 To meet these needs, pywbem_mock has implemented the capability to create
 :term:`user-defined providers <user-defined provider>` that become request
@@ -886,21 +887,21 @@ the previous table.
 
 Creating user-defined instance providers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Instance user-defined providers can override the default implementations for
- the methods defined in the above table (``CreateInstance``, `ModifyInstance``,
+ User-defined instance providers can override the default implementations for
+ the methods defined in the above table (``CreateInstance``, ``ModifyInstance``,
  and ``DeleteInstance``). These methods are defined in a user-defined class
  that subclasses :class:`pywbem_mock.InstanceWriteProvider`. The details of
  defining this provider are in section :ref:`Instance Write Provider`.
 
-The following is a simple exaple of a user-defined InstanceWriteProvider
+The following is a simple example of a user-defined instance write provider
+
+.. code-block:: python
 
     import pywbem
     import pywbem_mock
 
     from pywbem_mock import InstanceWriteProvider, CIMError, \
         CIM_ERR_METHOD_NOT_SUPPORTED
-
-.. code-block:: python
 
     class CIMFooUserInstanceProvider(InstanceWriteProvider):
         """
@@ -1196,7 +1197,6 @@ Instance Write Provider
 Method Provider
 ^^^^^^^^^^^^^^^
 
-
 .. automodule:: pywbem_mock._methodprovider
 
 .. autoclass:: pywbem_mock.MethodProvider
@@ -1211,6 +1211,30 @@ Method Provider
    .. rubric:: Attributes
 
    .. autoautosummary:: pywbem_mock.MethodProvider
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. _`Base Provider`:
+
+Base Provider
+^^^^^^^^^^^^^
+
+.. automodule:: pywbem_mock._baseprovider
+
+.. autoclass:: pywbem_mock.BaseProvider
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.BaseProvider
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.BaseProvider
       :attributes:
 
    .. rubric:: Details
