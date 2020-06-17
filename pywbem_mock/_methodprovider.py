@@ -1,12 +1,32 @@
-"""
-This module adds support for user-defined method providers.  User defined
-method providers may be created within pywbem_mock to extend the capability
-of the mocker for special processing for selected classes using CIM
-extrensic methods (the `InvokeMethod` client request).
+#
+# (C) Copyright 2020 InovaDevelopment.com
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Author: Karl  Schopmeyer <inovadevelopment.com>
+#
 
-Since there is no concept of a default method provider (all CIM methods
-imply actions that are specific to the method). The default provide returns
-an exception.
+"""
+The MethodProvider module adds support for user-defined method providers.  User
+defined method providers may be created within pywbem_mock to extend the
+capability of the mocker for processing methods defined in CIM classes using
+WBEM extrensic methods (the `InvokeMethod` client request).
+
+Since there is no concept of a default method provider (all CIM methods imply
+actions that are specific to the method), the default method provider always
+returns an exception (CIM_ERR_NOT_FOUND).
 
 User defined providers may be created for specific CIM classes and namespaces
 to override the InvokeMethod in :class:`~pywbem_mock.MethodProvider` with user
@@ -15,32 +35,106 @@ methods defined in a subclass of :class:`~pywbem_mock.MethodProvider`.
 This module contains the default MethodProvider class which provides the
 following:
 
-1. Definition of the provider type (`provider_type = method`).
-2. Definition of the API and return for the `InvokeMethod` method required in
-   the user-defined subclass
+1. Definition of the provider type (``provider_type = "method"``).
+2. Definition of the API and return for the ``InvokeMethod`` method required in
+   the user-defined subclass.
 
-A user-defined method provider is created as follows:
+A user-defined method provider can be created as follows:
 
-1. Create the subclass of :class:`~pywbem_mock.MethodProvider` with an
-   __init__ method, an optional `post_registration_setup` method and the
-   `InvokeMethod that will override the same method defined in
-   :class:`~pywbem_mock.MethodProvider`.  The input parameters for the
-   InvokeMethod will have been already validated in
-   :class:`~pywbem_mock.ProviderDispatcher.ProviderDispatcher`.
+1. Implement the subclass of :class:`~pywbem_mock.MethodProvider` with:
+
+   a. Constructor:
+      `__init__()` that takes as input at least the cimrepository
+      object parameter and passes it to the superclass and any other
+      constructor parameters the user-defined provider requires.  Since the
+      user creates the instance.
+
+      .. code-block:: python
+
+         def __init__(self, cimrepository):
+             super(UserMethodTestProvider, self).__init__(cimrepository)
+
+   b. Definition of the CIM class the provider supports as a class variable.
+
+      .. code-block:: python
+
+        provider_classnames = 'CIM_Foo'
+
+   c. Definition and implementation of the WBEM operations supported by the
+      provider from the set of request operations defined in the table above
+      for a specific provider type. This must be a subset of the methods
+      defined for the provider type. Methods that do not exist in the
+      user-defined provider default to the default method. Each of these
+      methods may:
+
+      * provide parameter or cim repository validation in addition to the normal
+        request validation,
+      * modify parameters of the request.
+      * generate an CIMError exception for the operation.
+      * make modifications to the cim repository.
+
+      The request may be completed by the user provider method calling the
+      superclass corresponding method to complete its final validation and
+      modify the repository or by the provider directly modifying the repository
+      based on the method and parameters.
+
+      The user-defined providers have access to:
+        * methods defined in their superclass
+        * methods defined in :class:~pywbem_mock.BaseProvider`
+        * methods to access the CIM repository using the methods defined in
+          :class:`~pywbem_mock.InMemoryRepository`
+
+      .. code-block:: python
+
+        def CreateInstance(self, namespace, NewInstance):
+            \"\"\"Test Create instance just calls super class method\"\"\"
+
+            # Simply calls the default responder method for CreateInstance
+            return super(UserInstanceTestProvider, self).CreateInstance(
+                namespace, NewInstance)
+
+   d. Optional method
+      The provider may include
+      (:meth:`~pywbem_mock.MethodProvider.post_register-setup()`) that
+      :meth:`~pywbem_mock.FakedWBEMConnection.register_provider` will call as
+      after the provider registration is successful.  This allows the provider
+      to do any special setup it desires uses its own methods. This method
+      includes the current connection as a parameter so that client methods can
+      be executed directly.
+
+      .. code-block:: python
+
+          def post_register_setup(self, conn):
+            # code that performs post registration setup for the provider
+
+
+   The input parameters for the user defined invoke_method InvokeMethod will
+   have been already validated in
+   :class:`~pywbem_mock.ProviderDispatcher.ProviderDispatcher` including:
+
+   a. The namespace defined in the namespace parameter exists.
+   b. The classname defined in the ObjectName parameter exists in the
+      namespace.
+   c. The method defined in the MethodName parameter exists.
+   d. The method provider is registered for this classname in this namespace.
+
+   The correspondence between parameters in the ``Params`` argument and in
+   the class have not been verified.
 
    The created method should implement any exceptions based on
-   :class:`pywbem.CIMError` using the error codes defined in :term:`DSP0200`
-   which will be passed back to the client.
-
-   The user-defined class must include the following class variables:
-
-   * `provider_classnames` (:term:`string` or list of :term`string`): defines
-     the class(es) that this provider will serve.
+   :class:`pywbem.CIMError` (as a server would) using the error codes defined
+   in :term:`DSP0200` which will be passed back to the client.
 
    Thus, a user-defined method provider defines a subclass to
    :class:`~pywbem_mock.MethodProvider and defines a `InvokeMethod` method in
    the user-defined subclass to override
    :meth:`~pywbem_mock.MethodProvider.InvokeMethod`.
+
+   The user-defined provider has access to:
+       * methods defined in the superclass :class:~pywbem_mock.MethodProvider`
+       * methods defined in :class:~pywbem_mock.BaseProvider`
+       * methods to access the CIM repository using the methods defined in
+         :class:`~pywbem_mock.InMemoryRepository`
 
 2. Register the user-defined method provider using
    :meth:`~pywbem_mock.FakedWBEMConnection.register_provider` to define the
@@ -95,14 +189,12 @@ class MethodProvider(BaseProvider):
         """
         Defines the API and return for a mock WBEM server responder for
         :meth:`~pywbem.WBEMConnection.InvokeMethod` for both static (ObjectName
-        is a class name) and dynamic (ObjectName is a CIMInstanceName) methods
+        is a class name) and dynamic (ObjectName is a CIMInstanceName) CIM
+        methods.
 
         This method should never be called because there is no concept of a
-        default InvokeMethod in WBEM.  All method providers specify specific
+        default InvokeMethod in CIM.  All method providers specify specific
         actions.
-
-        This responder calls a function defined by an entry in the methods
-        repository. The return from that function is returned to the user.
 
         Parameters:
 
@@ -112,7 +204,9 @@ class MethodProvider(BaseProvider):
             characters are ignored.
 
           MethodName (:term:`string`):
-            Name of the method to be invoked (case independent).
+            Name of the method to be invoked (case independent) The method
+            name must be a method of the class defined in the ``ObjectName``
+            parameter.
 
           ObjectName: (:class: `CIMInstanceName` or :term:`string`):
             The object path of the target object, as follows:
@@ -130,16 +224,15 @@ class MethodProvider(BaseProvider):
               The string is interpreted as a class name in the namespace defined
               in the namespace parameter(case independent).
 
-          Params (:term:`py:NocaseDict`):
-            Each item in Params is a name/parameter-value for the CIM
+          Params (:class:`py:NocaseDict`):
+            Each item in ``Params`` is a name/parameter-value for the CIM
             method and is:
 
-            * :term:`string_types` - The case-insensitive name of the
-              parameter
-            * :class:`~pywbem.CIMParameter`  the item value representing a
+            * :term:`string` The case-insensitive name of the parameter.
+            * :class:`~pywbem.CIMParameter`  The item value representing a
               parameter value. The `name`, `value`, `type` and
               `embedded_object` attributes of this object are guaranteed
-              present..
+              present.
 
         Returns:
 

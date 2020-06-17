@@ -86,6 +86,23 @@ This documentation uses a few special terms to refer to Python types:
    CIM object
       one of the types listed in :ref:`CIM objects`.
 
+   CIM namespace
+      an object that is accessible through a WBEM server and is a naming
+      space for CIM classes, CIM instances and CIM qualifier declarations.
+      The namespace is a component of other elements like namespace path used
+      to access objects in the WBEM server.
+
+   interop namespace
+      A :term:`CIM namespace`  is the interop namespace if it has one of the
+      following names: DMTF definition; ('interop', 'root/interop') pywbem
+      implementation; ('interop', 'root/interop', 'root/PG_Interop'),
+      Only one interop namespace is allowed in a WBEM Server. The interop
+      namespace contains CIM classes that the client needs to discover
+      characteristics of the WBEM server (namespaces, coniguration of server
+      components like indications) and the registered profiles implemented by
+      that server.
+
+
    keybindings input object
       a Python object used as input for initializing an ordered list of
       keybindings in a parent object (i.e. a :class:`~pywbem.CIMInstanceName`
@@ -280,6 +297,25 @@ This documentation uses a few special terms to refer to Python types:
       :class:`~pywbem.CIMProperty` objects that were provided in the input
       collection. Therefore, a caller must be careful to not accidentally
       modify the provided :class:`~pywbem.CIMProperty` objects.
+
+   provider
+      An element of a WBEM server that responds to requests for selected
+      classes. A WBEM server normally contains a main provider that may
+      interface with a CIM respository and provides responses to client
+      requests for which no specific provider is defined and providers which
+      providers that allow specialized responses for selected classes and
+      request types (communicate with managed components) or manipulate the
+      objects being managed.
+
+      NOTE: In the SNIA terminology, a provider may also be a complete
+      WBEM server implementation.
+
+   user-defined provider
+      A :term:provider that can be defined independently of the WBEM server
+      and attached dynamically to the WBEM server.  In pywbem, user-defined
+      providers can be defined as subclasses of specific default provider
+      types and attached to the server by registering them with the
+      connection.
 
    qualifiers input object
       a Python object used as input for initializing an ordered list of

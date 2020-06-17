@@ -35,7 +35,7 @@ https://pywbem.github.io/.
    indication.rst
    subscription.rst
    compiler.rst
-   mocksupport.rst
+   mockwbemserver.rst
    utilities.rst
    development.rst
    appendix.rst

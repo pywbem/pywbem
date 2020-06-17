@@ -53,7 +53,7 @@ Pywbem provides the following Python APIs:
   An API for compiling MOF files or strings into a CIM repository (e.g. on a
   WBEM server), or for test-compiling MOF.
 
-* :ref:`Mock support` -
+* :ref:`Mock WBEM server` -
   An API for setting up a mocked WBEM server that is used instead of a real
   WBEM server. This allows setting up well-defined WBEM servers locally that
   can be used for example for prototyping or testing user applications.
@@ -322,7 +322,7 @@ to the standards:
 
   Limitations:
 
-  - The mock support of pywbem (see :ref:`Mock support`) does not support the
+  - The mock support of pywbem (see :ref:`Mock WBEM server`) does not support the
     ``ModifyClass`` operation. Note that in its implementation of the CIM-XML
     protocol, pywbem does support the ``ModifyClass`` operation.
 
