@@ -228,8 +228,8 @@ class MethodProvider(BaseProvider):
             Each item in ``Params`` is a name/parameter-value for the CIM
             method and is:
 
-            * :term:`string` The case-insensitive name of the parameter.
-            * :class:`~pywbem.CIMParameter`  The item value representing a
+            * :term:`string`: The case-insensitive name of the parameter.
+            * :class:`~pywbem.CIMParameter`: The item value representing a
               parameter value. The `name`, `value`, `type` and
               `embedded_object` attributes of this object are guaranteed
               present.
