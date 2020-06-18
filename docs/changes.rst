@@ -184,11 +184,14 @@ Released: not yet
 
 **Deprecations:**
 
-  Deprecated the method FakedWBEMConnection.compile_dmtf_schema in favor of
+* Deprecated Python 2.7 and 3.4 support in pywbem, stating that it will be
+  removed in a future version.
+
+* Deprecated the method FakedWBEMConnection.compile_dmtf_schema in favor of
   a new method FakedWBEMConnection.compile_dmtf_classes that does not
   directly use the DMTFCIMSchema class.
 
-  Deprecated the attribute name schema_mof_file in DMTFCIMSchema in favor of
+* Deprecated the attribute name schema_mof_file in DMTFCIMSchema in favor of
   the name schema_pragma_file since this is the file that contains all
   of the MOF pragmas defining the locations of the class MOF files in a
   set of directories.

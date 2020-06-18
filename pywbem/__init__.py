@@ -21,7 +21,8 @@
 
 """
 Pywbem is a WBEM client, written in pure Python.
-It supports Python 2 and Python 3.
+It supports Python 2.7 and Python 3.
+Python 2.7 support has been deprecated with pywbem 1.0.0.
 """
 
 # There are submodules, but clients shouldn't need to know about them.
@@ -68,8 +69,20 @@ _python_n = sys.version_info[1]  # pylint: disable=invalid-name
 # Keep these Python versions in sync with setup.py
 if _python_m == 2 and _python_n < 7:
     raise RuntimeError('On Python 2, pywbem requires Python 2.7 or higher')
+if _python_m == 2 and _python_n == 7:
+    import warnings
+    warnings.warn(
+        "Pywbem support for Python 2.7 is deprecated and will be removed in "
+        "a future version",
+        DeprecationWarning, 2)
 if _python_m == 3 and _python_n < 4:
     raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')
+if _python_m == 3 and _python_n == 4:
+    import warnings
+    warnings.warn(
+        "Pywbem support for Python 3.4 is deprecated and will be removed in "
+        "a future version",
+        DeprecationWarning, 2)
 
 # On Python 2, add a NullHandler to suppress the warning "No handlers could be
 # found for logger ...".
