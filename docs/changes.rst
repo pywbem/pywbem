@@ -45,6 +45,25 @@ details of the changes themselves and the reasons for the changes.
 
 * Removed the `verify_callback` parameter of `WBEMConnection`.
 
+* Removed the deprecated ability to set the following properties of class
+  `WBEMConnection`: `url`, `creds`, `x509`, `ca-certs`, `no_verification`,
+  and `timeout`.
+
+* Removed the deprecated methods `method_call()` and imethod_call()` and the
+  deprecated property `operation_recorder` from class `WBEMConnection`.
+
+* Removed the deprecated property `property_list` and the same-named init
+  parameter from class `CIMInstance`.
+
+* Removed the deprecated ability to support a value of `None` for
+  `pywbem.tocimxml()`.
+
+* Removed the deprecated `indent` parameter of `CIMInstance.tomof()`.
+
+* Removed the deprecated internal function `pywbem.byname()`.
+
+* Removed the deprecated function `pywbem.tocimobj()`.
+
 * MOF compiler:
 
   * Made the `MOFWBEMConnection` class (support for the MOF compiler) internal.
@@ -87,6 +106,8 @@ details of the changes themselves and the reasons for the changes.
   * Changed the logging behavior of the MOF compilation methods of
     `FakedWBEMConnection` so that the default is for the caller to display
     exceptions rather than the MOF compiler logger.
+
+* Removed deprecated functionality.
 
 *Incompatible change details:*
 
@@ -166,6 +187,25 @@ details of the changes themselves and the reasons for the changes.
 * Removed the `verify_callback` parameter of `WBEMConnection`. It was
   deprecated in pywbem 0.9.0, and was not supported in Python 3.
   (See issue #1928)
+
+* Removed the deprecated ability to set the following properties of class
+  `WBEMConnection`: `url`, `creds`, `x509`, `ca-certs`, `no_verification`,
+  and `timeout`.
+
+* Removed the deprecated methods `method_call()` and imethod_call()` and the
+  deprecated property `operation_recorder` from class `WBEMConnection`.
+
+* Removed the deprecated property `property_list` and the same-named init
+  parameter from class `CIMInstance`.
+
+* Removed the deprecated ability to support a value of `None` for
+  `pywbem.tocimxml()`.
+
+* Removed the deprecated `indent` parameter of `CIMInstance.tomof()`.
+
+* Removed the deprecated internal function `pywbem.byname()`.
+
+* Removed the deprecated function `pywbem.tocimobj()`.
 
 * Changed the type of exceptions that are raised by methods of
   `pywbem.ValueMapping` for cases where the value-mapped CIM element has
@@ -251,6 +291,7 @@ details of the changes themselves and the reasons for the changes.
 * Removed the `FakedWBEMConnection` init argument `conn_lite`. The lite mode
   turned out too simplistic for mock testing and of no real value, while
   adding complexity.  (See issue #1959)
+
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -534,6 +575,9 @@ Bug fixes:
   optional namespace parameter on CreateClass, ModifyClass, GetClass,
   CreateInstance, etc. methods including the implementation in pywbem_mock.
   (See issue #2247)
+
+* Removed the incorrect statement about deprecated comparison operators in the
+  `NocaseDict` class - these operators had already returned errors.
 
 Enhancements:
 ^^^^^^^^^^^^^

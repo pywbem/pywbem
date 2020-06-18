@@ -18,7 +18,7 @@ import six
 from packaging.version import parse as parse_version
 
 from ..utils.validate import validate_cim_xml_obj
-from ..utils.pytest_extensions import simplified_test_function, ignore_warnings
+from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -26,7 +26,7 @@ pywbem = import_installed('pywbem')
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
-    Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, tocimobj, \
+    Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, \
     MinutesFromUTC, __version__  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._cim_types import _Longint  # noqa: E402
@@ -91,34 +91,27 @@ unimplemented = pytest.mark.skipif(True, reason="test not implemented")
 #   intended next version.
 version_info = parse_version(__version__).release
 
-# Controls whether the new behavior for CIM objects in 0.12 is checked.
-# Because of the behavior for dev versions described above, a dev version of
-# 0.12.0 appeared as 0.11.1.devN (when 0.11.0 was the last released version),
-# which made it necessary to check for >(0,11,0) instead of >=(0,12,0).
-# Note that there is no released pywbem version of 0.11 other than 0.11.0.
-CHECK_0_12_0 = (version_info > (0, 11, 0))
-
 # Values for expected 'type' property; since 0.12 they are converted to unicode
-exp_type_char16 = u'char16' if CHECK_0_12_0 else 'char16'
-exp_type_string = u'string' if CHECK_0_12_0 else 'string'
-exp_type_boolean = u'boolean' if CHECK_0_12_0 else 'boolean'
-exp_type_uint8 = u'uint8' if CHECK_0_12_0 else 'uint8'
-exp_type_uint16 = u'uint16' if CHECK_0_12_0 else 'uint16'
-exp_type_uint32 = u'uint32' if CHECK_0_12_0 else 'uint32'
-exp_type_uint64 = u'uint64' if CHECK_0_12_0 else 'uint64'
-exp_type_sint8 = u'sint8' if CHECK_0_12_0 else 'sint8'
-exp_type_sint16 = u'sint16' if CHECK_0_12_0 else 'sint16'
-exp_type_sint32 = u'sint32' if CHECK_0_12_0 else 'sint32'
-exp_type_sint64 = u'sint64' if CHECK_0_12_0 else 'sint64'
-exp_type_real32 = u'real32' if CHECK_0_12_0 else 'real32'
-exp_type_real64 = u'real64' if CHECK_0_12_0 else 'real64'
-exp_type_datetime = u'datetime' if CHECK_0_12_0 else 'datetime'
-exp_type_reference = u'reference' if CHECK_0_12_0 else 'reference'
+exp_type_char16 = u'char16'
+exp_type_string = u'string'
+exp_type_boolean = u'boolean'
+exp_type_uint8 = u'uint8'
+exp_type_uint16 = u'uint16'
+exp_type_uint32 = u'uint32'
+exp_type_uint64 = u'uint64'
+exp_type_sint8 = u'sint8'
+exp_type_sint16 = u'sint16'
+exp_type_sint32 = u'sint32'
+exp_type_sint64 = u'sint64'
+exp_type_real32 = u'real32'
+exp_type_real64 = u'real64'
+exp_type_datetime = u'datetime'
+exp_type_reference = u'reference'
 
 # Values for expected 'embedded_object' property; since 0.12 they are converted
 # to unicode
-exp_eo_object = u'object' if CHECK_0_12_0 else 'object'
-exp_eo_instance = u'instance' if CHECK_0_12_0 else 'instance'
+exp_eo_object = u'object'
+exp_eo_instance = u'instance'
 
 # Ranges of the CIM integer datatypes
 
@@ -507,7 +500,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname=u'CIM_Foo',
                 keybindings=UNNAMED_KEY_NCD),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify keybindings order preservation with list of CIMProperty",
@@ -581,7 +574,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=dict(K1=b'Ham')),
             exp_attrs=dict(
                 classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'Ham' if CHECK_0_12_0 else b'Ham')),
+                keybindings=NocaseDict(K1=u'Ham')),
         ),
         None, None, True
     ),
@@ -820,7 +813,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname=u'CIM_Foo',
                 keybindings=NocaseDict([('K1', u'Ham')])),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify two keybindings",
@@ -973,17 +966,6 @@ TESTCASES_CIMINSTANCENAME_INIT = [
         TypeError, None, True
     ),
     (
-        "Verify that keybinding with name None fails (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                keybindings={None: 'abc'}),
-            exp_attrs=None,
-        ),
-        TypeError, None, not CHECK_0_12_0
-    ),
-    (
         "Verify that keybinding with inconsistent name fails",
         dict(
             init_args=[],
@@ -992,7 +974,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=dict(K1=CIMProperty('K1_X', value='Ham'))),
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that keybinding with a value of an embedded class fails",
@@ -1003,7 +985,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=dict(K1=CIMClass('CIM_EmbClass'))),
             exp_attrs=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "Verify that keybinding with a value of an embedded instance fails",
@@ -1014,7 +996,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=dict(K1=CIMInstance('CIM_EmbInst'))),
             exp_attrs=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "Verify that keybinding with an array value fails",
@@ -1025,7 +1007,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=dict(K1=[1, 2])),
             exp_attrs=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "Verify that keybinding with a value of some other unsupported "
@@ -1037,7 +1019,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=dict(K1=TypeError)),
             exp_attrs=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
 ]
 
@@ -1305,7 +1287,8 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
                 classname=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the keybindings attribute
@@ -1343,7 +1326,8 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
                 keybindings=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set keybindings to new dict with CIMProperty with name None",
@@ -1359,7 +1343,8 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
                 ]),
             ),
         ),
-        TypeError if CHECK_0_12_0 else None, None, True
+        # raises TypeError since 0.12
+        TypeError, None, True
         # CIMProperty only allowd when key not None
     ),
     (
@@ -1658,8 +1643,7 @@ def test_CIMInstanceName_setattr(
     Test function for CIMInstanceName set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMInstanceName(**obj_kwargs)
+    obj = CIMInstanceName(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -3293,7 +3277,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
             kwargs=dict(),
             exp_xml_str=None
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "Keybinding value with invalid CIMProperty type",
@@ -3508,7 +3492,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority",
@@ -3520,7 +3504,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user:password",
@@ -3532,7 +3516,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'jdd:test@10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user (no password)",
@@ -3544,7 +3528,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'jdd@10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority without port",
@@ -3556,7 +3540,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address",
@@ -3568,7 +3552,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address and port",
@@ -3580,7 +3564,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no namespace type",
@@ -3592,7 +3576,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type http",
@@ -3604,7 +3588,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type upper case HTTP",
@@ -3616,7 +3600,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type mixed case HttpS",
@@ -3628,7 +3612,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type cimxml-wbem",
@@ -3640,7 +3624,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type cimxml-wbems",
@@ -3652,7 +3636,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "unknown namespace type",
@@ -3664,7 +3648,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, UserWarning, CHECK_0_12_0
+        None, UserWarning, True
     ),
     (
         "local WBEM URI (with initial slash)",
@@ -3676,7 +3660,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI (with missing initial slash)",
@@ -3688,7 +3672,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name (with initial slash+colon)",
@@ -3700,7 +3684,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=None,
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name (without initial slash)",
@@ -3712,7 +3696,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=None,
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name (without initial slash+colon)",
@@ -3724,7 +3708,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=None,
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has only one component",
@@ -3736,7 +3720,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has three components",
@@ -3748,7 +3732,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2/test',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) - in alphabetical order",
@@ -3763,7 +3747,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) - in non-alphabetical order",
@@ -3778,7 +3762,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (int) - in non-alphabetical order",
@@ -3802,7 +3786,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "int key with invalid decimal digit U+0661 (ARABIC-INDIC ONE)",
@@ -3810,7 +3794,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=\u0661',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "int key with invalid decimal digit U+1D7CF (MATHEM. BOLD ONE)",
@@ -3818,7 +3802,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=\U0001d7cf',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "int key with invalid decimal digit U+2081 (SUBSCRIPT ONE)",
@@ -3826,7 +3810,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=\u2081',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "int key with invalid decimal digit U+00B9 (SUPERSCRIPT ONE)",
@@ -3834,7 +3818,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=\u00b9',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "int key with invalid non-decimal digit U+10A44 (KHAROSHTHI TEN)",
@@ -3842,7 +3826,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=\U00010a44',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "positive int key in octal representation",
@@ -3854,7 +3838,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "negative int key in octal representation",
@@ -3866,7 +3850,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "int key in octal representation with invalid octal digits",
@@ -3874,7 +3858,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=018',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "positive int key in binary representation (upper case)",
@@ -3886,7 +3870,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "negative int key in binary representation (lower case)",
@@ -3898,7 +3882,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "int key in binary representation with invalid binary digits",
@@ -3906,7 +3890,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=0102',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "positive int key in hex representation (upper case)",
@@ -3918,7 +3902,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "negative int key in hex representation (lower case)",
@@ -3930,7 +3914,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "int key in hex representation with invalid hex digits",
@@ -3938,7 +3922,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri=u'/n:C.k1=0x19afg',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "multiple float keys - in non-alphabetical order",
@@ -3961,7 +3945,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "invalid float key 1. (not allowed in realValue)",
@@ -3969,7 +3953,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='/n:C.k1=1.',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "float key with special value INF (allowed by extension)",
@@ -3981,7 +3965,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "float key with special value -INF (allowed by extension)",
@@ -3993,7 +3977,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "float key with special value NAN (allowed by extension)",
@@ -4020,7 +4004,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "string key with keybindings syntax in its value",
@@ -4032,7 +4016,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple char16 keys - in non-alphabetical order",
@@ -4047,7 +4031,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "empty char16 key",
@@ -4055,7 +4039,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri="/n:C.k1=''",
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid char16 key with two characters",
@@ -4063,7 +4047,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri="/n:C.k1='ab'",
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "datetime key for point in time (in quotes)",
@@ -4077,7 +4061,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "datetime key for interval (in quotes)",
@@ -4091,7 +4075,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "datetime key for point in time (no quotes)",
@@ -4105,7 +4089,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, UserWarning, CHECK_0_12_0
+        None, UserWarning, True
     ),
     (
         "datetime key for interval (no quotes)",
@@ -4119,7 +4103,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n',
                 host=None),
         ),
-        None, UserWarning, CHECK_0_12_0
+        None, UserWarning, True
     ),
     (
         "reference key that has an int key (normal association)",
@@ -4138,7 +4122,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n1',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "reference key that has a string key (normal association)",
@@ -4157,7 +4141,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 namespace=u'n1',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "double nested reference to int key (association to association)",
@@ -4182,7 +4166,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 host=None,
             ),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "double nested reference to string key (association to "
@@ -4208,7 +4192,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 host=None,
             ),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "missing delimiter / before authority",
@@ -4216,7 +4200,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https:/10.11.12.13/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid char ; in authority",
@@ -4224,7 +4208,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13;5989/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "delimiter / before namespace replaced with :",
@@ -4232,7 +4216,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989:root:CIM_Foo.k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "delimiter : before classname replaced with .",
@@ -4240,7 +4224,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/root.CIM_Foo.k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid '/' between namespace and classname",
@@ -4248,7 +4232,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2/CIM_Foo.k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "class name missing",
@@ -4256,7 +4240,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/root/cimv2:k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "class path used as instance path",
@@ -4264,7 +4248,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/root:CIM_Foo',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid ':' between classname and key k1",
@@ -4272,7 +4256,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo:k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid '/' between classname and key k1",
@@ -4280,7 +4264,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo/k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid '.' between key k1 and key k2",
@@ -4288,7 +4272,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2="v2"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0 and False
+        ValueError, None, False
     ),
     (
         "invalid ':' between key k1 and key k2",
@@ -4296,7 +4280,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1":k2="v2"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0 and False
+        ValueError, None, False
     ),
     (
         "double quotes missing around string value of key k2",
@@ -4304,7 +4288,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1".k2=v2',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0 and False
+        ValueError, None, False
     ),
     (
         "invalid double comma between keybindings",
@@ -4312,7 +4296,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",,k2=42',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid comma after last keybinding",
@@ -4320,7 +4304,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k2=42,',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "equal sign missing in keyinding",
@@ -4328,7 +4312,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k242',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "double equal sign in keyinding",
@@ -4336,7 +4320,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2:CIM_Foo.k1="v1",k2==42',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
 ]
 
@@ -4691,7 +4675,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, canonical format",
@@ -4706,7 +4690,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//myhost:5989/root/cimv2:cim_foo.k1="V1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, cimobject format (host is ignored)",
@@ -4721,7 +4705,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, historical format",
@@ -4736,7 +4720,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, invalid format",
@@ -4751,7 +4735,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "no authority, standard format",
@@ -4766,7 +4750,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, canonical format",
@@ -4781,7 +4765,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:cim_foo.k1="V1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, cimobject format",
@@ -4796,7 +4780,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, historical format",
@@ -4811,7 +4795,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user:password",
@@ -4826,7 +4810,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user (no password)",
@@ -4841,7 +4825,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//jdd@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority without port",
@@ -4856,7 +4840,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address",
@@ -4871,7 +4855,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//[10:11:12:13]/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address and port",
@@ -4886,7 +4870,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='//[10:11:12:13]:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI",
@@ -4901,7 +4885,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, standard format",
@@ -4916,7 +4900,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, canonical format",
@@ -4931,7 +4915,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/:cim_foo.k1="V1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, cimobject format",
@@ -4946,7 +4930,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri=':CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, historical format",
@@ -4961,7 +4945,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has only one component",
@@ -4976,7 +4960,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/root:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has three components",
@@ -4991,7 +4975,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2/test:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) in alphabetical order, standard format",
@@ -5006,7 +4990,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1=FALSE,k2=TRUE',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) in alphabetical order (lower-cased), "
@@ -5022,7 +5006,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:c.j1=FALSE,k2=TRUE',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) in non-alphabetical order in lower case, "
@@ -5038,7 +5022,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1=FALSE,k2=TRUE',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) in non-alphabetical order in mixed case, "
@@ -5054,7 +5038,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.K2=TRUE,k1=FALSE',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (bool) in non-alphabetical order (lower-cased), "
@@ -5070,7 +5054,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:c.j1=FALSE,k2=TRUE',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple keys (int) - created in non-alphabetical order",
@@ -5096,7 +5080,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             'kmin32=-4294967296,'
             'kmin64=-9223372036854775808',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple float keys - created in non-alphabetical order",
@@ -5120,7 +5104,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             'kmin32=1.175494351e-38,'
             'kmin64=2.2250738585072014e-308',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "float key with special value INF (allowed by extension)",
@@ -5135,7 +5119,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1=inf',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "float key with special value -INF (allowed by extension)",
@@ -5150,7 +5134,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1=-inf',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "float key with special value NAN (allowed by extension)",
@@ -5183,7 +5167,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             exp_uri='/n:C.k1="",k2="a",k3="42",k4="\\\x22",'
             'k5="\\\\",k6="\\\\\\\x22",k7="\x27"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "string key with keybindings syntax in its value",
@@ -5198,7 +5182,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1="k2=42,k3=3"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "multiple char16 keys - created in non-alphabetical order",
@@ -5214,7 +5198,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1="a",k2="1",k3="\\"",k4="\'",k5="\\\\"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "datetime key for point in time (in quotes)",
@@ -5231,7 +5215,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1="19980125133015.123456-300"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "datetime key for interval (in quotes)",
@@ -5248,7 +5232,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n:C.k1="12345678133015.123456:000"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "reference key that has an int key (normal association), "
@@ -5271,7 +5255,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n1:C1.k1="/n2:C2.k2=1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "reference key that has an int key (normal association), "
@@ -5294,7 +5278,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri='/n1:c1.k1="/n2:c2.k2=1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "reference key that has a string key (normal association)",
@@ -5316,7 +5300,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri=r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "double nested reference to int key (association to association)",
@@ -5343,7 +5327,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "double nested reference to string key (association to "
@@ -5371,7 +5355,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             ),
             exp_uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 ]
 
@@ -5491,7 +5475,7 @@ TESTCASES_CIMINSTANCENAME_STR = [
                 host=u'10.11.12.13:5989'),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, historical format",
@@ -5503,7 +5487,7 @@ TESTCASES_CIMINSTANCENAME_STR = [
                 host=None),
             exp_uri='root/cimv2:CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, historical format",
@@ -5515,7 +5499,7 @@ TESTCASES_CIMINSTANCENAME_STR = [
                 host=None),
             exp_uri='CIM_Foo.k1="v1"',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 ]
 
@@ -5567,7 +5551,6 @@ TESTCASES_CIMINSTANCE_INIT = [
                     CIMQualifier('Qual1', value=True),
                 ],
                 CIMInstanceName('CIM_Foo'),
-                ['Prop1'],
             ],
             init_kwargs={},
             exp_attrs=dict(
@@ -5579,10 +5562,9 @@ TESTCASES_CIMINSTANCE_INIT = [
                     ('Qual1', CIMQualifier('Qual1', value=True)),
                 ]),
                 path=CIMInstanceName(u'CIM_Foo'),
-                property_list=[u'prop1'],  # converted to lower case
             )
         ),
-        None, DeprecationWarning, True  # property_list deprecated
+        None, None, True
     ),
 
     # Classname tests
@@ -5971,7 +5953,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ]),
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify two properties",
@@ -6169,131 +6151,6 @@ TESTCASES_CIMINSTANCE_INIT = [
         None, None, True
     ),
 
-    # Property_list tests
-    (
-        "Verify that using property_list issues DeprecationWarning",
-
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                property_list=['P1'],
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                property_list=['p1'],
-            )
-        ),
-        None, DeprecationWarning if CHECK_0_12_0 else None, True
-    ),
-    (
-        "Verify that setting a property in property_list is not ignored",
-
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1='v1', P2='v2'),
-                property_list=['P1', 'P2'],
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                properties=NocaseDict([
-                    CIMProperty('P1', type='string', value='v1'),
-                    CIMProperty('P2', type='string', value='v2'),
-                ]),
-                property_list=['p1', 'p2'],
-            )
-        ),
-        None, DeprecationWarning if CHECK_0_12_0 else None, True
-    ),
-    (
-        "Verify that setting a property not in property_list is not "
-        "ignored when no path is set",
-
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1='v1', P2='v2'),
-                property_list=['P2'],
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                properties=NocaseDict([
-                    CIMProperty('P1', type='string', value='v1'),
-                    CIMProperty('P2', type='string', value='v2'),
-                ]),
-                property_list=['p2'],
-            )
-        ),
-        None, DeprecationWarning if CHECK_0_12_0 else None, True
-    ),
-    (
-        "Verify that setting a property not in property_list is "
-        "ignored when a path is set with a different keybinding",
-
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1='v1', P2='v2', K3='v3'),
-                path=CIMInstanceName(
-                    classname='CIM_Foo',
-                    keybindings=dict(K3='v3')),
-                property_list=['P2', 'K3'],
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                properties=NocaseDict([
-                    CIMProperty('P2', type='string', value='v2'),
-                    CIMProperty('K3', type='string', value='v3'),
-                ]),
-                path=CIMInstanceName(
-                    classname='CIM_Foo',
-                    keybindings=NocaseDict([
-                        ('K3', 'v3'),
-                    ]),
-                ),
-                property_list=['p2', 'k3'],
-            )
-        ),
-        None, DeprecationWarning if CHECK_0_12_0 else None, True
-    ),
-    (
-        "Verify that setting a (key) property not in property_list is not "
-        "ignored when a path is set with that property as a keybinding",
-
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=OrderedDict([('P1', 'v1'), ('P2', 'v2'),
-                                        ('K3', 'v3')]),
-                path=CIMInstanceName(
-                    classname='CIM_Foo',
-                    keybindings=dict(K3='v3')),
-                property_list=['P1', 'P2'],
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                properties=NocaseDict([
-                    CIMProperty('P1', type='string', value='v1'),
-                    CIMProperty('P2', type='string', value='v2'),
-                    CIMProperty('K3', type='string', value='v3'),
-                ]),
-                path=CIMInstanceName(
-                    classname='CIM_Foo',
-                    keybindings=NocaseDict([
-                        ('K3', 'v3'),
-                    ])
-                ),
-                property_list=['p1', 'p2'],
-            )
-        ),
-        None, DeprecationWarning if CHECK_0_12_0 else None, True
-    ),
-
     # Exception testcases
     (
         "Verify that classname None fails (since 0.12)",
@@ -6304,7 +6161,7 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that property with name None fails",
@@ -6329,7 +6186,7 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that property with inconsistent name fails (since 0.12)",
@@ -6341,7 +6198,7 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that property with int value fails with ValueError "
@@ -6354,20 +6211,7 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
-    ),
-    (
-        "Verify that property with int value fails with TypeError "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1=42),
-            ),
-            exp_attrs=None
-        ),
-        TypeError, None, not CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that property with float value fails with ValueError "
@@ -6380,24 +6224,10 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
-        "Verify that property with float value fails with TypeError "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1=42.1),
-            ),
-            exp_attrs=None
-        ),
-        TypeError, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that property with long value fails (on Python 2 only, "
-        "with ValueError since 0.12)",
+        "Verify that property with long value fails (on Python 2 only)",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -6406,20 +6236,8 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, six.PY2 and CHECK_0_12_0
-    ),
-    (
-        "Verify that property with long value fails (on Python 2 only, "
-        "with TypeError before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1=_Longint(42)),
-            ),
-            exp_attrs=None
-        ),
-        TypeError, None, six.PY2 and not CHECK_0_12_0
+        # raises ValueError since 0.12
+        ValueError, None, six.PY2
     ),
     (
         "Verify that properties with item of invalid type fails",
@@ -6436,19 +6254,6 @@ TESTCASES_CIMINSTANCE_INIT = [
         TypeError, None, True
     ),
     (
-        "Verify that qualifier with name None fails (with TypeError "
-        "before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                qualifiers={None: 'abc'},
-            ),
-            exp_attrs=None
-        ),
-        TypeError, None, not CHECK_0_12_0
-    ),
-    (
         "Verify that qualifier with name None fails (with ValueError "
         "since 0.12)",
         dict(
@@ -6459,7 +6264,7 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that qualifier with inconsistent name fails "
@@ -6472,7 +6277,7 @@ TESTCASES_CIMINSTANCE_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that qualifiers with item of invalid type fails",
@@ -6523,10 +6328,6 @@ def test_CIMInstance_init(testcase, init_args, init_kwargs, exp_attrs):
     assert obj.path == exp_path
     assert isinstance(obj.path, type(exp_path))
 
-    exp_property_list = exp_attrs.get('property_list', None)
-    assert obj.property_list == exp_property_list
-    assert isinstance(obj.property_list, type(exp_property_list))
-
 
 TESTCASES_CIMINSTANCE_COPY = [
 
@@ -6541,7 +6342,7 @@ TESTCASES_CIMINSTANCE_COPY = [
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
     (
-        "All attributes set (except deprecated property_list)",
+        "All attributes set",
         dict(
             obj_kwargs=dict(
                 classname='CIM_Foo',
@@ -6600,23 +6401,6 @@ TESTCASES_CIMINSTANCE_COPY = [
         ),
         None, None, True
     ),
-    (
-        "Property_list is set (it is deprecated)",
-        dict(
-            obj_kwargs=dict(
-                classname='CIM_Foo',
-                properties=[
-                    CIMProperty('Name', value='Foo'),
-                ],
-                qualifiers=[
-                    CIMQualifier('Key', value=True),
-                ],
-                path=CIMInstanceName('CIM_Foo', keybindings={'Name': 'Foo'}),
-                property_list=['Name']
-            )
-        ),
-        None, None, True
-    ),
 ]
 
 
@@ -6629,8 +6413,7 @@ def test_CIMInstance_copy(testcase, obj_kwargs):
     Test function for CIMInstance.copy()
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj1 = CIMInstance(**obj_kwargs)
+    obj1 = CIMInstance(**obj_kwargs)
 
     # The code to be tested
     obj2 = obj1.copy()
@@ -6652,8 +6435,6 @@ def test_CIMInstance_copy(testcase, obj_kwargs):
         assert id(obj2.qualifiers) != id(obj1.qualifiers)
     if obj1.path is not None:
         assert id(obj2.path) != id(obj1.path)
-    if obj1.property_list is not None:
-        assert id(obj2.property_list) != id(obj1.property_list)
 
     # Verify that the copy can be modified and the original remains unchanged
 
@@ -6673,18 +6454,12 @@ def test_CIMInstance_copy(testcase, obj_kwargs):
     obj2.path = CIMInstanceName('SomeNewClassname', {'SomeNewKey': 'val'})
     assert obj1.path == obj1_path
 
-    obj1_property_list = obj1.property_list
-    with ignore_warnings(DeprecationWarning):
-        obj2.property_list = ['SomeNewProp1', 'SomeNewProp2']
-    assert obj1.property_list == obj1_property_list
-
 
 CIMINSTANCE_SETATTR_I1_KWARGS = dict(
     classname='C1',
     properties=dict(P1=CIMProperty('P1', False)),
     qualifiers=dict(Q1=CIMQualifier('Q1', False)),
     path=CIMInstanceName('CIM_Foo', dict(P1=False)),
-    property_list=None,
 )
 
 TESTCASES_CIMINSTANCE_SETATTR = [
@@ -6717,14 +6492,14 @@ TESTCASES_CIMINSTANCE_SETATTR = [
         None, None, True
     ),
     (
-        "Set classname to None",
+        "Set classname to None (raises ValueError since 0.12)",
         dict(
             obj_kwargs=CIMINSTANCE_SETATTR_I1_KWARGS,
             item='classname',
             new_value=None,
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        ValueError, None, True
     ),
 
     # Tests that set the properties attribute
@@ -6750,7 +6525,8 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             new_value=dict(P2=CIMProperty('P2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set properties to new dict with CIMProperty with name None",
@@ -6766,7 +6542,8 @@ TESTCASES_CIMINSTANCE_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set properties to None",
@@ -6854,36 +6631,6 @@ TESTCASES_CIMINSTANCE_SETATTR = [
         TypeError, None, True  # None as key in NocaseDict
     ),
 
-    # Tests that set the property attribute with property_list set
-    (
-        "Set properties with a property that is not in property_list and not "
-        "in path.keybindings",
-        dict(
-            obj_kwargs=dict(
-                classname='C1',
-                properties=dict(
-                    K1=CIMProperty('K1', True),
-                    P2=CIMProperty('P2', True),
-                ),
-                property_list=['P2'],
-                path=CIMInstanceName(classname='C1', keybindings=dict(K1=True))
-            ),
-            item='properties',
-            new_value=dict(
-                K1=CIMProperty('K1', True),
-                P2=CIMProperty('P2', True),
-                P3=CIMProperty('P3', False),
-            ),
-            exp_attrs=dict(
-                properties=dict(
-                    K1=CIMProperty('K1', True),
-                    P2=CIMProperty('P2', True),
-                ),
-            ),
-        ),
-        None, None, True
-    ),
-
     # Tests that set the qualifiers attribute
     (
         "Set qualifiers to new dict with CIMQualifier with correct name",
@@ -6907,7 +6654,8 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             new_value=dict(Q2=CIMQualifier('Q2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with CIMQualifier with name None",
@@ -6923,7 +6671,8 @@ TESTCASES_CIMINSTANCE_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with simple value",
@@ -6933,7 +6682,7 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             new_value=dict(Q1=True),
             exp_attrs=dict(
                 qualifiers=dict(
-                    Q1=CIMQualifier('Q1', True) if CHECK_0_12_0 else True
+                    Q1=CIMQualifier('Q1', True)
                 ),
             ),
         ),
@@ -7050,44 +6799,6 @@ TESTCASES_CIMINSTANCE_SETATTR = [
         ),
         None, None, True
     ),
-
-    # Tests that set the property_list attribute
-    (
-        "Set property_list to new list",
-        dict(
-            obj_kwargs=CIMINSTANCE_SETATTR_I1_KWARGS,
-            item='property_list',
-            new_value=['P2'],
-            exp_attrs=dict(
-                property_list=['p2'],
-            ),
-        ),
-        None, DeprecationWarning, True  # property_list deprecated
-    ),
-    (
-        "Set property_list to empty list",
-        dict(
-            obj_kwargs=CIMINSTANCE_SETATTR_I1_KWARGS,
-            item='property_list',
-            new_value=[],
-            exp_attrs=dict(
-                property_list=[],
-            ),
-        ),
-        None, DeprecationWarning, True  # property_list deprecated
-    ),
-    (
-        "Set property_list to None",
-        dict(
-            obj_kwargs=CIMINSTANCE_SETATTR_I1_KWARGS,
-            item='property_list',
-            new_value=None,
-            exp_attrs=dict(
-                property_list=None,
-            ),
-        ),
-        None, None, True
-    ),
 ]
 
 
@@ -7101,8 +6812,7 @@ def test_CIMInstance_setattr(
     Test function for CIMInstance set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMInstance(**obj_kwargs)
+    obj = CIMInstance(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -7234,8 +6944,7 @@ def test_CIMInstance_update_property(
     Test function for CIMInstance update property
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMInstance(**obj_kwargs)
+    obj = CIMInstance(**obj_kwargs)
 
     # The code to be tested
     obj[prop_name] = new_value
@@ -7512,8 +7221,7 @@ def test_CIMInstance_update_existing(
     Test function for CIMInstance.update_existing()
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMInstance(**obj_kwargs)
+    obj = CIMInstance(**obj_kwargs)
 
     # The code to be tested
     obj.update_existing(*func_args, **func_kwargs)
@@ -7526,20 +7234,6 @@ def test_CIMInstance_update_existing(
         exp_value = exp_attrs[attr_name]
         value = getattr(obj, attr_name)
         assert value == exp_value
-
-
-# Special CIMInstance objects for TESTCASES_CIMINSTANCE_HASH_EQ:
-with pytest.warns(DeprecationWarning):
-    _INST_HASH_A_1 = CIMInstance(
-        'CIM_Foo',
-        properties={'Cheepy': 'Birds'},
-        property_list=['Cheepy'],
-    )
-    _INST_HASH_A_2 = CIMInstance(
-        'CIM_Foo',
-        properties={'Cheepy': 'Birds'},
-        property_list=[],
-    )
 
 
 TESTCASES_CIMINSTANCE_HASH_EQ = [
@@ -7984,17 +7678,6 @@ TESTCASES_CIMINSTANCE_HASH_EQ = [
         ),
         None, None, True
     ),
-
-    # Property_list tests
-    (
-        "Different property lists (does not matter for hash and equality)",
-        dict(
-            obj1=_INST_HASH_A_1,
-            obj2=_INST_HASH_A_2,
-            exp_equal=True,
-        ),
-        None, None, True
-    ),
 ]
 
 TESTCASES_CIMINSTANCE_EQ = [
@@ -8162,9 +7845,6 @@ def test_CIMInstance_repr(obj):
 
     exp_properties = _format('properties={0!A}', obj.properties)
     assert exp_properties in r
-
-    exp_property_list = _format('property_list={0!A}', obj.property_list)
-    assert exp_property_list in r
 
     exp_qualifiers = _format('qualifiers={0!A}', obj.qualifiers)
     assert exp_qualifiers in r
@@ -8514,32 +8194,20 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
         dict(
             obj=CIMINSTANCE_INV_PROPERTY_1,
             kwargs=dict(),
-            exp_xml_str=None if CHECK_0_12_0 else \
-            (
-                '<INSTANCE CLASSNAME="CIM_Foo">',
-                '<PROPERTY NAME="Foo" TYPE="string">',
-                '<VALUE>bla</VALUE>',
-                '</PROPERTY>',
-                '</INSTANCE>',
-            )
+            exp_xml_str=None
         ),
-        TypeError if CHECK_0_12_0 else None, None, True
+        # raises TypeError since 0.12
+        TypeError, None, True
     ),
     (
         "With invalid property object (type Uint16)",
         dict(
             obj=CIMINSTANCE_INV_PROPERTY_2,
             kwargs=dict(),
-            exp_xml_str=None if CHECK_0_12_0 else \
-            (
-                '<INSTANCE CLASSNAME="CIM_Foo">',
-                '<PROPERTY NAME="Foo" TYPE="uint16">',
-                '<VALUE>42</VALUE>',
-                '</PROPERTY>',
-                '</INSTANCE>',
-            )
+            exp_xml_str=None
         ),
-        TypeError if CHECK_0_12_0 else None, None, True
+        # raises TypeError since 0.12
+        TypeError, None, True
     ),
 ]
 
@@ -8670,18 +8338,6 @@ instance of C1 {
         None, None, True
     ),
     (
-        "Instance without properties, and deprecated indent arg",
-        dict(
-            obj=CIMInstance(classname='C1'),
-            kwargs=dict(indent=5),
-            exp_mof="""\
-instance of C1 {
-};
-""",
-        ),
-        None, DeprecationWarning, True  # indent arg deprecated
-    ),
-    (
         "all components",
         dict(
             obj=CIMInstance(
@@ -8694,12 +8350,6 @@ instance of C1 {
             exp_mof="""\
 instance of C1 {
    p1 = NULL;
-};
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = NULL;
 };
 """,
         ),
@@ -8719,12 +8369,6 @@ instance of C1 {
 instance of C1 {
    p1 = NULL;
 };
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = NULL;
-};
 """,
         ),
         None, None, True
@@ -8742,12 +8386,6 @@ instance of C1 {
             exp_mof="""\
 instance of C1 {
    p1 = "abc";
-};
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = "abc";
 };
 """,
         ),
@@ -8767,12 +8405,6 @@ instance of C1 {
 instance of C1 {
    p1 = 7;
 };
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = 7;
-};
 """,
         ),
         None, None, True
@@ -8790,12 +8422,6 @@ instance of C1 {
             exp_mof="""\
 instance of C1 {
    p1 = { -1, 5 };
-};
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 =  = {-1, 5};
 };
 """,  # bug fixed in 0.12
         ),
@@ -8823,12 +8449,6 @@ instance of C1 {
             exp_mof="""\
 instance of C1 {
    p1 = "instance of EC {\\n   e1 = \\"abc\\";\\n};\\n";
-};
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = "instance of EC {\\n    e1 = \\"abc\\";\\n};\\n";
 };
 """,
         ),
@@ -8864,7 +8484,8 @@ instance of C1 {
 };
 """,
         ),
-        None, None, CHECK_0_12_0  # Unpredictable order of keys before 0.12
+        # Unpredictable order of keys before 0.12
+        None, None, True
     ),
     (
         "Instance with embedded instance property as EmbeddedObject",
@@ -8888,12 +8509,6 @@ instance of C1 {
             exp_mof="""\
 instance of C1 {
    p1 = "instance of EC {\\n   e1 = \\"abc\\";\\n};\\n";
-};
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = "instance of EC {\\n    e1 = \\"abc\\";\\n};\\n";
 };
 """,
         ),
@@ -8926,12 +8541,6 @@ instance of C1 {
 instance of C1 {
    p1 = "class EC {\\n\\n   uint32 e1;\\n\\n};\\n";
 };
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = "\\nclass EC {\\n\\n    uint32 e1;\\n};\\n";
-};
 """,
         ),
         None, None, True
@@ -8959,12 +8568,6 @@ instance of C1 {
 instance of C1 {
    p1 = "/:RC.k1=\\"abc\\"";
 };
-""" \
-            if CHECK_0_12_0 else \
-            """\
-instance of C1 {
-    p1 = RC.k1="abc";
-};
 """,  # bug fixed in 0.12
         ),
         None, None, True
@@ -8979,7 +8582,6 @@ instance of C1 {
                 ],
             ),
             kwargs=dict(
-                indent=3,
                 maxline=22,
             ),
             exp_mof=None,
@@ -8996,7 +8598,6 @@ instance of C1 {
                 ],
             ),
             kwargs=dict(
-                indent=3,
                 maxline=23,
             ),
             exp_mof=''
@@ -10350,27 +9951,11 @@ TESTCASES_CIMPROPERTY_INIT = [
                 type=u'reference',
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Value/type/embedded_object tests: Initialization to CIM embedded
     # object (instance or class)
-    (
-        "Verify that type string for value None is implied from "
-        "embedded_object (since 0.8.1 and before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name=u'FooProp', value=None,
-                embedded_object='object',
-            ),
-            exp_attrs=dict(
-                name=u'FooProp', value=None, type=exp_type_string,
-                embedded_object=u'object',
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
     (
         "Verify that value None is permitted with embedded_object",
         dict(
@@ -10572,7 +10157,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name=u'FooProp', value=[u'abc'], type=u'string', is_array=True,
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that is_array 'false' is converted to bool using Python "
@@ -10588,7 +10173,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 is_array=True,
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that unspecified is_array is implied to scalar with "
@@ -11044,40 +10629,6 @@ TESTCASES_CIMPROPERTY_INIT = [
 
     # Value/type/embedded_object tests with arrays: Initialization to
     # arrays of CIM embedded objects (class and inst)
-    (
-        "Verify that is_array and type string are implied from "
-        "embedded_object, for value list(None) (since 0.8.1 and "
-        "before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name=u'FooProp', value=[None],
-                embedded_object=u'object',
-            ),
-            exp_attrs=dict(
-                name=u'FooProp', value=[None], type=exp_type_string,
-                embedded_object=u'object', is_array=True,
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that is_array and type string are implied from "
-        "embedded_object, for value list() (since 0.8.1 and "
-        "before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name=u'FooProp', value=[],
-                embedded_object=u'object',
-            ),
-            exp_attrs=dict(
-                name=u'FooProp', value=[], type=exp_type_string,
-                embedded_object=u'object', is_array=True,
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
     (
         "Verify that is_array is implied from type string, "
         "embedded_object, for value list(None)",
@@ -11608,7 +11159,7 @@ TESTCASES_CIMPROPERTY_INIT = [
             init_kwargs=dict(name='FooProp', value=None, type='xxx'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that qualifier with inconsistent key / name fails "
@@ -11621,7 +11172,7 @@ TESTCASES_CIMPROPERTY_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that type string for value None is not implied from "
@@ -11633,7 +11184,7 @@ TESTCASES_CIMPROPERTY_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that invalid embedded_object value fails",
@@ -11683,31 +11234,34 @@ TESTCASES_CIMPROPERTY_INIT = [
         ValueError, None, True
     ),
     (
-        "Verify that a value of int without a type fails",
+        "Verify that a value of int without a type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooProp', value=42),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
-        "Verify that a value of float without a type fails",
+        "Verify that a value of float without a type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooProp', value=42.1),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
-        "Verify that a value of long without a type fails (Python 2 only)",
+        "Verify that a value of long without a type fails (Python 2 only) "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooProp', value=_Longint(42)),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, six.PY2
+        ValueError, None, six.PY2
     ),
     (
         "Verify that arrays of reference properties are not allowed in "
@@ -11733,7 +11287,7 @@ TESTCASES_CIMPROPERTY_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that is_array and type string are not implied from "
@@ -11746,7 +11300,7 @@ TESTCASES_CIMPROPERTY_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that value None witout type fails also for arrays",
@@ -11818,31 +11372,34 @@ TESTCASES_CIMPROPERTY_INIT = [
         ValueError, None, True
     ),
     (
-        "Verify that value list(int) without type fails",
+        "Verify that value list(int) without type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name=u'FooProp', value=[1]),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
-        "Verify that value list(float) without type fails",
+        "Verify that value list(float) without type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name=u'FooProp', value=[1.1]),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
-        "Verify that value list(long) without type fails (Python 2 only)",
+        "Verify that value list(long) without type fails (Python 2 only) "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name=u'FooProp', value=[_Longint(1)]),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
 ]
 
@@ -12257,7 +11814,8 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 name=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the value attribute for scalar string types
@@ -14299,7 +13857,8 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=dict(Q2=CIMQualifier('Q2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True  # inconsistent name
+        # raises ValueError since 0.12
+        ValueError, None, True  # inconsistent name
     ),
     (
         "Set qualifiers to new dict with CIMQualifier with name None",
@@ -14315,7 +13874,8 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with simple value",
@@ -14325,7 +13885,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=dict(Q1=True),
             exp_attrs=dict(
                 qualifiers=dict(
-                    Q1=CIMQualifier('Q1', True) if CHECK_0_12_0 else True
+                    Q1=CIMQualifier('Q1', True)
                 ),
             ),
         ),
@@ -14429,8 +13989,7 @@ def test_CIMProperty_setattr(
     Test function for CIMProperty set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMProperty(**obj_kwargs)
+    obj = CIMProperty(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -17841,12 +17400,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             exp_mof=u"""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
-            string P1 = "abc";\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 ("abc"),
-                Q2 (42)]
             string P1 = "abc";\n""",
         ),
         None, None, True
@@ -17864,10 +17417,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             string P1;\n""",
         ),
         None, None, True
@@ -17889,11 +17438,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             ),
             exp_mof=u"""\
                [Q1 ( "abc" )]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 ("abc")]
             string P1;\n""",
         ),
         None, None, True
@@ -17918,13 +17462,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" )]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 (
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z")]
             string P1;\n""",
         ),
         None, None, True
@@ -17948,12 +17485,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             exp_mof=u"""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 ("abc"),
-                Q2 (42)]
             string P1;\n""",
         ),
         None, None, True
@@ -17983,16 +17514,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 Q2 (
                    "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
                    "rst uvw rst uvw rst uvw z" )]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 (
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z"),
-                Q2 (
-                  "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
-                  "rst uvw rst uvw rst uvw z")]
             string P1;\n""",
         ),
         None, None, True
@@ -18014,11 +17535,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             ),
             exp_mof=u"""\
                [Q1 { "abc", "def" }]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 { "abc", "def"}]
             string P1;\n""",
         ),
         None, None, True
@@ -18045,13 +17561,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
                    "abcdef04", "abcdef05", "abcdef06", "abcdef07",
                    "abcdef08", "abcdef09" }]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
-                  "abcdef04", "abcdef05", "abcdef06", "abcdef07",
-                  "abcdef08", "abcdef09"}]
             string P1;\n""",
         ),
         None, None, True
@@ -18081,15 +17590,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                    "abc def abc def abc def z00",
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z01" }]
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-                [Q1 {
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z00",
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z01"}]
             string P1;\n""",
         ),
         None, None, True
@@ -18107,10 +17607,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            string P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             string P1;\n""",
         ),
         None, None, True
@@ -18128,10 +17624,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            string P1 = "abc";\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             string P1 = "abc";\n""",
         ),
         None, None, True
@@ -18149,10 +17641,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            char16 P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             char16 P1;\n""",
         ),
         None, None, True
@@ -18170,11 +17658,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            char16 P1 = 'a';\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-            char16 P1 = a;\n""",  # bug fixed in 0.12
+            char16 P1 = 'a';\n""",  # bug fixed in 0.12
         ),
         None, None, True
     ),
@@ -18192,10 +17676,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            uint32 P1[];\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             uint32 P1[];\n""",
         ),
         None, None, True
@@ -18214,11 +17694,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            uint32 P1[] = { 1, 2, 3 };\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-            uint32 P1[] = {1, 2, 3};\n""",
+            uint32 P1[] = { 1, 2, 3 };\n""",
         ),
         None, None, True
     ),
@@ -18237,10 +17713,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            sint64 P1[5];\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             sint64 P1[5];\n""",
         ),
         None, None, True
@@ -18259,10 +17731,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            RC REF P1;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
             RC REF P1;\n""",
         ),
         None, None, True
@@ -18281,11 +17749,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            RC REF P1 = "/:RC.k1=\\"abc\\"";\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-
-            RC REF P1 = RC.k1="abc";\n""",    # bug fixed in 0.12
+            RC REF P1 = "/:RC.k1=\\"abc\\"";\n""",    # bug fixed in 0.12
         ),
         None, None, True
     ),
@@ -18308,10 +17772,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            P1 = { "abc", "def" };\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-            P1 =  = {"abc", "def"};\n""",  # bug: '= =', fixed in 0.12
+            P1 = { "abc", "def" };\n""",  # bug: '= =', fixed in 0.12
         ),
         None, None, True
     ),
@@ -18350,11 +17811,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             exp_mof=u"""\
             P1 =
                "abc def abc def abc def abc def abc def abc def abc def abc "
-               "def abc def abc def z";\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-            P1 = "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z";\n""",  # noqa: E501
+               "def abc def abc def z";\n""",
         ),
         None, None, True
     ),
@@ -18377,20 +17834,8 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             ),
             exp_mof=u"""\
             P1 = { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
-               "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" };\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-            P1 =  = {
-                "abcdef00",
-                "abcdef01",
-                "abcdef02",
-                "abcdef03",
-                "abcdef04",
-                "abcdef05",
-                "abcdef06",
-                "abcdef07",
-                "abcdef08",
-                "abcdef09"};\n""",  # noqa: E501  # bug: '= =', fixed in 0.12
+               "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" };\n""",  # noqa: E501
+            # bug: '= =', fixed in 0.12
         ),
         None, None, True
     ),
@@ -18410,9 +17855,6 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            P1 = 42;\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
             P1 = 42;\n""",
         ),
         None, None, True
@@ -18433,7 +17875,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             exp_mof=u"""\
             P1 = { };\n""",
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "instance uint32 array property, single-line",
@@ -18449,10 +17891,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""\
-            P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-            P1 =  = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};\n""",  # bug fixed in 0.12
+            P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };\n""",  # bug fixed in 0.12
         ),
         None, None, True
     ),
@@ -18471,30 +17910,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
             ),
             exp_mof=u"""\
             P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-               17, 18, 19 };\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-            P1 =  = {
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19};\n""",  # bug fixed in 0.12
+               17, 18, 19 };\n""",  # bug fixed in 0.12
         ),
         None, None, True
     ),
@@ -18567,9 +17983,6 @@ def test_CIMProperty_tomof_special1():
     Special test CIMProperty.tomof(): Datetime value with string type
     """
 
-    if not CHECK_0_12_0:
-        pytest.skip("Condition for test case not met")
-
     datetime_dt = datetime(2018, 1, 5, 15, 0, 0, 0)
     datetime_obj = CIMDateTime(datetime_dt)
 
@@ -18589,9 +18002,6 @@ def test_CIMProperty_tomof_special2():
     """
     Special test CIMProperty.tomof(): Plain float value
     """
-
-    if not CHECK_0_12_0:
-        pytest.skip("Condition for test case not met")
 
     obj = CIMProperty(name='P1', value=42.1, type='real32')
     assert isinstance(obj.value, Real32)
@@ -18653,20 +18063,6 @@ TESTCASES_CIMQUALIFIER_INIT = [
 
     # Name tests
     (
-        "Verify that name can be None although documented otherwise "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name=None, value=u'abc'
-            ),
-            exp_attrs=dict(
-                name=None, value=u'abc', type=exp_type_string
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
         "Verify that bytes name is converted to unicode",
         dict(
             init_args=[],
@@ -18703,7 +18099,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
                 name=u'FooParam', value=b'abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc' if CHECK_0_12_0 else b'abc',
+                name=u'FooParam', value=u'abc',
                 type=exp_type_string
             )
         ),
@@ -18812,7 +18208,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
                 name=u'FooParam', value=[b'abc']
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=[u'abc' if CHECK_0_12_0 else b'abc'],
+                name=u'FooParam', value=[u'abc'],
                 type=exp_type_string
             )
         ),
@@ -18876,7 +18272,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
                 toinstance=True, translatable=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that setting boolean properties to 'false' results in True "
@@ -18894,7 +18290,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
                 toinstance=True, translatable=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that setting boolean properties to 0 results in False "
@@ -18912,7 +18308,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
                 toinstance=False, translatable=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Check documented examples
@@ -18932,7 +18328,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
             init_kwargs=dict(name='MyNum', value=42, type='uint8'),
             exp_attrs=dict(name=u'MyNum', value=Uint8(42), type=exp_type_uint8)
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify documented example 3",
@@ -18984,16 +18380,17 @@ TESTCASES_CIMQUALIFIER_INIT = [
             init_kwargs=dict(name=None, value='abc'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0  # property name None
+        ValueError, None, True  # property name None
     ),
     (
-        "Verify that value None without type fails",
+        "Verify that value None without type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooQual', value=None),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
         "Verify that an invalid type fails (since 0.12)",
@@ -19002,34 +18399,37 @@ TESTCASES_CIMQUALIFIER_INIT = [
             init_kwargs=dict(name='FooQual', value=None, type='xxx'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0  # invalid type
+        ValueError, None, True  # invalid type
     ),
     (
-        "Verify that value [None] without type fails",
+        "Verify that value [None] without type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooQual', value=[None]),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True  # cannot infer
+        ValueError, None, True  # cannot infer
     ),
     (
-        "Verify that value [] without type fails",
+        "Verify that value [] without type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooQual', value=[]),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
-        "Verify that value of int without type fails",
+        "Verify that value of int without type fails "
+        "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
             init_kwargs=dict(name='FooQual', value=42),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        ValueError, None, True
     ),
     (
         "Verify that value of float without type fails",
@@ -19038,7 +18438,8 @@ TESTCASES_CIMQUALIFIER_INIT = [
             init_kwargs=dict(name='FooQual', value=42.1),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        # raises ValueError instead of TypeError since 0.12
+        ValueError, None, True
     ),
     (
         "Verify that value of long without type fails (on Python 2)",
@@ -19047,16 +18448,8 @@ TESTCASES_CIMQUALIFIER_INIT = [
             init_kwargs=dict(name='FooQual', value=_Longint(42)),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, six.PY2
-    ),
-    (
-        "Verify documented example 3 (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name='MyNum', value=42, type='uint8'),
-            exp_attrs=None
-        ),
-        TypeError, None, not CHECK_0_12_0
+        # raises ValueError instead of TypeError since 0.12
+        ValueError, None, six.PY2
     ),
 ]
 
@@ -19280,7 +18673,8 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 name=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the value attribute for string types
@@ -20258,8 +19652,7 @@ def test_CIMQualifier_setattr(
     Test function for CIMQualifier set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMQualifier(**obj_kwargs)
+    obj = CIMQualifier(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -23156,9 +22549,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abc" }""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 { "abc"}""",
+            exp_mof=u"""Q1 { "abc" }""",
         ),
         None, None, True
     ),
@@ -23173,9 +22564,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( NULL )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 (None)""",
+            exp_mof=u"""Q1 ( NULL )""",
         ),
         None, None, True
     ),
@@ -23190,9 +22579,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "dq=\\",sq=\\',bs=\\\\" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("dq=\\",sq=\\',bs=\\\\")""",
+            exp_mof=u"""Q1 ( "dq=\\",sq=\\',bs=\\\\" )""",
         ),
         None, None, True
     ),
@@ -23207,9 +22594,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "bt=\\b,tb=\\t,nl=\\n" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("bt=\\b,tb=\\t,nl=\\n")""",
+            exp_mof=u"""Q1 ( "bt=\\b,tb=\\t,nl=\\n" )""",
         ),
         None, None, True
     ),
@@ -23224,9 +22609,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "vt=\\f,cr=\\r" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("vt=\\f,cr=\\r")""",
+            exp_mof=u"""Q1 ( "vt=\\f,cr=\\r" )""",
         ),
         None, None, True
     ),
@@ -23243,7 +22626,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             ),
             exp_mof=u"""Q1 { }""",
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "string array with a value of two items",
@@ -23256,11 +22639,9 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abc", "def" }""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 { abc, def}""",
+            exp_mof=u"""Q1 { "abc", "def" }""",
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "string array with a value of two items with one being None",
@@ -23273,11 +22654,9 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abc", NULL }""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 { abc, None}""",
+            exp_mof=u"""Q1 { "abc", NULL }""",
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "string type with multi line value",
@@ -23292,11 +22671,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             ),
             exp_mof=u"""Q1 (
             "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 (
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z")""",
+            "abc def abc def z" )""",
         ),
         None, None, True
     ),
@@ -23315,10 +22690,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
                 indent=12,
             ),
             exp_mof=u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04", "abcdef05",
-            "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
-            "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09"}""",  # noqa: E501
+            "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""",  # noqa: E501
         ),
         None, None, True
     ),
@@ -23340,13 +22712,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             "abc def abc def abc def abc def abc def abc def abc def abc def "
             "abc def abc def z00",
             "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z01" }""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 {
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z00",
-            "abc def abc def abc def abc def abc def abc def abc def abc def "
-            "abc def abc def z01"}""",
+            "abc def abc def z01" }""",
         ),
         None, None, True
     ),
@@ -23377,9 +22743,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( false )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 (False)""",
+            exp_mof=u"""Q1 ( false )""",
         ),
         None, None, True
     ),
@@ -23394,9 +22758,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( 42 )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 (42)""",
+            exp_mof=u"""Q1 ( 42 )""",
         ),
         None, None, True
     ),
@@ -23413,7 +22775,8 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             ),
             exp_mof=u"""Q1 ( 42.1 )""",
         ),
-        None, None, CHECK_0_12_0  # Unpredictable string before 0.12
+        # Unpredictable string before 0.12
+        None, None, True
     ),
     (
         "datetime type, with a value",
@@ -23426,9 +22789,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "20140924193040.654321+120" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 (20140924193040.654321+120)""",
+            exp_mof=u"""Q1 ( "20140924193040.654321+120" )""",
         ),
         None, None, True
     ),
@@ -23445,9 +22806,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("")""",
+            exp_mof=u"""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23464,9 +22823,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("")""",
+            exp_mof=u"""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23482,9 +22839,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("")""",
+            exp_mof=u"""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23500,9 +22855,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("")""",
+            exp_mof=u"""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23518,9 +22871,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""" \
-            if CHECK_0_12_0 else \
-            u"""Q1 ("")""",
+            exp_mof=u"""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23746,7 +23097,8 @@ TESTCASES_CIMCLASSNAME_INIT = [
             init_kwargs=dict(classname=None),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        # raises ValueError instead of TypeError since 0.12
+        ValueError, None, True
     ),
 ]
 
@@ -23914,7 +23266,8 @@ TESTCASES_CIMCLASSNAME_SETATTR = [
                 classname=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the host attribute
@@ -23981,8 +23334,7 @@ def test_CIMClassName_setattr(
     Test function for CIMClassName set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMClassName(**obj_kwargs)
+    obj = CIMClassName(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -24682,7 +24034,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority",
@@ -24693,7 +24045,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user:password",
@@ -24704,7 +24056,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'jdd:test@10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user (no password)",
@@ -24715,7 +24067,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'jdd@10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority without port",
@@ -24726,7 +24078,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address",
@@ -24737,7 +24089,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address and port",
@@ -24748,7 +24100,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'[10:11:12:13]:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no namespace type",
@@ -24759,7 +24111,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type http",
@@ -24770,7 +24122,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type upper case HTTP",
@@ -24781,7 +24133,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type mixed case HttpS",
@@ -24792,7 +24144,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type cimxml-wbem",
@@ -24803,7 +24155,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "namespace type cimxml-wbems",
@@ -24814,7 +24166,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "unknown namespace type",
@@ -24825,7 +24177,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=u'10.11.12.13:5989'),
         ),
-        None, UserWarning, CHECK_0_12_0
+        None, UserWarning, True
     ),
     (
         "local WBEM URI (no namespace type, no authority)",
@@ -24836,7 +24188,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI (with missing initial slash)",
@@ -24847,7 +24199,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name (with initial slash+colon)",
@@ -24858,7 +24210,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=None,
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name (without initial slash)",
@@ -24869,7 +24221,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=None,
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name (without initial slash+colon)",
@@ -24880,7 +24232,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=None,
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has only one component",
@@ -24891,7 +24243,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has three components",
@@ -24902,7 +24254,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
                 namespace=u'root/cimv2/test',
                 host=None),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "missing delimiter / before authority",
@@ -24910,7 +24262,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https:/10.11.12.13/cimv2:CIM_Foo',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid char ; in authority",
@@ -24918,7 +24270,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13;5989/cimv2:CIM_Foo',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "delimiter / before namespace replaced with :",
@@ -24926,7 +24278,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989:root:CIM_Foo',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "delimiter : before classname replaced with .",
@@ -24934,7 +24286,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/root.CIM_Foo',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "invalid '/' between namespace and classname",
@@ -24942,7 +24294,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/cimv2/CIM_Foo',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "class name missing",
@@ -24950,7 +24302,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/root/cimv2',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "instance path used as class path",
@@ -24958,7 +24310,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
             uri='https://10.11.12.13:5989/root:CIM_Foo.k1="v1"',
             exp_attrs=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
 ]
 
@@ -25022,7 +24374,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, cimobject format (host is ignored)",
@@ -25036,7 +24388,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, historical format",
@@ -25050,7 +24402,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, canonical format",
@@ -25064,7 +24416,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//myserver:5989/root/cimv2:cim_foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "all components, invalid format",
@@ -25078,7 +24430,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "no authority, standard format",
@@ -25092,7 +24444,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, cimobject format",
@@ -25106,7 +24458,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, historical format",
@@ -25120,7 +24472,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user:password",
@@ -25134,7 +24486,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with user (no password)",
@@ -25148,7 +24500,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//jdd@10.11.12.13:5989/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority without port",
@@ -25162,7 +24514,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//10.11.12.13/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address",
@@ -25176,7 +24528,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//[10:11:12:13]/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "authority with IPv6 address and port",
@@ -25190,7 +24542,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='//[10:11:12:13]:5989/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI (no authority)",
@@ -25204,7 +24556,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, standard format",
@@ -25218,7 +24570,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='/:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, cimobject format",
@@ -25232,7 +24584,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri=':CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, historical format",
@@ -25246,7 +24598,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has only one component",
@@ -25260,7 +24612,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='/root:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with namespace that has three components",
@@ -25274,7 +24626,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
             ),
             exp_uri='/root/cimv2/test:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 ]
 
@@ -25321,7 +24673,7 @@ TESTCASES_CIMCLASSNAME_STR = [
                 host=u'10.11.12.13:5989'),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "no authority, historical format",
@@ -25332,7 +24684,7 @@ TESTCASES_CIMCLASSNAME_STR = [
                 host=None),
             exp_uri='root/cimv2:CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "local WBEM URI with only class name, historical format",
@@ -25343,7 +24695,7 @@ TESTCASES_CIMCLASSNAME_STR = [
                 host=None),
             exp_uri='CIM_Foo',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 ]
 
@@ -25420,15 +24772,6 @@ TESTCASES_CIMCLASS_INIT = [
     ),
 
     # Classname tests
-    (
-        "Verify that classname None is accepted (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(classname=None),
-            exp_attrs=dict(classname=None)
-        ),
-        None, None, not CHECK_0_12_0
-    ),
     (
         "Verify that bytes classname is converted to unicode",
         dict(
@@ -25558,22 +24901,6 @@ TESTCASES_CIMCLASS_INIT = [
             )
         ),
         None, None, True
-    ),
-    (
-        "Verify that property provided as simple value is stored as "
-        "provided (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname=u'CIM_Foo',
-                properties=dict(P1=CIMPROPERTY_P1_OBJ.value)
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                properties=NocaseDict(P1=CIMPROPERTY_P1_OBJ.value)
-            )
-        ),
-        None, None, not CHECK_0_12_0
     ),
 
     # Methods tests
@@ -25736,22 +25063,6 @@ TESTCASES_CIMCLASS_INIT = [
         None, None, True
     ),
     (
-        "Verify that qualifier provided as simple value is stored as "
-        "provided (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname=u'CIM_Foo',
-                qualifiers=dict(Q1=CIMQUALIFIER_Q1_OBJ.value)
-            ),
-            exp_attrs=dict(
-                classname=u'CIM_Foo',
-                qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ.value)
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
         "Verify that qualifier provided as simple value is converted to "
         "CIMQualifier (since 0.12)",
         dict(
@@ -25765,7 +25076,7 @@ TESTCASES_CIMCLASS_INIT = [
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ)
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Path tests
@@ -25793,7 +25104,7 @@ TESTCASES_CIMCLASS_INIT = [
             init_kwargs=dict(classname=None),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that properties with item of invalid type fails",
@@ -25819,7 +25130,8 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        # raises ValueError instead of TypeError since 0.12
+        ValueError, None, True
     ),
     (
         "Verify that property with inconsistent key / name fails "
@@ -25832,7 +25144,7 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that property provided as simple value fails "
@@ -25845,7 +25157,7 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "Verify that methods with item of invalid type fails",
@@ -25871,7 +25183,8 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        # raises ValueError instead of TypeError since 0.12
+        ValueError, None, True
     ),
     (
         "Verify that method with inconsistent key / name fails "
@@ -25884,7 +25197,7 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that method with invalid type CIMParameter fails",
@@ -25938,7 +25251,8 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError if CHECK_0_12_0 else TypeError, None, True
+        # raises ValueError instead of TypeError since 0.12
+        ValueError, None, True
     ),
     (
         "Verify that qualifier with inconsistent key / name fails "
@@ -25951,7 +25265,7 @@ TESTCASES_CIMCLASS_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
 ]
 
@@ -26233,7 +25547,8 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=None,
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the superclass attribute
@@ -26295,7 +25610,8 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=dict(P2=CIMProperty('P2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set properties to new dict with CIMProperty with name None",
@@ -26311,7 +25627,8 @@ TESTCASES_CIMCLASS_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set properties to None",
@@ -26432,7 +25749,8 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=dict(M2=CIMMethod('M2x', 'boolean')),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set methods to new dict with CIMMethod with name None",
@@ -26448,7 +25766,8 @@ TESTCASES_CIMCLASS_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set methods to None",
@@ -26548,7 +25867,8 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=dict(Q2=CIMQualifier('Q2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with CIMQualifier with name None",
@@ -26564,7 +25884,8 @@ TESTCASES_CIMCLASS_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with simple value",
@@ -26574,7 +25895,7 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=dict(Q1=True),
             exp_attrs=dict(
                 qualifiers=dict(
-                    Q1=CIMQualifier('Q1', True) if CHECK_0_12_0 else True
+                    Q1=CIMQualifier('Q1', True)
                 ),
             ),
         ),
@@ -26704,8 +26025,7 @@ def test_CIMClass_setattr(
     Test function for CIMClass set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMClass(**obj_kwargs)
+    obj = CIMClass(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -27691,20 +27011,6 @@ class C1 : C2 {
       string p4);
 
 };
-""" \
-            if CHECK_0_12_0 else \
-            """\
-    [q1 ("qv1")]
-class C1 : C2 {
-
-        [q2 ("qv2")]
-    string p2 = "abc";
-
-        [q3 ("qv3")]
-    uint32 m3(
-          [q4 ("qv4")]
-        string p4);
-};
 """,
         ),
         None, None, True
@@ -27745,7 +27051,7 @@ class C1 {
 };
 """,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "class with reference property with a multi-line default value",
@@ -27781,7 +27087,7 @@ class C1 {
 };
 """,  # noqa: E501
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Class with name that does not fit onto line by 10",
@@ -27934,37 +27240,6 @@ TESTCASES_CIMMETHOD_INIT = [
             )
         ),
         None, None, True
-    ),
-    (
-        "Verify that bytes methodname is converted to unicode "
-        "(removed in 1.0)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                methodname=b'FooMethod',
-                return_type='string'
-            ),
-            exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string'
-            )
-        ),
-        None, DeprecationWarning, version_info < (1, 0, 0)
-    ),
-    (
-        "Verify that unicode methodname remains unicode (removed in 1.0)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                methodname=u'FooMethod',
-                return_type='string'
-            ),
-            exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string'
-            )
-        ),
-        None, DeprecationWarning, version_info < (1, 0, 0)
     ),
 
     # Parameters tests
@@ -28179,7 +27454,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 propagated=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that propagated int 0 is converted to bool False",
@@ -28196,7 +27471,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 propagated=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that propagated string 'false' is converted to bool True",
@@ -28213,7 +27488,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 propagated=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that propagated string 'true' is converted to bool True",
@@ -28230,7 +27505,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 propagated=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that propagated bool True remains True",
@@ -28275,36 +27550,7 @@ TESTCASES_CIMMETHOD_INIT = [
             init_kwargs=dict(name=None, return_type='string'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
-    ),
-    (
-        "Verify that name None fails (with TypeError before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name=None, return_type='string'),
-            exp_attrs=None
-        ),
-        TypeError, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that name and methodname fails (ValueError since 0.12, "
-        "removed in 1.0)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name='M', methodname='M', return_type='string'),
-            exp_attrs=None
-        ),
-        ValueError, DeprecationWarning,
-        CHECK_0_12_0 and version_info < (1, 0, 0)
-    ),
-    (
-        "Verify that name and methodname fails (TypeError before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name='M', methodname='M', return_type='string'),
-            exp_attrs=None
-        ),
-        TypeError, DeprecationWarning, not CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that parameters with item of invalid type fails",
@@ -28334,7 +27580,7 @@ TESTCASES_CIMMETHOD_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that qualifiers with item of invalid type fails",
@@ -28364,7 +27610,7 @@ TESTCASES_CIMMETHOD_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that missing return_type fails (since 0.12)",
@@ -28373,7 +27619,7 @@ TESTCASES_CIMMETHOD_INIT = [
             init_kwargs=dict(name='M'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that return_type None fails (since 0.12)",
@@ -28382,7 +27628,7 @@ TESTCASES_CIMMETHOD_INIT = [
             init_kwargs=dict(name='M', return_type=None),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that return_type 'reference' fails (since 0.12)",
@@ -28391,7 +27637,7 @@ TESTCASES_CIMMETHOD_INIT = [
             init_kwargs=dict(name='M', return_type='reference'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that invalid return_type fails (since 0.12)",
@@ -28400,7 +27646,7 @@ TESTCASES_CIMMETHOD_INIT = [
             init_kwargs=dict(name='M', return_type='xxx'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
 ]
 
@@ -28630,7 +27876,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
                 name=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the return_type attribute
@@ -28842,7 +28089,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=dict(P2=CIMParameter('P2x', 'boolean')),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True  # inconsistent name
+        # raises ValueError since 0.12
+        ValueError, None, True  # inconsistent name
     ),
     (
         "Set parameters to new dict with CIMParameter with name None",
@@ -28858,7 +28106,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set parameters to new dict with simple value",
@@ -28868,7 +28117,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=dict(P1=True),
             exp_attrs=dict(
                 parameters=dict(
-                    P1=CIMParameter('P1', 'boolean') if CHECK_0_12_0 else True
+                    P1=CIMParameter('P1', 'boolean')
                 ),
             ),
         ),
@@ -28983,7 +28232,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=dict(Q2=CIMQualifier('Q2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True  # inconsistent name
+        # raises ValueError since 0.12
+        ValueError, None, True  # inconsistent name
     ),
     (
         "Set qualifiers to new dict with CIMQualifier with name None",
@@ -28999,7 +28249,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with simple value",
@@ -29009,7 +28260,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=dict(Q1=True),
             exp_attrs=dict(
                 qualifiers=dict(
-                    Q1=CIMQualifier('Q1', True) if CHECK_0_12_0 else True
+                    Q1=CIMQualifier('Q1', True)
                 ),
             ),
         ),
@@ -29113,8 +28364,7 @@ def test_CIMMethod_setattr(
     Test function for CIMMethod set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMMethod(**obj_kwargs)
+    obj = CIMMethod(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -29978,15 +29228,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             string M1(
                   [Q3 ( "def" ),
                    Q4 ( -3 )]
-               string P1);\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 ("abc"),
-                Q2 (42)]
-            string M1(
-                  [Q3 ("def"),
-                  Q4 (-3)]
-                string P1);\n""",
+               string P1);\n""",
         ),
         None, None, True
     ),
@@ -30020,10 +29262,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
             ),
             exp_mof=u"""\
                [Q1 ( "abc" )]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 ("abc")]
             string M1();\n""",
         ),
         None, None, True
@@ -30046,12 +29284,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" )]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 (
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z")]
             string M1();\n""",
         ),
         None, None, True
@@ -30073,11 +29305,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
             exp_mof=u"""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 ("abc"),
-                Q2 (42)]
             string M1();\n""",
         ),
         None, None, True
@@ -30105,15 +29332,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
                 Q2 (
                    "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
                    "rst uvw rst uvw rst uvw z" )]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 (
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z"),
-                Q2 (
-                  "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
-                  "rst uvw rst uvw rst uvw z")]
             string M1();\n""",
         ),
         None, None, True
@@ -30133,10 +29351,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
             ),
             exp_mof=u"""\
                [Q1 { "abc", "def" }]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 { "abc", "def"}]
             string M1();\n""",
         ),
         None, None, True
@@ -30161,12 +29375,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
                    "abcdef04", "abcdef05", "abcdef06", "abcdef07",
                    "abcdef08", "abcdef09" }]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
-                  "abcdef04", "abcdef05", "abcdef06", "abcdef07",
-                  "abcdef08", "abcdef09"}]
             string M1();\n""",
         ),
         None, None, True
@@ -30194,14 +29402,6 @@ TESTCASES_CIMMETHOD_TOMOF = [
                    "abc def abc def abc def z00",
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z01" }]
-            string M1();\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-                [Q1 {
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z00",
-                  "abc def abc def abc def abc def abc def abc def abc def "
-                  "abc def abc def abc def z01"}]
             string M1();\n""",
         ),
         None, None, True
@@ -30225,7 +29425,8 @@ TESTCASES_CIMMETHOD_TOMOF = [
                string P1,
                string P2);\n""",
         ),
-        None, None, CHECK_0_12_0  # Unpredictable order before 0.12
+        # Unpredictable order before 0.12
+        None, None, True
     ),
     (
         "return type uint32, one parameter with type sint32",
@@ -30242,11 +29443,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             ),
             exp_mof=u"""\
             uint32 M1(
-               sint32 P1);\n""" \
-            if CHECK_0_12_0 else \
-            u"""\
-            uint32 M1(
-                sint32 P1);\n""",
+               sint32 P1);\n""",
         ),
         None, None, True
     ),
@@ -30337,26 +29534,6 @@ TESTCASES_CIMPARAMETER_INIT = [
 
     # Name tests
     (
-        "Verify that name can be None although documented otherwise "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name=None, type=u'string'),
-            exp_attrs=dict(name=None, type=u'string')
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that type can be None although documented otherwise "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name=u'FooParam', type=None),
-            exp_attrs=dict(name=u'FooParam', type=None)
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
         "Verify that bytes name and type are converted to unicode",
         dict(
             init_args=[],
@@ -30442,7 +29619,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                 is_array=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that is_array 'false' is converted to bool using Python "
@@ -30460,7 +29637,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                 is_array=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that unspecified is_array is implied to scalar by value "
@@ -30480,7 +29657,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                 value=None
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that unspecified is_array is implied to scalar by scalar "
@@ -30500,7 +29677,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                 value=u'abc'
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that unspecified is_array is implied to array by array "
@@ -30520,67 +29697,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                 value=[u'abc']
             )
         ),
-        None, None, CHECK_0_12_0
-    ),
-    (
-        "Verify that unspecified is_array remains unspecified with value "
-        "None (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name='FooParam',
-                type='string',
-                is_array=None,
-                value=None
-            ),
-            exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                is_array=None,
-                value=None
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that unspecified is_array remains unspecified with scalar "
-        "value (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name='FooParam',
-                type='string',
-                is_array=None,
-                value=u'abc'
-            ),
-            exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                is_array=None,
-                value=u'abc'
-            )
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that unspecified is_array remains unspecified with array "
-        "value (before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name='FooParam',
-                type='string',
-                is_array=None,
-                value=[u'abc']
-            ),
-            exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                is_array=None,
-                value=[u'abc']
-            )
-        ),
-        None, None, not CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that array_size 2 remains int",
@@ -30654,7 +29771,7 @@ TESTCASES_CIMPARAMETER_INIT = [
             exp_attrs=dict(
                 name=u'FooParam',
                 type=u'string',
-                value=u'abc' if CHECK_0_12_0 else 'abc'
+                value=u'abc'
             )
         ),
         None, None, True
@@ -30876,7 +29993,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                 name=u'FooParam',
                 type=u'string',
                 is_array=True,
-                value=[u'abc'] if CHECK_0_12_0 else ['abc']
+                value=[u'abc']
             )
         ),
         None, None, True
@@ -31100,7 +30217,7 @@ TESTCASES_CIMPARAMETER_INIT = [
             init_kwargs=dict(name=None, type='string'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that type None fails (since 0.12)",
@@ -31109,7 +30226,7 @@ TESTCASES_CIMPARAMETER_INIT = [
             init_kwargs=dict(name='M', type=None),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that invalid type fails (since 0.12)",
@@ -31118,7 +30235,7 @@ TESTCASES_CIMPARAMETER_INIT = [
             init_kwargs=dict(name='M', type='xxx'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that qualifiers with item of invalid type fails",
@@ -31147,7 +30264,7 @@ TESTCASES_CIMPARAMETER_INIT = [
             ),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
 ]
 
@@ -31180,7 +30297,7 @@ def test_CIMParameter_init(testcase, init_args, init_kwargs, exp_attrs):
     assert obj.reference_class == exp_reference_class
     assert isinstance(obj.reference_class, type(exp_reference_class))
 
-    exp_is_array = exp_attrs.get('is_array', False if CHECK_0_12_0 else None)
+    exp_is_array = exp_attrs.get('is_array', False)
     assert obj.is_array == exp_is_array
     assert isinstance(obj.is_array, type(exp_is_array))
 
@@ -31516,7 +30633,8 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 name=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
 
     # Tests that set the value attribute for scalar string types
@@ -33209,7 +32327,8 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=None,
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True  # invalid type
+        # raises ValueError since 0.12
+        ValueError, None, True  # invalid type
     ),
 
     # Tests that set the reference_class attribute
@@ -33501,7 +32620,8 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=dict(Q2=CIMQualifier('Q2x', True)),
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True  # inconsistent name
+        # raises ValueError since 0.12
+        ValueError, None, True  # inconsistent name
     ),
     (
         "Set qualifiers to new dict with CIMQualifier with name None",
@@ -33517,7 +32637,8 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 ]),
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        # raises ValueError since 0.12
+        ValueError, None, True
     ),
     (
         "Set qualifiers to new dict with simple value",
@@ -33527,7 +32648,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=dict(Q1=True),
             exp_attrs=dict(
                 qualifiers=dict(
-                    Q1=CIMQualifier('Q1', True) if CHECK_0_12_0 else True
+                    Q1=CIMQualifier('Q1', True)
                 ),
             ),
         ),
@@ -33631,8 +32752,7 @@ def test_CIMParameter_setattr(
     Test function for CIMParameter set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMParameter(**obj_kwargs)
+    obj = CIMParameter(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -37340,11 +36460,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             exp_mof=u"""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
-            string P1[5]""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 ("abc"),
-              Q2 (42)]
             string P1[5]""",
         ),
         None, None, True
@@ -37379,10 +36494,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             ),
             exp_mof=u"""\
                [Q1 ( "abc" )]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 ("abc")]
             string P1""",
         ),
         None, None, True
@@ -37405,12 +36516,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" )]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 (
-                "abc def abc def abc def abc def abc def abc def abc def abc "
-                "def abc def abc def z")]
             string P1""",
         ),
         None, None, True
@@ -37432,11 +36537,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             exp_mof=u"""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 ("abc"),
-              Q2 (42)]
             string P1""",
         ),
         None, None, True
@@ -37464,15 +36564,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                 Q2 (
                    "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw "
                    "rst uvw rst uvw rst uvw z" )]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 (
-                "abc def abc def abc def abc def abc def abc def abc def abc "
-                "def abc def abc def z"),
-              Q2 (
-                "rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst uvw rst "
-                "uvw rst uvw rst uvw z")]
             string P1""",
         ),
         None, None, True
@@ -37492,10 +36583,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             ),
             exp_mof=u"""\
                [Q1 { "abc", "def" }]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 { "abc", "def"}]
             string P1""",
         ),
         None, None, True
@@ -37520,12 +36607,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
                    "abcdef04", "abcdef05", "abcdef06", "abcdef07",
                    "abcdef08", "abcdef09" }]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
-                "abcdef04", "abcdef05", "abcdef06", "abcdef07",
-                "abcdef08", "abcdef09"}]
             string P1""",
         ),
         None, None, True
@@ -37553,14 +36634,6 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                    "abc def abc def abc def z00",
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z01" }]
-            string P1""" \
-            if CHECK_0_12_0 else \
-            u"""\
-              [Q1 {
-                "abc def abc def abc def abc def abc def abc def abc def abc "
-                "def abc def abc def z00",
-                "abc def abc def abc def abc def abc def abc def abc def abc "
-                "def abc def abc def z01"}]
             string P1""",
         ),
         None, None, True
@@ -37797,29 +36870,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         None, None, True
     ),
 
-    # Name/type tests
-    (
-        "Verify that name can be None although documented otherwise "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name=None, type=u'string'),
-            exp_attrs=dict(name=None, type=u'string')
-        ),
-        None, None, not CHECK_0_12_0
-    ),
-
     # Type tests
-    (
-        "Verify that type can be None although documented otherwise "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name=u'FooQual', type=None),
-            exp_attrs=dict(name=u'FooQual', type=None)
-        ),
-        None, None, not CHECK_0_12_0
-    ),
     (
         "Verify that bytes name and return type are converted to unicode",
         dict(
@@ -37882,7 +36933,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 is_array=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that is_array int 0 is converted to bool False",
@@ -37899,7 +36950,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 is_array=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that is_array bool True remains True",
@@ -37953,7 +37004,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 value=None
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that unspecified is_array is implied to scalar by scalar "
@@ -37973,7 +37024,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 value=u'abc'
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that unspecified is_array is implied to array by array "
@@ -37993,7 +37044,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 value=[u'abc']
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that array_size int 42 remains int",
@@ -38012,7 +37063,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 array_size=42
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that mismatch between is_array False and array_size is "
@@ -38051,7 +37102,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 scopes=NocaseDict(CLASS=True)
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Overridable tests
@@ -38070,7 +37121,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 overridable=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that overridable int 0 is converted to bool False",
@@ -38087,7 +37138,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 overridable=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that overridable bool True remains True",
@@ -38140,7 +37191,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 tosubclass=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that tosubclass int 0 is converted to bool False",
@@ -38157,7 +37208,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 tosubclass=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that tosubclass bool True remains True",
@@ -38210,7 +37261,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 toinstance=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that toinstance int 0 is converted to bool False",
@@ -38227,7 +37278,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 toinstance=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that toinstance bool True remains True",
@@ -38280,7 +37331,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 translatable=True
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that translatable int 0 is converted to bool False",
@@ -38297,7 +37348,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 translatable=False
             )
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Verify that translatable bool True remains True",
@@ -38342,7 +37393,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
             init_kwargs=dict(name=None, type='string'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that type None fails (since 0.12)",
@@ -38351,7 +37402,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
             init_kwargs=dict(name='FooQual', type=None),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that invalid type fails (since 0.12)",
@@ -38360,7 +37411,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
             init_kwargs=dict(name='FooQual', type='xxx'),
             exp_attrs=None
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Verify that mismatch between is_array False and array value fails",
@@ -38389,51 +37440,6 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
             exp_attrs=None
         ),
         ValueError, None, True
-    ),
-    (
-        "Verify that unspecified is_array fails with value None "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name='FooQual',
-                type='string',
-                is_array=None,
-                value=None
-            ),
-            exp_attrs=None
-        ),
-        ValueError, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that unspecified is_array fails with scalar value "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name='FooQual',
-                type='string',
-                is_array=None,
-                value='abc'
-            ),
-            exp_attrs=None
-        ),
-        ValueError, None, not CHECK_0_12_0
-    ),
-    (
-        "Verify that unspecified is_array fails with array value "
-        "(before 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                name='FooQual',
-                type='string',
-                is_array=None,
-                value=['abc']
-            ),
-            exp_attrs=None
-        ),
-        ValueError, None, not CHECK_0_12_0
     ),
 ]
 
@@ -38693,11 +37699,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
         None, None, True
     ),
     (
-        "Set name to None",
-        # Before 0.12.0, the implementation allowed the name to be None,
-        # although the documentation required it not to be None.
-        # We test the implemented behavior. Since 0.12.0, this raises
-        # ValueError.
+        "Set name to None (raises ValueError since 0.12)",
         dict(
             obj_kwargs=CIMQUALIFIERDECLARATION_SETATTR_Q1_KWARGS,
             item='name',
@@ -38706,7 +37708,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 name=None,
             ),
         ),
-        ValueError if CHECK_0_12_0 else None, None, True
+        ValueError, None, True
     ),
 
     # Tests that set the value attribute for scalar string types
@@ -40340,10 +39342,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
         ValueError, None, True  # invalid type
     ),
     (
-        "For string type, set type to None",
-        # Before 0.12.0, the implementation allowed the type to be None,
-        # although the documentation required it not to be None.
-        # We test the implemented behavior.
+        "For string type, set type to None (raises ValueError since 0.12)",
         dict(
             obj_kwargs=dict(
                 name='Q1',
@@ -40354,7 +39353,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=None,
             exp_attrs=None,
         ),
-        ValueError if CHECK_0_12_0 else None, None, True  # invalid type
+        ValueError, None, True  # invalid type
     ),
 
     # Tests that set the is_array attribute
@@ -40914,8 +39913,7 @@ def test_CIMQualifierDeclaration_setattr(
     Test function for CIMQualifierDeclaration set attribute
     """
 
-    with ignore_warnings(DeprecationWarning):
-        obj = CIMQualifierDeclaration(**obj_kwargs)
+    obj = CIMQualifierDeclaration(**obj_kwargs)
 
     if isinstance(item, tuple):
         attr_name, attr_key = item
@@ -44256,7 +43254,7 @@ Qualifier Q1 : string[5] = { "abc" },
     Flavor(EnableOverride, ToSubclass, Translatable);
 """,
         ),
-        None, None, CHECK_0_12_0  # unpredictable order of scopes before 0.12
+        None, None, True
     ),
     (
         "string type, no default value",
@@ -44270,11 +43268,7 @@ Qualifier Q1 : string[5] = { "abc" },
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44290,11 +43284,7 @@ Qualifier Q1 : string,
             exp_mof=u"""\
 Qualifier Q1 : string = "dq=\\",sq=\\',bs=\\\\",
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string = dq=\",sq=\',bs=\\,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44310,11 +43300,7 @@ Qualifier Q1 : string = dq=\",sq=\',bs=\\,
             exp_mof=u"""\
 Qualifier Q1 : string = "bt=\\b,tb=\\t,nl=\\n,vt=\\f,cr=\\r",
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string = bt=\b,tb=\t,nl=\n,vt=\f,cr=\r,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44330,11 +43316,7 @@ Qualifier Q1 : string = bt=\b,tb=\t,nl=\n,vt=\f,cr=\r,
             exp_mof=u"""\
 Qualifier Q1 : char16 = '\\n',
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : char16 = '\\n',
-    Scope();""",
+""",
         ),
         None, None, False  # TODO 01/18 AM Enable once char16 uses single quotes
     ),
@@ -44350,11 +43332,7 @@ Qualifier Q1 : char16 = '\\n',
             exp_mof=u"""\
 Qualifier Q1 : boolean = false,
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : boolean = false,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44370,11 +43348,7 @@ Qualifier Q1 : boolean = false,
             exp_mof=u"""\
 Qualifier Q1 : uint32 = 42,
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : uint32 = 42,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44392,7 +43366,8 @@ Qualifier Q1 : real32 = 42.1,
     Scope();
 """,
         ),
-        None, None, CHECK_0_12_0  # unpredictable value before 0.12
+        # unpredictable value before 0.12
+        None, None, True
     ),
     (
         "datetime type, default value",
@@ -44406,11 +43381,7 @@ Qualifier Q1 : real32 = 42.1,
             exp_mof=u"""\
 Qualifier Q1 : datetime = "20140924193040.654321+120",
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : datetime = 20140924193040.654321+120,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44430,7 +43401,7 @@ Qualifier Q1 : string[] = {  },
     Scope();
 """,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "string array of variable size",
@@ -44446,11 +43417,7 @@ Qualifier Q1 : string[] = {  },
             exp_mof=u"""\
 Qualifier Q1 : string[] = { "abc", "def" },
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string[] = {abc, def},
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44468,11 +43435,7 @@ Qualifier Q1 : string[] = {abc, def},
             exp_mof=u"""\
 Qualifier Q1 : string[5] = { "abc", "def" },
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string[5] = {abc, def},
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44488,11 +43451,7 @@ Qualifier Q1 : string[5] = {abc, def},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(class);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope(class);""",
+""",
         ),
         None, None, True
     ),
@@ -44514,7 +43473,8 @@ Qualifier Q1 : string,
     Scope(class, association, indication, property, reference, method, parameter);
 """,  # noqa: E501
         ),
-        None, None, CHECK_0_12_0  # unpredictable order of scopes before 0.12
+        # unpredictable order of scopes before 0.12
+        None, None, True
     ),
     (
         "all scopes as any",
@@ -44528,11 +43488,7 @@ Qualifier Q1 : string,
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(any);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope(any);""",
+""",
         ),
         None, None, True
     ),
@@ -44549,12 +43505,7 @@ Qualifier Q1 : string,
 Qualifier Q1 : string,
     Scope(),
     Flavor(EnableOverride);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope(),
-    Flavor(EnableOverride, Restricted);""",
+""",
         ),
         None, None, True
     ),
@@ -44572,12 +43523,7 @@ Qualifier Q1 : string,
 Qualifier Q1 : string,
     Scope(),
     Flavor(EnableOverride, ToSubclass);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope(),
-    Flavor(EnableOverride, ToSubclass);""",
+""",
         ),
         None, None, True
     ),
@@ -44594,11 +43540,7 @@ Qualifier Q1 : string,
 Qualifier Q1 : string,
     Scope(),
     Flavor(DisableOverride);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44615,11 +43557,7 @@ Qualifier Q1 : string,
 Qualifier Q1 : string,
     Scope(),
     Flavor(Restricted);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44636,12 +43574,7 @@ Qualifier Q1 : string,
 Qualifier Q1 : string,
     Scope(),
     Flavor(ToSubclass);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope(),
-    Flavor(DisableOverride, ToSubclass);""",
+""",
         ),
         None, None, True
     ),
@@ -44658,12 +43591,7 @@ Qualifier Q1 : string,
 Qualifier Q1 : string,
     Scope(),
     Flavor(Translatable);
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope(),
-    Flavor(DisableOverride, Restricted, Translatable);""",
+""",
         ),
         None, None, True
     ),
@@ -44679,11 +43607,7 @@ Qualifier Q1 : string,
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope();
-""" \
-            if CHECK_0_12_0 else \
-            u"""\
-Qualifier Q1 : string,
-    Scope();""",
+""",
         ),
         None, None, True
     ),
@@ -44759,1061 +43683,6 @@ def test_CIMQualifierDeclaration_tomof(testcase, obj, kwargs, exp_mof):
     assert mof == exp_mof
 
 
-@unimplemented
-def test_tocimxml():  # TODO: Implement with pytest
-    """
-    Test function for tocimxml().
-    """
-    # (bool, invalid array, other invalid cases)
-    raise NotImplementedError
-
-
-TESTCASES_TOCIMOBJ = [
-
-    # Testcases for tocimobj()
-
-    # Each list item is a testcase tuple with these items:
-    # * desc: Short testcase description.
-    # * kwargs: Keyword arguments for the test function:
-    #   * args: List of positional arguments for tocimobj(), see kwargs.
-    #   * kwargs: Dict of keyword arguments for tocimobj():
-    #     - type_: The input type (as a CIM type name).
-    #     - value: The input value.
-    #   * exp_obj: Expected CIM value object, or None if failed.
-    # * exp_exc_types: Expected exception type(s), or None.
-    # * exp_warn_types: Expected warning type(s), or None.
-    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
-
-    # Order of positional arguments
-    (
-        "Verify order of positional arguments",
-        dict(
-            args=['string', u'a'],
-            kwargs=dict(),
-            exp_obj=u'a',
-        ),
-        None, None, True,
-    ),
-
-    # Test cases where type is None (and is inferred from the value)
-    (
-        "Type is None (inferred from value), value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is unicode string",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=u'a'),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is byte string",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=b'a'),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is string 'true'",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value='true'),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is string 'false'",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value='false'),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is datetime string",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=DATETIME1_STR),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is timedelta string",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=TIMEDELTA1_STR),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is reference string",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=REF1_STR),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is True",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=True),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is False",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=False),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is CIMDateTime object",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=DATETIME1_DT),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is None (inferred from value), value is CIMDateTime delta",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=TIMEDELTA1_TD),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is string
-    (
-        "Type is string, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is empty string",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=u''),
-            exp_obj=u'',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is one-char unicode string",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=u'a'),
-            exp_obj=u'a',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is short unicode string",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=u'abc'),
-            exp_obj=u'abc',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is non-ASCII unicode string U+00E4 "
-        "(lower case a umlaut)",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=u'\u00E4'),
-            exp_obj=u'\u00E4',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is empty byte string",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=b''),
-            exp_obj=u'',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is one-char byte string",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=b'a'),
-            exp_obj=u'a',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is string, value is short byte string",
-        dict(
-            args=[],
-            kwargs=dict(type_='string', value=b'abc'),
-            exp_obj=u'abc',
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is char16
-    (
-        "Type is char16, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is empty Char16 string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=Char16('')),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is empty unicode string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=u''),
-            exp_obj=None,  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is one-char Char16 string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=Char16('a')),
-            exp_obj=u'a',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is one-char unicode string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=u'a'),
-            exp_obj=u'a',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is non-ASCII Char16 string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=Char16(u'\u00E4')),
-            exp_obj=u'\u00E4',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is non-ASCII unicode string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=u'\u00E4'),
-            exp_obj=u'\u00E4',
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is empty byte string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=b''),
-            exp_obj=None if six.PY2 else '',  # Difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is char16, value is one-char byte string",
-        dict(
-            args=[],
-            kwargs=dict(type_='char16', value=b'a'),
-            exp_obj=u'a',
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is boolean
-    (
-        "Type is boolean, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is boolean, value is True",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=True),
-            exp_obj=True,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is boolean, value is False",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=False),
-            exp_obj=False,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is boolean, value is short string",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value='abc'),
-            exp_obj=None,
-        ),
-        ValueError, None, True  # Invalid boolean; difference to cimvalue()
-    ),
-    (
-        "Type is boolean, value is string 'true' (special treatment)",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value='true'),
-            exp_obj=True,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is boolean, value is string 'false' (special treatment)",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value='false'),
-            exp_obj=False,  # difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is boolean, value is empty string",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=''),
-            exp_obj=None,  # difference to cimvalue()
-        ),
-        None, None, True
-    ),
-    (
-        "Type is boolean, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=0),
-            exp_obj=False,
-        ),
-        ValueError, None, True  # invalid boolean; difference to cimvalue()
-    ),
-    (
-        "Type is boolean, value is integer 1",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=1),
-            exp_obj=True,
-        ),
-        ValueError, None, True  # invalid boolean; difference to cimvalue()
-    ),
-    (
-        "Type is boolean, value is integer -1",
-        dict(
-            args=[],
-            kwargs=dict(type_='boolean', value=-1),
-            exp_obj=True,
-        ),
-        ValueError, None, True  # invalid boolean; difference to cimvalue()
-    ),
-
-    # Test cases where type is uint8
-    (
-        "Type is uint8, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint8', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint8, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint8', value=0),
-            exp_obj=Uint8(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint8, value is integer MAX_UINT8",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint8', value=MAX_UINT8),
-            exp_obj=Uint8(MAX_UINT8),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint8, value is Uint8 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint8', value=Uint8(0)),
-            exp_obj=Uint8(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint8, value is Uint8 MAX_UINT8",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint8', value=Uint8(MAX_UINT8)),
-            exp_obj=Uint8(MAX_UINT8),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is uint16
-    (
-        "Type is uint16, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint16', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint16, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint16', value=0),
-            exp_obj=Uint16(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint16, value is integer MAX_UINT16",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint16', value=MAX_UINT16),
-            exp_obj=Uint16(MAX_UINT16),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint16, value is Uint16 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint16', value=Uint16(0)),
-            exp_obj=Uint16(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint16, value is Uint16 MAX_UINT16",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint16', value=Uint16(MAX_UINT16)),
-            exp_obj=Uint16(MAX_UINT16),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is uint32
-    (
-        "Type is uint32, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint32', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint32, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint32', value=0),
-            exp_obj=Uint32(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint32, value is integer MAX_UINT32",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint32', value=MAX_UINT32),
-            exp_obj=Uint32(MAX_UINT32),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint32, value is Uint32 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint32', value=Uint32(0)),
-            exp_obj=Uint32(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint32, value is Uint32 MAX_UINT32",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint32', value=Uint32(MAX_UINT32)),
-            exp_obj=Uint32(MAX_UINT32),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is uint64
-    (
-        "Type is uint64, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint64', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint64, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint64', value=0),
-            exp_obj=Uint64(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint64, value is integer MAX_UINT64",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint64', value=MAX_UINT64),
-            exp_obj=Uint64(MAX_UINT64),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint64, value is Uint64 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint64', value=Uint64(0)),
-            exp_obj=Uint64(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is uint64, value is Uint64 MAX_UINT64",
-        dict(
-            args=[],
-            kwargs=dict(type_='uint64', value=Uint64(MAX_UINT64)),
-            exp_obj=Uint64(MAX_UINT64),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is sint8
-    (
-        "Type is sint8, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint8', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint8, value is integer MIN_SINT8",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint8', value=MIN_SINT8),
-            exp_obj=Sint8(MIN_SINT8),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint8, value is integer MAX_SINT8",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint8', value=MAX_SINT8),
-            exp_obj=Sint8(MAX_SINT8),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint8, value is Sint8 MIN_SINT8",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint8', value=Sint8(MIN_SINT8)),
-            exp_obj=Sint8(MIN_SINT8),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint8, value is Sint8 MAX_SINT8",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint8', value=Sint8(MAX_SINT8)),
-            exp_obj=Sint8(MAX_SINT8),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is sint16
-    (
-        "Type is sint16, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint16', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint16, value is integer MIN_SINT16",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint16', value=MIN_SINT16),
-            exp_obj=Sint16(MIN_SINT16),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint16, value is integer MAX_SINT16",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint16', value=MAX_SINT16),
-            exp_obj=Sint16(MAX_SINT16),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint16, value is Sint16 MIN_SINT16",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint16', value=Sint16(MIN_SINT16)),
-            exp_obj=Sint16(MIN_SINT16),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint16, value is Sint16 MAX_SINT16",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint16', value=Sint16(MAX_SINT16)),
-            exp_obj=Sint16(MAX_SINT16),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is sint32
-    (
-        "Type is sint32, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint32', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint32, value is integer MIN_SINT32",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint32', value=MIN_SINT32),
-            exp_obj=Sint32(MIN_SINT32),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint32, value is integer MAX_SINT32",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint32', value=MAX_SINT32),
-            exp_obj=Sint32(MAX_SINT32),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint32, value is Sint32 MIN_SINT32",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint32', value=Sint32(MIN_SINT32)),
-            exp_obj=Sint32(MIN_SINT32),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint32, value is Sint32 MAX_SINT32",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint32', value=Sint32(MAX_SINT32)),
-            exp_obj=Sint32(MAX_SINT32),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is sint64
-    (
-        "Type is sint64, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint64', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint64, value is integer MIN_SINT64",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint64', value=MIN_SINT64),
-            exp_obj=Sint64(MIN_SINT64),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint64, value is integer MAX_SINT64",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint64', value=MAX_SINT64),
-            exp_obj=Sint64(MAX_SINT64),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint64, value is Sint64 MIN_SINT64",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint64', value=Sint64(MIN_SINT64)),
-            exp_obj=Sint64(MIN_SINT64),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is sint64, value is Sint64 MAX_SINT64",
-        dict(
-            args=[],
-            kwargs=dict(type_='sint64', value=Sint64(MAX_SINT64)),
-            exp_obj=Sint64(MAX_SINT64),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is real32
-    (
-        "Type is real32, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='real32', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real32, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='real32', value=0),
-            exp_obj=Real32(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real32, value is positive float",
-        dict(
-            args=[],
-            kwargs=dict(type_='real32', value=3.14),
-            exp_obj=Real32(3.14),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real32, value is negative integer",
-        dict(
-            args=[],
-            kwargs=dict(type_='real32', value=-42E7),
-            exp_obj=Real32(-42E7),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real32, value is negative float",
-        dict(
-            args=[],
-            kwargs=dict(type_='real32', value=-42E-7),
-            exp_obj=Real32(-42E-7),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is real64
-    (
-        "Type is real64, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='real64', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real64, value is integer 0",
-        dict(
-            args=[],
-            kwargs=dict(type_='real64', value=0),
-            exp_obj=Real64(0),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real64, value is positive float",
-        dict(
-            args=[],
-            kwargs=dict(type_='real64', value=3.14),
-            exp_obj=Real64(3.14),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real64, value is positive integer",
-        dict(
-            args=[],
-            kwargs=dict(type_='real64', value=-42E7),
-            exp_obj=Real64(-42E7),
-        ),
-        None, None, True
-    ),
-    (
-        "Type is real64, value is negative float",
-        dict(
-            args=[],
-            kwargs=dict(type_='real64', value=-42E-7),
-            exp_obj=Real64(-42E-7),
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is datetime
-    (
-        "Type is datetime, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is datetime, value is datetime object (point in time)",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=DATETIME1_DT),
-            exp_obj=DATETIME1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is datetime, value is datetime string (point in time)",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=DATETIME1_STR),
-            exp_obj=DATETIME1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is datetime, value is CIMDateTime object (point in time)",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=DATETIME1_OBJ),
-            exp_obj=DATETIME1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is datetime, value is timedelta object (interval)",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=TIMEDELTA1_TD),
-            exp_obj=TIMEDELTA1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is datetime, value is datetime string (interval)",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=TIMEDELTA1_STR),
-            exp_obj=TIMEDELTA1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is datetime, value is CIMDateTime object (interval)",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value=TIMEDELTA1_OBJ),
-            exp_obj=TIMEDELTA1_OBJ,
-        ),
-        None, None, True
-    ),
-
-    # Test cases where type is reference
-    (
-        "Type is reference, value is None",
-        dict(
-            args=[],
-            kwargs=dict(type_='reference', value=None),
-            exp_obj=None,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is reference, value is reference string",
-        dict(
-            args=[],
-            kwargs=dict(type_='reference', value=REF1_STR),
-            exp_obj=REF1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is reference, value is CIMInstanceName object 1",
-        dict(
-            args=[],
-            kwargs=dict(type_='reference', value=REF1_OBJ),
-            exp_obj=REF1_OBJ,
-        ),
-        None, None, True
-    ),
-    (
-        "Type is reference, value is CIMInstanceName object 2",
-        dict(
-            args=[],
-            kwargs=dict(type_='reference', value=REF2_OBJ),
-            exp_obj=REF2_OBJ,
-        ),
-        None, None, True
-    ),
-
-    # Exception testcases
-    (
-        "No type, plain integer value",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=42),
-            exp_obj=None,
-        ),
-        None, None, True  # difference to cimvalue()
-    ),
-    (
-        "No type, plain negative integer value",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=-42),
-            exp_obj=None,
-        ),
-        None, None, True  # difference to cimvalue()
-    ),
-    (
-        "No type, plain integer value 0",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=0),
-            exp_obj=None,
-        ),
-        None, None, True  # difference to cimvalue()
-    ),
-    (
-        "No type, plain float value",
-        dict(
-            args=[],
-            kwargs=dict(type_=None, value=42.1),
-            exp_obj=None,
-        ),
-        None, None, True  # difference to cimvalue()
-    ),
-    (
-        "Invalid CIM type name",
-        dict(
-            args=[],
-            kwargs=dict(type_='foo', value='abc'),
-            exp_obj=None,
-        ),
-        ValueError, None, True
-    ),
-    (
-        "Type datetime, invalid datetime value",
-        dict(
-            args=[],
-            kwargs=dict(type_='datetime', value='000000:000'),
-            exp_obj=None,
-        ),
-        ValueError, None, True
-    ),
-    (
-        "Type reference, invalid reference value",
-        dict(
-            args=[],
-            kwargs=dict(type_='reference', value='foo'),
-            exp_obj=CIMClassName(classname='foo'),  # difference to cimvalue()
-        ),
-        None, None, True
-    ),
-]
-
-
-@pytest.mark.parametrize(
-    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_TOCIMOBJ)
-@simplified_test_function
-def test_tocimobj(testcase, args, kwargs, exp_obj):
-    """
-    Test function for tocimobj()
-    """
-
-    # The code to be tested
-    obj = tocimobj(*args, **kwargs)
-
-    # Ensure that exceptions raised in the remainder of this function
-    # are not mistaken as expected exceptions
-    assert testcase.exp_exc_types is None
-
-    assert obj == exp_obj
-
-
 TESTCASES_CIMVALUE = [
 
     # Testcases for cimvalue()
@@ -45849,7 +43718,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type=None),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is unicode string",
@@ -45858,7 +43727,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'a', type=None),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is byte string",
@@ -45867,7 +43736,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=b'a', type=None),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is string 'true'",
@@ -45876,7 +43745,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='true', type=None),
             exp_obj='true',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is string 'false'",
@@ -45885,7 +43754,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='false', type=None),
             exp_obj='false',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is datetime string",
@@ -45894,7 +43763,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=DATETIME1_STR, type=None),
             exp_obj=DATETIME1_STR,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is timedelta string",
@@ -45903,7 +43772,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=TIMEDELTA1_STR, type=None),
             exp_obj=TIMEDELTA1_STR,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is reference string",
@@ -45912,7 +43781,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=REF1_STR, type=None),
             exp_obj=REF1_STR,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is True",
@@ -45921,7 +43790,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=True, type=None),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is False",
@@ -45930,7 +43799,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=False, type=None),
             exp_obj=False,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is CIMDateTime object",
@@ -45939,7 +43808,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=DATETIME1_DT, type=None),
             exp_obj=DATETIME1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is None (inferred from value), value is CIMDateTime delta",
@@ -45948,7 +43817,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=TIMEDELTA1_TD, type=None),
             exp_obj=TIMEDELTA1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is string
@@ -45959,7 +43828,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='string'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is empty string",
@@ -45968,7 +43837,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'', type='string'),
             exp_obj=u'',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is one-char unicode string",
@@ -45977,7 +43846,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'a', type='string'),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is short unicode string",
@@ -45986,7 +43855,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'abc', type='string'),
             exp_obj=u'abc',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is non-ASCII unicode string U+00E4 "
@@ -45996,7 +43865,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'\u00E4', type='string'),
             exp_obj=u'\u00E4',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is empty byte string",
@@ -46005,7 +43874,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=b'', type='string'),
             exp_obj=u'',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is one-char byte string",
@@ -46014,7 +43883,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=b'a', type='string'),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is string, value is short byte string",
@@ -46023,7 +43892,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=b'abc', type='string'),
             exp_obj=u'abc',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is char16
@@ -46034,7 +43903,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='char16'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is empty Char16 string",
@@ -46043,7 +43912,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Char16(''), type='char16'),
             exp_obj=u'',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is empty unicode string",
@@ -46052,7 +43921,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'', type='char16'),
             exp_obj=u'',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is one-char Char16 string",
@@ -46061,7 +43930,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Char16('a'), type='char16'),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is one-char unicode string",
@@ -46070,7 +43939,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'a', type='char16'),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is non-ASCII Char16 string",
@@ -46079,7 +43948,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Char16(u'\u00E4'), type='char16'),
             exp_obj=u'\u00E4',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is non-ASCII unicode string",
@@ -46088,7 +43957,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=u'\u00E4', type='char16'),
             exp_obj=u'\u00E4',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     (
@@ -46098,7 +43967,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=b'', type='char16'),
             exp_obj=u'',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is char16, value is one-char byte string",
@@ -46107,7 +43976,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=b'a', type='char16'),
             exp_obj=u'a',
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is boolean
@@ -46118,7 +43987,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='boolean'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is True",
@@ -46127,7 +43996,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=True, type='boolean'),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is False",
@@ -46136,7 +44005,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=False, type='boolean'),
             exp_obj=False,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is short string",
@@ -46145,7 +44014,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='abc', type='boolean'),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is string 'true' (no special treatment)",
@@ -46154,7 +44023,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='true', type='boolean'),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is string 'false' (no special treatment)",
@@ -46163,7 +44032,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='false', type='boolean'),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is empty string",
@@ -46172,7 +44041,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='', type='boolean'),
             exp_obj=False,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is integer 0",
@@ -46181,7 +44050,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='boolean'),
             exp_obj=False,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is integer 1",
@@ -46190,7 +44059,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=1, type='boolean'),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is boolean, value is integer -1",
@@ -46199,7 +44068,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=-1, type='boolean'),
             exp_obj=True,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is uint8
@@ -46210,7 +44079,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='uint8'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint8, value is integer 0",
@@ -46219,7 +44088,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='uint8'),
             exp_obj=Uint8(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint8, value is integer MAX_UINT8",
@@ -46228,7 +44097,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_UINT8, type='uint8'),
             exp_obj=Uint8(MAX_UINT8),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint8, value is Uint8 0",
@@ -46237,7 +44106,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint8(0), type='uint8'),
             exp_obj=Uint8(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint8, value is Uint8 MAX_UINT8",
@@ -46246,7 +44115,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint8(MAX_UINT8), type='uint8'),
             exp_obj=Uint8(MAX_UINT8),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is uint16
@@ -46257,7 +44126,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='uint16'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint16, value is integer 0",
@@ -46266,7 +44135,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='uint16'),
             exp_obj=Uint16(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint16, value is integer MAX_UINT16",
@@ -46275,7 +44144,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_UINT16, type='uint16'),
             exp_obj=Uint16(MAX_UINT16),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint16, value is Uint16 0",
@@ -46284,7 +44153,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint16(0), type='uint16'),
             exp_obj=Uint16(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint16, value is Uint16 MAX_UINT16",
@@ -46293,7 +44162,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint16(MAX_UINT16), type='uint16'),
             exp_obj=Uint16(MAX_UINT16),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is uint32
@@ -46304,7 +44173,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='uint32'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint32, value is integer 0",
@@ -46313,7 +44182,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='uint32'),
             exp_obj=Uint32(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint32, value is integer MAX_UINT32",
@@ -46322,7 +44191,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_UINT32, type='uint32'),
             exp_obj=Uint32(MAX_UINT32),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint32, value is Uint32 0",
@@ -46331,7 +44200,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint32(0), type='uint32'),
             exp_obj=Uint32(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint32, value is Uint32 MAX_UINT32",
@@ -46340,7 +44209,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint32(MAX_UINT32), type='uint32'),
             exp_obj=Uint32(MAX_UINT32),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is uint64
@@ -46351,7 +44220,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='uint64'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint64, value is integer 0",
@@ -46360,7 +44229,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='uint64'),
             exp_obj=Uint64(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint64, value is integer MAX_UINT64",
@@ -46369,7 +44238,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_UINT64, type='uint64'),
             exp_obj=Uint64(MAX_UINT64),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint64, value is Uint64 0",
@@ -46378,7 +44247,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint64(0), type='uint64'),
             exp_obj=Uint64(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is uint64, value is Uint64 MAX_UINT64",
@@ -46387,7 +44256,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Uint64(MAX_UINT64), type='uint64'),
             exp_obj=Uint64(MAX_UINT64),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is sint8
@@ -46398,7 +44267,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='sint8'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint8, value is integer MIN_SINT8",
@@ -46407,7 +44276,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MIN_SINT8, type='sint8'),
             exp_obj=Sint8(MIN_SINT8),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint8, value is integer MAX_SINT8",
@@ -46416,7 +44285,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_SINT8, type='sint8'),
             exp_obj=Sint8(MAX_SINT8),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint8, value is Sint8 MIN_SINT8",
@@ -46425,7 +44294,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint8(MIN_SINT8), type='sint8'),
             exp_obj=Sint8(MIN_SINT8),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint8, value is Sint8 MAX_SINT8",
@@ -46434,7 +44303,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint8(MAX_SINT8), type='sint8'),
             exp_obj=Sint8(MAX_SINT8),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is sint16
@@ -46445,7 +44314,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='sint16'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint16, value is integer MIN_SINT16",
@@ -46454,7 +44323,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MIN_SINT16, type='sint16'),
             exp_obj=Sint16(MIN_SINT16),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint16, value is integer MAX_SINT16",
@@ -46463,7 +44332,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_SINT16, type='sint16'),
             exp_obj=Sint16(MAX_SINT16),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint16, value is Sint16 MIN_SINT16",
@@ -46472,7 +44341,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint16(MIN_SINT16), type='sint16'),
             exp_obj=Sint16(MIN_SINT16),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint16, value is Sint16 MAX_SINT16",
@@ -46481,7 +44350,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint16(MAX_SINT16), type='sint16'),
             exp_obj=Sint16(MAX_SINT16),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is sint32
@@ -46492,7 +44361,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='sint32'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint32, value is integer MIN_SINT32",
@@ -46501,7 +44370,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MIN_SINT32, type='sint32'),
             exp_obj=Sint32(MIN_SINT32),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint32, value is integer MAX_SINT32",
@@ -46510,7 +44379,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_SINT32, type='sint32'),
             exp_obj=Sint32(MAX_SINT32),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint32, value is Sint32 MIN_SINT32",
@@ -46519,7 +44388,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint32(MIN_SINT32), type='sint32'),
             exp_obj=Sint32(MIN_SINT32),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint32, value is Sint32 MAX_SINT32",
@@ -46528,7 +44397,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint32(MAX_SINT32), type='sint32'),
             exp_obj=Sint32(MAX_SINT32),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is sint64
@@ -46539,7 +44408,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='sint64'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint64, value is integer MIN_SINT64",
@@ -46548,7 +44417,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MIN_SINT64, type='sint64'),
             exp_obj=Sint64(MIN_SINT64),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint64, value is integer MAX_SINT64",
@@ -46557,7 +44426,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=MAX_SINT64, type='sint64'),
             exp_obj=Sint64(MAX_SINT64),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint64, value is Sint64 MIN_SINT64",
@@ -46566,7 +44435,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint64(MIN_SINT64), type='sint64'),
             exp_obj=Sint64(MIN_SINT64),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is sint64, value is Sint64 MAX_SINT64",
@@ -46575,7 +44444,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=Sint64(MAX_SINT64), type='sint64'),
             exp_obj=Sint64(MAX_SINT64),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is real32
@@ -46586,7 +44455,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='real32'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real32, value is integer 0",
@@ -46595,7 +44464,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='real32'),
             exp_obj=Real32(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real32, value is positive float",
@@ -46604,7 +44473,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=3.14, type='real32'),
             exp_obj=Real32(3.14),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real32, value is negative integer",
@@ -46613,7 +44482,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=-42E7, type='real32'),
             exp_obj=Real32(-42E7),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real32, value is negative float",
@@ -46622,7 +44491,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=-42E-7, type='real32'),
             exp_obj=Real32(-42E-7),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is real64
@@ -46633,7 +44502,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='real64'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real64, value is integer 0",
@@ -46642,7 +44511,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type='real64'),
             exp_obj=Real64(0),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real64, value is positive float",
@@ -46651,7 +44520,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=3.14, type='real64'),
             exp_obj=Real64(3.14),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real64, value is positive integer",
@@ -46660,7 +44529,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=-42E7, type='real64'),
             exp_obj=Real64(-42E7),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is real64, value is negative float",
@@ -46669,7 +44538,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=-42E-7, type='real64'),
             exp_obj=Real64(-42E-7),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is datetime
@@ -46680,7 +44549,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='datetime'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is datetime, value is datetime object (point in time)",
@@ -46689,7 +44558,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=DATETIME1_DT, type='datetime'),
             exp_obj=DATETIME1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is datetime, value is datetime string (point in time)",
@@ -46698,7 +44567,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=DATETIME1_STR, type='datetime'),
             exp_obj=DATETIME1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is datetime, value is CIMDateTime object (point in time)",
@@ -46707,7 +44576,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=DATETIME1_OBJ, type='datetime'),
             exp_obj=DATETIME1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is datetime, value is timedelta object (interval)",
@@ -46716,7 +44585,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=TIMEDELTA1_TD, type='datetime'),
             exp_obj=TIMEDELTA1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is datetime, value is datetime string (interval)",
@@ -46725,7 +44594,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=TIMEDELTA1_STR, type='datetime'),
             exp_obj=TIMEDELTA1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is datetime, value is CIMDateTime object (interval)",
@@ -46734,7 +44603,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=TIMEDELTA1_OBJ, type='datetime'),
             exp_obj=TIMEDELTA1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test cases where type is reference
@@ -46745,7 +44614,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=None, type='reference'),
             exp_obj=None,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is reference, value is reference string",
@@ -46754,7 +44623,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=REF1_STR, type='reference'),
             exp_obj=REF1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is reference, value is CIMInstanceName object 1",
@@ -46763,7 +44632,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=REF1_OBJ, type='reference'),
             exp_obj=REF1_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Type is reference, value is CIMInstanceName object 2",
@@ -46772,7 +44641,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=REF2_OBJ, type='reference'),
             exp_obj=REF2_OBJ,
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Exception testcases
@@ -46783,7 +44652,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=42, type=None),
             exp_obj=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "No type, plain negative integer value",
@@ -46792,7 +44661,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=-42, type=None),
             exp_obj=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "No type, plain integer value 0",
@@ -46801,7 +44670,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=0, type=None),
             exp_obj=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "No type, plain float value",
@@ -46810,7 +44679,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value=42.1, type=None),
             exp_obj=None,
         ),
-        TypeError, None, CHECK_0_12_0
+        TypeError, None, True
     ),
     (
         "Invalid CIM type name",
@@ -46819,7 +44688,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='abc', type='foo'),
             exp_obj=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Type datetime, invalid datetime value",
@@ -46828,7 +44697,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='000000:000', type='datetime'),
             exp_obj=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
     (
         "Type reference, invalid reference value",
@@ -46837,7 +44706,7 @@ TESTCASES_CIMVALUE = [
             kwargs=dict(value='foo', type='reference'),
             exp_obj=None,
         ),
-        ValueError, None, CHECK_0_12_0
+        ValueError, None, True
     ),
 ]
 
@@ -47695,7 +45564,7 @@ TESTCASES_MOFSTR = [
                 26
             ),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
     (
         "Line break with split in a long word with no blanks",
@@ -47713,7 +45582,7 @@ TESTCASES_MOFSTR = [
                 28
             ),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test initial line position on words without blanks
@@ -47724,7 +45593,7 @@ TESTCASES_MOFSTR = [
             kwargs=dict(value=u'abc', line_pos=8),
             exp_result=(u'"abc"', 13),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "No blanks, Line position with new line using max",
@@ -47736,7 +45605,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'\n  "abcd_fghi_a"\n  "bcd_fghi_ab"', 15),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "No blanks, Line position with new line using max - 1",
@@ -47748,7 +45617,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'\n  "abcd_fghi_a"\n  "bcd_fghi_a"', 14),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "No blanks, Line position with new line using max + 1",
@@ -47760,7 +45629,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'\n  "abcd_fghi_a"\n  "bcd_fghi_ab"\n  "c"', 5),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "No blanks, Line position starting at maxline",
@@ -47772,7 +45641,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'\n  "abcd_fghi"', 13),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
 
     # Test initial line position on words with blanks
@@ -47786,7 +45655,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghij lmnop"', 15),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, Line position with new line using max - 1",
@@ -47798,7 +45667,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghij lmno"', 14),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, Line position with new line using max + 1",
@@ -47810,7 +45679,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghij "\n  "lmnopq"', 10),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, Line position starting at maxline",
@@ -47822,7 +45691,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'\n  "abcd fghi"', 13),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, Line position starting to exactly fit first word",
@@ -47834,7 +45703,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghi"', 8),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "See issue #343",
@@ -47851,7 +45720,7 @@ TESTCASES_MOFSTR = [
                 23
             ),
         ),
-        None, None, CHECK_0_12_0
+        None, None, True
     ),
 
     # Test end space on words with blanks
@@ -47865,7 +45734,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghij lmn"', 13),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, End space with new line using max - 1",
@@ -47877,7 +45746,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghij lm"', 12),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, End space with new line using max + 1",
@@ -47889,7 +45758,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'"abcd "\n  "fghij "\n  "lmno"', 8),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
     (
         "Blanks, End space with new line using max + 1, on first part",
@@ -47901,7 +45770,7 @@ TESTCASES_MOFSTR = [
             ),
             exp_result=(u'\n  "abcdefgh"', 12),
         ),
-        None, None, CHECK_0_12_0,
+        None, None, True
     ),
 ]
 
@@ -47923,13 +45792,8 @@ def test_mofstr(testcase, args, kwargs, exp_result):
     assert testcase.exp_exc_types is None
 
     exp_mof, exp_pos = exp_result
-    if CHECK_0_12_0:
-        mof, pos = result
-        assert isinstance(mof, six.text_type)
-        assert mof == exp_mof
-        assert isinstance(pos, int)
-        assert pos == exp_pos
-    else:
-        mof = result
-        assert isinstance(mof, six.string_types)
-        assert mof == exp_mof
+    mof, pos = result
+    assert isinstance(mof, six.text_type)
+    assert mof == exp_mof
+    assert isinstance(pos, int)
+    assert pos == exp_pos

@@ -136,7 +136,6 @@ import os
 import re
 from datetime import datetime, timedelta
 from xml.dom import minidom
-import warnings
 from collections import namedtuple
 import logging
 
@@ -328,13 +327,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     `connection` parameter of :func:`~pywbem._logging.configure_logger`.
     The :class:`~pywbem.TestClientRecorder` class records the operations in a
     file in the YAML format suitable for the test_client.py unit test program.
-    Before version 0.11.0, pywbem supported only a single operation recorder
-    and activating/deactivating the recorder was a simple matter of setting the
-    :attr:`~pywbem.WBEMConnection.operation_recorder` attribute.
-    Starting with pywbem version 0.11.0, pywbem added support for multiple
-    operation recorders and deprecated the
-    :attr:`~pywbem.WBEMConnection.operation_recorder` attribute. The
-    :meth:`~pywbem.WBEMConnection.add_operation_recorder` method is now used
+    The :meth:`~pywbem.WBEMConnection.add_operation_recorder` method is used
     to add an operation recorder to a connection, and the
     :attr:`~pywbem.WBEMConnection.operation_recorders` property is used to
     retrieve the current operation recorders of a connection.
@@ -625,14 +618,50 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # pylint: enable=line-too-long
 
         # Connection attributes
-        self._set_url(url)
-        self._set_creds(creds)
+        scheme, hostport, url = parse_url(url)
+        self._scheme = scheme
+        self._host = hostport
+        self._url = url
+        self._creds = creds
+        if x509 is not None:
+            if not isinstance(x509, dict):
+                raise TypeError(
+                    "The x509 parameter must be a dictionary but has type: {0}".
+                    format(type(x509)))
+            try:
+                cert_file = x509['cert_file']
+            except KeyError:
+                raise ValueError(
+                    "The x509 parameter does not have the required key "
+                    "'cert_file': {0!r}".format(x509))
+            if not isinstance(cert_file, six.string_types):
+                raise TypeError(
+                    "The 'cert_file' item in the x509 parameter must be a "
+                    "string but has type: {0}".
+                    format(type(cert_file)))
+            key_file = x509.get('key_file', None)
+            if key_file is not None and \
+                    not isinstance(key_file, six.string_types):
+                raise TypeError(
+                    "The 'key_file' item in the x509 parameter must be a "
+                    "string but has type: {0}".
+                    format(type(key_file)))
+        self._x509 = x509
+        self._ca_certs = ca_certs
+        self._no_verification = no_verification
+        self._timeout = timeout
+
+        if proxies is not None:
+            if not isinstance(proxies, dict):
+                raise TypeError(
+                    "The proxies parameter must be a dictionary but has "
+                    "type: {0}".
+                    format(type(proxies)))
+            self._proxies = proxies.copy()
+        else:
+            self._proxies = None
+
         self._set_default_namespace(default_namespace)
-        self._set_x509(x509)
-        self._set_ca_certs(ca_certs)
-        self._set_no_verification(no_verification)
-        self._set_timeout(timeout)
-        self._set_proxies(proxies)
 
         # Requests session
         self.session = requests.Session()
@@ -754,26 +783,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         For examples, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
 
-        This attribute is settable, but setting it has been deprecated.
-
         *Changed in pywbem 1.0: The URL is now normalized.*
         """
         return self._url
-
-    @url.setter
-    def url(self, url):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.url property is deprecated",
-            DeprecationWarning, 2)
-        self._set_url(url)
-
-    def _set_url(self, url):
-        """Internal setter function."""
-        scheme, hostport, url = parse_url(url)
-        self._scheme = scheme
-        self._host = hostport
-        self._url = url
 
     @property
     def scheme(self):
@@ -816,22 +828,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
-
-        This attribute is settable, but setting it has been deprecated.
         """
         return self._creds
-
-    @creds.setter
-    def creds(self, creds):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.creds property is deprecated",
-            DeprecationWarning, 2)
-        self._set_creds(creds)
-
-    def _set_creds(self, creds):
-        """Internal setter function."""
-        self._creds = creds
 
     @property
     def default_namespace(self):
@@ -850,7 +848,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def default_namespace(self, default_namespace):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        # Note: Setting it is not deprecated.
         self._set_default_namespace(default_namespace)
 
     def _set_default_namespace(self, default_namespace):
@@ -869,45 +866,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
-
-        This attribute is settable, but setting it has been deprecated.
         """
         return self._x509
-
-    @x509.setter
-    def x509(self, x509):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.x509 property is deprecated",
-            DeprecationWarning, 2)
-        self._set_x509(x509)
-
-    def _set_x509(self, x509):
-        """Internal setter function."""
-        if x509 is not None:
-            if not isinstance(x509, dict):
-                raise TypeError(
-                    "The x509 parameter must be a dictionary but has type: {0}".
-                    format(type(x509)))
-            try:
-                cert_file = x509['cert_file']
-            except KeyError:
-                raise ValueError(
-                    "The x509 parameter does not have the required key "
-                    "'cert_file': {0!r}".format(x509))
-            if not isinstance(cert_file, six.string_types):
-                raise TypeError(
-                    "The 'cert_file' item in the x509 parameter must be a "
-                    "string but has type: {0}".
-                    format(type(cert_file)))
-            key_file = x509.get('key_file', None)
-            if key_file is not None and \
-                    not isinstance(key_file, six.string_types):
-                raise TypeError(
-                    "The 'key_file' item in the x509 parameter must be a "
-                    "string but has type: {0}".
-                    format(type(key_file)))
-        self._x509 = x509
 
     @property
     def ca_certs(self):
@@ -917,22 +877,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
-
-        This attribute is settable, but setting it has been deprecated.
         """
         return self._ca_certs
-
-    @ca_certs.setter
-    def ca_certs(self, ca_certs):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.ca_certs property is deprecated",
-            DeprecationWarning, 2)
-        self._set_ca_certs(ca_certs)
-
-    def _set_ca_certs(self, ca_certs):
-        """Internal setter function."""
-        self._ca_certs = ca_certs
 
     @property
     def no_verification(self):
@@ -942,22 +888,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
-
-        This attribute is settable, but setting it has been deprecated.
         """
         return self._no_verification
-
-    @no_verification.setter
-    def no_verification(self, no_verification):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.no_verification property is deprecated",
-            DeprecationWarning, 2)
-        self._set_no_verification(no_verification)
-
-    def _set_no_verification(self, no_verification):
-        """Internal setter function."""
-        self._no_verification = no_verification
 
     @property
     def timeout(self):
@@ -968,22 +900,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
-
-        This attribute is settable, but setting it has been deprecated.
         """
         return self._timeout
-
-    @timeout.setter
-    def timeout(self, timeout):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.timeout property is deprecated",
-            DeprecationWarning, 2)
-        self._set_timeout(timeout)
-
-    def _set_timeout(self, timeout):
-        """Internal setter function."""
-        self._timeout = timeout
 
     @property
     def operation_recorders(self):
@@ -994,50 +912,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         *New in pywbem 0.12 as experimental.*
         """
         return tuple(self._operation_recorders)
-
-    @property
-    def operation_recorder(self):
-        """
-        :class:`BaseOperationRecorder`: **Deprecated:** The operation recorder
-        that was last added to the connection, or `None` if the connection does
-        not currently have any recorders.
-
-        *New in pywbem 0.9 as experimental. Deprecated since pywbem 0.12.*
-
-        Instead of using this deprecated property, the
-        :attr:`~pywbem.WBEMConnection.operation_recorders` property should be
-        used to retrieve the recorders of the connection, and the
-        :meth:`~pywbem.WBEMConnection.add_operation_recorder` method should be
-        used to add a recorder.
-
-        This property is settable; setting this property will cause the
-        specified operation recorder to be added to the connection as if
-        :meth:`~pywbem.WBEMConnection.add_operation_recorder` was used.
-        `None` is not permitted as a new value for this property.
-
-        Raises:
-
-          ValueError: Operation recorder must not be `None`.
-          ValueError: Cannot add the same recorder class multiple times.
-        """
-        warnings.warn(
-            "Reading the WBEMConnection.operation_recorder property has been "
-            "deprecated. Use the operation_recorders property instead.",
-            DeprecationWarning, 2)
-        try:
-            last_recorder = self._operation_recorders[-1]
-        except IndexError:
-            last_recorder = None
-        return last_recorder
-
-    @operation_recorder.setter
-    def operation_recorder(self, operation_recorder):
-        """Setter method; for a description see the getter method."""
-        warnings.warn(
-            "Setting the WBEMConnection.operation_recorder property has been "
-            "deprecated. Use the add_operation_recorder() method instead.",
-            DeprecationWarning, 2)
-        self.add_operation_recorder(operation_recorder)
 
     @property
     def operation_recorder_enabled(self):
@@ -1107,18 +981,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         See the :ref:`Proxy support` section for details.
         """
         return self._proxies
-
-    def _set_proxies(self, proxies):
-        """Internal setter function."""
-        if proxies is not None:
-            if not isinstance(proxies, dict):
-                raise TypeError(
-                    "The proxies parameter must be a dictionary but has "
-                    "type: {0}".
-                    format(type(proxies)))
-            self._proxies = proxies.copy()
-        else:
-            self._proxies = None
 
     @property
     def statistics(self):
@@ -1738,28 +1600,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         cls._activate_logging = False
         cls._log_detail_levels = {}
 
-    def imethodcall(self, methodname, namespace, response_params_rqd=False,
-                    **params):
-        """
-        **Deprecated:** Low-level method used by the operation-specific methods
-        of this class.
-
-        *Deprecated since pywbem 0.12.*
-
-        Calling this function directly has been deprecated and will issue a
-        :term:`DeprecationWarning`.
-        Users should call the operation-specific methods (e.g. GetInstance)
-        instead of this method.
-        This method will be removed in the next pywbem release after 0.12.
-        """
-        warnings.warn(
-            "Calling imethodcall() directly is deprecated; it will be removed "
-            "in the next pywbem release after 0.12",
-            DeprecationWarning, 2)
-        return self._imethodcall(methodname, namespace,
-                                 has_out_params=response_params_rqd,
-                                 **params)
-
     def _imethodcall(self, methodname, namespace, has_return_value=True,
                      has_out_params=False, **params):
         """
@@ -1966,25 +1806,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Missing return value and output parameters are checked by caller
 
         return tup_tree
-
-    def methodcall(self, methodname, localobject, Params=None, **params):
-        """
-        **Deprecated:** Low-level method used by the
-        :meth:`~pywbem.WBEMConnection.InvokeMethod` method of this class.
-
-        *Deprecated since pywbem 0.12.*
-
-        Calling this function directly has been deprecated and will issue a
-        :term:`DeprecationWarning`.
-        Users should call :meth:`~pywbem.WBEMConnection.InvokeMethod` instead
-        of this method.
-        This method will be removed in the next pywbem release after 0.12.
-        """
-        warnings.warn(
-            "Calling methodcall() directly is deprecated; it will be removed "
-            "in the next pywbem release after 0.12",
-            DeprecationWarning, 2)
-        return self._methodcall(methodname, localobject, Params, **params)
 
     def _methodcall(self, methodname, objectname, Params=None, **params):
         """

@@ -338,6 +338,9 @@ class DMTFCIMSchema(object):
         schema. This file contains `#pragama include` statements for all of
         the classes and qualifier declarations of the schema.
 
+        **Deprecated:** This property has been deprecated in pywbem 1.0.0
+        in favor of :attr:`schema_pragma_file`.
+
         The classes are represented with one file per class, and the qualifier
         declarations are in the files `qualifiers.mof` and
         `qualifiers_optional.mof`.
@@ -349,12 +352,10 @@ class DMTFCIMSchema(object):
         Example::
 
             schemas/dmtf/moffinal2490/cim_schema_2.49.0.mof
-
-        **Deprecated:** This property has been deprecated in pywbem 1.0.0
-        in favor of :attr:`schema_pragma_file`.
         """
-        warnings.warn("The property schema_mof_file has been deprecated. Use "
-                      "the property schema_pragma_file.",
+        warnings.warn("Property pywbem_mock.DMTFCIMSchema.schema_mof_file is "
+                      "deprecated; it will be removed in a future pywbem "
+                      "release. Use schema_pragma_file instead.",
                       DeprecationWarning, stacklevel=2)
         return self._schema_pragma_file
 
