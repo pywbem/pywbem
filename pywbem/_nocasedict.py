@@ -34,9 +34,6 @@ functions. Users cannot create ``NocaseDict`` objects.
 Except for the case-insensitivity of its keys, it behaves like the built-in
 :class:`~py:collections.OrderedDict`. Therefore, ``NocaseDict`` is not
 described in detail in this documentation.
-
-Deprecated: In pywbem 0.9, support for comparing two ``NocaseDict`` instances
-with the ``>``, ``>``, ``<=``, ``>=`` operators has been deprecated.
 """
 
 # This module is meant to be safe for 'import *'.

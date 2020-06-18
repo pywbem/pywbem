@@ -684,14 +684,14 @@ class FakedWBEMConnection(WBEMConnection):
                             verbose=False):
         # pylint: disable:line-too-long
         """
-        **Deprecated:** This method has been deprecated in pywbem 1.0.0
-        in favor of :meth:`compile_schema_classes`.
-
         Compile the classes defined by `schema_class_names` and their
         dependent classes from the CIM schema version defined by
         `schema_version`. If the DMTF schema defined by
         `schema_version` is not installed in path `schema_root_dir`
         it is first downloaded from the DMTF and installed in that directory.
+
+        **Deprecated:** This method has been deprecated in pywbem 1.0.0
+        in favor of :meth:`compile_schema_classes`.
 
         This method uses the :class:`~pywbem_mock.DMTFCIMSchema` class to
         download the DMTF CIM schema defined by `schema_version` from the DMTF,
@@ -774,9 +774,10 @@ class FakedWBEMConnection(WBEMConnection):
         # pylint: enable:line-too-long
 
         warnings.warn(
-            "Calling compile_dmtf_schema is deprecated; it will be removed "
-            "in the next pywbem release after 1.0.0. Use",
-            DeprecationWarning, 2)
+            "Method pywbem_mock.FakedWBEMConnection.compile_dmtf_schema() is "
+            "deprecated; it will be removed in a future pywbem release. "
+            "Use compile_schema_classes() instead",
+            DeprecationWarning, stacklevel=2)
 
         schema = DMTFCIMSchema(schema_version, schema_root_dir,
                                use_experimental=use_experimental,

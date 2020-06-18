@@ -272,25 +272,6 @@ class TestCreateConnection(object):
             ('ca_certs', 'xxx'),
             ('no_verification', True),
             ('timeout', 30),
-        ])
-    def test_attrs_deprecated_setters(self, attr_name, value):
-        # pylint: disable=no-self-use
-        """
-        Test that the setting of certain attributes is deprecated.
-        """
-        conn = WBEMConnection('http://localhost')
-        with pytest.warns(DeprecationWarning) as rec_warnings:
-
-            # The code to be tested
-            setattr(conn, attr_name, value)
-
-        assert len(rec_warnings) == 1
-
-        attr_value = getattr(conn, attr_name)
-        assert attr_value == value
-
-    @pytest.mark.parametrize(
-        'attr_name, value', [
             ('last_raw_request', '<CIM/>'),
             ('last_raw_reply', '<CIM/>'),
             ('last_raw_reply', '<CIM/>'),
@@ -301,7 +282,7 @@ class TestCreateConnection(object):
     def test_attrs_readonly(self, attr_name, value):
         # pylint: disable=no-self-use
         """
-        Test that certain attributes that were previously public are now
+        Test that certain attributes that were previously settable are now
         read-only and that the original value has not changed when trying to
         modify them.
         """

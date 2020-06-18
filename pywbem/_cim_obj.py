@@ -241,7 +241,6 @@ from __future__ import print_function, absolute_import
 
 import warnings
 import copy as copy_
-import traceback
 import re
 try:
     from collections import OrderedDict
@@ -255,22 +254,20 @@ except ImportError:  # py2
 import six
 
 from . import _cim_xml
-from .config import DEBUG_WARNING_ORIGIN, SEND_VALUE_NULL
+from .config import SEND_VALUE_NULL
 from . import config
 from ._cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
-    atomic_to_cim_xml, CIMType, CIMDateTime, Uint8, Sint8, Uint16, Sint16, \
-    Uint32, Sint32, Uint64, Sint64, Real32, Real64, number_types, CIMInt, \
+    atomic_to_cim_xml, CIMType, CIMDateTime, number_types, CIMInt, \
     CIMFloat, _Longint, Char16
 from ._nocasedict import NocaseDict
-from ._utils import _stacklevel_above_module, _ensure_unicode, _ensure_bool, \
+from ._utils import _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
     _realValue_to_float, _to_unicode, _eq_name, _eq_item, _eq_dict
 
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
            'CIMClass', 'CIMMethod', 'CIMParameter', 'CIMQualifier',
-           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'tocimobj',
-           'cimvalue']
+           'CIMQualifierDeclaration', 'tocimxml', 'tocimxmlstr', 'cimvalue']
 
 # Constants for MOF formatting output
 MOF_INDENT = 3
@@ -2242,7 +2239,7 @@ class CIMInstance(_CIMComparisonMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, qualifiers=None,
-                 path=None, property_list=None):
+                 path=None):
         """
         Parameters:
 
@@ -2281,24 +2278,6 @@ class CIMInstance(_CIMComparisonMixin):
             :attr:`~pywbem.CIMInstance.path` attribute
             will also be `None`.
 
-          property_list (:term:`py:iterable` of :term:`string`):
-            **Deprecated:** List of property names for use as a filter by some
-            operations on the instance.
-
-            This parameter has been deprecated in pywbem 0.12.
-            Set only the desired properties on the object, instead of
-            working with this property filter.
-
-            The property names may have any lexical case.
-
-            A copy of the provided iterable will be stored in the
-            :class:`~pywbem.CIMInstance` object, and the property names will be
-            converted to lower case.
-
-            `None` means that the properties are not filtered, and the
-            :attr:`~pywbem.CIMInstance.property_list` attribute
-            will also be `None`.
-
         Raises:
 
           ValueError: classname is `None`, a property or qualifier name is
@@ -2311,8 +2290,7 @@ class CIMInstance(_CIMComparisonMixin):
         # We use the respective setter methods:
         self.classname = classname
         self.path = path
-        self.property_list = property_list
-        self.properties = properties  # Depends on path & property_list set
+        self.properties = properties
         self.qualifiers = qualifiers
 
     @property
@@ -2503,44 +2481,6 @@ class CIMInstance(_CIMComparisonMixin):
             # in test tools that show the object with repr().
             assert isinstance(path, CIMInstanceName)
 
-    @property
-    def property_list(self):
-        """
-        :term:`py:list` of :term:`unicode string`: **Deprecated:** List of
-        property names for use as a filter by some operations on
-        this CIM instance.
-
-        This attribute has been deprecated in pywbem 0.12.
-        Set only the desired properties on the object, instead of working with
-        this property filter.
-
-        The property names are specified in lower case.
-
-        `None` means that the properties are not filtered.
-
-        This attribute is settable. For details, see the description of the
-        same-named init parameter of
-        :class:`this class <pywbem.CIMInstance>`.
-        """
-        return self._property_list
-
-    @property_list.setter
-    def property_list(self, property_list):
-        """Setter method; for a description see the getter method."""
-        if property_list is not None:
-            msg = "The 'property_list' init parameter and attribute of " \
-                "CIMInstance is deprecated; Set only the desired properties " \
-                "instead."
-            if DEBUG_WARNING_ORIGIN:
-                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-            warnings.warn(msg, DeprecationWarning,
-                          stacklevel=_stacklevel_above_module(__name__))
-
-            property_list = [_ensure_unicode(x).lower()
-                             for x in property_list]
-        # pylint: disable=attribute-defined-outside-init
-        self._property_list = property_list
-
     def __eq__(self, other):
         """
         Equality test function for two :class:`~pywbem.CIMInstance` objects.
@@ -2555,10 +2495,6 @@ class CIMInstance(_CIMComparisonMixin):
 
         The equality test takes into account any case insensitivities described
         for these attributes.
-
-        The following public attributes are not utilized for the equality test:
-
-        * `property_list`
 
         Raises `TypeError', if the `other` object is not a
         :class:`~pywbem.CIMInstance` object.
@@ -2613,7 +2549,6 @@ class CIMInstance(_CIMComparisonMixin):
             "classname={s.classname!A}, "
             "path={s.path!A}, "
             "properties={s.properties!A}, "
-            "property_list={s.property_list!A}, "
             "qualifiers={s.qualifiers!A})",
             s=self)
 
@@ -2624,21 +2559,6 @@ class CIMInstance(_CIMComparisonMixin):
         return self.properties[key].value
 
     def __setitem__(self, key, value):
-
-        # The property_list attribute has been deprecated in pywbem 0.12.
-        # It is used to ignore the setting of properties under certain
-        # conditions. Note that the purpose of these conditions is unclear,
-        # given the code below (whose logic is unchanged since at least as far
-        # back as pywbem 0.7): For instances that do not have a path set,
-        # the property_list is effectively disabled. Nevertheless, the logic
-        # has been kept in place because the property_list feature may be
-        # removed anyway in a future release of pywbem.
-        if self.property_list is not None and \
-                key.lower() not in self.property_list and \
-                self.path is not None and \
-                key not in self.path.keybindings:
-            return
-
         prop = _cim_property_value(key, value)
         self.properties[key] = prop
         if self.path is not None and key in self.path.keybindings:
@@ -2984,7 +2904,7 @@ class CIMInstance(_CIMComparisonMixin):
         xml_elem = self.tocimxml(ignore_path)
         return tocimxmlstr(xml_elem, indent)
 
-    def tomof(self, indent=0, maxline=MAX_MOF_LINE):
+    def tomof(self, maxline=MAX_MOF_LINE):
         """
         Return a MOF string with the specification of this CIM instance.
 
@@ -3004,23 +2924,12 @@ class CIMInstance(_CIMComparisonMixin):
 
         Parameters:
 
-          indent (:term:`integer`): This parameter has been deprecated in
-            pywbem 0.12. A value other than 0 causes a deprecation warning to
-            be issued. Otherwise, the parameter is ignored and the returned MOF
-            instance specification is not indented.
+          maxline (:term:`integer`): Maximum line length.
 
         Returns:
 
           :term:`unicode string`: MOF string.
         """
-
-        if indent != 0:
-            msg = "The 'indent' parameter of CIMInstance.tomof() is " \
-                "deprecated."
-            if DEBUG_WARNING_ORIGIN:
-                msg += "\nTraceback:\n" + ''.join(traceback.format_stack())
-            warnings.warn(msg, DeprecationWarning,
-                          stacklevel=_stacklevel_above_module(__name__))
 
         mof = []
 
@@ -7701,15 +7610,19 @@ def tocimxml(value):
     Parameters:
 
       value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime.datetime`, or tuple/list thereof):
-        The input object.
-
-        Specifying `None` has been deprecated in pywbem 0.12.
+        The input object. Must not be `None`.
 
     Returns:
 
       The CIM-XML representation, as an object of an appropriate subclass of
       :term:`Element`.
+
+    Raises:
+      ValueError: Invalid input value.
     """  # noqa: E501
+
+    if value is None:
+        raise ValueError("The value parameter must not be None")
 
     if isinstance(value, (tuple, list)):
         array_xml = []
@@ -7726,11 +7639,6 @@ def tocimxml(value):
 
     if hasattr(value, 'tocimxml'):
         return value.tocimxml()
-
-    if value is None:
-        warnings.warn("A value of None for pywbem.tocimxml() has been "
-                      "deprecated.",
-                      DeprecationWarning, stacklevel=2)
 
     return _cim_xml.VALUE(atomic_to_cim_xml(value))
 
@@ -7783,215 +7691,6 @@ def tocimxmlstr(value, indent=None):
         xml_str = xml_elem.toprettyxml(indent=indent)
     # xml_str is a unicode string if required based upon its content.
     return _ensure_unicode(xml_str)
-
-
-# pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
-def tocimobj(type_, value):
-    """
-    **Deprecated:** Return a CIM object representing the specified value and
-    type.
-
-    This function has been deprecated in pywbem 0.13. Use
-    :func:`~pywbem.cimvalue` instead.
-
-    Parameters:
-
-      `type_` (:term:`string`):
-        The CIM data type name for the CIM object. See :ref:`CIM data types`
-        for valid type names.
-
-        If `value` is a list, `type_` must specify the CIM data type name of
-        an item in the list.
-
-      value (:term:`CIM data type` and some others, see description):
-        The value to be represented as a CIM object.
-
-        In addition to the Python types listed in :ref:`CIM data types`, the
-        following Python types are supported for this parameter:
-
-        * `None`: The returned object will be `None`.
-
-        * If `type_` specifies one of the CIM integer data types:
-
-          - :term:`integer`
-          - :term:`string`. The string must represent a decimal number
-
-        * If `type_` specifies the CIM boolean data type:
-
-          - :term:`string`. The string must be ``'true'`` or ``'false'`` in any
-            lexical case
-
-        * If `type_` specifies the CIM datetime data type:
-
-          - All input types of :class:`~pywbem.CIMDateTime`
-
-        * If `type_` specifies the CIM reference data type:
-
-          - :term:`string`. The string must be an untyped WBEM URI representing
-            an instance path (see :term:`DSP0207`)
-
-    Returns:
-
-        A :term:`CIM data type` object, representing the specified value and
-        type.
-
-    Raises:
-
-        ValueError: Input cannot be converted to defined CIM value type, or
-          invalid CIM data type name.
-    """
-
-    if value is None or type_ is None:
-        return None
-
-    if type_ != 'string' and isinstance(value, six.string_types) and not value:
-        return None
-
-    # Lists of values
-
-    if isinstance(value, list):
-        return [tocimobj(type_, x) for x in value]
-
-    # Boolean type
-
-    if type_ == 'boolean':
-        if isinstance(value, bool):
-            return value
-
-        if isinstance(value, six.string_types):
-            if value.lower() == 'true':
-                return True
-
-            if value.lower() == 'false':
-                return False
-        raise ValueError(
-            _format("Invalid boolean value: {0!A}", value))
-
-    # String type
-
-    if type_ == 'string':
-        return _ensure_unicode(value)
-
-    # Integer types
-
-    if type_ == 'uint8':
-        return Uint8(value)
-
-    if type_ == 'sint8':
-        return Sint8(value)
-
-    if type_ == 'uint16':
-        return Uint16(value)
-
-    if type_ == 'sint16':
-        return Sint16(value)
-
-    if type_ == 'uint32':
-        return Uint32(value)
-
-    if type_ == 'sint32':
-        return Sint32(value)
-
-    if type_ == 'uint64':
-        return Uint64(value)
-
-    if type_ == 'sint64':
-        return Sint64(value)
-
-    # Real types
-
-    if type_ == 'real32':
-        return Real32(value)
-
-    if type_ == 'real64':
-        return Real64(value)
-
-    # Char16
-
-    if type_ == 'char16':
-        return _ensure_unicode(value)
-
-    # Datetime
-
-    if type_ == 'datetime':
-        return CIMDateTime(value)
-
-    # REF
-
-    if type_ == 'reference':  # pylint: disable=too-many-nested-blocks
-        # pylint: disable=too-many-return-statements,too-many-branches
-
-        # Note: This doesn't handle double-quoting, as in refs to refs. Example:
-        # r'ex_composedof.composer="ex_sampleClass.label1=9921,' +
-        #  'label2=\"SampleLabel\"",component="ex_sampleClass.label1=0121,' +
-        #  'label2=\"Component\""')
-
-        if isinstance(value, (CIMInstanceName, CIMClassName)):
-            return value
-
-        # pylint: disable=no-else-return
-        if isinstance(value, six.string_types):
-            nm_space = host = None
-            head, sep, tail = _partition(value, '//')
-            if sep and head.find('"') == -1:
-                # we have a namespace type
-                head, sep, tail = _partition(tail, '/')
-                host = head
-            else:
-                tail = head
-            head, sep, tail = _partition(tail, ':')
-            if sep:
-                nm_space = head
-            else:
-                tail = head
-            head, sep, tail = _partition(tail, '.')
-            if not sep:
-                return CIMClassName(head, host=host, namespace=nm_space)
-            classname = head
-            key_bindings = {}
-            while tail:
-                head, sep, tail = _partition(tail, ',')
-                if head.count('"') == 1:  # quoted string contains comma
-                    tmp, sep, tail = _partition(tail, '"')
-                    head = '{0},{1}'.format(head, tmp)
-                    tail = _partition(tail, ',')[2]
-                head = head.strip()
-                key, sep, val = _partition(head, '=')
-                if sep:
-                    cl_name, s, k = _partition(key, '.')
-                    if s:
-                        if cl_name != classname:
-                            raise ValueError(
-                                _format("Invalid object path: {0!A}", value))
-                        key = k
-                    val = val.strip()
-                    if val[0] == '"' and val[-1] == '"':
-                        val = val.strip('"')
-                    else:
-                        if val.lower() in ('true', 'false'):
-                            val = val.lower() == 'true'
-                        elif val.isdigit():
-                            val = int(val)
-                        else:
-                            try:
-                                val = float(val)
-                            except ValueError:
-                                try:
-                                    val = CIMDateTime(val)
-                                except ValueError:
-                                    raise ValueError(
-                                        _format("Invalid key binding: {0!A}",
-                                                val))
-
-                    key_bindings[key] = val
-            return CIMInstanceName(classname, host=host, namespace=nm_space,
-                                   keybindings=key_bindings)
-        else:
-            raise ValueError(
-                _format("Invalid reference value: {0!A}", value))
-
-    raise ValueError(
-        _format("Invalid CIM data type name: {0!A}", type_))
 
 
 def cimvalue(value, type):
@@ -8270,16 +7969,3 @@ def _check_embedded_object(embedded_object, type, value, element_kind,
                             "(must be CIMInstance or CIMClass)",
                             element_kind, element_name, embedded_object,
                             builtin_type(value)))
-
-
-def byname(nlist):
-    """
-    **Deprecated:** Convert a list of named objects into an ordered dictionary
-    indexed by name.
-
-    This function is internal and has been deprecated in pywbem 0.12.
-    """
-    warnings.warn("The internal byname() function has been deprecated, with "
-                  "no replacement.", DeprecationWarning,
-                  stacklevel=_stacklevel_above_module(__name__))
-    return OrderedDict([(x.name, x) for x in nlist])
