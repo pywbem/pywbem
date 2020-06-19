@@ -126,18 +126,29 @@ readme-renderer>=23.0; python_version >= '3.5'
 # Python 3.4.
 jupyter>=1.0.0; python_version >= '2.7' and (python_version != '3.4' or sys_platform != 'win32')
 ipython>=5.1.0,<6.0; python_version == '2.7'
-ipython>=6.0,<7.0; python_version == '3.4'
+ipython>=6.0,<7.0; python_version == '3.4' and sys_platform != 'win32'
 ipython>=7.0,<7.10; python_version == '3.5'
 ipython>=7.10; python_version >= '3.6'
-jupyter_console>=5.0.0,<6.0.0; python_version <= '3.4'
+ipykernel>=4.5.2; python_version != '3.4' or sys_platform != 'win32'
+ipython_genutils>=0.1.0; python_version != '3.4' or sys_platform != 'win32'
+ipywidgets>=5.2.2; python_version != '3.4' or sys_platform != 'win32'
+jupyter_console>=5.0.0,<6.0.0; python_version == '2.7'
+jupyter_console>=5.0.0,<6.0.0; python_version == '3.4' and sys_platform != 'win32'
 jupyter_console>=6.0.0; python_version >= '3.5'
+jupyter_client>=4.4.0; python_version != '3.4' or sys_platform != 'win32'
+jupyter_core>=4.2.1; python_version != '3.4' or sys_platform != 'win32'
+nbconvert>=5.0.0; python_version != '3.4' or sys_platform != 'win32'
+nbformat>=4.2.0; python_version != '3.4' or sys_platform != 'win32'
+notebook>=4.3.1; python_version != '3.4' or sys_platform != 'win32'
 
 # Pywin32 is used (at least?) by jupyter.
 # Pywin32 version 226 needs to be excluded, see issue #1946.
 # Pywin32 version 222 is inconsistent in its 32-bit/64-bit support on py37
 # Pywin32 version 225+ provides wheel files for py38, but does not advertise
 # py38 on Pypi. That causes pywin32==225 to fail but pywin32>=225 to work.
-pywin32>=222,!=226; sys_platform == 'win32' and python_version <= '3.6'
+# There is no version of pywin32 for py34.
+pywin32>=222,!=226; sys_platform == 'win32' and python_version == '2.7'
+pywin32>=222,!=226; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32>=223,!=226; sys_platform == 'win32' and python_version == '3.7'
 # TODO: Re-enable once pywin32 fixes its Python version advertising on Pypi
 #       (see issue #1975).

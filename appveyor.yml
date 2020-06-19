@@ -10,13 +10,12 @@ environment:
 #      UNIX_PATH: none
 #      PYTHON_CMD: python
 
-#    - TOX_ENV: win64_py34_32
-#      UNIX_PATH: none
-#      PYTHON_CMD: python
-
-#    - TOX_ENV: win64_py34_64
-#      UNIX_PATH: none
-#      PYTHON_CMD: python
+# Note: Python 3.4 is does not work on Windows because lxml does not install.
+#       It fails with missing include files from libxml2 and libxslt, although
+#       these packages are installed viy choco (and work with Python 3.5 and
+#       higher). Even if the include file paths are added via INCLUDE, it fails
+#       at the link step because libxslt.lib etc are needed but not part of
+#       the choco installation of libxml2 etc.
 
 #    - TOX_ENV: win64_py35_32
 #      UNIX_PATH: none
@@ -52,27 +51,17 @@ environment:
 
 # Note: On CygWin with Python 3.x, LC_ALL/LANG need to be set to utf-8 for Click to install/work
 
-# TODO: Disabled because python2.7 with cygwin 32-bit fails with:
-#       "virtualenv is not compatible with this system or executable"
-#    - TOX_ENV: cygwin32_py27
-#      UNIX_PATH: C:\cygwin\bin
-#      PYTHON_CMD: python2.7
-#      PIP_CMD: pip
-#      CYGWIN_PYTHON_DEVEL: python27-devel
+# Note: The 32-bit versions of CygWin do not work and have been removed from
+# appveyor.yml and tox.ini:
+# - Python 2.7 with cygwin 32-bit fails with "virtualenv is not compatible with
+#   this system or executable".
+# - On Python 3.6 and upwards, Tox returns success but does not do anything.
 
 #    - TOX_ENV: cygwin64_py27
 #      UNIX_PATH: C:\cygwin64\bin
 #      PYTHON_CMD: python2.7
 #      PIP_CMD: pip
 #      CYGWIN_PYTHON_DEVEL: python27-devel
-
-#    - TOX_ENV: cygwin32_py36
-#      UNIX_PATH: C:\cygwin\bin
-#      PYTHON_CMD: python3.6
-#      PIP_CMD: pip
-#      CYGWIN_PYTHON_DEVEL: python36-devel
-#      LC_ALL: C.UTF-8
-#      LANG: C.UTF-8
 
 #    - TOX_ENV: cygwin64_py36
 #      UNIX_PATH: C:\cygwin64\bin
@@ -82,27 +71,11 @@ environment:
 #      LC_ALL: C.UTF-8
 #      LANG: C.UTF-8
 
-#    - TOX_ENV: cygwin32_py37
-#      UNIX_PATH: C:\cygwin\bin
-#      PYTHON_CMD: python3.7
-#      PIP_CMD: pip
-#      CYGWIN_PYTHON_DEVEL: python37-devel
-#      LC_ALL: C.UTF-8
-#      LANG: C.UTF-8
-
 #    - TOX_ENV: cygwin64_py37
 #      UNIX_PATH: C:\cygwin64\bin
 #      PYTHON_CMD: python3.7
 #      PIP_CMD: pip
 #      CYGWIN_PYTHON_DEVEL: python37-devel
-#      LC_ALL: C.UTF-8
-#      LANG: C.UTF-8
-
-#    - TOX_ENV: cygwin32_py38
-#      UNIX_PATH: C:\cygwin\bin
-#      PYTHON_CMD: python3.8
-#      PIP_CMD: pip
-#      CYGWIN_PYTHON_DEVEL: python38-devel
 #      LC_ALL: C.UTF-8
 #      LANG: C.UTF-8
 
