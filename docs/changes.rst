@@ -13,17 +13,22 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.0
-------------
+pywbem 1.0.0b1
+--------------
 
 This version is currently in development and is shown as |version|.
 
-This version contains all fixes up to pywbem 0.17.1.
-
 Released: not yet
 
-Incompatible changes:
-^^^^^^^^^^^^^^^^^^^^^
+This is a beta version of the upcoming version 1.0.0. Pip will only install
+this version if explicitly requested, e.g. using any of these commands::
+
+    $ pip install pywbem==1.0.0b1
+    $ pip install --pre pywbem
+
+This version contains all fixes since 0.14.0 and up to pywbem 0.17.2.
+
+**Incompatible changes:**
 
 Because pywbem 1.0.0 is a major change, a number of significant incompatibilites
 have been incorporated. The following subsections summarize these changes and provide
@@ -33,17 +38,19 @@ details of the changes themselves and the reasons for the changes.
 
 * Removed Python 2.6 support.
 
-* Migrated pywbem to use the 'requests' Python package for HTTP/HTTPS
-  pywbem client to WBEM server communication.
+* Migrated pywbem to use the 'requests' Python package for HTTP/HTTPS pywbem
+  client to WBEM server communication. This removed support for UNIX sockets
+  based connections to local WBEM servers as well as the non-standard 'OWLocal'
+  and 'Local' authentication schemes, and changed some of the behavior of
+  HTTPS-related init parameters of `WBEMConnection`.
 
-* Removed the `**extra` keyword arguments from `WBEMOperation` methods.
+* Removed the deprecated `verify_callback` init parameter of `WBEMConnection`.
 
-* Removed ordering for `NocaseDict`, `CIMInstanceName`, `CIMInstance`
-  and `CIMClass` objects.
+* Removed the `**extra` keyword arguments from `WBEMConnection` operation
+  methods.
 
-* Removed the `wbemcli` command.
-
-* Removed the `verify_callback` parameter of `WBEMConnection`.
+* Removed the deprecated ordering for `NocaseDict`, `CIMInstanceName`,
+  `CIMInstance` and `CIMClass` objects.
 
 * Removed the deprecated ability to set the following properties of class
   `WBEMConnection`: `url`, `creds`, `x509`, `ca-certs`, `no_verification`,
@@ -64,50 +71,46 @@ details of the changes themselves and the reasons for the changes.
 
 * Removed the deprecated function `pywbem.tocimobj()`.
 
-* MOF compiler:
+* Removed the deprecated `wbemcli` command.
 
-  * Made the `MOFWBEMConnection` class (support for the MOF compiler) internal.
+* Made the `MOFWBEMConnection` class (support for the MOF compiler) internal.
 
 * Exception changes:
 
   * Changed the exception behavior of the MOF compilation methods of the
     `MOFCompiler` and `FakedWBEMConnection` classes to no longer raise
-    `CIMError`, but to raise exceptions derived from a new base
-    class `MOFCompileError`.
+    `pywbem.CIMError`, but to raise exceptions derived from a new base
+    class `pywbem.MOFCompileError`.
 
   * Changed the type of exceptions that are raised by methods of
     `pywbem.ValueMapping` for cases where the value-mapped CIM element has
     issues.
 
-  * Changed the `CIMError` exceptions that were raised by pywbem code in several
-    `WBEMServer` methods to now raise the new exception `ModelError`.
+  * Changed the `pywbem.CIMError` exceptions that were raised by pywbem code in
+    several `WBEMServer` methods to now raise the new exception
+    `pywbem.ModelError`.
 
   * Added a new exception `pywbem.HeaderParseError` derived from
     `pywbem.ParseError` that is used to report HTTP header issues in the CIM-XML
     response.
 
-* Made all sub-namespaces within the pywbem namespace private except for
-  pywbem.config.
+* Made all sub-namespaces within the pywbem namespace private, except for
+  pywbem.config. Using these sub-namespaces was already deprecated.
 
-* Mock WBEM Server:
+* Mock WBEM Server (experimental):
 
-  * Replaced the method `add_method_callback()` and the FakeWBEMConnection
-    `methods` property from python_mock with user-defined providers.
+  * Replaced the `add_method_callback()` method  and the `methods` property in
+    `FakedWBEMConnection` with user-defined providers.
 
-  * Removed the `add_method_callback()` method and the `methods` property
-    from the `FakeWBEMConnection` class.
-
-  * Added pywbem_mock.config.py variables to control use of the
-    IncludeQualifiers and IncludeClassOrigin arguments on the GetInstance and
-    EnumerateInstances operations.
-
-  * Removed the `FakedWBEMConnection` init argument `conn_lite`.
+  * Removed the `conn_lite` init parameter of `FakedWBEMConnection`.
 
   * Changed the logging behavior of the MOF compilation methods of
     `FakedWBEMConnection` so that the default is for the caller to display
     exceptions rather than the MOF compiler logger.
 
-* Removed deprecated functionality.
+  * Changed the behavior for the IncludeQualifiers and IncludeClassOrigin
+    parameters on the GetInstance and EnumerateInstances operations of the
+    mock WBEM server.
 
 *Incompatible change details:*
 
@@ -151,10 +154,14 @@ details of the changes themselves and the reasons for the changes.
     for installing pywbem. If you have automated the pywbem installation,
     this step should be removed from your automation.
 
-  In pywbem 2, httplib was the  core package and different ssl solutions were
-  used for python 2 and python 3.
+  In pywbem versions before 1.0.0, 'httplib' was the core package and different
+  SSL solutions were used for Python 2 and Python 3.
 
-* Removed the `**extra` keyword arguments from `WBEMOperation` methods.
+* Removed the `verify_callback` parameter of `WBEMConnection`. It was
+  deprecated in pywbem 0.9.0, and was not supported in Python 3.
+  (See issue #1928)
+
+* Removed the `**extra` keyword arguments from `WBEMConnection` operation methods.
   Such arguments were passed on to the WBEM server, but they are not needed
   because all parameters defined by the CIM-XML protocol are supported as named
   arguments to these methods. This would only be incompatible if a WBEM server
@@ -162,27 +169,10 @@ details of the changes themselves and the reasons for the changes.
   would have been ignored and not used but now results in exceptions. (See
   issue #1415)
 
-* Removed support for ordering `NocaseDict`, `CIMInstanceName`, `CIMInstance`
-  and `CIMClass` objects. The ordering of such dictionaries was never supported
-  with pywbem on Python 3, and for Python 2 it had been deprecated since pywbem
-  0.12.0. (See issue #1926).
-
-* Removed the wbemcli command. The recommended replacement is the pywbemcli
-  command from the pywbemtools package on Pypi:
-  https://pypi.org/project/pywbemtools/. Some of the reasons for the
-  removal are: (See issue #1932)
-
-  - Wbemcli did not have a command line mode (i.e. a non-interactive mode), but
-    pywbemcli does.
-  - The interactive mode of wbemcli was more of a programming environment than
-    an interactive CLI, and that makes it harder to use than necessary.
-    Pywbemcli has an interactive mode that uses the same commands as in the
-    command line mode. If you need an interactive programming prompt e.g. for
-    demonstrating the pywbem API, use the interactive mode of the python
-    command, or Python's IDLE.
-  - Pywbemcli provides more functionality than wbemcli, e.g. server commands,
-    persistent connections, class find, instance count, or multiple output
-    formats.
+* Removed the deprecated support for ordering `NocaseDict`, `CIMInstanceName`,
+  `CIMInstance` and `CIMClass` objects. The ordering of such dictionaries was
+  never supported with pywbem on Python 3, and for Python 2 it had been
+  deprecated since pywbem 0.12.0. (See issue #1926).
 
 * Removed the `verify_callback` parameter of `WBEMConnection`. It was
   deprecated in pywbem 0.9.0, and was not supported in Python 3.
@@ -207,68 +197,79 @@ details of the changes themselves and the reasons for the changes.
 
 * Removed the deprecated function `pywbem.tocimobj()`.
 
-* Changed the type of exceptions that are raised by methods of
-  `pywbem.ValueMapping` for cases where the value-mapped CIM element has
-  issues, as follows:
+* Removed the `wbemcli` command that was deprecated in pywbem 0.15.0. The
+  recommended replacement is the `pywbemcli` command from the 'pywbemtools'
+  package on Pypi: https://pypi.org/project/pywbemtools/. Some of the reasons
+  for the removal are: (See issue #1932)
 
-  - From `TypeError` to `pywbem.ModelError`, if the value-mapped CIM element is
-    not integer-typed.
-  - From `ValueError` to `pywbem.ModelError`, if an item of the `ValueMap`
-    qualifier is not an integer.
-
-  The exceptions occur only with model definitions that are invalid and
-  do not occur in the CIM Schema published by DMTF.
-
-  This change is incompatible only for users that handle these exceptions
-  specifically in their code. (See issue #1429)
-
-* Changed the logging behavior of the MOF compilation methods
-  `FakedWBEMConnection.compile_mof_string()`, `compile_mof_file()` and
-  `compile_dmtf_schema()` to be able to do no logging, by specifying `None` for
-  the `log_func` init argument of `MOFCompiler`. This is now the default.
-
-  MOF compile errors no are longer printed to stdout by default. To continue
-  printing the MOF compile errors to stdout, print the exception in your code.
-  (See issue #1997)
-
-* Changed the exception behavior of the MOF compilation methods of the
-  `MOFCompiler` and `FakedWBEMConnection` classes to no longer raise
-  `CIMError`, but to raise the following exceptions derived from a new base
-  class `MOFCompileError`:
-
-  - `MOFParseError` MOF parsing errors. This class already existed and was
-    already used for this purpose.
-  - `MOFDependencyError`: New class for MOF dependency errors (e.g. superclass
-    not found).
-  - `MOFRepositoryError`: New class for errors returned from the target CIM
-    repository. The `CIMError` exception raised by the CIM repository is
-    attached to that exception in its attribute `cim_error`.
-
-  If you are using these MOF compilation methods, please change your catch
-  of exceptions accordingly. (See issue #1235)
+  - Wbemcli did not have a command line mode (i.e. a non-interactive mode), but
+    pywbemcli does.
+  - The interactive mode of wbemcli was more of a programming environment than
+    an interactive CLI, and that makes it harder to use than necessary.
+    Pywbemcli has an interactive mode that uses the same commands as in the
+    command line mode. If you need an interactive programming prompt e.g. for
+    demonstrating the pywbem API, use the interactive mode of the python
+    command, or Python's IDLE.
+  - Pywbemcli provides more functionality than wbemcli, e.g. server commands,
+    persistent connections, class find, instance count, or multiple output
+    formats.
 
 * Made the `MOFWBEMConnection` class internal and removed it from the pywbem
   documentation. It has an inconsistent semantics and should not be used by
   users. (See issue #2001).
 
-* Changed the `CIMError` exceptions that were raised by pywbem code in several
-  `WBEMServer` methods to now raise `ModelError`, for cases where the model
-  implemented by the server has issues.
-  (See issue #1423)
+* Exception changes:
 
-* Added a new exception `pywbem.HeaderParseError` derived from
-  `pywbem.ParseError` that is used to report HTTP header issues in the CIM-XML
-  response. Previously, `HTTPError` had been used for that purpose, misusing
-  its integer-typed `status` attribute for the message string. This is actually
-  a bug fix, but because it changes the exception type, it is also an
-  incompatible change for users that handle exceptions specifically.
-  (See issue 2110)
+  * Changed the type of exceptions that are raised by methods of
+    `pywbem.ValueMapping` for cases where the value-mapped CIM element has
+    issues, as follows:
+
+    - From `TypeError` to `pywbem.ModelError`, if the value-mapped CIM element
+      is not integer-typed.
+    - From `ValueError` to `pywbem.ModelError`, if an item of the `ValueMap`
+      qualifier is not an integer.
+
+    The exceptions occur only with model definitions that are invalid and
+    do not occur in the CIM Schema published by DMTF.
+
+    This change is incompatible only for users that handle these exceptions
+    specifically in their code. (See issue #1429)
+
+  * Changed the exception behavior of the MOF compilation methods of the
+    `MOFCompiler` and `FakedWBEMConnection` classes to no longer raise
+    `CIMError`, but to raise the following exceptions derived from a new base
+    class `MOFCompileError`:
+
+    - `MOFParseError` MOF parsing errors. This class already existed and was
+      already used for this purpose.
+    - `MOFDependencyError`: New class for MOF dependency errors (e.g. superclass
+      not found).
+    - `MOFRepositoryError`: New class for errors returned from the target CIM
+      repository. The `CIMError` exception raised by the CIM repository is
+      attached to that exception in its attribute `cim_error`.
+
+    If you are using these MOF compilation methods, please change your catch
+    of exceptions accordingly. (See issue #1235)
+
+  * Changed the `CIMError` exceptions that were raised by pywbem code in several
+    `WBEMServer` methods to now raise `ModelError`, for cases where the model
+    implemented by the server has issues.
+    (See issue #1423)
+
+  * Added a new exception `pywbem.HeaderParseError` derived from
+    `pywbem.ParseError` that is used to report HTTP header issues in the CIM-XML
+    response. Previously, `HTTPError` had been used for that purpose, misusing
+    its integer-typed `status` attribute for the message string. This is actually
+    a bug fix, but because it changes the exception type, it is also an
+    incompatible change for users that handle exceptions specifically.
+    (See issue 2110)
 
 * Made all sub-namespaces within the pywbem namespace private, except for
   pywbem.config. Specifically, renamed the following modules by prepending
   an underscore character: cim_constants.py, cim_http.py, cim_obj.py,
   cim_operations.py, cim_types.py, cim_xml.py, exceptions.py, mof_compiler.py,
   moflextab.py, mofparsetab.py, tupleparse.py, tupletree.py.
+  Using these sub-namespaces had been deprecated in pywbem 0.8.0.
 
   This change is compatible for users that followed the recommendation
   to import only the symbols from the pywbem namespace. Users that imported
@@ -276,40 +277,54 @@ details of the changes themselves and the reasons for the changes.
   namespace. If you miss a symbol in the pywbem namespace, it was likely a
   symbol that is not part of the public pywbem API. (See issue #1925)
 
-* Removed the `add_method_callback()` method and the `methods` property
-  from the `FakeWBEMConnection` class.This has been replaced by
-  the user-defined provider concept where the user defines and registers a
-  subclass to the class MethodProvider which implements the InvokeMethod
-  responder in that user-defined provider. (See issue #2062).
+* Mock WBEM Server (experimental):
 
-* Added pywbem_mock.config.py variables to control use of the IncludeQualifiers
-  and IncludeClassOrigin arguments on the GetInstance and EnumerateInstances
-  operations.  The default is not to ignore the request variables and
-  never return either attribute in the return instances.  This may be
-  modified by modifying the config variables. ()See issue # 2065)
+  * Removed the `add_method_callback()` method and the `methods` property
+    from the `FakedWBEMConnection` class. This has been replaced by
+    the user-defined provider concept where the user defines and registers a
+    subclass to the class MethodProvider which implements the InvokeMethod
+    responder in that user-defined provider. (See issue #2062).
 
-* Removed the `FakedWBEMConnection` init argument `conn_lite`. The lite mode
-  turned out too simplistic for mock testing and of no real value, while
-  adding complexity.  (See issue #1959)
+  * Removed the `conn_lite` init parameter of `FakedWBEMConnection`. The lite
+    mode turned out too simplistic for mock testing and of no real value, while
+    adding complexity.  (See issue #1959)
 
+  * Changed the logging behavior of the MOF compilation methods
+    `FakedWBEMConnection.compile_mof_string()`, `compile_mof_file()` and
+    `compile_dmtf_schema()` to be able to do no logging, by specifying `None` for
+    the `log_func` init parameter of `MOFCompiler`. This is now the default.
 
-Deprecations:
-^^^^^^^^^^^^^
+    MOF compile errors no are longer printed to stdout by default. To continue
+    printing the MOF compile errors to stdout, print the exception in your code.
+    (See issue #1997)
 
-* Deprecated Python 2.7 and 3.4 support in pywbem, stating that it will be
-  removed in a future version.
+  * Changed the behavior for the IncludeQualifiers and IncludeClassOrigin
+    parameters on the GetInstance and EnumerateInstances operations of the
+    mock WBEM server.
+    The default is now to ignore the provided parameters and never include
+    either attribute in the returned instances whereas, in previous versions the
+    provided parameters determined whether they were returned.  This behavior
+    may be changed back to how it was in previous versions by modifying config
+    variables in the new 'pywbem_mock.config' module.
+    Reason for the change was that the behavior of these parameters was
+    inconsistent between versions of :term:`DSP0200` and the new behavior
+    implements the recommended default behavior. (See issue #2065)
 
-* Deprecated the method FakedWBEMConnection.compile_dmtf_schema in favor of
-  a new method FakedWBEMConnection.compile_dmtf_classes that does not
-  directly use the DMTFCIMSchema class.
+**Deprecations:**
 
-* Deprecated the attribute name schema_mof_file in DMTFCIMSchema in favor of
-  the name schema_pragma_file since this is the file that contains all
+* Deprecated Python 2.7 and 3.4 support in pywbem, that are both beyond their
+  End-Of-Life date.
+
+* Deprecated the `compile_dmtf_schema()` method in `FakedWBEMConnection` in
+  favor of a new method `compile_dmtf_classes()` that does not directly
+  use the `DMTFCIMSchema` class.
+
+* Deprecated the `schema_mof_file` property in `DMTFCIMSchema` in favor of
+  a new property `schema_pragma_file` since this is the file that contains all
   of the MOF pragmas defining the locations of the class MOF files in a
   set of directories.
 
-Bug fixes:
-^^^^^^^^^^
+**Bug fixes:**
 
 * Dev/Test: Pinned lxml to <4.4.0 because that version removed Python 3.4
   support.
@@ -399,7 +414,8 @@ Bug fixes:
 * Docs: Fixed issues in Listener and SubscriptionManager examples
   (See issue #1768)
 
-* Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
+* Test: Fixed args of `WBEMConnection` operation methods in mock unit tests &
+  function tests.
 
 * Code: Fixed pywbem_mock issue where CreateInstance was not handling the case
   sensitivity of property cases if the instance property name case was different than the
@@ -579,8 +595,7 @@ Bug fixes:
 * Removed the incorrect statement about deprecated comparison operators in the
   `NocaseDict` class - these operators had already returned errors.
 
-Enhancements:
-^^^^^^^^^^^^^
+**Enhancements:**
 
 * Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
   to be bypassed by default, because (1) WBEM servers do not implement it at
@@ -692,7 +707,7 @@ Enhancements:
   On Python versions before 2.7.9, pywbem will continue to use the deprecated
   `ssl.wrap_socket()` function. (See issue #2002)
 
-* Add property to pywbem_mock Fake_WBEMConnection to allow the user to modify
+* Add property to pywbem_mock `FakedWBEMConnection` to allow the user to modify
   the mocker behavior to forbid the use of the pull operations.
   (See issue #2126)
 
@@ -700,25 +715,24 @@ Enhancements:
   mock repository from the component that represents a CIMOM. (see issue # 2062)
 
 * Refactor pywbem_mock to separate the CIM repository from the class
-  Fake_WBEMConnection. This creates a new file _cimrepository.py that
+  `FakedWBEMConnection`. This creates a new file _cimrepository.py that
   implements a CIM server repository. (See issue #2062)
 
-* Enhance FakeWBEMConnection to allow user-defined providers for specific
+* Enhance `FakedWBEMConnection` to allow user-defined providers for specific
   WBEM request operations.  This allows user-defined providers for selected
   instance requests (CreateInstance, ModifyInstance, DeleteInstance) and for
   the InvokeMethod.  Includes the capability to register these providers with
-  a method `register_provider` in Faked_WBEMConnection.  This also creates
+  a method `register_provider` in `FakedWBEMConnection`.  This also creates
   a CIM_Namespace provider to handle the CIM_Namespace class in the interop
   namespace.  See issue #2062)
 
 * Changed format 'standard' of `CIMInstanceName.to_wbem_uri()` to sort the
   keys in the resulting WBEM URI. (See issue #2264)
 
-* Added a new method FakedWBEMConnection.compile_dmtf_classes that does not
-  directly use the DMTFCIMSchema class.  See the Deprecations section.
+* Added a new method `FakedWBEMConnection.compile_dmtf_classes()` that does not
+  directly use the `DMTFCIMSchema` class.  See the Deprecations section.
 
-Cleanup:
-^^^^^^^^
+**Cleanup:**
 
 * Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
   for Python 3.7, because that is now the default distro version, in order to
@@ -783,12 +797,35 @@ Cleanup:
 
 * Test: Converted WBEMListener tests from unittest to pytest. (See issue #2179)
 
-Known issues:
-^^^^^^^^^^^^^
+**Known issues:**
 
 * See `list of open issues`_.
 
 .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+
+
+pywbem 0.17.x
+-------------
+
+The changes for this version are part of the change log of version 1.0.0,
+because 1.0.0 was created based on version 0.14.0 and the changes for this
+version were put into 1.0.0 and then backported.
+
+
+pywbem 0.16.x
+-------------
+
+The changes for this version are part of the change log of version 1.0.0,
+because 1.0.0 was created based on version 0.14.0 and the changes for this
+version were put into 1.0.0 and then backported.
+
+
+pywbem 0.15.x
+-------------
+
+The changes for this version are part of the change log of version 1.0.0,
+because 1.0.0 was created based on version 0.14.0 and the changes for this
+version were put into 1.0.0 and then backported.
 
 
 pywbem 0.14.0
