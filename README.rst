@@ -103,7 +103,7 @@ The related `pywbemtools project`_ provides this command line utility:
 .. _WBEM Indication Listener: https://pywbem.readthedocs.io/en/latest/indication.html
 .. _WBEM Subscription Manager: https://pywbem.readthedocs.io/en/latest/subscription.html
 .. _MOF Compiler: https://pywbem.readthedocs.io/en/latest/compiler.html
-.. _Mock Support: https://pywbem.readthedocs.io/en/latest/mocksupport.html
+.. _Mock WBEM server: https://pywbem.readthedocs.io/en/latest/mockwbemserver.html
 .. _mof_compiler: https://pywbem.readthedocs.io/en/latest/utilities.html#mof-compiler
 .. _pywbemtools project: https://github.com/pywbem/pywbemtools
 .. _pywbemcli: https://pywbemtools.readthedocs.io/en/latest/pywbemcli
