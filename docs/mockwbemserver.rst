@@ -527,7 +527,7 @@ There are two ways to build a mock repository:
     qualifier declarations into the mock repository and allows setting up
     a partial class repository (i.e. selected classes) with a single
     method call. See section `DMTF CIM schema download support`_ and the
-    :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema` method.
+    :meth:`~pywbem_mock.FakedWBEMConnection.schema_pragma_file` method.
 
 It may take a combination of all of the above methods to build a schema
 that satisfies a particular usage requirement including:
@@ -552,7 +552,7 @@ to successfully execute client operations can mean understanding the CIM model
 dependencies, the pywbem MOF compiler provides support for:
 
 1. Automatically including all qualifier declarations if classes are added
-   with the method :meth:`~pywbem_mock.FakedWBEMConnection.compile_dmtf_schema`
+   with the method :meth:`~pywbem_mock.FakedWBEMConnection.schema_pragma_file`
    or the :class:`DMTFCIMSchema`.
 
 2. Adding dependent classes from the DMTF schema in the case where they are
@@ -599,8 +599,11 @@ declarations defined by the DMTF schema and any dependent classes
     # Compile dmtf schema version 2.49.0, the qualifier declarations and
     # the classes in 'leaf_classes' and all dependent classes and keep the
     # schema in directory my_schema_dir
-    conn.compile_dmtf_schema((2, 49, 0), "my_schema_dir", leaf_classes,
-                            verbose=True)
+
+    schema = DMTFCIMSchema(2, 49, 0), "my_schema_dir", leaf_classes,
+                           verbose=True)
+    conn.compile_schema_classes(leaf_classes, schema.schema_pragma_file
+                                verbose=True)
 
     # Display the resulting repository
     conn.display_repository()

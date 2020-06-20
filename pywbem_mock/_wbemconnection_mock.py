@@ -606,7 +606,7 @@ class FakedWBEMConnection(WBEMConnection):
                                namespace=None, verbose=False):
         # pylint: disable=line-too-long
         """
-        Compile the classes defined by `class_names`  and all of their
+        Compile the classes defined by `class_names` and all of their
         dependences. The class names must be classes in the defined schema and
         with pragma statements in a schema pragma file. Each
         schema pragma file in the `schema_pragma_files` parameter must be in a
@@ -623,7 +623,7 @@ class FakedWBEMConnection(WBEMConnection):
            `qualifiers.mof` defined within the directory defined by the
            `schema_mof_dir` parameter
 
-        2. The file `schema_mof_file` that defines the location of all
+        2. The file `schema_pragma_file` that defines the location of all
            of the CIM class files within the a schema mof directory
            hierarchy. This is the `schema_pragma_file` attribute of the
            DMTFCIMSchema class.
@@ -642,10 +642,10 @@ class FakedWBEMConnection(WBEMConnection):
             be a subset of the classes defined in `schema_pragma_file`.
 
           schema_pragma_files (:term:`string` or :class:`py:list` of :term:`string`):
-            Relative or absolute file path of schema pragma files that include
-            a MOF pragma include statement for each CIM class to be
+            Relative or absolute file path(s) of schema pragma files that
+            include a MOF pragma include statement for each CIM class to be
             compiled.  This file path is available from
-            :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`
+            :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`.
 
           namespace (:term:`string`):
             Namespace into which the classes and qualifier declarations will
@@ -684,7 +684,7 @@ class FakedWBEMConnection(WBEMConnection):
                             verbose=False):
         # pylint: disable:line-too-long
         """
-        Compile the classes defined by `schema_class_names` and their
+        Compile the classes defined by `class_names` and their
         dependent classes from the CIM schema version defined by
         `schema_version`. If the DMTF schema defined by
         `schema_version` is not installed in path `schema_root_dir`

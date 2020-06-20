@@ -2134,7 +2134,7 @@ class TestFullSchema(MOFTest):
 
         # original compile and write of output mof
         # start_time = time()
-        self.mofcomp.compile_file(TEST_DMTF_CIMSCHEMA.schema_mof_file,
+        self.mofcomp.compile_file(TEST_DMTF_CIMSCHEMA.schema_pragma_file,
                                   NAME_SPACE)
         # print('elapsed compile: %f  ' % (time() - start_time))
 
