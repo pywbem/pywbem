@@ -197,7 +197,7 @@ Pywbem mock does NOT support:
     | |  * Manage namespaces         | |                            | |                        +---------+     |
     | |  * Register user providers   +---------+    +---------------v-V----------------------------------+     |
     | +------------------------------+ |       |    |                                                    |     |
-    |  FakeWBEMConnection              |       +---->          CIM Repository                            <-----+
+    |  FakedWBEMConnection             |       +---->          CIM Repository                            <-----+
     +----------------------------------+            |                                                    |
                                                     +----------------------------------------------------+
 

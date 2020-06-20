@@ -15,7 +15,7 @@ Functionality
 
 The major components of pywbem are shown in this diagram:
 
-.. image:: ../images/pywbemcomponents.svg
+.. image:: ../images/pywbemcomponents.png
    :alt: pywbem components
 
 The green components all have Python APIs for use by user applications.
@@ -122,7 +122,7 @@ operating system packages in addition to Python itself.
 
   This will also install any prerequisite Python packages.
 
-  Since version 1.0.0, pywbem has no more OS-level prerequisite packages.
+  Starting with version 1.0.0, pywbem has no OS-level prerequisite packages.
 
 If you want to contribute to the pywbem project, you need to set up a
 development and test environment for pywbem. That has a larger set of Python
@@ -261,7 +261,7 @@ Prerequisite operating system packages for install
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The installation of pywbem before its version 1.0.0 required certain operating
-system packages. Version 1.0.0 of pywbem has no more dependencies on
+system packages. Starting with version 1.0.0, pywbem has no dependencies on
 specific operating system packages (other than Python).
 
 Note that the development of pywbem still requires a number of operating
@@ -273,7 +273,7 @@ system packages. See :ref:`Setting up the development environment` for details.
 Package version
 ---------------
 
-Since pywbem 0.8.1, the version of the pywbem package can be accessed by
+Starting with pywbem 0.8.1, the version of the pywbem package can be accessed by
 programs using the ``pywbem.__version__`` variable:
 
 .. autodata:: pywbem._version.__version__
@@ -282,22 +282,18 @@ Note: For tooling reasons, the variable is shown as
 ``pywbem._version.__version__``, but it should be used as
 ``pywbem.__version__``.
 
-From earlier versions of pywbem, pywbem 0.7.0 was the only version released to
-Pypi, and most likely also the only version that was packaged as an operating
-system package into Linux distributions.
+Versions of pywbem that do not have the ``pywbem.__version__`` variable are
+most likely version 0.7.0 because that was the only version before pywbem 0.8.1
+that was released to Pypi, and most likely also the only version before
+pywbem 0.8.1 that was packaged as an operating system package into Linux
+distributions.
 
-The following shell command can be used to determine the version of pywbem, for
-all versions that were released to Pypi, and independently of whether pywbem
-was installed as an operating system package or as a Python package::
+The following shell command can be used to determine the version of a pywbem
+package installed in the current Python environment, for all versions that were
+released to Pypi, and independently of whether pywbem was installed as an
+operating system package or as a Python package::
 
-    python -c "\
-    import pywbem, os, subprocess; \
-    fs=os.path.join(os.path.dirname(pywbem.__file__),'setup.py'); \
-    vs=subprocess.check_output(['python',fs,'--version']).strip() \
-    if os.path.exists(fs) else None; \
-    v=getattr(pywbem, '__version__', vs if vs else '0.7.0-assumed'); \
-    print(v) \
-    "
+    python -c "import pywbem; print(getattr(pywbem, '__version__', None) or '0.7.0')"
 
 .. _`Version dependent features`:
 
@@ -416,7 +412,7 @@ to the standards:
 Deprecation and compatibility policy
 ------------------------------------
 
-Since version 0.7.0, pywbem attempts to be as backwards compatible as
+Starting with version 0.7.0, pywbem attempts to be as backwards compatible as
 possible.
 
 Compatibility of pywbem is always seen from the perspective of the user of the
@@ -458,8 +454,8 @@ communicated to the users in multiple ways:
 * It is raised at runtime by issuing Python warnings of type
   ``DeprecationWarning`` (see the Python :mod:`py:warnings` module).
 
-Since Python 2.7, ``DeprecationWarning`` messages are suppressed by default.
-They can be shown for example in any of these ways:
+Starting with Python 2.7, ``DeprecationWarning`` messages are suppressed by
+default. They can be shown for example in any of these ways:
 
 * By specifying the Python command line option: ``-W default``
 * By invoking Python with the environment variable: ``PYTHONWARNINGS=default``

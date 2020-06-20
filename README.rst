@@ -49,7 +49,7 @@ Functionality
 
 The major components of pywbem are shown in this diagram:
 
-.. image:: images/pywbemcomponents.svg
+.. image:: images/pywbemcomponents.png
    :alt: pywbem components
 
 The green components all have Python APIs for use by user applications.
@@ -121,7 +121,7 @@ environment:
 
 This will also install any prerequisite Python packages.
 
-Since version 1.0.0, pywbem has no more OS-level prerequisite packages.
+Starting with version 1.0.0, pywbem has no OS-level prerequisite packages.
 
 For more details and alternative ways to install, see the
 `Installation section`_ in the pywbem documentation.

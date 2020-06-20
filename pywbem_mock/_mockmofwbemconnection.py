@@ -49,9 +49,8 @@ class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
 
           Parameters:
 
-            faked_conn_object (FakedWBEMConnection):
-              The instance of :class:~`pywbem_mock._FakeWBEMConnection`
-              which provides the WBEM connection for access to CIM objects.
+            faked_conn_object (:class:`~pywbem_mock.FakedWBEMConnection`):
+              The object providing the CIM repository.
         """
 
         self.classes = NocaseDict()
