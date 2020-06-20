@@ -1851,7 +1851,7 @@ class TestRepoMethods(object):
         # install the schema if necessary.
         dmtf_schema = install_test_dmtf_schema()
 
-        conn.compile_mof_file(dmtf_schema.schema_mof_file, namespace=ns,
+        conn.compile_mof_file(dmtf_schema.schema_pragma_file, namespace=ns,
                               search_paths=[dmtf_schema.schema_mof_dir])
 
         # pylint: disable=protected-access
@@ -6597,16 +6597,18 @@ class TestDMTFCIMSchema(object):
         assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
-        assert os.path.isfile(schema.schema_mof_file)
         assert os.path.isfile(schema.schema_pragma_file)
         assert os.path.isfile(schema.schema_zip_file)
+        # deprecated property schema_mof_file. These tests will be removed
+        # when that property is removed in the future
+        assert os.path.isfile(schema.schema_mof_file)
         assert schema.schema_mof_file == schema.schema_pragma_file
 
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_file == \
+        assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
@@ -6650,16 +6652,18 @@ class TestDMTFCIMSchema(object):
         assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
+        # deprecated property
         assert os.path.isfile(schema.schema_mof_file)
         assert os.path.isfile(schema.schema_pragma_file)
         assert os.path.isfile(schema.schema_zip_file)
+        # schema_mof_file is deprecated
         assert schema.schema_mof_file == schema.schema_pragma_file
 
         mof_dir = 'mofFinal%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(test_schema_root_dir, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_file == \
+        assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
@@ -6667,11 +6671,11 @@ class TestDMTFCIMSchema(object):
                                'schema_version=%s, ' \
                                'schema_root_dir=%s, schema_zip_file=%s, ' \
                                'schema_mof_dir=%s, ' \
-                               'schema_mof_file=%s, schema_zip_url=%s)' % \
+                               'schema_pragma_file=%s, schema_zip_url=%s)' % \
                                (DMTF_TEST_SCHEMA_VER, test_schema_root_dir,
                                 schema.schema_zip_file,
                                 schema.schema_mof_dir,
-                                schema.schema_mof_file,
+                                schema.schema_pragma_file,
                                 schema.schema_zip_url)
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
@@ -6701,20 +6705,23 @@ class TestDMTFCIMSchema(object):
         assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
+        # This property is deprecated
         assert os.path.isfile(schema.schema_mof_file)
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
         mof_dir = 'mofExperimental%s' % schema.schema_version_str
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert test_schema_mof_dir == mof_dir
 
-        assert schema.schema_mof_file == \
+        assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 
         # remove the second schema and test to be sure removed.
         schema.remove()
         assert not os.path.isdir(test_schema_mof_dir)
+        # deprecated
         assert not os.path.isfile(schema.schema_mof_file)
+        assert not os.path.isfile(schema.schema_pragma_file)
         assert os.path.isdir(schema.schema_root_dir)
 
     def test_second_schema_load(self):
@@ -6732,6 +6739,7 @@ class TestDMTFCIMSchema(object):
         assert schema.schema_version_str == '2.50.0'
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
+        # deprecated
         assert os.path.isfile(schema.schema_mof_file)
 
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
@@ -6739,7 +6747,7 @@ class TestDMTFCIMSchema(object):
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
-        assert schema.schema_mof_file == \
+        assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
                          'cim_schema_%s.mof' % (schema.schema_version_str))
 

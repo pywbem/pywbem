@@ -563,7 +563,7 @@ class DMTFCIMSchema(object):
             ValueError: If any of the classnames in `schema_classes` are not in
               the DMTF CIM schema installed
         """
-        return build_schema_mof(class_names, self.schema_mof_file)
+        return build_schema_mof(class_names, self.schema_pragma_file)
 
     def clean(self):
         """
