@@ -6351,7 +6351,7 @@ class Method1TestProvider(MethodProvider):
 class TestInvokeMethod(object):
     # pylint: disable=too-few-public-methods
     """
-    Test invoking extrinsic methods in Fake_WBEMConnection
+    Test invoking extrinsic methods in FakedWBEMConnection
     """
 
     @pytest.mark.parametrize(

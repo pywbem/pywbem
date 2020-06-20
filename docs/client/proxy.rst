@@ -4,9 +4,9 @@
 Proxy support
 -------------
 
-Since version 1.0, pywbem supports HTTP and SOCKS 5 proxies for connecting to
-the WBEM server. This is done by utilizing the proxy support in the
-underlying `requests` Python package.
+Starting with version 1.0, pywbem supports HTTP and SOCKS 5 proxies for
+connecting to the WBEM server. This is done by utilizing the proxy support in
+the underlying `requests` Python package.
 
 The proxies to be used can be specified using the ``proxies`` init argument
 of :class:`~pywbem.WBEMConnection`, or via the environment variables HTTP_PROXY

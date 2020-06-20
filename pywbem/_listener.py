@@ -104,9 +104,9 @@ back to the indication sender, at the :attr:`py:logging.INFO` logging level.
 
 In addition, it will log errors at the :attr:`py:logging.ERROR` logging level.
 
-Since Python 2.7, the Python root logger will by default (i.e. when not being
-configured) print log records of logging level :attr:`py:logging.WARNING` or
-greater to `sys.stderr`. So the indication and response interactions will not
+Starting with Python 2.7, the Python root logger will by default (i.e. when not
+being configured) print log records of logging level :attr:`py:logging.WARNING`
+or greater to `sys.stderr`. So the indication and response interactions will not
 be printed by default, but any errors logged at the :attr:`py:logging.ERROR`
 logging level will be printed by default.
 
