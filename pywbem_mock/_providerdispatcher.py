@@ -172,18 +172,6 @@ class ProviderDispatcher(BaseProvider):
                             pn, prop_inst.is_array, prop_cls.is_array,
                             NewInstance.classname, namespace))
 
-            if prop_inst.embedded_object != prop_cls.embedded_object:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in new instance has incorrect "
-                            "embedded_object={1!A}, but should have "
-                            "embedded_object={2!A} "
-                            "according to its creation class {3!A} in "
-                            "namespace {4!A} of the CIM repository",
-                            pn, prop_inst.embedded_object,
-                            prop_cls.embedded_object,
-                            NewInstance.classname, namespace))
-
         # The providers are guaranteed to get a deep copy of the original
         # new instance since they may update properties.
         # TODO: Consolidate this deep copy with the shallow copy in

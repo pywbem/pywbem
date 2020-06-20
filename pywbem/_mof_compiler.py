@@ -575,6 +575,7 @@ def p_mp_createClass(p):
                       """
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
     ns = p.parser.target_namespace
     cc = p[1]
     try:
@@ -733,14 +734,22 @@ def p_mp_createInstance(p):
     """mp_createInstance : instanceDeclaration"""
 
     # p[1] is a list of instance and any alias defined in instanceDeclaration
-    input = p[1]
-    inst = input[0]
-    alias = input[1]  # alias may be valid alias or None
+    input_ = p[1]
+    inst = input_[0]
+    alias = input_[1]  # alias may be valid alias or None
     ns = p.parser.target_namespace
 
     if p.parser.verbose:
         p.parser.log(
             _format("Creating instance of {0!A}.", inst.classname))
+
+    # If embedded_instances flag set, save instance to this
+    # variable to be set into instance value rather than inserting
+    # into repository.
+    if p.parser.embedded_objects is not None:
+        p.parser.embedded_objects.append(inst)
+        return
+
     try:
         instpath = p.parser.handle.CreateInstance(inst, namespace=ns)
         # Set the returned instance path into the alias table
@@ -1722,8 +1731,49 @@ def p_instanceDeclaration(p):
             # build instance property from class property but without
             # qualifiers, default value,
             pprop = cprop.copy()
+            embedded_object_type = None
             pprop.qualifiers = NocaseDict(None)
-            pprop.value = cimvalue(pval, cprop.type)
+            # If embedded instance/object property, compile the value component
+            # and put into the property value.
+            if 'EmbeddedInstance' in cprop.qualifiers:
+                allowed_types = (CIMInstance)
+                embedded_object_type = "instance"
+                # The compiler does not test if the classname
+                # in EmbeddedObject is the same or a superclass of the
+                # embedded instance classname.
+            elif 'EmbeddedObject' in cprop.qualifiers:
+                # Issue: 2340: Compiler does not support EmbeddedObject where
+                # value is class definition.
+                allowed_types = (CIMInstance)
+                embedded_object_type = "object"
+
+            if embedded_object_type:
+                if pval:
+                    objs = p.parser.mofcomp.compile_embedded_value(pval, ns)
+                    for obj in objs:
+                        if not isinstance(inst, allowed_types):
+                            cls_names = ", ".join([cl.__name__ for cl
+                                                   in allowed_types])
+                            raise MOFParseError(
+                                msg=_format(
+                                    "Property {0|A} with value {1|A} embedded "
+                                    "object type must be ((1}). Actual type "
+                                    "is {2}", cprop.name, cls_names, type(obj)))
+                    # If the compile produces no objects there must have
+                    # been an error or the compile was for some other
+                    # object than the ones we want.
+                    if not objs:
+                        raise MOFParseError(
+                            msg=_format(
+                                "Property {0|A} with value {1|A} embedded"
+                                " object compile produced no instances.",
+                                cprop.name, pval))
+
+                    # If array type insert list, else insert item 0 from list
+                    pprop.value = objs if cprop.is_array else objs[0]
+                    pprop.embedded_object = embedded_object_type
+            else:
+                pprop.value = cimvalue(pval, cprop.type)
             inst.properties[pname] = pprop
         except ValueError as ve:
             raise MOFParseError(
@@ -2644,6 +2694,10 @@ class MOFCompiler(object):
         # for the current compilation
         self.parser.target_namespace = None
 
+        # Target for output of embedded instances and embedded classes when
+        # not None.
+        self.parser.embedded_objects = None
+
     def _log(self, msg):
         """
         Log a MOF compiler error message to the destination that was set
@@ -2652,6 +2706,87 @@ class MOFCompiler(object):
         """
         if self._log_func:
             self._log_func(msg)
+
+    def compile_embedded_value(self, mof, ns, filename=None):
+        """
+        Compile a string of MOF statements that must represent one or
+        CIMInstance objects and save the resulting CIMInstance(s) in a known
+        variable. Thiis method in conjunction with the compiler does not put
+        the compiled instances into the repository but returns them to the user.
+
+        Parameters:
+
+          mof (:term:`string` or list of :term:`string`):
+            The string or list of strings MOF statements to be compiled.
+
+          ns (:term:`string`):
+            The name of the CIM namespace in the associated CIM repository
+            that is used for lookup of any dependent CIM elements, and that
+            is also the target of the compilation.
+
+          filename (:term:`string`):
+            The path name of the file that the MOF statements were read from.
+            This information is used only in compiler messages.
+
+        Raises:
+
+          MOFCompileError: Error compiling the MOF.
+        """
+        lexer = self.lexer.clone()
+        lexer.parser = self.parser
+        # Save any previous parser.file and parser.mof to restore when
+        # this compile successful. Since they are not defined in the __init__
+        # use try block to construct them
+
+        # save the file and mof attributes to be restored later.
+        # si
+        try:
+            oldfile = self.parser.file
+        except AttributeError:
+            oldfile = None
+        self.parser.file = filename
+        try:
+            oldmof = self.parser.mof
+        except AttributeError:
+            oldmof = None
+        self.parser.mof = mof
+
+        # Save the namespace parameter in variable known to the parser.
+        self.parser.target_namespace = ns
+
+        if ns not in self.parser.qualcache:
+            self.parser.qualcache[ns] = NocaseDict()
+        if ns not in self.parser.classnames:
+            self.parser.classnames[ns] = []
+
+        try:
+            # Set this variable to list to short-circuit insertion of created
+            # classes and instances to this list rather than to the repository
+            self.parser.embedded_objects = []
+            # Call the parser.  To generate detailed output of states
+            # add debug=... to following line where debug may be a
+            # constant (ex. 1) or may be a log definition, ex..
+            # log = logging.getLogger()
+            # logging.basicConfig(level=logging.DEBUG)
+            if isinstance(mof, list):
+                for mof_str in mof:
+                    self.parser.mof = mof_str
+                    _ = self.parser.parse(mof_str, lexer=lexer)
+            else:
+                self.parser.mof = mof
+                _ = self.parser.parse(mof, lexer=lexer)
+
+            self.parser.file = oldfile
+            self.parser.mof = oldmof
+            return self.parser.embedded_objects
+        except MOFCompileError as pe:
+            # Generate the error message into log and reraise error
+            self.parser.log(pe.get_err_msg())
+            raise
+        finally:
+            # Force the embedded_iobjects variable to be reset telling the
+            # compiler not to insert new objects into this variable
+            self.parser.embedded_objects = None
 
     def compile_string(self, mof, ns, filename=None):
         """
