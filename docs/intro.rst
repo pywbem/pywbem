@@ -482,32 +482,14 @@ Python namespaces
 -----------------
 
 The external APIs of pywbem are defined by the symbols in the ``pywbem``
-namespace. That is the only Python namespace that needs to be imported by
-users.
+and ``pywbem_mock`` namespaces/packages and their public sub-modules.
 
-With pywbem versions prior to v0.8, it was common for users to import the
-sub-modules of pywbem (e.g. ``pywbem.cim_obj``). The sub-modules that existed
-prior to v0.8 are still available for compatibility reasons.
-Starting with v0.8, the ``pywbem`` namespace was cleaned up, and not all public
-symbols available in the sub-module namespaces are available in the ``pywbem``
-namespace anymore. The symbols in the sub-module namespaces are still available
-for compatibility, including those that are no longer available in the
-``pywbem`` namespace. However, any use of symbols from the sub-module namespaces
-is deprecated starting with v0.8, and you should assume that a future version of
-pywbem will remove them. If you miss any symbol you were used to use, please
-`open an issue <https://github.com/pywbem/pywbem/issues>`_.
-
-New sub-modules added since pywbem v0.8 have a leading underscore in their name
-in order to document that they are considered an implementation detail and that
-they should not be imported by users.
-
-With pywbem versions prior to v0.11, the :ref:`MOF compiler` API was only
-available in the ``pywbem.mof_compiler`` namespace. Starting with pywbem
-version v0.11, it is also available in the ``pywbem`` namespace and should be
-used from there.
+Sub-modules that have a leading underscore in their name are private and should
+not be used by users. Their content may change at any time without prior
+warning.
 
 This documentation describes only the external APIs of pywbem, and omits any
-internal symbols and any sub-modules.
+internal symbols and any private sub-modules.
 
 
 .. _`Configuration variables`:
@@ -549,6 +531,10 @@ additions to the DMTF standards:
      Sockets through its :class:`~pywbem.PegasusUDSConnection` subclass of
      :class:`~pywbem.WBEMConnection`.
 
+   - Starting with version 1.0.0, pywbem no longer supports the `Local`
+     authentication scheme of OpenPegasus, which is a password-less local
+     authorization.
+
 2. `SFCB (Small Footprint CIM Broker) <https://sourceforge.net/projects/sblim/files/sblim-sfcb/>`_
 
    - Pywbem supports a connection to an SFCB server using Unix Domain
@@ -557,8 +543,9 @@ additions to the DMTF standards:
 
 3. `OpenWBEM <https://sourceforge.net/projects/openwbem/>`_
 
-   - Pywbem supports the `OWlocal` authentication extension of OpenWBEM, which
-     is a password-less local authorization.
+   - Starting with version 1.0.0, pywbem no longer supports the `OWLocal`
+     authentication scheme of OpenWBEM, which is a password-less local
+     authorization.
 
    - Pywbem supports a connection to an OpenWBEM server using Unix Domain
      Sockets through its :class:`~pywbem.OpenWBEMUDSConnection` subclass of
@@ -571,8 +558,12 @@ WBEM server testing
 Today the pywbem project tests primarily against current versions of the
 OpenPegasus WBEM server because that server is available to the project.
 
-These tests are captured in the test script ``run_cimoperations.py``. Note that
+These tests are captured in test scripts such as
+``tests/manualtest/run_cimoperations.py``. Note that
 generally those tests that are server-specific only run against the defined
 server so that there are a number of tests that run only against the
 OpenPegasus server. This includes some tests that use specific providers
 in the OpenPegasus server to set up tests such as indication tests.
+
+In addition, pywbem has automated testcases for testing against its own
+mock WBEM server, and against simulated CIM-XML responses.

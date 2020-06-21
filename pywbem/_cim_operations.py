@@ -9404,7 +9404,7 @@ def is_subclass(ch, ns, super_class, sub):
 
 
 def PegasusUDSConnection(creds=None, **kwargs):
-    """ Pegasus specific Unix Domain Socket call. Specific because
+    """ OpenPegasus specific Unix Domain Socket call. Specific because
         of the location of the file name
     """
 
@@ -9423,7 +9423,7 @@ def SFCBUDSConnection(creds=None, **kwargs):
 
 
 def OpenWBEMUDSConnection(creds=None, **kwargs):
-    """ Openwbem specific Unix Domain Socket call. Specific because
+    """ OpenWBEM specific Unix Domain Socket call. Specific because
         of the location of the file name
     """
 
