@@ -40,6 +40,8 @@ from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
     CIMInstance  # noqa: E402
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME  # noqa: E402
+pywbem_mock = import_installed('pywbem_mock')
+from pywbem_mock import DMTFCIMSchema  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -71,9 +73,11 @@ class BaseMethodsForTests(object):
                       'CIM_ListenerDestinationCIMXML',
                       'CIM_IndicationFilter', ]
 
-        self.conn.compile_dmtf_schema(DMTF_TEST_SCHEMA_VER,
-                                      TESTSUITE_SCHEMA_DIR,
-                                      class_names=classnames, verbose=False)
+        schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                               verbose=False)
+
+        self.conn.compile_schema_classes(classnames, schema.schema_pragma_file,
+                                         verbose=False)
 
     @staticmethod
     def inst_from_classname(conn, class_name, namespace=None,
