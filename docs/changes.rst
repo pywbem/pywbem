@@ -20,6 +20,20 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Removed the deprecated `compile_dmtf_schema()` method in `FakedWBEMConnection`
+  in favor of a new method `compile_schema_classes()` that does not automatically
+  download the DMTF schema classes as a search path, but leaves the control
+  over where the search path schema comes from, to the user. (See issue #2284)
+
+  To migrate your existing use of `compile_dmtf_schema()` to the new approach,
+  the code would be something like::
+
+      schema = DMTFCIMSchema(...)
+      conn.compile_schema_classes(class_names, schema.schema_pragma_file, namespace)
+
+* Removed the deprecated `schema_mof_file` property in `DMTFCIMSchema`, in favor
+  of the `schema_pragma_file` property. (See issue #2284)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -322,9 +336,10 @@ below this list.
     are simple. (See issue #1959)
 
   * Changed the logging behavior of the MOF compilation methods
-    `FakedWBEMConnection.compile_mof_string()`, `compile_mof_file()` and
-    `compile_dmtf_schema()` to be able to do no logging, by specifying `None` for
-    the `log_func` init parameter of `MOFCompiler`. This is now the default.
+    `FakedWBEMConnection.compile_mof_string()` and `compile_mof_file()`
+    (consistent with the new `compile_schema_classes()` method) to be able to
+    do no logging, by specifying `None` for the `log_func` init parameter of
+    `MOFCompiler`. This is now the default.
 
     MOF compile errors no are longer printed to stdout by default. To continue
     printing the MOF compile errors to stdout, print the exception in your code.
