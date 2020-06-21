@@ -28,7 +28,6 @@ For documentation, see mocksupport.rst.
 from __future__ import absolute_import, print_function
 
 import os
-import warnings
 import time
 import re
 from xml.dom import minidom
@@ -51,7 +50,7 @@ from ._providerregistry import ProviderRegistry
 
 from ._providerdispatcher import ProviderDispatcher
 
-from ._dmtf_cim_schema import DMTFCIMSchema, build_schema_mof
+from ._dmtf_cim_schema import build_schema_mof
 from ._utils import _uprint
 
 from ._namespaceprovider import CIMNamespaceProvider
@@ -678,112 +677,6 @@ class FakedWBEMConnection(WBEMConnection):
                                 namespace=namespace,
                                 search_paths=search_paths,
                                 verbose=verbose)
-
-    def compile_dmtf_schema(self, schema_version, schema_root_dir, class_names,
-                            use_experimental=False, namespace=None,
-                            verbose=False):
-        # pylint: disable:line-too-long
-        """
-        Compile the classes defined by `class_names` and their
-        dependent classes from the CIM schema version defined by
-        `schema_version`. If the DMTF schema defined by
-        `schema_version` is not installed in path `schema_root_dir`
-        it is first downloaded from the DMTF and installed in that directory.
-
-        **Deprecated:** This method has been deprecated in pywbem 1.0.0
-        in favor of :meth:`compile_schema_classes`.
-
-        This method uses the :class:`~pywbem_mock.DMTFCIMSchema` class to
-        download the DMTF CIM schema defined by `schema_version` from the DMTF,
-        into the `schema_root_dir` directory, extract the MOF files, create a
-        MOF file with the `#include pragma` statements for the files in
-        `schema_class_names`.
-
-        It automatically compiles all of the DMTF qualifier declarations that
-        are in the files `qualifiers.mof` and `qualifiers_optional.mof`.
-
-        The result of the compilation is added to the specified CIM namespace
-        of the mock repository.
-
-        If the namespace does not exist, :exc:`~pywbem.CIMError` with status
-        CIM_ERR_INVALID_NAMESPACE is raised.
-
-        Parameters:
-
-          schema_version (tuple of 3 integers (m, n, u):
-            Represents the DMTF CIM schema version where:
-
-            * m is the DMTF CIM schema major version
-            * n is the DMTF CIM schema minor version
-            * u is the DMTF CIM schema update version
-
-            This must represent a DMTF CIM schema that is available from the
-            DMTF web site.
-
-          schema_root_dir (:term:`string`):
-            Directory into which the DMTF CIM schema is installed or will be
-            installed.  A single `schema_dir` can be used for multiple
-            schema versions because subdirectories are uniquely defined by
-            schema version and schema_type (i.e. Final or Experimental).
-
-            Multiple DMTF CIM schemas may be maintained in the same
-            `schema_root_dir` simultaneously because the MOF for each schema is
-            extracted into a subdirectory identified by the schema version
-            information.
-
-          class_names (:term:`py:list` of :term:`string` or :term:`string`):
-            List of class names from the DMTF CIM Schema to be included in the
-            MOF compile and inserted into the CIM repository.
-
-            A single class may be defined as a single string.
-
-            These must be classes in the defined DMTF CIM schema and can be a
-            list of just the leaf classes required The MOF compiler will search
-            the DMTF CIM schema MOF classes for superclasses, classes defined
-            in reference properties, and classes defined in EmbeddedInstance
-            qualifiers  and compile them also.
-
-            This parameter corresponds to the `schema_classnames` parameter in
-            the method `compile_schema_classes`.
-
-          use_experimental (:class:`py:bool`):
-            If `True` the expermental version of the DMTF CIM Schema
-            is installed or to be installed.
-
-            If `False` (default) the final version of the DMTF
-            CIM Schema is installed or to be installed.
-
-          namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
-            namespace is also used for lookup of any existing or dependent
-            CIM objects. If `None`, the default namespace of the connection is
-            used.
-
-          verbose (:class:`py:bool`):
-            If `True`, progress messages are output to stdout
-
-        Raises:
-
-          ValueError: The schema cannot be retrieved from the DMTF web
-            site, the schema_version is invalid, or a class name cannot
-            be found in the defined DMTF CIM schema.
-          TypeError: The 'schema_version' is not a valid tuple with 3
-            integer components
-          :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
-        """  # noqa: E501
-        # pylint: enable:line-too-long
-
-        warnings.warn(
-            "Method pywbem_mock.FakedWBEMConnection.compile_dmtf_schema() is "
-            "deprecated; it will be removed in a future pywbem release. "
-            "Use compile_schema_classes() instead",
-            DeprecationWarning, stacklevel=2)
-
-        schema = DMTFCIMSchema(schema_version, schema_root_dir,
-                               use_experimental=use_experimental,
-                               verbose=verbose)
-        self.compile_schema_classes(class_names, schema.schema_pragma_file,
-                                    verbose=verbose)
 
     ######################################################################
     #
