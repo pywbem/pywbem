@@ -316,8 +316,9 @@ details of the changes themselves and the reasons for the changes.
   End-Of-Life date.
 
 * Deprecated the `compile_dmtf_schema()` method in `FakedWBEMConnection` in
-  favor of a new method `compile_dmtf_classes()` that does not directly
-  use the `DMTFCIMSchema` class.
+  favor of a new method `compile_schema_classes()` that does not automatically
+  download the DMTF schema classes as a search path, but leaves the control over
+  where the search path schema comes from, to the user.
 
 * Deprecated the `schema_mof_file` property in `DMTFCIMSchema` in favor of
   a new property `schema_pragma_file` since this is the file that contains all
@@ -729,8 +730,10 @@ details of the changes themselves and the reasons for the changes.
 * Changed format 'standard' of `CIMInstanceName.to_wbem_uri()` to sort the
   keys in the resulting WBEM URI. (See issue #2264)
 
-* Added a new method `FakedWBEMConnection.compile_dmtf_classes()` that does not
-  directly use the `DMTFCIMSchema` class.  See the Deprecations section.
+* Added a new method `FakedWBEMConnection.compile_schema_classes()` that does
+  not automatically download the DMTF schema classes as a search path, but
+  leaves the control over where the search path schema comes from, to the user.
+  See the Deprecations section.
 
 **Cleanup:**
 

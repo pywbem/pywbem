@@ -782,11 +782,8 @@ class FakedWBEMConnection(WBEMConnection):
         schema = DMTFCIMSchema(schema_version, schema_root_dir,
                                use_experimental=use_experimental,
                                verbose=verbose)
-        schema_pragma_mof = schema.build_schema_mof(class_names)
-        search_paths = schema.schema_mof_dir
-        self.compile_mof_string(schema_pragma_mof, namespace=namespace,
-                                search_paths=[search_paths],
-                                verbose=verbose)
+        self.compile_schema_classes(class_names, schema.schema_pragma_file,
+                                    verbose=verbose)
 
     ######################################################################
     #
