@@ -36,70 +36,68 @@ details of the changes themselves and the reasons for the changes.
 
 *Summary of incompatible changes:*
 
+
+The details, alternatives, and reasons for these incompatible changes is shown
+below this list.
+
 * Removed Python 2.6 support.
 
 * Migrated pywbem to use the 'requests' Python package for HTTP/HTTPS pywbem
-  client to WBEM server communication. This removed support for UNIX sockets
-  based connections to local WBEM servers as well as the non-standard 'OWLocal'
-  and 'Local' authentication schemes, and changed some of the behavior of
-  HTTPS-related init parameters of `WBEMConnection`.
+  client to WBEM server communication.
 
-* Removed the deprecated `verify_callback` init parameter of `WBEMConnection`.
+* Removed the following deprecated functionality:
 
-* Removed the `**extra` keyword arguments from `WBEMConnection` operation
-  methods.
+  - `WBEMConnection` `verify_callback` init parameter.
 
-* Removed the deprecated ordering for `NocaseDict`, `CIMInstanceName`,
-  `CIMInstance` and `CIMClass` objects.
+  - `WBEMConnection` `**extra` keyword arguments from operation methods.
 
-* Removed the deprecated ability to set the following properties of class
-  `WBEMConnection`: `url`, `creds`, `x509`, `ca-certs`, `no_verification`,
-  and `timeout`.
+  - Ordering for `NocaseDict`, `CIMInstanceName`, `CIMInstance` and `CIMClass`
+    objects.
 
-* Removed the deprecated methods `method_call()` and imethod_call()` and the
-  deprecated property `operation_recorder` from class `WBEMConnection`.
+  - `WBEMConnection` properties: `url`, `creds`, `x509`, `ca-certs`,
+    `no_verification`, and `timeout` setter methods. They are now read-only
 
-* Removed the deprecated property `property_list` and the same-named init
-  parameter from class `CIMInstance`.
+  - `WBEMConnection` `method_call()` and imethod_call()` methods.
 
-* Removed the deprecated ability to support a value of `None` for
-  `pywbem.tocimxml()`.
+  - `WBEMConnection` `operation_recorder` property.
 
-* Removed the deprecated `indent` parameter of `CIMInstance.tomof()`.
+  - `CIMInstance` property `property_list` and the same-named init parameter.
 
-* Removed the deprecated internal function `pywbem.byname()`.
+  - `pywbem.tocimxml()` support for value of `None`.
 
-* Removed the deprecated function `pywbem.tocimobj()`.
+  - `CIMInstance.tomof()`  `indent` parameter.
 
-* Removed the deprecated `wbemcli` command.
+  - `pywbem.byname()` internal function.
+
+  - `pywbem.tocimobj()` function.
+
+  - `wbemcli` command.
 
 * Made the `MOFWBEMConnection` class (support for the MOF compiler) internal.
 
-* Exception changes:
+* Changed some exceptions:
 
-  * Changed the exception behavior of the MOF compilation methods of the
-    `MOFCompiler` and `FakedWBEMConnection` classes to no longer raise
-    `pywbem.CIMError`, but to raise exceptions derived from a new base
-    class `pywbem.MOFCompileError`.
+  - Changed the exception behavior of the MOF compilation methods of the
+    `MOFCompiler` and `FakedWBEMConnection` classes to raise exceptions derived
+    from a new base class `pywbem.MOFCompileError` rather than `pywbem.CIMError`
 
-  * Changed the type of exceptions that are raised by methods of
+  - Changed the type of exceptions that are raised by methods of
     `pywbem.ValueMapping` for cases where the value-mapped CIM element has
     issues.
 
-  * Changed the `pywbem.CIMError` exceptions that were raised by pywbem code in
-    several `WBEMServer` methods to now raise the new exception
+  - Changed the `pywbem.CIMError` exceptions that were raised by pywbem code in
+    several `WBEMServer` methods to raise the new exception
     `pywbem.ModelError`.
 
-  * Added a new exception `pywbem.HeaderParseError` derived from
-    `pywbem.ParseError` that is used to report HTTP header issues in the CIM-XML
-    response.
+  - Added a new exception `pywbem.HeaderParseError` derived from
+    `pywbem.ParseError` to report HTTP header issues in the CIM-XML response.
 
 * Made all sub-namespaces within the pywbem namespace private, except for
-  pywbem.config. Using these sub-namespaces was already deprecated.
+  pywbem.config.
 
 * Mock WBEM Server (experimental):
 
-  * Replaced the `add_method_callback()` method  and the `methods` property in
+  * Replaced the `add_method_callback()` method  in
     `FakedWBEMConnection` with user-defined providers.
 
   * Removed the `conn_lite` init parameter of `FakedWBEMConnection`.
@@ -108,8 +106,8 @@ details of the changes themselves and the reasons for the changes.
     `FakedWBEMConnection` so that the default is for the caller to display
     exceptions rather than the MOF compiler logger.
 
-  * Changed the behavior for the IncludeQualifiers and IncludeClassOrigin
-    parameters on the GetInstance and EnumerateInstances operations of the
+  * Changed the default behavior to ignore `IncludeQualifiers` and `IncludeClassOrigin`
+    parameters for GetInstance and EnumerateInstances operations of the
     mock WBEM server.
 
 *Incompatible change details:*
@@ -126,7 +124,11 @@ details of the changes themselves and the reasons for the changes.
   of restrictions in test code.
 
 * Migrated pywbem to use the 'requests' Python package for all HTTP/HTTPS
-  communication between the pywbem client and the WBEM server.
+  communication between the pywbem client and the WBEM server replacing httplib
+  and different ssl implementations for python 2 and 3. This eliminates
+  several python 2/3 pywbem differences and simplifies the installation and setup
+  of pywbem.
+
   This results in the following changes:
 
   - Changed the behavior of the default value `None` for the `ca_certs`
@@ -154,12 +156,13 @@ details of the changes themselves and the reasons for the changes.
     for installing pywbem. If you have automated the pywbem installation,
     this step should be removed from your automation.
 
-  In pywbem versions before 1.0.0, 'httplib' was the core package and different
-  SSL solutions were used for Python 2 and Python 3.
+  - Removal of the `WBEMConnection` `verify_callback` method.
+
 
 * Removed the `verify_callback` parameter of `WBEMConnection`. It was
-  deprecated in pywbem 0.9.0, and was not supported in Python 3.
-  (See issue #1928)
+  deprecated in pywbem 0.9.0, and was not supported in Python 3. The 'requests'
+  package provides the commonly accepted certificate verification within the
+  package itself.  (See issue #1928)
 
 * Removed the `**extra` keyword arguments from `WBEMConnection` operation methods.
   Such arguments were passed on to the WBEM server, but they are not needed
@@ -172,21 +175,21 @@ details of the changes themselves and the reasons for the changes.
 * Removed the deprecated support for ordering `NocaseDict`, `CIMInstanceName`,
   `CIMInstance` and `CIMClass` objects. The ordering of such dictionaries was
   never supported with pywbem on Python 3, and for Python 2 it had been
-  deprecated since pywbem 0.12.0. (See issue #1926).
-
-* Removed the `verify_callback` parameter of `WBEMConnection`. It was
-  deprecated in pywbem 0.9.0, and was not supported in Python 3.
-  (See issue #1928)
+  deprecated since pywbem 0.12.0. The user should do any required
+  ordering. (See issue #1926).
 
 * Removed the deprecated ability to set the following properties of class
   `WBEMConnection`: `url`, `creds`, `x509`, `ca-certs`, `no_verification`,
-  and `timeout`.
+  and `timeout`. These properties should not be set after the connection is
+  defined as the results on the connection are unpreditable.
 
 * Removed the deprecated methods `method_call()` and imethod_call()` and the
-  deprecated property `operation_recorder` from class `WBEMConnection`.
+  deprecated property `operation_recorder` from class `WBEMConnection`. Users
+  should always use the request methods (ex. GetInstance).
 
 * Removed the deprecated property `property_list` and the same-named init
-  parameter from class `CIMInstance`.
+  parameter from class `CIMInstance`. The behavior of this parameter was
+  undefined and incomplete.
 
 * Removed the deprecated ability to support a value of `None` for
   `pywbem.tocimxml()`.
@@ -195,7 +198,8 @@ details of the changes themselves and the reasons for the changes.
 
 * Removed the deprecated internal function `pywbem.byname()`.
 
-* Removed the deprecated function `pywbem.tocimobj()`.
+* Removed the deprecated function `pywbem.tocimobj()`. The replacement for this
+  method is to use the function `cimvalue()`.
 
 * Removed the `wbemcli` command that was deprecated in pywbem 0.15.0. The
   recommended replacement is the `pywbemcli` command from the 'pywbemtools'
@@ -283,7 +287,10 @@ details of the changes themselves and the reasons for the changes.
     from the `FakedWBEMConnection` class. This has been replaced by
     the user-defined provider concept where the user defines and registers a
     subclass to the class MethodProvider which implements the InvokeMethod
-    responder in that user-defined provider. (See issue #2062).
+    responder in that user-defined provider. The 'mock WBEM server' section
+    of the documentation and module documentation for the MethodProvider
+    and InstanceWriteProvider document creation of unser-defined providers
+    (See issue #2062).
 
   * Removed the `conn_lite` init parameter of `FakedWBEMConnection`. The lite
     mode turned out too simplistic for mock testing and of no real value, while
