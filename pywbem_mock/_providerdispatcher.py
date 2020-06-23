@@ -183,11 +183,11 @@ class ProviderDispatcher(BaseProvider):
                         namespace))
 
         # Test original instance exists.
-        instance_store = self.get_instance_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
         # Do not copy because not modified or passed on
-        orig_instance = self.find_instance(ModifiedInstance.path,
-                                           instance_store,
-                                           copy=False)
+        orig_instance = self.get_bare_instance(ModifiedInstance.path,
+                                               instance_store,
+                                               copy=False)
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
@@ -236,7 +236,7 @@ class ProviderDispatcher(BaseProvider):
                         "Cannot delete instance {2!A}",
                         InstanceName.classname, namespace, InstanceName))
 
-        instance_store = self.get_instance_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
         if not instance_store.object_exists(InstanceName):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,

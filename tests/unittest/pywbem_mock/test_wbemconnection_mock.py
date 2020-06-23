@@ -1256,9 +1256,8 @@ class TestRepoMethods(object):
             ['CIM_Foo_sub', 'CIM_Foo_sub99', False],
         ]
     )
-    def test_find_instance(self, conn, tst_classeswqualifiers, tst_instances,
-                           tst_instances_mof, ns, mof,
-                           cln, key, exp_ok):
+    def test_get_bare_instance(self, conn, tst_classeswqualifiersandinsts,
+                               tst_instances_mof, ns, mof, cln, key, exp_ok):
         # pylint: disable=no-self-use
         """
         Test the find instance repo method with both compiled and add
@@ -1268,8 +1267,7 @@ class TestRepoMethods(object):
             skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
         else:
-            conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
-            conn.add_cimobjects(tst_instances, namespace=ns)
+            add_objects_to_repo(conn, ns, tst_classeswqualifiersandinsts)
 
         instance_store = conn.cimrepository.get_instance_store(ns)
 
@@ -1278,7 +1276,7 @@ class TestRepoMethods(object):
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn._mainprovider.find_instance(iname, instance_store)
+        inst = conn._mainprovider.get_bare_instance(iname, instance_store)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -6292,7 +6290,8 @@ class Method1TestProvider(MethodProvider):
 
         if isinstance(ObjectName, CIMInstanceName):
             instance_store = self.cimrepository.get_instance_store(namespace)
-            inst = self.find_instance(ObjectName, instance_store, copy=False)
+            inst = self.get_bare_instance(ObjectName, instance_store,
+                                          copy=False)
             if inst is None:
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,

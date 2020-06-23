@@ -484,7 +484,7 @@ class TestAliases(MOFTest):
         };
         """
 
-        def find_instance(path, repo):
+        def confirm_instance_path(path, repo):
             """Local method confirms paths found for all created instances."""
             for inst in repo:
                 if inst.path == path:
@@ -525,7 +525,7 @@ class TestAliases(MOFTest):
         ]
 
         for path in exp_paths:
-            self.assertTrue(find_instance(path, instances))
+            self.assertTrue(confirm_instance_path(path, instances))
 
 
 class TestSchemaError(MOFTest):

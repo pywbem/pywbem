@@ -169,7 +169,6 @@ A user-defined instance provider can be created as follows:
         provider = MyCIM_BlanInstanceWriteProvider(self.cimrepository)
         conn.register_provider(provider,
                                namespaces=['root/interop', 'root/cimv2'])
-
 """
 
 from __future__ import absolute_import, print_function
@@ -342,7 +341,7 @@ class InstanceWriteProvider(BaseProvider):
         new_instance = NewInstance
 
         self.validate_namespace(namespace)
-        instance_store = self.get_instance_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
 
         # Requires corresponding class to build path to be returned
         target_class = self.get_class(namespace,
@@ -468,7 +467,7 @@ class InstanceWriteProvider(BaseProvider):
         # get the namespace from the Modified instance
         namespace = ModifiedInstance.path.namespace
 
-        instance_store = self.get_instance_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
         modified_instance = deepcopy(ModifiedInstance)
 
         # Return if empty property list, nothing would be changed
@@ -495,9 +494,9 @@ class InstanceWriteProvider(BaseProvider):
 
         # Get original instance in datastore.
         # Copy because it will be modified.
-        orig_instance = self.find_instance(modified_instance.path,
-                                           instance_store,
-                                           copy=True)
+        orig_instance = self.get_bare_instance(modified_instance.path,
+                                               instance_store,
+                                               copy=True)
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
@@ -642,7 +641,8 @@ class InstanceWriteProvider(BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
-        instance_store = self.get_instance_store(InstanceName.namespace)
+        instance_store = self.cimrepository.get_instance_store(
+            InstanceName.namespace)
 
         # Handle namespace deletion, currently hard coded.
         # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
