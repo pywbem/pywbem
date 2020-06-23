@@ -75,22 +75,14 @@ below this list.
 
 * Made the `MOFWBEMConnection` class (support for the MOF compiler) internal.
 
-* Changed some exceptions:
+* Changed exceptions behavior:
 
-  - Changed the exception behavior of the MOF compilation methods of the
-    `MOFCompiler` and `FakedWBEMConnection` classes to raise exceptions derived
-    from a new base class `pywbem.MOFCompileError` rather than `pywbem.CIMError`
-
-  - Changed the type of exceptions that are raised by methods of
-    `pywbem.ValueMapping` for cases where the value-mapped CIM element has
-    issues.
-
-  - Changed the `pywbem.CIMError` exceptions that were raised by pywbem code in
-    several `WBEMServer` methods to raise the new exception
-    `pywbem.ModelError`.
-
-  - Added a new exception `pywbem.HeaderParseError` derived from
-    `pywbem.ParseError` to report HTTP header issues in the CIM-XML response.
+  - MOF compilation methods of `MOFCompiler` and `FakedWBEMConnection` raises
+    exceptions based on class `pywbem.MOFCompileError`.
+  - Some methods of `ValueMapping` to use `pywbem.ModelError`.
+  - Some methods of `WBEMServer` to raise the new exception `pywbem.ModelError`.
+  - `WBEMConnection` request method responses added a new exception
+    `pywbem.HeaderParseError` derived from `pywbem.ParseError`.
 
 * Made all sub-namespaces within the pywbem namespace private, except for
   pywbem.config.
@@ -99,16 +91,13 @@ below this list.
 
   * Replaced the `add_method_callback()` method  in
     `FakedWBEMConnection` with user-defined providers.
-
-  * Removed the `conn_lite` init parameter of `FakedWBEMConnection`.
-
+  * Removed the `conn_lite` init parameter and mode of `FakedWBEMConnection`.
   * Changed the logging behavior of the MOF compilation methods of
     `FakedWBEMConnection` so that the default is for the caller to display
     exceptions rather than the MOF compiler logger.
-
-  * Changed the default behavior to ignore `IncludeQualifiers` and `IncludeClassOrigin`
-    parameters for GetInstance and EnumerateInstances operations of the
-    mock WBEM server.
+  * Changed the default behavior to ignore `IncludeQualifiers` and
+    `IncludeClassOrigin` parameters for GetInstance and EnumerateInstances
+    operations of the mock WBEM server.
 
 *Incompatible change details:*
 
@@ -292,9 +281,12 @@ below this list.
     and InstanceWriteProvider document creation of unser-defined providers
     (See issue #2062).
 
-  * Removed the `conn_lite` init parameter of `FakedWBEMConnection`. The lite
-    mode turned out too simplistic for mock testing and of no real value, while
-    adding complexity.  (See issue #1959)
+  * Removed the `conn_lite` init parameter and mode of operation of
+    `FakedWBEMConnection`. The lite mode turned out too simplistic for mock
+    testing and of no real value, while adding complexity. Users must include
+    classes and qualifier declarations. Most mock environments start with
+    classes and qualifier declarations in any case and the tools to add them
+    are simple. (See issue #1959)
 
   * Changed the logging behavior of the MOF compilation methods
     `FakedWBEMConnection.compile_mof_string()`, `compile_mof_file()` and
