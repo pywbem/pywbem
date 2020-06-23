@@ -1948,8 +1948,9 @@ class CIMInstanceName(_CIMComparisonMixin):
           :attr:`~pywbem.CIMInstanceName.classname` attribute.
         * it contains keybindings according to the
           :attr:`~pywbem.CIMInstanceName.keybindings` attribute, with the
-          order of keybindings preserved, and the lexical case of keybinding
-          names preserved (except when using the format "canonical").
+          order of keybindings in alphabetical order of the keybinding names,
+          and the lexical case of keybinding names preserved (except when using
+          the format "canonical").
 
         Note that when you do not want some of these components to show up
         in the resulting WBEM URI string, you can set them to `None` before
@@ -1960,11 +1961,7 @@ class CIMInstanceName(_CIMComparisonMixin):
         defines several components of an instance path to be compared case
         insensitively, including the names of keybindings. In addition, it
         defines that the order of keybindings in instance paths does not matter
-        for the comparison. All WBEM URI formats returned by this method except
-        for the format "canonical" return a WBEM URI string that preserves the
-        order of keybindings (relative to how the keybindings were first added
-        to the :class:`~pywbem.CIMInstanceName` object) and that preserves the
-        lexical case of any components. Therefore, two instance paths that are
+        for the comparison. Therefore, two instance paths that are
         considered equal according to :term:`DSP0004` may not have equal WBEM
         URI strings as returned by this method.
 
@@ -1983,14 +1980,14 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             * ``"standard"`` - Standard format that is conformant to untyped
               WBEM URIs for instance paths defined in :term:`DSP0207`.
-              The order of keybindings is in lexical order of the original
-              keybinding names.
+              The order of keybindings is in alphabetical order of the
+              original keybinding names.
 
             * ``"canonical"`` - Like ``"standard"``, except that the following
               items have been converted to lower case: host, namespace,
               classname, and the names of any keybindings.
-              The order of keybindings is in lexical order of the lower-cased
-              keybinding names.
+              The order of keybindings is in alphabetical order of the
+              lower-cased keybinding names.
               This format guarantees that two instance paths that are
               considered equal according to :term:`DSP0004` result in equal
               WBEM URI strings. Therefore, the returned WBEM URI is suitable to
@@ -2059,11 +2056,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         def case_sorted(keys):
             """Return the keys in the correct order for the format."""
-            if format == 'canonical':
-                return sorted([case(k) for k in keys])
-            if format == 'standard':
-                return sorted(keys)
-            return keys
+            return sorted([case(k) for k in keys])
 
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
             raise ValueError(
