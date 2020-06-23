@@ -1002,8 +1002,9 @@ The following is an example of a method provider:
                             "namespace {1!A}", classname, namespace))
 
             if isinstance(ObjectName, CIMInstanceName):
-                instance_store = self.get_instance_store(namespace)
-                inst = self.find_instance(objectname, instance_store,
+                instance_store = self.cimrepository.get_instance_store(
+                    namespace)
+                inst = self.get_bare_instance(objectname, instance_store,
                                           copy=False)
                 if inst is None:
                     raise CIMError(

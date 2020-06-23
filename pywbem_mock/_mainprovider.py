@@ -401,7 +401,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        rtn_inst = self.find_instance(instance_name, instance_store, copy=True)
+        rtn_inst = self.get_bare_instance(instance_name, instance_store,
+                                          copy=True)
 
         if rtn_inst is None:
             raise CIMError(
@@ -1851,7 +1852,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Get associated instance names
         rtn_instpaths = set()
         for ref_path in ref_paths:
-            inst = self.find_instance(ref_path, instance_store)
+            inst = self.get_bare_instance(ref_path, instance_store)
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     if prop.value == inst_name:

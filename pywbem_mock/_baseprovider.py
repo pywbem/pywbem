@@ -29,7 +29,7 @@ following functionality:
   * Methods that provide access to specific objects in the CIM repository
     including the processing consistent with filtering the returned objects.
     For example, `get_class(...)` the internal equilavent of the GetClass
-    and `find_instance(...)` the internal equivalent of GetInstance.
+    and `get_bare_instance(...)` the internal equivalent of GetInstance.
 """
 
 from __future__ import absolute_import, print_function
@@ -61,15 +61,37 @@ class BaseProvider(object):
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by request responders.  The
-            repository is fully initialized.
+            repository is fully initialized but contains only objects defined
+            by the :class:`pywbem_mock/FakedWbemConnection` methods that
+            create objects in the repository
+            (ex. :meth:`pywbem_mock/FakedWbemConnection.compile_file`)
         """
-        self.cimrepository = cimrepository
+        self._cimrepository = cimrepository
 
     def __repr__(self):
         return _format(
             "(self.__class__.__name__)("
             "cimrepository={s.cimrepository}, ",
             s=self)
+
+    @property
+    def cimrepository(self):
+        """
+        :class:`~pywbem_mock.BaseRepository` or subclass: Instance of class
+        that represents the CIM repository.
+
+        The CIM repository is the data store for CIM classes, CIM
+        instances, and CIM qualifier declarations.  All access to the mocker
+        CIM data must pass through this variable to the CIM repository.
+        See :class:`pywbem_mock/BaseRepository` for a description of
+        the repository interface.
+
+        The mocker may use subclasses of  :class:`~pywbem_mock.BaseRepository`
+        for specific functionality.  Thus, :class:`~pywbem.InMemoryRepository`
+        implements an InMemory CIM repository that must be initialized for
+        each :class:`pywbem_mock/FakedWbemConnection` construction.
+        """
+        return self._cimrepository
 
     @property
     def namespaces(self):
@@ -91,66 +113,6 @@ class BaseProvider(object):
         Namespace names need to be considered case insensitive.
         """
         return WBEMServer.INTEROP_NAMESPACES
-
-    def get_instance_store(self, namespace):
-        """
-        Returns the instance object store for the specified CIM namespace
-        within the CIM repository.  This method validates that the namespace
-        exists.
-
-        This method does not validate that the namespace exists. Be certain
-        namespace is validated against CIM repository before calling this
-        method
-
-        Parameters:
-
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing
-            slash characters are ignored.
-
-        Returns:
-
-          :class:`~pywbem_mock.BaseObjectStore`: Object store for instances
-          in the CIM repository.
-
-        Raises:
-
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-        """
-
-        return self.cimrepository.get_instance_store(namespace)
-
-    def get_qualifier_store(self, namespace):
-        """
-        Returns the qualifier declaration object store for the specified CIM
-        namespace within the CIM repository.  This method validates that the
-        namespace exists.
-
-        This method does not validate that the namespace exists. Be certain
-        namespace is validated against CIM repository before calling this
-        method
-
-        Parameters:
-
-          namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing
-            slash characters are ignored.
-
-        Returns:
-
-          :class:`~pywbem_mock.BaseObjectStore`: Object store for qualifier
-          declarations in the CIM repository.
-
-        Raises:
-
-          :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
-            not exist.
-        """
-
-        return self.cimrepository.get_qualifier_store(namespace)
 
     ################################################################
     #
@@ -289,7 +251,7 @@ class BaseProvider(object):
 
     def find_interop_namespace(self):
         """
-        Find the Interop namespace in the CIM repository, or return `None`.
+        Find the Interop namespace name in the CIM repository, or return `None`.
 
         The Interop namespace is identified by comparing all namespace names
         in the CIM repository against the list of valid Interop namespace names
@@ -298,7 +260,7 @@ class BaseProvider(object):
         Returns:
 
           :term:`string`: The name of the Interop namespace if one exists in
-          the CIM repository or otherwise `None`.
+          the CIM repository or `None`.
         """
         ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
         for name in self.interop_namespace_names:
@@ -496,13 +458,15 @@ class BaseProvider(object):
                     del obj.properties[pname]
 
     @staticmethod
-    def find_instance(instance_name, instance_store, copy=None):
+    def get_bare_instance(instance_name, instance_store, copy=None):
         """
         Find an instance in the CIM repository by `instance_name` and return
         that instance. the `copy` parameter controls whether the original
         instance in the CIM repository is returned or a copy.  The
         only time the original should be returned is when the user is
         certain that the returned object WILL NOT be modified.
+
+        DO not modify an instance returned with this method
 
         Parameters:
 
@@ -520,7 +484,8 @@ class BaseProvider(object):
             :class:`~pywbem.CIMInstance`: the complete CIM instance or copy of
             the CIM instance is returned if it is found in the CIM repository
             or `None` if the instance defined by `instance_name` is not found
-            in the CIM repository.
+            in the CIM repository. No filtering of properties, qualifiers,
+            etc. is executed on the instance.
 
 
         """

@@ -253,13 +253,13 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def cimrepository(self):
         """
-        :class:`~pywbem.InMemoryRepository`: CIM instance of class
-        `InMemoryRepository`  that represents the CIM repository instance.
+        :class:`~pywbem.InMemoryRepository`: Instance of class
+        `InMemoryRepository`  that represents the CIM repository.
 
-        The CIM repository instance  is the data store for CIM classes, CIM
+        The CIM repository instance is the data store for CIM classes, CIM
         instances, and CIM qualifier declarations.  All access to the mocker
         CIM data must pass through this variable to the CIM repository.
-        See :class:`pywbem_mock/InmemoryRepository` for a description of
+        See :class:`pywbem_mock/BaseRepository` for a description of
         the repository interface.
         """
         if self._cimrepository is None:
@@ -883,8 +883,8 @@ class FakedWBEMConnection(WBEMConnection):
                     self.cimrepository.get_instance_store(namespace)
                 try:
                     # pylint: disable=protected-access
-                    if self._mainprovider.find_instance(inst.path,
-                                                        instance_store):
+                    if self._mainprovider.get_bare_instance(inst.path,
+                                                            instance_store):
                         raise ValueError(
                             _format("The instance {0!A} already exists in "
                                     "namespace {1!A}", inst, namespace))

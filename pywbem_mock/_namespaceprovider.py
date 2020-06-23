@@ -268,7 +268,8 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         self.remove_namespace(remove_namespace)
 
         # Delete the instance from the CIM repository
-        instance_store = self.get_instance_store(InstanceName.namespace)
+        instance_store = self.cimrepository.get_instance_store(
+            InstanceName.namespace)
         instance_store.delete(InstanceName)
 
     def post_register_setup(self, conn):
@@ -285,7 +286,6 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         1. Inserts instances of CIM_Namespace for every namespace in the
            CIM repository.
-
         """
         assert self.installed is False
 
