@@ -16,9 +16,7 @@ Change log
 pywbem 1.0.0b1
 --------------
 
-This version is currently in development and is shown as |version|.
-
-Released: not yet
+Released: 2020-06-24
 
 This is a beta version of the upcoming version 1.0.0. Pip will only install
 this version if explicitly requested, e.g. using any of these commands::
@@ -36,7 +34,6 @@ details of the changes themselves and the reasons for the changes.
 
 *Summary of incompatible changes:*
 
-
 The details, alternatives, and reasons for these incompatible changes is shown
 below this list.
 
@@ -48,29 +45,18 @@ below this list.
 * Removed the following deprecated functionality:
 
   - `WBEMConnection` `verify_callback` init parameter.
-
   - `WBEMConnection` `**extra` keyword arguments from operation methods.
-
   - Ordering for `NocaseDict`, `CIMInstanceName`, `CIMInstance` and `CIMClass`
     objects.
-
   - `WBEMConnection` properties: `url`, `creds`, `x509`, `ca-certs`,
     `no_verification`, and `timeout` setter methods. They are now read-only
-
   - `WBEMConnection` `method_call()` and imethod_call()` methods.
-
   - `WBEMConnection` `operation_recorder` property.
-
   - `CIMInstance` property `property_list` and the same-named init parameter.
-
   - `pywbem.tocimxml()` support for value of `None`.
-
   - `CIMInstance.tomof()`  `indent` parameter.
-
   - `pywbem.byname()` internal function.
-
   - `pywbem.tocimobj()` function.
-
   - `wbemcli` command.
 
 * Made the `MOFWBEMConnection` class (support for the MOF compiler) internal.
@@ -85,17 +71,17 @@ below this list.
     `pywbem.HeaderParseError` derived from `pywbem.ParseError`.
 
 * Made all sub-namespaces within the pywbem namespace private, except for
-  pywbem.config.
+  'pywbem.config'.
 
 * Mock WBEM Server (experimental):
 
-  * Replaced the `add_method_callback()` method  in
+  - Replaced the `add_method_callback()` method  in
     `FakedWBEMConnection` with user-defined providers.
-  * Removed the `conn_lite` init parameter and mode of `FakedWBEMConnection`.
-  * Changed the logging behavior of the MOF compilation methods of
+  - Removed the `conn_lite` init parameter and mode of `FakedWBEMConnection`.
+  - Changed the logging behavior of the MOF compilation methods of
     `FakedWBEMConnection` so that the default is for the caller to display
     exceptions rather than the MOF compiler logger.
-  * Changed the default behavior to ignore `IncludeQualifiers` and
+  - Changed the default behavior to ignore `IncludeQualifiers` and
     `IncludeClassOrigin` parameters for GetInstance and EnumerateInstances
     operations of the mock WBEM server.
 
@@ -146,7 +132,6 @@ below this list.
     this step should be removed from your automation.
 
   - Removal of the `WBEMConnection` `verify_callback` method.
-
 
 * Removed the `verify_callback` parameter of `WBEMConnection`. It was
   deprecated in pywbem 0.9.0, and was not supported in Python 3. The 'requests'
