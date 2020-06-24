@@ -879,20 +879,18 @@ class FakedWBEMConnection(WBEMConnection):
                     inst.path.namespace = namespace
                 if inst.path.host is not None:
                     inst.path.host = None
-                instance_store = \
-                    self.cimrepository.get_instance_store(namespace)
                 try:
-                    # pylint: disable=protected-access
-                    if self._mainprovider.get_bare_instance(inst.path,
-                                                            instance_store):
+                    if self._mainprovider.find_instance(inst.path):
                         raise ValueError(
                             _format("The instance {0!A} already exists in "
-                                    "namespace {1!A}", inst, namespace))
+                                    "the CIM repository", inst))
                 except CIMError as ce:
                     raise CIMError(
                         CIM_ERR_FAILED,
                         _format("Internal failure of add_cimobject operation. "
                                 "Rcvd CIMError {0!A}", ce))
+                instance_store = \
+                    self.cimrepository.get_instance_store(namespace)
                 instance_store.create(inst.path, inst)
 
             elif isinstance(obj, CIMQualifierDeclaration):

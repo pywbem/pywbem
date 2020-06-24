@@ -308,8 +308,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                 yield cl
         return
 
-    def _get_instance(self, instance_name, instance_store,
-                      local_only, include_class_origin,
+    def _get_instance(self, instance_name, local_only, include_class_origin,
                       include_qualifiers, property_list):
         # pylint: disable=line-too-long
         """
@@ -332,11 +331,6 @@ class MainProvider(BaseProvider, ResolverMixin):
             * `namespace`: Name of the CIM namespace containing the instance.
               Must not be None.
             * `host`: value ignored.
-
-          instance_store (:class:`~pywbem_mock.BaseObjectStore):
-            The CIM repository to access for this class and subclasses.
-            This parameter allows accessing many instances without repeated
-            namespace existence tests.
 
           property_list (:term:`string` or :term:`py:iterable` of :term:`string`):
             List of property names that will be used to filter properties
@@ -401,9 +395,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        rtn_inst = self.get_bare_instance(instance_name, instance_store,
-                                          copy=True)
-
+        rtn_inst = self.find_instance(instance_name, copy=True)
         if rtn_inst is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
@@ -1297,15 +1289,13 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Set LocalOnly to False as fixed value.
         LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
 
-        instance_store = self.cimrepository.get_instance_store(namespace)
-
         if not self.class_exists(namespace, iname.classname):
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
                 _format("Class {0!A} for GetInstance of instance {1!A} "
                         "does not exist.", iname.classname, iname))
 
-        return self._get_instance(iname, instance_store,
+        return self._get_instance(iname,
                                   LocalOnly,
                                   IncludeClassOrigin,
                                   IncludeQualifiers, PropertyList)
@@ -1448,7 +1438,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                       class_store)
 
         # get and process instances from the instance_store
-        insts = [self._get_instance(inst.path, instance_store,
+        insts = [self._get_instance(inst.path,
                                     LocalOnly,
                                     IncludeClassOrigin,
                                     IncludeQualifiers, pl)
@@ -1830,7 +1820,6 @@ class MainProvider(BaseProvider, ResolverMixin):
         the original, not a copy so the user must copy them
         """
 
-        instance_store = self.cimrepository.get_instance_store(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
 
         if assoc_class:
@@ -1852,7 +1841,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Get associated instance names
         rtn_instpaths = set()
         for ref_path in ref_paths:
-            inst = self.get_bare_instance(ref_path, instance_store)
+            inst = self.find_instance(ref_path)
             for prop in six.itervalues(inst.properties):
                 if prop.type == 'reference':
                     if prop.value == inst_name:
@@ -2117,8 +2106,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                       ResultClass,
                                                       Role)
 
-            instance_store = self.cimrepository.get_instance_store(namespace)
-            rtn_insts = [self._get_instance(path, instance_store,
+            rtn_insts = [self._get_instance(path,
                                             INSTANCE_RETRIEVE_LOCAL_ONLY,
                                             IncludeClassOrigin,
                                             IncludeQualifiers, PropertyList)
@@ -2322,10 +2310,9 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                              ResultClass,
                                                              ResultRole, Role)
             results = []
-            instance_store = self.cimrepository.get_instance_store(namespace)
             for obj_name in assoc_names:
                 results.append(self._get_instance(
-                    obj_name, instance_store,
+                    obj_name,
                     INSTANCE_RETRIEVE_LOCAL_ONLY,
                     IncludeClassOrigin, IncludeQualifiers, PropertyList))
 

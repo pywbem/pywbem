@@ -29,7 +29,7 @@ following functionality:
   * Methods that provide access to specific objects in the CIM repository
     including the processing consistent with filtering the returned objects.
     For example, `get_class(...)` the internal equilavent of the GetClass
-    and `get_bare_instance(...)` the internal equivalent of GetInstance.
+    and `find_instance(...)` the internal equivalent of GetInstance.
 """
 
 from __future__ import absolute_import, print_function
@@ -457,24 +457,21 @@ class BaseProvider(object):
                 if pname.lower() not in property_list:
                     del obj.properties[pname]
 
-    @staticmethod
-    def get_bare_instance(instance_name, instance_store, copy=None):
+    def find_instance(self, instance_name, copy=False):
         """
         Find an instance in the CIM repository by `instance_name` and return
-        that instance. the `copy` parameter controls whether the original
+        that instance. The `copy` parameter controls whether the original
         instance in the CIM repository is returned or a copy.  The
         only time the original should be returned is when the user is
         certain that the returned object WILL NOT be modified.
 
-        DO not modify an instance returned with this method
+        Do not modify an original instance returned with this method.
 
         Parameters:
 
           instance_name (:class:`~pywbem.CIMInstanceName`):
-            Instance path of the instance to find in the CIM repository
-
-          instance_store (:class:`~pywbem_mock.BaseObjectStore`):
-            Instance store of the CIM repository to search for the instance
+            Instance path of the instance to find in the CIM repository.
+            Must have its namespace set.
 
           copy (bool):
             If True do copy of the instance and return the copy. Otherwise
@@ -486,10 +483,10 @@ class BaseProvider(object):
             or `None` if the instance defined by `instance_name` is not found
             in the CIM repository. No filtering of properties, qualifiers,
             etc. is executed on the instance.
-
-
         """
 
+        instance_store = self.cimrepository.get_instance_store(
+            instance_name.namespace)
         if instance_store.object_exists(instance_name):
             return instance_store.get(instance_name, copy=copy)
 

@@ -1217,9 +1217,7 @@ class TestRepoMethods(object):
                                 namespace=ns)
         if exp_exc is None:
             # pylint: disable=protected-access
-            instance_store = conn.cimrepository.get_instance_store(ns)
-            inst = conn._mainprovider._get_instance(iname, instance_store,
-                                                    lo, ico, iq, pl)
+            inst = conn._mainprovider._get_instance(iname, lo, ico, iq, pl)
             assert isinstance(inst, CIMInstance)
             assert inst.path.classname.lower() == cln.lower()
             assert iname == inst.path
@@ -1234,10 +1232,7 @@ class TestRepoMethods(object):
         else:
             with pytest.raises(exp_exc.__class__) as exec_info:
                 # pylint: disable=protected-access
-                instance_store = conn.cimrepository.get_instance_store(ns)
-                conn._mainprovider._get_instance(iname,
-                                                 instance_store, lo,
-                                                 ico, iq, pl)
+                conn._mainprovider._get_instance(iname, lo, ico, iq, pl)
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
@@ -1256,8 +1251,8 @@ class TestRepoMethods(object):
             ['CIM_Foo_sub', 'CIM_Foo_sub99', False],
         ]
     )
-    def test_get_bare_instance(self, conn, tst_classeswqualifiersandinsts,
-                               tst_instances_mof, ns, mof, cln, key, exp_ok):
+    def test_find_instance(self, conn, tst_classeswqualifiersandinsts,
+                           tst_instances_mof, ns, mof, cln, key, exp_ok):
         # pylint: disable=no-self-use
         """
         Test the find instance repo method with both compiled and add
@@ -1269,14 +1264,12 @@ class TestRepoMethods(object):
         else:
             add_objects_to_repo(conn, ns, tst_classeswqualifiersandinsts)
 
-        instance_store = conn.cimrepository.get_instance_store(ns)
-
         iname = CIMInstanceName(cln,
                                 keybindings={'InstanceID': key},
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn._mainprovider.get_bare_instance(iname, instance_store)
+        inst = conn._mainprovider.find_instance(iname)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -6289,14 +6282,11 @@ class Method1TestProvider(MethodProvider):
                         "namespace {1!A}", classname, namespace))
 
         if isinstance(ObjectName, CIMInstanceName):
-            instance_store = self.cimrepository.get_instance_store(namespace)
-            inst = self.get_bare_instance(ObjectName, instance_store,
-                                          copy=False)
-            if inst is None:
+            if not self.find_instance(ObjectName):
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,
-                    _format("Instance {0|A} does not exist in CIM repository, "
-                            "namespace {1!A}", ObjectName, namespace))
+                    _format("Instance {0|A} does not exist in CIM repository",
+                            ObjectName))
         # This method expects a single parameter input
         # Used to test the inputs.  The single input parameter is a string
         # and the value determines the method actions:

@@ -494,14 +494,12 @@ class InstanceWriteProvider(BaseProvider):
 
         # Get original instance in datastore.
         # Copy because it will be modified.
-        orig_instance = self.get_bare_instance(modified_instance.path,
-                                               instance_store,
-                                               copy=True)
+        orig_instance = self.find_instance(modified_instance.path, copy=True)
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("Original Instance {0!A} not found in namespace {1!A}",
-                        modified_instance.path, namespace))
+                _format("Instance {0!A} not found in CIM repository",
+                        modified_instance.path))
 
         # Remove duplicate properties from property_list
         property_list = PropertyList
