@@ -998,19 +998,17 @@ The following is an example of a method provider:
             if not self.class_exists(namespace, classname):
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,
-                    _format("class {0|A} does not exist in CIM repository, "
+                    _format("Class {0!A} does not exist in CIM repository, "
                             "namespace {1!A}", classname, namespace))
 
             if isinstance(ObjectName, CIMInstanceName):
                 instance_store = self.cimrepository.get_instance_store(
                     namespace)
-                inst = self.get_bare_instance(objectname, instance_store,
-                                          copy=False)
-                if inst is None:
+                if not instance_store.object_exists(objectname):
                     raise CIMError(
                         CIM_ERR_NOT_FOUND,
-                        _format("Instance {0|A} does not exist in CIM repository, "
-                                "namespace {1!A}", ObjectName, namespace))
+                        _format("Instance {0!A} does not exist in CIM "
+                                "repository", ObjectName))
 
             if MethodName.lower() == 'method1':
 

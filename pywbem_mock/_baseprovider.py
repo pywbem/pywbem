@@ -28,8 +28,7 @@ following functionality:
   * Managing namespaces in the CIM repository
   * Methods that provide access to specific objects in the CIM repository
     including the processing consistent with filtering the returned objects.
-    For example, `get_class(...)` the internal equilavent of the GetClass
-    and `get_bare_instance(...)` the internal equivalent of GetInstance.
+    For example, `get_class(...)` the internal equilavent of the GetClass.
 """
 
 from __future__ import absolute_import, print_function
@@ -458,7 +457,7 @@ class BaseProvider(object):
                     del obj.properties[pname]
 
     @staticmethod
-    def get_bare_instance(instance_name, instance_store, copy=None):
+    def _get_bare_instance(instance_name, instance_store, copy=None):
         """
         Find an instance in the CIM repository by `instance_name` and return
         that instance. the `copy` parameter controls whether the original

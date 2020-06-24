@@ -494,9 +494,9 @@ class InstanceWriteProvider(BaseProvider):
 
         # Get original instance in datastore.
         # Copy because it will be modified.
-        orig_instance = self.get_bare_instance(modified_instance.path,
-                                               instance_store,
-                                               copy=True)
+        orig_instance = self._get_bare_instance(modified_instance.path,
+                                                instance_store,
+                                                copy=True)
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,

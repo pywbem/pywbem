@@ -184,15 +184,11 @@ class ProviderDispatcher(BaseProvider):
 
         # Test original instance exists.
         instance_store = self.cimrepository.get_instance_store(namespace)
-        # Do not copy because not modified or passed on
-        orig_instance = self.get_bare_instance(ModifiedInstance.path,
-                                               instance_store,
-                                               copy=False)
-        if orig_instance is None:
+        if not instance_store.object_exists(ModifiedInstance.path):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("Original Instance {0!A} not found in namespace {1!A}",
-                        ModifiedInstance.path, namespace))
+                _format("ModifiedInstance {0!A} not found in CIM repository",
+                        ModifiedInstance.path))
 
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance-write', ModifiedInstance.classname)
@@ -240,8 +236,8 @@ class ProviderDispatcher(BaseProvider):
         if not instance_store.object_exists(InstanceName):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("Instance {0!A} not found in CIM repository namespace "
-                        "{1!A}", InstanceName, namespace))
+                _format("Instance {0!A} not found in CIM repository",
+                        InstanceName))
 
         provider = self.provider_registry.get_registered_provider(
             InstanceName.namespace, 'instance-write', InstanceName.classname)

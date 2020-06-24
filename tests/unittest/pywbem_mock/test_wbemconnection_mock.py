@@ -1276,7 +1276,7 @@ class TestRepoMethods(object):
                                 namespace=ns)
 
         # pylint: disable=protected-access
-        inst = conn._mainprovider.get_bare_instance(iname, instance_store)
+        inst = conn._mainprovider._get_bare_instance(iname, instance_store)
 
         if exp_ok:
             assert isinstance(inst, CIMInstance)
@@ -6290,13 +6290,11 @@ class Method1TestProvider(MethodProvider):
 
         if isinstance(ObjectName, CIMInstanceName):
             instance_store = self.cimrepository.get_instance_store(namespace)
-            inst = self.get_bare_instance(ObjectName, instance_store,
-                                          copy=False)
-            if inst is None:
+            if not instance_store.get(ObjectName):
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,
-                    _format("Instance {0|A} does not exist in CIM repository, "
-                            "namespace {1!A}", ObjectName, namespace))
+                    _format("Instance {0|A} does not exist in CIM repository",
+                            ObjectName))
         # This method expects a single parameter input
         # Used to test the inputs.  The single input parameter is a string
         # and the value determines the method actions:
