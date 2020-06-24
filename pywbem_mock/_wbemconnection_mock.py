@@ -259,7 +259,7 @@ class FakedWBEMConnection(WBEMConnection):
         The CIM repository instance is the data store for CIM classes, CIM
         instances, and CIM qualifier declarations.  All access to the mocker
         CIM data must pass through this variable to the CIM repository.
-        See :class:`pywbem_mock/BaseRepository` for a description of
+        See :class:`~pywbem_mock.BaseRepository` for a description of
         the repository interface.
         """
         if self._cimrepository is None:

@@ -62,9 +62,9 @@ class BaseProvider(object):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by request responders.  The
             repository is fully initialized but contains only objects defined
-            by the :class:`pywbem_mock/FakedWbemConnection` methods that
+            by the :class:`~pywbem_mock.FakedWbemConnection` methods that
             create objects in the repository
-            (ex. :meth:`pywbem_mock/FakedWbemConnection.compile_file`)
+            (ex. :meth:`~pywbem_mock.FakedWbemConnection.compile_file`)
         """
         self._cimrepository = cimrepository
 
@@ -83,13 +83,13 @@ class BaseProvider(object):
         The CIM repository is the data store for CIM classes, CIM
         instances, and CIM qualifier declarations.  All access to the mocker
         CIM data must pass through this variable to the CIM repository.
-        See :class:`pywbem_mock/BaseRepository` for a description of
+        See :class:`~pywbem_mock.BaseRepository` for a description of
         the repository interface.
 
         The mocker may use subclasses of  :class:`~pywbem_mock.BaseRepository`
         for specific functionality.  Thus, :class:`~pywbem.InMemoryRepository`
         implements an InMemory CIM repository that must be initialized for
-        each :class:`pywbem_mock/FakedWbemConnection` construction.
+        each :class:`~pywbem_mock.FakedWbemConnection` construction.
         """
         return self._cimrepository
 
