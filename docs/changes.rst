@@ -24,6 +24,11 @@ Released: not yet
 
 **Bug fixes:**
 
+* On Python 2.6, increased minimum versions of pytest from 3.1.0 to 3.2.0, and
+  of py from 1.4.32 to 1.4.34, in order for ValueMapping tests not to catch the
+  pytest Skipped exception.
+  (Related to issue #2304)
+
 **Enhancements:**
 
 * Added support for array-typed elements to pywbem.ValueMapping.
