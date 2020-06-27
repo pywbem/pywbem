@@ -47,6 +47,8 @@ class ValueMapping(object):
     with the `ValueMap` and `Values` qualifiers, and the corresponding values
     of the `Values` qualifier, in both directions.
 
+    The CIM element may be a scalar or an array.
+
     This is done by retrieving the CIM class definition defining the CIM
     element in question, and by inspecting its `ValueMap` and `Values`
     qualifiers.
@@ -209,6 +211,8 @@ class ValueMapping(object):
         instance that maps CIM property values to the `Values` qualifier
         defined on that property.
 
+        The CIM property may be a scalar or an array.
+
         If a `Values` qualifier is defined but no `ValueMap` qualifier, a
         default of 0-based consecutive numbers is applied (that is the default
         defined in :term:`DSP0004`).
@@ -340,6 +344,8 @@ class ValueMapping(object):
         Factory method that returns a new :class:`~pywbem.ValueMapping`
         instance that maps CIM parameter values to the `Values` qualifier
         defined on that parameter.
+
+        The CIM parameter may be a scalar or an array.
 
         If a `Values` qualifier is defined but no `ValueMap` qualifier, a
         default of 0-based consecutive numbers is applied (that is the default
@@ -483,6 +489,8 @@ class ValueMapping(object):
         Return a new :class:`~pywbem.ValueMapping` instance for the specified
         CIM element.
 
+        The CIM element may be a scalar or an array.
+
         If a `Values` qualifier is defined but no `ValueMap` qualifier, a
         default of 0-based consecutive numbers is applied (that is the default
         defined in :term:`DSP0004`).
@@ -499,15 +507,16 @@ class ValueMapping(object):
             Name of the CIM namespace containing the class.
 
           classname (:term:`string`):
-            Name of the CIM class exposing the method. The method can be
-            defined in that class or inherited into that class.
+            Name of the CIM class exposing the property or method. The property
+            or method can be defined in that class or inherited into that class.
 
           propname (:term:`string`):
             Name of the CIM property that defines the `Values` / `ValueMap`
             qualifiers.
 
           methodname (:term:`string`):
-            Name of the CIM method that has the parameter.
+            Name of the CIM method that defines the `Values` / `ValueMap`
+            qualifiers on its return value, or that has the parameter.
 
           parametername (:term:`string`):
             Name of the CIM parameter that defines the `Values` / `ValueMap`
@@ -546,6 +555,7 @@ class ValueMapping(object):
         cimtype = type_from_name(typename)
 
         if not issubclass(cimtype, CIMInt):
+            # This test works for both scalar and array-typed elements
             raise TypeError(
                 _format("The value-mapped {0} is not integer-typed, but "
                         "has CIM type: {1}", vm._element_str(), typename))
@@ -688,19 +698,62 @@ class ValueMapping(object):
         return self._element_obj
 
     def tovalues(self, element_value):
+        # pylint: disable=line-too-long
         """
-        Return the `Values` string for an element value, based upon this value
-        mapping.
+        Return the `Values` string(s) for an element value, based upon this
+        value mapping.
+
+        The element value may be a single value or list/tuple of values and the
+        return value will be a single string or list of strings, respectively.
+        An element value of `None` causes `None` to be returned.
+
+        The passing of array values or scalar values does not need to match
+        whether the element is array-typed or scalar-typed. For example, there
+        may be a need to have the loop through a list of values of an
+        array-typed element on the caller's side, invoking this method in the
+        loop with a single value. As another example, the method may be used
+        to translate a list of possible values for a scalar-typed element
+        in one call to this method by passing them as a list.
+
+        Parameters:
+
+          element_value (:term:`integer` or :class:`~pywbem.CIMInt` or list/tuple thereof):
+            The value(s) of the CIM element. May be `None`.
+
+        Returns:
+
+          :term:`string` or list of :term:`string`:
+            The `Values` string(s) for the element value.
+            This is:
+            * a single string, if the element value was a single value
+            * a list of strings, if the element value was a list/tuple of values
+            * `None`, if the element value was `None`
+
+        Raises:
+
+          ValueError: Element value outside of the set defined by `ValueMap`.
+          TypeError: Element value is not an integer type.
+        """  # noqa: E501
+        if element_value is None:
+            return None
+        if isinstance(element_value, (list, tuple)):
+            return [self._tovalues_single(ev) for ev in element_value]
+        return self._tovalues_single(element_value)
+
+    def _tovalues_single(self, element_value):
+        """
+        Return the `Values` string for a single element value, based upon this
+        value mapping.
 
         Parameters:
 
           element_value (:term:`integer` or :class:`~pywbem.CIMInt`):
-            The value of the CIM element (property, method, parameter).
+            The single integer value of the CIM element. Must not be `None`.
 
         Returns:
 
           :term:`string`:
-            The `Values` string for the element value.
+            The single `Values` string for the element value.
 
         Raises:
 
@@ -740,6 +793,11 @@ class ValueMapping(object):
         Return the integer value or values for a `Values` string, based upon
         this value mapping.
 
+        Due to the complexity of its return value, this method only supports a
+        single `Values` string at a time. It does support array-typed elements,
+        though. Thus, if multiple `Values` strings need to be translated, this
+        method must be invoked once for each value to be translated.
+
         Any returned integer value is represented as the CIM type of the
         element (e.g. :class:`~pywbem.Uint16`).
 
@@ -757,7 +815,8 @@ class ValueMapping(object):
         Parameters:
 
           values_str (:term:`string`):
-            The `Values` string for the element value.
+            The `Values` string for the (single) element value. Must not be
+            `None`.
 
         Returns:
 
