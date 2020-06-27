@@ -31,6 +31,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Added support for array-typed elements to pywbem.ValueMapping.
+  (See issue #2304)
+
 **Cleanup:**
 
 **Known issues:**
