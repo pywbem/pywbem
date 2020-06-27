@@ -24,6 +24,11 @@ Released: not yet
 
 **Bug fixes:**
 
+* Change log: Reintegrated the original change log sections for 0.14.1 to 0.17.2
+  and removed the matching change log entries from the change log section for
+  1.0.0b1. This reduces the change log entries shown for 1.0.0b1 to just the
+  changes relative to 0.17.2. (See issue #2303)
+
 **Enhancements:**
 
 **Cleanup:**
@@ -45,8 +50,6 @@ this version if explicitly requested, e.g. using any of these commands::
 
     $ pip install pywbem==1.0.0b1
     $ pip install --pre pywbem
-
-This version contains all fixes since 0.14.0 and up to pywbem 0.17.2.
 
 **Incompatible changes:**
 
@@ -333,183 +336,8 @@ below this list.
 
 **Bug fixes:**
 
-* Dev/Test: Pinned lxml to <4.4.0 because that version removed Python 3.4
-  support.
-
-* Dev/Test: Pinned pytest to <5.0.0 for Python < 3.5 because that version
-  requires Python >= 3.5.
-
-* Test: Temporary fix for pytest option `--pythonwarnings` in end2end tests
-  (issue #1714).
-
-* Test: Fixed AttributeError in end2end assertion functions (Issue #1714)
-
-* Change history: Removed incorrect statement about commenting out
-  server-specific functionality from the tuple parser from the change history
-  of pywbem 0.14.0.
-
-* Test: Added and fixed profile definitions for end2end tests. (Issue #1714)
-
-* Fix issue in the Jupyter notebook iterablecimoperations where the
-  IterQueryInstance example did not correctly processthe return from the
-  operation.  It attempted to itereate the returned object and should have
-  been iterating the generator property in that object.  Documentation of
-  that example and the example were corrected. (see issue #1741)
-
-* Fix issue in pywbem_mock/_wbemconnection_mock.py with EnumerateInstances that
-  includes a property list with a property name that differs in case from the
-  property name in the returned instance. Works in the conn_lite=True mode but
-  fails in conn_lite=False mode because the test was case insensitive.
-
-* Test: Fixed Appveyor CI setup for UNIX-like environments under Windows
-  (Issue #1729)
-
-* Windows install: Upgraded version of Win32/64OpenSSL.exe that is downloaded
-  during installation on native Windows, from 1.1.0j to 1.1.0k. This became
-  necessary because the maintainer of the Win32OpenSSL project at
-  https://slproweb.com/products/Win32OpenSSL.html removes the previous version
-  from the web site whenever a new version is released, causing the pywbem
-  installation to fail during invocation of pywbem_os_setup.bat on Windows.
-  Related to that, fixed the way pywbem_os_setup.bat recognizes that the
-  version does not exist.
-  (see issue #1754)
-
-* Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
-
-* Fix issue with Python 3 and WBEMconnection certificate handling. pywbem
-  was getting AttributeError: 'SSLContext' object has no attribute 'load_cert'
-  because incorrect method called. (See issue # 1769)
-
-* Fixed that the `OpenAssociatorInstances()` and `OpenReferenceInstances()`
-  methods of `WBEMConnections` incorrectly supported an `IncludeQualifiers`
-  parameter, and that the `OpenEnumerateInstances()` method of
-  `WBEMConnections` incorrectly supported an `IncludeQualifiers` and a
-  `LocalOnly` parameter, that were never supported as per DSP0200.
-  Specifying these parameters as `True` or `False` on these methods caused
-  properly implemented WBEM servers to reject the operation. These parameters
-  now still exist on these operations but are ignored and are not passed on to
-  WBEM servers.
-  The corresponding `Iter...()` methods now also ignore these parameters if the
-  pull operations are used; they are still passed on if the traditional
-  operations are used.
-  (See issue #1780)
-
-* Added test to tests/manual/cim_operations.py specifically to test the iter and
-  pull operations for the IncludeQualifier and LocalOnly parameters based on
-  issue #1780.
-
-* Test: Fixed errors on Python 2.6 about unnamed format replacements.
-
-* Fixed incorrect format specifiers in exceptions raised in pywbem_mock.
-  (See issue #1817)
-
-* Fixed missing suport for the ANY scope in pywbem_mock. (See issue #1820)
-
-* Increased version of WinOpenSSL used on Windows from 1.1.0k to 1.1.0L.
-
-* Fixed the issue that EnumerateInstances did not return instances without
-  properties unless DeepInheritance was set (see issue #1802).
-
-* Fixed bad formatting on --mock-server option in wbemcli.py.
-
-* Fixed the issue with 'dnf makecache fast' during pywbem_os_setup.sh on Fedora
-  (See issue #1844)
-
-* Fixed case sensitive class name check in mock support of ModifyInstance
-  (See issue #1859)
-
 * Docs: Fixed issues in Listener and SubscriptionManager examples
   (See issue #1768)
-
-* Test: Fixed args of `WBEMConnection` operation methods in mock unit tests &
-  function tests.
-
-* Code: Fixed pywbem_mock issue where CreateInstance was not handling the case
-  sensitivity of property cases if the instance property name case was different than the
-  class property name case. While not legally incorrect the created instance
-  looks bad. See issue #1883
-
-* Code: Fixed pywbem_mock issue where ModifyInstance not handling case
-  sensitivity of property cases if the instance property name case was
-  different than the class property name case. Modify failed if
-  the case of property names did not match. Fixed the case test error and
-  put the class defined proerty name into the modified instance. See issue #1887
-
-* Code: Fix issue with pywbem_mock that allows duplicate instances to be
-  inserted into the mock repository when mof instances are compiled. Duplicate
-  instances (CIMInstanceName) will now cause an exception.  See issue #1852
-
-* Fix issue in mof compiler where mof instance that duplicates existing instance
-  path can get lost with no warning. NOTE: This does not happen in the
-  standalone compiler because it creates a duplicate instance issue # 1852
-  but depending on the implementation of ModifyInstance for the compiler,
-  it can simply lose the instance. See issue #1894
-
-* Fix issue in pywbem_mock where instances with duplicate paths defined in mof and
-  put into the mocker repository were originally accepted as separate instances
-  but fixed to cause an exception in issue #1852, conform to the DMTF spec
-  definition that requires that the second instance modify the first.
-  Fix issue in the mof_compiler where the CreateInstance retry logic was
-  first doing a ModifyInstance and if that failed then trying a DeleteInstance
-  and CreateInstance.  We removed the DeleteInstance/CreateInstance logic and
-  insured that an exception would occur if the ModifyInstance failed.
-  See issue #1890
-
-* Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
-
-* Fixed that inconsistent names (between key and object name) were not detected
-  when setting CIMMethod.parameters from an input dictionary.
-
-* Docs: Fixed errors in description of CIMInstance.update_existing().
-
-* Added dependency to pywin32 package for Windows (used by Jupyter Notebook),
-  and excluded its version 226 to address issue #1946.
-
-* pywbem_mock display_repository() comment defintion that surrounds comments
-  in the output was defined as # but mof comments are // so changed. (see
-  issue #1951)
-
-* Fixed that local tests (i.e. TEST_INSTALLED=False) skipped MOF tests if
-  the mofparsetab or moflextab files did not exist. (See issue #1933)
-
-* Circumvented removal of Python 2.7 in Appveyor's CygWin installation
-  by manually installing the python2 CygWin package. (See issue #1949)
-
-* Fixed issue with MOFCompiler class where mof_compiler script was not writing
-  the new classes and instances to the remote repository defined with the -s
-  parameter. (see issue #1956 )
-
-* Fixed issue with mof_compiler and mof rollback where instances were
-  not removed when rollback was executed.  This was caused by MOFWBEMConnection
-  code that did not put correct paths on the instances when they were
-  inserted into the local repository so the rollback delete of the instances
-  could not identify the instances. (see issue #1158)
-
-* Fixed several install issues with the lxml, flake8, pywin32, pip, setuptools,
-  and wheel packages on Python 3.8 on Windows. (See issues #1975, #1980).
-
-* Silenced the MOFCompiler class for verbose=False. So far, it still printed
-  messages for generating the YACC parser table, causing one test to fail,
-  and others to issue useless prints. (Issue #2004)
-
-* Test: Fixed an error in testing the PLY table version in testcases that caused
-  the LEX/YACC parser table files to be written to the pywbem installation
-  when using TEST_INSTALLED. (Related to issue #2004)
-
-* Fixed that the MOFCompiler could be created with handle=None to work against
-  a local repository. It was documented that way, but failed with
-  AttributeError. (See issue #1998)
-
-* Fixed the error that the MOF compilation of a class could fail but the
-  error was not surfaced. This only happened when the MOF compiler was invoked
-  against a WBEM server, when the class already existed, and when the
-  ModifyClass operation that was attempted in this case, failed.
-
-* Fixed that the CIM-XML payload in log entries was spread over multiple lines.
-  The payload is now escaped as a single-line Python string.
-
-* Test: Fixed an error in test_format_random() for the backslash character.
-  (See issue #2027)
 
 * Test: Added testcases to the cim_xml module, and migrated from unittest to
   pytest.
@@ -536,52 +364,8 @@ below this list.
   by increasing the minimum version of the coverage package to 4.5.2.
   (See pywbemtools issue #547)
 
-* Dev: Fixed installation of Jupyter Notebook on Python 3.4 by defining
-  the appropriate minimum versions of the ipython package, per Python version.
-  (See issue #2135)
-
-* Pinned dparse to <0.5.0 on Python 2.7 due to an issue. (See issue #2139)
-
 * Added missing attributes to the test client recorder
   (class TestClientRecorder) (see issue #2118).
-
-* Fixed version incompatibilities reported by pip for tox/pluggy,
-  ipython/prompt-toolkit, and flake8/pyflakes. (See issue #2153)
-
-* Fixed the issue where formatting the timezone name of a pywbem.MinutesFromUTC
-  object raised NotImplementedError, by adding a tzname() method.
-  (see issue #2160)
-
-* Pinned mock to <4.0.0 on Python <3.6 due to an install issue when installing
-  from the source tarball. (see issue #2150).
-
-* Enabled installation using 'setup.py install' from unpacked source distribution
-  archive, and added install tests for various installation methods including
-  this one. (see issue #2150).
-
-* Increased minimum version of 'six' from 0.10.0 to 0.12.0 when on Python 3.8
-  (or higher). (See issue #2150).
-
-* Increased minimum version of 'setuptools' on Python 3.7 from 33.1.1 to 38.4.1
-  to fix a bug with new format of .pyc files. (See issue #2167).
-
-* Test: Fixed virtualenv related failures during install test.
-  (See issue #2174)
-
-* Dev: Increased the versions of the base packages 'pip', 'setuptools' and
-  'wheel' to the content of Ubuntu 18.04 as a minimum, and to the lowest
-  versions that support a particular Python versions beyond that.
-  This only affects development of pywbem. (See issue #2174)
-
-* Increased the version of 'PyYAML' from 5.1 to 5.3 on Python 2.7, to pick
-  up a fix for dealing with Unicode characters above U+FFFF in narrow Python
-  builds. (See issue #2182)
-
-* Fixed raise error for invalid reference_direction in
-  WBEMServer.get_central_instances(). (See issue #2187)
-
-* Fixed raise error for missing ports in WBEMListener.__init__().
-  (See issue #2188)
 
 * Fixed issue where DMTFCIMSchema/build_schema_mof creates the new cim_schema
   pragma list in order different than the DMTF defined file.  In some rare
@@ -604,89 +388,12 @@ below this list.
 
 **Enhancements:**
 
-* Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
-  to be bypassed by default, because (1) WBEM servers do not implement it at
-  this point, and (2) there are WBEM servers that do not behave gracefully
-  when unknown CIM methods are invoked. Because WBEM servers are required to
-  implement one of the other methodologies, this change is not incompatible for
-  pywbem users.
-
-* Improved the performance for receiving large CIM-XML responses in the
-  tupleparser by moving type checks for text content in XML into an error
-  handling path, and by replacing some isinstance() calls with type()
-  comparison.
-
-* Improved the quality of the information in TypeError exceptions that are raised
-  due to invalid types passed in WBEMConnection operation arguments. (Issue #1736)
-
-* Docs: Updated the trouble shooting section with an entry that explains
-  how a user can resolve the installation failure that is caused on Windows
-  when the Win32OpenSSL project at
-  https://slproweb.com/products/Win32OpenSSL.html removes the previous version
-  from their web site when a new version is released.
-
-* Increased versions of the following packages to address security
-  vulnerabilities:
-
-  * requests from 2.19.1 to 2.20.1
-  * urllib3 from 1.22 to 1.23
-  * bleach from 2.1.0 to 2.1.4
-
-  These packages are only used for development of pywbem.
-
-* Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
-  using a predictable URL, for automated downloads.
-
-* Improved handling of missing WinOpenSSL on Windows by recommending manual
-  download of next version.
-
-* Test: Added support for running the pywbem tests against an installed version
-  of pywbem, ignoring the version of pywbem that exists in the respective
-  directories of the repo work directory. This is useful for testing a
-  version of pywbem that has been installed as an OS-level package.
-  (See issue #1803)
-
-* Docs: Improved the section about installing to a native Windows environment
-  (See issue #1804)
-
-* Improved error messages and error handling in wbemcli and in the pywbem
-  mock support.
-
-* Removed the use of the 'pbr' package because it caused too many undesirable
-  side effects. As part of that, removed PKG-FILE and setup.cfg and went back
-  to a simple setup.py file. (See issues #1875, #1245, #1408, #1410)
-
-* Added support for byte string values in keybindings of CIMInstanceName
-  method to_wbem_uri(), consistent with other methods.
-
-* Test: Added Python 3.8 to the tested environments. (See issue #1879)
-
 * For the end2end tests, extended the definitions in
   `tests/profiles/profiles.yml` by the ability to specify the profile version.
   (See issue #1554)
 
-* Clarified that namespace and host will be ignored when the `ResultClass` and
-  `AssocClass` parameters of association operations are specified using a
-  `CIMClassName` object. (See issue #1907)
-
-* Added capability to log calls to WBEM server from mof_compile script. AAdds
-  an option to the cmd line options to enable logging.
-
 * Improved test coverage of function tests by verifying the last_request,
   last_raw_request, last_reply, and last_raw_reply attributes of a connection.
-
-* Added SSL related issues to the Troubleshooting section in the
-  Appendix of the docs, and added the OpenSSL version to the
-  `pywbem.ConnectionError` exceptions raised due to SSL errors for better
-  diagnosis. (See issues #1950 and #1966)
-
-* Added 'twine check' when uploading a version to Pypi, in order to get
-  the README file checked before uploading.
-
-* Clarified the 'x509' parameter of 'WBEMConnection' in that its 'key_file'
-  item is optional and if omitted, both the private key and the certificate
-  must be in the file referenced by the 'cert_file' item. Added checks
-  for the 'x509' parameter.
 
 * Migrated the communication between the pywbem client and WBEM servers to
   to use the 'requests' Python package. This greatly cleaned up the code,
@@ -707,12 +414,6 @@ below this list.
 * Added proxy support to the `WBEMConnection` class, by adding a `proxies`
   init parameter and attribute, utilizing the proxy support of the requests
   package. (see issue #2040)
-
-* Changed the HTTPS support of `pywbem.WBEMListener` from using the deprecated
-  `ssl.wrap_socket()` function to using the `ssl.SSLContext` class that was
-  introduced in Python 2.7.9. This causes more secure SSL settings to be used.
-  On Python versions before 2.7.9, pywbem will continue to use the deprecated
-  `ssl.wrap_socket()` function. (See issue #2002)
 
 * Add property to pywbem_mock `FakedWBEMConnection` to allow the user to modify
   the mocker behavior to forbid the use of the pull operations.
@@ -743,45 +444,8 @@ below this list.
 
 **Cleanup:**
 
-* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
-  for Python 3.7, because that is now the default distro version, in order to
-  pick up a future increase of the default distro version automatically.
-
-* Test: Enabled Python warning suppression for PendingDeprecationWarning
-  and ResourceWarning (py3 only), and fixed incorrect make variable for that.
-  (See issue #1720)
-
-* Test: Removed pinning of testfixtures to <6.0.0 due to deprecation issue
-  announced for Python 3.8, and increased its minimum version from 4.3.3
-  to 6.9.0.
-
-* Test: Increased minimum version of pytest from 3.3.0 to 4.3.1 because
-  it fixed an issue that surfaced with pywbem minimum package levels
-  on Python 3.7.
-
-* Increased minimum version of PyYAML from 3.13 to 5.1 due to deprecation issue
-  announced for Python 3.8.
-
-* Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
-  native Python types int, long, float. These types cannot occur in this
-  function, so no tests could be written that test that code.
-
 * Improved performance when setting WBEMConnection.debug by prettifying the
   request and reply XML only when actually accessed. (See issue #1572)
-
-* Modified pywbem_mock to create the instance path of new instances
-  created by the compiler.  Previously, the mocker generated an exception
-  if the path for a compiler created new instance was not set by the
-  compiler using the instance alias. That requirement has been removed so
-  the mock repository will attempt to create the path (which is required
-  for the mock repository) from properties provided in the new instance.
-  If any key properties of the class are not in the instance it will generate
-  an exception.  This is backward compatible since the mocker will accept
-  paths created by the compiler.  The incompatibility is that the mocker
-  tests for the existance of all key properties. (see issue # 1958)
-
-* Replaced the yamlordereddictloader package with yamlloader, as it was
-  deprecated. (See issue #2008)
 
 * Removed pywbem_mock conn_lite mode. (See issue # 1959)
 
@@ -807,28 +471,516 @@ below this list.
 * Test: Converted WBEMListener tests from unittest to pytest. (See issue #2179)
 
 
-pywbem 0.17.x
+pywbem 0.17.2
 -------------
 
-The changes for this version are part of the change log of version 1.0.0,
-because 1.0.0 was created based on version 0.14.0 and the changes for this
-version were put into 1.0.0 and then backported.
+Released: 2020-04-19
+
+**Bug fixes:**
+
+* Test: Fixed virtualenv related failures during install test.
+  (See issue #2174)
+
+* Dev: Increased the versions of the base packages 'pip', 'setuptools' and
+  'wheel' to the content of Ubuntu 18.04 as a minimum, and to the lowest
+  versions that support a particular Python versions beyond that.
+  This only affects development of pywbem. (See issue #2174)
+
+* Setup: Added the scripts for installing OS-level dependencies
+  (pywbem_os_setup.sh/.bat) to the source distribution archive. Note that
+  starting with the upcoming pywbem 1.0.0, these scripts are no longer needed,
+  so this change will not be rolled forward into 1.0.0.
+  (See issue #2173)
+
+* Increased the version of 'PyYAML' from 5.1 to 5.3 on Python 2.7, to pick
+  up a fix for dealing with Unicode characters above U+FFFF in narrow Python
+  builds. This could not be fixed for Python 2.6 since PyYAML 3.12 dropped
+  support for Python 2.6 (See issue #2182)
+
+* Fixed raise error for invalid reference_direction in
+  WBEMServer.get_central_instances(). (See issue #2187)
+
+* Fixed raise error for missing ports in WBEMListener.__init__().
+  (See issue #2188)
 
 
-pywbem 0.16.x
+pywbem 0.17.1
 -------------
 
-The changes for this version are part of the change log of version 1.0.0,
-because 1.0.0 was created based on version 0.14.0 and the changes for this
-version were put into 1.0.0 and then backported.
+Released: 2020-04-13
+
+**Bug fixes:**
+
+* Fixed version incompatibilities reported by pip for tox/pluggy,
+  ipython/prompt-toolkit, and flake8/pyflakes. (See issue #2153)
+
+* Fixed the issue where formatting the timezone name of a pywbem.MinutesFromUTC
+  object raised NotImplementedError, by adding a tzname() method.
+  (see issue #2160)
+
+* Pinned mock to <4.0.0 on Python <3.6 due to an install issue when installing
+  from the source tarball. (See issue #2150).
+
+* Enabled installation using 'setup.py install' from unpacked source distribution
+  archive, and added install tests for various installation methods including
+  this one. (See issue #2150).
+
+* Increased minimum version of 'six' from 0.10.0 to 0.12.0 when on Python 3.8
+  (or higher). (See issue #2150).
+
+* Increased minimum version of 'setuptools' on Python 3.7 from 33.1.1 to 38.4.1
+  to fix a bug with new format of .pyc files. (See issue #2167).
 
 
-pywbem 0.15.x
+pywbem 0.17.0
 -------------
 
-The changes for this version are part of the change log of version 1.0.0,
-because 1.0.0 was created based on version 0.14.0 and the changes for this
-version were put into 1.0.0 and then backported.
+Released: 2020-04-03
+
+**Bug fixes:**
+
+* Test: Fixed a bug introduced in 0.14.5 where the manualtest scripts failed
+  with invalid relative import. (see issue #2039)
+
+* Dev: Fixed installation of Jupyter Notebook on Python 3.4 by defining
+  the appropriate minimum versions of the ipython package, per Python version.
+  (See issue #2135)
+
+* Pinned dparse to <0.5.0 on Python 2.7 due to an issue. (See issue #2139)
+
+**Enhancements:**
+
+* Changed the HTTPS support of `pywbem.WBEMListener` from using the deprecated
+  `ssl.wrap_socket()` function to using the `ssl.SSLContext` class that was
+  introduced in Python 2.7.9. This causes more secure SSL settings to be used.
+  On Python versions before 2.7.9, pywbem will continue to use the deprecated
+  `ssl.wrap_socket()` function. (See issue #2002)
+
+**Cleanup:**
+
+* Renamed all sub-modules within the pywbem namespace so they are now private
+  (i.e. with a leading underscore). This has been done for consistency with
+  the upcoming 1.0.0 version of pywbem, for eaier rollback of changes from
+  that version. For compatibility to users of pywbem who use these sub-modules
+  directly, despite the recommendation to import only the symbols from the
+  pywbem namespace, these sub-modules are still available under their previous
+  names.  (See issue #1925)
+
+
+pywbem 0.16.0
+-------------
+
+This version contains all fixes up to pywbem 0.15.0.
+
+Released: 2020-01-09
+
+**Bug fixes:**
+
+* Silenced the MOFCompiler class for verbose=False. So far, it still printed
+  messages for generating the YACC parser table, causing one test to fail,
+  and others to issue useless prints. (Issue #2004)
+
+* Test: Fixed an error in testing the PLY table version in testcases that caused
+  the LEX/YACC parser table files to be written to the pywbem installation
+  when using TEST_INSTALLED. (Related to issue #2004)
+
+* Fixed that the MOFCompiler could be created with handle=None to work against
+  a local repository. It was documented that way, but failed with
+  AttributeError. (See issue #1998)
+
+* Fixed the error that the MOF compilation of a class could fail but the
+  error was not surfaced. This only happened when the MOF compiler was invoked
+  against a WBEM server, when the class already existed, and when the
+  ModifyClass operation that was attempted in this case, failed.
+
+* Fixed that the CIM-XML payload in log entries was spread over multiple lines.
+  The payload is now escaped as a single-line Python string.
+
+* Test: Fixed an error in test_format_random() for the backslash character.
+  (See issue #2027)
+
+* Fixed handling of Unicode string in ca_certs parm of WBEMConnection on py2
+  (See issue #2033)
+
+**Enhancements:**
+
+* Test: Removed the dependency on unittest2 for Python 2.7 and higher.
+  (See issue #2003)
+
+**Cleanup**:
+
+* For Python 2.7 and higher, replaced the yamlordereddictloader package with
+  yamlloader, as it was deprecated. For Python 2.6, still using
+  yamlordereddictloader. (See issue #2008)
+
+
+pywbem 0.15.0
+-------------
+
+This version contains all fixes up to pywbem 0.14.6.
+
+Released: 2019-12-01
+
+**Deprecations:**
+
+* The wbemcli command has been deprecated. Pywbem 1.0.0 will remove the wbemcli
+  command. The recommended replacement is the pywbemcli command from the
+  pywbemtools package on Pypi: https://pypi.org/project/pywbemtools/.
+  Some of the reasons for the intended removal are: (See issue #1932)
+
+  - Wbemcli does not have a command line mode (i.e. a non-interactive mode), but
+    pywbemcli does.
+  - The interactive mode of wbemcli is more of a programming environment than
+    an interactive CLI, and that makes it harder to use than necessary.
+    Pywbemcli has an interactive mode that uses the same commands as in the
+    command line mode. If you need an interactive programming prompt e.g. for
+    demonstrating the pywbem API, use the interactive mode of the python
+    command, or Python's IDLE.
+  - Pywbemcli provides more functionality than wbemcli, e.g. server commands,
+    persistent connections, class find, instance count, or multiple output
+    formats.
+
+**Bug fixes:**
+
+* Fixed that the embedded_object attribute was not copied in CIMProperty.copy().
+
+* Fixed that inconsistent names (between key and object name) were not detected
+  when setting CIMMethod.parameters from an input dictionary.
+
+* Docs: Fixed errors in description of CIMInstance.update_existing().
+
+* Added dependency to pywin32 package for Windows, and pinned it to version 225
+  to work around an issue in its version 226. (See issue ##1946)
+
+* Modified pywbem_mock to create the instance path of new instances
+  created by the compiler.  Previously, the mocker generated an exception
+  if the path for a compiler created new instance was not set by the
+  compiler using the instance alias. That requirement has been removed so
+  the mock repository will attempt to create the path (which is required
+  for the mock repository) from properties provided in the new instance.
+  If any key properties of the class are not in the instance it will generate
+  an exception.  This is backward compatible since the mocker will accept
+  paths created by the compiler.  The incompatibility is that the mocker
+  tests for the existance of all key properties. (see issue # 1958)
+
+* Circumvented removal of Python 2.7 in Appveyor's CygWin installation
+  by manually installing the python2 CygWin package. (See issue #1949)
+
+* Fixed issue with MOFCompiler class where mof_compiler script was not writing
+  the new classes and instances to the remote repository defined with the -s
+  parameter. (see issue #1956 )
+
+* Fixed issue with mof_compiler and mof rollback where instances were
+  not removed when rollback was executed.  This was caused by MOFWBEMConnection
+  code that did not put correct paths on the instances when they were
+  inserted into the local repository so the rollback delete of the instances
+  could not identify the instances. (see issue #1158)
+
+* Fixed several install issues with the lxml, flake8, pywin32, pip, setuptools,
+  and wheel packages on Python 3.8 on Windows. (See issues #1975, #1980).
+
+**Enhancements:**
+
+* Removed the use of the 'pbr' package because it caused too many undesirable
+  side effects. As part of that, removed PKG-FILE and setup.cfg and went back
+  to a simple setup.py file. (See issues #1875, #1245, #1408, #1410)
+
+* Code: Fixed pywbem_mock issue where CreateInstance was not handling the case
+  sensitivity of property cases if the instance property name case was different than the
+  class property name case. While not legally incorrect the created instance
+  looks bad. See issue #1883
+
+* Code: Fixed pywbem_mock issue where ModifyInstance not handling case
+  sensitivity of property cases if the instance property name case was
+  different than the class property name case. Modify failed if
+  the case of property names did not match. Fixed the case test error and
+  put the class defined proerty name into the modified instance. See issue #1887
+
+* Fix issue in mof compiler where mof instance that duplicates existing instance
+  path can get lost with no warning. NOTE: This does not happen in the
+  standalone compiler because it creates a duplicate instance issue # 1852
+  but depending on the implementation of ModifyInstance for the compiler,
+  it can simply lose the instance. See issue #1894
+
+* Fix issue in pywbem_mock where instances with duplicate paths defined in mof and
+  put into the mocker repository were originally accepted as separate instances
+  but fixed to cause an exception in issue #1852, conform to the DMTF spec
+  definition that requires that the second instance modify the first.
+  Fix issue in the mof_compiler where the CreateInstance retry logic was
+  first doing a ModifyInstance and if that failed then trying a DeleteInstance
+  and CreateInstance.  We removed the DeleteInstance/CreateInstance logic and
+  insured that an exception would occur if the ModifyInstance failed.
+  See issue #1890
+
+* Code: Fix issue with pywbem_mock that allows duplicate instances to be
+  inserted into the mock repository when mof instances are compiled. Duplicate
+  instances (CIMInstanceName) will now cause an exception.  See issue #1852
+
+* Added support for byte string values in keybindings of CIMInstanceName
+  method to_wbem_uri(), consistent with other methods.
+
+* Test: Added Python 3.8 to the tested environments. (See issue #1879)
+
+* Clarified that namespace and host will be ignored when the `ResultClass` and
+  `AssocClass` parameters of association operations are specified using a
+  `CIMClassName` object. (See issue #1907)
+
+* Added capability to log calls to WBEM server from mof_compile script. AAdds
+  an option to the cmd line options to enable logging.
+
+* Added SSL related issues to the Troubleshooting section in the
+  Appendix of the docs, and added the OpenSSL version to the
+  `pywbem.ConnectionError` exceptions raised due to SSL errors for better
+  diagnosis. (See issues #1950 and #1966)
+
+* Added 'twine check' when uploading a version to Pypi, in order to get
+  the README file checked before uploading.
+
+**Cleanup:**
+
+* Removed unnecessary code from cim_obj._scalar_value_tomof() that processed
+  native Python types int, long, float. These types cannot occur in this
+  function, so no tests could be written that test that code.
+
+
+pywbem 0.14.6
+-------------
+
+Released: 2019-10-10
+
+**Bug fixes:**
+
+* Fixed case sensitive class name check in mock support of ModifyInstance
+  (See issue #1859)
+
+* Test: Fixed args of WBEMOperation methods in mock unit tests & function tests.
+
+**Cleanup:**
+
+* Test: Enabled Python warning suppression for PendingDeprecationWarning
+  and ResourceWarning (py3 only), and fixed incorrect make variable for that.
+  (See issue #1720)
+
+* Test: Removed pinning of testfixtures to <6.0.0 for Python 2.7/3.x due
+  to deprecation issue announced for Python 3.8, and increased its minimum
+  version from 4.3.3 to 6.9.0.
+
+* Test: Increased minimum version of pytest from 3.3.0 to 4.3.1 because
+  it fixed an issue that surfaced with pywbem minimum package levels
+  on Python 3.7.
+
+* Increased minimum version of PyYAML from 3.13 to 5.1 due to deprecation issue
+  announced for Python 3.8.
+
+
+pywbem 0.14.5
+-------------
+
+Released: 2019-09-29
+
+**Bug fixes:**
+
+* Added test to tests/manual/cim_operations.py specifically to test the iter and
+  pull operations for the IncludeQualifier and LocalOnly parameters based on
+  issue #1780.
+
+* Dev/Test: Pinned lxml to <4.4.0 because that version removed Python 3.4
+  support.
+
+* Dev/Test: Pinned pytest to <5.0.0 for Python < 3.5 because that version
+  requires Python >= 3.5.
+
+* Test: Fixed errors on Python 2.6 about unnamed format replacements.
+
+* Fixed incorrect format specifiers in exceptions raised in pywbem_mock.
+  (See issue #1817)
+
+* Fixed missing support for the ANY scope in pywbem_mock. (See issue #1820)
+
+* Increased version of WinOpenSSL used on Windows from 1.1.0k to 1.1.0L.
+
+* Fixed that the `OpenEnumerateInstances()` method of `WBEMConnections`
+  incorrectly supported a `LocalOnly` parameter, that was never supported as
+  per DSP0200. Specifying that parameter as `True` or `False` on this method
+  caused properly implemented WBEM servers to reject the operation. That
+  parameter now still exist on this operation but is ignored and is not passed
+  on to WBEM servers.
+  The corresponding `Iter...()` method now also ignores that parameter if the
+  pull operations are used; it is still passed on if the traditional
+  operations are used. (See issue #1780)
+
+* Fixed the issue that EnumerateInstances did not return instances without
+  properties unless DeepInheritance was set (see issue #1802).
+
+* Fixed bad formatting on --mock-server option in wbemcli.py.
+
+* Fixed the issue with 'dnf makecache fast' during pywbem_os_setup.sh on Fedora
+  (See issue #1844)
+
+**Enhancements:**
+
+* Improved handling of missing WinOpenSSL on Windows by recommending manual
+  download of next version.
+
+* Test: Added support for running the pywbem tests against an installed version
+  of pywbem, ignoring the version of pywbem that exists in the respective
+  directories of the repo work directory. This is useful for testing a
+  version of pywbem that has been installed as an OS-level package.
+  (See issue #1803)
+
+* Docs: Improved the section about installing to a native Windows environment
+  (See issue #1804)
+
+* Improved error messages and error handling in wbemcli and in the pywbem
+  mock support.
+
+
+pywbem 0.14.4
+-------------
+
+Released: 2019-07-20
+
+**Bug fixes:**
+
+* Test: For Python 2.6 on Travis, pinned the distro version to Ubuntu trusty
+  (14.04) because the default distro version on Travis changed to xenial
+  (16.04) which no longer has Python 2.6.
+
+* Add Jupyter tutorial for pywbem_mock to table of notebooks in documentation.
+
+* Fix issue with Python 3 and WBEMconnection certificate handling. pywbem
+  was getting AttributeError: 'SSLContext' object has no attribute 'load_cert'
+  because incorrect method called. (See issue # 1769)
+
+* Fixed that the `WBEMConnection.Open...()` operations incorrectly supported
+  an `IncludeQualifiers` parameter, that was never supported as per DSP0200.
+  Specifying that parameter as `True` on these operations caused properly
+  implemented WBEM servers to reject the operation. The parameter is now
+  ignored on these operations. Since this parameter was documented as
+  deprecated in DSP0200 and documented that users could not rely on qualifiers
+  to be returned, this fix should not break user code. The
+  `WBEMConnection.Iter...()` operations now also ignore that parameter if the
+  pull operations are used, and the documentation has been updated accordingly.
+  (See issue #1780)
+
+* pywbem_mock display_repository() comment defintion that surrounds comments
+  in the output was defined as # but mof comments are // so changed. (see
+  issue #1951)
+
+* Fixed that local tests (i.e. TEST_INSTALLED=False) skipped MOF tests if
+  the mofparsetab or moflextab files did not exist. (See issue #1933)
+
+**Enhancements:**
+
+* Docs: Clarified how the pywbem_os_setup.sh/bat scripts can be downloaded
+  using a predictable URL, for automated downloads.
+
+* Clarified the 'x509' parameter of 'WBEMConnection' in that its 'key_file'
+  item is optional and if omitted, both the private key and the certificate
+  must be in the file referenced by the 'cert_file' item. Added checks
+  for the 'x509' parameter.
+
+**Cleanup:**
+
+* Test: Removed pinning of distro version on Travis to Ubuntu xenial (16.04)
+  for Python 3.7, because that is now the default distro version, in order to
+  pick up a future increase of the default distro version automatically.
+
+
+pywbem 0.14.3
+-------------
+
+Released: 2019-05-30
+
+**Bug fixes:**
+
+* Windows install: Upgraded version of Win32/64OpenSSL.exe that is downloaded
+  during installation on native Windows, from 1.1.0j to 1.1.0k. This became
+  necessary because the maintainer of the Win32OpenSSL project at
+  https://slproweb.com/products/Win32OpenSSL.html removes the previous version
+  from the web site whenever a new version is released, causing the pywbem
+  installation to fail during invocation of pywbem_os_setup.bat on Windows.
+  Related to that, fixed the way pywbem_os_setup.bat recognizes that the
+  version does not exist.
+  (see issue #1754)
+
+**Enhancements:**
+
+* Docs: Updated the trouble shooting section with an entry that explains
+  how a user can resolve the installation failure that is caused on Windows
+  when the Win32OpenSSL project at
+  https://slproweb.com/products/Win32OpenSSL.html removes the previous version
+  from their web site when a new version is released.
+
+* Increased versions of the following packages to address security
+  vulnerabilities:
+
+  * requests from 2.19.1 to 2.20.1 (when on Python 2.7 or higher)
+  * urllib3 from 1.22 to 1.23
+  * bleach from 2.1.0 to 2.1.4
+
+  These packages are only used for development of pywbem.
+
+  Note that requests 2.19.1 has a security issue that is fixed in 2.20.0.
+  However, requests 2.20.0 has dropped support for Python 2.6.
+
+
+pywbem 0.14.2
+-------------
+
+Released: 2019-05-08
+
+**Bug fixes:**
+
+* Test: Temporary fix for pytest option `--pythonwarnings` in end2end tests
+  (issue #1714).
+
+* Test: Fixed AttributeError in end2end assertion functions (Issue #1714)
+
+* Test: Added and fixed profile definitions for end2end tests. (Issue #1714)
+
+* Fix issue in the Jupyter notebook iterablecimoperations where the
+  IterQueryInstance example did not correctly processthe return from the
+  operation.  It attempted to itereate the returned object and should have
+  been iterating the generator property in that object.  Documentation of
+  that example and the example were corrected. (see issue #1741)
+
+* Fix issue in pywbem_mock/_wbemconnection_mock.py with EnumerateInstances that
+  includes a property list with a property name that differs in case from the
+  property name in the returned instance. Works in the conn_lite=True mode but
+  fails in conn_lite=False mode because the test was case insensitive.
+
+* Test: Fixed Appveyor CI setup for UNIX-like environments under Windows
+  (Issue #1729)
+
+**Enhancements:**
+
+* Changed GetCentralInstances methodology in WBEMServer.get_central_instances()
+  to be bypassed by default, because (1) WBEM servers do not implement it at
+  this point, and (2) there are WBEM servers that do not behave gracefully
+  when unknown CIM methods are invoked. Because WBEM servers are required to
+  implement one of the other methodologies, this change is not incompatible for
+  pywbem users.
+
+* Improved the performance for receiving large CIM-XML responses in the
+  tupleparser by moving type checks for text content in XML into an error
+  handling path, and by replacing some isinstance() calls with type()
+  comparison.
+
+* Improved the quality of the information in TypeError exceptions that are raised
+  due to invalid types passed in WBEMConnection operation arguments. (Issue #1736)
+
+
+pywbem 0.14.1
+-------------
+
+Released: 2019-04-05
+
+**Bug fixes:**
+
+* Change history: Removed incorrect statement about commenting out
+  server-specific functionality from the tuple parser from the change history
+  of pywbem 0.14.0.
 
 
 pywbem 0.14.0
