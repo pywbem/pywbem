@@ -115,9 +115,12 @@ typing==3.6.1  # from M2Crypto
 packaging==16.6
 funcsigs==1.0.2; python_version < '3.3'
 unittest2==1.1.0; python_version == '2.6'
-pytest==3.1.0; python_version == '2.6'
+pytest==3.2.0; python_version == '2.6'
 pytest==4.3.1; python_version >= '2.7' and python_version <= '3.6'
 pytest==4.4.0; python_version >= '3.7'
+# py version is determined by pytest:
+py==1.4.34; python_version == '2.6'
+py==1.5.1; python_version > '2.6'
 testfixtures==4.3.3; python_version == '2.6'
 testfixtures==6.9.0; python_version > '2.6'
 httpretty==0.8.14; python_version == '2.6'
@@ -262,9 +265,6 @@ pickleshare==0.7.4
 pkginfo==1.4.1
 prompt-toolkit==2.0.1
 ptyprocess==0.5.1
-# py version is determined by pytest:
-py==1.4.32; python_version == '2.6'
-py==1.5.1; python_version > '2.6'
 pyzmq==16.0.4
 qtconsole==4.2.1
 requests-toolbelt==0.7.0
