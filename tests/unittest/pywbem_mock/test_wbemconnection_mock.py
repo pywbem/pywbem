@@ -6859,7 +6859,7 @@ class TestAssociatorOperations(object):
         assert exc.status_code == CIM_ERR_INVALID_PARAMETER
 
 
-class Method1TestProvider(MethodProvider):
+class Method1UserProvider(MethodProvider):
     """
     User test provider for InvokeMethod using CIM_Foo_sub_sub and method1.
     This is basis for testing passing of input parameters correctly and
@@ -6872,7 +6872,7 @@ class Method1TestProvider(MethodProvider):
     provider_classnames = 'CIM_Foo_sub_sub'
 
     def __init__(self, cimrepository):
-        super(Method1TestProvider, self).__init__(cimrepository)
+        super(Method1UserProvider, self).__init__(cimrepository)
 
     def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
         """
@@ -7074,7 +7074,7 @@ class TestInvokeMethod(object):
         conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
         if 'test_class' not in inputs:
-            test_class = Method1TestProvider
+            test_class = Method1UserProvider
         else:
             test_class = inputs['test_class']
 

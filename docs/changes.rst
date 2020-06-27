@@ -67,6 +67,13 @@ Released: not yet
   document these issues (issue #2327) except for the ones we fixed in place or
   removed because they are obsolete.  (See issue #1240)
 
+* Corrected issue in the Jupyter notebook pywbemmock to reflect the incompatible
+  changes for pywbem mock including 1) the change of the method
+  compile_dmtf_schema to compile_dmtf_classes, and the replacement of the
+  InvokeMethod callback mechanism to define a method provider with the
+  user-defined method provider. (see issue #2310)
+
+
 **Known issues:**
 
 * See `list of open issues`_.
