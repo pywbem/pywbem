@@ -13,14 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 0.17.3.dev1
-------------------
+pywbem 0.17.3
+-------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-06-28
 
 **Bug fixes:**
 
@@ -29,18 +25,16 @@ Released: not yet
   pytest Skipped exception.
   (Related to issue #2304)
 
+* On Python 2.6, the component packages of Jupytr are no longer installed to
+  fix an install issue due related to the entrypoint package.
+
+* Accomodated the newly released flake8 version 3.8.1 by removing the
+  pinning of pyflakes to <2.2.0, and adjusting the source code of pywbem
+  to get around the new flake8 messages E123, E124, E402.
+
 **Enhancements:**
 
-* Added support for array-typed elements to pywbem.ValueMapping.
-  (See issue #2304)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+* Improved support for array-typed elements in ValueMapping (See issue #2304).
 
 
 pywbem 0.17.2
