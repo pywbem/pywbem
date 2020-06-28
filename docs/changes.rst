@@ -13,14 +13,12 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.0b2.dev1
--------------------
+pywbem 1.0.0b2
+--------------
 
-Released: not yet
+Released: 2020-06-29
 
-**Incompatible changes:**
-
-**Deprecations:**
+This version contains all fixes up to 0.17.3.
 
 **Bug fixes:**
 
@@ -32,18 +30,15 @@ Released: not yet
 * Fixed slow performance for EnumerateClasses operation in mock WBEM server.
   (See issue #2314)
 
+* Updated change history of 1.0.0b1 to add a bug fix for accomodating the newly
+  released flake8 version 3.8.1 by removing the pinning of pyflakes to <2.2.0,
+  and adjusting the source code of pywbem to get around the new flake8 messages
+  E123, E124, E402.
+
 **Enhancements:**
 
 * Added support for array-typed elements to pywbem.ValueMapping.
   (See issue #2304)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.0b1
@@ -391,6 +386,10 @@ below this list.
 
 * Removed the incorrect statement about deprecated comparison operators in the
   `NocaseDict` class - these operators had already returned errors.
+
+* Accomodated the newly released flake8 version 3.8.1 by removing the
+  pinning of pyflakes to <2.2.0, and adjusting the source code of pywbem
+  to get around the new flake8 messages E123, E124, E402.
 
 **Enhancements:**
 
