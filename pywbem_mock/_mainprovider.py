@@ -272,11 +272,11 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         if classname is None:
             rtn_classnames = [
-                c.classname for c in class_store.iter_values()
+                c.classname for c in class_store.iter_values(copy=False)
                 if c.superclass is None]
         else:
             rtn_classnames = [
-                c.classname for c in class_store.iter_values()
+                c.classname for c in class_store.iter_values(copy=False)
                 if c.superclass and c.superclass.lower() == classname.lower()]
 
         # Recurse for next level of class hierarchy
