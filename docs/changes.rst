@@ -29,6 +29,9 @@ Released: not yet
   1.0.0b1. This reduces the change log entries shown for 1.0.0b1 to just the
   changes relative to 0.17.2. (See issue #2303)
 
+* Fixed slow performance for EnumerateClasses operation in mock WBEM server.
+  (See issue #2314)
+
 **Enhancements:**
 
 * Added support for array-typed elements to pywbem.ValueMapping.
