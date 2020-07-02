@@ -102,7 +102,7 @@ WBEMConnection method                                       Purpose
                                                             OpenEnumerateInstancePaths, OpenAssociatorInstancePaths,
                                                             or OpenReferenceInstancePaths
 :meth:`~pywbem.WBEMConnection.PullInstances`                Continue enumeration of enumeration session opened
-                                                            with OpenExecQuery
+                                                            with OpenQueryInstances
 :meth:`~pywbem.WBEMConnection.CloseEnumeration`             Close an enumeration session in process.
 ----------------------------------------------------------  --------------------------------------------------------------
 :meth:`~pywbem.WBEMConnection.EnumerateClasses`             Enumerate the subclasses of a class, or the top-level classes

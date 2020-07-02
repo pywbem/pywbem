@@ -2609,9 +2609,10 @@ class MainProvider(BaseProvider, ResolverMixin):
                     _format("ContinueOnerror must boolean. "
                             "Rcvd {0}.", ContinueOnError))
 
-    def _test_pull_operations_disabled(self):
+    def _validate_pull_operations_enabled(self):
         """
-        Test if pull operations vare enabled.  If they are not, raise exception.
+        Verify that pull operations are enabled.
+        If they are not, raise exception.
         """
         if self.disable_pull_operations:
             raise CIMError(CIM_ERR_NOT_SUPPORTED,
@@ -2707,7 +2708,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2802,7 +2803,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2862,7 +2863,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2920,7 +2921,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2980,7 +2981,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -3041,7 +3042,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -3091,7 +3092,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises: CIM_ERR_NOT_IMPLEMENTED
         """
 
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -3180,7 +3181,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancesWithPath',
                                    EnumerationContext, MaxObjectCount)
 
@@ -3256,7 +3257,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancePaths',
                                    EnumerationContext, MaxObjectCount)
 
@@ -3329,7 +3330,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
         return self._pull_response('PullInstances',
                                    EnumerationContext, MaxObjectCount)
 
@@ -3357,7 +3358,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
-        self._test_pull_operations_disabled()
+        self._validate_pull_operations_enabled()
 
         if EnumerationContext in self.enumeration_contexts:
             del self.enumeration_contexts[EnumerationContext]
