@@ -7,57 +7,9 @@
 # the minimum versions specified in minimum-constraints.txt.
 
 
+-r test-requirements.txt
+
 # Direct dependencies:
-
-
-# Unit test (imports into testcases):
-packaging>=17.0
-funcsigs>=1.0.2; python_version < '3.3'
-# pytest 5.0.0 has removed support for Python < 3.5
-# pytest 4.3.1 solves an issue on Python 3 with minimum package levels
-pytest>=4.3.1,<5.0.0; python_version < '3.5'
-pytest>=4.3.1; python_version >= '3.5' and python_version <= '3.6'
-pytest>=4.4.0; python_version >= '3.7'
-testfixtures>=6.9.0
-# colorama 0.4.0 removed support for Python 3.4
-colorama>=0.3.9,<0.4.0; python_version <= '3.4'
-colorama>=0.4.0; python_version >= '3.5'
-
-requests>=2.20.1
-requests-mock>=1.6.0
-requests-toolbelt>=0.7.0
-yagot>=0.5.0
-importlib-metadata<1,>=0.12; python_version <= '3.7'
-pytz>=2016.10
-
-# Unit test (indirect dependencies):
-# Pluggy 0.12.0 has a bug causing pytest plugins to fail loading on py38
-pluggy>=0.7.1; python_version >= '2.7' and python_version <= '3.6'
-pluggy>=0.13.0; python_version >= '3.7'
-decorator>=4.0.11
-yamlloader>=0.5.5
-backports.statistics>=0.1.0; python_version == '2.7'
-# FormEncode is used for xml comparisons in unit test
-FormEncode>=1.3.1
-
-# Lxml
-# lxml 4.4.0 removed Python 3.4 support.
-# lxml 4.4.1 added Python 3.8 support. However, while providing binary wheel
-#   files, it did not register Python 3.8 as a supported version in the
-#   package metadata on Pypi. A fix for that is expected for the next lxml
-#   version after 4.4.2 (See https://bugs.launchpad.net/lxml/+bug/1854465
-#   and https://github.com/lxml/lxml/pull/291). Before that, pip 19.3.1
-#   is required to properly deal with this inconsistency (see issue #1980).
-lxml>=4.2.4; python_version == '2.7'
-lxml>=4.2.4,<4.4.0; python_version == '3.4'
-lxml>=4.2.4; python_version >= '3.5' and python_version <= '3.7'
-lxml>=4.4.1; python_version >= '3.8'
-
-# Virtualenv
-# Virtualenv 20.0.19 has an issue where it does not install pip on Python 3.4.
-virtualenv>=14.0.0,!=20.0.19; python_version < '3.5'
-virtualenv>=16.1.0; python_version >= '3.5' and python_version < '3.8'
-virtualenv>=20.0.0; python_version >= '3.8'
 
 # Coverage reporting (no imports, invoked via coveralls script):
 # coverage 5.0 has removed support for py34

@@ -4,9 +4,12 @@ include README.rst
 include README_PYPI.rst
 include INSTALL.md
 include requirements.txt
+include test-requirements.txt
 include setup.py
 include build_moftab.py
 include mof_compiler
 include mof_compiler.bat
 include pywbem/*.py
 include pywbem_mock/*.py
+recursive-include tests *
+recursive-exclude tests *.pyc
