@@ -22,9 +22,11 @@
 Setup script for pywbem project.
 """
 
+import sys
 import os
 import re
 import setuptools
+from distutils import log
 
 
 def get_version(version_file):
@@ -68,12 +70,101 @@ def read_file(a_file):
     return content
 
 
+class PytestCommand(setuptools.Command):
+    """
+    Base class for setup.py commands for executing tests for this package
+    using pytest.
+
+    Note on the class name: Because distutils.dist._show_help() shows the class
+    name for the setup.py command name instead of invoking get_command_name(),
+    the classes that get registered as commands must have the command name.
+    """
+
+    description = None  # Set by subclass
+    my_test_dirs = None  # Set by subclass
+
+    user_options = [
+        (
+            'pytest-options=',  # '=' indicates it requires an argument
+            None,  # no short option
+            "additional options for pytest, as one argument"
+        ),
+    ]
+
+    def initialize_options(self):
+        self.test_opts = None
+        self.test_dirs = None
+        self.pytest_options = None
+
+    def finalize_options(self):
+        self.test_opts = [
+            '--color=yes',
+            '-s',
+            '-W', 'default',
+            '-W', 'ignore::PendingDeprecationWarning',
+        ]
+        if sys.version_info[0] == 3:
+            self.test_opts.extend([
+                '-W', 'ignore::ResourceWarning',
+            ])
+        self.test_dirs = self.my_test_dirs
+
+    def run(self):
+        import pytest  # deferred import so install does not depend on it
+        args = self.test_opts
+        if self.pytest_options:
+            args.extend(self.pytest_options.split(' '))
+        args.extend(self.test_dirs)
+        if self.dry_run:
+            self.announce("Dry-run: pytest {}".format(' '.join(args)),
+                          level=log.INFO)
+            return 0
+        else:
+            self.announce("pytest {}".format(' '.join(args)),
+                          level=log.INFO)
+            rc = pytest.main(args)
+            return rc
+
+
+class test(PytestCommand):
+    """
+    Setup.py command for executing unit and function tests.
+    """
+    description = "pywbem: Run unit and function tests using pytest"
+    my_test_dirs = ['tests/unittest', 'tests/functiontest']
+
+
+class leaktest(PytestCommand):
+    """
+    Setup.py command for executing leak tests.
+    """
+    description = "pywbem: Run leak tests using pytest"
+    my_test_dirs = ['tests/leaktest']
+
+
+class end2endtest(PytestCommand):
+    """
+    Setup.py command for executing end2end tests.
+    """
+    description = "pywbem: Run end2end tests using pytest"
+    my_test_dirs = ['tests/end2endtest']
+
+    def finalize_options(self):
+        PytestCommand.finalize_options(self)  # old-style class
+        self.test_opts.extend([
+            '-v', '--tb=short',
+        ])
+
+
 # pylint: disable=invalid-name
 requirements = get_requirements('requirements.txt')
 install_requires = [req for req in requirements
                     if req and not re.match(r'[^:]+://', req)]
 dependency_links = [req for req in requirements
                     if req and re.match(r'[^:]+://', req)]
+
+test_requirements = get_requirements('test-requirements.txt')
+
 package_version = get_version(os.path.join('pywbem', '_version.py'))
 
 # Docs on setup():
@@ -88,13 +179,20 @@ setuptools.setup(
         'pywbem',
         'pywbem_mock'
     ],
-    include_package_data=True,  # as specified in MANIFEST.in
+    include_package_data=True,  # Includes MANIFEST.in files into sdist (only)
     scripts=[
         'mof_compiler', 'mof_compiler.bat'
     ],
     install_requires=install_requires,
     dependency_links=dependency_links,
-
+    extras_require={
+        "test": test_requirements,
+    },
+    cmdclass={
+        'test': test,
+        'leaktest': leaktest,
+        'end2endtest': end2endtest,
+    },
     description='pywbem - A WBEM client',
     long_description=read_file('README_PYPI.rst'),
     long_description_content_type='text/x-rst',

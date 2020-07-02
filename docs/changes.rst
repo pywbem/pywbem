@@ -40,6 +40,15 @@ Released: not yet
 
 **Enhancements:**
 
+* Test: Added support for testing from Pypi/GitHub source distribution archives.
+  This allows testing without having to check out the entire repository, and
+  is convenient for testing e.g. when packaging pywbem into OS-level packages.
+  See new section 'Testing from the source archives on Pypi or GitHub'
+  for details. (See issue #2260)
+
+* Test: Renamed the 'end2end' target in the makefile to 'end2endtest'.
+  (Part of issue #2260)
+
 **Cleanup:**
 
 **Known issues:**
