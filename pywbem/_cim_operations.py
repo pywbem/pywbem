@@ -2060,26 +2060,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         return (returnvalue, output_params)
 
-    def _iparam_namespace_from_namespace(self, obj):
+    def _iparam_namespace_from_namespace(self, namespace):
         # pylint: disable=invalid-name,
         """
-        Determine the namespace from a namespace string, or `None`. The
-        default namespace of the connection object is used, if needed.
+        Determine the namespace from a namespace parameter, for use as an
+        argument to imethodcall().
 
-        Return the so determined namespace for use as an argument to
-        imethodcall().
+        Slashes at begin and end of namespace are stripped.
+
+        If namespace is None, the default namespace of the connection object
+        is used.
+
+        Returns:
+           The so determined namespace string.
+
+        Raises:
+          TypeError - namespace has an invalid type
         """
-
-        if isinstance(obj, six.string_types):
-            namespace = obj.strip('/')
-        elif obj is None:
-            namespace = obj
+        if isinstance(namespace, six.string_types):
+            namespace = namespace.strip('/')
+        elif namespace is None:
+            pass
         else:
             raise TypeError(
                 _format("The 'namespace' argument of the WBEMConnection "
                         "operation has invalid type {0} (must be None, or a "
                         "string)",
-                        type(obj)))
+                        type(namespace)))
         if namespace is None:
             namespace = self.default_namespace
         return namespace
@@ -2087,12 +2094,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def _iparam_namespace_from_objectname(self, objectname, arg_name):
         # pylint: disable=invalid-name,
         """
-        Determine the namespace from an object name, that can be a class
-        name string, a CIMClassName or CIMInstanceName object, or `None`.
+        Determine the namespace from an object name, for use as an argument to
+        imethodcall().
+
+        The objectname can be a class name string, a CIMClassName or
+        CIMInstanceName object, or `None`.
+
         The default namespace of the connection object is used, if needed.
 
-        Return the so determined namespace for use as an argument to
-        imethodcall().
+        Returns:
+           The so determined namespace string.
+
+        Raises:
+          TypeError - objectname has an invalid type
         """
 
         if isinstance(objectname, (CIMClassName, CIMInstanceName)):
@@ -2114,9 +2128,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def _iparam_objectname(objectname, arg_name):
         """
-        Convert an object name (= class or instance name) specified in an
-        operation method into a CIM object that can be passed to
-        imethodcall().
+        Convert an object name (i.e. class or instance name) specified in an
+        operation method into an object (i.e. CIMClassName or CIMInstanceName)
+        that can be passed to imethodcall().
+
+        Returns:
+          * CIMClassName without host and namespace, if objectname is string or
+            CIMClassName
+          * CIMInstanceName without host and namespace, if objectname is
+            CIMInstanceName
+          * None, if objectname is None
+
+        Raises:
+          TypeError - objectname has an invalid type
         """
 
         if isinstance(objectname, (CIMClassName, CIMInstanceName)):
@@ -2138,8 +2162,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def _iparam_classname(classname, arg_name):
         """
-        Convert a class name specified in an operation method into a CIM
-        object that can be passed to imethodcall().
+        Convert a class name specified in an operation method into a
+        CIMClassName object, so that it can be passed to imethodcall().
+
+        Returns:
+          * CIMClassName without host and namespace, if classname is string or
+            CIMClassName
+          * None, if classname is None
+
+        Raises:
+          TypeError - classname has an invalid type
         """
 
         if isinstance(classname, CIMClassName):
@@ -2161,8 +2193,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def _iparam_instancename(instancename):
         """
-        Convert an instance name specified in an operation method into a CIM
-        object that can be passed to imethodcall().
+        Convert an instance name specified in an operation method into a
+        CIMInstanceName object that can be passed to imethodcall().
+
+        Returns:
+          * CIMInstanceName without host and namespace, if instancename is
+            CIMInstanceName
+          * None, if instancename is None
+
+        Raises:
+          TypeError - instancename has an invalid type
         """
 
         if isinstance(instancename, CIMInstanceName):

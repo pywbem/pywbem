@@ -55,7 +55,7 @@ from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIMQualifierDeclaration, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_FAILED
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
@@ -611,8 +611,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) invalid
-              namespace.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) A class that should
               be a subclass of either the root or "ClassName" parameter was not
               found in the CIM repository. This is probably a CIM repository
@@ -620,11 +619,15 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) class defined by
               the classname parameter does not exist.
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ClassName, (six.string_types, type(None)))
+
         self.validate_namespace(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
 
         if ClassName:
-            assert(isinstance(ClassName, six.string_types))
             if not class_store.object_exists(ClassName):
                 raise CIMError(
                     CIM_ERR_INVALID_CLASS,
@@ -698,16 +701,19 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE) invalid
-              namespace.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) class defined by
               the classname parameter does not exist.
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ClassName, (six.string_types, type(None)))
+
         self.validate_namespace(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
 
         if ClassName:
-            assert(isinstance(ClassName, six.string_types))
             if not class_store.object_exists(ClassName):
                 raise CIMError(
                     CIM_ERR_INVALID_CLASS,
@@ -785,14 +791,17 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-              invalid namespace.
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS) class defined by
-              the ClassName parameter does not exist in the CIM repository.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        self.validate_namespace(namespace)
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, six.string_types)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+
+        self.validate_namespace(namespace)
 
         cc = self.get_class(namespace, ClassName, local_only=LocalOnly,
                             include_qualifiers=IncludeQualifiers,
@@ -836,25 +845,24 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_SUPERCLASS)
-              if superclass specified in the class does not exist.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
-              if NewClass parameter not a class.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_SUPERCLASS)
             :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
-              if class already exists.
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+
+        self.validate_namespace(namespace)
 
         if not isinstance(NewClass, CIMClass):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("NewClass not valid CIMClass. Rcvd type={0}",
-                        type(NewClass)))
+                _format("NewClass parameter must be a CIMClass, "
+                        "but has type {0}", type(NewClass)))
 
-        # Validate namespace in class store and get the class CIM repository
-        # for this namespace.
-        self.validate_namespace(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
-
         if class_store.object_exists(NewClass.classname):
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
@@ -880,8 +888,6 @@ class MainProvider(BaseProvider, ResolverMixin):
     def ModifyClass(self, namespace, ModifiedClass):
         # pylint: disable=no-self-use,unused-argument
         """
-        This method is not implemented and returns CIM_ERR_NOT_SUPPORTED.
-
         Implements a  WBEM server responder method for
         :meth:`pywbem.WBEMConnection.MmodifyClass`.
 
@@ -902,21 +908,27 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+
         self.validate_namespace(namespace)
 
         if not isinstance(ModifiedClass, CIMClass):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("ModifyClass not valid CIMClass. Rcvd type={0}",
-                        type(ModifiedClass)))
+                _format("ModifiedClass parameter must be a CIMClass, "
+                        "but has type {0}", type(ModifiedClass)))
 
         class_store = self.cimrepository.get_class_store(namespace)
 
         if not class_store.object_exists(ModifiedClass.classname):
             raise CIMError(
-                CIM_ERR_ALREADY_EXISTS,
+                CIM_ERR_NOT_FOUND,
                 _format("Class {0!A} does not exist in namespace {1!A}.",
                         ModifiedClass.classname, namespace))
 
@@ -960,11 +972,16 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND) if ClassName defines
-              class not in CIM repository.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ClassName, six.string_types)
+
         self.validate_namespace(namespace)
+
         class_store = self.cimrepository.get_class_store(namespace)
         instance_store = self.cimrepository.get_instance_store(namespace)
 
@@ -1030,8 +1047,11 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERROR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
 
         self.validate_namespace(namespace)
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
@@ -1074,10 +1094,21 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+
         self.validate_namespace(namespace)
+
+        if not isinstance(QualifierName, six.string_types):
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("QualifierName parameter must be a string, "
+                        "but has type {0}", type(QualifierName)))
+
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         try:
@@ -1119,33 +1150,30 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+
         self.validate_namespace(namespace)
-        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         qual_decl = QualifierDeclaration
         if not isinstance(qual_decl, CIMQualifierDeclaration):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("QualifierDeclaration parameter is not a valid "
-                        "valid CIMQualifierDeclaration. Rcvd type={0}, "
-                        "Object={1}", type(qual_decl), qual_decl))
+                _format("QualifierDeclaration parameter must be a "
+                        "CIMQualifierDeclaration, but has type {0}",
+                        type(qual_decl)))
+
+        qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         # Try to create and if that fails, modify the existing qualifier decl
         try:
             qualifier_store.create(qual_decl.name, qual_decl)
         except ValueError:
-            try:
-                qualifier_store.update(qual_decl.name, qual_decl)
-            except KeyError:
-                raise CIMError(
-                    CIM_ERR_FAILED,
-                    _format("Qualifier declaration {0!A} could not be "
-                            "created or modified in namespace {1!A}.",
-                            qual_decl.name, namespace))
+            qualifier_store.update(qual_decl.name, qual_decl)
 
     ####################################################################
     #
@@ -1173,11 +1201,22 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE,)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+
         self.validate_namespace(namespace)
+
+        if not isinstance(QualifierName, six.string_types):
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("QualifierName parameter must be a string, "
+                        "but has type {0}", type(QualifierName)))
+
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         if qualifier_store.object_exists(QualifierName):
@@ -1285,10 +1324,15 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """  # noqa: E501
         # pylint: enable=line-too-long
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
 
         namespace = InstanceName.namespace
         self.validate_namespace(namespace)
@@ -1405,15 +1449,20 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_CLASS_NOT_FOUND)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ClassName, six.string_types)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+
         self.validate_namespace(namespace)
+
         instance_store = self.cimrepository.get_instance_store(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
-
-        assert isinstance(ClassName, six.string_types)
 
         LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
 
@@ -1494,12 +1543,17 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_CLASS_NOT_FOUND)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, six.string_types)
 
         self.validate_namespace(namespace)
+
         instance_store = self.cimrepository.get_instance_store(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
 
@@ -1560,12 +1614,9 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
         """
 
-        self.validate_namespace(namespace)
         raise CIMError(
             CIM_ERR_NOT_SUPPORTED,
             "ExecQuery not implemented!")
-
-        return []  # pylint: disable=unreachable
 
     #####################################################################
     #
@@ -1728,6 +1779,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # DSP0200 specifies INVALID_PARAMETER and not INVALID_CLASS
         if not class_store.object_exists(instname.classname):
             raise CIMError(
+                # DSP0200 does not list not found errors for this operation.
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Class {0!A} not found in namespace {1!A}.",
                         instname.classname, namespace))
@@ -1952,10 +2004,14 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+
         self.validate_namespace(namespace)
+
         if isinstance(ObjectName, CIMInstanceName):
             self._validate_instancename_namespace(namespace, ObjectName)
             ref_paths = self._get_reference_instnames(namespace, ObjectName,
@@ -2105,11 +2161,15 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """  # noqa: E501
         # pylint: enable=line-too-long
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+
         self.validate_namespace(namespace)
+
         if isinstance(ObjectName, CIMInstanceName):
             # This is an  instance reference
             self._validate_instancename_namespace(namespace, ObjectName)
@@ -2205,10 +2265,14 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+
         self.validate_namespace(namespace)
+
         if isinstance(ObjectName, CIMInstanceName):
             self._validate_instancename_namespace(namespace, ObjectName)
             rtn_paths = self._get_associated_instancenames(namespace,
@@ -2310,10 +2374,14 @@ class MainProvider(BaseProvider, ResolverMixin):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+
         self.validate_namespace(namespace)
+
         if isinstance(ObjectName, CIMInstanceName):
             self._validate_instancename_namespace(namespace, ObjectName)
             assoc_names = self._get_associated_instancenames(namespace,
@@ -2705,10 +2773,18 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ClassName, six.string_types)
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2799,11 +2875,20 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(ClassName, six.string_types)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2859,11 +2944,17 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(InstanceName, CIMInstanceName)
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2917,11 +3008,19 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -2978,10 +3077,17 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(InstanceName, CIMInstanceName)
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -3038,11 +3144,19 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -3089,10 +3203,18 @@ class MainProvider(BaseProvider, ResolverMixin):
         OperationTimeout, ContinueOnError, and MaxObjectCount
         parameters.
 
-        Raises: CIM_ERR_NOT_IMPLEMENTED
+        Raises:
+
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
         """
 
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+
         self._validate_pull_operations_enabled()
+        self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout, ContinueOnError)
 
@@ -3178,9 +3300,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
+
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancesWithPath',
                                    EnumerationContext, MaxObjectCount)
@@ -3254,9 +3377,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
+
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancePaths',
                                    EnumerationContext, MaxObjectCount)
@@ -3327,9 +3451,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
+
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstances',
                                    EnumerationContext, MaxObjectCount)
@@ -3356,8 +3481,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Raises:
 
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
+
         self._validate_pull_operations_enabled()
 
         if EnumerationContext in self.enumeration_contexts:
