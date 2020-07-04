@@ -176,7 +176,7 @@ from __future__ import absolute_import, print_function
 from copy import deepcopy
 import six
 
-from pywbem import CIMInstanceName, CIMError, \
+from pywbem import CIMInstance, CIMInstanceName, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS
 
@@ -330,18 +330,25 @@ class InstanceWriteProvider(BaseProvider):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
-              The instance defined by namespace and instance name already
-              exists.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
-              The class defined in ``NewInstance``  does not exist in the
-              namespace.
+            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
         """
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
 
         new_instance = NewInstance
 
         self.validate_namespace(namespace)
         instance_store = self.cimrepository.get_instance_store(namespace)
+
+        if not isinstance(new_instance, CIMInstance):
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("NewInstance parameter must be a CIMInstance, "
+                        "but has type {0}", type(new_instance)))
 
         # Requires corresponding class to build path to be returned
         target_class = self.get_class(namespace,
@@ -457,15 +464,27 @@ class InstanceWriteProvider(BaseProvider):
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_NAMESPACE_NOT_FOUND)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
+            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """  # noqa: E501
         # pylint: disable=invalid-name,line-too-long
 
-        # get the namespace from the Modified instance
         namespace = ModifiedInstance.path.namespace
+
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+
+        self.validate_namespace(namespace)
+
+        if not isinstance(ModifiedInstance, CIMInstance):
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("ModifiedInstance parameter must be a CIMInstance, "
+                        "but has type {0}", type(ModifiedInstance)))
 
         instance_store = self.cimrepository.get_instance_store(namespace)
         modified_instance = deepcopy(ModifiedInstance)
@@ -500,7 +519,7 @@ class InstanceWriteProvider(BaseProvider):
         if orig_instance is None:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("Original Instance {0!A} not found in namespace {1!A}",
+                _format("Instance {0!A} not found in namespace {1!A}",
                         modified_instance.path, namespace))
 
         # Remove duplicate properties from property_list
@@ -637,12 +656,16 @@ class InstanceWriteProvider(BaseProvider):
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
 
-        instance_store = self.cimrepository.get_instance_store(
-            InstanceName.namespace)
+        # Parameter types are already checked by WBEMConnection operation
+        assert isinstance(InstanceName, CIMInstanceName)
+
+        namespace = InstanceName.namespace
+        self.validate_namespace(namespace)
+
+        instance_store = self.cimrepository.get_instance_store(namespace)
 
         # Handle namespace deletion, currently hard coded.
         # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
@@ -662,7 +685,13 @@ class InstanceWriteProvider(BaseProvider):
             self.remove_namespace(namespace)
 
         # Delete the instance from the CIM repository
-        instance_store.delete(InstanceName)
+        if instance_store.object_exists(InstanceName):
+            instance_store.delete(InstanceName)
+        else:
+            raise CIMError(
+                CIM_ERR_NOT_FOUND,
+                _format("Instance {0!A} not found in namespace {1!A}.",
+                        InstanceName, namespace))
 
     def post_register_setup(self, conn):
         """
