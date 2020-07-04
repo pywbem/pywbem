@@ -13,8 +13,8 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.0.dev1
------------------
+pywbem 1.0.0b3.dev1
+-------------------
 
 Released: not yet
 
