@@ -34,6 +34,11 @@ Released: not yet
 * Removed the deprecated `schema_mof_file` property in `DMTFCIMSchema`, in favor
   of the `schema_pragma_file` property. (See issue #2284)
 
+* Changed the handling of invalid types of input parameters to WBEMConnection
+  operation methods to raise TypeError instead of other exceptions (KeyError,
+  AttributeError, CIMError). This does not change the behavior if valid types
+  are passed. (See issue #2313)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -48,6 +53,12 @@ Released: not yet
 
 * Test: Renamed the 'end2end' target in the makefile to 'end2endtest'.
   (Part of issue #2260)
+
+* Added type checking for input parameters to WBEMConnection operation methods.
+  Previously, invalid types could cause various exceptions to be raised,
+  including KeyError, AttributeError, or CIMError. Now, all invalid types are
+  properly checked and cause TypeError to be raised. Added testcases
+  for invalid types. (See issue #2313)
 
 **Cleanup:**
 

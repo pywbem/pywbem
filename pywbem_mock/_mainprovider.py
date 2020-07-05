@@ -563,6 +563,9 @@ class MainProvider(BaseProvider, ResolverMixin):
             Name of the class whose subclasses will be retrieved
             (case independent).
 
+            If `None`, the top-level classes in the namespace will be
+            retrieved.
+
           DeepInheritance (:class:`py:bool`):
             Indicates that all (direct and indirect) subclasses of the
             specified class or of the top-level classes are to be included in
@@ -623,8 +626,13 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, (six.string_types, type(None)))
+        assert isinstance(DeepInheritance, (bool, type(None)))
+        assert isinstance(LocalOnly, (bool, type(None)))
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
 
         self.validate_namespace(namespace)
+
         class_store = self.cimrepository.get_class_store(namespace)
 
         if ClassName:
@@ -709,8 +717,10 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, (six.string_types, type(None)))
+        assert isinstance(DeepInheritance, (bool, type(None)))
 
         self.validate_namespace(namespace)
+
         class_store = self.cimrepository.get_class_store(namespace)
 
         if ClassName:
@@ -798,6 +808,9 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, six.string_types)
+        assert isinstance(LocalOnly, (bool, type(None)))
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
 
@@ -853,14 +866,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(NewClass, CIMClass)
 
         self.validate_namespace(namespace)
-
-        if not isinstance(NewClass, CIMClass):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("NewClass parameter must be a CIMClass, "
-                        "but has type {0}", type(NewClass)))
 
         class_store = self.cimrepository.get_class_store(namespace)
         if class_store.object_exists(NewClass.classname):
@@ -915,14 +923,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(ModifiedClass, CIMClass)
 
         self.validate_namespace(namespace)
-
-        if not isinstance(ModifiedClass, CIMClass):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("ModifiedClass parameter must be a CIMClass, "
-                        "but has type {0}", type(ModifiedClass)))
 
         class_store = self.cimrepository.get_class_store(namespace)
 
@@ -1054,6 +1057,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         assert isinstance(namespace, six.string_types)
 
         self.validate_namespace(namespace)
+
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         # pylint: disable=unnecessary-comprehension
@@ -1100,14 +1104,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(QualifierName, six.string_types)
 
         self.validate_namespace(namespace)
-
-        if not isinstance(QualifierName, six.string_types):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("QualifierName parameter must be a string, "
-                        "but has type {0}", type(QualifierName)))
 
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
@@ -1156,24 +1155,19 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(QualifierDeclaration, CIMQualifierDeclaration)
 
         self.validate_namespace(namespace)
-
-        qual_decl = QualifierDeclaration
-        if not isinstance(qual_decl, CIMQualifierDeclaration):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("QualifierDeclaration parameter must be a "
-                        "CIMQualifierDeclaration, but has type {0}",
-                        type(qual_decl)))
 
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         # Try to create and if that fails, modify the existing qualifier decl
         try:
-            qualifier_store.create(qual_decl.name, qual_decl)
+            qualifier_store.create(
+                QualifierDeclaration.name, QualifierDeclaration)
         except ValueError:
-            qualifier_store.update(qual_decl.name, qual_decl)
+            qualifier_store.update(
+                QualifierDeclaration.name, QualifierDeclaration)
 
     ####################################################################
     #
@@ -1208,14 +1202,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(QualifierName, six.string_types)
 
         self.validate_namespace(namespace)
-
-        if not isinstance(QualifierName, six.string_types):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("QualifierName parameter must be a string, "
-                        "but has type {0}", type(QualifierName)))
 
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
@@ -1331,6 +1320,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(LocalOnly, (bool, type(None)))
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
 
@@ -1456,6 +1448,10 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, six.string_types)
+        assert isinstance(LocalOnly, (bool, type(None)))
+        assert isinstance(DeepInheritance, (bool, type(None)))
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
 
@@ -1477,9 +1473,19 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         pl = PropertyList
 
+        try:
+            cl = self.get_class(namespace, ClassName, local_only=False)
+        except CIMError as exc:
+            if exc.status_code == CIM_ERR_NOT_FOUND:
+                raise CIMError(
+                    CIM_ERR_INVALID_CLASS,
+                    _format("Class {0!A} not found in namespace {1!A}.",
+                            ClassName, namespace))
+            else:
+                raise
+
         # Get class property list which may be localonly or all
         # superclasses
-        cl = self.get_class(namespace, ClassName, local_only=False)
         class_pl = cl.properties.keys()
 
         # If not DeepInheritance, compute property list to filter
@@ -1950,16 +1956,17 @@ class MainProvider(BaseProvider, ResolverMixin):
           ObjectName:
             The object path of the source object:
 
-            * Instance-level use: The instance path of the
-              source instance, as a :class:`~pywbem.CIMInstanceName` object.
-              If this object does not specify a namespace, the namespace
-              specified in the namespace parameter is used.
-              Its `host` attribute will be ignored.
+            * Instance-level use: The instance path of the source instance,
+              as a :class:`~pywbem.CIMInstanceName` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
-            * Class-level use: The class path of the source
-              class, as a :term:`string`. The string is interpreted as a class
-              name in the namespace defined by the namespace parameter
-              (case independent).
+            * Class-level use: The class path of the source class,
+              as a :term:`string` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
           ResultClass (:term:`string`):
             Class name of an association class (case independent),
@@ -2009,6 +2016,8 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2058,16 +2067,17 @@ class MainProvider(BaseProvider, ResolverMixin):
           ObjectName:
             The object path of the source object:
 
-            * Instance-level use: The instance path of the
-              source instance, as a :class:`~pywbem.CIMInstanceName` object. If
-              this object specifies a namespace, it must be the same as the
-              namespace specified in the namespace parameter. Its `host`
-              attribute will be ignored.
+            * Instance-level use: The instance path of the source instance,
+              as a :class:`~pywbem.CIMInstanceName` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
-            * Class-level use: The class path of the source
-              class, as a :term:`string`. The string is interpreted as a class
-              name in the namespace defined by the namespace parameter
-              (case independent).
+            * Class-level use: The class path of the source class,
+              as a :term:`string` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
           ResultClass (:term:`string`):
             Class name of an association class (case independent),
@@ -2167,6 +2177,12 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2219,17 +2235,19 @@ class MainProvider(BaseProvider, ResolverMixin):
             characters are ignored.
 
           ObjectName:
-
             The object path of the source object:
 
-            * Instance-level use: The instance path of the
-              source instance, as a :class:`~pywbem.CIMInstanceName` object. If
-              this object does specifies a namespace, it must be the same as
-              the namespace parameter. It's `host` attribute will be ignored.
+            * Instance-level use: The instance path of the source instance,
+              as a :class:`~pywbem.CIMInstanceName` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
-            * Class-level use: The class path of the source class, as a
-              :term:`string`. The string is interpreted as a class name in the
-              namespace defined by the namespace parameter (case independent).
+            * Class-level use: The class path of the source class,
+              as a :term:`string` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
           See :meth:`pywbem.WBEMConnection.AssociatorNames` for description of
           remaining parameters
@@ -2270,6 +2288,10 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+        assert isinstance(AssocClass, (six.string_types, type(None)))
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(ResultRole, (six.string_types, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2323,15 +2345,17 @@ class MainProvider(BaseProvider, ResolverMixin):
           ObjectName:
             The object path of the source object:
 
-            * Instance-level use: The instance path of the
-              source instance, as a :class:`~pywbem.CIMInstanceName` object. If
-              this object specifies a namespace, it must match the namespace
-              parameter. Its `host` attribute will be ignored.
+            * Instance-level use: The instance path of the source instance,
+              as a :class:`~pywbem.CIMInstanceName` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
-            * Class-level use: The class path of the source
-              class, as a :term:`string`. The string is interpreted as a class
-              name in the namespace specified in the namespace parameter
-              (case independent).
+            * Class-level use: The class path of the source class,
+              as a :term:`string` object.
+              The `namespace` attribute of this object will be equal to the
+              namespace parameter.
+              Its `host` attribute of this object will be `None`.
 
           See :meth:`pywbem.WBEMConnection.Associators` for description of
           remaining parameters
@@ -2379,6 +2403,14 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
+        assert isinstance(AssocClass, (six.string_types, type(None)))
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(ResultRole, (six.string_types, type(None)))
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2647,7 +2679,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     @staticmethod
     def _validate_open_params(FilterQueryLanguage, FilterQuery,
-                              OperationTimeout, ContinueOnError):
+                              OperationTimeout):
         """
         Validate the fql parameters and if invalid, generate exception
         """
@@ -2670,12 +2702,6 @@ class MainProvider(BaseProvider, ResolverMixin):
                     CIM_ERR_INVALID_PARAMETER,
                     _format("OperationTimeout {0!A }must be positive integer "
                             "less than {1!A}", ot, OPEN_MAX_TIMEOUT))
-        if ContinueOnError:
-            if not isinstance(ContinueOnError, bool):
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("ContinueOnerror must boolean. "
-                            "Rcvd {0}.", ContinueOnError))
 
     def _validate_pull_operations_enabled(self):
         """
@@ -2782,11 +2808,16 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, six.string_types)
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         result = self.EnumerateInstanceNames(namespace, ClassName)
 
@@ -2884,13 +2915,20 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ClassName, six.string_types)
+        assert isinstance(DeepInheritance, (bool, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         result = self.EnumerateInstances(
             namespace, ClassName,
@@ -2952,11 +2990,18 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         instances = self.ReferenceNames(namespace, InstanceName,
                                         ResultClass=ResultClass,
@@ -3016,13 +3061,21 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         instances = self.References(namespace, InstanceName,
                                     ResultClass=ResultClass,
@@ -3085,11 +3138,20 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(AssocClass, (six.string_types, type(None)))
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(ResultRole, (six.string_types, type(None)))
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         instances = self.AssociatorNames(namespace, InstanceName,
                                          AssocClass=AssocClass,
@@ -3152,13 +3214,23 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(InstanceName, CIMInstanceName)
+        assert isinstance(AssocClass, (six.string_types, type(None)))
+        assert isinstance(ResultClass, (six.string_types, type(None)))
+        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(ResultRole, (six.string_types, type(None)))
+        assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         instances = self.Associators(namespace, InstanceName,
                                      AssocClass=AssocClass,
@@ -3212,11 +3284,17 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
+        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(ReturnQueryResultClass, (bool, type(None)))
+        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ContinueOnError, (bool, type(None)))
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
-                                   OperationTimeout, ContinueOnError)
+                                   OperationTimeout)
 
         # pylint: disable=assignment-from-no-return
         # Issue #2064 TODO/ks implement execquery
@@ -3242,11 +3320,11 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Parameters:
 
-          EnumerationContext(:term:`string`):
+          EnumerationContext (:term:`string`):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 
-          MaxObjectCount(:term:`integer`):
+          MaxObjectCount (:term:`integer`):
             Positive integer that defines the maximum number of instances
             that may be returned from this request.
 
@@ -3304,6 +3382,9 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
+        assert isinstance(EnumerationContext, six.string_types)
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancesWithPath',
                                    EnumerationContext, MaxObjectCount)
@@ -3321,11 +3402,11 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Parameters:
 
-          EnumerationContext(:term:`string`):
+          EnumerationContext (:term:`string`):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 
-          MaxObjectCount(:term:`integer`):
+          MaxObjectCount (:term:`integer`):
             Positive integer that defines the maximum number of instances
             that may be returned from this request.
 
@@ -3381,6 +3462,9 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
+        assert isinstance(EnumerationContext, six.string_types)
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancePaths',
                                    EnumerationContext, MaxObjectCount)
@@ -3398,11 +3482,11 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         Parameters:
 
-          EnumerationContext(:term:`string`):
+          EnumerationContext (:term:`string`):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 
-          MaxObjectCount(:term:`integer`):
+          MaxObjectCount (:term:`integer`):
             Positive integer that defines the maximum number of instances
             that may be returned from this request.
 
@@ -3455,6 +3539,9 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
+        assert isinstance(EnumerationContext, six.string_types)
+        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstances',
                                    EnumerationContext, MaxObjectCount)
@@ -3484,6 +3571,8 @@ class MainProvider(BaseProvider, ResolverMixin):
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_SUPPORTED)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
+
+        assert isinstance(EnumerationContext, six.string_types)
 
         self._validate_pull_operations_enabled()
 

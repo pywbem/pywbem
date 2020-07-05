@@ -594,7 +594,7 @@
         </CIM>
 
 - name: PullInstancesF2
-  description: Pull request with MaxObjectCount invalid raises ValueError
+  description: Pull request with MaxObjectCount invalid value raises ValueError
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -641,12 +641,14 @@
     debug: true
     operation:
       pywbem_method: PullInstances
-      MaxObjectCount: 1
+      context:
+      - '500001'
+      - root/cimv2
   pywbem_response:
         exception: TypeError
 
 - name: PullInstancesF5
-  description: Pull request with MaxObjectCount invalid raises ValueError
+  description: Pull request with MaxObjectCount invalid type raises TypeError
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -657,12 +659,12 @@
     debug: true
     operation:
       pywbem_method: PullInstances
-      MaxObjectCount: None
+      MaxObjectCount: 'bla'
       context:
       - '500001'
       - root/cimv2
   pywbem_response:
-        exception: ValueError
+        exception: TypeError
 
 - name: PullInstancesF6
   description: Pull request fails. eos and context missing
