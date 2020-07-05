@@ -338,17 +338,12 @@ class InstanceWriteProvider(BaseProvider):
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(NewInstance, CIMInstance)
 
-        new_instance = NewInstance
+        new_instance = NewInstance.copy()
 
         self.validate_namespace(namespace)
         instance_store = self.cimrepository.get_instance_store(namespace)
-
-        if not isinstance(new_instance, CIMInstance):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("NewInstance parameter must be a CIMInstance, "
-                        "but has type {0}", type(new_instance)))
 
         # Requires corresponding class to build path to be returned
         target_class = self.get_class(namespace,
@@ -389,7 +384,7 @@ class InstanceWriteProvider(BaseProvider):
                         "{1!A}.", new_instance.path, namespace))
 
         # Create instance returns model path
-        return new_instance.path.copy()
+        return new_instance.path
 
     ####################################################################
     #
@@ -471,20 +466,16 @@ class InstanceWriteProvider(BaseProvider):
         """  # noqa: E501
         # pylint: disable=invalid-name,line-too-long
 
+        assert isinstance(ModifiedInstance, CIMInstance)
         namespace = ModifiedInstance.path.namespace
 
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(PropertyList,
                           (six.string_types, list, tuple, type(None)))
 
         self.validate_namespace(namespace)
-
-        if not isinstance(ModifiedInstance, CIMInstance):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("ModifiedInstance parameter must be a CIMInstance, "
-                        "but has type {0}", type(ModifiedInstance)))
 
         instance_store = self.cimrepository.get_instance_store(namespace)
         modified_instance = deepcopy(ModifiedInstance)

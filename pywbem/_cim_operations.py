@@ -221,56 +221,129 @@ def _check_classname(val):
 
 
 def _iparam_propertylist(property_list):
-    """Validate property_list and if it is not iterable convert to list.
+    """
+    Validate property_list input parameter and return it as a tuple/list,
+    or None.
 
     This is a test for a particular issue where the user supplies a single
     string instead of a list for a PropertyList parameter. It prevents
     an XML error.
     """
-    return [property_list] if isinstance(property_list, six.string_types) \
-        else property_list
+    if property_list is None:
+        pass
+    elif isinstance(property_list, (list, tuple)):
+        pass
+    elif isinstance(property_list, six.string_types):
+        property_list = [property_list]
+    else:
+        raise TypeError(
+            _format("The 'PropertyList' parameter of the WBEMConnection "
+                    "operation has invalid type {0} (must be a string, or "
+                    "a list/tuple of strings",
+                    type(property_list)))
+    return property_list
 
 
-def _validateIterCommonParams(MaxObjectCount, OperationTimeout):
+def _validate_OperationTimeout(OperationTimeout):
     """
-    Validate common parameters for an iter... operation.
+    Validate the OperationTimeout input parameter for the Iter...() and
+    Open...() operations.
 
-    MaxObjectCount must be a positive non-zero integer or None.
-
-    OperationTimeout must be positive integer or zero
+    Parameters:
+      OperationTimeout: Must be of integer type >= 0, or None.
 
     Raises:
-
-      ValueError: if these parameters are invalid
+      TypeError: Invalid type
+      ValueError: Invalid value
     """
-    if MaxObjectCount is None or MaxObjectCount <= 0:
-        raise ValueError(
-            _format("MaxObjectCount must be > 0 but is {0}", MaxObjectCount))
-
+    if not isinstance(OperationTimeout, (six.integer_types, type(None))):
+        raise TypeError(
+            _format("The 'OperationTimeout' parameter of the WBEMConnection "
+                    "operation has invalid type {0} (must be integer)",
+                    type(OperationTimeout)))
     if OperationTimeout is not None and OperationTimeout < 0:
         raise ValueError(
-            _format("OperationTimeout must be >= 0 but is {0}",
+            _format("The 'OperationTimeout' parameter of the WBEMConnection "
+                    "operation has invalid value {0!r} (must be >= 0 or None)",
                     OperationTimeout))
 
 
-def _validatePullParams(MaxObjectCount, context):
+def _validate_MaxObjectCount_Iter(MaxObjectCount):
     """
-        Validate the input paramaters for the PullInstances,
-        PullInstancesWithPath, and PullInstancePaths requests.
+    Validate the MaxObjectCount input parameter for the Iter...() operations.
 
-        MaxObjectCount: Must be integer type and ge 0
+    Parameters:
+      MaxObjectCount: Must be integer type and > 0. Must not be None.
 
-        context: Must be not None and length ge 2
+    Raises:
+      TypeError: Invalid type
+      ValueError: Invalid value, including None
     """
-    if (not isinstance(MaxObjectCount, six.integer_types) or
-            MaxObjectCount < 0):
+    if not isinstance(MaxObjectCount, (six.integer_types, type(None))):
+        raise TypeError(
+            _format("The 'MaxObjectCount' parameter of the WBEMConnection "
+                    "operation has invalid type {0} (must be integer)",
+                    type(MaxObjectCount)))
+    if MaxObjectCount is None or MaxObjectCount <= 0:
         raise ValueError(
-            _format("MaxObjectCount parameter must be integer >= 0 but is "
-                    "{0!A}", MaxObjectCount))
-    if context is None or len(context) < 2:
+            _format("The 'MaxObjectCount' parameter of the WBEMConnection "
+                    "operation has invalid value {0!r} (must be > 0)",
+                    MaxObjectCount))
+
+
+def _validate_MaxObjectCount_OpenPull(MaxObjectCount):
+    """
+    Validate the MaxObjectCount input parameter for the Open...() and Pull...()
+    operations.
+
+    Parameters:
+      MaxObjectCount: Must be integer type and >= 0, or None
+
+    Raises:
+      TypeError: Invalid type
+      ValueError: Invalid value
+    """
+    if MaxObjectCount is None:
+        return
+    if not isinstance(MaxObjectCount, six.integer_types):
+        raise TypeError(
+            _format("The 'MaxObjectCount' parameter of the WBEMConnection "
+                    "operation has invalid type {0} (must be integer or None)",
+                    type(MaxObjectCount)))
+    if MaxObjectCount < 0:
         raise ValueError(
-            _format("Pull... Context parameter must be valid tuple {0!A}",
-                    context))
+            _format("The 'MaxObjectCount' parameter of the WBEMConnection "
+                    "operation has invalid value {0!r} (must be >= 0)",
+                    MaxObjectCount))
+
+
+def _validate_context(context):
+    """
+    Validate the context input parameter for the Pull...() and
+    CloseEnumeration() operations.
+
+    Parameters:
+      context: Must be tuple/list type of length 2
+
+    Raises:
+      TypeError: Invalid type
+      ValueError: Invalid value, including None
+    """
+    if context is None:
+        raise ValueError(
+            _format("The 'context' parameter of the WBEMConnection "
+                    "operation has invalid value None "
+                    "(enumeration may be exhausted)"))
+    if not isinstance(context, (tuple, list)):
+        raise TypeError(
+            _format("The 'context' parameter of the WBEMConnection "
+                    "operation has invalid type {0} (must be tuple or list)",
+                    type(context)))
+    if len(context) != 2:
+        raise ValueError(
+            _format("The 'context' parameter of the WBEMConnection "
+                    "operation has invalid value {0!r} (must be tuple or list "
+                    "of size 2)", context))
 
 
 class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
@@ -1834,7 +1907,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                        namespace=self.default_namespace)
         else:
             raise TypeError(
-                _format("The 'ObjectName' argument of the WBEMConnection "
+                _format("The 'ObjectName' parameter of the WBEMConnection "
                         "operation has invalid type {0} (must be a string, "
                         "a CIMClassName, or a CIMInstanceName)",
                         type(objectname)))
@@ -2083,7 +2156,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             pass
         else:
             raise TypeError(
-                _format("The 'namespace' argument of the WBEMConnection "
+                _format("The 'namespace' parameter of the WBEMConnection "
                         "operation has invalid type {0} (must be None, or a "
                         "string)",
                         type(namespace)))
@@ -2117,7 +2190,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             namespace = objectname
         else:
             raise TypeError(
-                _format("The {0!A} argument of the WBEMConnection operation "
+                _format("The {0!A} parameter of the WBEMConnection operation "
                         "has invalid type {1} (must be None, a string, a "
                         "CIMClassName, or a CIMInstanceName)",
                         arg_name, type(objectname)))
@@ -2126,7 +2199,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         return namespace
 
     @staticmethod
-    def _iparam_objectname(objectname, arg_name):
+    def _iparam_objectname(objectname, arg_name, required=False):
         """
         Convert an object name (i.e. class or instance name) specified in an
         operation method into an object (i.e. CIMClassName or CIMInstanceName)
@@ -2137,7 +2210,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             CIMClassName
           * CIMInstanceName without host and namespace, if objectname is
             CIMInstanceName
-          * None, if objectname is None
+          * None, if objectname is None (only if not required)
 
         Raises:
           TypeError - objectname has an invalid type
@@ -2149,18 +2222,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             objectname.namespace = None
         elif isinstance(objectname, six.string_types):
             objectname = CIMClassName(objectname)
-        elif objectname is None:
+        elif not required and objectname is None:
             pass
         else:
             raise TypeError(
-                _format("The {0!A} argument of the WBEMConnection operation "
-                        "has invalid type {1} (must be None, a string, a "
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be {2}a string, a "
                         "CIMClassName, or a CIMInstanceName)",
-                        arg_name, type(objectname)))
+                        arg_name, type(objectname),
+                        "" if required else "None, "))
         return objectname
 
     @staticmethod
-    def _iparam_classname(classname, arg_name):
+    def _iparam_classname(classname, arg_name, required=False):
         """
         Convert a class name specified in an operation method into a
         CIMClassName object, so that it can be passed to imethodcall().
@@ -2168,7 +2242,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Returns:
           * CIMClassName without host and namespace, if classname is string or
             CIMClassName
-          * None, if classname is None
+          * None, if classname is None (only if not required)
 
         Raises:
           TypeError - classname has an invalid type
@@ -2180,18 +2254,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             classname.namespace = None
         elif isinstance(classname, six.string_types):
             classname = CIMClassName(classname)
-        elif classname is None:
+        elif not required and classname is None:
             pass
         else:
             raise TypeError(
-                _format("The {0!A} argument of the WBEMConnection operation "
-                        "has invalid type {1} (must be None, a string, or a "
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be {2}a string, or a "
                         "CIMClassName)",
-                        arg_name, type(classname)))
+                        arg_name, type(classname),
+                        "" if required else "None, "))
         return classname
 
     @staticmethod
-    def _iparam_instancename(instancename):
+    def _iparam_instancename(instancename, arg_name, required=False):
         """
         Convert an instance name specified in an operation method into a
         CIMInstanceName object that can be passed to imethodcall().
@@ -2199,7 +2274,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Returns:
           * CIMInstanceName without host and namespace, if instancename is
             CIMInstanceName
-          * None, if instancename is None
+          * None, if instancename is None (only if not required)
 
         Raises:
           TypeError - instancename has an invalid type
@@ -2209,15 +2284,140 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             instancename = instancename.copy()
             instancename.host = None
             instancename.namespace = None
-        elif instancename is None:
+        elif not required and instancename is None:
             pass
         else:
             raise TypeError(
-                _format("The 'InstanceName' argument of the WBEMConnection "
-                        "operation has invalid type {0} (must be None, a "
+                _format("The 'InstanceName' parameter of the WBEMConnection "
+                        "operation has invalid type {0} (must be {1}a "
                         "string, or a CIMInstanceName)",
-                        type(instancename)))
+                        type(instancename),
+                        "" if required else "None, "))
         return instancename
+
+    @staticmethod
+    def _iparam_class(klass, arg_name):
+        """
+        Convert a CIMClass object specified in an operation method such that
+        it can be passed to imethodcall().
+
+        Returns:
+          * CIMClass copy without path
+          * None
+
+        Raises:
+          TypeError - klass has an invalid type
+        """
+
+        if isinstance(klass, CIMClass):
+            klass = klass.copy()
+            klass.path = None
+        elif klass is None:
+            pass
+        else:
+            raise TypeError(
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be None, or a CIMClass)",
+                        arg_name, type(klass)))
+        return klass
+
+    @staticmethod
+    def _iparam_instance(instance, arg_name, required=False):
+        """
+        Validate the type of a required CIMInstance typed parameter.
+
+        Returns:
+          * CIMInstance copy
+
+        Raises:
+          TypeError - instance has an invalid type
+        """
+
+        assert required is True  # For now, only required instances supported
+
+        if isinstance(instance, CIMInstance):
+            return instance.copy()
+
+        raise TypeError(
+            _format("The {0!A} parameter of the WBEMConnection operation "
+                    "has invalid type {1} (must be a CIMInstance)",
+                    arg_name, type(instance)))
+
+    @staticmethod
+    def _iparam_qualifierdeclaration(qualifier, arg_name, required=False):
+        """
+        Validate the type of a CIMQualifierDeclaration object.
+        """
+        if isinstance(qualifier, CIMQualifierDeclaration):
+            pass
+        elif not required and qualifier is None:
+            pass
+        else:
+            raise TypeError(
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be {2}a "
+                        "CIMQualifierDeclaration)",
+                        arg_name, type(qualifier),
+                        "" if required else "None or "))
+        return qualifier
+
+    def _iparam_string(self, string_param, arg_name, required=False):
+        # pylint: disable=invalid-name,
+        """
+        Validate a string typed operation parameter that may be None.
+
+        Returns:
+           The input string, or None (only if not required).
+
+        Raises:
+          TypeError - string_param has an invalid type
+        """
+        if isinstance(string_param, six.string_types):
+            pass
+        elif not required and string_param is None:
+            pass
+        else:
+            raise TypeError(
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be None, or a string)",
+                        arg_name, type(string_param)))
+        return string_param
+
+    def _iparam_integer(self, integer_param, arg_name):
+        # pylint: disable=invalid-name,
+        """
+        Validate a integer typed operation parameter that may be None.
+
+        Returns:
+           The input integer, or None.
+
+        Raises:
+          TypeError - integer_param has an invalid type
+        """
+        if not isinstance(integer_param, (six.integer_types, type(None))):
+            raise TypeError(
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be None, or an integer)",
+                        arg_name, type(integer_param)))
+        return integer_param
+
+    def _iparam_bool(self, bool_param, arg_name):
+        # pylint: disable=invalid-name,
+        """
+        Validate a bool typed operation parameter that may be None.
+
+        Returns:
+           The input boolean, or None.
+
+        Raises:
+          TypeError - bool_param has an invalid type
+        """
+        if not isinstance(bool_param, (bool, type(None))):
+            raise TypeError(
+                _format("The {0!A} parameter of the WBEMConnection operation "
+                        "has invalid type {1} (must be None, or a bool)",
+                        arg_name, type(bool_param)))
+        return bool_param
 
     def _get_rslt_params(self, result, namespace):
         """
@@ -2400,8 +2600,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ClassName=ClassName,
                 namespace=namespace,
+                ClassName=ClassName,
                 LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
                 IncludeQualifiers=IncludeQualifiers,
@@ -2409,17 +2609,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 PropertyList=PropertyList)
 
         try:
+
             stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(
+                ClassName, 'ClassName', required=True)
+            LocalOnly = self._iparam_bool(
+                LocalOnly, 'LocalOnly')
+            DeepInheritance = self._iparam_bool(
+                DeepInheritance, 'DeepInheritance')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
                 IncludeQualifiers=IncludeQualifiers,
@@ -2517,20 +2727,22 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ClassName=ClassName,
-                namespace=namespace)
+                namespace=namespace,
+                ClassName=ClassName)
 
         try:
+
             stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(
+                ClassName, 'ClassName', required=True)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname)
+                ClassName=ClassName)
 
             if result is None:
                 instancenames = []
@@ -2678,13 +2890,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # Strip off host and namespace to make this a "local" object
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
-            instancename = self._iparam_instancename(InstanceName)
+            InstanceName = self._iparam_instancename(
+                InstanceName, 'InstanceName', required=True)
+            LocalOnly = self._iparam_bool(
+                LocalOnly, 'LocalOnly')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                InstanceName=instancename,
+                InstanceName=InstanceName,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
@@ -2714,7 +2933,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             # input path. Because the namespace in the input path is optional,
             # we set it to the effective target namespace (on a copy of the
             # input path).
-            instance.path = instancename.copy()
+            instance.path = InstanceName.copy()
             instance.path.namespace = namespace
 
             return instance
@@ -2872,33 +3091,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             stats = self.statistics.start_timer('ModifyInstance')
             # Must pass a named CIMInstance here (i.e path attribute set)
+            ModifiedInstance = self._iparam_instance(
+                ModifiedInstance, 'ModifiedInstance', required=True)
             if ModifiedInstance.path is None:
                 raise ValueError(
                     'ModifiedInstance parameter must have path attribute set')
             if ModifiedInstance.path.classname is None:
                 raise ValueError(
-                    'ModifiedInstance parameter must have classname set in '
-                    ' path')
+                    'ModifiedInstance parameter must have classname attribute '
+                    'set in its path')
             if ModifiedInstance.classname is None:
                 raise ValueError(
-                    'ModifiedInstance parameter must have classname set in '
-                    'instance')
-
+                    'ModifiedInstance parameter must have classname attribute '
+                    'set')
             namespace = self._iparam_namespace_from_objectname(
                 ModifiedInstance.path, 'ModifiedInstance.path')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
             PropertyList = _iparam_propertylist(PropertyList)
 
             # Strip off host and namespace to avoid producing an INSTANCEPATH or
             # LOCALINSTANCEPATH element instead of the desired INSTANCENAME
             # element.
-            instance = ModifiedInstance.copy()
-            instance.path.namespace = None
-            instance.path.host = None
+            # Note, ModifiedInstance is already a copy of the original parameter
+            ModifiedInstance.path.namespace = None
+            ModifiedInstance.path.host = None
 
             self._imethodcall(
                 method_name,
                 namespace,
-                ModifiedInstance=instance,
+                ModifiedInstance=ModifiedInstance,
                 IncludeQualifiers=IncludeQualifiers,
                 PropertyList=PropertyList,
                 has_return_value=False)
@@ -2990,8 +3212,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                NewInstance=NewInstance,
-                namespace=namespace)
+                namespace=namespace,
+                NewInstance=NewInstance)
 
         try:
 
@@ -3000,17 +3222,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                getattr(NewInstance.path, 'namespace', None) is not None:
                 namespace = NewInstance.path.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-
-            instance = NewInstance.copy()
+            NewInstance = self._iparam_instance(
+                NewInstance, 'NewInstance', required=True)
 
             # Strip off path to avoid producing a VALUE.NAMEDINSTANCE element
             # instead of the desired INSTANCE element.
-            instance.path = None
+            # Note, NewInstance is already a copy of the original parameter
+            NewInstance.path = None
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                NewInstance=instance)
+                NewInstance=NewInstance)
 
             if result is None:
                 raise CIMXMLParseError(
@@ -3092,12 +3315,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
-            instancename = self._iparam_instancename(InstanceName)
+            InstanceName = self._iparam_instancename(
+                InstanceName, 'InstanceName', required=True)
 
             self._imethodcall(
                 method_name,
                 namespace,
-                InstanceName=instancename,
+                InstanceName=InstanceName,
                 has_return_value=False)
             return
 
@@ -3289,15 +3513,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
-            objectname = self._iparam_objectname(ObjectName, 'ObjectName')
+            ObjectName = self._iparam_objectname(
+                ObjectName, 'ObjectName', required=True)
+            AssocClass = self._iparam_classname(AssocClass, 'AssocClass')
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            ResultRole = self._iparam_string(ResultRole, 'ResultRole')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ObjectName=objectname,
-                AssocClass=self._iparam_classname(AssocClass, 'AssocClass'),
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                ObjectName=ObjectName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
                 Role=Role,
                 ResultRole=ResultRole,
                 IncludeQualifiers=IncludeQualifiers,
@@ -3311,7 +3544,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 objects = [x[2] for x in result[0][2]]
 
-            if isinstance(objectname, CIMInstanceName):
+            if isinstance(ObjectName, CIMInstanceName):
                 # instance-level invocation
                 for instance in objects:
                     if not isinstance(instance, CIMInstance):
@@ -3471,14 +3704,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
-            objectname = self._iparam_objectname(ObjectName, 'ObjectName')
+            ObjectName = self._iparam_objectname(
+                ObjectName, 'ObjectName', required=True)
+            AssocClass = self._iparam_classname(AssocClass, 'AssocClass')
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            ResultRole = self._iparam_string(ResultRole, 'ResultRole')
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ObjectName=objectname,
-                AssocClass=self._iparam_classname(AssocClass, 'AssocClass'),
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                ObjectName=ObjectName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
                 Role=Role,
                 ResultRole=ResultRole)
 
@@ -3487,7 +3725,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 objects = [x[2] for x in result[0][2]]
 
-            if isinstance(objectname, CIMInstanceName):
+            if isinstance(ObjectName, CIMInstanceName):
                 # instance-level invocation
                 for instancepath in objects:
                     if not isinstance(instancepath, CIMInstanceName):
@@ -3680,14 +3918,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
-            objectname = self._iparam_objectname(ObjectName, 'ObjectName')
+            ObjectName = self._iparam_objectname(
+                ObjectName, 'ObjectName', required=True)
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ObjectName=objectname,
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                ObjectName=ObjectName,
+                ResultClass=ResultClass,
                 Role=Role,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
@@ -3698,7 +3943,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 objects = [x[2] for x in result[0][2]]
 
-            if isinstance(objectname, CIMInstanceName):
+            if isinstance(ObjectName, CIMInstanceName):
                 # instance-level invocation
                 for instance in objects:
                     if not isinstance(instance, CIMInstance):
@@ -3840,13 +4085,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
-            objectname = self._iparam_objectname(ObjectName, 'ObjectName')
+            ObjectName = self._iparam_objectname(
+                ObjectName, 'ObjectName', required=True)
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ObjectName=objectname,
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                ObjectName=ObjectName,
+                ResultClass=ResultClass,
                 Role=Role)
 
             if result is None:
@@ -3854,7 +4102,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             else:
                 objects = [x[2] for x in result[0][2]]
 
-            if isinstance(objectname, CIMInstanceName):
+            if isinstance(ObjectName, CIMInstanceName):
                 # instance-level invocation
                 for instancepath in objects:
                     if not isinstance(instancepath, CIMInstanceName):
@@ -4072,14 +4320,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
+                namespace=namespace,
                 QueryLanguage=QueryLanguage,
-                Query=Query,
-                namespace=namespace)
+                Query=Query)
 
         try:
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
+            QueryLanguage = self._iparam_string(
+                QueryLanguage, 'QueryLanguage', required=True)
+            Query = self._iparam_string(Query, 'Query', required=True)
 
             result = self._imethodcall(
                 method_name,
@@ -4384,7 +4635,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 else:
                     print('instance {0}'.format(inst.tomof()))
         """  # noqa: E501
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
@@ -4445,7 +4699,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                  'ContinueOnError.')
 
             enum_rslt = self.EnumerateInstances(
-                ClassName, namespace=namespace, LocalOnly=LocalOnly,
+                ClassName,
+                namespace=namespace,
+                LocalOnly=LocalOnly,
                 DeepInheritance=DeepInheritance,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
@@ -4652,7 +4908,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 print('path {0}'.format(path))
         """
 
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
 
@@ -4982,9 +5240,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     print('instance {0}'.format(inst.tomof()))
         """  # noqa: E501
 
-        # Must be positive integer gt zero
-
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
 
@@ -5266,7 +5524,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 print('path {0}'.format(path))
         """
 
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
@@ -5566,9 +5826,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     print('instance {0}'.format(inst.tomof()))
         """  # noqa: E501
 
-        # Must be positive integer gt zero
-
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
@@ -5826,7 +6086,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 print('path {0}'.format(path))
         """
 
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
@@ -6098,7 +6360,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 for inst in self.instances:
                     yield inst
 
-        _validateIterCommonParams(MaxObjectCount, OperationTimeout)
+        # The other parameters are validated in the operations called
+        _validate_OperationTimeout(OperationTimeout)
+        _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
@@ -6393,8 +6657,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset(pull_op=True)
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ClassName=ClassName,
                 namespace=namespace,
+                ClassName=ClassName,
                 DeepInheritance=DeepInheritance,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
@@ -6404,24 +6668,32 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
-        if MaxObjectCount is not None and MaxObjectCount < 0:
-            raise ValueError(
-                _format("MaxObjectCount must be >= 0 but is {0}",
-                        MaxObjectCount))
-
         try:
 
             stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(
+                ClassName, 'ClassName', required=True)
+            DeepInheritance = self._iparam_bool(
+                DeepInheritance, 'DeepInheritance')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 DeepInheritance=DeepInheritance,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
@@ -6628,8 +6900,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset(pull_op=True)
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ClassName=ClassName,
                 namespace=namespace,
+                ClassName=ClassName,
                 FilterQueryLanguage=FilterQueryLanguage,
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
@@ -6637,16 +6909,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 MaxObjectCount=MaxObjectCount)
 
         try:
+
             stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(
+                ClassName, 'ClassName', required=True)
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 FilterQueryLanguage=FilterQueryLanguage,
                 FilterQuery=FilterQuery,
                 OperationTimeout=OperationTimeout,
@@ -6902,15 +7184,30 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
-            instancename = self._iparam_instancename(InstanceName)
+            InstanceName = self._iparam_instancename(
+                InstanceName, 'InstanceName', required=True)
+            AssocClass = self._iparam_classname(AssocClass, 'AssocClass')
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            ResultRole = self._iparam_string(ResultRole, 'ResultRole')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                InstanceName=instancename,
-                AssocClass=self._iparam_classname(AssocClass, 'AssocClass'),
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                InstanceName=InstanceName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
                 Role=Role,
                 ResultRole=ResultRole,
                 IncludeClassOrigin=IncludeClassOrigin,
@@ -7145,14 +7442,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
-            instancename = self._iparam_instancename(InstanceName)
+            InstanceName = self._iparam_instancename(
+                InstanceName, 'InstanceName', required=True)
+            AssocClass = self._iparam_classname(AssocClass, 'AssocClass')
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            ResultRole = self._iparam_string(ResultRole, 'ResultRole')
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                InstanceName=instancename,
-                AssocClass=self._iparam_classname(AssocClass, 'AssocClass'),
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                InstanceName=InstanceName,
+                AssocClass=AssocClass,
+                ResultClass=ResultClass,
                 Role=Role,
                 ResultRole=ResultRole,
                 FilterQueryLanguage=FilterQueryLanguage,
@@ -7394,14 +7704,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
-            instancename = self._iparam_instancename(InstanceName)
+            InstanceName = self._iparam_instancename(
+                InstanceName, 'InstanceName', required=True)
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                InstanceName=instancename,
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                InstanceName=InstanceName,
+                ResultClass=ResultClass,
                 Role=Role,
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList,
@@ -7618,13 +7941,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
-            instancename = self._iparam_instancename(InstanceName)
+            InstanceName = self._iparam_instancename(
+                InstanceName, 'InstanceName', required=True)
+            ResultClass = self._iparam_classname(ResultClass, 'ResultClass')
+            Role = self._iparam_string(Role, 'Role')
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                InstanceName=instancename,
-                ResultClass=self._iparam_classname(ResultClass, 'ResultClass'),
+                InstanceName=InstanceName,
+                ResultClass=ResultClass,
                 Role=Role,
                 FilterQueryLanguage=FilterQueryLanguage,
                 FilterQuery=FilterQuery,
@@ -7830,9 +8164,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset(pull_op=True)
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
+                namespace=namespace,
                 FilterQueryLanguage=FilterQueryLanguage,
                 FilterQuery=FilterQuery,
-                namespace=namespace,
                 ReturnQueryResultClass=ReturnQueryResultClass,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
@@ -7842,12 +8176,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
+            FilterQueryLanguage = self._iparam_string(
+                FilterQueryLanguage, 'FilterQueryLanguage')
+            FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            OperationTimeout = self._iparam_integer(
+                OperationTimeout, 'OperationTimeout')
+            ContinueOnError = self._iparam_bool(
+                ContinueOnError, 'ContinueOnError')
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                FilterQuery=FilterQuery,
                 FilterQueryLanguage=FilterQueryLanguage,
+                FilterQuery=FilterQuery,
                 ReturnQueryResultClass=ReturnQueryResultClass,
                 OperationTimeout=OperationTimeout,
                 ContinueOnError=ContinueOnError,
@@ -7997,8 +8339,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer(method_name)
-            _validatePullParams(MaxObjectCount, context)
-
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
+            _validate_context(context)
             namespace = context[1]
 
             result = self._imethodcall(
@@ -8142,8 +8484,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer(method_name)
-            _validatePullParams(MaxObjectCount, context)
-
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
+            _validate_context(context)
             namespace = context[1]
 
             result = self._imethodcall(
@@ -8281,8 +8623,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer(method_name)
-            _validatePullParams(MaxObjectCount, context)
-
+            _validate_MaxObjectCount_OpenPull(MaxObjectCount)
+            _validate_context(context)
             namespace = context[1]
 
             result = self._imethodcall(
@@ -8362,12 +8704,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         try:
 
             stats = self.statistics.start_timer(method_name)
-
-            # entire context is tested for None because the open/pull methods
-            # set the complete context to None when eos received.
-            if context is None:
-                raise ValueError("Invalid context: None "
-                                 "(Enumeration may be exhausted)")
+            _validate_context(context)
 
             self._imethodcall(
                 method_name,
@@ -8507,12 +8844,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(ClassName, 'ClassName')
+            DeepInheritance = self._iparam_bool(
+                DeepInheritance, 'DeepInheritance')
+            LocalOnly = self._iparam_bool(
+                LocalOnly, 'LocalOnly')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 DeepInheritance=DeepInheritance,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
@@ -8638,12 +8983,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(ClassName, 'ClassName')
+            DeepInheritance = self._iparam_bool(
+                DeepInheritance, 'DeepInheritance')
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 DeepInheritance=DeepInheritance)
 
             if result is None:
@@ -8772,8 +9119,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ClassName=ClassName,
                 namespace=namespace,
+                ClassName=ClassName,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
@@ -8785,13 +9132,20 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(
+                ClassName, 'ClassName', required=True)
+            LocalOnly = self._iparam_bool(
+                LocalOnly, 'LocalOnly')
+            IncludeQualifiers = self._iparam_bool(
+                IncludeQualifiers, 'IncludeQualifiers')
+            IncludeClassOrigin = self._iparam_bool(
+                IncludeClassOrigin, 'IncludeClassOrigin')
             PropertyList = _iparam_propertylist(PropertyList)
 
             result = self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 LocalOnly=LocalOnly,
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin,
@@ -8886,21 +9240,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ModifiedClass=ModifiedClass,
-                namespace=namespace)
+                namespace=namespace,
+                ModifiedClass=ModifiedClass)
 
         try:
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
-
-            klass = ModifiedClass.copy()
-            klass.path = None
+            ModifiedClass = self._iparam_class(ModifiedClass, 'ModifiedClass')
 
             self._imethodcall(
                 method_name,
                 namespace,
-                ModifiedClass=klass,
+                ModifiedClass=ModifiedClass,
                 has_return_value=False)
             return
 
@@ -8962,21 +9314,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                NewClass=NewClass,
-                namespace=namespace)
+                namespace=namespace,
+                NewClass=NewClass)
 
         try:
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
-
-            klass = NewClass.copy()
-            klass.path = None
+            NewClass = self._iparam_class(NewClass, 'NewClass')
 
             self._imethodcall(
                 method_name,
                 namespace,
-                NewClass=klass,
+                NewClass=NewClass,
                 has_return_value=False)
             return
 
@@ -9037,8 +9387,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                ClassName=ClassName,
-                namespace=namespace)
+                namespace=namespace,
+                ClassName=ClassName)
 
         try:
 
@@ -9046,12 +9396,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
-            classname = self._iparam_classname(ClassName, 'ClassName')
+            ClassName = self._iparam_classname(
+                ClassName, 'ClassName', required=True)
 
             self._imethodcall(
                 method_name,
                 namespace,
-                ClassName=classname,
+                ClassName=ClassName,
                 has_return_value=False)
             return
 
@@ -9200,13 +9551,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                QualifierName=QualifierName,
-                namespace=namespace)
+                namespace=namespace,
+                QualifierName=QualifierName)
 
         try:
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
+            QualifierName = self._iparam_string(
+                QualifierName, 'QualifierName', required=True)
 
             result = self._imethodcall(
                 method_name,
@@ -9289,13 +9642,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                QualifierDeclaration=QualifierDeclaration,
-                namespace=namespace)
+                namespace=namespace,
+                QualifierDeclaration=QualifierDeclaration)
 
         try:
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
+            QualifierDeclaration = self._iparam_qualifierdeclaration(
+                QualifierDeclaration, 'QualifierDeclaration', required=True)
 
             self._imethodcall(
                 method_name,
@@ -9358,13 +9713,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             self.operation_recorder_reset()
             self.operation_recorder_stage_pywbem_args(
                 method=method_name,
-                QualifierName=QualifierName,
-                namespace=namespace)
+                namespace=namespace,
+                QualifierName=QualifierName)
 
         try:
 
             stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
+            QualifierName = self._iparam_string(
+                QualifierName, 'QualifierName', required=True)
 
             self._imethodcall(
                 method_name,

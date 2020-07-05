@@ -284,21 +284,33 @@ class TestIterEnumerateInstances(object):
         assert result == tst_insts
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_insts, max_cnt):
+    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid maxObjectCount input parameter
+        Test for invalid value and types of those input parameters that are
+        actually checked in the Iter..() operation (i.e. OperationTimeout
+        and MaxObjectCount).
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.EnumerateInstances = Mock(return_value=tst_insts)
         conn.OpenEnumerateInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
-        with pytest.raises(ValueError):
+
+        with pytest.raises(type(exp_exc)):
             _ = list(conn.IterEnumerateInstances(
                 'CIM_Foo',
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt))
 
 
@@ -465,22 +477,32 @@ class TestIterEnumerateInstancePaths(object):
         assert result == tst_paths
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_paths, max_cnt):
+    def test_invalid_params(self, tst_paths, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid max_object_count
+        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
+        input parameters.
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.EnumerateInstanceNames = Mock(return_value=tst_paths)
         conn.OpenEnumeratePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(type(exp_exc)):
             _ = list(conn.IterEnumerateInstancePaths(
                 'CIM_Foo',
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt))
 
 
@@ -714,22 +736,32 @@ class TestIterReferenceInstances(object):
         assert result == tst_insts
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_insts, max_cnt):
+    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid maxObjectCount input parameter
+        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
+        input parameters.
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.References = Mock(return_value=tst_insts)
         conn.OpenReferenceInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(type(exp_exc)):
             _ = list(conn.IterReferenceInstances(
                 self.target_path('root/x'),
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt))
 
 
@@ -935,22 +967,32 @@ class TestIterReferenceInstancePaths(object):
         assert result == tst_paths
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_insts, max_cnt):
+    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid maxObjectCount input parameter
+        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
+        input parameters.
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.ReferenceNames = Mock(return_value=tst_insts)
         conn.OpenReferenceInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(type(exp_exc)):
             _ = list(conn.IterReferenceInstancePaths(
                 self.target_path('dum'),
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt))
 
 ########################################################################
@@ -1191,22 +1233,32 @@ class TestIterAssociatorInstances(object):
         assert result == tst_insts
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_insts, max_cnt):
+    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid maxObjectCount input parameter
+        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
+        input parameters.
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.Associators = Mock(return_value=tst_insts)
         conn.OpenAssociatorInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(type(exp_exc)):
             _ = list(conn.IterAssociatorInstances(
                 self.target_path('root/x'),
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt))
 
 ########################################################################
@@ -1420,22 +1472,32 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         assert result == tst_paths
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_paths, max_cnt):
+    def test_invalid_params(self, tst_paths, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid maxObjectCount input parameter
+        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
+        input parameters.
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.AssociatorNames = Mock(return_value=tst_paths)
         conn.OpenAssociatorInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(type(exp_exc)):
             _ = list(conn.IterAssociatorInstancePaths(
                 self.target_path('dum'),
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt))
 
 
@@ -1644,14 +1706,23 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         assert result_insts == tst_insts
 
     @pytest.mark.parametrize(
-        "max_cnt", [0, -1]
+        "op_to, max_cnt, exp_exc",
+        [
+            ['bla', 1, TypeError()],
+            [-1, 1, ValueError()],
+            [None, 0, ValueError()],
+            [None, -1, ValueError()],
+            [None, None, ValueError()],
+            [None, 'bla', TypeError()],
+        ]
     )
-    def test_invalid_params(self, tst_insts, max_cnt):
+    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
         # pylint: disable=no-self-use
         """
-        Test for invalid maxObjectCount input parameter
+        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
+        input parameters.
         """
-        conn = WBEMConnection('dummy')
+        conn = WBEMConnection('dummy', use_pull_operations=True)
 
         conn.ExecQuery = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
@@ -1660,7 +1731,8 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
                                                       eos=True,
                                                       context=None,
                                                       query_result_class=None))
-        with pytest.raises(ValueError):
+        with pytest.raises(type(exp_exc)):
             conn.IterQueryInstances(
                 'CQL', 'Select from *',
+                OperationTimeout=op_to,
                 MaxObjectCount=max_cnt)
