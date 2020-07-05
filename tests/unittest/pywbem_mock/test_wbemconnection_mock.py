@@ -2928,12 +2928,12 @@ class TestClassOperations(object):
             [DEFAULT_NAMESPACE, 'CIM_Foo', DEFAULT_NAMESPACE, None],
             [DEFAULT_NAMESPACE, 'CIM_Foox', None,
              CIMError(CIM_ERR_NOT_FOUND)],
-            # XXX-ADD:  [DEFAULT_NAMESPACE, 'CIM_Foox', 'BadNamespace',
-            # XXX-ADD:   CIMError(CIM_ERR_INVALID_NAMESPACE)],
-            # XXX-ADD:  [DEFAULT_NAMESPACE, 42, 'BadNamespace', TypeError()],
-            # XXX-ADD:  [DEFAULT_NAMESPACE, 42, DEFAULT_NAMESPACE, TypeError()],
-            # XXX-ADD:  [DEFAULT_NAMESPACE, 'CIM_Foo', 42, TypeError()],
-            # XXX-ADD:  [DEFAULT_NAMESPACE, 42, 42, TypeError()],
+            [DEFAULT_NAMESPACE, 'CIM_Foox', 'BadNamespace',
+             CIMError(CIM_ERR_INVALID_NAMESPACE)],
+            [DEFAULT_NAMESPACE, 42, 'BadNamespace', TypeError()],
+            [DEFAULT_NAMESPACE, 42, DEFAULT_NAMESPACE, TypeError()],
+            [DEFAULT_NAMESPACE, 'CIM_Foo', 42, TypeError()],
+            [DEFAULT_NAMESPACE, 42, 42, TypeError()],
             # test with non-default namespace
             [NOT_DEFAULT_NS, 'CIM_Foo', NOT_DEFAULT_NS, None],
         ]
@@ -3078,24 +3078,18 @@ class TestClassOperations(object):
             tst_cls_dict[cl.classname] = resolve_class(conn, cl, ns)
 
         # test for qualifiers
-        for pname, prop in cl.properties.items():
+        for pname, prop in rslt_cl.properties.items():
             prop_class_origin = prop.class_origin
             exp_prop_qualifiers = \
                 tst_cls_dict[prop_class_origin].properties[pname].qualifiers
-            assert prop.qualifiers == exp_prop_qualifiers
-        # XXX-RM -5
-        # XXX-ADD:  for pname, prop in rslt_cl.properties.items():
-        # XXX-ADD:      prop_class_origin = prop.class_origin
-        # XXX-ADD:      exp_prop_qualifiers = \
-        # XXX-ADD:tst_cls_dict[prop_class_origin].properties[pname].qualifiers
-        # XXX-ADD:  # Compare qualifiers, ignoring the propagated attribute
-        # XXX-ADD:  assert len(prop.qualifiers) == len(exp_prop_qualifiers)
-        # XXX-ADD:  for qname in prop.qualifiers:
-        # XXX-ADD:      qual_unpropagated = prop.qualifiers[qname].copy()
-        # XXX-ADD:      qual_unpropagated.propagated = None
-        # XXX-ADD:     exp_qual_unpropagated = exp_prop_qualifiers[qname].copy()
-        # XXX-ADD:      exp_qual_unpropagated.propagated = None
-        # XXX-ADD:      assert qual_unpropagated == exp_qual_unpropagated
+            # Compare qualifiers, ignoring the propagated attribute
+            assert len(prop.qualifiers) == len(exp_prop_qualifiers)
+            for qname in prop.qualifiers:
+                qual_unpropagated = prop.qualifiers[qname].copy()
+                qual_unpropagated.propagated = None
+                exp_qual_unpropagated = exp_prop_qualifiers[qname].copy()
+                exp_qual_unpropagated.propagated = None
+                assert qual_unpropagated == exp_qual_unpropagated
 
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
@@ -3671,10 +3665,10 @@ class TestClassOperations(object):
              None, CIMQualifierDeclaration('blah', 'string'), None,
              CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
-            # XXX-ADD:  ['Fail because class is incorrect type int',
-            # XXX-ADD:   None, 42, None,
-            # XXX-ADD:   AttributeError(), OK],
-            # XXX-ADD:  # TODO-TYPECHECK: Don't use AttributeError
+            ['Fail because class is incorrect type int',
+             None, 42, None,
+             AttributeError(), OK],
+            # TODO-TYPECHECK: Don't use AttributeError
 
             # No invalid namespace test defined because createclass creates
             # namespace
@@ -3954,20 +3948,17 @@ class TestInstanceOperations(object):
 
             # Get the original instance inserted into the repository
             org_inst = None
-            req_inst_path.namespace = None
+            org_inst_path = req_inst_path.copy()
+            org_inst_path.namespace = None
             for inst in tst_instances:
-                if inst.path == req_inst_path:
+                if inst.path == org_inst_path:
                     org_inst = inst
                     break
             assert org_inst, \
-                "req_inst_path={}, inst_id={}".format(req_inst_path, inst_id)
+                "org_inst_path={}, inst_id={}".format(org_inst_path, inst_id)
 
-            rslt_inst = inst
-            # XXX-FIX: The above goes back to re-establish the error of using
-            # the previous loop variable inst instead of rslt_inst. Fix the
-            # failing assertions below, then remove line above.
             assert rslt_inst.path == req_inst_path
-            inst.classname == org_inst.classname  # XXX-FIX: Useless
+            assert rslt_inst.classname == org_inst.classname
             assert not rslt_inst.qualifiers
             for pname in rslt_inst.properties:
                 rslt_prop = rslt_inst.properties[pname]
@@ -4040,20 +4031,17 @@ class TestInstanceOperations(object):
 
         # Get the original instance inserted into the repository
         org_inst = None
-        req_inst_path.namespace = None
+        org_inst_path = req_inst_path.copy()
+        org_inst_path.namespace = None
         for inst in tst_instances:
-            if inst.path == req_inst_path:
+            if inst.path == org_inst_path:
                 org_inst = inst
                 break
         assert org_inst, \
-            "req_inst_path={}, inst_id={}".format(req_inst_path, inst_id)
+            "org_inst_path={}, inst_id={}".format(org_inst_path, inst_id)
 
-        rslt_inst = inst
-        # XXX-FIX: The above goes back to re-establish the error of using
-        # the previous loop variable inst instead of rslt_inst. Fix the
-        # failing assertions below, then remove line above.
         assert rslt_inst.path == req_inst_path
-        rslt_inst.classname == org_inst.classname  # XXX-FIX: Useless
+        assert rslt_inst.classname == org_inst.classname
         assert not rslt_inst.qualifiers
         for pname in rslt_inst.properties:
             rslt_prop = rslt_inst.properties[pname]
@@ -5665,19 +5653,6 @@ class TestQualifierOperations(object):
         Static method to build test qualifier declarations. Builds
         2 valid declarations and returns list
         """
-        q1 = CIMQualifierDeclaration('FooQualDecl1', 'uint32')
-
-        q2 = CIMQualifierDeclaration('FooQualDecl2', 'string',
-                                     value='my string', tosubclass=True,
-                                     overridable=False)
-        return [q1, q2]
-
-    @staticmethod
-    def _build_expected_rtn_qualifiers():
-        """
-        Static method to build test qualifier declarations. Builds
-        2 valid declarations and returns list
-        """
         q1 = CIMQualifierDeclaration('FooQualDecl1', 'uint32', tosubclass=True,
                                      overridable=True, translatable=False)
 
@@ -5708,10 +5683,8 @@ class TestQualifierOperations(object):
         tst_quals = self._build_qualifiers()
         conn.add_cimobjects(tst_quals, namespace=ns)
 
-        exp_quals = self._build_expected_rtn_qualifiers()
-
         exp_qual = None
-        for q in exp_quals:
+        for q in tst_quals:
             if q.name.lower() == qname.lower():
                 exp_qual = q
 
@@ -5749,9 +5722,7 @@ class TestQualifierOperations(object):
         Test adding qualifier declarations to the repository and using
         EnumerateQualifiers to retrieve them
         """
-        tst_quals = self._build_qualifiers()
-
-        exp_quals = self._build_expected_rtn_qualifiers()
+        tst_quals = sorted(self._build_qualifiers(), key=lambda x: x.name)
 
         add_objects_to_repo(conn, ns, tst_quals)
 
@@ -5760,11 +5731,10 @@ class TestQualifierOperations(object):
             # The code to be tested
             rslt_quals = conn.EnumerateQualifiers(namespace=ns)
 
-            for q in rslt_quals:
-                assert isinstance(q, CIMQualifierDeclaration)
             rslt_quals.sort(key=lambda x: x.name)
-            exp_quals.sort(key=lambda x: x.name)
-# XXX-ADD:  assert rslt_quals == exp_quals
+            for i, rslt_qual in enumerate(rslt_quals):
+                assert isinstance(rslt_qual, CIMQualifierDeclaration)
+                assert rslt_qual == tst_quals[i]
         else:
             if isinstance(exp_exc, CIMError) and \
                     exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
@@ -5790,8 +5760,8 @@ class TestQualifierOperations(object):
                                      value='my string'), None],
             # Invalid type for QualifierDeclaration parameter:
             [CIMClass('FooQualDecl3'), CIMError(CIM_ERR_INVALID_PARAMETER)],
-            # XXX-ADD:  ['whatever', CIMError(CIM_ERR_INVALID_NAMESPACE)],
-            # XXX-ADD:  [42, CIMError(CIM_ERR_INVALID_PARAMETER)],
+            ['whatever', CIMError(CIM_ERR_INVALID_NAMESPACE)],
+            [42, CIMError(CIM_ERR_INVALID_PARAMETER)],
         ]
     )
     def test_setqualifier(self, conn, ns, qual, exp_exc):
@@ -5867,9 +5837,7 @@ class TestQualifierOperations(object):
             with pytest.raises(type(exp_exc)) as exec_info:
 
                 # The code to be tested
-                conn.GetQualifier(qname, namespace=ns)
-# XXX-RM: -1
-# XXX-ADD:      conn.DeleteQualifier(qname, namespace=ns)
+                conn.DeleteQualifier(qname, namespace=ns)
 
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
@@ -7278,7 +7246,7 @@ class TestDMTFCIMSchema(object):
 
             exc = exec_info.value
             exc_str = str(exc)
-# XXX-ADD:  if isinstance(clns, six.string_types):
-# XXX-ADD:      clns = [clns]
+            if isinstance(clns, six.string_types):
+                clns = [clns]
             for cln in clns:
                 assert exc_str.find(cln)
