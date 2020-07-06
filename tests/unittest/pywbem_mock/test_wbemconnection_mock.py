@@ -70,6 +70,9 @@ OK = True
 RUN = True
 FAIL = False
 
+# Indicator in testcases to indicate that the parameter should be built
+# instead of taken verbatim
+BUILDIT = 'buildit'
 
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.
@@ -165,16 +168,39 @@ def assert_equal_ciminstancenames(l1, l2, model=False):
     assert set(l1) == set(l2)
 
 
-def assert_equal_ciminstances(l1, l2):
+def assert_equal_ciminstances(insts1, insts2, pl=None):
     """
-    Test if instances in two iterables equal. For now just test paths
+    Test if instances in two iterables are equal.
+
+    The instances in the iterables can by in any order. The in stances must have
+    a non-empty path. Compared are classname, path, and the set of properties
+    in the property list pl (if set).
     """
 
-    def _rtn_paths(insts):
-        """Return the list of paths of a list of instances"""
-        return [inst.path for inst in insts]
+    assert len(insts1) == len(insts2)
 
-    assert_equal_ciminstancenames(_rtn_paths(l1), _rtn_paths(l2))
+    # Sort both lists by path
+    insts1_s = sorted(insts1, key=lambda x: x.path.to_wbem_uri('canonical'))
+    insts2_s = sorted(insts2, key=lambda x: x.path.to_wbem_uri('canonical'))
+
+    for i, inst1 in enumerate(insts1_s):
+        inst2 = insts2_s[i]
+        assert isinstance(inst1, CIMInstance)
+        assert isinstance(inst2, CIMInstance)
+        assert inst1.classname.lower() == inst2.classname.lower()
+        assert isinstance(inst1.path, CIMInstanceName)
+        assert isinstance(inst2.path, CIMInstanceName)
+        assert inst1.path == inst2.path
+        if pl:
+            for pname in pl:
+                assert pname in inst1.properties
+                assert pname in inst2.properties
+                prop1 = inst1.properties[pname]
+                prop2 = inst1.properties[pname]
+                assert isinstance(prop1, CIMProperty)
+                assert isinstance(prop2, CIMProperty)
+                assert prop1.type == prop2.type
+                assert prop1.value == prop2.value
 
 
 def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
@@ -6255,7 +6281,6 @@ class TestReferenceOperations(object):
         rslt_insts = conn.References(inst_path)
 
         assert isinstance(rslt_insts, list)
-
         assert_equal_ciminstances(exp_insts, rslt_insts)
 
     @pytest.mark.parametrize(
@@ -6574,8 +6599,91 @@ class TestAssociatorOperations(object):
 
         # TODO: expand associator instance names tests
 
+    TESTCASES_ASSOCIATOR_INSTANCES = [
+
+        # Testcases for test_associator_instances(), where each list item is
+        # a tuple with these items:
+        #
+        # desc: Testcase description
+        # inst_name: ObjectName input parameter for the op., or BUILDIT
+        # role: Role input parameter for the operation
+        # ac: AssocClass input parameter for the operation
+        # rr: ResultRole input parameter for the operation
+        # rc: ResultClass input parameter for the operation
+        # iq: IncludeQualifiers input parameter for the operation
+        # ico: IncludeClassOrigin input parameter for the operation
+        # pl: PropertyList input parameter for the operation
+        # exp_rslt: Expected list of instances in response, as tuple
+        #           (classname, name key), or expected exception object.
+
+        (
+            "Role, AssocClass parameters",
+            BUILDIT,
+            'parent', 'TST_Lineage', None, None,
+            None, None, None,
+            (
+                ('TST_person', 'Sofi'),
+                ('TST_person', 'Gabi'),
+            )
+        ),
+        (
+            "Role, AssocClass, ResultRole, ResultClass parameters",
+            BUILDIT,
+            'parent', 'TST_Lineage', 'child', 'TST_Person',
+            None, None, None,
+            (
+                ('TST_person', 'Sofi'),
+                ('TST_person', 'Gabi'),
+            )
+        ),
+        (
+            "ObjectName is instance path with non-existing namespace",
+            CIMInstanceName('TST_Lineage', namespace='BadNameSpaceName',
+                            keybindings=dict(name='Mike')),
+            None, None, None, None,
+            None, None, None,
+            CIMError(CIM_ERR_INVALID_NAMESPACE)
+        ),
+        (
+            "ObjectName has invalid type int",
+            42, None, None, None, None, None, None, None, TypeError()
+        ),
+        (
+            "ObjectName has invalid value None",
+            None, None, None, None, None, None, None, None, TypeError()
+        ),
+        (
+            "Role has invalid type int",
+            BUILDIT, 42, None, None, None, None, None, None, TypeError()
+        ),
+        (
+            "AssocClass has invalid type int",
+            BUILDIT, None, 42, None, None, None, None, None, TypeError()
+        ),
+        (
+            "ResultRole has invalid type int",
+            BUILDIT, None, None, 42, None, None, None, None, TypeError()
+        ),
+        (
+            "ResultClass has invalid type int",
+            BUILDIT, None, None, None, 42, None, None, None, TypeError()
+        ),
+        (
+            "IncludeQualifiers has invalid type int",
+            BUILDIT, None, None, None, None, 42, None, None, TypeError()
+        ),
+        (
+            "IncludeClassOrigin has invalid type int",
+            BUILDIT, None, None, None, None, None, 42, None, TypeError()
+        ),
+        (
+            "PropertyList has invalid type int",
+            BUILDIT, None, None, None, None, None, None, 42, TypeError()
+        ),
+    ]
+
     @pytest.mark.parametrize(
-        "ns", INITIAL_NAMESPACES + [None])
+        "tst_ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln, name_key",
         [
@@ -6587,86 +6695,63 @@ class TestAssociatorOperations(object):
         ]
     )
     @pytest.mark.parametrize(
-        "role, ac, rr, rc, exp_rslt",
-        [
-            # role: associator role parameter
-            # ac: associator operation AssocClass parameter
-            # rr: associator operation ResultRole parameter
-            # rc: associator operation ResultClass parameter
-            # exp_rslt: Expected result: List of instances in response,
-            #           or expected exception object.
-
-            # Test for assigned role and assoc class
-            ['parent', 'TST_Lineage', None, None, (('TST_person', 'Sofi'),
-                                                   ('TST_person', 'Gabi'),)],
-            # Test for assigned role, asoc class, result role, resultclass
-            ['parent', 'TST_Lineage', 'child', 'TST_Person',
-             (('TST_person', 'Sofi'), ('TST_person', 'Gabi'),)],
-            # Execute invalid namespace test
-            ['parent', 'TST_Lineage', 'child', 'TST_Person',
-             CIMError(CIM_ERR_INVALID_NAMESPACE)],
-            # Invalid types
-            [42, None, None, None, TypeError()],
-            [None, 42, None, None, TypeError()],
-            [None, None, 42, None, TypeError()],
-            [None, None, None, 42, TypeError()],
-            # TODO: add more tests
-        ]
+        "desc, inst_name, role, ac, rr, rc, iq, ico, pl, exp_rslt",
+        TESTCASES_ASSOCIATOR_INSTANCES
     )
-    def test_associator_instances(self, conn, tst_assoc_mof, ns, cln, name_key,
-                                  role, rr, ac, rc, exp_rslt):
+    def test_associator_instances(
+            self, conn, tst_assoc_mof, tst_ns, cln, name_key,
+            desc, inst_name, role, rr, ac, rc, iq, ico, pl, exp_rslt):
         # pylint: disable=no-self-use
         """
-        Test getting associators with parameters for the response filters
-        including role, etc.
+        Test Associators() operation at instance level.
         """
         # TODO: Add test for IncludeQualifiers, PropertyList, IncludeClassOrigin
         skip_if_moftab_regenerated()
 
-        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+        conn.compile_mof_string(tst_assoc_mof, namespace=tst_ns)
 
-        exp_ns = ns or conn.default_namespace
+        exp_ns = tst_ns or conn.default_namespace
 
-        inst_name = CIMInstanceName(cln, namespace=exp_ns,
-                                    keybindings=dict(name=name_key))
+        if inst_name is BUILDIT:
+            inst_name = CIMInstanceName(cln, namespace=exp_ns,
+                                        keybindings=dict(name=name_key))
 
-        if isinstance(exp_rslt, (tuple, list)):
-
-            # The code to be tested
-            rslt_insts = conn.Associators(inst_name, AssocClass=ac, Role=role,
-                                          ResultRole=rr, ResultClass=rc)
-
-            assert isinstance(rslt_insts, list)
-            assert len(rslt_insts) == len(exp_rslt)
-            for inst in rslt_insts:
-                assert isinstance(inst, CIMInstance)
-
-            if isinstance(exp_rslt, (list, tuple)):
-
-                exp_paths = [CIMInstanceName(p[0], keybindings={'name': p[1]},
-                                             namespace=exp_ns)
-                             for p in exp_rslt]
-                rslt_paths = [inst.path for inst in rslt_insts]
-
-                assert_equal_ciminstancenames(rslt_paths, exp_paths)
-
-        else:
-            assert isinstance(exp_rslt, Exception)
+        if isinstance(exp_rslt, Exception):
             exp_exc = exp_rslt
-            if isinstance(exp_exc, CIMError) and \
-                    exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
-                inst_name.namespace = 'BadNameSpaceName'
             with pytest.raises(type(exp_exc)) as exec_info:
 
                 # The code to be tested
-                conn.Associators(inst_name, AssocClass=ac, Role=role,
-                                 ResultRole=rr, ResultClass=rc)
+                conn.Associators(
+                    inst_name, AssocClass=ac, Role=role, ResultRole=rr,
+                    ResultClass=rc, IncludeQualifiers=iq,
+                    IncludeClassOrigin=ico, PropertyList=pl)
 
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
-        # TODO: expand associator instance tests
+        else:
+            assert isinstance(exp_rslt, (tuple, list))
+
+            # The code to be tested
+            rslt_insts = conn.Associators(
+                inst_name, AssocClass=ac, Role=role, ResultRole=rr,
+                ResultClass=rc, IncludeQualifiers=iq,
+                IncludeClassOrigin=ico, PropertyList=pl)
+
+            assert isinstance(rslt_insts, list)
+            assert len(rslt_insts) == len(exp_rslt)
+
+            # Build the expected result list
+            exp_insts = []
+            for cln, name_key in exp_rslt:
+                exp_inst = CIMInstance(
+                    cln, properties={'name': name_key},
+                    path=CIMInstanceName(
+                        cln, keybindings={'name': name_key}, namespace=exp_ns))
+                exp_insts.append(exp_inst)
+
+            assert_equal_ciminstances(exp_insts, rslt_insts, pl=['name'])
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
