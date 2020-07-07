@@ -19,37 +19,21 @@
 #
 
 """
-This module provides an implementation of a CIM repository that stores
-collections of :class:`~pywbem.CIMClass`, :class:`~pywbem.CIMInstance`, and
-:class:`~pywbem.CIMQualifierDeclaration` objects based on abstract classes that
-define the API for the repository.
-
 The class :class:`~pywbem_mock.InMemoryRepository` implements a CIM repository
-that stores the CIM objects only in memory partitioned by CIM namespaces, and
-containing an object store (:class:`~pywbem_mock.InMemoryObjectStore`) for each
-CIM object type in each defined namespace. Each object store contains the CIM
-objects of the defined CIM type that have been added to the repository.
+that stores the CIM objects in memory. It contains an object store
+(:class:`~pywbem_mock.InMemoryObjectStore`) for each type of CIM object
+(classes, instances, qualifier declarations) and for each CIM namespace in the
+repository. Each object store for a CIM object type contains the CIM objects
+of that type in a single CIM namespace.
 
-The CIM repository is created each time a
-:class:`~pywbem_mock.InMemoryRepository` is constructed and destroyed each time
-it is destroyed.
+The CIM repository of a mock WBEM server represented by a
+:class:`~pywbem_mock.FakedWBEMConnection` object is a
+:class:`~pywbem_mock.InMemoryRepository` object that is created and destroyed
+automatically when the
+:class:`~pywbem_mock.FakedWBEMConnection` object is created and destroyed.
 
-Example:
-
-.. code-block:: python
-
-    repo = InMemoryRepository()                      # create the repo
-    repo.add_namespace("root/cimv2")                 # add a namespace
-    class_store = .repo.get_class_store("root/cimv2") # get class obj store
-    test_class = CIMClass('CIM_Blah', ...)           # create a class
-    class_store.add(test_class)                      # add to xxxrepo classes
-    if 'CIM_Blah' in class_store:                    # test if class exists
-        klass = class_store.get('CIM_Blah;)          # get the class
-    iter = class_store.iter_names()                  # get name iterator
-    for item in iter:                                # display all names
-       print(item(
-
-The following classes implement this repository:
+The CIM repository of a mock WBEM server is accessible through its
+:attr:`pywbem_mock.FakedWBEMConnection.cimrepository` property.
 """
 
 from __future__ import absolute_import, print_function

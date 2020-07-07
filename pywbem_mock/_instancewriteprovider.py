@@ -19,156 +19,45 @@
 #
 
 """
-This module contains the InstanceWrite Provider with the default implementation
-for the mock WBEM server responders for `CreateInstance`, `ModifyInstance` and
-`DeleteInstance`.  These the methods will be executed if there is no provider
-registered  for a namespace and class name.
+The :class:`~pywbem_mock.InstanceWriteProvider` class provides the default
+implementations of the ``CreateInstance``, ``ModifyInstance`` and
+``DeleteInstance`` provider methods by means of
+:meth:`~pywbem_mock.InstanceWriteProvider.CreateInstance`,
+:meth:`~pywbem_mock.InstanceWriteProvider.ModifyInstance`, and
+:meth:`~pywbem_mock.InstanceWriteProvider.DeleteInstance`.
 
-This module adds support for user-defined instance providers.  User-defined
-instance providers may be created within the pywbem_mock environment to modify
-the functionality of these WBEM requests.
-:class:`~pywbem_mock.InstanceWriteProvider` defines the  default implementation
-of ``CreateInstance``, ``ModifyInstance`` and ``DeleteInstance`` default
-mock WBEM server responder methods that may be overwritten by user-defined
-subclasses of the :class:`~pywbem_mock.InstanceWriteProvider`.
+A user-defined instance write provider may implement some or all of these
+provider methods. The method descriptions linked above provide a detailed
+definition of the input parameters, return values, and required behavior.
 
-User-defined providers may be created for specific CIM classes (which are
-defined in the user-defined provider) and namespaces (which are defined a
-parameter of the provider registration) to override one or more of the
-operation request methods defined in
-:class:`~pywbem_mock.InstanceWriteProvider` with user methods defined in a
-subclass of :class:`~pywbem_mock.InstanceWriteProvider`.  If any of the
-InstanceWriteProviders do not exist in the user-defined provider, the
-corresponding default method is executed.
+The following is a simple example of a user-defined instance write provider
+that serves the 'CIM_Foo' and 'CIM_FooFoo' classes and implements
+``CreateInstance`` for the purpose of setting a value for the 'InstanceID' key
+property:
 
-This module contains the default InstanceWriteProvider class which provides the
-following:
+.. code-block:: python
 
-1. Definition of the provider type (`provider_type = instance`).
-2. Definition of the method APIs, default implementation and return for the
-   `CreateInstance`, 'ModifyInstance', and `DeleteInstance` methods required
-   in the user-defined subclass.
+    import uuid
+    from pywbem_mock import InstanceWriteProvider
 
-A user-defined instance provider can be created as follows:
+    class MyInstanceProvider(InstanceWriteProvider):
 
-1. Implement the subclass of :class:`~pywbem_mock.InstanceWriteProvider` with:
+        # CIM classes served by this provider
+        provider_classnames = ['CIM_Foo', 'CIM_FooFoo']
 
-   a. Constructor:
-      `__init__()` that takes as input at least the cimrepository
-      object parameter and passes it to the superclass and any other
-      constructor parameters the user-defined provider requires.  Since the
-      user creates the instance.
+        def CreateInstance(self, namespace, new_instance):
+            new_instance.properties["InstanceID"] = \\
+                "{}.{}".format(new_instance.classname, uuid.uuid4())
+            return super(MyInstanceProvider, self).CreateInstance(
+                namespace, new_instance)
 
-      .. code-block:: python
+Because the provider in this example does not implement the
+``ModifyInstance`` and ``DeleteInstance`` methods, these operations will
+use their default implementations from
+:class:`~pywbem_mock.InstanceWriteProvider`.
 
-         def __init__(self, cimrepository):
-             super(MyInstanceWriteProvider, self).__init__(cimrepository)
-
-      Since the registration (:meth:`pywbem.WBEMConnection.register_provider`)
-      requires that the provider be instantiated before being registered, a
-      user could add more parameters to the constructor.
-
-   b. Definition of the CIM class(es) the provider supports as a class variable.
-
-      .. code-block:: python
-
-        provider_classnames = 'CIM_Foo'
-        or
-        provider_classnames = ['CIM_Foo', 'CIM_Foo_blah']
-
-   c. Definition and implementation of the WBEM operations supported by the
-      provider from the set of request operations defined in the table above.
-      This must be a subset of the methods defined for the provider type.
-      Methods that do not exist in the user-defined provider default to the
-      default method. Each of these methods may:
-
-      * provide parameter or CIM repository validation in addition to the normal
-        request validation,
-      * modify parameters of the request,
-      * abort the request with a CIMError exception,
-      * make modifications to the CIM repository.
-
-      The request may be completed by the user provider method calling the
-      superclass corresponding method to complete its final validation and
-      modify the repository or by the provider directly modifying the
-      repository based on the method and parameters.
-
-      The user-defined providers have access to:
-        * methods defined in their superclass
-        * methods defined in :class:~pywbem_mock.BaseProvider`
-        * methods to access the CIM repository using the methods defined in
-          :class:`~pywbem_mock.InMemoryRepository`
-
-      .. code-block:: python
-
-        # define CreateInstance method and call the superclass method
-        def CreateInstance(self, namespace, NewInstance):
-        \"\"\"Test Create instance just calls super class method\"\"\"
-
-        # Calls the default responder method for CreateInstance
-        return super(MyInstanceWriteProvider, self).CreateInstance(
-            namespace, NewInstance)
-
-   d. Optional post register setup method
-      The provider may include
-      (:meth:`~pywbem_mock.InstanceWriteProvider.post_register-setup()`) that
-      :meth:`~pywbem_mock.FakedWBEMConnection.register_provider` will call as
-      after the provider registration is successful.  This allows the provider
-      to do any special setup it desires uses its own methods. This method
-      includes the current connection as a parameter so that client methods can
-      be executed directly.
-
-      .. code-block:: python
-
-          def post_register_setup(self, conn):
-            # code that performs post registration setup for the provider
-
-
-   The input parameters for the user defined methods  will
-   have been already validated in
-   :class:`~pywbem_mock.ProviderDispatcher.ProviderDispatcher` including:
-
-   a. The namespace defined in the namespace parameter exists.
-
-   b. The CIM class for the instance or instance path defined in the input
-      parameter exists in the exists.
-
-   c. The input object (NewInstance, etc. is of the correct CIM type) and
-      properties of the instance for CreateInstance are valid.
-
-   d. The instance does not exist for CreateInstance and does exist for
-      Modify Instance.
-
-
-   The created methods should implement any exceptions based on
-   :class:`pywbem.CIMError` using the error codes defined in :term:`DSP0200`
-   which will be passed back to the client.
-
-   The user-defined class must include the following class variable:
-
-   * `provider_classnames` (:term:`string` or list of :term`string`): defines
-     the class(es) that this provider will serve.
-
-   The user-defined provider has access to:
-       * methods defined in the superclass
-         :class:~pywbem_mock.InstanceWriteProvider`
-       * methods defined in :class:~pywbem_mock.BaseProvider`
-       * methods to access the CIM repository using the methods defined in
-         :class:`~pywbem_mock.InMemoryRepository`
-
-2. Register the user-defined provider using
-   :meth:`~pywbem_mock.FakedWBEMConnection.register_provider` to define the
-   namespaces for which the user provider will override
-   :class:`~pywbem_mock.InstanceWriteProvider`.  The registration of the user
-   provider must occur after the namespaces defined in the registration have
-   been added to the CIM repository.
-
-      .. code-block:: python
-
-        # class for this provider previously installed in CIM repository
-        provider = MyCIM_BlanInstanceWriteProvider(self.cimrepository)
-        conn.register_provider(provider,
-                               namespaces=['root/interop', 'root/cimv2'])
+The provider in this example does not need to implement an ``__init__()``
+method, because no additional init parameters are needed.
 """
 
 from __future__ import absolute_import, print_function

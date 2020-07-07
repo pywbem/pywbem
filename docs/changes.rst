@@ -70,6 +70,9 @@ Released: not yet
   provider is called. This resulted in some incompatible changes at the
   interface of user-defined providers. (See issue #2326)
 
+* Reworked the documentation about the mock WBEM server, specifically the
+  sections about user-defined providers (See issue #2290).
+
 **Cleanup:**
 
 * Document the TODOs in pywbem_mock and

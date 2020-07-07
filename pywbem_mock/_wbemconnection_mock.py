@@ -118,9 +118,6 @@ class FakedWBEMConnection(WBEMConnection):
 
     **Experimental:** *New in pywbem 0.12 as experimental.*
 
-    For a description of the operation methods on this class, see
-    :ref:`Faked WBEM operations`.
-
     Each :class:`~pywbem.FakedWBEMConnection` object has its own mock
     repository which contains multiple CIM namespaces, and each namespace may
     contain CIM qualifier types (declarations), CIM classes and CIM instances.
@@ -252,14 +249,11 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def cimrepository(self):
         """
-        :class:`~pywbem.InMemoryRepository`: Instance of class
-        `InMemoryRepository`  that represents the CIM repository.
+        :class:`~pywbem_mock.InMemoryRepository`: The mocked in-memory CIM
+        repository.
 
-        The CIM repository instance is the data store for CIM classes, CIM
-        instances, and CIM qualifier declarations.  All access to the mocker
-        CIM data must pass through this variable to the CIM repository.
-        See :class:`~pywbem_mock.BaseRepository` for a description of
-        the repository interface.
+        The CIM repository is the data store for CIM classes, CIM instances,
+        and CIM qualifier declarations, all partitioned by CIM namespaces.
         """
         if self._cimrepository is None:
             self._cimrepository = InMemoryRepository(self.default_namespace)
