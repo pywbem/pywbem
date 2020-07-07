@@ -10,52 +10,53 @@ Mock WBEM server
 Overview
 --------
 
-The 'pywbem_mock' module of pywbem provides a mock WBEM server that
+The 'pywbem_mock' module of pywbem provides a *mock WBEM server* that
 enables using the pywbem client library without a real WBEM server.
-This module is useful for testing the pywbem client library itself as well
+This is useful for testing the pywbem client library itself as well
 as for the development and testing of Python programs that use the pywbem
 client library.
 
-The 'pywbem_mock' module contains the :class:`pywbem_mock.FakedWBEMConnection`
-class that establishes a *faked connection*. That class is a subclass of
+The :class:`pywbem_mock.FakedWBEMConnection` class establishes an in-process
+mock WBEM server and represents a *faked connection* to that mock WBEM server.
+That class acts as both the client API and as an API for managing the mocked
+WBEM server.
+
+The :class:`pywbem_mock.FakedWBEMConnection` class is a subclass of
 :class:`pywbem.WBEMConnection` and replaces its internal methods that use
-HTTP/HTTPS to communicate with a WBEM server with methods that communicate
-with  an in-process in-memory repository of CIM objects (the *mock repository*).
-
-:class:`~pywbem_mock.FakedWBEMConnection` acts as both the client API and an
-in-process fake WBEM server. It includes methods to establish, configure, and
-visualize this fake WBEM server. As a result, the operation methods of
+HTTP/HTTPS to communicate with a WBEM server with methods that communicate with
+the mock WBEM server. As a result, the operation methods of
 :class:`~pywbem_mock.FakedWBEMConnection` are those inherited from
-:class:`~pywbem.WBEMConnection`, so they have exactly the same input
-parameters, output parameters, return values, and even most of the raised
-exceptions, as when invoked on a :class:`~pywbem.WBEMConnection` object against
-a real WBEM server.
+:class:`~pywbem.WBEMConnection`, so they have exactly the same input parameters,
+output parameters, return values, and even most of the raised exceptions, as
+when invoked on a :class:`~pywbem.WBEMConnection` object against a real
+WBEM server.
 
-Each :class:`~pywbem_mock.FakedWBEMConnection` object creates its own mock
-repository that contains the same kinds of CIM objects a WBEM
-server repository contains: CIM classes, CIM instances, and CIM qualifier
-declarations types contained in CIM namespaces. Because
-:class:`~pywbem_mock.FakedWBEMConnection` operates only on the mock repository,
-the class does not have any connection or security-related constructor
+The mock WBEM server has an in-memory repository of CIM objects
+(the *CIM repository*). Each :class:`~pywbem_mock.FakedWBEMConnection` object
+creates its own CIM repository that contains the same kinds of CIM objects a
+WBEM server repository contains: CIM classes, CIM instances, and CIM qualifier
+declarations types, contained in CIM namespaces. Because
+:class:`~pywbem_mock.FakedWBEMConnection` operates only on the CIM repository,
+the class does not have any connection- or security-related constructor
 parameters.
 
 Like :class:`~pywbem.WBEMConnection`, :class:`~pywbem_mock.FakedWBEMConnection`
-has a default CIM namespace that is created upon
-:class:`~pywbem_mock.FakedWBEMConnection` instance creation.
-:class:`~pywbem_mock.FakedWBEMConnection` allows defining additional namespaces
-with :meth:`~pywbem_mock.FakedWBEMConnection.add_namespace()` .
+has a default CIM namespace that is created in the CIM repository upon
+:class:`~pywbem_mock.FakedWBEMConnection` object creation.
+Additional namespaces in the CIM repository can be created with
+:meth:`~pywbem_mock.FakedWBEMConnection.add_namespace()` .
 
-The mock repository must contain the CIM classes, CIM instances and CIM qualifier
+The CIM repository must contain the CIM classes, CIM instances and CIM qualifier
 declaration types that are needed for the operations that are invoked. This
-results in a behavior of the faked operations that is close to the behavior of
+results in a behavior of the mock WBEM server that is close to the behavior of
 the operations of a real WBEM server.
 :class:`~pywbem_mock.FakedWBEMConnection` has methods that provide for adding
-CIM classes, instances and qualifier types to its mock repository by providing
+CIM classes, instances and qualifier types to its CIM repository by providing
 them as :term:`CIM objects <CIM object>`, or by compiling MOF.
-See :ref:`Building a mock repository` for details.
+See :ref:`Building a mocked CIM repository` for details.
 
-The following example demonstrates setting up a faked connection, adding
-several CIM objects defined in a MOF string to its mock repository, and
+The following example demonstrates setting up a mock WBEM server, adding
+several CIM objects defined in a MOF string to its CIM repository, and
 executing WBEM operations on the faked connection:
 
 .. code-block:: python
@@ -91,11 +92,11 @@ executing WBEM operations on the faked connection:
         instance of CIM_Foo as $I1 { InstanceID = "I1"; SomeData=3 };
         '''
 
-    # Create a faked connection (with a mock repository)
+    # Create a faked connection including a mock WBEM server with a CIM repo
     conn = pywbem_mock.FakedWBEMConnection(default_namespace='root/cimv2')
 
     # Compile the MOF string and add its CIM objects to the default namespace
-    # of the mock repository
+    # of the CIM repository
     conn.compile_mof_string(mof)
 
     # Perform a few operations on the faked connection:
@@ -126,7 +127,7 @@ The mock WBEM server supports:
 3. Gathering time statistics and delaying responses for a predetermined time.
 4. :class:`~pywbem.WBEMConnection` logging except that there are no HTTP entries
    in the log.
-5. User-defined providers that replace the WBEM  server responder for specific
+5. User-defined providers that replace the the default providers specific
    request methods, CIM classes, and namespaces. See :ref:`User-defined
    providers`.
 
@@ -199,33 +200,33 @@ The mock WBEM server does NOT support:
 
 Diagram of flow of requests operations through mocker
 
-.. _`Faked WBEM operations`:
 
-Faked WBEM operations
----------------------
+.. _`WBEM operations of a mock WBEM server`:
 
-The :class:`pywbem_mock.FakedWBEMConnection`  class supports the same WBEM
+WBEM operations of a mock WBEM server
+-------------------------------------
+
+The :class:`pywbem_mock.FakedWBEMConnection` class supports the same WBEM
 operations that are supported by the :class:`pywbem.WBEMConnection` class and
-in addition a set of methods to execute WBEM server responders for each of these
-client methods using an internal CIM repository of CIM classes, CIM instances,
-and CIM qualifier declarations.
+in addition a set of methods for setting up its mocked CIM repository, and
+for registering user-defined providers for selected WBEM operations.
 
-These faked operations generally adhere to the behavior requirements defined in
-:term:`DSP0200` for handling input parameters and returning a result.
+These *faked WBEM operations* generally adhere to the behavior requirements
+defined in :term:`DSP0200` for handling input parameters and returning a result.
 
-The faked operations get the data to be returned from the mock repository of
-the faked connection, and put the data provided in operation parameters that
+The faked WBEM operations get the data to be returned from the CIM repository of
+the mock WBEM server, and put the data provided in operation parameters that
 modify objects (create, modify, and delete operations) into the mock
 repository.
 
 However, because the pywbem mock support is only a simulation of a WBEM server
 and intended to be used primarily for testing, there are limitations and
-differences between the behavior of the faked operations and a real WBEM
+differences between the behavior of the faked WBEM operations and a real WBEM
 server.
 
-The descriptions below describe differences between the faked operations of
+The descriptions below describe differences between the faked WBEM operations of
 the pywbem mock support and the operations of a real WBEM server, and the
-effects of the operation modes of the mock repository.
+effects of the operation modes of the CIM repository.
 
 
 .. _`Faked instance operations`:
@@ -290,7 +291,7 @@ Faked association operations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The faked association operations support both instance-level use and
-class-level requests. Class-level use requires the mock repository to be in full
+class-level requests. Class-level use requires the CIM repository to be in full
 mode, while instance-level use works in both operation modes of the mock
 repository.
 
@@ -298,7 +299,7 @@ repository.
   :meth:`~pywbem.WBEMConnection.AssociatorNames`, with the following
   requirements:
   The source, target, and association classes and their subclasses must exist
-  in the mock repository for both class-level use and instance-level use.
+  in the CIM repository for both class-level use and instance-level use.
 
 - **Associators**: Behaves like
   :meth:`~pywbem.WBEMConnection.Associators`, with the
@@ -431,28 +432,28 @@ The iter operations are:
 Faked class operations
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Class operations only work if the mock repository is in full operation mode.
+Class operations only work if the CIM repository is in full operation mode.
 
 - **GetClass:** Behaves like :meth:`~pywbem.WBEMConnection.GetClass`. Requires
-  that the class to be returned is in the mock repository.
+  that the class to be returned is in the CIM repository.
 
 - **EnumerateClasses:** Behaves like
   :meth:`~pywbem.WBEMConnection.EnumerateClasses`. Requires that the class
-  specified in the `ClassName` parameter be in the mock repository.
+  specified in the `ClassName` parameter be in the CIM repository.
 
 - **EnumerateClassNames:** Behaves like
   :meth:`~pywbem.WBEMConnection.EnumerateClassNames`. Requires that the class
-  specified in the `ClassName` parameter be  in the mock repository.
+  specified in the `ClassName` parameter be  in the CIM repository.
 
 - **CreateClass:** Behaves like
   :meth:`~pywbem.WBEMConnection.CreateClass`. Requires that the superclass of
-  the new class (if it specifies one) is in the mock repository.
+  the new class (if it specifies one) is in the CIM repository.
 
 - **DeleteClass:** Behaves like
   :meth:`~pywbem.WBEMConnection.DeleteClass`, with the following difference:
   This operation additionally deletes all direct and indirect subclasses of the
   class to be deleted, and all instances of the classes that are being deleted.
-  Requires that the class to be deleted is in the mock repository.
+  Requires that the class to be deleted is in the CIM repository.
 
 - **ModifyClass:** Not currently implemented.
 
@@ -465,48 +466,73 @@ Faked qualifier declaration operations
 Qualifier operations declaration include the following.
 
 - **SetQualifier:** Behaves like :meth:`~pywbem.WBEMConnection.SetQualifier`.
-  Requires that the specified qualifier type is in the mock repository.
+  Requires that the specified qualifier type is in the CIM repository.
 
 - **GetQualifier:** Behaves like :meth:`~pywbem.WBEMConnection.GetQualifier`.
-  Requires that the specified qualifier type is in the mock repository.
+  Requires that the specified qualifier type is in the CIM repository.
 
 - **EnumerateQualifiers:** Behaves like
   :meth:`~pywbem.WBEMConnection.EnumerateQualifiers`.
-  Requires that the qualifier types to be returned are in the mock repository.
+  Requires that the qualifier types to be returned are in the CIM repository.
 
 - **DeleteQualifier:** - Not implemented.
 
 
-.. _`Building a mock repository`:
+.. _`FakedWBEMConnection class`:
 
-Building a mock repository
---------------------------
+FakedWBEMConnection class
+-------------------------
 
-The mock repository needs to contain the CIM namespaces, and within them, the
+.. # Note: The pywbem_mock._wbemconnection_mock module docstring is a dummy.
+
+.. autoclass:: pywbem_mock.FakedWBEMConnection
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. _`Building a mocked CIM repository`:
+
+Building a mocked CIM repository
+--------------------------------
+
+The CIM repository of a mock WBEM server needs to contain the CIM namespaces,
+and within them, the
 CIM qualifier declarations, CIM classes, and CIM instances required by the user.
 These are created as part of the setup of any particular pywbem mock environment.
 Thus, if the user only requires CIM_ComputerSystem in a particular namespace,
 only that class and its dependent classes and qualifier declarations need be in
-that namespace in the mock repository, along with instances of the classes that
+that namespace in the CIM repository, along with instances of the classes that
 will satisfy the client methods executed.
 
 The classes :class:`~pywbem_mock.FakedWBEMConnection` and
 :class:`~pywbem_mock.DMTFCIMSchema` provide the tools to build the mock
 repository.
 
-CIM namespaces are created in the mock repository by defining a default
+CIM namespaces are created in the CIM repository by defining a default
 namespace for the :class:`~pywbem_mock.FakedWBEMConnection` object, and by using
 the :meth:`~pywbem_mock.FakedWBEMConnection.add_namespace` method to create
 additional namespaces.
 
 There are multiple ways to add CIM objects to a target namespace of the
-mock repository:
+CIM repository:
 
 * From :term:`CIM objects <CIM object>`, using the
   :meth:`~pywbem_mock.FakedWBEMConnection.add_cimobjects` method.
 
   The specified CIM objects are added to or updated in a target namespace of
-  the mock repository. Dependent classes and qualifier types of these objects
+  the CIM repository. Dependent classes and qualifier types of these objects
   must already exist in the target namespace.
 
 * From definitions of the CIM objects in a MOF string or a MOF file, using
@@ -514,7 +540,7 @@ mock repository:
   or :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_file` methods.
 
   The CIM objects defined in the MOF are added to or updated in a target
-  namespace of the mock repository. Dependent classes and qualifier types of
+  namespace of the CIM repository. Dependent classes and qualifier types of
   these objects must already exist in the target namespace.
 
 * From CIM class names and a schema search path containing the MOF files of one
@@ -526,22 +552,22 @@ mock repository:
   :meth:`~pywbem_mock.DMTFCIMSchema` class.
 
   The specified CIM classes are added to or updated in a target namespace of the
-  mock repository, and their dependent classes and qualifier types are added
+  CIM repository, and their dependent classes and qualifier types are added
   to the target namespace from the schemas in the search path as needed.
 
   The dependent classes and qualifier types are determined automatically and
   recursively. This includes superclasses, reference classes (used in
   reference properties and reference parameters), and embedded classes (i.e.
   classes referenced through the EmbeddedInstance qualifier). Thus, a user
-  creating a mock repository does not have to track down those dependent classes
+  building a CIM repository does not have to track down those dependent classes
   and qualifier types, and instead only needs to know the schema(s) to be used
   and the creation classes for any CIM instances. This also means that there is
   normally no reason to compile the complete schema which is much larger than
   the classes that are minimally needed.
 
-It may take a combination of all of the above methods to build a mock repository
+It may take a combination of all of the above methods to build a CIM repository
 that satisfies a particular usage requirement. A typical approach for building
-a mock repository is:
+a CIM repository is:
 
 1. Establish the MOF subtrees for the schema(s) needed. That can be a downloaded
    version of the DMTF CIM schema, local modifications to a version of the DMTF
@@ -576,9 +602,9 @@ a mock repository is:
 Example: Set up qualifier types and classes in DMTF CIM schema
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example creates a faked connection using ``root/interop`` as the default
+This example creates a mock WBEM server using ``root/interop`` as the default
 namespace and compiles the classes defined in the list 'classes' from DMTF
-schema version 2.49.0 into the mock repository along with all of the qualifier
+schema version 2.49.0 into the CIM repository along with all of the qualifier
 types defined by the DMTF CIM schema and any dependent classes
 (superclasses, etc.).
 
@@ -614,7 +640,7 @@ types defined by the DMTF CIM schema and any dependent classes
 Example: Set up qualifier types and classes from MOF
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example creates a faked connection and sets up its mock repository with
+This example creates a mock WBEM server and sets up its CIM repository with
 qualifier types and classes that are defined in a MOF string.
 
 .. code-block:: python
@@ -625,7 +651,7 @@ qualifier types and classes that are defined in a MOF string.
     tst_namespace = 'root/blah'
     conn = pywbem_mock.FakedWBEMConnection()
 
-    # Add some qualifier types and classes to the mock repo by compiling MOF
+    # Add some qualifier types and classes to the CIM repo by compiling MOF
     mof = '''
         Qualifier Key : boolean = false,
             Scope(property, reference),
@@ -659,7 +685,7 @@ qualifier types and classes that are defined in a MOF string.
 
     conn.display_repository()
 
-Here is the output from displaying the mock repository in the example above:
+Here is the output from displaying the CIM repository in the example above:
 
 .. code-block:: text
 
@@ -717,7 +743,7 @@ Here is the output from displaying the mock repository in the example above:
 Example: Set up instances from single CIM objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Based on the mock repository content of the previous example, this example
+Based on the CIM repository content of the previous example, this example
 adds two class instances and one association instance from their CIM objects
 using the :meth:`~pywbem_mock.FakedWBEMConnection.add_cimobjects` method.
 
@@ -798,13 +824,77 @@ This adds the instances to the repository display of the previous example:
     };
 
 
+.. _`DMTF CIM schema download support`:
+
+DMTF CIM schema download support
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pywbem_mock._dmtf_cim_schema
+
+.. autoclass:: pywbem_mock.DMTFCIMSchema
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. _`In-memory CIM repository classes`:
+
+In-memory CIM repository classes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pywbem_mock._inmemoryrepository
+
+.. autoclass:: pywbem_mock.InMemoryRepository
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.InMemoryRepository
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.InMemoryRepository
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem_mock.InMemoryObjectStore
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
+      :attributes:
+
+   .. rubric:: Details
+
+
 .. _`Mocking multiple CIM namespaces`:
 
 Mocking multiple CIM namespaces
 -------------------------------
 
-Pywbem_mock allows creating multiple namespaces in the repository and installing
-elements in some or all of those namespaces.
+The mock WBEM server allows creating multiple CIM namespaces in its mock
+repository and adding CIM objects in some or all of those namespaces.
 
 There is a default namespace created when the
 :class:`~pywbem_mock.FakedWBEMConnection` object is created from either the
@@ -836,256 +926,276 @@ mock environment.
     conn.register_provider(ns_provider, namespaces=interop_namespace)
 
 
+.. index:: pair: User defined providers; user providers
+
 .. _`User-defined providers`:
 
 User-defined providers
 ----------------------
 
-Within the fake  WBEM server the response to client requests is normally
-determined by standard server responder methods that use data in the CIM
-repository to generate responses (ex. ``GetInstance`` gets the instances from the
-repository, possibly filters properties and attributes and returns the
-instance). However, it is expected that the user may want specific classes to
-generate responses that have side effects, or manage the returns differently
-than the normal responses.  Thus, for example, the DMTF defined CIM_Namespace
-class returns instances of each of the namespaces in the CIM repository. That means
-that somewhere an instance the class must be created each time a namespace is
-created or the responder must get the set of namespaces from the CIM repository
-to generate responses to ``GetInstance``, ``EnumerateInstance``, etc.
+Within the mock WBEM server, the response to client requests is normally
+determined by provider methods that use data in the CIM
+repository to generate responses (ex. ``GetInstance`` gets the instances from
+the repository, possibly filters properties and returns the instance).
+However, it is expected that the user may want WBEM operations on specific
+CIM classes to have side effects, or manage the returns differently
+than the normal responses.
 
-Also, the :meth:`~pywbem_mock.WBEMConnection.InvokeMethod` operation on
-on a :class:`~pywbem_mock.FakedWBEMConnection` object depends on a specific
-responder method in the mock WBEM server.
+Thus, for example, the DMTF-defined CIM_Namespace class represents the
+namespaces in the CIM repository. That means that its provider method for
+``CreateInstance`` must create a namespace as a side effect, and that its
+provider methods for ``GetInstance`` or ``EnumerateInstances`` must inspect
+the set of namespaces in the CIM repository to generate responses, etc.
 
-To meet these needs, pywbem_mock has implemented the capability to create
-:term:`user-defined providers <user-defined provider>` that become request
-responders for defined classes and operations which can can manipulate the
-client input and generate responses specific for defined CIM classes.
+Another example of user-defined providers are classes that create their key
+property values automatically, for example classes that have a single
+``InstanceID`` key. The provider method for ``CreateInstance`` of such classes
+would ignore the values for the key properties provided in the ``NewInstance``
+parameter, and determine the key values on its own.
 
-User-defined providers can be written by the user by implementing subclasses of
+Also, the ``InvokeMethod`` operation depends on a specific provider method for
+the invoked CIM method in the mock WBEM server.
+
+To meet these needs, the capability is provided to users to write
+:term:`user-defined providers <user-defined provider>` that replace the default
+providers for defined classes and operations.
+
+User-defined providers are written by implementing subclasses of
 specific provider classes and registering these subclasses as providers using
 :meth:`~pywbem_mock.FakedWBEMConnection.register_provider`.
 
-The WBEM operations supported by user-defined providers can be implement one by
+The WBEM operations supported by user-defined providers can be implemented one by
 one. If a user-defined provider does not implement all WBEM operations, the
-default implementation is used.
+default implementation will be used.
 
 The following table shows the WBEM operations for which user-defined providers
 are supported, and the corresponding provider types:
 
-.. table:: WBEM operations of user-defined providers
-
-    ==============  ==============  ================  ==============================
-    WBEM operation  Provider type   Type name         Description
-    ==============  ==============  ================  ==============================
-    InvokeMethod    method          "method"          :ref:`Method Provider`
-    CreateInstance  instance write  "instance-write"  :ref:`Instance Write Provider`
-    ModifyInstance  instance write  "instance-write"  :ref:`Instance Write Provider`
-    DeleteInstance  instance write  "instance-write"  :ref:`Instance Write Provider`
-    ==============  ==============  ================  ==============================
+==============  ==============  ===========================================  ============================================
+WBEM operation  Provider type   Superclass                                   Provider description
+==============  ==============  ===========================================  ============================================
+CreateInstance  instance write  :class:`~pywbem_mock.InstanceWriteProvider`  :ref:`User-defined instance write providers`
+ModifyInstance  instance write  :class:`~pywbem_mock.InstanceWriteProvider`  :ref:`User-defined instance write providers`
+DeleteInstance  instance write  :class:`~pywbem_mock.InstanceWriteProvider`  :ref:`User-defined instance write providers`
+InvokeMethod    method          :class:`~pywbem_mock.MethodProvider`         :ref:`User-defined method providers`
+==============  ==============  ===========================================  ============================================
 
 
-.. _`Creating user-defined instance providers`:
+.. _`Creating user-defined providers`:
 
-Creating user-defined instance providers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Creating user-defined providers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-User-defined instance write providers can override the default implementations
-for the corresponding WBEM operations listed in the above table (i.e.
-``CreateInstance``, ``ModifyInstance``, and ``DeleteInstance``). The Python
-methods implementing these WBEM operations are defined in a user-defined class
-that subclasses the :class:`~pywbem_mock.InstanceWriteProvider` class. The
-details of implementing this provider type are described in
-:ref:`Instance Write Provider`.
+A user-defined provider can be created as follows:
 
-The following is a simple example of a user-defined instance write provider:
+1. Define a subclass of the superclass listed in the table above, with the
+   methods and attributes listed below.
 
-.. code-block:: python
+   Example for an instance write provider:
 
-    from pywbem import CIMError, CIM_ERR_METHOD_NOT_SUPPORTED
-    from pywbem_mock import InstanceWriteProvider
+   .. code-block:: python
 
-    class MyInstanceProvider(InstanceWriteProvider):
-        """
-        Simplistic user provider implements CreateInstance and DeleteInstance.
-        This example modifies a specific property for CreateInstance, does not
-        allow modify instance. For DeleteInstance it simply calls the default
-        processor
-        """
+       from pywbem_mock import InstanceWriteProvider
 
-        # The provider will serve the CIM_Foo and CIM_FooFoo classes
-        provider_classnames = ['CIM_Foo', 'CIM_FooFoo']
+       class MyInstanceProvider(InstanceWriteProvider):
 
-        def __init__(self, cimrepository):
-            """
-            Initialize the cimrepository
-            """
-            super(MyInstanceProvider, self).__init__(cimrepository)
+           . . .
 
-        def CreateInstance(self, namespace, NewInstance):
-            """Create instance just calls super class method"""
-            NewInstance.properties["myproperty"] = "Fixed"
-            return super(MyInstanceProvider, self).CreateInstance(
-                namespace, NewInstance)
+   a. Optional: It may have an ``__init__()`` method.
 
-        def ModifyInstance(self, ModifiedInstance, IncludeQualifiers=None,
-                           PropertyList=None):
-            """Disallows ModifyInstance"""
-            raise CIMError(CIM_ERR_NOT_SUPPORTED,
-                           "{0} provider does not allow ModifyInstance.".format(
-                           self.__class__.__name__))
+      The ``__init__()`` method takes as input parameters at least the
+      ``cimrepository`` parameter and passes it to the superclass, and may have
+      additional init parameters the user-defined provider requires (that are
+      not passed on to the superclass).
+      Additional init parameters are possible because the user creates the
+      provider object when registering it with
+      :meth:`~pywbem_mock.FakedWBEMConnection.register_provider`.
+      Having an ``__init__()`` method is optional if no additional init
+      parameters are defined.
 
-        def DeleteInstance(self, InstanceName):
-            """Delete instance just calls super class method"""
-            return super(MyInstanceProvider, self).DeleteInstance(
-                InstanceName)
+      Example for an ``__init__()`` method that does not define additional init
+      parameters (and that could therefore be omitted):
 
-    def post_register_setup(self, conn):
-        """Execute setup code after provider is registered."""
-        pass
+      .. code-block:: python
 
+          def __init__(self, cimrepository):
+              super(MyInstanceWriteProvider, self).__init__(cimrepository)
 
-.. _`Creating user-defined method providers`:
+   b. It must have a declaration of the CIM class(es) served by the provider.
 
-Creating user-defined method providers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      The CIM class or classes served by the provider are declared with a class
+      attribute named ``provider_classnames``. Its value must be a single string
+      or a list/tuple of strings with the CIM class names (in any lexical case).
 
-User-defined method providers can implement the WBEM operation for invoking
-CIM methods (i.e. ``InvokeMethod``) in the above table. If no user-defined
-method provider exists for the requested CIM method, the default is an exception
-since there is no default behavior for a CIM method invocation.
-The Python method for implementing this WBEM operation is defined in a
-user-defined class that subclasses the :class:`~pywbem_mock.MethodProvider`
-class. The details of implementing this provider type are described in
-:ref:`Method Provider`.
+      .. code-block:: python
 
-The following is an example of a method provider:
+          provider_classnames = 'CIM_Foo'
 
-.. code-block:: python
+      or
 
-    from pywbem import CIMParameter, CIMError, \
-        CIM_ERR_NOT_FOUND, CIM_ERR_METHOD_NOT_AVAILABLE
-    from pywbem_mock import MethodProvider
+      .. code-block:: python
 
-    class MyMethodProvider(MethodProvider):
+          provider_classnames = ['CIM_Foo', 'CIM_Foo_blah']
 
-        provider_classname = 'CIM_Foo_sub_sub'
-        """
-        User method provider for InvokeMethod using CIM_Foo_sub_sub and method1.
-        """
-        def __init__(self, cimrepository):
-            super(MyMethodProvider, self).__init__(cimrepository)
+   c. It must have an implementation of the Python methods for the WBEM
+      operations that are overwritten by the provider.
 
-        def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
-            """
-            The parameters and return for Invoke method are defined in
-            :meth:`~pywbem_mock.MethodProvider.InvokeMethod`
+      This must be all or a subset of the WBEM operations defined for the
+      provider type. WBEM operations not implemented in the user-defined
+      provider class default to implementations in the superclass.
+      See `Python operation methods in user-defined providers`_ for details.
 
-            This acts as both a static (ObjectName is only classname) and
-            dynamic (ObjectName is an instance name) method provider.
-            """
-            # Validate namespace using method in BaseProvider
-            self.validate_namespace(namespace)
+      Example for an ``CreateInstance`` method of an instance write provider
+      that just calls superclass method to perform the work (and that could
+      therefore be omitted):
 
-            # Get classname and validate. This provider uses only one class
-            if isinstance(ObjectName, six.string_types):
-                classname = ObjectName
-            else:
-                classname = ObjectName.classname
-            assert classname.lower() == 'tst_class'
+      .. code-block:: python
 
-            # Test if class exists.
-            if not self.class_exists(namespace, classname):
-                raise CIMError(
-                    CIM_ERR_NOT_FOUND,
-                    _format("Class {0!A} does not exist in CIM repository, "
-                            "namespace {1!A}", classname, namespace))
+          def CreateInstance(self, namespace, NewInstance):
+              return super(MyInstanceWriteProvider, self).CreateInstance(
+                  namespace, NewInstance)
 
-            if isinstance(ObjectName, CIMInstanceName):
-                instance_store = self.cimrepository.get_instance_store(
-                    namespace)
-                if not instance_store.object_exists(objectname):
-                    raise CIMError(
-                        CIM_ERR_NOT_FOUND,
-                        _format("Instance {0!A} does not exist in CIM "
-                                "repository", ObjectName))
+   d. Optional: It may define a post register setup method.
 
-            if MethodName.lower() == 'method1':
+      The provider may override the
+      :meth:`~pywbem_mock.InstanceWriteProvider.post_register_setup` method
+      of the provider superclass to do any special setup it needs. That method
+      includes the current connection as a parameter so that WBEM operations
+      on the same or on different classes can be executed.
+      That method will be called during invocation of
+      :meth:`~pywbem_mock.FakedWBEMConnection.register_provider`, after the
+      provider registration is successful.
 
-                rtn_parameters = [CIMParameter('OutputParam1', 'string',
-                                               value=namespace)]
-                else:
-                    rtn_params = None
+      Example:
 
-                return (return_value, rtn_params)
+      .. code-block:: python
 
-            else:
-                raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
+          def post_register_setup(self, conn):
+            # code that performs post registration setup for the provider
+
+2. Register the user-defined provider using
+   :meth:`pywbem_mock.FakedWBEMConnection.register_provider`.
+
+   This specifies the CIM namespaces for which the user-defined provider will
+   be active. These namespaces must already exist in the CIM repository
+   if the mock WBEM server.
+
+   .. code-block:: python
+
+       provider = MyInstanceProvider(self.cimrepository)
+       conn.register_provider(provider,
+                              namespaces=['root/interop', 'root/cimv2'])
 
 
-.. _`FakedWBEMConnection`:
+.. _`Python operation methods in user-defined providers`:
 
-FakedWBEMConnection
--------------------
+Python operation methods in user-defined providers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. # Note: The pywbem_mock._wbemconnection_mock module docstring is a dummy.
+The *Python operation methods* (i.e. the Python methods implementing WBEM
+operations) in user-defined providers may:
 
-.. autoclass:: pywbem_mock.FakedWBEMConnection
+* provide parameter or CIM repository validation in addition to the normal
+  request validation,
+* modify parameters of the request,
+* abort the request with a :class:`pywbem.CIMError` exception,
+* make modifications to the CIM repository.
+
+The Python operation methods may call the corresponding superclass method to
+complete the CIM repository modification, or may implement the code to complete
+the modification. In any case, once a Python operation method returns, the mock
+repository needs to reflect any changes on CIM objects the WBEM operation is
+normally expected to perform.
+
+The Python operation methods have access to:
+
+* methods defined in the superclass of the provider, including
+  :class:~pywbem_mock.BaseProvider`
+* methods to access the CIM repository using the methods defined in
+  :class:`~pywbem_mock.InMemoryRepository`
+
+The input parameters for the Python operation methods will have been already
+validated, including:
+
+* The input parameters have the correct Python type as per the descriptions
+  in the superclasses.
+* The CIM namespace exists in the CIM repository.
+* The CIM class of a CIM instance or instance path specified as an input
+  parameter exists in that namespace of the CIM repository.
+* The CIM properties of a CIM instance specified as an input parameter
+  are defined in the CIM class of the instance and have the correct CIM types.
+* The CIM instance does not yet exist for CreateInstance and does exist for
+  ModifyInstance.
+
+The Python operation methods should raise any exceptions using
+:class:`pywbem.CIMError` using the CIM status codes defined in :term:`DSP0200`.
+
+
+.. _`User-defined instance write providers`:
+
+User-defined instance write providers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pywbem_mock._instancewriteprovider
+
+.. autoclass:: pywbem_mock.InstanceWriteProvider
    :members:
 
    .. rubric:: Methods
 
-   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
+   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
       :methods:
       :nosignatures:
 
    .. rubric:: Attributes
 
-   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
+   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
       :attributes:
 
    .. rubric:: Details
 
-.. _`DMTF CIM schema download support`:
 
-DMTF CIM schema download support
+.. _`User-defined method providers`:
+
+User-defined method providers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pywbem_mock._methodprovider
+
+.. autoclass:: pywbem_mock.MethodProvider
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.MethodProvider
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.MethodProvider
+      :attributes:
+
+   .. rubric:: Details
+
+
+.. _`Configuration of mocked behavior`:
+
+Configuration of mocked behavior
 --------------------------------
-
-.. automodule:: pywbem_mock._dmtf_cim_schema
-
-.. autoclass:: pywbem_mock.DMTFCIMSchema
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
-      :attributes:
-
-   .. rubric:: Details
-
-
-
-.. _`config`:
-
-config
-------
 
 .. automodule:: pywbem_mock.config
    :members:
 
 
-.. _`Mock CIM repository`:
+.. _`Mocker base classes`:
 
-Mock CIM repository
+Mocker base classes
 -------------------
 
-.. automodule:: pywbem_mock._baserepository
+Some bases classes are included in this documentation in order to provide the
+descriptions for inherited methods and properties in the previous class
+descriptions of the mock WBEM server.
 
 .. autoclass:: pywbem_mock.BaseRepository
    :members:
@@ -1120,104 +1230,6 @@ Mock CIM repository
 
    .. rubric:: Details
 
-
-.. automodule:: pywbem_mock._inmemoryrepository
-
-.. autoclass:: pywbem_mock.InMemoryRepository
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.InMemoryRepository
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.InMemoryRepository
-      :attributes:
-
-   .. rubric:: Details
-
-
-.. autoclass:: pywbem_mock.InMemoryObjectStore
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
-      :attributes:
-
-   .. rubric:: Details
-
-
-.. index:: pair: User defined providers; user providers
-
-.. _`User provider interfaces`:
-
-User provider interfaces
-------------------------
-
-.. _`Instance Write Provider`:
-
-Instance Write Provider
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: pywbem_mock._instancewriteprovider
-
-.. autoclass:: pywbem_mock.InstanceWriteProvider
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
-      :attributes:
-
-   .. rubric:: Details
-
-
-.. _`Method Provider`:
-
-Method Provider
-^^^^^^^^^^^^^^^
-
-.. automodule:: pywbem_mock._methodprovider
-
-.. autoclass:: pywbem_mock.MethodProvider
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.MethodProvider
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.MethodProvider
-      :attributes:
-
-   .. rubric:: Details
-
-
-.. _`Base Provider`:
-
-Base Provider
-^^^^^^^^^^^^^
-
-.. automodule:: pywbem_mock._baseprovider
 
 .. autoclass:: pywbem_mock.BaseProvider
    :members:
