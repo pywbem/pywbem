@@ -60,6 +60,12 @@ Released: not yet
   properly checked and cause TypeError to be raised. Added testcases
   for invalid types. (See issue #2313)
 
+* Mock support: Simplified the user-defined providers by checking their input
+  parameters and the related CIM repository objects as much as possible before
+  calling the providers. Updated the provider documentation to be from a
+  perspective of the provider, and clarified what is already verified when the
+  provider is called. (See issue #2326)
+
 **Cleanup:**
 
 * Document the TODOs in pywbem_mock and

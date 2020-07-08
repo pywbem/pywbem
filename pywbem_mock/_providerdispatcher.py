@@ -32,12 +32,14 @@ provider class defined in the provider registry.
 from __future__ import absolute_import, print_function
 
 import six
+from copy import deepcopy
 
-from pywbem import CIMInstance, CIMInstanceName, CIMError, \
+from pywbem import CIMInstance, CIMInstanceName, CIMParameter, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_METHOD_NOT_FOUND
 
 from pywbem._utils import _format
+from pywbem._nocasedict import NocaseDict
 
 from ._baseprovider import BaseProvider
 from ._instancewriteprovider import InstanceWriteProvider
@@ -95,207 +97,451 @@ class ProviderDispatcher(BaseProvider):
                 self.cimrepository)
         return self._default_method_provider
 
+    @staticmethod
+    def _array_ness(is_array):
+        """Return text for array-ness"""
+        return "an array" if is_array else "a scalar"
+
     def CreateInstance(self, namespace, NewInstance):
         # pylint: disable=invalid-name
         """
-        Dispatcher for CreateInstance.
+        Dispatcher for the CreateInstance provider method.
 
-        This method validates input parameters against the repository and
-        provider required parameter types and if successful, routes the method
-        either to the default provider or to a provider registered for the
-        namespace and class in InstanceName
+        This method performs validations and if successful, routes the provider
+        method call either to a registered provider, or to the default provider.
         """
-        # Validate input parameters
 
+        # Verify the input parameter types (type errors have already been
+        # raised during checks in the WBEMConnection operation).
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(NewInstance, CIMInstance)
+
+        # Verify that the new instance has no path (ensured by the
+        # WBEMConnection operation).
+        assert NewInstance.path is None
+
+        # Verify that the namespace exists in the CIM repository.
         self.validate_namespace(namespace)
 
-        if not isinstance(NewInstance, CIMInstance):
-            raise TypeError(
-                _format("NewInstance parameter is not a valid CIMInstance. "
-                        "Rcvd type={0}", type(NewInstance)))
-
-        if not self.class_exists(namespace, NewInstance.classname):
+        # Get creation class from CIM repository. The CIMClass objects in the
+        # class store of the repository have all exposed properties (i.e.
+        # defined and inherited, having resolved all overrides), qualifiers,
+        # and classorigjn information.
+        class_store = self.cimrepository.get_class_store(namespace)
+        try:
+            creation_class = class_store.get(NewInstance.classname)
+        except KeyError:
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
-                _format("Cannot create instance because its creation "
-                        "class {0!A} does not exist in namespace {1!A}.",
+                _format("Creation class {0!A} of new instance does not "
+                        "exist in namespace {1!A} of the CIM repository.",
                         NewInstance.classname, namespace))
 
+        # Verify that the properties in the new instance are exposed by the
+        # creation class and have the correct type-related attributes.
+        for pn in NewInstance.properties:
+
+            if pn not in creation_class.properties:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in new instance does not exist "
+                            "in its creation class {1!A} in namespace {2!A} "
+                            "of the CIM repository",
+                            pn, NewInstance.classname, namespace))
+
+            prop_inst = NewInstance.properties[pn]
+            prop_cls = creation_class.properties[pn]
+
+            if prop_inst.type != prop_cls.type:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in new instance has incorrect "
+                            "type={1!A}, but should have type={2!A} "
+                            "according to its creation class {3!A} in "
+                            "namespace {4!A} of the CIM repository",
+                            pn, prop_inst.type, prop_cls.type,
+                            NewInstance.classname, namespace))
+
+            if prop_inst.is_array != prop_cls.is_array:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in new instance has incorrect "
+                            "is_array={1!A}, but should have is_array={2!A} "
+                            "according to its creation class {3!A} in "
+                            "namespace {4!A} of the CIM repository",
+                            pn, prop_inst.is_array, prop_cls.is_array,
+                            NewInstance.classname, namespace))
+
+            if prop_inst.embedded_object != prop_cls.embedded_object:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in new instance has incorrect "
+                            "embedded_object={1!A}, but should have "
+                            "embedded_object={2!A} "
+                            "according to its creation class {3!A} in "
+                            "namespace {4!A} of the CIM repository",
+                            pn, prop_inst.embedded_object,
+                            prop_cls.embedded_object,
+                            NewInstance.classname, namespace))
+
+        # The providers are guaranteed to get a deep copy of the original
+        # new instance since they may update properties.
+        # TODO: Consolidate this deep copy with the shallow copy in
+        #       WBEMConnection.CreateInstance().
+        new_instance = deepcopy(NewInstance)
+
+        # Determine the provider to be used. Note that a registered provider
+        # always has all responder methods for the provider type, either
+        # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
-            namespace, 'instance-write', NewInstance.classname)
+            namespace, 'instance-write', new_instance.classname)
+        if not provider:
+            provider = self.default_instance_write_provider
 
-        # Execute the method in the provider if the method exists. Otherwise
-        # fall back to the default provider
-        if provider:
-            try:
-                return provider.CreateInstance(namespace, NewInstance)
-            except AttributeError:
-                pass
+        # Call the provider method.
+        result = provider.CreateInstance(namespace, new_instance)
 
-        return self.default_instance_write_provider.CreateInstance(
-            namespace, NewInstance)
+        # Verify provider method result.
+        assert isinstance(result, CIMInstanceName)
+
+        return result
 
     def ModifyInstance(self, ModifiedInstance,
                        IncludeQualifiers=None, PropertyList=None):
         # pylint: disable=invalid-name
         """
-        Dispatcher for the ModifyInstance method.
+        Dispatcher for the ModifyInstance provider method.
 
-        This method validates input parameters against the repository and
-        provider required types and if successful, routes the method either to
-        the default provider or to a provider registered for the namespace and
-        class in ModifiedInstance.
-
-        Validates basic characteristics of parameters including:
-
-        1. Namespace xists.
-        2. Modified instance is valid instance.
-        3. ClassName same in instance and instance.path
-        4. Class exists in repository
-        5. Instance exists in repository.
+        This method performs validations and if successful, routes the provider
+        method call either to a registered provider, or to the default provider.
         """
 
-        namespace = ModifiedInstance.path.namespace
-        self.validate_namespace(namespace)
+        # Verify the input parameter types (type errors have already been
+        # raised during checks in the WBEMConnection operation).
+        assert isinstance(ModifiedInstance, CIMInstance)
+        assert isinstance(IncludeQualifiers, (bool, type(None)))
+        assert isinstance(PropertyList,
+                          (six.string_types, list, tuple, type(None)))
+        assert isinstance(ModifiedInstance.path, CIMInstanceName)
 
-        if not isinstance(ModifiedInstance, CIMInstance):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("The ModifiedInstance parameter is not a valid "
-                        "CIMInstance. Rcvd type={0}", type(ModifiedInstance)))
-
-        # Classnames in instance and path must match
+        # Verify consistency of the class names in the modified instance.
         if ModifiedInstance.classname.lower() != \
                 ModifiedInstance.path.classname.lower():
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("ModifyInstance classname in path and instance do "
-                        "not match. classname={0!A}, path.classname={1!A}",
+                _format("Modified instance has inconsistent class names: "
+                        "{0!A} in the instance, and {1!A} in the instance "
+                        "path.",
                         ModifiedInstance.classname,
                         ModifiedInstance.path.classname))
 
-        if not self.class_exists(namespace, ModifiedInstance.classname):
+        # Verify that the namespace exists in the CIM repository.
+        namespace = ModifiedInstance.path.namespace
+        self.validate_namespace(namespace)
+
+        class_store = self.cimrepository.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+
+        # Get creation class from CIM repository and verify that it exists.
+        # The CIMClass objects in the class store of the repository have all
+        # exposed properties (i.e. defined and inherited, having resolved all
+        # overrides), qualifiers, and classorigjn information.
+        try:
+            creation_class = class_store.get(ModifiedInstance.classname)
+        except KeyError:
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
-                _format("ModifyInstance classn {0!A} does not exist in"
-                        "CIM repository for namespace {1!A}.",
-                        ModifiedInstance.classname,
-                        namespace))
+                _format("Creation class {0!A} of modified instance does not "
+                        "exist in namespace {1!A} of the CIM repository.",
+                        ModifiedInstance.classname, namespace))
 
-        # Test original instance exists.
-        instance_store = self.cimrepository.get_instance_store(namespace)
-        if not instance_store.object_exists(ModifiedInstance.path):
+        # Get instance to be modified from CIM repository.
+        try:
+            instance = instance_store.get(ModifiedInstance.path)
+        except KeyError:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("ModifiedInstance {0!A} not found in CIM repository",
+                _format("Instance to be modified does not exist in the CIM "
+                        "repository: {0!A}",
                         ModifiedInstance.path))
 
+        # Verify that the properties in the property list are exposed by the
+        # creation class.
+        if PropertyList:
+            for pn in PropertyList:
+                if pn not in creation_class.properties:
+                    raise CIMError(
+                        CIM_ERR_INVALID_PARAMETER,
+                        _format("Property {0!A} in PropertyList does not "
+                                "exist in creation class {1!A} in namespace "
+                                "{2!A} of the CIM repository",
+                                pn, ModifiedInstance.classname, namespace))
+
+        # Verify that the properties in the modified instance are exposed by the
+        # creation class and have the correct type-related attributes.
+        # Strictly, we would only need to verify the properties to be modified
+        # as reduced by the PropertyList.
+        for pn in ModifiedInstance.properties:
+
+            if pn not in creation_class.properties:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in modified instance does not "
+                            "exist in its creation class {1!A} in namespace "
+                            "{2!A} of the CIM repository",
+                            pn, ModifiedInstance.classname, namespace))
+
+            prop_inst = ModifiedInstance.properties[pn]
+            prop_cls = creation_class.properties[pn]
+
+            if prop_inst.type != prop_cls.type:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in modified instance has incorrect "
+                            "type={1!A}, but should have "
+                            "type={2!A} "
+                            "according to its creation class {3!A} in "
+                            "namespace {4!A} of the CIM repository",
+                            pn, prop_inst.type, prop_cls.type,
+                            ModifiedInstance.classname, namespace))
+
+            if prop_inst.is_array != prop_cls.is_array:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in modified instance has incorrect "
+                            "is_array={1!A}, but should have "
+                            "is_array={2!A} "
+                            "according to its creation class {3!A} in "
+                            "namespace {4!A} of the CIM repository",
+                            pn, prop_inst.is_array, prop_cls.is_array,
+                            ModifiedInstance.classname, namespace))
+
+            if prop_inst.embedded_object != prop_cls.embedded_object:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in modified instance has incorrect "
+                            "embedded_object={1!A}, but should have "
+                            "embedded_object={2!A} "
+                            "according to its creation class {3!A} in "
+                            "namespace {4!A} of the CIM repository",
+                            pn, prop_inst.embedded_object,
+                            prop_cls.embedded_object,
+                            ModifiedInstance.classname, namespace))
+
+            if prop_cls.qualifiers.get('key', False) and \
+                    prop_inst.value != instance[pn]:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in modified instance is a key "
+                            "property and thus cannot be modified, "
+                            "according to its creation class {1!A} in "
+                            "namespace {2!A} of the CIM repository",
+                            pn, ModifiedInstance.classname, namespace))
+
+        # The providers are guaranteed to get a deep copy of the original
+        # modified instance since they may update properties.
+        # TODO: Consolidate this deep copy with the shallow copy in
+        #       WBEMConnection.ModifyInstance().
+        modified_instance = deepcopy(ModifiedInstance)
+
+        # Determine the provider to be used. Note that a registered provider
+        # always has all responder methods for the provider type, either
+        # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance-write', ModifiedInstance.classname)
+        if not provider:
+            provider = self.default_instance_write_provider
 
-        # Execute the method in the provider if the method exists. Otherwise
-        # fall back to the default provider
-        if provider:
-            try:
-                return provider.ModifyInstance(
-                    ModifiedInstance,
-                    IncludeQualifiers=IncludeQualifiers,
-                    PropertyList=PropertyList)
-            except AttributeError:
-                pass
-
-        return self.default_instance_write_provider.ModifyInstance(
-            ModifiedInstance,
-            IncludeQualifiers=IncludeQualifiers,
+        # Call the provider method.
+        result = provider.ModifyInstance(
+            modified_instance, IncludeQualifiers=IncludeQualifiers,
             PropertyList=PropertyList)
+
+        # Verify provider method result.
+        assert result is None
 
     def DeleteInstance(self, InstanceName):
         # pylint: disable=invalid-name
         """
-        Dispatcher for the DeleteInstance method.
+        Dispatcher for the DeleteInstance provider method.
 
-        This method validates input parameters against the repository and
-        provider required types and if successful, routes the method either to
-        the default provider or to a provider registered for the namespace and
-        class in InstanceName
+        This method performs validations and if successful, routes the provider
+        method call either to a registered provider, or to the default provider.
         """
 
-        # Validate input parameters
+        # Verify the input parameter types (type errors have already been
+        # raised during checks in the WBEMConnection operation).
+        assert isinstance(InstanceName, CIMInstanceName)
+
+        # Verify that the namespace exists in the CIM repository.
         namespace = InstanceName.namespace
         self.validate_namespace(namespace)
 
-        # Test if corresponding class and instance already exist
-        if not self.class_exists(namespace, InstanceName.classname):
+        class_store = self.cimrepository.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+
+        # Verify that the creation class of the instance to be deleted exists
+        # in the CIM repository.
+        if not class_store.object_exists(InstanceName.classname):
             raise CIMError(
                 CIM_ERR_INVALID_CLASS,
-                _format("Class {0!A} in namespace {1!A} not found. "
-                        "Cannot delete instance {2!A}",
-                        InstanceName.classname, namespace, InstanceName))
+                _format("Creation class {0!A} of instance to be deleted does "
+                        "not exist in namespace {1!A} of the CIM repository.",
+                        InstanceName.classname, namespace))
 
-        instance_store = self.cimrepository.get_instance_store(namespace)
+        # Verify that the instance to be deleted exists in the CIM repository.
         if not instance_store.object_exists(InstanceName):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
-                _format("Instance {0!A} not found in CIM repository",
+                _format("Instance to be deleted does not exist in the CIM "
+                        "repository: {0!A}",
                         InstanceName))
 
+        # Determine the provider to be used. Note that a registered provider
+        # always has all responder methods for the provider type, either
+        # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
-            InstanceName.namespace, 'instance-write', InstanceName.classname)
+            namespace, 'instance-write', InstanceName.classname)
+        if not provider:
+            provider = self.default_instance_write_provider
 
-        # Execute the method in the provider if the method exists. Otherwise
-        # fall back to the default provider
-        if provider:
-            try:
-                return provider.DeleteInstance(InstanceName)
-            except AttributeError:
-                pass
+        # Call the provider method.
+        result = provider.DeleteInstance(InstanceName)
 
-        return self.default_instance_write_provider.DeleteInstance(
-            InstanceName)
+        # Verify provider method result.
+        assert result is None
 
-    def InvokeMethod(self, namespace, methodname, objectname, Params):
+    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
         # pylint: disable=invalid-name
         """
-        Default Method provider.
-        NOTE: There is no default method provider because all method
-        providers provide specific functionality and there is no way
-        to do that in a default method provider.
+        Dispatcher for the InvokeMethod provider method.
+
+        This method performs validations and if successful, routes the provider
+        method call either to a registered provider, or to the default provider.
         """
-        # Validate input parameters
+
+        # Verify the input parameter types (type errors have already been
+        # raised during checks in the WBEMConnection operation).
+        assert isinstance(namespace, six.string_types)
+        assert isinstance(MethodName, six.string_types)
+        assert isinstance(ObjectName, (CIMInstanceName, six.string_types))
+        assert isinstance(Params, NocaseDict)
+
+        # Verify that the namespace exists in the CIM repository.
         self.validate_namespace(namespace)
 
-        assert isinstance(objectname, (CIMInstanceName, six.string_types))
+        class_store = self.cimrepository.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
 
-        classname = objectname.classname \
-            if isinstance(objectname, CIMInstanceName) else objectname
+        if isinstance(ObjectName, CIMInstanceName):
+            # instance-level use
 
-        # This raises CIM_ERR_NOT_FOUND or CIM_ERR_INVALID_NAMESPACE
-        # Uses local_only = False to get characteristics from super classes
-        # and include_class_origin to get origin of method in hierarchy
-        cc = self.get_class(namespace, classname,
-                            local_only=False,
-                            include_qualifiers=True,
-                            include_classorigin=True)
+            # Get the creation class of the target instance from the CIM
+            # repository, verifying that it exists.
+            try:
+                klass = class_store.get(ObjectName.classname)
+            except KeyError:
+                raise CIMError(
+                    CIM_ERR_INVALID_CLASS,
+                    _format("Creation class {0!A} of target instance does "
+                            "not exist in namespace {1!A} of the CIM "
+                            "repository.",
+                            ObjectName.classname, namespace))
 
-        # Determine if method defined in classname defined in
-        # the classorigin of the method
-        try:
-            cc.methods[methodname].class_origin
-        except KeyError:
+            # Verify that the target instance exists in the CIM repository.
+            if not instance_store.object_exists(ObjectName):
+                raise CIMError(
+                    CIM_ERR_NOT_FOUND,
+                    _format("Target instance does not exist in the CIM "
+                            "repository: {0!A}",
+                            ObjectName))
+
+        else:
+            # class-level use
+
+            # Get the target class from the CIM repository, verifying that it
+            # exists.
+            try:
+                klass = class_store.get(ObjectName)
+            except KeyError:
+                raise CIMError(
+                    CIM_ERR_NOT_FOUND,
+                    _format("Target class {0!A} does not exist in namespace "
+                            "{1!A} of the CIM repository.",
+                            ObjectName, namespace))
+
+        # Verify that the class exposes the CIM method.
+        if MethodName not in klass.methods:
             raise CIMError(
                 CIM_ERR_METHOD_NOT_FOUND,
-                _format("Method {0!A} not found in class {1!A}.",
-                        methodname, classname))
+                _format("Method {0!A} is not exposed by class {1!A} in "
+                        "namespace {2!A} of the CIM repository.",
+                        MethodName, klass.classname, namespace))
+        method = klass.methods[MethodName]
 
+        # Verify that the input parameters are defined by the method and have
+        # the correct type-related attributes.
+        for pn in Params:
+            assert isinstance(pn, six.string_types)
+            param_in = Params[pn]
+            assert isinstance(param_in, CIMParameter)
+
+            if pn not in method.parameters:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Input parameter {0!A} is not defined in "
+                            "method {1!A} of class {2!A} in namespace {3!A} "
+                            "of the CIM repository",
+                            pn, MethodName, klass.classname, namespace))
+
+            param_cls = method.parameters[pn]
+
+            if param_in.type != param_cls.type:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Input parameter {0!A} has incorrect "
+                            "type={1!A}, but should have "
+                            "type={2!A} "
+                            "according to its method {3!A} in class {4!A} in "
+                            "namespace {5!A} of the CIM repository",
+                            pn, param_in.type, param_cls.type,
+                            MethodName, klass.classname, namespace))
+
+            if param_in.is_array != param_cls.is_array:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Input parameter {0!A} has incorrect "
+                            "is_array={1!A}, but should have "
+                            "is_array={2!A} "
+                            "according to its method {3!A} in class {4!A} in "
+                            "namespace {5!A} of the CIM repository",
+                            pn, param_in.is_array, param_cls.is_array,
+                            MethodName, klass.classname, namespace))
+
+            if param_in.embedded_object != param_cls.embedded_object:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Input parameter {0!A} has incorrect "
+                            "embedded_object={1!A}, but should have "
+                            "embedded_object={2!A} "
+                            "according to its method {3!A} in class {4!A} in "
+                            "namespace {5!A} of the CIM repository",
+                            pn, param_in.embedded_object,
+                            param_cls.embedded_object,
+                            MethodName, klass.classname, namespace))
+
+        # Determine the provider to be used.
         provider = self.provider_registry.get_registered_provider(
-            namespace, 'method', classname)
+            namespace, 'method', klass.classname)
+        if not provider:
+            provider = self.default_method_provider
 
-        # The provider method MUST exist.
-        if provider:
-            return provider.InvokeMethod(namespace, methodname,
-                                         objectname, Params)
+        # Call the provider method.
+        result = provider.InvokeMethod(
+            namespace, MethodName, ObjectName, Params)
 
-        # Call the default provider.  Since there is not really a default
-        # provider for a method, this generates a NOT_FOUND exception
-        return self.default_method_provider.InvokeMethod(namespace, methodname,
-                                                         objectname, Params)
+        # Verify provider method result.
+        assert isinstance(result, (tuple, list, dict))
+        assert len(result) == 2
+
+        return result
