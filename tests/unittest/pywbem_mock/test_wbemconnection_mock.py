@@ -615,8 +615,10 @@ def tst_classes_mof(tst_qualifiers_mof):
         };
 
         class CIM_Foo_sub_sub : CIM_Foo_sub {
+
             string cimfoo_sub_sub;
                 [Description("Sample method with input and output parameters")]
+
             uint32 Method1(
                 [IN, Description("Input Param1")]
               string InputParam1,
@@ -626,6 +628,7 @@ def tst_classes_mof(tst_qualifiers_mof):
               string OutputParam1,
                 [IN ( false), OUT, Description("Response param 2")]
               string OutputParam2);
+
             uint32 Method2(
                 [IN, Description("Input Param1")]
               Uint32 InputParam1,
@@ -637,6 +640,17 @@ def tst_classes_mof(tst_qualifiers_mof):
               string OutputParam1,
                 [IN ( false), OUT, Description("Response param 2")]
               Uint64 OutputParam2[]);
+
+              [Static]
+            uint32 StaticMethod1(
+                [IN, Description("Input Param1")]
+              string InputParam1,
+                [IN, Description("Input Param2")]
+              string InputParam2,
+                [IN ( false), OUT, Description("Response param 1")]
+              string OutputParam1,
+                [IN ( false), OUT, Description("Response param 2")]
+              string OutputParam2[]);
         };
 
              [Description ("blah blah")]
@@ -1436,7 +1450,7 @@ class TestRepoMethods(object):
         assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
         assert "instance of CIM_Foo {" in result
         for ns in namespaces:
-            assert _format("// Namespace {0!A}: contains 9 Qualifier "
+            assert _format("// Namespace {0!A}: contains 10 Qualifier "
                            "Declarations", ns) \
                 in result
             assert _format("// Namespace {0!A}: contains 5 Classes", ns) \
@@ -1493,19 +1507,20 @@ class TestRepoMethods(object):
         assert data.startswith(
             "// ========Mock Repo Display fmt=mof namespaces=all")
         assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in data
-        assert "NAMESPACE 'root/cimv2'"
-        assert "Namespace 'root/cimv2': contains 9 Qualifier Declarations"
+        assert "NAMESPACE 'root/cimv2'" in data
+        assert "Namespace 'root/cimv2': contains 10 Qualifier Declarations" \
+            in data
         assert 'instance of CIM_Foo {' in data
         assert 'Qualifier Abstract : boolean = false,' in data
-        assert "// Namespace 'root/cimv2': contains 5 Classes"
-        assert "class CIM_Foo {"
+        assert "// Namespace 'root/cimv2': contains 5 Classes" in data
+        assert "class CIM_Foo {" in data
 
-        assert '[Description ( "blah blah" )]'
-        assert "class CIM_Foo_nokey {"
-        assert "class CIM_Foo_sub_sub : CIM_Foo_sub {"
-        assert "// Namespace 'root/cimv2': contains 8 Instances"
-        assert 'cimfoo_sub_sub = "data sub_sub22";'
-        assert "// ============End Repository================="
+        assert '[Description ( "blah blah" )]' in data
+        assert "class CIM_Foo_nokey {" in data
+        assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in data
+        assert "// Namespace 'root/cimv2': contains 8 Instances" in data
+        assert 'cimfoo_sub_sub = "data sub_sub22";' in data
+        assert "// ============End Repository=================" in data
         os.remove(tst_file)
 
     @pytest.mark.parametrize(
@@ -1577,7 +1592,7 @@ class TestRepoMethods(object):
         assert conn.GetQualifier('Key', namespace=ns).name == 'Key'
 
         quals = conn.EnumerateQualifiers(namespace=ns)
-        assert len(quals) == 9
+        assert len(quals) == 10
 
     @pytest.mark.parametrize(
         "default_ns, additional_ns, in_ns, exp_ns, exp_exc",
@@ -6859,9 +6874,81 @@ class TestAssociatorOperations(object):
         assert exc.status_code == CIM_ERR_INVALID_PARAMETER
 
 
+def assert_invokemethod_guarantees(
+        provider, namespace, MethodName, ObjectName, Params):
+    """
+    Verify the guarantees given by the provider dispatcher for the provider
+    method InvokeMethod().
+    """
+
+    # Verify guarantee that namespace exists in repo
+    try:
+        provider.cimrepository.validate_namespace(namespace)
+    except KeyError as exc:
+        raise AssertionError(str(exc))
+
+    instance_store = provider.cimrepository.get_instance_store(namespace)
+    class_store = provider.cimrepository.get_class_store(namespace)
+
+    # Verify guarantee that target object is the registered class
+    if isinstance(ObjectName, six.string_types):
+        classname = ObjectName
+    else:
+        classname = ObjectName.classname
+    assert classname.lower() == 'cim_foo_sub_sub'
+
+    # Verify guarantee that class exists in repo
+    assert class_store.object_exists(classname)
+
+    # Verify guarantee that for instance-level use, target instance exists in
+    # repo
+    if isinstance(ObjectName, CIMInstanceName):
+        assert instance_store.object_exists(ObjectName)
+
+    # Verify guarantee that method in class exposes the target method
+    klass = class_store.get(classname)
+    assert MethodName in klass.methods
+
+    # Verify guarantee that static methods are invoked only with class-level use
+    method = klass.methods[MethodName]
+    if not isinstance(ObjectName, CIMInstanceName):
+        # class-level use
+        static_qual = method.qualifiers.get('Static')
+        static_value = static_qual.value if static_qual else False
+        assert static_value is True
+
+    # Verify guarantees on specified input parameters
+    for pn in Params:
+
+        # Verify guarantee that Params has the correct Python types
+        assert isinstance(pn, six.string_types)
+        param_in = Params[pn]
+        assert isinstance(param_in, CIMParameter)
+
+        # Verify guarantee that specified input parameter exists in the method
+        # declaration
+        assert pn in method.parameters
+
+        # Verify guarantee that specified input parameter is actually an input
+        # parameter as per the method declaration
+        in_qual = method.qualifiers.get('In')
+        in_value = in_qual.value if in_qual else True
+        assert in_value
+
+        param_cls = method.parameters[pn]
+
+        # Verify guarantee that specified input parameter has the correct
+        # type-related attributes as per the method declaration
+        assert param_in.type == param_cls.type
+        assert param_in.is_array == param_cls.is_array
+        assert param_in.embedded_object == param_cls.embedded_object
+
+
 class Method1UserProvider(MethodProvider):
     """
-    User test provider for InvokeMethod using CIM_Foo_sub_sub and method1.
+    User test provider for InvokeMethod using CIM_Foo_sub_sub and its methods
+    'Method1' and 'StaticMethod1'.
+
     This is basis for testing passing of input parameters correctly and
     generating some exceptions.  It uses only one input parameter where the
     value defines the test and one return parameter that provides data from the
@@ -6876,63 +6963,68 @@ class Method1UserProvider(MethodProvider):
 
     def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
         """
-        Simplistic test method. Validates methodname, objectname, Params
-        and returns rtn value 0 and one parameter
+        Simplistic test method for CIM methods 'Method1' and 'StaticMethod1'
+        in class 'CIM_Foo_sub_sub'.
 
-        The parameters and return for Invoke method are defined in
-        :meth:`~pywbem_mock.MethodProvider.InvokeMethod`
+        As a test provider, it asserts the guarantees given by the provider
+        dispatcher.
+
+        The function of both method implementations is to return certain
+        values in output parameter "OutputParam1" and in the return value,
+        depending on a requested value in input parameter "InputParam1",
+        as follows:
+
+        * InputParam1 = 'namespace':
+          Set the namespace name in OutputParam1 and return value 0.
+        * InputParam1 = 'methodname':
+          Set the method name in OutputParam1 and return value 0.
+        * InputParam1 = 'objectname':
+          Set the object name in OutputParam1 and return value 0.
+        * InputParam1 = 'returnvalue':
+          Set value 'returnvalue' in OutputParam1 and return value 1.
+
+        For details on the parameters and return for this provider method,
+        see :meth:`pywbem_mock.MethodProvider.InvokeMethod`.
         """
-        # validate namespace using method in BaseProvider
-        self.validate_namespace(namespace)
 
-        # get classname and validate. This provider uses only one class
-        if isinstance(ObjectName, six.string_types):
-            classname = ObjectName
-        else:
-            classname = ObjectName.classname
-        assert classname.lower() == 'cim_foo_sub_sub'
+        # Since this is a test provider, it verifies the guarantees given
+        # by the provider dispatcher. This is not necessary in a real provider.
+        assert_invokemethod_guarantees(
+            self, namespace, MethodName, ObjectName, Params)
 
-        # Test if class exists.
-        if not self.class_exists(namespace, classname):
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("class {0|A} does not exist in CIM repository, "
-                        "namespace {1!A}", classname, namespace))
+        if MethodName.lower() in ['method1', 'staticmethod1']:
 
-        if isinstance(ObjectName, CIMInstanceName):
-            instance_store = self.cimrepository.get_instance_store(namespace)
-            if not instance_store.get(ObjectName):
-                raise CIMError(
-                    CIM_ERR_NOT_FOUND,
-                    _format("Instance {0|A} does not exist in CIM repository",
-                            ObjectName))
-        # This method expects a single parameter input
-        # Used to test the inputs.  The single input parameter is a string
-        # and the value determines the method actions:
-        # value = 'namespace' return the namespace name in the output parameter
-        # value = 'methodname' return the method name in output parameter
-        # value = 'objectname' return the object name in output parameter
-        # value = 'returnvalue' return value 1
-        if MethodName.lower() == 'method1':
             if Params:
-                # This should not be an assert.
-                assert len(Params) == 1
+
                 # Consider InputParam1 a required parameter if Params exist.
                 if "InputParam1" not in Params:
                     raise CIMError(
                         CIM_ERR_INVALID_PARAMETER,
-                        _format("Input parameter {0} does not exist in "
-                                "method input parameters, {1!A}.",
+                        _format("Required input parameter {0} missing in "
+                                "method input parameters: {1!A}.",
                                 "InputParam1", Params))
+
+                # For test purposes, disallow any other input parameters.
+                if len(Params) != 1:
+                    raise CIMError(
+                        CIM_ERR_INVALID_PARAMETER,
+                        _format("Input parameters specified in method input "
+                                "parameters that are disallowed (for test "
+                                "purposes): {0!A}.",
+                                Params))
+
                 assert isinstance(Params, NocaseDict)
                 param = Params["InputParam1"]
-                if not isinstance(param, CIMParameter):
-                    raise CIMError(CIM_ERR_INVALID_PARAMETER)
 
-                if param.type != 'string':
-                    raise CIMError(CIM_ERR_INVALID_PARAMETER)
+                # Verify guarantee that the type-related sttributes of the
+                # parameter are as defined in the method declaration.
+                assert isinstance(param, CIMParameter)
+                assert param.type == 'string'
+                assert param.is_array is False
+                assert param.embedded_object is None
 
-                # Generate OutputParam1 based on value in the input parameter
+                # Generate output parameters and return value based on value in
+                # InputParam1
                 val = param.value
                 return_value = 0
                 if val == 'namespace':
@@ -6944,7 +7036,8 @@ class Method1UserProvider(MethodProvider):
                 elif val == 'objectname':
                     out_params = [CIMParameter('OutputParam1', 'string',
                                                value=ObjectName)]
-                elif val == 'returnvalue':
+                else:
+                    assert val == 'returnvalue'  # testcase error if not
                     return_value = 1
                     out_params = [CIMParameter('OutputParam1', 'string',
                                                value='returnvalue')]
@@ -6962,101 +7055,272 @@ class TestInvokeMethod(object):
     Test invoking extrinsic methods in FakedWBEMConnection
     """
 
+    INVOKEMETHOD1_TESTCASES = [
+
+        # desc: Description of testcase
+        # inputs: dictionary of input parameters:
+        #             object_name,
+        #             methodname,
+        #             Params,
+        #             params (optional).
+        # exp_output: dictionary of expected results:
+        #             'return': expected return value
+        #             'params': expected output parameters as
+        #                       dict (param name: param value)
+        # exp_exc: None or expected exception object.
+        # condition: Run test if True, 'pdb': break before,
+        #            'pdb-after': break after
+
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace. Tests object name case insensitivity',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'cim_foo_sub_sub',
+                        keybindings={'instanceid': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace. Tests methodname case insensitivity',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'methodname': 'method1',
+                'Params': [('InputParam1', 'namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace, via Params as tuple(name, value)',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace, via Params as list(CIMParameter)',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [
+                    CIMParameter(
+                        'InputParam1', type='string',
+                        value='namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace, via params',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [],
+                'params': {'InputParam1': 'namespace'}},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'objectname',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'objectname')]},
+            {
+                'return': 0,
+                'params': {
+                    'OutputParam1':
+                        CIMInstanceName(
+                            'CIM_Foo_sub_sub',
+                            keybindings={'InstanceID': 'CIM_Foo_sub_sub21'},
+                            namespace='root/cimv2'),
+                }
+            },
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'methodname',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'methodname')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'method1'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'returnvalue',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'returnvalue')]},
+            {
+                'return': 1,
+                'params': {'OutputParam1': 'returnvalue'}},
+            None, OK
+        ),
+        (
+            'Execution of (static) StaticMethod1 method on instance, with '
+            'valid input param requesting namespace',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'methodname': 'StaticMethod1',
+                'Params': [('InputParam1', 'namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of (static) StaticMethod1 method on class specified as '
+            'objectname string, with valid input param requesting namespace',
+            {
+                'object_name': 'CIM_Foo_sub_sub',
+                'methodname': 'StaticMethod1',
+                'Params': [('InputParam1', 'namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of (static) StaticMethod1 method on class specified as '
+            'objectname CIMClassName, with valid input param requesting '
+            'namespace',
+            {
+                'object_name': CIMClassName('CIM_Foo_sub_sub'),
+                'methodname': 'StaticMethod1',
+                'Params': [('InputParam1', 'namespace')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of (non-static) Method1 method on class specified as '
+            'objectname string',
+            {
+                'object_name': 'CIM_Foo_sub_sub',
+                'Params': [('InputParam1', 'namespace')]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of (non-static) Method1 method on class specified as '
+            'objectname CIMClassName',
+            {
+                'object_name': CIMClassName('CIM_Foo_sub_sub'),
+                'Params': [('InputParam1', 'namespace')]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of Method1 method with invalid input param name',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParamx', 'bla')]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of Method1 method with valid input param that has '
+            'invalid type',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', Uint32(42))]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of Method1 method with valid input param that has '
+            'invalid is_array',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', ['namespace'])]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of Method1 method with valid input param that has '
+            'invalid embedded_object',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [
+                    CIMParameter(
+                        'InputParam1', type='string',
+                        value=None, embedded_object='instance')]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of Method1 method with existing output-only param name',
+            {
+                'object_name':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('OutputParam1', 'bla')]},
+            None,
+            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+    ]
+
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "desc, inputs, exp_output, exp_exc, condition",
-        [
-            # desc: Description of testcase
-            # inputs: dictionary of input object_name, methodname, Params and
-            #         optionally params.
-            # exp_output: dictionary of expected returnvalue ('return') and
-            #             output params('params') as list of tuples.
-            # exp_exc: None or expected exception object.
-            # condition: Run test if True
-
-            ['Execution of Method1 namespace returns param with value of ns',
-             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
-              'Params': [('InputParam1', 'namespace')]},
-             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
-                                                   value='')]},
-             None, OK],
-
-            ['Execution of Method1 method with single input param. Tests '
-             'object name case insensitivity and returns namespace',
-             {'object_name': CIMClassName('cim_foo_sub_sub'),
-              'Params': [('InputParam1', 'namespace')]},
-             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
-                                                   value='')]},
-             None, OK],
-
-            ['Execution of Method1 method with single input param. Tests '
-             'methodname case insensitivity and returns namespace',
-             {'object_name': CIMClassName('cim_foo_sub_sub'),
-              'Params': [('InputParam1', 'namespace')]},
-             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
-                                                   value='')]},
-             None, OK],
-
-            ['Execution of Method1 method with single input param. Tests '
-             'method name case insensitivity',
-             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
-              'Params': [('InputParam1', 'objectname')]},
-             {'return': 0, 'params': [CIMParameter('OutputParam1', 'string',
-                                                   value='CIM_Foo_sub_sub')]},
-             None, OK],
-
-            ['Execution of Method1 method with objectname string. Test '
-             ' methodname case insensitivity',
-             {'object_name': 'CIM_Foo_sub_sub',
-              'Params': None,
-              'params': {'InputParam1': 'namespace'}},
-             {'return': 1, 'params': [CIMParameter('OutputParam1', 'string',
-                                                   value='FirstData')]},
-             None, OK],
-
-
-            ['Execution of Method1 method with objectname string. Test '
-             ' methodname case insensitivity',
-             {'object_name': 'CIM_Foo_sub_sub',
-              'Params': [],
-              'params': {'InputParam1': 'namespace'}},
-             {'return': 1, 'params': [CIMParameter('OutputParam1', 'string',
-                                                   value='FirstData')]},
-             None, OK],
-
-            ['Execution of Method1 method with invalid input param name',
-             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
-              'Params': [('InputParamx', 'FirstData')]},
-             {'return': 0, 'params': [CIMParameter('OutputParam1',
-                                                   type='string')]},
-             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
-
-            ['Execution of Method1 method with CIMParam on input',
-             {'object_name': CIMClassName('CIM_Foo_sub_sub'),
-              'Params': [CIMParameter('InputParam1', type='string',
-                                      value='methodname')]},
-             {'return': 0, 'params': [CIMParameter('OutputParam1',
-                                                   type='string')]},
-             None, OK],
-
-            ['Execute method name with valid instancename',
-             {'object_name':
-              CIMInstanceName('CIM_Foo_sub_sub',
-                              keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
-              'Params': [CIMParameter('InputParam1', type='string',
-                                      value='objectname')]},
-             {'return': 0,
-              'params': [CIMParameter('InputParam1', type='string',
-                                      value=CIMInstanceName(
-                                          'CIM_Foo_sub_sub',
-                                          keybindings={
-                                              'InstanceID':
-                                              'CIM_Foo_sub_sub21'}))]},
-             None, OK],
-
-        ]
-    )
+        INVOKEMETHOD1_TESTCASES)
     def test_invokemethod1(self, conn, tst_instances_mof, ns, desc, inputs,
                            exp_output, exp_exc, condition):
         # pylint: disable=no-self-use,unused-argument
@@ -7070,6 +7334,10 @@ class TestInvokeMethod(object):
         if not condition:
             pytest.skip("This test marked to be skipped")
         skip_if_moftab_regenerated()
+
+        if condition == 'pdb':
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()  # pylint: disable=no-member
 
         conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
@@ -7098,7 +7366,7 @@ class TestInvokeMethod(object):
             # String object_name does not allow anything but default namespace
             # Bypass test if ns is not None
             if ns:
-                return
+                pytest.skip("string object name only allows default namespace")
 
         assert inputs['Params'] is None or len(inputs['Params']) <= 1
         if not exp_exc:
@@ -7117,42 +7385,21 @@ class TestInvokeMethod(object):
                                            object_name,
                                            inputs['Params'])
 
+            if condition == 'pdb-after':
+                import pdb  # pylint: disable=import-outside-toplevel
+                pdb.set_trace()  # pylint: disable=no-member
+
             # Test the return values against the input_param value
-            return_values = result[1]
+            return_value = result[0]
+            output_params = result[1]
 
-            input_params_dict = NocaseDict()
-            if return_values:
-                # build common dictionary from input Params and input params
-                if 'Params' in inputs and inputs['Params'] is not None:
-                    for param in inputs['Params']:
-                        if isinstance(param, CIMParameter):
-                            input_params_dict[param.name] = param
-                        else:
-                            input_params_dict[param[0]] = param[1]
-                if 'params' in inputs:
-                    for param in inputs['params']:
-                        input_params_dict[param] = inputs['params'][param]
+            assert return_value == exp_output['return']
 
-                for input_param in input_params_dict:
-                    if isinstance(input_param, CIMParameter):
-                        input_param = (input_param.name, input_param.value)
-
-                    if input_param[1] == 'namespace':
-                        assert return_values['OutputParam1'] == tst_ns
-                    elif input_param[1] == 'objectname':
-                        if isinstance(object_name, CIMClassName):
-                            assert return_values['OutputParam1'] == \
-                                object_name.classname
-                        else:
-                            assert return_values['OutputParam1'] == object_name
-
-                    elif input_param[1] == 'methodname':
-                        assert return_values['OutputParam1'] == methodname
-                    elif input_param[1] == 'returnvalue':
-                        assert result[0] == 1
-
-            else:   # if no input params, should be no output params
-                assert not input_params_dict
+            assert len(output_params) == len(exp_output['params'])
+            for pname in output_params:
+                output_pvalue = output_params[pname]
+                exp_pvalue = exp_output['params'][pname]
+                assert output_pvalue == exp_pvalue
 
         else:
             if isinstance(exp_exc, CIMError) and \

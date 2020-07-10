@@ -200,6 +200,8 @@ class MethodProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+        - The provider method is called only for the registered class and
+          namespace.
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The namespace exists in the CIM repository.
@@ -212,10 +214,18 @@ class MethodProvider(BaseProvider):
         - For class-level use:
           - The target class exists in the namespace of the CIM repository.
           - The target class exposes the method to be invoked.
+          - The method exposed by the creation class is a static method
+            as per its 'Static' qualifier.
         - The set of specified CIM method input parameters matches exactly the
-          set of input parameters defined by the method in the CIM repository,
-          w.r.t. parameter name and type-related attributes (type, is_array,
+          set of input parameters defined by the method in the CIM repository
+          (as detected by their 'In' qualifier in the creation class), w.r.t.
+          parameter name and type-related attributes (type, is_array,
           embedded_object).
+
+        Validation that should be performed by this provider method:
+
+        - MethodName is the name of a method the provider implements.
+        - Constraints on the values of input parameters.
 
         Parameters:
 

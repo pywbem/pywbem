@@ -229,6 +229,8 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+        - The provider method is called only for the registered class and
+          namespace.
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The namespace exists in the CIM repository.
@@ -240,14 +242,14 @@ class InstanceWriteProvider(BaseProvider):
           attributes (i.e. type, is_array, embedded_object).
 
         Validation that should be performed by this provider method:
-        - That NewInstance does not specify any properties that are not
+        - NewInstance does not specify any properties that are not
           allowed to be initialized by the client, depending on the model
           implemented by the provider.
-        - That NewInstance specifies all key properties needed by the
+        - NewInstance specifies all key properties needed by the
           provider, depending on the model implemented by the provider.
           The CIM repository will reject any new instance that does not have
           all key properties specified.
-        - That the new instance does not exist in the CIM repository.
+        - The new instance does not exist in the CIM repository.
           This validation needs to be done by the provider because the
           determination of the key properties for the instance path may depend
           on the model implemented by the provider.
@@ -390,6 +392,8 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+        - The provider method is called only for the registered class and
+          namespace.
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The classnames in ModifiedInstance are consistent between
@@ -409,7 +413,7 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation that should be performed by this provider method:
 
-        - That ModifiedInstance does not specify any changed values for
+        - ModifiedInstance does not specify any changed values for
           properties that are not allowed to be changed by the client,
           depending on the model implemented by the provider.
 
@@ -422,7 +426,6 @@ class InstanceWriteProvider(BaseProvider):
             This object is a deep copy of the original client parameter, and may
             be modified by the provider as needed, before storing it in the
             CIM repository.
-            TBD: Should we actually deep copy?
 
             The `path` attribute of this object will be set and is the
             instance path of the instance to be modified in the CIM repository.
@@ -533,6 +536,8 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+        - The provider method is called only for the registered class and
+          namespace.
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The namespace exists in the CIM repository.

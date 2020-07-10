@@ -84,4 +84,8 @@ def tst_qualifiers_mof():
         Qualifier Override : string = null,
             Scope(property, reference, method),
             Flavor(EnableOverride, Restricted);
+
+        Qualifier Static : boolean = false,
+            Scope(property, method),
+            Flavor(DisableOverride, ToSubclass);
         """

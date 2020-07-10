@@ -479,6 +479,22 @@ class ProviderDispatcher(BaseProvider):
                         MethodName, klass.classname, namespace))
         method = klass.methods[MethodName]
 
+        if not isinstance(ObjectName, CIMInstanceName):
+            # class-level use
+
+            # Verify that the method is static.
+            # Note: A similar check for instance-level use is not appropriate
+            # because static methods can be invoked on instances or on classes.
+            static_qual = method.qualifiers.get('Static')
+            static_value = static_qual.value if static_qual else False
+            if not static_value:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Non-static method {0!A} in class {1!A} in "
+                            "namespace {2!A} cannot be invoked on a class "
+                            "object.",
+                            MethodName, klass.classname, namespace))
+
         # Verify that the input parameters are defined by the method and have
         # the correct type-related attributes.
         for pn in Params:
@@ -489,19 +505,29 @@ class ProviderDispatcher(BaseProvider):
             if pn not in method.parameters:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} is not defined in "
-                            "method {1!A} of class {2!A} in namespace {3!A} "
-                            "of the CIM repository",
+                    _format("Input parameter {0!A} specified in Params is not "
+                            "defined in method {1!A} of class {2!A} in "
+                            "namespace {3!A} of the CIM repository",
                             pn, MethodName, klass.classname, namespace))
 
             param_cls = method.parameters[pn]
 
+            in_qual = method.qualifiers.get('In')
+            in_value = in_qual.value if in_qual else True
+            if not in_value:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Input parameter {0!A} specified in Params is "
+                            "defined as an output-only parameter according to "
+                            "its method {1!A} of class {2!A} in namespace "
+                            "{3!A} of the CIM repository",
+                            pn, MethodName, klass.classname, namespace))
+
             if param_in.type != param_cls.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} has incorrect "
-                            "type={1!A}, but should have "
-                            "type={2!A} "
+                    _format("Input parameter {0!A} specified in Params has "
+                            "incorrect type={1!A}, but should have type={2!A} "
                             "according to its method {3!A} in class {4!A} in "
                             "namespace {5!A} of the CIM repository",
                             pn, param_in.type, param_cls.type,
@@ -510,8 +536,8 @@ class ProviderDispatcher(BaseProvider):
             if param_in.is_array != param_cls.is_array:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} has incorrect "
-                            "is_array={1!A}, but should have "
+                    _format("Input parameter {0!A} specified in Params has "
+                            "incorrect is_array={1!A}, but should have "
                             "is_array={2!A} "
                             "according to its method {3!A} in class {4!A} in "
                             "namespace {5!A} of the CIM repository",
@@ -521,8 +547,8 @@ class ProviderDispatcher(BaseProvider):
             if param_in.embedded_object != param_cls.embedded_object:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} has incorrect "
-                            "embedded_object={1!A}, but should have "
+                    _format("Input parameter {0!A} specified in Params has "
+                            "incorrect embedded_object={1!A}, but should have "
                             "embedded_object={2!A} "
                             "according to its method {3!A} in class {4!A} in "
                             "namespace {5!A} of the CIM repository",
