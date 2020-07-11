@@ -34,9 +34,9 @@ from __future__ import absolute_import, print_function
 import six
 from copy import deepcopy
 
-from pywbem import CIMInstance, CIMInstanceName, CIMParameter, CIMError, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
-    CIM_ERR_METHOD_NOT_FOUND
+from pywbem import CIMInstance, CIMInstanceName, CIMClassName, CIMParameter, \
+    CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
+    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND
 
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
@@ -190,6 +190,15 @@ class ProviderDispatcher(BaseProvider):
         #       WBEMConnection.CreateInstance().
         new_instance = deepcopy(NewInstance)
 
+        # Adjust the lexical case of the property names in the new instance
+        # to match the lexical case of the property definitions in the creation
+        # class.
+        for inst_pn in new_instance.properties:
+            inst_prop = new_instance.properties[inst_pn]
+            cls_pn = creation_class.properties[inst_pn].name
+            if inst_pn != cls_pn:
+                inst_prop.name = cls_pn  # modifies new_instance
+
         # Determine the provider to be used. Note that a registered provider
         # always has all responder methods for the provider type, either
         # implemented or inherited.
@@ -266,8 +275,12 @@ class ProviderDispatcher(BaseProvider):
                         ModifiedInstance.path))
 
         # Verify that the properties in the property list are exposed by the
-        # creation class.
-        if PropertyList:
+        # creation class, and reduce property list to be unique.
+        if PropertyList is None:
+            property_list = None
+        else:
+            property_list = []
+            property_dict = NocaseDict()
             for pn in PropertyList:
                 if pn not in creation_class.properties:
                     raise CIMError(
@@ -276,6 +289,9 @@ class ProviderDispatcher(BaseProvider):
                                 "exist in creation class {1!A} in namespace "
                                 "{2!A} of the CIM repository",
                                 pn, ModifiedInstance.classname, namespace))
+                if pn not in property_dict:
+                    property_dict[pn] = True
+                    property_list.append(pn)
 
         # Verify that the properties in the modified instance are exposed by the
         # creation class and have the correct type-related attributes.
@@ -344,18 +360,42 @@ class ProviderDispatcher(BaseProvider):
         #       WBEMConnection.ModifyInstance().
         modified_instance = deepcopy(ModifiedInstance)
 
+        # Reduce modified_instance to have just the properties to be modified
+        if property_list is not None:
+
+            # Add class default values for properties not specified in
+            # ModifiedInstance.
+            for pn in property_list:
+                if pn not in modified_instance:
+                    # If the property in the class does not have a default
+                    # value, it is None.
+                    modified_instance[pn] = creation_class.properties[pn].value
+
+            # Remove properties from modified_instance that are not in
+            # PropertyList.
+            for pn in list(modified_instance):
+                if pn not in property_dict:
+                    del modified_instance[pn]
+
+        # Adjust the lexical case of the properties in the modified instance to
+        # the lexical case they have in the creation class.
+        for pn in modified_instance.properties:
+            inst_prop = modified_instance.properties[pn]
+            cl_prop = creation_class.properties[pn]
+            if inst_prop.name != cl_prop.name:
+                inst_prop.name = cl_prop.name  # changes modified_instance
+
         # Determine the provider to be used. Note that a registered provider
         # always has all responder methods for the provider type, either
         # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
-            namespace, 'instance-write', ModifiedInstance.classname)
+            namespace, 'instance-write', modified_instance.classname)
         if not provider:
             provider = self.default_instance_write_provider
 
         # Call the provider method.
         result = provider.ModifyInstance(
-            modified_instance, IncludeQualifiers=IncludeQualifiers,
-            PropertyList=PropertyList)
+            modified_instance, IncludeQualifiers=IncludeQualifiers)
 
         # Verify provider method result.
         assert result is None
@@ -411,21 +451,46 @@ class ProviderDispatcher(BaseProvider):
         # Verify provider method result.
         assert result is None
 
-    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
+    def InvokeMethod(self, methodname, localobject, params):
         # pylint: disable=invalid-name
         """
         Dispatcher for the InvokeMethod provider method.
 
         This method performs validations and if successful, routes the provider
         method call either to a registered provider, or to the default provider.
+
+        Parameters:
+
+          methodname (string): Method name
+
+          localobject (CIMInstanceName or CIMClassName): Target object, with
+            namespace set. Types are validated.
+
+          params (NocaseDict): Input parameters, as follows:
+            * key (string): Parameter name.
+            * value (CIMParameter): Parameter value.
+            Types are validated.
+
+        Returns:
+
+          A tuple of (returnvalue, outparams), with these tuple items:
+
+            * returnvalue (CIM data type): Return value.
+
+            * outparams (NocaseDict): Output parameters, with:
+              * key (string): Parameter name
+              * value (CIM data type): Parameter value
         """
 
+        namespace = localobject.namespace
+
         # Verify the input parameter types (type errors have already been
-        # raised during checks in the WBEMConnection operation).
+        # raised during checks in WBEMConnection.InvokeMethod(), and in
+        # FakedWBEMConnection._mock_methodcall()).
         assert isinstance(namespace, six.string_types)
-        assert isinstance(MethodName, six.string_types)
-        assert isinstance(ObjectName, (CIMInstanceName, six.string_types))
-        assert isinstance(Params, NocaseDict)
+        assert isinstance(methodname, six.string_types)
+        assert isinstance(localobject, (CIMInstanceName, CIMClassName))
+        assert isinstance(params, NocaseDict)
 
         # Verify that the namespace exists in the CIM repository.
         self.validate_namespace(namespace)
@@ -433,53 +498,54 @@ class ProviderDispatcher(BaseProvider):
         class_store = self.cimrepository.get_class_store(namespace)
         instance_store = self.cimrepository.get_instance_store(namespace)
 
-        if isinstance(ObjectName, CIMInstanceName):
+        if isinstance(localobject, CIMInstanceName):
             # instance-level use
 
             # Get the creation class of the target instance from the CIM
             # repository, verifying that it exists.
             try:
-                klass = class_store.get(ObjectName.classname)
+                klass = class_store.get(localobject.classname)
             except KeyError:
                 raise CIMError(
                     CIM_ERR_INVALID_CLASS,
                     _format("Creation class {0!A} of target instance does "
                             "not exist in namespace {1!A} of the CIM "
                             "repository.",
-                            ObjectName.classname, namespace))
+                            localobject.classname, namespace))
 
             # Verify that the target instance exists in the CIM repository.
-            if not instance_store.object_exists(ObjectName):
+            if not instance_store.object_exists(localobject):
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,
                     _format("Target instance does not exist in the CIM "
                             "repository: {0!A}",
-                            ObjectName))
+                            localobject))
 
         else:
+            assert isinstance(localobject, CIMClassName)
             # class-level use
 
             # Get the target class from the CIM repository, verifying that it
             # exists.
             try:
-                klass = class_store.get(ObjectName)
+                klass = class_store.get(localobject.classname)
             except KeyError:
                 raise CIMError(
                     CIM_ERR_NOT_FOUND,
                     _format("Target class {0!A} does not exist in namespace "
                             "{1!A} of the CIM repository.",
-                            ObjectName, namespace))
+                            localobject.classname, namespace))
 
         # Verify that the class exposes the CIM method.
-        if MethodName not in klass.methods:
+        if methodname not in klass.methods:
             raise CIMError(
                 CIM_ERR_METHOD_NOT_FOUND,
                 _format("Method {0!A} is not exposed by class {1!A} in "
                         "namespace {2!A} of the CIM repository.",
-                        MethodName, klass.classname, namespace))
-        method = klass.methods[MethodName]
+                        methodname, klass.classname, namespace))
+        method = klass.methods[methodname]
 
-        if not isinstance(ObjectName, CIMInstanceName):
+        if isinstance(localobject, CIMClassName):
             # class-level use
 
             # Verify that the method is static.
@@ -493,22 +559,22 @@ class ProviderDispatcher(BaseProvider):
                     _format("Non-static method {0!A} in class {1!A} in "
                             "namespace {2!A} cannot be invoked on a class "
                             "object.",
-                            MethodName, klass.classname, namespace))
+                            methodname, klass.classname, namespace))
 
         # Verify that the input parameters are defined by the method and have
         # the correct type-related attributes.
-        for pn in Params:
+        for pn in params:
             assert isinstance(pn, six.string_types)
-            param_in = Params[pn]
+            param_in = params[pn]
             assert isinstance(param_in, CIMParameter)
 
             if pn not in method.parameters:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} specified in Params is not "
+                    _format("The specified input parameter {0!A} is not "
                             "defined in method {1!A} of class {2!A} in "
                             "namespace {3!A} of the CIM repository",
-                            pn, MethodName, klass.classname, namespace))
+                            pn, methodname, klass.classname, namespace))
 
             param_cls = method.parameters[pn]
 
@@ -517,44 +583,44 @@ class ProviderDispatcher(BaseProvider):
             if not in_value:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} specified in Params is "
+                    _format("The specified input parameter {0!A} is "
                             "defined as an output-only parameter according to "
                             "its method {1!A} of class {2!A} in namespace "
                             "{3!A} of the CIM repository",
-                            pn, MethodName, klass.classname, namespace))
+                            pn, methodname, klass.classname, namespace))
 
             if param_in.type != param_cls.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} specified in Params has "
+                    _format("The specified input parameter {0!A} has "
                             "incorrect type={1!A}, but should have type={2!A} "
                             "according to its method {3!A} in class {4!A} in "
                             "namespace {5!A} of the CIM repository",
                             pn, param_in.type, param_cls.type,
-                            MethodName, klass.classname, namespace))
+                            methodname, klass.classname, namespace))
 
             if param_in.is_array != param_cls.is_array:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} specified in Params has "
+                    _format("The specified input parameter {0!A} has "
                             "incorrect is_array={1!A}, but should have "
                             "is_array={2!A} "
                             "according to its method {3!A} in class {4!A} in "
                             "namespace {5!A} of the CIM repository",
                             pn, param_in.is_array, param_cls.is_array,
-                            MethodName, klass.classname, namespace))
+                            methodname, klass.classname, namespace))
 
             if param_in.embedded_object != param_cls.embedded_object:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Input parameter {0!A} specified in Params has "
+                    _format("The specified input parameter {0!A} has "
                             "incorrect embedded_object={1!A}, but should have "
                             "embedded_object={2!A} "
                             "according to its method {3!A} in class {4!A} in "
                             "namespace {5!A} of the CIM repository",
                             pn, param_in.embedded_object,
                             param_cls.embedded_object,
-                            MethodName, klass.classname, namespace))
+                            methodname, klass.classname, namespace))
 
         # Determine the provider to be used.
         provider = self.provider_registry.get_registered_provider(
@@ -562,12 +628,49 @@ class ProviderDispatcher(BaseProvider):
         if not provider:
             provider = self.default_method_provider
 
-        # Call the provider method.
-        result = provider.InvokeMethod(
-            namespace, MethodName, ObjectName, Params)
+        # Call the provider method
+        result = provider.InvokeMethod(methodname, localobject, params)
 
-        # Verify provider method result.
-        assert isinstance(result, (tuple, list, dict))
-        assert len(result) == 2
+        # Verify provider method result
+        if not isinstance(result, (list, tuple)):
+            raise TypeError(
+                _format("InvokeMethod provider method returned invalid type: "
+                        "{0}. Must return list/tuple (return value, output "
+                        "parameters)",
+                        type(result)))
+        if len(result) != 2:
+            raise ValueError(
+                _format("InvokeMethod provider method returned invalid number "
+                        "of items: {0}. Must be list/tuple (return value, "
+                        "output parameters)",
+                        len(result)))
+        return_value = result[0]
+        output_params = result[1]
 
-        return result
+        # Map the more flexible way output parameters can be returned from
+        # the provider method to what _mock_methodcall() expects
+        output_params_dict = NocaseDict()
+        if isinstance(output_params, (tuple, list)):
+            # iterable of CIMParameter
+            for param in output_params:
+                if isinstance(param, CIMParameter):
+                    output_params_dict[param.name] = param.value
+                else:
+                    raise TypeError(
+                        _format("InvokeMethod provider method returned invalid "
+                                "type for item in output parameters "
+                                "list/tuple: {0}. Item type must be "
+                                "CIMParameter",
+                                type(param)))
+        elif isinstance(output_params, dict):
+            # dict of name:value
+            for pname in output_params:
+                output_params_dict[pname] = output_params[pname]
+        else:
+            raise TypeError(
+                _format("InvokeMethod provider method returned invalid type "
+                        "for output parameters: {0}. Must be "
+                        "list/tuple(CIMParameter) or dict(name: value)",
+                        type(output_params)))
+
+        return return_value, output_params_dict

@@ -1894,6 +1894,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           Params: CIM method input parameters, for details see InvokeMethod().
 
           **params: CIM method input parameters, for details see InvokeMethod().
+
+        Returns:
+
+          A tuple of (returnvalue, outparams), with these tuple items:
+            * returnvalue (:term:`CIM data type`): Return value.
+            * outparams (:ref:`NocaseDict`): Output parameters, with:
+              * key (:term:`unicode string`): Parameter name
+              * value (:term:`CIM data type`): Parameter value
         """
 
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
