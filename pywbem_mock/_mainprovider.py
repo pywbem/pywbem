@@ -871,7 +871,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # pylint: disable=no-self-use,unused-argument
         """
         Provider method for
-        :meth:`pywbem.WBEMConnection.MmodifyClass`.
+        :meth:`pywbem.WBEMConnection.ModifyClass`.
 
         Modifies a class in the CIM repository.  Nothing is returned.
 
