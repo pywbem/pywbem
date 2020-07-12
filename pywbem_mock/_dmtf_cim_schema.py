@@ -26,7 +26,7 @@ DMTF web site ( https://www.dmtf.org/standards/cim ).
 Because CIM schemas are the source of most of the classes that a WBEM server
 normally implements it was important to create a simple mechanism to include
 the DMTF CIM classes and qualifier declarations from a CIM schema in the
-:class:`~pywbem_mock.FakedWBEMConnection` mock repository.
+CIM repository of :class:`~pywbem_mock.FakedWBEMConnection`.
 
 The :class:`~pywbem_mock.DMTFCIMSchema` class downloads the DMTF CIM schema
 zip file defined by version from the DMTF web site into a defined directory,
@@ -62,7 +62,7 @@ experimental schema depending on the value of the `use_experimental`
 parameter.
 
 Because it is usually necessary to compile only a subset of the DMTF CIM
-classes into a mock repository for any test, the
+classes into a CIM repository for any test, the
 :class:`~pywbem_mock.DMTFCIMSchema` class provides a
 :meth:`~pywbem_mock.FakedWBEMConnection.build_schema_mof` method to create a
 list of MOF pragmans that includes only a subset of the classes in the
@@ -190,7 +190,7 @@ class DMTFCIMSchema(object):
     This class manages the download of the DMTF schema zip file and extraction
     of MOF files of DMTF CIM schema releases into a directory that can be used
     by :meth:`~pywbem_mock.FakedWBEMConnection.compile_schema_classes` to
-    compile a mock repository with class and qualifier declarations from the
+    compile into a CIM repository with class and qualifier declarations from the
     schema.
     """
     def __init__(self, schema_version, schema_root_dir, use_experimental=False,

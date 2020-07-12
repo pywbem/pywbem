@@ -173,93 +173,114 @@ class MethodProvider(BaseProvider):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.  The
-            repository is fully initialized.
+            Defines the repository to be used by the provider.
         """
         super(MethodProvider, self).__init__(cimrepository)
 
-    ####################################################################
-    #
-    #   Server responder for InvokeMethod.
-    #
-    ####################################################################
-
-    def InvokeMethod(self, namespace, MethodName, ObjectName, Params):
+    def InvokeMethod(self, methodname, localobject, params):
         # pylint: disable=invalid-name,no-self-use
+        # pylint: disable=line-too-long
         """
-        Defines the API and return for a mock WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.InvokeMethod` for both static (ObjectName
-        is a class name) and dynamic (ObjectName is a CIMInstanceName) CIM
-        methods.
+        Default provider method for
+        :meth:`pywbem.WBEMConnection.InvokeMethod`.
 
-        This method should never be called because there is no concept of a
-        default InvokeMethod in CIM.  All method providers specify specific
-        actions.
+        Invoke a CIM method (static or dynamic) on a target CIM object (class or
+        instance) in the CIM repository of the mock WBEM server.
+
+        This default provider always raises CIMError(CIM_ERR_METHOD_NOT_FOUND)
+        because there is no concept of a default method invocation behavior in
+        in CIM (other than raising this error). A user-defined method provider
+        is necessary to have a meaningful implementation of a method invocation.
+
+        Validation already performed by the provider dispatcher that calls
+        this provider method:
+        - The provider method is called only for the registered class and
+          namespace (only applies to user-defined providers).
+        - The Python types of all input parameters to this provider method are
+          as specified below.
+        - The namespace exists in the CIM repository.
+        - For instance-level use:
+          - The creation class of the target instance exists in the namespace
+            of the CIM repository.
+          - The target instance exists in the namespace of the CIM repository.
+          - The creation class of the target instance exposes the method to be
+            invoked.
+        - For class-level use:
+          - The target class exists in the namespace of the CIM repository.
+          - The target class exposes the method to be invoked.
+          - The method exposed by the creation class is a static method
+            as per its 'Static' qualifier.
+        - The set of specified CIM method input parameters matches exactly the
+          set of input parameters defined by the method in the CIM repository
+          (as detected by their 'In' qualifier in the creation class), w.r.t.
+          parameter name and type-related attributes (type, is_array,
+          embedded_object).
+
+        Validation that should be performed by this provider method:
+
+        - MethodName is the name of a method the provider implements.
+        - Constraints on the values of input parameters.
 
         Parameters:
 
-          namespace  (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
+          methodname (:term:`string`):
+            Name of the CIM method to be invoked, in any lexical case.
 
-          MethodName (:term:`string`):
-            Name of the method to be invoked (case independent) The method
-            name must be a method of the class defined in the ``ObjectName``
-            parameter.
-
-          ObjectName: (:class: `CIMInstanceName` or :term:`string`):
-            The object path of the target object, as follows:
+          objectname: (:class:`~pywbem.CIMInstanceName` or :class:`~pywbem.CIMClassName`):
+            A reference to the target CIM object, as follows:
 
             * For instance-level use: The instance path of the target
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
-              If this object does not specify a namespace, the default namespace
-              of the connection is used.
-              Its `namespace`, and `host` attributes will be ignored.
+              instance, as a :class:`~pywbem.CIMInstanceName` object, with the
+              following attributes:
+              - `classname`: Will be set, in any lexical case.
+              - `keybindings`: Will be set, with key names in any lexical case.
+              - `namespace`: Will be set, in any lexical case, and with leading
+                and trailing slash characters removed.
+              - `host`: Will be `None`.
 
-            * For class-level use: The class name of the target class, as a
-              :term:`string`. This should be one of the classes defined in
-              the class variable `classnames`.
+            * For class-level use: The class path of the target class, as a
+              :class:`~pywbem.CIMClassName` object, with the following
+              attributes:
+              - `classname`: Will be set, in any lexical case.
+              - `namespace`: Will be set, in any lexical case, and with leading
+                and trailing slash characters removed.
+              - `host`: Will be `None`.
 
-              The string is interpreted as a class name in the namespace defined
-              in the namespace parameter(case independent).
-
-          Params (:class:`py:NocaseDict`):
-            Each item in ``Params`` is a name/parameter-value for the CIM
-            method and is:
-
-            * :term:`string`: The case-insensitive name of the parameter.
-            * :class:`~pywbem.CIMParameter`: The item value representing a
-              parameter value. The `name`, `value`, `type` and
-              `embedded_object` attributes of this object are guaranteed
-              present.
+          params (:class:`py:NocaseDict`):
+            The input parameters for the method invocation, with items as
+            follows:
+            - key (:term:`string`): The parameter name, in any lexical case.
+            - value (:class:`~pywbem.CIMParameter`): The parameter value.
 
         Returns:
 
-            A :func:`py:tuple` of (returnvalue, outparams), with these
-            tuple items:
+            :func:`py:tuple` (return_value, out_params): The return value and
+            output parameters of the method invocation:
 
-            * returnvalue (:term:`CIM data type`):
-              Return value of the CIM method.
-            * outparams (:term:`py:iterable` of :class:`~pywbem.CIMParameter`):
-              Each item represents a single output parameter of the CIM method.
-              If the iterable is a dictionary, the key is the parameter name
-              and the value is :class:`~pywbem.CIMParameter`.
-              The :class:`~pywbem.CIMParameter` objects must have at least
-              the following properties set:
+            * return_value (:term:`CIM data type`):
+              Return value of the method invocation.
 
-                * name (:term:`string`): Parameter name (case independent).
-                * type (:term:`string`): CIM data type of the parameter.
-                * value (:term:`CIM data type`): Parameter value.
+            * out_params (list/tuple or dict):
+              Output parameters of the method invocation.
+
+              If list/tuple, the items must be :class:`~pywbem.CIMParameter`
+              in any order, with these attributes set:
+                * name (:term:`string`): Parameter name
+                * value (:term:`CIM data type`): Parameter value
+
+              If dict, the items must be as follows:
+                * key (:term:`string`): Parameter name
+                * value (:term:`CIM data type`): Parameter value
 
         Raises:
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_METHOD_NOT_FOUND) because the
               default method is only a placeholder for the API and
               documentation and not a real InvokeMethod action implementation.
-        """
-        # No default MethodProvider is implemented because all method
-        # providers define specific actions in their implementations.
+        """  # noqa: E501
+        # pylint: enable=line-too-long
+
+        # There is no concept of a default method invocation behavior in CIM
         raise CIMError(CIM_ERR_METHOD_NOT_FOUND)
 
     def post_register_setup(self, conn):

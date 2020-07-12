@@ -113,7 +113,7 @@ def _cvt_obj_name(objname):
 class FakedWBEMConnection(WBEMConnection):
     """
     A subclass of :class:`pywbem.WBEMConnection` that mocks the communication
-    with a WBEM server by utilizing a local in-memory *mock repository* to
+    with a WBEM server by utilizing a local in-memory CIM repository to
     generate responses in the same way the WBEM server would.
 
     **Experimental:** *New in pywbem 0.12 as experimental.*
@@ -483,7 +483,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Compile the MOF definitions in the specified file (and its included
         files) and add the resulting CIM objects to the specified CIM namespace
-        of the mock repository.
+        of the CIM repository.
 
         If the namespace does not exist, :exc:`~pywbem.CIMError` with status
         CIM_ERR_INVALID_NAMESPACE is raised.
@@ -499,7 +499,7 @@ class FakedWBEMConnection(WBEMConnection):
         with the same keybinding values, this method raises
         :exc:`~pywbem.CIMError`.
 
-        In all cases where this method raises an exception, the mock repository
+        In all cases where this method raises an exception, the CIM repository
         remains unchanged.
 
         Parameters:
@@ -508,7 +508,7 @@ class FakedWBEMConnection(WBEMConnection):
             Path name of the file containing the MOF definitions to be compiled.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
+            The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
             used.
@@ -561,7 +561,7 @@ class FakedWBEMConnection(WBEMConnection):
         with the same keybinding values, this method raises
         :exc:`~pywbem.CIMError`.
 
-        In all cases where this method raises an exception, the mock repository
+        In all cases where this method raises an exception, the CIM repository
         remains unchanged.
 
         Parameters:
@@ -570,7 +570,7 @@ class FakedWBEMConnection(WBEMConnection):
             A string with the MOF definitions to be compiled.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
+            The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
             used.
@@ -687,7 +687,7 @@ class FakedWBEMConnection(WBEMConnection):
         # pylint: disable=line-too-long
         """
         Add CIM classes, instances and/or CIM qualifier types (declarations)
-        to the specified CIM namespace of the mock repository.
+        to the specified CIM namespace of the CIM repository.
 
         This method adds a copy of the objects presented so that the user may
         modify the objects without impacting the repository.
@@ -703,7 +703,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         If a CIM class or CIM qualifier type to be added already exists in the
         target namespace with the same name (comparing case insensitively),
-        this method fails, and the mock repository remains unchanged.
+        this method fails, and the CIM repository remains unchanged.
 
         If a CIM instance to be added already exists in the target namespace
         with the same keybinding values, this method fails, and the mock
@@ -712,11 +712,11 @@ class FakedWBEMConnection(WBEMConnection):
         Parameters:
 
           objects (:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance` or :class:`~pywbem.CIMQualifierDeclaration`, or list of them):
-            CIM object or objects to be added to the mock repository. The
+            CIM object or objects to be added to the CIM repository. The
             list may contain different kinds of CIM objects.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
+            The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
             used.
@@ -728,7 +728,7 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
             not exist.
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository.
+            CIM repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
         namespace = namespace or self.default_namespace
@@ -800,14 +800,14 @@ class FakedWBEMConnection(WBEMConnection):
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
         """
-        Display the namespaces and objects in the mock repository in one of
+        Display the namespaces and objects in the CIM repository in one of
         multiple formats to a destination.
 
         Parameters:
 
           namespaces (:term:`string` or list of :term:`string`):
             Limits display output to the specified CIM namespace or namespaces.
-            If `None`, all namespaces of the mock repository are displayed.
+            If `None`, all namespaces of the CIM repository are displayed.
 
           dest (:term:`string`):
             File path of an output file. If `None`, the output is written to
@@ -815,7 +815,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           summary (:class:`py:bool`):
             Flag for summary mode. If `True`, only a summary count of CIM
-            objects in the specified namespaces of the mock repository is
+            objects in the specified namespaces of the CIM repository is
             produced. If `False`, both the summary count and the details of
             the CIM objects are produced.
 
@@ -1080,14 +1080,59 @@ class FakedWBEMConnection(WBEMConnection):
 
         return result
 
-    def _mock_methodcall(self, methodname, localobject, Params=None, **params):
+    def _mock_methodcall(self, methodname, objectname, Params=None, **params):
         # pylint: disable=invalid-name
         """
-        Mocks the WBEMConnection._methodcall() method. This calls the
-        server execution function of extrinsic methods (InvokeMethod).
+        Mocks the WBEMConnection._methodcall() method.
+
+        This function performs the same checks and transformations as
+        WBEMConnection._methodcall().
         """
-        result = self._meth_InvokeMethod(methodname, localobject,
-                                         Params, **params)
+
+        # Normalize the target object into either CIMInstanceName or
+        # CIMClassName, both with namespace set.
+        if isinstance(objectname, (CIMInstanceName, CIMClassName)):
+            localobject = objectname.copy()
+            if localobject.namespace is None:
+                localobject.namespace = self.default_namespace
+            localobject.host = None
+        elif isinstance(objectname, six.string_types):
+            # a string is always interpreted as a class name
+            localobject = CIMClassName(objectname,
+                                       namespace=self.default_namespace)
+        else:
+            raise TypeError(
+                _format("The 'ObjectName' parameter of the WBEMConnection "
+                        "operation has invalid type {0} (must be a string, "
+                        "a CIMClassName, or a CIMInstanceName)",
+                        type(objectname)))
+
+        # Merge the Params and **params into a single no-case dictionary
+        # of name: CIMParameter
+        params_dict = NocaseDict()
+        if Params:
+            for param in Params:
+                if isinstance(param, CIMParameter):
+                    params_dict[param.name] = param
+                elif isinstance(param, tuple):
+                    params_dict[param[0]] = CIMParameter(param[0],
+                                                         cimtype(param[1]),
+                                                         value=param[1])
+                else:
+                    raise TypeError(
+                        _format("InvokeMethod of method {0!A} on object {1!A}: "
+                                "A parameter in the Params argument has "
+                                "incorrect Python type {2} "
+                                "- expected one of tuple (name, value) or "
+                                "pywbem.CIMParameter",
+                                methodname, localobject, type(param)))
+        if params:
+            for pname in params:
+                pvalue = params[pname]
+                params_dict[pname] = CIMParameter(
+                    pname, cimtype(pvalue), value=pvalue)
+
+        result = self._meth_InvokeMethod(methodname, localobject, params_dict)
 
         # Sleep for defined number of seconds
         if self._response_delay:
@@ -1233,7 +1278,7 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _imeth_CreateInstance(self, namespace, **params):
         """
-        Call :meth:`~pywbem_mock.MainProvider.CreateInstance` with
+        Call :meth:`~pywbem_mock.ProviderDispatcher.CreateInstance` with
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
@@ -1257,7 +1302,7 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _imeth_ModifyInstance(self, namespace, **params):
         """
-        Call :meth:`~pywbem_mock.MainProvider.ModifyInstance` with
+        Call :meth:`~pywbem_mock.ProviderDispatcher.ModifyInstance` with
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
@@ -1287,7 +1332,7 @@ class FakedWBEMConnection(WBEMConnection):
 
     def _imeth_DeleteInstance(self, namespace, **params):
         """
-        Call :meth:`~pywbem_mock.MainProvider.DeleteInstance` with
+        Call :meth:`~pywbem_mock.ProviderDispatcher.DeleteInstance` with
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
@@ -1705,164 +1750,11 @@ class FakedWBEMConnection(WBEMConnection):
         self._mainprovider.CloseEnumeration(
             EnumerationContext=params['EnumerationContext'])
 
-    ####################################################################
-    #
-    #   Server responder for InvokeMethod.
-    #
-    ####################################################################
-
-    def _meth_InvokeMethod(self, methodname, objectname, Params, **params):
+    def _meth_InvokeMethod(self, methodname, localobject, params):
         # pylint: disable=invalid-name
         """
-        Implements a mock WBEM server responder for
-        :meth:`~pywbem.WBEMConnection.InvokeMethod`
-
-        This responder calls a function defined by an entry in the methods
-        repository. The return from that function is returned to the user.
-
-        Parameters:
-
-          MethodName (:term:`string`):
-            Name of the method to be invoked (case independent).
-
-          ObjectName:
-            The object path of the target object, as follows:
-
-            * For instance-level use: The instance path of the target
-              instance, as a :class:`~pywbem.CIMInstanceName` object.
-              If this object does not specify a namespace, the default namespace
-              of the connection is used.
-              Its `host` attribute will be ignored.
-
-            * For class-level use: The class path of the target class, as a
-              :term:`string` or :class:`~pywbem.CIMClassName` object:
-
-              If specified as a string, the string is interpreted as a class
-              name in the default namespace of the connection
-              (case independent).
-
-              If specified as a :class:`~pywbem.CIMClassName` object, its `host`
-              attribute will be ignored. If this object does not specify
-              a namespace, the default namespace of the connection is used.
-
-          Params (:term:`py:iterable`):
-            An iterable of input parameter values for the CIM method. Each item
-            in the iterable is a single parameter value and can be any of:
-
-            * :class:`~pywbem.CIMParameter` representing a parameter value. The
-              `name`, `value`, `type` and `embedded_object` attributes of this
-              object are used.
-
-            * tuple of name, value, with:
-
-                - name (:term:`string`): Parameter name (case independent)
-                - value (:term:`CIM data type`): Parameter value
-
-          **params :
-            Each keyword parameter is an additional input parameter value for
-            the CIM method, with:
-
-            * key (:term:`string`): Parameter name (case independent)
-            * value (:term:`CIM data type`): Parameter value
-
-        Returns:
-
-            A :func:`py:tuple` of (returnvalue, outparams), with these
-            tuple items:
-
-            * returnvalue (:term:`CIM data type`):
-              Return value of the CIM method.
-            * outparams (:ref:`NocaseDict`):
-              Dictionary with all provided output parameters of the CIM method,
-              with:
-
-              * key (:term:`unicode string`):
-                Parameter name, preserving its lexical case
-              * value (:term:`CIM data type`):
-                Parameter value
+        Call :meth:`~pywbem_mock.ProviderDispatcher.InvokeMethod`.
         """
-        # pass one the full instance name
-        if isinstance(objectname, CIMInstanceName):
-            localobject = objectname.copy()
-            if localobject.namespace is None:
-                localobject.namespace = self.default_namespace
-                localobject.host = None
-                namespace = localobject.namespace
-            else:
-                namespace = objectname.namespace
-
-        # pass on only the classname
-        elif isinstance(objectname, (CIMClassName)):
-            localobject = objectname.classname
-            if objectname.namespace is None:
-                namespace = self.default_namespace
-            else:
-                namespace = objectname.namespace
-
-        elif isinstance(objectname, six.string_types):
-            # a string is always interpreted as a class name
-            localobject = objectname
-            namespace = self.default_namespace
-
-        else:
-            raise TypeError(
-                _format("InvokeMethod of method {0!A} on object {1!A}: "
-                        "Objectname argument has incorrect Python type {2} "
-                        "- expected one of pywbem.CIMInstanceName, "
-                        "pywbem.CIMClassName, or string",
-                        methodname, objectname, type(objectname)))
-
-        # Map the Params and **params into a single no-case dictionary
-        # of CIMParameters
-        params_dict = NocaseDict()
-        if Params:
-            for param in Params:
-                if isinstance(param, CIMParameter):
-                    params_dict[param.name] = param
-                elif isinstance(param, tuple):
-                    params_dict[param[0]] = CIMParameter(param[0],
-                                                         cimtype(param[1]),
-                                                         value=param[1])
-                else:
-                    raise TypeError(
-                        _format("InvokeMethod of method {0!A} on object {1!A}: "
-                                "A parameter in the Params argument has "
-                                "incorrect Python type {2} "
-                                "- expected one of tuple (name, value) or "
-                                "pywbem.CIMParameter",
-                                methodname, localobject, type(param)))
-
-        if params:
-            for param in params:
-                params_dict[param] = CIMParameter(param,
-                                                  cimtype(params[param]),
-                                                  value=params[param])
-        result = self._providerdispatcher.InvokeMethod(namespace,
-                                                       methodname,
-                                                       localobject,
-                                                       params_dict)
-
-        # test for valid data in response.
-        if not isinstance(result, (list, tuple)):
-            raise CIMError(
-                CIM_ERR_FAILED,
-                _format("Invalid Response. Must be list or tuple)",
-                        type(result)))
-
-        # Map output params to NocaseDict to be compatible with return
-        # from _methodcall. The input list (result[1]) is an iterable of
-        # CIMParameters
-        output_params_dict = NocaseDict()
-        result_params = result[1] if isinstance(result[1], (tuple, list)) \
-            else result[1].values()
-        for param in result_params:
-            if isinstance(param, CIMParameter):
-                output_params_dict[param.name] = param.value
-            else:
-                raise CIMError(
-                    CIM_ERR_FAILED,
-                    _format('Invalid response {0}. Must be CIMParameter. '
-                            'Type {1} received',
-                            param, type(param)))
-
-        return (result[0], output_params_dict)
+        result = self._providerdispatcher.InvokeMethod(
+            methodname, localobject, params)
+        return result

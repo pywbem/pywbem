@@ -39,6 +39,9 @@ Released: not yet
   AttributeError, CIMError). This does not change the behavior if valid types
   are passed. (See issue #2313)
 
+* Mock support: Changed the interface of user-defined providers in order to
+  simplify their implementation. (See issue #2326)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -59,6 +62,13 @@ Released: not yet
   including KeyError, AttributeError, or CIMError. Now, all invalid types are
   properly checked and cause TypeError to be raised. Added testcases
   for invalid types. (See issue #2313)
+
+* Mock support: Simplified the user-defined providers by checking their input
+  parameters and the related CIM repository objects as much as possible before
+  calling the providers. Updated the provider documentation to be from a
+  perspective of the provider, and clarified what is already verified when the
+  provider is called. This resulted in some incompatible changes at the
+  interface of user-defined providers. (See issue #2326)
 
 **Cleanup:**
 

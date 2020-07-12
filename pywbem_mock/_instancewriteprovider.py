@@ -20,7 +20,7 @@
 
 """
 This module contains the InstanceWrite Provider with the default implementation
-for the WBEM request responders for `CreateInstance`, `ModifyInstance` and
+for the mock WBEM server responders for `CreateInstance`, `ModifyInstance` and
 `DeleteInstance`.  These the methods will be executed if there is no provider
 registered  for a namespace and class name.
 
@@ -28,9 +28,9 @@ This module adds support for user-defined instance providers.  User-defined
 instance providers may be created within the pywbem_mock environment to modify
 the functionality of these WBEM requests.
 :class:`~pywbem_mock.InstanceWriteProvider` defines the  default implementation
-of ``CreateInstance``, ``ModifyInstance`` and ``DeleteInstance`` default server
-responder methods that may be overwritten by user-defined subclasses of the
-:class:`~pywbem_mock.InstanceWriteProvider`.
+of ``CreateInstance``, ``ModifyInstance`` and ``DeleteInstance`` default
+mock WBEM server responder methods that may be overwritten by user-defined
+subclasses of the :class:`~pywbem_mock.InstanceWriteProvider`.
 
 User-defined providers may be created for specific CIM classes (which are
 defined in the user-defined provider) and namespaces (which are defined a
@@ -173,12 +173,8 @@ A user-defined instance provider can be created as follows:
 
 from __future__ import absolute_import, print_function
 
-from copy import deepcopy
-import six
-
-from pywbem import CIMInstance, CIMInstanceName, CIMError, \
-    CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
-    CIM_ERR_ALREADY_EXISTS
+from pywbem import CIMInstanceName, CIMError, \
+    CIM_ERR_INVALID_PARAMETER, CIM_ERR_ALREADY_EXISTS
 
 from pywbem._utils import _format
 
@@ -188,63 +184,6 @@ from ._baseprovider import BaseProvider
 # pylint: disable=invalid-name
 
 __all__ = ['InstanceWriteProvider']
-
-
-def validate_inst_props(namespace, target_class, instance):
-    """
-    Validate that all properties in instance are in target_class and validate
-    that property types are compatible.
-
-    Finally it adds any properties from the target_class that are not in the
-    instance.
-
-    Parameters:
-
-        namespace (:term:`string`):
-          Namespace to be used.  In this method it is used only for
-          documentation in exceptions
-
-        target_class (:class:`~pywbem.CIMClass`):
-          The CIM class defined in instance.classname including all qualifiers,
-          superclass elements, and ``classorigin`` elements.
-
-        instance (:class:`~pywbem.CIMInstance`):
-          The CIM instance to be validated.
-
-    Returns:
-
-        Nothing is returned but instance may have been modified.
-
-    Raises:
-
-        :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER) for invalid
-          conditions in the input instance.
-    """
-
-    for iprop_name in instance:
-        if iprop_name not in target_class.properties:
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Property {0!A} specified in NewInstance is not "
-                        "exposed by class {1!A} in namespace {2!A}",
-                        iprop_name, target_class.classname, namespace))
-
-        cprop = target_class.properties[iprop_name]
-        iprop = instance.properties[iprop_name]
-        if iprop.is_array != cprop.is_array or \
-                iprop.type != cprop.type:
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Instance and class property {0!A} types "
-                        "do not match: instance={1!A}, class={2!A}",
-                        iprop_name, iprop, cprop))
-
-        # The class and instnames are the same except for possible case
-        # sensitivity. If case different, set cprop_name into new instance
-        # to maintain case equality
-        cprop_name = cprop.name
-        if cprop_name != iprop_name:
-            instance.properties[iprop_name].name = cprop_name
 
 
 class InstanceWriteProvider(BaseProvider):
@@ -270,58 +209,79 @@ class InstanceWriteProvider(BaseProvider):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.  The
-            repository is fully initialized.
+            The CIM repository to be used by the provider.
         """
         super(InstanceWriteProvider, self).__init__(cimrepository)
 
-    ####################################################################
-    #
-    #   CreateInstance server request
-    #
-    ####################################################################
-
-    def CreateInstance(self, namespace, NewInstance):
+    def CreateInstance(self, namespace, new_instance):
         """
-        Implements a WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.CreateInstance`.
 
-        Create a CIM instance in the local CIM repository of this class.
+        Create a new CIM instance in the CIM repository of the mock WBEM server.
 
-        The input parameters must have been validated before this method
-        is called including:
+        Validation already performed by the provider dispatcher that calls
+        this provider method:
+        - The provider method is called only for the registered class and
+          namespace (only applies to user-defined providers).
+        - The Python types of all input parameters to this provider method are
+          as specified below.
+        - The namespace exists in the CIM repository.
+        - The creation class of the new instance exists in the namespace
+          in the CIM repository.
+        - All properties specified in the new instance are exposed (i.e.
+          defined and inherited with any overrides resolved) by the creation
+          class in the CIM repository, and have the same type-related
+          attributes (i.e. type, is_array, embedded_object).
 
-        1. Namespace is valid in CIM repository.
-        2. The ``NewInstance`` is a valid CIM Instance.
-        3. All key properties defined in the class  of ``NewInstance`` are
-           in ``NewInstance``. This method cannot add properties or
-           property values to ``NewInstance``.
-        4. There are no properties in ``NewInstance`` that are not in the
-           corresponding class.
-        5. NewInstance path must not exist in the CIM repository.
+        Validation that should be performed by this provider method:
+        - new_instance does not specify any properties that are not
+          allowed to be initialized by the client, depending on the model
+          implemented by the provider.
+        - new_instance specifies all key properties needed by the
+          provider, depending on the model implemented by the provider.
+          The CIM repository will reject any new instance that does not have
+          all key properties specified.
+        - The new instance (i.e. an instance with the new instance path) does
+          not exist in the CIM repository.
+          This validation needs to be done by the provider because the
+          determination of the key properties for the new instance path may
+          depend on the model implemented by the provider.
+          The CIM repository will reject the creation of instances that already
+          exist, so this check can be delegated to the repository once the
+          new instance path has been determined.
 
         Parameters:
 
           namespace (:term:`string`):
-            The name of the CIM namespace in the CIM repository (case
-            insensitive). Must not be `None`. Leading or trailing slash
-            characters are ignored.
+            The name of the CIM namespace in which the CIM instance is to be
+            created, in any lexical case, and with leading and trailing slash
+            characters removed.
 
-          NewInstance (:class:`~pywbem.CIMInstance`):
+          new_instance (:class:`~pywbem.CIMInstance`):
             A representation of the CIM instance to be created.
 
-            The ``classname`` attribute of this object specifies the creation
-            class for the new instance.
+            This object is a deep copy of the original client parameter, and may
+            be modified by the provider as needed, before storing it in the
+            CIM repository.
 
-            The namespace of the ``path`` attribute must be `None` or the
-            same as the namespace parameter.
+            The property names in this object have been adjusted to match the
+            lexical case of the property definitions in the creation class
+            of the instance in the CIM repository.
 
-            The `properties` attribute of this object specifies initial
-            property values for the new CIM instance.
+            The `classname` attribute of this object will specify the
+            creation class for the new instance, in any lexical case.
 
-            Instance-level qualifiers have been deprecated in CIM, so any
-            qualifier values specified using the `qualifiers` attribute
-            of this object are ignored.
+            The `properties` attribute of this object will specify the
+            initial property values for the new CIM instance, with property
+            names in any lexical case. Key properties may or may not be
+            included.
+
+            The `path` attribute of this object will be `None`.
+
+            The `qualifiers` attribute of this object, if non-empty, should
+            be ignored by the provider, because instance-level qualifiers have
+            been deprecated in CIM.
 
         Returns:
 
@@ -329,308 +289,182 @@ class InstanceWriteProvider(BaseProvider):
             instance.
 
         Raises:
-
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_ALREADY_EXISTS)
+            :exc:`~pywbem.CIMError`: The provider may raise CIMError with any
+              status code, and typically raises:
+              - CIM_ERR_INVALID_PARAMETER
+              - CIM_ERR_ALREADY_EXISTS
         """
 
-        # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(NewInstance, CIMInstance)
+        # Get the creation class with all exposed properties and qualifiers.
+        # Since the existence of the class has already been verified, this
+        # will always succeed.
+        class_store = self.cimrepository.get_class_store(namespace)
+        creation_class = class_store.get(new_instance.classname, copy=False)
 
-        new_instance = NewInstance.copy()
+        # This default provider determines the instance path from the key
+        # properties in the new instance. A user-defined provider may do that
+        # as well, or invent key properties such as InstanceID.
+        # Specifying strict=True in from_instance() verifies that all key
+        # properties exposed by the class are specified in the new instance,
+        # and raises ValueError if key properties are missing.
+        try:
+            new_instance.path = CIMInstanceName.from_instance(
+                creation_class, new_instance, namespace=namespace, strict=True)
+        except ValueError as exc:
+            raise CIMError(CIM_ERR_INVALID_PARAMETER, str(exc))
 
-        self.validate_namespace(namespace)
+        # Get the instance store of the CIM repository. Since the existence of
+        # the namespace has already been verified, this will always succeed.
         instance_store = self.cimrepository.get_instance_store(namespace)
 
-        # Requires corresponding class to build path to be returned
-        target_class = self.get_class(namespace,
-                                      new_instance.classname,
-                                      local_only=False,
-                                      include_qualifiers=True,
-                                      include_classorigin=True)
-
-        # Test all key properties in instance. The CIM repository
-        # cannot add values for key properties and does
-        # not allow creating key properties from class defaults.
-        key_props = [p.name for p in six.itervalues(target_class.properties)
-                     if 'key' in p.qualifiers]
-        for pn in key_props:
-            if pn not in new_instance:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Key property {0!A} not in NewInstance ", pn))
-
-        # Exception if property in instance but not class or types do not
-        # match
-        validate_inst_props(namespace, target_class, new_instance)
-
-        # Build instance path from values in the instance.
-        new_instance.path = CIMInstanceName.from_instance(
-            target_class,
-            new_instance,
-            namespace=namespace)
-
-        # Store the new instance in the  CIM repository if it is not
-        # already in the repository
+        # Store the new instance in the CIM repository, verifying that it does
+        # not exist yet.
         try:
             instance_store.create(new_instance.path, new_instance)
         except ValueError:
             raise CIMError(
                 CIM_ERR_ALREADY_EXISTS,
-                _format("NewInstance {0!A} already exists in namespace "
+                _format("New instance {0!A} already exists in namespace "
                         "{1!A}.", new_instance.path, namespace))
 
-        # Create instance returns model path
+        # CreateInstance returns the instance path of the new instance
         return new_instance.path
 
-    ####################################################################
-    #
-    #   ModifyInstance server request
-    #
-    ####################################################################
-
-    def ModifyInstance(self, ModifiedInstance,
-                       IncludeQualifiers=None, PropertyList=None):
+    def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         # pylint: disable=invalid-name,line-too-long,unused-argument
         """
-        Implements a WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.CreateInstance`.
 
-        Modify a CIM instance in the CIM repository.
+        Modify an existing CIM instance in the CIM repository of the mock WBEM
+        server.
 
-        NOTE: This method includes namespace within the path element
-        of the ModifiedInstance rather than as a separate input parameter.
+        NOTE: This method specifies the namespace in modified_instance.path
+        rather than as a separate input parameter.
+
+        The modification of the instance in the CIM repository that is performed
+        by the provider should be limited to property value changes (including
+        addition of properties if not yet set on the instance), because
+        instance-level qualifiers have been deprecated in CIM.
+
+        The set of properties that are to be modified in the CIM instance has
+        already been determined by the caller so that the modified_instance
+        parameter specifies exactly the set of properties to be modified.
+        Therefore, this provider method does not have a property list
+        parameter.
+
+        Validation already performed by the provider dispatcher that calls
+        this provider method:
+        - The provider method is called only for the registered class and
+          namespace (only applies to user-defined providers).
+        - The Python types of all input parameters to this provider method are
+          as specified below.
+        - The classnames in modified_instance are consistent between
+          instance and instance path.
+        - The namespace exists in the CIM repository.
+        - The creation class of the instance to be modified exists in the
+          namespace of the CIM repository.
+        - The instance to be modified exists in the namespace of the CIM
+          repository.
+        - All properties in modified_instance that are to be modified are
+          exposed (i.e. defined and inherited with any overrides resolved) by
+          the creation class in the CIM repository, and have the same
+          type-related attributes (i.e. type, is_array, embedded_object).
+        - No key properties are requested to change their values.
+
+        Validation that should be performed by this provider method:
+
+        - modified_instance does not specify any changed values for
+          properties that are not allowed to be changed by the client,
+          depending on the model implemented by the provider.
 
         Parameters:
 
-          ModifiedInstance (:class:`~pywbem.CIMInstance`):
-            A representation of the modified instance, also indicating its
-            instance path.
+          modified_instance (:class:`~pywbem.CIMInstance`):
+            A representation of the modified CIM instance, also indicating its
+            instance path, with exactly the set of properties to be modified.
 
-            The `path` attribute of this object identifies the instance to be
-            modified. Its `keybindings` attribute is required. Its
-            `namespace` attribute must be the namespace containing the instance
-            to be modified. Its `host` attribute will be ignored.
+            This object is a deep copy of the original client parameter, and may
+            be modified by the provider as needed, before storing it in the
+            CIM repository.
 
-            The `classname` attribute of the instance path and the `classname`
-            attribute of the instance must specify the same class name.
+            The `path` attribute of this object will be set and is the
+            instance path of the instance to be modified in the CIM repository.
+            Its `namespace`, `classname` and `keybindings` attributes
+            will be set. The names will be in any lexical case.
 
-            The properties defined in this object specify the new property
-            values (including `None` for NULL). If a property is designated to
-            be modified but is not specified in this object, the WBEM server
-            will use the default value of the property declaration if specified
-            (including `None`), and otherwise may update the property to any
-            value (including `None`).
+            The `classname` attribute of this object will specify the creation
+            class of the instance to be modified, in any lexical case.
+
+            The `properties` attribute of this object will specify exactly the
+            set of properties that are to be updated, taking into account the
+            original ModifiedInstance and PropertyList input parameters of the
+            ModifyInstance() client call.
+            The lexical case of the property names has been adjusted to match
+            the lexical cae of the property definitions in the creation class
+            in the CIM repository.
+
+            The `qualifiers` attribute of this object, if non-empty, should
+            be ignored by the provider, because instance-level qualifiers have
+            been deprecated in CIM.
 
           IncludeQualifiers (:class:`py:bool`):
-            This parameter is ignored by this method.
-            Indicates that qualifiers are to be modified as specified in the
-            `ModifiedInstance` parameter, as follows:
-
-            * If `False`, qualifiers not modified.
-            * If `True`, qualifiers are modified if the WBEM server implements
-              support for this parameter.
-            * If `None`, the  :term:`DSP0200` defined default is `True`.
-
-            This parameter has been deprecated in :term:`DSP0200`. Clients
-            cannot rely on qualifiers to be modified.
-
-          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
-            This parameter defines which properties are designated to be
-            modified.
-
-            This parameter is an iterable specifying the names of the
-            properties, or a string that specifies a single property name. In
-            all cases, the property names are matched case insensitively.
-            The specified properties are designated to be modified. Properties
-            not specified are not designated to be modified.
-
-            An empty iterable indicates that no properties are designated to be
-            modified.
-
-            If ``None``, DSP0200 states that the properties with values different
-            from the current values in the instance are designated to be
-            modified, but for all practical purposes this is equivalent to
-            stating that all properties exposed by the instance are designated
-            to be modified.
+            This parameter should be ignored by the provider, because
+            instance-level qualifiers have been deprecated in CIM.
 
         Raises:
-
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_CLASS)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
+            :exc:`~pywbem.CIMError`: The provider may raise CIMError with any
+              status code, and typically raises:
+              - CIM_ERR_INVALID_PARAMETER
         """  # noqa: E501
         # pylint: disable=invalid-name,line-too-long
 
-        assert isinstance(ModifiedInstance, CIMInstance)
-        namespace = ModifiedInstance.path.namespace
+        namespace = modified_instance.path.namespace
 
-        # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(IncludeQualifiers, (bool, type(None)))
-        assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
-
-        self.validate_namespace(namespace)
-
+        # Get a copy of the instance to be modified from the CIM repository.
         instance_store = self.cimrepository.get_instance_store(namespace)
-        modified_instance = deepcopy(ModifiedInstance)
+        instance = instance_store.get(modified_instance.path)
 
-        # Return if empty property list, nothing would be changed
-        if PropertyList is not None and not PropertyList:
-            return
+        # Modify the properties of the local instance copy. The implemented
+        # approach is intentionally careful, to ensure that only the property
+        # values get updated.
+        for pn in modified_instance.properties:
+            mod_prop = modified_instance.properties[pn]
+            inst_prop = instance.properties[pn]
+            inst_prop.value = mod_prop.value  # Update the property value
 
-        # Get class including inherited properties from CIM repository
-        try:
-            target_class = self.get_class(
-                namespace,
-                modified_instance.classname,
-                local_only=False,
-                include_qualifiers=True,
-                include_classorigin=True,
-                property_list=None)
-        except CIMError as ce:
-            if ce.status_code in [CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_CLASS]:
-                raise CIMError(
-                    CIM_ERR_INVALID_CLASS,
-                    _format("Cannot modify instance because its creation "
-                            "class {0!A} does not exist in namespace {1!A}.",
-                            modified_instance.classname, namespace))
-            raise
+        # Note that IncludeQualifiers is completely ignored.
 
-        # Get original instance in datastore.
-        # Copy because it will be modified.
-        orig_instance = self._get_bare_instance(modified_instance.path,
-                                                instance_store,
-                                                copy=True)
-        if orig_instance is None:
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Instance {0!A} not found in namespace {1!A}",
-                        modified_instance.path, namespace))
-
-        # Remove duplicate properties from property_list
-        property_list = PropertyList
-        if property_list:
-            if len(property_list) != len(set(property_list)):
-                property_list = list(set(property_list))
-
-        # Test that all properties in modified instance and property list
-        # are in the class
-        if property_list:
-            for p in property_list:
-                if p not in target_class.properties:
-                    raise CIMError(
-                        CIM_ERR_INVALID_PARAMETER,
-                        _format("Property {0!A} in PropertyList not in class "
-                                "{1!A}", p, modified_instance.classname))
-        for p in modified_instance:
-            if p not in target_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in ModifiedInstance not in class "
-                            "{1!A}", p, modified_instance.classname))
-
-        # Set the class value for properties in the property list but not
-        # in the modified_instance. This sets just the value component.
-        mod_inst_props = set([k.lower() for k in modified_instance.keys()])
-        cl_props = [pn.lower() for pn in target_class.properties]
-        chngd_props = mod_inst_props.difference(set(cl_props))
-        if chngd_props:
-            for prop in chngd_props:
-                modified_instance[prop] = \
-                    target_class.properties[prop].value
-
-        # Remove all properties that do not change value between original
-        # instance and modified instance
-        for p in list(modified_instance):
-            if orig_instance[p] == modified_instance[p]:
-                del modified_instance[p]
-
-        # Confirm no key properties in remaining modified instance
-        key_props = [p.name for p in six.itervalues(target_class.properties)
-                     if 'key' in p.qualifiers]
-        for p in key_props:
-            if p in modified_instance:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("ModifyInstance cannot modify key property {0!A}",
-                            p))
-
-        # Remove any properties from modified instance not in the property_list
-        if property_list:
-            for p in list(modified_instance):  # create list before loop
-                if p not in property_list:
-                    del modified_instance[p]
-
-        # Exception if property in instance but not class or types do not
-        # match
-        for pname in modified_instance:
-            if pname not in target_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} specified in ModifiedInstance is "
-                            "not exposed by class {1!A} in namespace {2!A}",
-                            pname, target_class.classname, namespace))
-
-            classprop = target_class.properties[pname]
-            instprop = modified_instance.properties[pname]
-            if instprop.is_array != classprop.is_array \
-                    or instprop.type != classprop.type \
-                    or instprop.array_size != classprop.array_size:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Instance and class property name={0!A} type "
-                            "or other attributes do not match: "
-                            "instance={1!A}, class={2!A}",
-                            pname, instprop, classprop))
-            # If case of modified_instance property != case of class property
-            # change the name in the modified_instance
-            if instprop.name != classprop.name:
-                modified_instance.properties[instprop.name].name = \
-                    classprop.name
-
-        # Modify the value of properties in the repo with those from
-        # modified instance inserted into the original instance
-        orig_instance.update(modified_instance.properties)
-        instance_store.update(modified_instance.path, orig_instance)
-
-        return
-
-    ####################################################################
-    #
-    #   DeleteInstance server request
-    #
-    ####################################################################
+        # Replace the instance in the CIM repository with the local copy.
+        instance_store.update(modified_instance.path, instance)
 
     def DeleteInstance(self, InstanceName):
         """
-        Implements a WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.DeleteInstance`.
 
-        This method deletes a single instance from the CIM repository based on
-        the  InstanceName parameter.
+        Delete an existing instance in the CIM repository of the mock WBEM
+        server.
 
-        It does not attempt to delete referencing instances (associations,
-        etc.) that reference this instance.
+        NOTE: This method specifies the namespace in InstanceName
+        rather than as a separate input parameter.
 
-        If the creation class of the instance to be deleted is PG_Namespace or
-        CIM_Namespace, then the namespace identified by the 'Name' property
-        of the instance is being deleted in the CIM repository in addition to
-        the CIM instance.
+        The provider is not responsible for determining other instances that
+        depend on the instance to be deleted (e.g. association instances
+        referencing the instance to be deleted); such dependency detection and
+        handling is done elsewhere.
 
-        The input parameters must have been validated before this method is
-        called including:
-
-          1. Valid namespace in the repository
-          2. Instance exists in the repository
-
-        NOTE: This method includes namespace within the InstanceName
-        rather than as a separate input argument
+        Validation already performed by the provider dispatcher that calls
+        this provider method:
+        - The provider method is called only for the registered class and
+          namespace (only applies to user-defined providers).
+        - The Python types of all input parameters to this provider method are
+          as specified below.
+        - The namespace exists in the CIM repository.
+        - The creation class of the instance to be deleted exists in the
+          namespace of the CIM repository.
+        - The instance to be deleted exists in the namespace of the CIM
+          repository.
 
         Parameters:
 
@@ -641,48 +475,19 @@ class InstanceWriteProvider(BaseProvider):
             * `classname`: Name of the creation class of the instance.
             * `keybindings`: Keybindings of the instance.
             * `namespace`: Name of the CIM namespace containing the instance.
-              Must not be None.
-            * `host`: value ignored.
+              Will not be `None`.
+            * `host`: Will be `None`.
 
         Raises:
 
-            :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
-            :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
+            None
         """
 
-        # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(InstanceName, CIMInstanceName)
-
         namespace = InstanceName.namespace
-        self.validate_namespace(namespace)
-
         instance_store = self.cimrepository.get_instance_store(namespace)
 
-        # Handle namespace deletion, currently hard coded.
-        # Issue #2062 TODO/AM 8/18 Generalize the hard coded handling into
-        # provider concept
-        classname_lower = InstanceName.classname.lower()
-        if classname_lower == 'pg_namespace':
-            ns_classname = 'PG_Namespace'
-        elif classname_lower == 'cim_namespace':
-            ns_classname = 'CIM_Namespace'
-        else:
-            ns_classname = None
-        if ns_classname:
-            namespace = InstanceName.keybindings['Name']
-
-            # Reflect the namespace deletion in the CIM repository
-            # This will check the namespace for being empty.
-            self.remove_namespace(namespace)
-
         # Delete the instance from the CIM repository
-        if instance_store.object_exists(InstanceName):
-            instance_store.delete(InstanceName)
-        else:
-            raise CIMError(
-                CIM_ERR_NOT_FOUND,
-                _format("Instance {0!A} not found in namespace {1!A}.",
-                        InstanceName, namespace))
+        instance_store.delete(InstanceName)
 
     def post_register_setup(self, conn):
         """
