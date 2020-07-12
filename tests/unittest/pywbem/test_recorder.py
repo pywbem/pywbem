@@ -2755,7 +2755,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
     """
 
     def build_repo(self, namespace):
-        """Build a mock CIM repository using FakedWBEMConnection"""
+        """Build a CIM repository using FakedWBEMConnection"""
         skip_if_moftab_regenerated()
 
         schema = install_test_dmtf_schema()

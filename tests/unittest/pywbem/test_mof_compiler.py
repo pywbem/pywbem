@@ -2619,7 +2619,7 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
                 raise CIMError(
                     CIM_ERR_ALREADY_EXISTS,
                     _format('CreateInstance failed. Instance with path {0!A} '
-                            'already exists in mock repository', inst.path))
+                            'already exists in CIM repository', inst.path))
         try:
             self.instances[ns][inst.path] = inst
         except KeyError:

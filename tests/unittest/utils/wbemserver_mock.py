@@ -43,7 +43,7 @@ TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 #  value in this dictionary
 #
 #  other_namespaces: Any other namespaces that the users wants to be defined
-#  in the mock repository
+#  in the CIM repository
 #
 #  registered_profiles: The Organization, profile name, profile version for any
 #  registered profiles

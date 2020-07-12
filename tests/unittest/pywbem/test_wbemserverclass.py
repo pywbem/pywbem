@@ -67,7 +67,7 @@ class TestServerClass(BaseMethodsForTests):
         # pylint: disable=no-self-use
         """
         Test the basic functions that access server information. This test
-        creates the mock repository and adds classes and instances for
+        creates the CIM repository and adds classes and instances for
         the WBEMServer tests that involve namespaces, brand, profiles and
         a subset of the central_instance tests.  It includes no tests for
         errors. The primary goal of this test was to develop the mechanisms

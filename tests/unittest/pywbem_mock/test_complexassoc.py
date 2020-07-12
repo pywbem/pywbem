@@ -41,7 +41,7 @@ from pywbem import CIMInstanceName, CIMClassName, \
 pywbem_mock = import_installed('pywbem_mock')
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-# List of initially existing namespaces in the mock repository
+# List of initially existing namespaces in the CIM repository
 INITIAL_NAMESPACES = [DEFAULT_NAMESPACE]
 
 

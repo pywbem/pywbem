@@ -153,22 +153,30 @@ class MethodProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+
         - The provider method is called only for the registered class and
           namespace (only applies to user-defined providers).
+
         - The Python types of all input parameters to this provider method are
           as specified below.
+
         - The namespace exists in the CIM repository.
+
         - For instance-level use:
+
           - The creation class of the target instance exists in the namespace
             of the CIM repository.
           - The target instance exists in the namespace of the CIM repository.
           - The creation class of the target instance exposes the method to be
             invoked.
+
         - For class-level use:
+
           - The target class exists in the namespace of the CIM repository.
           - The target class exposes the method to be invoked.
           - The method exposed by the creation class is a static method
             as per its 'Static' qualifier.
+
         - The set of specified CIM method input parameters matches exactly the
           set of input parameters defined by the method in the CIM repository
           (as detected by their 'In' qualifier in the creation class), w.r.t.
@@ -178,6 +186,7 @@ class MethodProvider(BaseProvider):
         Validation that should be performed by this provider method:
 
         - MethodName is the name of a method the provider implements.
+
         - Constraints on the values of input parameters.
 
         Parameters:
@@ -191,6 +200,7 @@ class MethodProvider(BaseProvider):
             * For instance-level use: The instance path of the target
               instance, as a :class:`~pywbem.CIMInstanceName` object, with the
               following attributes:
+
               - `classname`: Will be set, in any lexical case.
               - `keybindings`: Will be set, with key names in any lexical case.
               - `namespace`: Will be set, in any lexical case, and with leading
@@ -200,6 +210,7 @@ class MethodProvider(BaseProvider):
             * For class-level use: The class path of the target class, as a
               :class:`~pywbem.CIMClassName` object, with the following
               attributes:
+
               - `classname`: Will be set, in any lexical case.
               - `namespace`: Will be set, in any lexical case, and with leading
                 and trailing slash characters removed.
@@ -208,6 +219,7 @@ class MethodProvider(BaseProvider):
           params (:class:`py:NocaseDict`):
             The input parameters for the method invocation, with items as
             follows:
+
             - key (:term:`string`): The parameter name, in any lexical case.
             - value (:class:`~pywbem.CIMParameter`): The parameter value.
 
@@ -224,10 +236,12 @@ class MethodProvider(BaseProvider):
 
               If list/tuple, the items must be :class:`~pywbem.CIMParameter`
               in any order, with these attributes set:
+
                 * name (:term:`string`): Parameter name
                 * value (:term:`CIM data type`): Parameter value
 
               If dict, the items must be as follows:
+
                 * key (:term:`string`): Parameter name
                 * value (:term:`CIM data type`): Parameter value
 
