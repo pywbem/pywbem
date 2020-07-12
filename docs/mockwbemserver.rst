@@ -216,8 +216,8 @@ defined in :term:`DSP0200` for handling input parameters and returning a result.
 
 The faked WBEM operations get the data to be returned from the CIM repository of
 the mock WBEM server, and put the data provided in operation parameters that
-modify objects (create, modify, and delete operations) into the mock
-repository.
+modify objects (create, modify, and delete operations) into the
+CIM repository.
 
 However, because the pywbem mock support is only a simulation of a WBEM server
 and intended to be used primarily for testing, there are limitations and
@@ -292,8 +292,8 @@ Faked association operations
 
 The faked association operations support both instance-level use and
 class-level requests. Class-level use requires the CIM repository to be in full
-mode, while instance-level use works in both operation modes of the mock
-repository.
+mode, while instance-level use works in both operation modes of the
+CIM repository.
 
 - **AssociatorNames**: Behaves like
   :meth:`~pywbem.WBEMConnection.AssociatorNames`, with the following
@@ -517,8 +517,8 @@ that namespace in the CIM repository, along with instances of the classes that
 will satisfy the client methods executed.
 
 The classes :class:`~pywbem_mock.FakedWBEMConnection` and
-:class:`~pywbem_mock.DMTFCIMSchema` provide the tools to build the mock
-repository.
+:class:`~pywbem_mock.DMTFCIMSchema` provide the tools to build the
+CIM repository.
 
 CIM namespaces are created in the CIM repository by defining a default
 namespace for the :class:`~pywbem_mock.FakedWBEMConnection` object, and by using
@@ -893,8 +893,8 @@ In-memory CIM repository classes
 Mocking multiple CIM namespaces
 -------------------------------
 
-The mock WBEM server allows creating multiple CIM namespaces in its mock
-repository and adding CIM objects in some or all of those namespaces.
+The mock WBEM server allows creating multiple CIM namespaces in its
+CIM repository and adding CIM objects in some or all of those namespaces.
 
 There is a default namespace created when the
 :class:`~pywbem_mock.FakedWBEMConnection` object is created from either the
@@ -1103,9 +1103,9 @@ operations) in user-defined providers may:
 
 The Python operation methods may call the corresponding superclass method to
 complete the CIM repository modification, or may implement the code to complete
-the modification. In any case, once a Python operation method returns, the mock
-repository needs to reflect any changes on CIM objects the WBEM operation is
-normally expected to perform.
+the modification. In any case, once a Python operation method returns, the
+CIM repository needs to reflect any changes on CIM objects the WBEM operation
+is normally expected to perform.
 
 The Python operation methods have access to:
 

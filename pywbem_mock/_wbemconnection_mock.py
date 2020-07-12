@@ -118,9 +118,10 @@ class FakedWBEMConnection(WBEMConnection):
 
     **Experimental:** *New in pywbem 0.12 as experimental.*
 
-    Each :class:`~pywbem.FakedWBEMConnection` object has its own mock
-    repository which contains multiple CIM namespaces, and each namespace may
-    contain CIM qualifier types (declarations), CIM classes and CIM instances.
+    Each :class:`~pywbem.FakedWBEMConnection` object has its own
+    CIM repository which contains multiple CIM namespaces, and each namespace
+    may contain CIM qualifier types (declarations), CIM classes and
+    CIM instances.
 
     This class provides only a subset of the init parameters of
     :class:`~pywbem.WBEMConnection` because it does not have a connection to a
@@ -172,8 +173,8 @@ class FakedWBEMConnection(WBEMConnection):
           disable_pull_operations (:class:`py:bool`):
             Flag to allow user to disable the pull operations ( Open... and
             Pull.. requests). The default is None which enables pull operations
-            to execute. Setting the variable to True causes pull operation
-            requests to the mock CIM repository to return CIM_ERR_NOT_SUPPORTED.
+            to execute. Setting the flag to True causes pull operations
+            to raise CIMError(CIM_ERR_NOT_SUPPORTED).
 
             The :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
             property can be used to set this variable.
@@ -538,8 +539,8 @@ class FakedWBEMConnection(WBEMConnection):
                            verbose=None):
         """
         Compile the MOF definitions in the specified string and add the
-        resulting CIM objects to the specified CIM namespace of the mock
-        repository.
+        resulting CIM objects to the specified CIM namespace of the
+        CIM repository.
 
         If the namespace does not exist, :exc:`~pywbem.CIMError` with status
         CIM_ERR_INVALID_NAMESPACE is raised.
@@ -700,8 +701,8 @@ class FakedWBEMConnection(WBEMConnection):
         this method fails, and the CIM repository remains unchanged.
 
         If a CIM instance to be added already exists in the target namespace
-        with the same keybinding values, this method fails, and the mock
-        repository remains unchanged.
+        with the same keybinding values, this method fails, and the
+        CIM repository remains unchanged.
 
         Parameters:
 

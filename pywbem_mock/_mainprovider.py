@@ -131,18 +131,18 @@ class MainProvider(BaseProvider, ResolverMixin):
         # pylint: disable=super-init-not-called
         """
         Parameters:
-            host (:term:`string`):
-                Value of the host attribute from the class that called
-                this constructor, normally FakedWBEMConnection.  This
-                attribute is used to contstruct the host component of
-                CIMNamespaces in some responses.
+
+          host (:term:`string`):
+            Value of the host attribute from the class that called
+            this constructor, normally FakedWBEMConnection.  This
+            attribute is used to contstruct the host component of
+            CIMNamespaces in some responses.
 
           disable_pull_operations (:class:`py:bool`):
             Flag to allow user to disable the pull operations ( Open... and
             Pull.. requests). The default is None which enables pull operations
-            to execute. Setting the variable to True causes pull operation
-            requests to the mock CIM repository to return CIM_ERR_NOT_SUPPORTED.
-            cim_repository
+            to execute. Setting the flag to True causes pull operations
+            to raise CIMError(CIM_ERR_NOT_SUPPORTED).
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by the providers.
@@ -165,7 +165,7 @@ class MainProvider(BaseProvider, ResolverMixin):
     def disable_pull_operations(self):
         """
         Boolean Flag to set option to disable the execution of the open and
-        pull operation request handlers in the mock CIM repository. This
+        pull operation request handlers in the CIM repository. This
         emulates the characteristic in some CIM servers that did not
         implement pull operations. The default is to allow pull operations.
         All pull operations requests may be forbidden from executing by

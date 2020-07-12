@@ -82,7 +82,7 @@ TEST_DIR = os.path.dirname(__file__)
 # This directory is permanent and should not be removed.
 TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 
-# List of initially existing namespaces in the mock repository
+# List of initially existing namespaces in the CIM repository
 INITIAL_NAMESPACES = [DEFAULT_NAMESPACE]
 
 
@@ -861,7 +861,7 @@ TST_PERSONWITH_SUB_INST_COUNT = TST_PERSON_INST_COUNT + \
 
 def add_objects_to_repo(conn, namespace, objects_list):
     """
-    Test setup.  Conditionally adds namespace to mock repository and adds
+    Test setup.  Conditionally adds namespace to CIM repository and adds
     the lists of objects to the repo.  Each object in the objects_list may
     be  list of CIM objects that will be added using self.add_cimObject
     or a string that is MOF that will be compiled.

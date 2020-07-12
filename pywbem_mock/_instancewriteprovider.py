@@ -111,26 +111,34 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+
         - The provider method is called only for the registered class and
           namespace (only applies to user-defined providers).
+
         - The Python types of all input parameters to this provider method are
           as specified below.
+
         - The namespace exists in the CIM repository.
+
         - The creation class of the new instance exists in the namespace
           in the CIM repository.
+
         - All properties specified in the new instance are exposed (i.e.
           defined and inherited with any overrides resolved) by the creation
           class in the CIM repository, and have the same type-related
           attributes (i.e. type, is_array, embedded_object).
 
         Validation that should be performed by this provider method:
+
         - new_instance does not specify any properties that are not
           allowed to be initialized by the client, depending on the model
           implemented by the provider.
+
         - new_instance specifies all key properties needed by the
           provider, depending on the model implemented by the provider.
           The CIM repository will reject any new instance that does not have
           all key properties specified.
+
         - The new instance (i.e. an instance with the new instance path) does
           not exist in the CIM repository.
           This validation needs to be done by the provider because the
@@ -244,21 +252,29 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+
         - The provider method is called only for the registered class and
           namespace (only applies to user-defined providers).
+
         - The Python types of all input parameters to this provider method are
           as specified below.
+
         - The classnames in modified_instance are consistent between
           instance and instance path.
+
         - The namespace exists in the CIM repository.
+
         - The creation class of the instance to be modified exists in the
           namespace of the CIM repository.
+
         - The instance to be modified exists in the namespace of the CIM
           repository.
+
         - All properties in modified_instance that are to be modified are
           exposed (i.e. defined and inherited with any overrides resolved) by
           the creation class in the CIM repository, and have the same
           type-related attributes (i.e. type, is_array, embedded_object).
+
         - No key properties are requested to change their values.
 
         Validation that should be performed by this provider method:
@@ -345,13 +361,18 @@ class InstanceWriteProvider(BaseProvider):
 
         Validation already performed by the provider dispatcher that calls
         this provider method:
+
         - The provider method is called only for the registered class and
           namespace (only applies to user-defined providers).
+
         - The Python types of all input parameters to this provider method are
           as specified below.
+
         - The namespace exists in the CIM repository.
+
         - The creation class of the instance to be deleted exists in the
           namespace of the CIM repository.
+
         - The instance to be deleted exists in the namespace of the CIM
           repository.
 
