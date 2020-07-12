@@ -89,8 +89,8 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Cannot create namespace provider (for class {0}): "
-                        "No Interop namespace found in the CIM repository. "
-                        "Interop namespaces searched: {1}",
+                        "No Interop namespace exists in the CIM repository. "
+                        "Valid Interop namespaces are: {1}",
                         NAMESPACE_CLASSNAME,
                         ", ".join(self.interop_namespace_names)))
 
