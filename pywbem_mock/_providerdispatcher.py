@@ -233,7 +233,7 @@ class ProviderDispatcher(BaseProvider):
                           (six.string_types, list, tuple, type(None)))
         assert isinstance(ModifiedInstance.path, CIMInstanceName)
 
-        # Verify consistency of the class names in the modified instance.
+        # Verify equality of the class names in the modified instance.
         if ModifiedInstance.classname.lower() != \
                 ModifiedInstance.path.classname.lower():
             raise CIMError(

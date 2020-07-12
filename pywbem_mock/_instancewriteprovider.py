@@ -210,7 +210,6 @@ class InstanceWriteProvider(BaseProvider):
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             The CIM repository to be used by mock WBEM server responders.
-            The repository must be fully initialized.
         """
         super(InstanceWriteProvider, self).__init__(cimrepository)
 
@@ -230,7 +229,7 @@ class InstanceWriteProvider(BaseProvider):
         Validation already performed by the provider dispatcher that calls
         this provider method:
         - The provider method is called only for the registered class and
-          namespace.
+          namespace (only applies to user-defined providers).
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The namespace exists in the CIM repository.
@@ -249,13 +248,14 @@ class InstanceWriteProvider(BaseProvider):
           provider, depending on the model implemented by the provider.
           The CIM repository will reject any new instance that does not have
           all key properties specified.
-        - The new instance does not exist in the CIM repository.
+        - The new instance (i.e. an instance with the new instance path) does
+          not exist in the CIM repository.
           This validation needs to be done by the provider because the
-          determination of the key properties for the instance path may depend
-          on the model implemented by the provider.
+          determination of the key properties for the new instance path may
+          depend on the model implemented by the provider.
           The CIM repository will reject the creation of instances that already
           exist, so this check can be delegated to the repository once the
-          instance path has been determined.
+          new instance path has been determined.
 
         Parameters:
 
@@ -368,7 +368,7 @@ class InstanceWriteProvider(BaseProvider):
         Validation already performed by the provider dispatcher that calls
         this provider method:
         - The provider method is called only for the registered class and
-          namespace.
+          namespace (only applies to user-defined providers).
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The classnames in modified_instance are consistent between
@@ -475,7 +475,7 @@ class InstanceWriteProvider(BaseProvider):
         Validation already performed by the provider dispatcher that calls
         this provider method:
         - The provider method is called only for the registered class and
-          namespace.
+          namespace (only applies to user-defined providers).
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The namespace exists in the CIM repository.

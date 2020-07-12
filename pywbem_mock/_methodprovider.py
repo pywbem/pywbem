@@ -173,8 +173,7 @@ class MethodProvider(BaseProvider):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.  The
-            repository is fully initialized.
+            Defines the repository to be used by request responders.
         """
         super(MethodProvider, self).__init__(cimrepository)
 
@@ -202,7 +201,7 @@ class MethodProvider(BaseProvider):
         Validation already performed by the provider dispatcher that calls
         this provider method:
         - The provider method is called only for the registered class and
-          namespace.
+          namespace (only applies to user-defined providers).
         - The Python types of all input parameters to this provider method are
           as specified below.
         - The namespace exists in the CIM repository.
