@@ -200,7 +200,7 @@ class ProviderDispatcher(BaseProvider):
                 inst_prop.name = cls_pn  # modifies new_instance
 
         # Determine the provider to be used. Note that a registered provider
-        # always has all responder methods for the provider type, either
+        # always has all provider methods for the provider type, either
         # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance-write', new_instance.classname)
@@ -386,7 +386,7 @@ class ProviderDispatcher(BaseProvider):
                 inst_prop.name = cl_prop.name  # changes modified_instance
 
         # Determine the provider to be used. Note that a registered provider
-        # always has all responder methods for the provider type, either
+        # always has all provider methods for the provider type, either
         # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance-write', modified_instance.classname)
@@ -438,7 +438,7 @@ class ProviderDispatcher(BaseProvider):
                         InstanceName))
 
         # Determine the provider to be used. Note that a registered provider
-        # always has all responder methods for the provider type, either
+        # always has all provider methods for the provider type, either
         # implemented or inherited.
         provider = self.provider_registry.get_registered_provider(
             namespace, 'instance-write', InstanceName.classname)

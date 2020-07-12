@@ -173,21 +173,15 @@ class MethodProvider(BaseProvider):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.
+            Defines the repository to be used by the provider.
         """
         super(MethodProvider, self).__init__(cimrepository)
-
-    ####################################################################
-    #
-    #   InvokeMethod mock WBEM server responder
-    #
-    ####################################################################
 
     def InvokeMethod(self, methodname, localobject, params):
         # pylint: disable=invalid-name,no-self-use
         # pylint: disable=line-too-long
         """
-        Implements a mock WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.InvokeMethod`.
 
         Invoke a CIM method (static or dynamic) on a target CIM object (class or

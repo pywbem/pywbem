@@ -113,7 +113,7 @@ def _cvt_obj_name(objname):
 class FakedWBEMConnection(WBEMConnection):
     """
     A subclass of :class:`pywbem.WBEMConnection` that mocks the communication
-    with a WBEM server by utilizing a local in-memory *mock repository* to
+    with a WBEM server by utilizing a local in-memory CIM repository to
     generate responses in the same way the WBEM server would.
 
     **Experimental:** *New in pywbem 0.12 as experimental.*
@@ -483,7 +483,7 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Compile the MOF definitions in the specified file (and its included
         files) and add the resulting CIM objects to the specified CIM namespace
-        of the mock repository.
+        of the CIM repository.
 
         If the namespace does not exist, :exc:`~pywbem.CIMError` with status
         CIM_ERR_INVALID_NAMESPACE is raised.
@@ -499,7 +499,7 @@ class FakedWBEMConnection(WBEMConnection):
         with the same keybinding values, this method raises
         :exc:`~pywbem.CIMError`.
 
-        In all cases where this method raises an exception, the mock repository
+        In all cases where this method raises an exception, the CIM repository
         remains unchanged.
 
         Parameters:
@@ -508,7 +508,7 @@ class FakedWBEMConnection(WBEMConnection):
             Path name of the file containing the MOF definitions to be compiled.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
+            The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
             used.
@@ -561,7 +561,7 @@ class FakedWBEMConnection(WBEMConnection):
         with the same keybinding values, this method raises
         :exc:`~pywbem.CIMError`.
 
-        In all cases where this method raises an exception, the mock repository
+        In all cases where this method raises an exception, the CIM repository
         remains unchanged.
 
         Parameters:
@@ -570,7 +570,7 @@ class FakedWBEMConnection(WBEMConnection):
             A string with the MOF definitions to be compiled.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
+            The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
             used.
@@ -687,7 +687,7 @@ class FakedWBEMConnection(WBEMConnection):
         # pylint: disable=line-too-long
         """
         Add CIM classes, instances and/or CIM qualifier types (declarations)
-        to the specified CIM namespace of the mock repository.
+        to the specified CIM namespace of the CIM repository.
 
         This method adds a copy of the objects presented so that the user may
         modify the objects without impacting the repository.
@@ -703,7 +703,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         If a CIM class or CIM qualifier type to be added already exists in the
         target namespace with the same name (comparing case insensitively),
-        this method fails, and the mock repository remains unchanged.
+        this method fails, and the CIM repository remains unchanged.
 
         If a CIM instance to be added already exists in the target namespace
         with the same keybinding values, this method fails, and the mock
@@ -712,11 +712,11 @@ class FakedWBEMConnection(WBEMConnection):
         Parameters:
 
           objects (:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance` or :class:`~pywbem.CIMQualifierDeclaration`, or list of them):
-            CIM object or objects to be added to the mock repository. The
+            CIM object or objects to be added to the CIM repository. The
             list may contain different kinds of CIM objects.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the mock repository. This
+            The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
             used.
@@ -728,7 +728,7 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.CIMError`: CIM_ERR_INVALID_NAMESPACE: Namespace does
             not exist.
           :exc:`~pywbem.CIMError`: Failure related to the CIM objects in the
-            mock repository.
+            CIM repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
         namespace = namespace or self.default_namespace
@@ -800,14 +800,14 @@ class FakedWBEMConnection(WBEMConnection):
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
         """
-        Display the namespaces and objects in the mock repository in one of
+        Display the namespaces and objects in the CIM repository in one of
         multiple formats to a destination.
 
         Parameters:
 
           namespaces (:term:`string` or list of :term:`string`):
             Limits display output to the specified CIM namespace or namespaces.
-            If `None`, all namespaces of the mock repository are displayed.
+            If `None`, all namespaces of the CIM repository are displayed.
 
           dest (:term:`string`):
             File path of an output file. If `None`, the output is written to
@@ -815,7 +815,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           summary (:class:`py:bool`):
             Flag for summary mode. If `True`, only a summary count of CIM
-            objects in the specified namespaces of the mock repository is
+            objects in the specified namespaces of the CIM repository is
             produced. If `False`, both the summary count and the details of
             the CIM objects are produced.
 
@@ -1749,12 +1749,6 @@ class FakedWBEMConnection(WBEMConnection):
         """
         self._mainprovider.CloseEnumeration(
             EnumerationContext=params['EnumerationContext'])
-
-    ####################################################################
-    #
-    #   Server responder for InvokeMethod.
-    #
-    ####################################################################
 
     def _meth_InvokeMethod(self, methodname, localobject, params):
         # pylint: disable=invalid-name

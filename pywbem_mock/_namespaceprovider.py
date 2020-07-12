@@ -81,7 +81,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the CIM repository to be used by request responders.
+            Defines the CIM repository to be used by the provider.
         """
         super(CIMNamespaceProvider, self).__init__(cimrepository)
 

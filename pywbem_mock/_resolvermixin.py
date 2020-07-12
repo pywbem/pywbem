@@ -53,7 +53,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
     in the repository.
 
     As classes are passed to the create_class method or through the compiler
-    into the mock repository they are incomplete (they define the properties
+    into the CIM repository they are incomplete (they define the properties
     and methods of the defined class as well as a possible superclass
     definition, and qualifiers (ex. override) that define relationships with
     superclasses). When a user requests or other methods like getinstance uses

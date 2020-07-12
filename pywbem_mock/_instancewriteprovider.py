@@ -209,19 +209,13 @@ class InstanceWriteProvider(BaseProvider):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            The CIM repository to be used by mock WBEM server responders.
+            The CIM repository to be used by the provider.
         """
         super(InstanceWriteProvider, self).__init__(cimrepository)
 
-    ####################################################################
-    #
-    #   CreateInstance mock WBEM server responder
-    #
-    ####################################################################
-
     def CreateInstance(self, namespace, new_instance):
         """
-        Implements a mock WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.CreateInstance`.
 
         Create a new CIM instance in the CIM repository of the mock WBEM server.
@@ -336,16 +330,10 @@ class InstanceWriteProvider(BaseProvider):
         # CreateInstance returns the instance path of the new instance
         return new_instance.path
 
-    ####################################################################
-    #
-    #   ModifyInstance mock WBEM server responder
-    #
-    ####################################################################
-
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         # pylint: disable=invalid-name,line-too-long,unused-argument
         """
-        Implements a mock WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.CreateInstance`.
 
         Modify an existing CIM instance in the CIM repository of the mock WBEM
@@ -450,15 +438,9 @@ class InstanceWriteProvider(BaseProvider):
         # Replace the instance in the CIM repository with the local copy.
         instance_store.update(modified_instance.path, instance)
 
-    ####################################################################
-    #
-    #   DeleteInstance mock WBEM server responder
-    #
-    ####################################################################
-
     def DeleteInstance(self, InstanceName):
         """
-        Implements a mock WBEM server responder for
+        Default provider method for
         :meth:`pywbem.WBEMConnection.DeleteInstance`.
 
         Delete an existing instance in the CIM repository of the mock WBEM

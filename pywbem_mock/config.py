@@ -54,12 +54,12 @@ SYSTEMNAME = 'MockSystem_WBEMServerTest'
 #: CIM classes that are used by the pywbem_mock including CIM_Namespace
 SYSTEMCREATIONCLASSNAME = 'CIM_ComputerSystem'
 
-#: Default positive integer value for the Open... request responder default
-#: value for MaxObjectCount if the value was not provided by the request.
+#: Default value for the MaxObjectCount parameter of the Open...() methods of
+#: the mock WBEM server, if the value was not provided by the user.
 DEFAULT_MAX_OBJECT_COUNT = 100
 
-#: Maximum timeout in seconds for pull operations if the OperationTimeout
-#: parameter is not included in the request
+#: Maximum value for the OperationTimeout parameter of the Open...() methods of
+#: the mock WBEM server.
 OPEN_MAX_TIMEOUT = 40
 
 #: Use of the IncludeQualifiers parameter on instance requests is DEPRECATED in

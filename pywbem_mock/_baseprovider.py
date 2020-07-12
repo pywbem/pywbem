@@ -59,7 +59,7 @@ class BaseProvider(object):
         Parameters:
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.  The
+            Defines the repository to be used by providers.  The
             repository is fully initialized but contains only objects defined
             by the :class:`~pywbem_mock.FakedWbemConnection` methods that
             create objects in the repository

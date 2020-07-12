@@ -145,8 +145,7 @@ class MainProvider(BaseProvider, ResolverMixin):
             cim_repository
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
-            Defines the repository to be used by request responders.  The
-            repository is fully initialized.
+            Defines the repository to be used by the providers.
         """
         super(MainProvider, self).__init__(cimrepository)
 
@@ -314,7 +313,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         # pylint: disable=line-too-long
         """
         Local method implements the core functionality of a GetInstance
-        responder. This is used by other instance retrevial methods that need
+        provider. This is used by other instance retrevial methods that need
         to get and process an instance from the CIM repository.
 
         It attempts to get the instance, copies it, and filters it
@@ -515,11 +514,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     #####################################################################
     #
-    #   WBEM server request operation methods. These methods corresponde
-    #   directly to the client methods in WBEMConnection.
+    #   Mock WBEM server provider methods.
     #
-    #   All the methods are named <methodname> and
-    #   are responders that emulate the server response.
+    #   These provider methods emulate the server response; they are named like
+    #   the client methods in WBEMConnection and correspond directly to them.
     #
     #   The API for these calls differs from the methods in WBEMConnection
     #   in that every provider call API includes the namespace as a
@@ -538,7 +536,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     ####################################################################
     #
-    #   EnumerateClasses server request
+    #   Class-related provider methods
     #
     ####################################################################
 
@@ -546,7 +544,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                          DeepInheritance=None, LocalOnly=None,
                          IncludeQualifiers=None, IncludeClassOrigin=None):
         """
-        Implements a WBEM server responder method for
+        Provider method for
         :meth:`pywbem.WBEMConnection.EnumerateClasses`.
 
         Enumerate classes from CIM repository. If classname parameter exists,
@@ -656,16 +654,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return classes
 
-    ####################################################################
-    #
-    #   EnumerateClasseNames server request
-    #
-    ####################################################################
-
     def EnumerateClassNames(self, namespace, ClassName=None,
                             DeepInheritance=None):
         """
-        Implements a WBEM server responder method for
+        Provider method for
         :meth:`pywbem.WBEMConnection.EnumerateClassNames`.
 
         Enumerate the class names that are subclasses of the class name in the
@@ -734,18 +726,12 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Return list of subclass names
         return self._get_subclass_names(ClassName, class_store, DeepInheritance)
 
-    ####################################################################
-    #
-    #   GetClass server request
-    #
-    ####################################################################
-
     def GetClass(self, namespace, ClassName, LocalOnly=None,
                  IncludeQualifiers=None, IncludeClassOrigin=None,
                  PropertyList=None):
         # pylint: disable=line-too-long
         """
-        Implements a  WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.GetClass`.
 
         Retrieve a CIM class from the CIM repository.
@@ -823,15 +809,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return cc
 
-    ####################################################################
-    #
-    #   CreateClass server request
-    #
-    ####################################################################
-
     def CreateClass(self, namespace, NewClass):
         """
-        Implements a  WBEM request responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.CreateClass`.
 
         Creates a new class in the CIM repository.  Nothing is returned.
@@ -887,16 +867,10 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Add new class to CIM repository
         class_store.create(new_class.classname, new_class)
 
-    ####################################################################
-    #
-    #   ModifyClass server request
-    #
-    ####################################################################
-
     def ModifyClass(self, namespace, ModifiedClass):
         # pylint: disable=no-self-use,unused-argument
         """
-        Implements a  WBEM server responder method for
+        Provider method for
         :meth:`pywbem.WBEMConnection.MmodifyClass`.
 
         Modifies a class in the CIM repository.  Nothing is returned.
@@ -945,15 +919,9 @@ class MainProvider(BaseProvider, ResolverMixin):
         # Update class in CIM repository
         class_store.update(modified_class.classname, modified_class)
 
-    ####################################################################
-    #
-    #   DeleteClass server request
-    #
-    ####################################################################
-
     def DeleteClass(self, namespace, ClassName):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.DeleteClass`.
 
         Delete a class in the class CIM repository if it exists.
@@ -1018,19 +986,13 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     ##########################################################
     #
-    #              Faked Qualifier methods
+    #   Qualifier-related provider methods
     #
     ###########################################################
 
-    ####################################################################
-    #
-    #   EnumerateQualifiers server request
-    #
-    ####################################################################
-
     def EnumerateQualifiers(self, namespace):
         """
-        Imlements a  WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.EnumerateQualifiers`.
 
         Enumerates the qualifier declarations in the local CIM repository of
@@ -1065,15 +1027,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return qualifiers
 
-    ####################################################################
-    #
-    #   GetGetQualifier server request
-    #
-    ####################################################################
-
     def GetQualifier(self, namespace, QualifierName):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.GetQualifier`.
 
         Retrieves a qualifier declaration from the local CIM repository of this
@@ -1121,15 +1077,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return qualifier
 
-    ####################################################################
-    #
-    #   SetQualifier server request
-    #
-    ####################################################################
-
     def SetQualifier(self, namespace, QualifierDeclaration):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.SetQualifier`.
 
         Create or modify a qualifier declaration in the CIM repository of this
@@ -1169,15 +1119,9 @@ class MainProvider(BaseProvider, ResolverMixin):
             qualifier_store.update(
                 QualifierDeclaration.name, QualifierDeclaration)
 
-    ####################################################################
-    #
-    #   DeleteQualifier server request
-    #
-    ####################################################################
-
     def DeleteQualifier(self, namespace, QualifierName):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.DeleteQualifier`.
 
         Deletes a single qualifier if it is in the
@@ -1218,22 +1162,16 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     #####################################################################
     #
-    #  CIM Instance WBEM server request responder methods
+    #  Instance-related provider methods
     #
     #####################################################################
-
-    ####################################################################
-    #
-    #   GetInstance server request
-    #
-    ####################################################################
 
     def GetInstance(self, InstanceName, LocalOnly=None,
                     IncludeQualifiers=None, IncludeClassOrigin=None,
                     PropertyList=None):
         # pylint: disable=line-too-long
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.GetInstance`.
 
         Gets a single instance from the CIM repository based on the
@@ -1346,18 +1284,12 @@ class MainProvider(BaseProvider, ResolverMixin):
                                   IncludeClassOrigin,
                                   IncludeQualifiers, PropertyList)
 
-    ####################################################################
-    #
-    #   EnumerateInstances server request
-    #
-    ####################################################################
-
     def EnumerateInstances(self, namespace, ClassName, LocalOnly=None,
                            DeepInheritance=None, IncludeQualifiers=None,
                            IncludeClassOrigin=None, PropertyList=None):
         # pylint: disable=line-too-long
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.EnumerateInstances`.
 
         Enumerate the instances of a class (including instances of its
@@ -1401,7 +1333,7 @@ class MainProvider(BaseProvider, ResolverMixin):
 
           IncludeQualifiers (:class:`py:bool`):
             This parameter has been deprecated in :term:`DSP0200`. and this
-            responder ignores it and never returns qualifiers.
+            provider ignores it and never returns qualifiers.
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -1512,15 +1444,9 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return insts
 
-    ####################################################################
-    #
-    #   EnumerateInstanceNames server request
-    #
-    ####################################################################
-
     def EnumerateInstanceNames(self, namespace, ClassName):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.EnumerateInstanceNames`.
 
         Enumerate the instance paths of instances of a class (including
@@ -1573,16 +1499,10 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return return_paths
 
-    ####################################################################
-    #
-    #   ExecQuery server request
-    #
-    ####################################################################
-
     def ExecQuery(self, namespace, QueryLanguage, Query):
         # pylint: disable=unused-argument
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.ExecQuery`.
 
         Executes the the query defined by the QueryLanguage and Query parameter
@@ -1928,16 +1848,10 @@ class MainProvider(BaseProvider, ResolverMixin):
                         rtn_instpaths.add(prop.value)
         return rtn_instpaths
 
-    ####################################################################
-    #
-    #   ReferenceNames server request
-    #
-    ####################################################################
-
     def ReferenceNames(self, namespace, ObjectName, ResultClass=None,
                        Role=None):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.ReferenceNames`.
 
         Retrieves the instance paths of the association instances that
@@ -2043,18 +1957,12 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return ref_result
 
-    ####################################################################
-    #
-    #   References server request
-    #
-    ####################################################################
-
     def References(self, namespace, ObjectName, ResultClass=None, Role=None,
                    IncludeQualifiers=None, IncludeClassOrigin=None,
                    PropertyList=None):
         # pylint: disable=line-too-long
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.References`.
 
         Parameters:
@@ -2214,17 +2122,11 @@ class MainProvider(BaseProvider, ResolverMixin):
                                                IncludeClassOrigin,
                                                PropertyList)
 
-    ####################################################################
-    #
-    #   AssociatorNames server request
-    #
-    ####################################################################
-
     def AssociatorNames(self, namespace, ObjectName, AssocClass=None,
                         ResultClass=None, Role=None, ResultRole=None):
         # pylint: disable=invalid-name
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.AssociatorNames`.
 
         Parameters:
@@ -2321,18 +2223,12 @@ class MainProvider(BaseProvider, ResolverMixin):
 
         return results
 
-    ####################################################################
-
-    #   Associators server request
-    #
-    ####################################################################
-
     def Associators(self, namespace, ObjectName, AssocClass=None,
                     ResultClass=None,
                     Role=None, ResultRole=None, IncludeQualifiers=None,
                     IncludeClassOrigin=None, PropertyList=None):
         """
-        Implements a WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.Associators`.
 
         Parameters:
@@ -2715,7 +2611,8 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     ####################################################################
     #
-    #   The pull operations
+    #   Pull operation related provider methods
+    #
     #   The following implement the server side of the WBEM pull
     #   operations including the Open...(), Pull...(), and Close()
     #
@@ -2725,18 +2622,12 @@ class MainProvider(BaseProvider, ResolverMixin):
     #
     ####################################################################
 
-    ####################################################################
-    #
-    #   OpenEnumerateInstancePaths server request
-    #
-    ####################################################################
-
     def OpenEnumerateInstancePaths(self, namespace, ClassName,
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
                                    MaxObjectCount=None):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenEnumerateInstancePaths`.
 
         Parameters:
@@ -2827,12 +2718,6 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   OpenEnumerateInstances server request
-    #
-    ####################################################################
-
     def OpenEnumerateInstances(self, namespace, ClassName,
                                DeepInheritance=None,
                                IncludeClassOrigin=None, PropertyList=None,
@@ -2840,7 +2725,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                OperationTimeout=None, ContinueOnError=None,
                                MaxObjectCount=None):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenEnumerateInstances`.
 
         Parameters:
@@ -2943,12 +2828,6 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   OpenReferenceInstancePaths server request
-    #
-    ####################################################################
-
     def OpenReferenceInstancePaths(self, namespace, InstanceName,
                                    ResultClass=None, Role=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
@@ -2956,7 +2835,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount=None):
         # pylint: disable=invalid-name
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenReferenceInstancePaths`.
 
         Parameters:
@@ -3013,12 +2892,6 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   OpenReferenceInstances server request
-    #
-    ####################################################################
-
     def OpenReferenceInstances(self, namespace, InstanceName,
                                ResultClass=None, Role=None,
                                IncludeClassOrigin=None, PropertyList=None,
@@ -3026,7 +2899,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                OperationTimeout=None, ContinueOnError=None,
                                MaxObjectCount=None):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenReferenceInstances`.
 
         Parameters:
@@ -3089,12 +2962,6 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   OpenAssociatorInstancePaths server request
-    #
-    ####################################################################
-
     def OpenAssociatorInstancePaths(self, namespace, InstanceName,
                                     AssocClass=None, ResultClass=None,
                                     Role=None, ResultRole=None,
@@ -3103,7 +2970,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                     MaxObjectCount=None):
         # pylint: disable=invalid-name
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenAssociatorInstancePaths`.
 
         Parameters:
@@ -3164,12 +3031,6 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   OpenAssociatorInstances server request
-    #
-    ####################################################################
-
     def OpenAssociatorInstances(self, namespace, InstanceName, AssocClass=None,
                                 ResultClass=None, Role=None, ResultRole=None,
                                 IncludeClassOrigin=None,
@@ -3177,7 +3038,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                                 FilterQuery=None, OperationTimeout=None,
                                 ContinueOnError=None, MaxObjectCount=None):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenAssociatorInstances`
         with data from the instance store.
 
@@ -3245,19 +3106,13 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   OpenQueryInstances server request
-    #
-    ####################################################################
-
     def OpenQueryInstances(self, namespace, FilterQueryLanguage, FilterQuery,
                            ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
                            MaxObjectCount=None):
         # pylint: disable=invalid-name,unused-argument
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.OpenQueryInstances`.
 
         NOTE: Since ExecQuery is not implemented this method returns
@@ -3307,15 +3162,9 @@ class MainProvider(BaseProvider, ResolverMixin):
                                    MaxObjectCount,
                                    ContinueOnError)
 
-    ####################################################################
-    #
-    #   PullInstancesWithPath server request
-    #
-    ####################################################################
-
     def PullInstancesWithPath(self, EnumerationContext, MaxObjectCount):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.PullInstancesWithPath`.
 
         Parameters:
@@ -3389,15 +3238,9 @@ class MainProvider(BaseProvider, ResolverMixin):
         return self._pull_response('PullInstancesWithPath',
                                    EnumerationContext, MaxObjectCount)
 
-    ####################################################################
-    #
-    #   PullInstancePaths server request
-    #
-    ####################################################################
-
     def PullInstancePaths(self, EnumerationContext, MaxObjectCount):
         """
-        Implements a WBEM server responder method for
+        Provider method for
         :meth:`pywbem.WBEMConnection.PullInstancePaths`.
 
         Parameters:
@@ -3469,15 +3312,9 @@ class MainProvider(BaseProvider, ResolverMixin):
         return self._pull_response('PullInstancePaths',
                                    EnumerationContext, MaxObjectCount)
 
-    ####################################################################
-    #
-    #   PullInstances server request
-    #
-    ####################################################################
-
     def PullInstances(self, EnumerationContext, MaxObjectCount):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.PullInstances`.
 
         Parameters:
@@ -3546,15 +3383,9 @@ class MainProvider(BaseProvider, ResolverMixin):
         return self._pull_response('PullInstances',
                                    EnumerationContext, MaxObjectCount)
 
-    ####################################################################
-    #
-    #   CloseEnumeration server request
-    #
-    ####################################################################
-
     def CloseEnumeration(self, EnumerationContext):
         """
-        Implements WBEM server responder for
+        Provider method for
         :meth:`pywbem.WBEMConnection.CloseEnumeration`.
 
         If the EnumerationContext is valid and open it removes it from the
