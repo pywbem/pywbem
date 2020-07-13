@@ -46,6 +46,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Test: On Python 3.8, upgraded the minimum version of lxml from 4.4.1 to 4.4.3,
+  in order to fix an XMLSyntaxError raised when encountering UCS-4 characters.
+  (See issue #2337)
+
 **Enhancements:**
 
 * Test: Added support for testing from Pypi/GitHub source distribution archives.
