@@ -34,8 +34,8 @@ from __future__ import absolute_import, print_function
 import six
 from copy import deepcopy
 
-from pywbem import CIMInstance, CIMInstanceName, CIMClassName, CIMParameter, \
-    CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
+from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+    CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND
 
 from pywbem._utils import _format
@@ -102,6 +102,83 @@ class ProviderDispatcher(BaseProvider):
         """Return text for array-ness"""
         return "an array" if is_array else "a scalar"
 
+    def _validate_property(
+            self, prop_name, instance, creation_class, namespace):
+        """
+        Validate a property of an instance against its declaration in a class.
+        """
+
+        if prop_name not in creation_class.properties:
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Property {0!A} in the instance does not exist in its "
+                        "creation class {1!A} in namespace {2!A} of the CIM "
+                        "repository",
+                        prop_name, instance.classname, namespace))
+
+        prop_inst = instance.properties[prop_name]
+        prop_cls = creation_class.properties[prop_name]
+
+        if prop_inst.type != prop_cls.type:
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Property {0!A} in the instance has incorrect "
+                        "type={1!A}, but should have type={2!A} according to "
+                        "its creation class {3!A} in namespace {4!A} of the "
+                        "CIM repository",
+                        prop_name, prop_inst.type, prop_cls.type,
+                        instance.classname, namespace))
+
+        if prop_inst.is_array != prop_cls.is_array:
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Property {0!A} in the instance has incorrect "
+                        "is_array={1!A}, but should have is_array={2!A} "
+                        "according to its creation class {3!A} in namespace "
+                        "{4!A} of the CIM repository",
+                        prop_name, prop_inst.is_array, prop_cls.is_array,
+                        instance.classname, namespace))
+
+        if isinstance(prop_inst.value, CIMInstance):
+            emb_classname_inst = prop_inst.value.classname
+            if 'EmbeddedInstance' in prop_cls.qualifiers:
+                ei_qual = prop_cls.qualifiers['EmbeddedInstance']
+                emb_classname_cls = ei_qual.value
+                # TODO: Expand test to allow inheritance
+                if emb_classname_inst != emb_classname_cls:
+                    raise CIMError(
+                        CIM_ERR_INVALID_PARAMETER,
+                        _format("Property {0!A} in the instance is an embedded "
+                                "instance of class {1!A}, but should be of "
+                                "class {2!A} according to its creation class "
+                                "{3!A} in namespace {4!A} of the CIM "
+                                "repository",
+                                prop_name, emb_classname_inst,
+                                emb_classname_cls,
+                                instance.classname, namespace))
+            elif 'EmbeddedObject' not in prop_cls.qualifiers:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in the instance is an embedded "
+                            "instance of class {1!A}, but the property "
+                            "declaration has neither EmbeddedInstance nor "
+                            "EmbeddedObject set in its creation class {2!A} in "
+                            "namespace {3!A} of the CIM repository",
+                            prop_name, emb_classname_inst,
+                            instance.classname, namespace))
+
+        if isinstance(prop_inst.value, CIMClass):
+            emb_classname_inst = prop_inst.value.classname
+            if 'EmbeddedObject' not in prop_cls.qualifiers:
+                raise CIMError(
+                    CIM_ERR_INVALID_PARAMETER,
+                    _format("Property {0!A} in the instance is an embedded "
+                            "class {1!A}, but the property declaration does "
+                            "not have EmbeddedObject set in its creation class "
+                            "{2!A} in namespace {3!A} of the CIM repository",
+                            prop_name, emb_classname_inst,
+                            instance.classname, namespace))
+
     def CreateInstance(self, namespace, NewInstance):
         # pylint: disable=invalid-name
         """
@@ -140,37 +217,7 @@ class ProviderDispatcher(BaseProvider):
         # Verify that the properties in the new instance are exposed by the
         # creation class and have the correct type-related attributes.
         for pn in NewInstance.properties:
-
-            if pn not in creation_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in new instance does not exist "
-                            "in its creation class {1!A} in namespace {2!A} "
-                            "of the CIM repository",
-                            pn, NewInstance.classname, namespace))
-
-            prop_inst = NewInstance.properties[pn]
-            prop_cls = creation_class.properties[pn]
-
-            if prop_inst.type != prop_cls.type:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in new instance has incorrect "
-                            "type={1!A}, but should have type={2!A} "
-                            "according to its creation class {3!A} in "
-                            "namespace {4!A} of the CIM repository",
-                            pn, prop_inst.type, prop_cls.type,
-                            NewInstance.classname, namespace))
-
-            if prop_inst.is_array != prop_cls.is_array:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in new instance has incorrect "
-                            "is_array={1!A}, but should have is_array={2!A} "
-                            "according to its creation class {3!A} in "
-                            "namespace {4!A} of the CIM repository",
-                            pn, prop_inst.is_array, prop_cls.is_array,
-                            NewInstance.classname, namespace))
+            self._validate_property(pn, NewInstance, creation_class, namespace)
 
         # The providers are guaranteed to get a deep copy of the original
         # new instance since they may update properties.
@@ -287,56 +334,17 @@ class ProviderDispatcher(BaseProvider):
         # as reduced by the PropertyList.
         for pn in ModifiedInstance.properties:
 
-            if pn not in creation_class.properties:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in modified instance does not "
-                            "exist in its creation class {1!A} in namespace "
-                            "{2!A} of the CIM repository",
-                            pn, ModifiedInstance.classname, namespace))
+            self._validate_property(
+                pn, ModifiedInstance, creation_class, namespace)
 
             prop_inst = ModifiedInstance.properties[pn]
             prop_cls = creation_class.properties[pn]
-
-            if prop_inst.type != prop_cls.type:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in modified instance has incorrect "
-                            "type={1!A}, but should have "
-                            "type={2!A} "
-                            "according to its creation class {3!A} in "
-                            "namespace {4!A} of the CIM repository",
-                            pn, prop_inst.type, prop_cls.type,
-                            ModifiedInstance.classname, namespace))
-
-            if prop_inst.is_array != prop_cls.is_array:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in modified instance has incorrect "
-                            "is_array={1!A}, but should have "
-                            "is_array={2!A} "
-                            "according to its creation class {3!A} in "
-                            "namespace {4!A} of the CIM repository",
-                            pn, prop_inst.is_array, prop_cls.is_array,
-                            ModifiedInstance.classname, namespace))
-
-            if prop_inst.embedded_object != prop_cls.embedded_object:
-                raise CIMError(
-                    CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in modified instance has incorrect "
-                            "embedded_object={1!A}, but should have "
-                            "embedded_object={2!A} "
-                            "according to its creation class {3!A} in "
-                            "namespace {4!A} of the CIM repository",
-                            pn, prop_inst.embedded_object,
-                            prop_cls.embedded_object,
-                            ModifiedInstance.classname, namespace))
 
             if prop_cls.qualifiers.get('key', False) and \
                     prop_inst.value != instance[pn]:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
-                    _format("Property {0!A} in modified instance is a key "
+                    _format("Property {0!A} in the instance is a key "
                             "property and thus cannot be modified, "
                             "according to its creation class {1!A} in "
                             "namespace {2!A} of the CIM repository",

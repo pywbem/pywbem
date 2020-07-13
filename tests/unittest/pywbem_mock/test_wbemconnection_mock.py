@@ -6934,7 +6934,6 @@ def assert_invokemethod_guarantees(
         # type-related attributes as per the method declaration
         assert param_in.type == param_cls.type
         assert param_in.is_array == param_cls.is_array
-        assert param_in.embedded_object == param_cls.embedded_object
 
 
 class Method1UserProvider(MethodProvider):
