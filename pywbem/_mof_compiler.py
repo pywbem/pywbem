@@ -578,6 +578,14 @@ def p_mp_createClass(p):
 
     ns = p.parser.target_namespace
     cc = p[1]
+
+    # Compile class invalid when in mode to compile embedded instance
+    if p.parser.embedded_objects is not None:
+        raise MOFParseError(
+            msg=_format(
+                "Invalid compile of CIMClass {0}. "
+                "Compiler in mode to compile embedded instance and"
+                "compile of other types is invalid", cc))
     try:
         fixedNS = fixedRefs = fixedSuper = False
         while not fixedNS or not fixedRefs or not fixedSuper:
@@ -785,6 +793,12 @@ def p_mp_createInstance(p):
 def p_mp_setQualifier(p):
     """mp_setQualifier : qualifierDeclaration"""
     qualdecl = p[1]
+    if p.parser.embedded_objects is not None:
+        raise MOFParseError(
+            msg=_format(
+                "Invalid compile of CIMQualifierDeclaration {0}. "
+                "Compiler in mode to compile Embedded instance and"
+                "compile of other types is invalid", qualdecl))
     ns = p.parser.target_namespace
     if p.parser.verbose:
         p.parser.log(
@@ -1738,12 +1752,13 @@ def p_instanceDeclaration(p):
             if 'EmbeddedInstance' in cprop.qualifiers:
                 allowed_types = (CIMInstance)
                 embedded_object_type = "instance"
-                # The compiler does not test if the classname
-                # in EmbeddedObject is the same or a superclass of the
-                # embedded instance classname.
+                # Issue: 2340: Extend to test with is_subclass from
+                # base repository when that is committed
+                # qclass = cprop.qualifiers['EmbeddedInstance'].value
+                # if qclass:
+                #   if not is_subclass(cprop, qclass):
+                #       raise MOFDependencyError ...
             elif 'EmbeddedObject' in cprop.qualifiers:
-                # Issue: 2340: Compiler does not support EmbeddedObject where
-                # value is class definition.
                 allowed_types = (CIMInstance)
                 embedded_object_type = "object"
 

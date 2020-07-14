@@ -78,7 +78,7 @@ class MOFTest(unittest.TestCase):
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
-            verbose=True,
+            verbose=False,
             log_func=moflog)
 
         self.partial_schema_file = None
@@ -3009,18 +3009,23 @@ def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
         inst_mof = embed_inst_template.format(iid, pname, pstr)
 
     conn = FakedWBEMConnection()
-    conn.compile_mof_string(embedded_instance_test_mof, verbose=True)
+    conn.compile_mof_string(embedded_instance_test_mof, verbose=False)
 
-    # code to test - Compile the instance of TST_Container
+    # Code to test - Compile the instance of TST_Container defined for the test
     conn.compile_mof_string(inst_mof)
-    # Validate instance created and property value correct
-    path = CIMInstanceName("TST_Container",
-                           keybindings=dict(InstanceID=iid))
+
+    # Validate instance(s) created
+
+    path = CIMInstanceName("TST_Container", keybindings=dict(InstanceID=iid))
     rtn_inst = conn.GetInstance(path)
     rtn_property = rtn_inst.properties[pname]
+
+    # Validate returned property type and embedded_object attribute
     assert rtn_property.type == 'string'
     rtn_property_value = rtn_property.value
     assert exp_dict['EmbeddedObject'] == rtn_property.embedded_object
+
+    # Test for embedded object type, number of items, and classname
     if exp_dict['Array']:
         assert exp_dict['Size'] == len(rtn_property_value)
         for pvalue in rtn_property_value:
