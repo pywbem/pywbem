@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-#
-
-""" Test the mof compiler against both locally defined mof and
+""" Test the mof compiler against both locally defined MOF and
     a version of the DMTF released Schema.
 """
 
@@ -9,6 +6,7 @@ from __future__ import print_function, absolute_import
 
 import os
 import unittest
+import pytest
 import re
 import six
 from ply import lex
@@ -21,18 +19,18 @@ from ...utils import skip_if_moftab_regenerated
 from ..utils.unittest_extensions import CIMObjectMixin
 from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
     TOTAL_QUALIFIERS, TOTAL_CLASSES
+from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem._cim_operations import CIMError  # noqa: E402
 from pywbem._mof_compiler import MOFCompiler, MOFWBEMConnection, \
     MOFParseError, MOFDependencyError  # noqa: E402
 from pywbem._cim_constants import CIM_ERR_ALREADY_EXISTS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND  # noqa: E402
 from pywbem._cim_obj import CIMClass, CIMProperty, CIMQualifier, \
     CIMQualifierDeclaration, CIMDateTime, CIMInstanceName  # noqa: E402
-from pywbem import _mof_compiler  # noqa: E402
+from pywbem import _mof_compiler, CIMInstance, CIMError  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
@@ -2731,6 +2729,311 @@ class TestNamespacePragma(MOFTest):
         self.assertEqual(cl.properties['name'].type, 'string')
 
         self.assertEqual(len(repo.instances[NAME_SPACE]), 2)
+
+
+embedded_instance_test_mof = """
+
+    Qualifier Key : boolean = false,
+        Scope(property, reference),
+        Flavor(DisableOverride, ToSubclass);
+
+    Qualifier Description : string = null,
+        Scope(any),
+        Flavor(EnableOverride, ToSubclass, Translatable);
+
+    Qualifier EmbeddedInstance : string = null,
+        Scope(property, method, parameter),
+        Flavor(DisableOverride, ToSubclass);
+
+    Qualifier EmbeddedObject : boolean = false,
+        Scope(property, method, parameter),
+        Flavor(DisableOverride, ToSubclass);
+
+    class TST_Embedded1 {
+        boolean Bool1;
+
+        string Str1;
+
+            [Description ( "Recursive embed" ),
+                EmbeddedInstance ( "TST_Embedded1" )]
+        string RecursedEmbed;
+    };
+
+         [Description ("Test class that contains embedded properties")]
+    class TST_Container {
+            [Key, Description ("Key property")]
+        string InstanceID;
+
+            [Description ( "Scalar Embedded Instance Property" ),
+                EmbeddedInstance ( "TST_Embedded1" )]
+        string EmbedInstanceScalar;
+
+            [Description ( "Scalar Embedded Object Property" ),
+                EmbeddedObject]
+        string EmbedObjectScalar;
+
+            [Description ( "Array Embedded Instance Property" ),
+                EmbeddedInstance ( "TST_Embedded1" )]
+        string EmbedInstanceArray[];
+
+            [Description ( "Array Embedded Object Property" ),
+                EmbeddedObject]
+        string EmbedObjectArray[];
+    };
+
+    // See issue # 2330. EOL in embedded instance fails
+    //instance of TST_Container {
+    //    InstanceID = "AllWaysCompiled";
+    //    EmbedInstanceScalar = "instance of TST_Embedded1 {"
+    //              "Bool1 = true;"
+    //              "};";
+    //};
+"""
+
+OK = True
+RUN = True
+FAIL = False
+
+TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
+
+    # Testcases for EmbeddedObject Property compile tests
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * id: The value of the InstanceID property
+    #   * prname: name of the embedded instance property
+    #   * pstr: String containing mof for property
+    #   * exp_dict:
+    #           EmbeddedObject: Expected embedded_object attrribute value
+    #           Array: True if Array property
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test creation of Scalar EmbeddedInstance property",
+        dict(
+            iid='TSTScalarInstance',
+            pname='EmbedInstanceScalar',
+            pstr="instance of TST_Embedded1 {"
+                 "Bool1 = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=False,
+            ),
+        ),
+        None, None, OK
+    ),
+
+    (
+        "Test creation of EmbeddedInstance property Array type, one property",
+        dict(
+            iid='TSTArrayInstance',
+            pname='EmbedInstanceArray',
+            pstr=['instance of TST_Embedded1 {'
+                  'Bool1 = false;'
+                  '};'],
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=True,
+                Size=1
+            ),
+        ),
+        None, None, OK
+    ),
+
+    (
+        "Test creation of EmbeddedInstance property Array type  more props",
+        dict(
+            iid='TSTArrayInstance',
+            pname='EmbedInstanceArray',
+            pstr=["instance of TST_Embedded1 {"
+                  "Bool1 = false;"
+                  "};",
+                  "instance of TST_Embedded1 {"
+                  "Bool1 = true;"
+                  "};", ],
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=True,
+                Size=2
+            ),
+        ),
+        None, None, OK
+    ),
+
+    (
+        "Test creation of simple EmbeddedObject property",
+        dict(
+            iid='tst1',
+            pname='EmbedObjectScalar',
+            pstr="instance of TST_Embedded1 {"
+                 "Bool1 = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='object',
+                Array=False,
+            ),
+        ),
+        None, None, OK
+    ),
+
+    (
+        "Test for compile error in embedded instance string",
+        dict(
+            iid='tst1',
+            pname='EmbedObjectScalar',
+            pstr="instancex of TST_Embedded1 {"
+                 "Bool1 = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='object',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+
+    (
+        "Test for Classname not found error in compile",
+        dict(
+            iid='tst1',
+            pname='EmbedObjectScalar',
+            pstr="instance of TST_NoClass {"
+                 "Bool1 = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='object',
+                Array=False,
+            ),
+        ),
+        MOFDependencyError, None, OK
+    ),
+
+    (
+        "Test for embeddedproperty not found error in compile",
+        dict(
+            iid='tst1',
+            pname='EmbedObjectScalar',
+            pstr="instancex of TST_Embedded1 {"
+                 "Bool1NotFound = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='object',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+
+    (
+        "Test for property not found error in compile",
+        dict(
+            iid='tst1',
+            pname='EmbedObjectScalarNOTFOUND',
+            pstr="instancex of TST_Embedded1 {"
+                 "Bool1NotFound = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='object',
+                Array=False,
+            ),
+        ),
+        MOFDependencyError, None, OK
+    ),
+
+    (
+        "Test creation compile fails arrayness mismatch",
+        dict(
+            iid='TSTScalarInstanceError',
+            pname='EmbedInstanceScalar',
+            pstr=["instance of TST_Embedded1 {"
+                  "Bool1 = false;"
+                  "};",
+                  "instance of TST_Embedded1 {"
+                  "Bool1 = true;"
+                  "};", ],
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+
+    (
+        "Test creation compile class fails arrayness mismatch",
+        dict(
+            iid='TSTScalarInstanceError',
+            pname='EmbedInstanceScalar',
+            pstr="class blah{"
+                  "boolean Bool1"
+                  "};",
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE)
+@simplified_test_function
+def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
+    """OK
+    Test embedded object instances
+    """
+    # Create the instance mof from the following template of a property with
+    # embedded instance value (i.e. scalar with one string or array with
+    # multiple strings)
+    embed_inst_template = 'instance of TST_Container {{ ' \
+                          'InstanceID = {0}; ' \
+                          '{1} = {2};' \
+                          '}};'
+    if exp_dict['Array']:
+        array_strings = []
+        for strx in pstr:
+            array_strings.append('"{0}"'.format(strx))
+
+        embedd_inst_value = "{{ {0} }}".format(", ".join(array_strings))
+        inst_mof = embed_inst_template.format(iid, pname, embedd_inst_value)
+    else:
+        pstr = '"{0}"'.format(pstr)
+        inst_mof = embed_inst_template.format(iid, pname, pstr)
+
+    conn = FakedWBEMConnection()
+    conn.compile_mof_string(embedded_instance_test_mof, verbose=False)
+
+    # Code to test - Compile the instance of TST_Container defined for the test
+    conn.compile_mof_string(inst_mof)
+
+    # Validate instance(s) created
+
+    path = CIMInstanceName("TST_Container", keybindings=dict(InstanceID=iid))
+    rtn_inst = conn.GetInstance(path)
+    rtn_property = rtn_inst.properties[pname]
+
+    # Validate returned property type and embedded_object attribute
+    assert rtn_property.type == 'string'
+    rtn_property_value = rtn_property.value
+    assert exp_dict['EmbeddedObject'] == rtn_property.embedded_object
+
+    # Test for embedded object type, number of items, and classname
+    if exp_dict['Array']:
+        assert exp_dict['Size'] == len(rtn_property_value)
+        for pvalue in rtn_property_value:
+            assert isinstance(pvalue, CIMInstance)
+            assert pvalue.classname == 'TST_Embedded1'
+    else:
+        assert isinstance(rtn_property_value, CIMInstance)
+        assert rtn_property_value.classname == 'TST_Embedded1'
 
 
 if __name__ == '__main__':

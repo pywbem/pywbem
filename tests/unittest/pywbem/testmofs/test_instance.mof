@@ -5,7 +5,7 @@
 #pragma include("test_types.mof")
 
 
-// TODO: Uncomment this to work on issues with instance MOF
+//
 instance of EX_AllTypes as $inner
 {
     k1 = 9921;
@@ -46,8 +46,9 @@ instance of EX_AllTypes as $outer
     pc    = 'a';
     pb    = true;
     pdt   = "20160409061213.123456+120";
-//    peo   = $inner;
-//    pei   = $inner;
+    // TODO add the peo and pe1 EmbeddedInstance and EmbeddedObject
+    // values to to this test mof. That means creating a string definition
+    // based on the instance of Ex_AllTypes as $inner below.
 };
 
 instance of EX_AllTypes as $values1

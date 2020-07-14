@@ -77,6 +77,14 @@ Released: not yet
 * Reworked the documentation about the mock WBEM server, specifically the
   sections about user-defined providers (See issue #2290).
 
+* Enhance MOF compiler to correctly process MOF that contains instance
+  definitions with properties that have EmbeddedObject or EmbeddedInstance
+  qualifiers.  In this case, the property value is defined in the MOF as
+  a string or array of strings that compiles to a CIMInstance.  This
+  change does not compile CIMClass definitions.
+  Originally these compiled objects were passed through the compiler as 
+  strings. (See issue # 2277).
+
 **Cleanup:**
 
 * Document the TODOs in pywbem_mock and
