@@ -82,8 +82,13 @@ Released: not yet
   qualifiers.  In this case, the property value is defined in the MOF as
   a string or array of strings that compiles to a CIMInstance.  This
   change does not compile CIMClass definitions.
-  Originally these compiled objects were passed through the compiler as 
+  Originally these compiled objects were passed through the compiler as
   strings. (See issue # 2277).
+
+* Mock support: Added a method BaseProvider.is_subclass() that tests whether
+  two CIM classes in the CIM repository have an inheritance relationship.
+  Used the new method for checking the class of embedded instances against the
+  class specified in the EmbeddedInstance qualifier. (Related to issue #2326)
 
 **Cleanup:**
 

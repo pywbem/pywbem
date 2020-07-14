@@ -493,3 +493,50 @@ class BaseProvider(object):
             return instance_store.get(instance_name, copy=copy)
 
         return None
+
+    def is_subclass(self, klass, superclass, class_store):
+        """
+        Return boolean indicating whether a class is a (direct or indirect)
+        subclass of a superclass, or the same class, in the specified class
+        store of the CIM repository (i.e. in the namespace of that class store).
+
+        This test is done by starting at the class and walking its
+        superclasses up to the root, so it is not as expensive as determining
+        all subclasses of a given class.
+
+        Parameters:
+
+          klass (:term:`string`): Class name of the class.
+
+          superclass (:term:`string`): Class name of the superclass.
+
+          class_store (:class:`~pywbem_mock.BaseObjectStore`):
+            Class store of the CIM repository to search for the classes.
+
+        Returns:
+
+            bool: Boolean indicating whether the class is a (direct or indirect)
+            subclass of the superclass, or the same class.
+
+        Raises:
+
+            KeyError: Class or superclass does not exist in the class store.
+        """
+
+        # This check is at the begin in order to catch the case where class and
+        # superclass are the ame class and both do not exist:
+        klass_cls = class_store.get(klass)
+
+        if klass.lower() == superclass.lower():
+            # Found it
+            return True
+
+        next_klass = klass_cls.superclass
+        if next_klass is None:
+            # Exhausted, we are at the root class
+            # Check superclass existence
+            class_store.get(superclass)
+            return False
+
+        # Continue searching upwards
+        return self.is_subclass(next_klass, superclass, class_store)
