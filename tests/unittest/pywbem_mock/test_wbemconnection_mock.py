@@ -59,7 +59,7 @@ from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
-    InstanceWriteProvider, MethodProvider  # noqa: E402
+    InstanceWriteProvider, MethodProvider, BaseProvider  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -7563,6 +7563,199 @@ class TestInvokeMethod(object):
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
+
+
+class TestBaseProvider(object):
+    # pylint: disable=too-few-public-methods
+    """
+    Tests for some methods of BaseProvider
+    """
+
+    IS_SUBCLASS_TESTCASES = [
+
+        # Testcases for BaseProvider.is_subclass(), with list items as follows:
+        #
+        # desc: Description of testcase
+        # inputs: Dictionary of input parameters for is_subclass():
+        #         * klass
+        #         * superclass
+        # exp_result: Dictionary of expected return value of is_subclass():
+        #         * return_value
+        # exp_exc: None if success, or expected exception object
+        # condition: True: run test
+        #            False: Skip test
+        #            'pdb': Break before test
+
+        (
+            'Class and superclass are the same and a leaf class',
+            {
+                'klass': 'CIM_Foo_sub_sub',
+                'superclass': 'CIM_Foo_sub_sub',
+            },
+            {
+                'return': True,
+            },
+            None, OK
+        ),
+        (
+            'Class and superclass are the same and a middle class',
+            {
+                'klass': 'CIM_Foo_sub',
+                'superclass': 'CIM_Foo_sub',
+            },
+            {
+                'return': True,
+            },
+            None, OK
+        ),
+        (
+            'Class and superclass are the same and a root class',
+            {
+                'klass': 'CIM_Foo',
+                'superclass': 'CIM_Foo',
+            },
+            {
+                'return': True,
+            },
+            None, OK
+        ),
+        (
+            'Class is a direct subclass of superclass and a leaf class',
+            {
+                'klass': 'CIM_Foo_sub_sub',
+                'superclass': 'CIM_Foo_sub',
+            },
+            {
+                'return': True,
+            },
+            None, OK
+        ),
+        (
+            'Class is a direct subclass of superclass which is a root class',
+            {
+                'klass': 'CIM_Foo_sub',
+                'superclass': 'CIM_Foo',
+            },
+            {
+                'return': True,
+            },
+            None, OK
+        ),
+        (
+            'Class is an indirect subclass of superclass which is a root '
+            'class',
+            {
+                'klass': 'CIM_Foo_sub_sub',
+                'superclass': 'CIM_Foo',
+            },
+            {
+                'return': True,
+            },
+            None, OK
+        ),
+        (
+            'Class is a superclass of superclass (i.e. swapped)',
+            {
+                'klass': 'CIM_Foo_sub',
+                'superclass': 'CIM_Foo_sub_sub',
+            },
+            {
+                'return': False,
+            },
+            None, OK
+        ),
+        (
+            'Class and superclass are direct siblings',
+            {
+                'klass': 'CIM_Foo_sub',
+                'superclass': 'CIM_Foo_sub2',
+            },
+            {
+                'return': False,
+            },
+            None, OK
+        ),
+        (
+            'Class and superclass are indirect siblings',
+            {
+                'klass': 'CIM_Foo_sub_sub',
+                'superclass': 'CIM_Foo_sub2',
+            },
+            {
+                'return': False,
+            },
+            None, OK
+        ),
+        (
+            'Class does not exist',
+            {
+                'klass': 'InvalidClass',
+                'superclass': 'CIM_Foo_sub',
+            },
+            None,
+            KeyError(), OK
+        ),
+        (
+            'Superclass does not exist',
+            {
+                'klass': 'CIM_Foo_sub',
+                'superclass': 'InvalidClass',
+            },
+            None,
+            KeyError(), OK
+        ),
+        (
+            'Class equals superclass and both do not exist',
+            {
+                'klass': 'InvalidClass',
+                'superclass': 'InvalidClass',
+            },
+            None,
+            KeyError(), OK
+        ),
+    ]
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "desc, inputs, exp_result, exp_exc, condition",
+        IS_SUBCLASS_TESTCASES)
+    def test_is_subclass(self, conn, tst_classeswqualifiers, ns, desc, inputs,
+                         exp_result, exp_exc, condition):
+        # pylint: disable=no-self-use,unused-argument
+        """
+        Test BaseProvider.is_subclass().
+        """
+        if not condition:
+            pytest.skip("This test marked to be skipped")
+
+        if condition == 'pdb':
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()  # pylint: disable=no-member
+
+        conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
+
+        tst_ns = ns or conn.default_namespace
+
+        base_provider = BaseProvider(conn.cimrepository)
+        class_store = conn.cimrepository.get_class_store(tst_ns)
+
+        klass = inputs['klass']
+        superclass = inputs['superclass']
+
+        if not exp_exc:
+
+            # The code to be tested
+            result = base_provider.is_subclass(klass, superclass, class_store)
+
+            # Test the return value against the expected return value
+            assert result == exp_result['return']
+
+        else:
+            with pytest.raises(type(exp_exc)):
+
+                # The code to be tested
+                base_provider.is_subclass(klass, superclass, class_store)
 
 
 @pytest.fixture()

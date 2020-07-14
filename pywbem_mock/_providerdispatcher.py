@@ -103,7 +103,7 @@ class ProviderDispatcher(BaseProvider):
         return "an array" if is_array else "a scalar"
 
     def _validate_property(
-            self, prop_name, instance, creation_class, namespace):
+            self, prop_name, instance, creation_class, namespace, class_store):
         """
         Validate a property of an instance against its declaration in a class.
         """
@@ -144,8 +144,8 @@ class ProviderDispatcher(BaseProvider):
             if 'EmbeddedInstance' in prop_cls.qualifiers:
                 ei_qual = prop_cls.qualifiers['EmbeddedInstance']
                 emb_classname_cls = ei_qual.value
-                # TODO: Expand test to allow inheritance
-                if emb_classname_inst != emb_classname_cls:
+                if not self.is_subclass(
+                        emb_classname_inst, emb_classname_cls, class_store):
                     raise CIMError(
                         CIM_ERR_INVALID_PARAMETER,
                         _format("Property {0!A} in the instance is an embedded "
@@ -217,7 +217,8 @@ class ProviderDispatcher(BaseProvider):
         # Verify that the properties in the new instance are exposed by the
         # creation class and have the correct type-related attributes.
         for pn in NewInstance.properties:
-            self._validate_property(pn, NewInstance, creation_class, namespace)
+            self._validate_property(
+                pn, NewInstance, creation_class, namespace, class_store)
 
         # The providers are guaranteed to get a deep copy of the original
         # new instance since they may update properties.
@@ -335,7 +336,7 @@ class ProviderDispatcher(BaseProvider):
         for pn in ModifiedInstance.properties:
 
             self._validate_property(
-                pn, ModifiedInstance, creation_class, namespace)
+                pn, ModifiedInstance, creation_class, namespace, class_store)
 
             prop_inst = ModifiedInstance.properties[pn]
             prop_cls = creation_class.properties[pn]
