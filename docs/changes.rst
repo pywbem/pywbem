@@ -22,6 +22,15 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Removed the following classes that were providing support for UNIX Domain Socket
+  based connections:
+
+  - `PegasusUDSConnection`
+  - `SFCBUDSConnection`
+  - `OpenWBEMUDSConnection`
+
+  They are no longer supported since moving to the 'requests' package.
+  
 **Deprecations:**
 
 **Bug fixes:**
