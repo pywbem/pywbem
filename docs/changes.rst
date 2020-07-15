@@ -31,6 +31,11 @@ Released: not yet
 
   They are no longer supported since moving to the 'requests' package.
   
+* Updated the change history of 1.0.0b1 to mention one more incompatible change
+  where support was removed for specifying multiple directory paths or file paths
+  from the `ca_certs` parameter of `WBEMConnection`. Now, only a single
+  directory path or file path can be specified, or `None`.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -188,7 +193,8 @@ below this list.
 * Removed Python 2.6 support.
 
 * Migrated pywbem to use the 'requests' Python package for HTTP/HTTPS pywbem
-  client to WBEM server communication.
+  client to WBEM server communication. This caused some restrictions, see
+  the detailed decription of incompatible changes, below.
 
 * Removed the following deprecated functionality:
 
@@ -260,6 +266,10 @@ below this list.
     certificate directory. Now, it causes the certificates provided by the
     'certifi' Python package to be used. That package provides the Mozilla
     Included CA Certificate List.
+
+  - Removed support for specifying multiple directory paths or file paths
+    from the `ca_certs` parameter of `WBEMConnection`. Now, only a single
+    directory path or file path can be specified, or `None` (see previous item).
 
   - A non-existing path specified for the `ca_certs` parameter of
     `WBEMConnection` now raises `IOError`. Previously, the directory or file
