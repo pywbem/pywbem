@@ -45,7 +45,8 @@ from ..utils.pytest_extensions import simplified_test_function
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem import WBEMConnection, ConnectionError  # noqa: E402
+from pywbem import WBEMConnection, \
+    ConnectionError  # noqa: E402 pylint: disable=redefined-builtin
 from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name

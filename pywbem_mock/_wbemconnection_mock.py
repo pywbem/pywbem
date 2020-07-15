@@ -1372,6 +1372,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           Error: Exceptions from the call
         """
+        # pylint: disable=assignment-from-no-return
         instances = self._mainprovider.ExecQuery(
             namespace=namespace,
             QueryLanguage=params['QueryLanguage'],

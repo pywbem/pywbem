@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 from pywbem import WBEMServer, Error, ConnectionError, AuthError, \
-    ToleratedServerIssueWarning
+    ToleratedServerIssueWarning  # pylint: disable=redefined-builtin
 
 from .server_definition_file import ServerDefinition, \
     ServerDefinitionFile
@@ -371,18 +371,18 @@ class ProfileTest(object):
         self.profile_inst = latest_profile_inst(profile_insts)
         # pylint: enable=attribute-defined-outside-init
 
-    def init_central_instances(self, conn):
+    def init_central_instances(self):
         """
-        Initialize attributes for the profile by calling init_profile()
-        and get the central instances.
+        Initialize the central_inst_paths attribute with the central instances
+        of the profile. init_profile() must have been called before.
 
-        The following instance attributes are set, in addition to
-        init_profile():
+        The following instance attributes are set:
           * central_inst_paths: central instances as list of CIMInstanceName.
         """
 
-        self.init_profile(conn)
-        # TODO: Add profile_org and profile_name arguments
+        # init_profile() must have been called before.
+        assert getattr(self, 'profile_org', None)
+        assert getattr(self, 'profile_name', None)
 
         central_paths_id = self.profile_id + ':central_paths'
 

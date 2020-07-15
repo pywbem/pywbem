@@ -180,6 +180,7 @@ class Error(Exception):
 
 
 class ConnectionError(Error):
+    # pylint: disable=redefined-builtin
     """
     This exception indicates a problem with the connection to the WBEM
     server. A retry may or may not succeed.
@@ -346,6 +347,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
 
 
 class TimeoutError(Error):
+    # pylint: disable=redefined-builtin
     """
     This exception indicates that the client timed out waiting for the WBEM
     server. Derived from :exc:`~pywbem.Error`.

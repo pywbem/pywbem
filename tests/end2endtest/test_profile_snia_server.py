@@ -68,7 +68,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the CIM_ObjectManager central instance.
         """
-        self.init_central_instances(wbem_connection)
+        self.init_profile(wbem_connection)
+        self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
 
         assert_instance_of(
@@ -96,7 +97,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the associated CIM_Namespace instances.
         """
-        self.init_central_instances(wbem_connection)
+        self.init_profile(wbem_connection)
+        self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
 
         far_insts, _ = assert_association_func(
@@ -152,7 +154,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the associated CIM_ObjectManagerCommunicationMechanism instances.
         """
-        self.init_central_instances(wbem_connection)
+        self.init_profile(wbem_connection)
+        self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
 
         far_insts, _ = assert_association_func(
@@ -227,7 +230,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the associated CIM_System instance.
         """
-        self.init_central_instances(wbem_connection)
+        self.init_profile(wbem_connection)
+        self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
 
         far_insts, _ = assert_association_func(

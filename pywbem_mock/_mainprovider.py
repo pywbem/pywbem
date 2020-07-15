@@ -1413,8 +1413,7 @@ class MainProvider(BaseProvider, ResolverMixin):
                     CIM_ERR_INVALID_CLASS,
                     _format("Class {0!A} not found in namespace {1!A}.",
                             ClassName, namespace))
-            else:
-                raise
+            raise
 
         # Get class property list which may be localonly or all
         # superclasses
@@ -1500,7 +1499,7 @@ class MainProvider(BaseProvider, ResolverMixin):
         return return_paths
 
     def ExecQuery(self, namespace, QueryLanguage, Query):
-        # pylint: disable=unused-argument
+        # pylint: disable=unused-argument,no-self-use
         """
         Provider method for
         :meth:`pywbem.WBEMConnection.ExecQuery`.
