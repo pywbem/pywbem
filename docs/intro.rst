@@ -527,29 +527,19 @@ additions to the DMTF standards:
      :term:`DSP0201` standard and that is also supported by OpenPegasus. Older
      releases of OpenPegasus supported only the upper-case variant.
 
-   - Pywbem supports a connection to an OpenPegasus server using Unix Domain
-     Sockets through its :class:`~pywbem.PegasusUDSConnection` subclass of
-     :class:`~pywbem.WBEMConnection`.
-
    - Starting with version 1.0.0, pywbem no longer supports the `Local`
      authentication scheme of OpenPegasus, which is a password-less local
      authorization.
 
 2. `SFCB (Small Footprint CIM Broker) <https://sourceforge.net/projects/sblim/files/sblim-sfcb/>`_
 
-   - Pywbem supports a connection to an SFCB server using Unix Domain
-     Sockets through its :class:`~pywbem.SFCBUDSConnection` subclass of
-     :class:`~pywbem.WBEMConnection`.
+   - None
 
 3. `OpenWBEM <https://sourceforge.net/projects/openwbem/>`_
 
    - Starting with version 1.0.0, pywbem no longer supports the `OWLocal`
      authentication scheme of OpenWBEM, which is a password-less local
      authorization.
-
-   - Pywbem supports a connection to an OpenWBEM server using Unix Domain
-     Sockets through its :class:`~pywbem.OpenWBEMUDSConnection` subclass of
-     :class:`~pywbem.WBEMConnection`.
 
 
 WBEM server testing

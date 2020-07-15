@@ -161,8 +161,7 @@ from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
     LOGGER_SIMPLE_NAMES
 from ._utils import _ensure_unicode, _format
 
-__all__ = ['WBEMConnection', 'PegasusUDSConnection', 'SFCBUDSConnection',
-           'OpenWBEMUDSConnection']
+__all__ = ['WBEMConnection']
 
 # Parameters for HTTP retry
 HTTP_TOTAL_RETRIES = 2           # Max number of total HTTP retries
@@ -9806,32 +9805,3 @@ def is_subclass(ch, ns, super_class, sub):
                                PropertyList=[],
                                IncludeClassOrigin=False)
     return False
-
-
-def PegasusUDSConnection(creds=None, **kwargs):
-    """ OpenPegasus specific Unix Domain Socket call. Specific because
-        of the location of the file name
-    """
-
-    # pylint: disable=invalid-name
-    return WBEMConnection('/var/run/tog-pegasus/cimxml.socket', creds,
-                          **kwargs)
-
-
-def SFCBUDSConnection(creds=None, **kwargs):
-    """ SFCB specific Unix Domain Socket call. Specific because
-        of the location of the file name
-    """
-
-    # pylint: disable=invalid-name
-    return WBEMConnection('/tmp/sfcbHttpSocket', creds, **kwargs)
-
-
-def OpenWBEMUDSConnection(creds=None, **kwargs):
-    """ OpenWBEM specific Unix Domain Socket call. Specific because
-        of the location of the file name
-    """
-
-    # pylint: disable=invalid-name
-    return WBEMConnection('/tmp/OW@LCL@APIIPC_72859_Xq47Bf_P9r761-5_J-7_Q',
-                          creds, **kwargs)
