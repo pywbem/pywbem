@@ -31,8 +31,8 @@ provider class defined in the provider registry.
 
 from __future__ import absolute_import, print_function
 
-import six
 from copy import deepcopy
+import six
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \

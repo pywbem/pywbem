@@ -103,7 +103,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             "provider_classnames={s.provider_classnames})",
             s=self)
 
-    def CreateInstance(self, namespace, NewInstance):
+    def CreateInstance(self, namespace, new_instance):
         """
         Create an instance of the CIM_Namespace class in an Interop namespace
         of the CIM repository, and if not yet existing create the new namespace
@@ -118,7 +118,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
           namespace (:term:`string`):
             Must be a valid Interop namespace.
 
-          NewInstance (:class:`~pywbem.CIMInstance`):
+          new_instance (:class:`~pywbem.CIMInstance`):
             The following applies regarding its properties:
             * 'Name' property: This property is required since it defines the
               name of the new namespace to be created.
@@ -140,7 +140,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                     "Cannot create instance of class {0!A} in namespace {1!A}: "
                     "The namespace is not an Interop namespace. "
                     "Valid Interop namespaces are: {2!A}",
-                    NewInstance.classname, namespace,
+                    new_instance.classname, namespace,
                     ", ".join(self.interop_namespace_names)))
 
         ccn_pname = 'CreationClassName'
@@ -148,32 +148,32 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         # Validate that required properties are specified in the new instance
         for pn in [name_pname, ccn_pname]:
-            if pn not in NewInstance:
+            if pn not in new_instance:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format(
                         "Cannot create instance of class {0!A} in "
                         "namespace {1!A}: "
-                        "Missing required property {2!A} in NewInstance",
-                        NewInstance.classname, namespace, pn))
+                        "Missing required property {2!A} in new_instance",
+                        new_instance.classname, namespace, pn))
 
         # Get and normalize the new namespace name
-        new_namespace = NewInstance[name_pname]  # Property value
+        new_namespace = new_instance[name_pname]  # Property value
         new_namespace = new_namespace.strip('/')
 
         # Write it back to the instance in case it was changed
-        NewInstance[name_pname] = new_namespace
+        new_instance[name_pname] = new_namespace
 
         # Validate other property values in the new instance
-        if NewInstance[ccn_pname].lower() != NewInstance.classname.lower():
+        if new_instance[ccn_pname].lower() != new_instance.classname.lower():
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format(
                     "Cannot create instance of class {0!A} in namespace "
-                    "{1!A}: Value of property {2|A} in NewInstance does not "
+                    "{1!A}: Value of property {2|A} in new_instance does not "
                     "match class name but is {3!A}",
-                    NewInstance.classname, namespace,
-                    ccn_pname, NewInstance[ccn_pname]))
+                    new_instance.classname, namespace,
+                    ccn_pname, new_instance[ccn_pname]))
 
         # Create the new namespace in the CIM repository, if needed.
         ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
@@ -183,10 +183,9 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
         return super(CIMNamespaceProvider, self).CreateInstance(
-            namespace, NewInstance)
+            namespace, new_instance)
 
-    def ModifyInstance(self, ModifiedInstance,
-                       IncludeQualifiers=None, PropertyList=None):
+    def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         """
         Modification of CIM_Namespace instance not allowed
         """
@@ -194,7 +193,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
             CIM_ERR_NOT_SUPPORTED,
             _format("Modification of {0} instances is not allowed: "
                     "{1!A}",
-                    NAMESPACE_CLASSNAME, ModifiedInstance.path))
+                    NAMESPACE_CLASSNAME, modified_instance.path))
 
     def DeleteInstance(self, InstanceName):
         """

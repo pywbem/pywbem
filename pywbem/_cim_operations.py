@@ -2295,10 +2295,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             pass
         else:
             raise TypeError(
-                _format("The 'InstanceName' parameter of the WBEMConnection "
-                        "operation has invalid type {0} (must be {1}a "
+                _format("The {0!A} parameter of the WBEMConnection "
+                        "operation has invalid type {1} (must be {2}a "
                         "string, or a CIMInstanceName)",
-                        type(instancename),
+                        arg_name, type(instancename),
                         "" if required else "None, "))
         return instancename
 
@@ -2368,7 +2368,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         "" if required else "None or "))
         return qualifier
 
-    def _iparam_string(self, string_param, arg_name, required=False):
+    @staticmethod
+    def _iparam_string(string_param, arg_name, required=False):
         # pylint: disable=invalid-name,
         """
         Validate a string typed operation parameter that may be None.
@@ -2390,7 +2391,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         arg_name, type(string_param)))
         return string_param
 
-    def _iparam_integer(self, integer_param, arg_name):
+    @staticmethod
+    def _iparam_integer(integer_param, arg_name):
         # pylint: disable=invalid-name,
         """
         Validate a integer typed operation parameter that may be None.
@@ -2408,7 +2410,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         arg_name, type(integer_param)))
         return integer_param
 
-    def _iparam_bool(self, bool_param, arg_name):
+    @staticmethod
+    def _iparam_bool(bool_param, arg_name):
         # pylint: disable=invalid-name,
         """
         Validate a bool typed operation parameter that may be None.

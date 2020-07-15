@@ -6,8 +6,8 @@ from __future__ import print_function, absolute_import
 
 import os
 import unittest
-import pytest
 import re
+import pytest
 import six
 from ply import lex
 try:
@@ -2731,7 +2731,7 @@ class TestNamespacePragma(MOFTest):
         self.assertEqual(len(repo.instances[NAME_SPACE]), 2)
 
 
-embedded_instance_test_mof = """
+EMBEDDED_INSTANCE_TEST_MOF = """
 
     Qualifier Key : boolean = false,
         Scope(property, reference),
@@ -2969,8 +2969,8 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
             iid='TSTScalarInstanceError',
             pname='EmbedInstanceScalar',
             pstr="class blah{"
-                  "boolean Bool1"
-                  "};",
+                 "boolean Bool1"
+                 "};",
             exp_dict=dict(
                 EmbeddedObject='instance',
                 Array=False,
@@ -2987,7 +2987,8 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE)
 @simplified_test_function
 def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
-    """OK
+    # pylint: disable=unused-argument
+    """
     Test embedded object instances
     """
     # Create the instance mof from the following template of a property with
@@ -3009,7 +3010,7 @@ def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
         inst_mof = embed_inst_template.format(iid, pname, pstr)
 
     conn = FakedWBEMConnection()
-    conn.compile_mof_string(embedded_instance_test_mof, verbose=False)
+    conn.compile_mof_string(EMBEDDED_INSTANCE_TEST_MOF, verbose=False)
 
     # Code to test - Compile the instance of TST_Container defined for the test
     conn.compile_mof_string(inst_mof)
