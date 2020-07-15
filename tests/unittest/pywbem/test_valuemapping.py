@@ -83,6 +83,7 @@ class Test_ValueMapping(object):
 
     def setup_for_property(self, server, integer_type, is_array,
                            valuemap, values):
+        # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CIM property
         with the specified data type and valuemap and values qualifiers.
@@ -104,6 +105,7 @@ class Test_ValueMapping(object):
 
     def setup_for_method(self, server, integer_type, is_array,
                          valuemap, values):
+        # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CIM method
         with the specified data type and valuemap and values qualifiers.
@@ -126,6 +128,7 @@ class Test_ValueMapping(object):
 
     def setup_for_parameter(self, server, integer_type, is_array,
                             valuemap, values):
+        # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CIM parameter
         with the specified data type and valuemap and values qualifiers.

@@ -29,7 +29,7 @@ import six
 from tests.utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, Uint32, ConnectionError, \
-    TimeoutError  # noqa: E402
+    TimeoutError  # noqa: E402 pylint: disable=redefined-builtin
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

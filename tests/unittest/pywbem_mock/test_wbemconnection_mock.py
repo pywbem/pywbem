@@ -1374,17 +1374,15 @@ class TestRepoMethods(object):
 
     @pytest.mark.skip(reason="Used only to display repo so not real test.")
     def test_disp_repo_tostdout(self, conn, tst_instances_mof):
+        # pylint: disable=no-self-use
         """
         Test method used only for manual tests.
         """
         skip_if_moftab_regenerated()
         namespaces = ['interop']
         for ns in namespaces:
+            conn.add_namespace(ns)
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
-
-            conn.add_method_callback('CIM_Foo', 'Fuzzy',
-                                     self.fuzzy_callback,
-                                     namespace=ns)
 
             inst_id = 'CIM_foo_sub_sub_test_unicode'
 
@@ -2240,11 +2238,11 @@ class UserInstanceTestProvider(InstanceWriteProvider):
             "provider_classnames={s.provider_classnames})",
             s=self)
 
-    def CreateInstance(self, namespace, NewInstance):
+    def CreateInstance(self, namespace, new_instance):
         """Test Create instance just calls super class method"""
         # pylint: disable=useless-super-delegation
         return super(UserInstanceTestProvider, self).CreateInstance(
-            namespace, NewInstance)
+            namespace, new_instance)
 
     def DeleteInstance(self, InstanceName):
         """Test Create instance just calls super class method"""
@@ -2256,7 +2254,7 @@ class UserInstanceTestProvider(InstanceWriteProvider):
 class UserInstanceTestProvider2(InstanceWriteProvider):
     """
     User provider defined to server multiple classes. This class does
-    not include ModifiedInstance
+    not include ModifyInstance().
     """
     provider_classnames = ['CIM_Foo', 'CIM_Foo_Sub']
 
@@ -2273,11 +2271,11 @@ class UserInstanceTestProvider2(InstanceWriteProvider):
             "provider_classnames={s.provider_classnames})",
             s=self)
 
-    def CreateInstance(self, namespace, NewInstance):
+    def CreateInstance(self, namespace, new_instance):
         """Test Create instance just calls super class method"""
         # pylint: disable=useless-super-delegation
         return super(UserInstanceTestProvider2, self).CreateInstance(
-            namespace, NewInstance)
+            namespace, new_instance)
 
     def DeleteInstance(self, InstanceName):
         """Test Create instance just calls super class method"""
@@ -2685,19 +2683,19 @@ class TestUserDefinedProviders(object):
                 """
                 super(CIM_FooUserProvider, self).__init__(cimrepository)
 
-            def CreateInstance(self, namespace, NewInstance):
+            def CreateInstance(self, namespace, new_instance):
                 """
                 My user CreateInstance.  Will change the InstanceID and
-                use the default to commit the NewInstance to the repository.
+                use the default to commit the new_instance to the repository.
                 No implementation of ModifyInstance or DeleteInstance
                 """
                 # modify the InstanceID property
-                NewInstance.properties["InstanceID"].value = "USER_PROVIDER1"
+                new_instance.properties["InstanceID"].value = "USER_PROVIDER1"
 
                 # send back to the superclass to complete insertion into
                 # the repository.
                 return super(CIM_FooUserProvider, self).CreateInstance(
-                    namespace, NewInstance)
+                    namespace, new_instance)
 
         skip_if_moftab_regenerated()
         ns = conn.default_namespace
@@ -2754,25 +2752,24 @@ class TestUserDefinedProviders(object):
                 """
                 super(CIM_FooSubUserProvider, self).__init__(cimrepository)
 
-            def ModifyInstance(self, ModifiedInstance,
-                               IncludeQualifiers=None, PropertyList=None):
+            def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
                 """
                 My user ModifyInstance.  Will change the value of the
                 property as a flag
                 """
                 # modify a None key property.
-                assert ModifiedInstance.get("InstanceID") == 'origid'
+                assert modified_instance.get("InstanceID") == 'origid'
                 # modify the defined property value
-                assert ModifiedInstance.properties["cimfoo_sub"].value == \
+                assert modified_instance.properties["cimfoo_sub"].value == \
                     "ModProperty"
 
-                ModifiedInstance.properties["cimfoo_sub"].value = \
+                modified_instance.properties["cimfoo_sub"].value = \
                     "ModProperty2"
 
                 # send back to the superclass to complete insertion into
                 # the repository.
                 return super(CIM_FooSubUserProvider, self).ModifyInstance(
-                    ModifiedInstance)
+                    modified_instance, IncludeQualifiers)
 
         skip_if_moftab_regenerated()
         ns = conn.default_namespace
@@ -2835,26 +2832,25 @@ class TestUserDefinedProviders(object):
                 self.deleteinstance = False
                 self.postregistersetup = False
 
-            def CreateInstance(self, namespace, NewInstance):
+            def CreateInstance(self, namespace, new_instance):
                 """
                 Change the InstanceID and use the default to commit the
-                NewInstance to the repository.
+                new_instance to the repository.
                 """
                 self.createinstance = True
                 # modify the InstanceID property
-                NewInstance.properties["InstanceID"].value = "USER_PROVIDER3"
+                new_instance.properties["InstanceID"].value = "USER_PROVIDER3"
 
                 return super(CIM_FooSubUserProvider, self).CreateInstance(
-                    namespace, NewInstance)
+                    namespace, new_instance)
 
-            def ModifyInstance(self, ModifiedInstance,
-                               IncludeQualifiers=None, PropertyList=None):
+            def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
                 """
                 My user ModifyInstance.  Change value of the property as a flag
                 """
                 self.modifyinstance = True
                 return super(CIM_FooSubUserProvider, self).ModifyInstance(
-                    ModifiedInstance)
+                    modified_instance)
 
             def DeleteInstance(self, InstanceName):
                 """
@@ -4971,7 +4967,7 @@ class TestInstanceOperations(object):
              CIMError(CIM_ERR_INVALID_CLASS), OK],
             # 5, no properties in modified instance
             [5, [], None, False, OK],
-            # 6, Invalid type for ModifiedInstance
+            # 6, Invalid type for modified_instance
             [6, [], None, TypeError(), OK],
             # 7, Invalid type for PropertyList
             [7, [], None, TypeError(), OK],
@@ -6694,7 +6690,7 @@ class TestAssociatorOperations(object):
     def test_associator_instances(
             self, conn, tst_assoc_mof, tst_ns, cln, name_key,
             desc, inst_name, role, rr, ac, rc, iq, ico, pl, exp_rslt):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,unused-argument
         """
         Test Associators() operation at instance level.
         """
@@ -6738,11 +6734,12 @@ class TestAssociatorOperations(object):
 
             # Build the expected result list
             exp_insts = []
-            for cln, name_key in exp_rslt:
+            for cln_, name_key_ in exp_rslt:
                 exp_inst = CIMInstance(
-                    cln, properties={'name': name_key},
+                    cln_, properties={'name': name_key_},
                     path=CIMInstanceName(
-                        cln, keybindings={'name': name_key}, namespace=exp_ns))
+                        cln_, keybindings={'name': name_key_},
+                        namespace=exp_ns))
                 exp_insts.append(exp_inst)
 
             assert_equal_ciminstances(exp_insts, rslt_insts, pl=['name'])
@@ -7081,8 +7078,8 @@ class Method1UserProvider(MethodProvider):
 
             if val == 'outparam_invalid2_valueerror':
                 return (return_value, out_params, 'invalid 3rd item')
-            else:
-                return (return_value, out_params)
+
+            return (return_value, out_params)
 
         raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
 
@@ -7497,9 +7494,9 @@ class TestInvokeMethod(object):
             test_class = inputs['test_class']
 
         if 'MethodName' not in inputs:
-            MethodName = 'method1'
+            method_name = 'method1'
         else:
-            MethodName = inputs['MethodName']
+            method_name = inputs['MethodName']
 
         tst_ns = ns or conn.default_namespace
 
@@ -7508,32 +7505,32 @@ class TestInvokeMethod(object):
                                schema_pragma_files=None, verbose=None)
 
         # set namespace in ObjectName if required.
-        ObjectName = inputs['ObjectName']
+        object_name = inputs['ObjectName']
 
-        if isinstance(ObjectName, (CIMClassName, CIMInstanceName)):
-            ObjectName.namespace = ns
+        if isinstance(object_name, (CIMClassName, CIMInstanceName)):
+            object_name.namespace = ns
         else:
             # String ObjectName does not allow anything but default namespace
             # Bypass test if ns is not None
             if ns:
                 pytest.skip("string object name only allows default namespace")
 
-        Params = inputs['Params']
+        Params = inputs['Params']  # pylint: disable=invalid-name
         assert Params is None or len(Params) <= 1
         if not exp_exc:
             # Two calls to account for **params
             if 'params' in inputs:
 
                 # The code to be tested
-                result = conn.InvokeMethod(MethodName,
-                                           ObjectName,
+                result = conn.InvokeMethod(method_name,
+                                           object_name,
                                            Params,
                                            **inputs['params'])
             else:
 
                 # The code to be tested
-                result = conn.InvokeMethod(MethodName,
-                                           ObjectName,
+                result = conn.InvokeMethod(method_name,
+                                           object_name,
                                            Params)
 
             if condition == 'pdb-after':
@@ -7556,8 +7553,8 @@ class TestInvokeMethod(object):
             with pytest.raises(type(exp_exc)) as exec_info:
 
                 # The code to be tested
-                conn.InvokeMethod(MethodName,
-                                  ObjectName,
+                conn.InvokeMethod(method_name,
+                                  object_name,
                                   inputs['Params'], )
 
             exc = exec_info.value

@@ -26,7 +26,7 @@ import sys
 import os
 import re
 import setuptools
-from distutils import log
+from distutils import log  # pylint: disable=wrong-import-order
 
 
 def get_version(version_file):
@@ -92,11 +92,20 @@ class PytestCommand(setuptools.Command):
     ]
 
     def initialize_options(self):
+        """
+        Standard method called by setup to initialize options for the command.
+        """
+        # pylint: disable=attribute-defined-outside-init
         self.test_opts = None
         self.test_dirs = None
         self.pytest_options = None
+        # pylint: enable=attribute-defined-outside-init
 
     def finalize_options(self):
+        """
+        Standard method called by setup to finalize options for the command.
+        """
+        # pylint: disable=attribute-defined-outside-init
         self.test_opts = [
             '--color=yes',
             '-s',
@@ -108,25 +117,34 @@ class PytestCommand(setuptools.Command):
                 '-W', 'ignore::ResourceWarning',
             ])
         self.test_dirs = self.my_test_dirs
+        # pylint: enable=attribute-defined-outside-init
 
     def run(self):
-        import pytest  # deferred import so install does not depend on it
+        """
+        Standard method called by setup to execute the command.
+        """
+
+        # deferred import so install does not depend on it
+        import pytest  # pylint: disable=import-outside-toplevel
+
         args = self.test_opts
         if self.pytest_options:
             args.extend(self.pytest_options.split(' '))
         args.extend(self.test_dirs)
+
         if self.dry_run:
             self.announce("Dry-run: pytest {}".format(' '.join(args)),
                           level=log.INFO)
             return 0
-        else:
-            self.announce("pytest {}".format(' '.join(args)),
-                          level=log.INFO)
-            rc = pytest.main(args)
-            return rc
+
+        self.announce("pytest {}".format(' '.join(args)),
+                      level=log.INFO)
+        rc = pytest.main(args)
+        return rc
 
 
 class test(PytestCommand):
+    # pylint: disable=invalid-name
     """
     Setup.py command for executing unit and function tests.
     """
@@ -135,6 +153,7 @@ class test(PytestCommand):
 
 
 class leaktest(PytestCommand):
+    # pylint: disable=invalid-name
     """
     Setup.py command for executing leak tests.
     """
@@ -143,6 +162,7 @@ class leaktest(PytestCommand):
 
 
 class end2endtest(PytestCommand):
+    # pylint: disable=invalid-name
     """
     Setup.py command for executing end2end tests.
     """
@@ -166,6 +186,7 @@ dependency_links = [req for req in requirements
 test_requirements = get_requirements('test-requirements.txt')
 
 package_version = get_version(os.path.join('pywbem', '_version.py'))
+# pylint: enable=invalid-name
 
 # Docs on setup():
 # * https://docs.python.org/2.7/distutils/apiref.html?
