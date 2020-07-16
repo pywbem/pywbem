@@ -92,6 +92,10 @@ This documentation uses a few special terms to refer to Python types:
       The namespace is a component of other elements like namespace path used
       to access objects in the WBEM server.
 
+   NocaseList
+      A case-insensitive list class provided by the
+      `nocaselist package <https://pypi.org/project/nocaselist/>`_.
+
    interop namespace
       A :term:`CIM namespace`  is the interop namespace if it has one of the
       following names: DMTF definition; ('interop', 'root/interop') pywbem

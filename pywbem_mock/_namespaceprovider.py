@@ -29,11 +29,11 @@ the creation and deletion of server CIM namespaces to be controlled through
 creation and deletion of instances of  the CIM_Namespace class.
 """
 
+from nocaselist import NocaseList
+
 from pywbem import CIMError, CIMInstance, CIM_ERR_NOT_SUPPORTED, \
     CIM_ERR_INVALID_PARAMETER
-
 from pywbem._nocasedict import NocaseDict
-
 from pywbem._utils import _format
 
 # TODO: Should be able to import from pywbem_mock
@@ -176,8 +176,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                     ccn_pname, new_instance[ccn_pname]))
 
         # Create the new namespace in the CIM repository, if needed.
-        ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
-        if new_namespace not in ns_dict:
+        if new_namespace not in self.cimrepository.namespaces:
             self.cimrepository.add_namespace(new_namespace)
 
         # Create the CIM instance for the new namespace in the CIM repository,
@@ -278,20 +277,18 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                                         LocalOnly=False,
                                         DeepInheritance=False)
 
-        # NocaseDict for case-insensitive tests
-        nsinsts_dict = NocaseDict([(inst.name, None) for inst in insts])
-
-        # Get the current namespaces directly from the repository since the
-        # instances of CIM_Namespace not yet set up.
-        namespaces = conn.cimrepository.namespaces
+        # List of namespaces for which there are CIM instances
+        inst_ns_list = NocaseList([inst.name for inst in insts])
 
         klass = conn.GetClass(provider_classname, interop_namespace,
                               LocalOnly=False,
                               IncludeQualifiers=True,
                               IncludeClassOrigin=True)
 
-        for ns in namespaces:
-            if ns not in nsinsts_dict:
+        # Set up any CIM_Namespace instances that are still missing given the
+        # namespaces that exist in the CIM repository.
+        for ns in conn.cimrepository.namespaces:
+            if ns not in inst_ns_list:
                 self.create_cimnamespace_instance(conn, ns, interop_namespace,
                                                   klass)
 

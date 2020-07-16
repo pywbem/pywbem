@@ -33,14 +33,14 @@ following functionality:
 
 from __future__ import absolute_import, print_function
 
+from nocaselist import NocaseList
+
 from pywbem import CIMError, \
     CIM_ERR_NOT_FOUND, CIMInstance, CIMClass, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, \
     WBEMServer
-
 from pywbem._nocasedict import NocaseDict
-
 from pywbem._utils import _format
 
 # pywbem_mock implementation configuration variables that are used in
@@ -66,6 +66,8 @@ class BaseProvider(object):
             (ex. :meth:`~pywbem_mock.FakedWbemConnection.compile_file`)
         """
         self._cimrepository = cimrepository
+        self._interop_namespace_names = \
+            NocaseList(WBEMServer.INTEROP_NAMESPACES)
 
     def __repr__(self):
         return _format(
@@ -95,23 +97,26 @@ class BaseProvider(object):
     @property
     def namespaces(self):
         """
-        list of :term:`string`: List of the namespaces that exist in the CIM
-        repository.
+        :term:`NocaseList` of :term:`string`:
+        The names of the namespaces that exist in the CIM repository.
         """
-        return self.cimrepository.namespaces
+        ns_list = self.cimrepository.namespaces
+        assert isinstance(ns_list, NocaseList)
+        return ns_list
 
     @property
     def interop_namespace_names(self):
         """
-        list of :term:`string`: List of the valid Interop namespace names.
+        :term:`NocaseList` of :term:`string`:
+        The valid Interop namespace names.
+
         Only these names may be the Interop namespace and only one
         Interop namespace may exist in a WBEM server environment.
-
         This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
-
-        Namespace names need to be considered case insensitive.
         """
-        return WBEMServer.INTEROP_NAMESPACES
+        ns_list = self._interop_namespace_names
+        assert isinstance(ns_list, NocaseList)
+        return ns_list
 
     ################################################################
     #
@@ -233,7 +238,7 @@ class BaseProvider(object):
 
         This method does not access the CIM repository for this test; it
         merely compares the specified namespace name against the list of valid
-        Interop namespace names returned by :meth:`interop_namespace_names`.
+        Interop namespace names returned by :attr:`interop_namespace_names`.
 
         Parameters:
 
@@ -245,8 +250,7 @@ class BaseProvider(object):
           :class:`py:bool`: Indicates whether the namespace name is a valid
           Interop namespace name.
         """
-        ns_lower = [ns.lower() for ns in self.interop_namespace_names]
-        return namespace.lower() in ns_lower
+        return namespace in self.interop_namespace_names
 
     def find_interop_namespace(self):
         """
@@ -254,17 +258,16 @@ class BaseProvider(object):
 
         The Interop namespace is identified by comparing all namespace names
         in the CIM repository against the list of valid Interop namespace names
-        returned by :meth:`interop_namespace_names`.
+        returned by :attr:`interop_namespace_names`.
 
         Returns:
 
           :term:`string`: The name of the Interop namespace if one exists in
           the CIM repository or `None`.
         """
-        ns_dict = NocaseDict({ns: ns for ns in self.cimrepository.namespaces})
-        for name in self.interop_namespace_names:
-            if name in ns_dict:
-                return ns_dict[name]
+        for ns_name in self.cimrepository.namespaces:
+            if self.is_interop_namespace(ns_name):
+                return ns_name
         return None
 
     ################################################################

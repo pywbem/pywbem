@@ -183,7 +183,6 @@ install_requires = [req for req in requirements
                     if req and not re.match(r'[^:]+://', req)]
 dependency_links = [req for req in requirements
                     if req and re.match(r'[^:]+://', req)]
-
 test_requirements = get_requirements('test-requirements.txt')
 
 package_version = get_version(os.path.join('pywbem', '_version.py'))
