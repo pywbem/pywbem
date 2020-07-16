@@ -46,6 +46,7 @@ from ._cim_types import *  # noqa: F403,F401
 from ._cim_constants import *  # noqa: F403,F401
 from ._cim_operations import *  # noqa: F403,F401
 from ._nocasedict import *  # noqa: F403,F401
+from ._nocaselist import *  # noqa: F403,F401
 from ._cim_obj import *  # noqa: F403,F401
 from ._tupleparse import *  # noqa: F403,F401
 from ._cim_http import *  # noqa: F403,F401

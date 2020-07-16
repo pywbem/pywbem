@@ -42,6 +42,10 @@ Released: not yet
 
 **Enhancements:**
 
+* Added a new class `pywbem.NocaseList` that is a case-insensitive but case-preserving
+  list. Objects of this class cannot be created by users, but are returned
+  from some functions (See issue #2253).
+
 **Cleanup:**
 
 **Known issues:**

@@ -13,6 +13,13 @@ NocaseDict
 
 .. automodule:: pywbem._nocasedict
 
+.. _`NocaseList`:
+
+NocaseList
+^^^^^^^^^^
+
+.. automodule:: pywbem._nocaselist
+
 CIMInstanceName
 ^^^^^^^^^^^^^^^
 
