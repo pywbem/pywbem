@@ -2810,21 +2810,39 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+    # NOTE: All embedded property mof defintions that are python strings must
+    # define any included EOL with either the python raw (r'<string' or double
+    # \\ (\\n).
 
     (
         "Test creation of Scalar EmbeddedInstance property",
         dict(
             iid='TSTScalarInstance',
             pname='EmbedInstanceScalar',
-            pstr="instance of TST_Embedded1 {"
-                 "Bool1 = true;"
-                 "};",
+            pstr="instance of TST_Embedded1 {\\n"
+                 "Bool1 = true;\\n"
+                 "};\\n",
             exp_dict=dict(
                 EmbeddedObject='instance',
                 Array=False,
             ),
         ),
-        None, None, OK
+        None, None, RUN
+    ),
+    (
+        "Test creation of Scalar EmbeddedInstance property defined with r",
+        dict(
+            iid='TSTScalarInstance_rawstring',
+            pname='EmbedInstanceScalar',
+            pstr=r"instance of TST_Embedded1 {\n"
+                 r"Bool1 = true;\n"
+                 r"};\n",
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=False,
+            ),
+        ),
+        None, None, RUN
     ),
 
     (
@@ -2832,9 +2850,9 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
         dict(
             iid='TSTArrayInstance',
             pname='EmbedInstanceArray',
-            pstr=['instance of TST_Embedded1 {'
-                  'Bool1 = false;'
-                  '};'],
+            pstr=['instance of TST_Embedded1 {\\n'
+                  'Bool1 = false;\\n'
+                  '};\\n'],
             exp_dict=dict(
                 EmbeddedObject='instance',
                 Array=True,
@@ -2847,14 +2865,14 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     (
         "Test creation of EmbeddedInstance property Array type  more props",
         dict(
-            iid='TSTArrayInstance',
+            iid='TSTArrayInstance_multiple_properties',
             pname='EmbedInstanceArray',
-            pstr=["instance of TST_Embedded1 {"
-                  "Bool1 = false;"
-                  "};",
-                  "instance of TST_Embedded1 {"
-                  "Bool1 = true;"
-                  "};", ],
+            pstr=["instance of TST_Embedded1 {\\n"
+                  "Bool1 = false;\\n"
+                  "};\\n",
+                  "instance of TST_Embedded1 {\\n"
+                  "Bool1 = true;\\n"
+                  "};\\n", ],
             exp_dict=dict(
                 EmbeddedObject='instance',
                 Array=True,
@@ -2867,7 +2885,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     (
         "Test creation of simple EmbeddedObject property",
         dict(
-            iid='tst1',
+            iid='test_embedded_object_scalar',
             pname='EmbedObjectScalar',
             pstr="instance of TST_Embedded1 {"
                  "Bool1 = true;"
@@ -2883,7 +2901,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     (
         "Test for compile error in embedded instance string",
         dict(
-            iid='tst1',
+            iid='test_compile_error',
             pname='EmbedObjectScalar',
             pstr="instancex of TST_Embedded1 {"
                  "Bool1 = true;"
@@ -2899,7 +2917,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     (
         "Test for Classname not found error in compile",
         dict(
-            iid='tst1',
+            iid='test_classname_notfound',
             pname='EmbedObjectScalar',
             pstr="instance of TST_NoClass {"
                  "Bool1 = true;"
@@ -2915,7 +2933,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     (
         "Test for embeddedproperty not found error in compile",
         dict(
-            iid='tst1',
+            iid='test_embedded-property_notfound',
             pname='EmbedObjectScalar',
             pstr="instancex of TST_Embedded1 {"
                  "Bool1NotFound = true;"
@@ -2931,7 +2949,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     (
         "Test for property not found error in compile",
         dict(
-            iid='tst1',
+            iid='test_property_notfound',
             pname='EmbedObjectScalarNOTFOUND',
             pstr="instancex of TST_Embedded1 {"
                  "Bool1NotFound = true;"
@@ -2945,9 +2963,25 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     ),
 
     (
+        "Test for property not found error in compile",
+        dict(
+            iid='test_invalidpropname',
+            pname='EmbedObjectScalar-invalid',
+            pstr="instancex of TST_Embedded1 {"
+                 "Bool1NotFound = true;"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='object',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+
+    (
         "Test creation compile fails arrayness mismatch",
         dict(
-            iid='TSTScalarInstanceError',
+            iid='TSTScalarInstanceError_arrayness',
             pname='EmbedInstanceScalar',
             pstr=["instance of TST_Embedded1 {"
                   "Bool1 = false;"
@@ -2971,6 +3005,37 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
             pstr="class blah{"
                  "boolean Bool1"
                  "};",
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+    (
+        "Test creation compile fail single \n in embededinstancename",
+        dict(
+            iid='TSTScalarInstanceError',
+            pname='EmbedInstanceScalar',
+            pstr="class blah{\n"
+                 "boolean Bool1"
+                 "};",
+            exp_dict=dict(
+                EmbeddedObject='instance',
+                Array=False,
+            ),
+        ),
+        MOFParseError, None, OK
+    ),
+    (
+        "Test embedded qualifierdecl creation fails",
+        dict(
+            iid='TSTQualDeclCreationError',
+            pname='EmbedInstanceScalar',
+            pstr="Qualifier Key : boolean = false, "
+                 "Scope(property, reference),"
+                 "Flavor(DisableOverride, ToSubclass);"
+                  "};",
             exp_dict=dict(
                 EmbeddedObject='instance',
                 Array=False,
