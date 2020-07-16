@@ -24,7 +24,10 @@ requests>=2.20.0
 # is planing to remove python 2.7 support in next version.
 custom-inherit==2.2.2
 yamlloader>=0.5.5
-
+# TODO: Replace nocaselist with final version once released to Pypi
+# nocaselist>=1.0.0
+git+https://github.com/pywbem/nocaselist@andy/initial-code#egg=nocaselist
+# https://github.com/pywbem/nocaselist/tarball/andy%2Finitial-code#egg=nocaselist-1.0.0
 
 # Indirect dependencies are no longer specified here, but for testing with a
 # minimum version, they are listed in the minimum-constraints.txt file.

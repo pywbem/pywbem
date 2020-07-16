@@ -231,19 +231,20 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def namespaces(self):
         """
-        list: List of namespaces in the CIM repository.
+        :term:`NocaseList` of :term:`string`:
+        The names of the namespaces that exist in the CIM repository.
         """
         return self._mainprovider.namespaces
 
     @property
     def interop_namespace_names(self):
         """
-        list of :term:`string`: List of the valid Interop namespace names.
+        :term:`NocaseList` of :term:`string`:
+        The valid Interop namespace names.
+
         Only these names may be the Interop namespace and only one
         Interop namespace may exist in a WBEM server environment.
         This list is defined in :attr:`pywbem.WBEMServer.INTEROP_NAMESPACES`.
-
-        Namespace names need to be considered case insensitive.
         """
         return self._mainprovider.interop_namespace_names
 

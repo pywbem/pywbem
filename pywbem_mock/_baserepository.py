@@ -272,16 +272,12 @@ class BaseRepository(object):
     @compatibleabstractproperty
     def namespaces(self):
         """
-        Read-only property that returns a list with the names of the
-        namespaces existing in this repository. Note that if there were any
-        leading or trailing slash ("/") characters in namespace parameters used
-        to add the namespaces to the repository, they will be removed from
-        the namespaces returned with this property.
+        :term:`NocaseList` of :term:`string`:
+        The names of the namespaces that exist in this CIM repository.
 
-        Returns:
-
-            list of :term:`string`: List containing the namespace names in this
-            repository.
+        Note that if there were any leading or trailing slash ("/") characters
+        in namespace parameters used to add the namespaces to the repository,
+        they will be removed from the namespaces returned with this property.
         """
         pass
 

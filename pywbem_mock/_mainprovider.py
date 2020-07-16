@@ -40,6 +40,7 @@ import uuid
 from collections import Counter
 from copy import deepcopy
 import six
+from nocaselist import NocaseList
 
 # pylint: disable=ungrouped-imports
 try:
@@ -50,13 +51,11 @@ except ImportError:
     from time import clock as delta_time
 # pylint: enable=ungrouped-imports
 
-
 from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIMQualifierDeclaration, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED
-from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
 from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \
@@ -454,14 +453,13 @@ class MainProvider(BaseProvider, ResolverMixin):
 
     def _get_subclass_list_for_enums(self, classname, namespace, class_store):
         """
-        Get class list (i.e names of subclasses for classname for the
-        enumerateinstance methods in a case-insenstive dictionary. The input
-        classname is included in this dictionary.
+        Return the class names of subclasses of the specified classname
+        in the specified namespace, including the specified classname itself.
 
         Returns:
 
-          NocaseDict where only the keys are important, This allows case
-          insensitive matches of the names with Python "for cln in clns".
+          :term:`NocaseList`: Class names of subclasses, including classname
+          itself.
 
         Raises:
 
@@ -475,13 +473,11 @@ class MainProvider(BaseProvider, ResolverMixin):
                 _format("Class {0!A} not found in namespace {1!A}.",
                         classname, namespace))
 
-        clnslist = self._get_subclass_names(classname, class_store, True)
-        clnsdict = NocaseDict()
-        for cln in clnslist:
-            clnsdict[cln] = cln
+        cln_list = self._get_subclass_names(classname, class_store, True)
 
-        clnsdict[classname] = classname
-        return clnsdict
+        result = NocaseList(cln_list)
+        result.append(classname)
+        return result
 
     @staticmethod
     def _validate_instancename_namespace(namespace, object_name):
