@@ -11693,11 +11693,10 @@ def test_CIMProperty_copy(testcase, obj_kwargs):
     # Verify that the copy is a different object
     assert id(obj2) != id(obj1)
 
-    # Verify that the mutable child objects are different objects
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        if not isinstance(obj1.value, (int, six.string_types)):
-            assert id(obj2.value) != id(obj1.value)
+    # TODO: Decide whether mutable child objects should be copied, and add test:
+    # # Verify that the mutable child objects are different objects
+    # if not isinstance(obj1.value, (int, six.string_types)):
+    #     assert id(obj2.value) != id(obj1.value)
 
     # Verify that qualifiers are shallow-copied (see CIMProperty.copy())
     if obj1.qualifiers is not None:
@@ -11715,11 +11714,10 @@ def test_CIMProperty_copy(testcase, obj_kwargs):
     obj2.name = 'SomeNewProp'
     assert obj1.name == obj1_name
 
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        obj1_value = obj1.value
-        obj2.value = None  # avoid going through the types
-        assert obj1.value == obj1_value
+    # TODO: Decide whether value objects should be copied, and add test:
+    # obj1_value = obj1.value
+    # obj2.value = None  # avoid going through the types
+    # assert obj1.value == obj1_value
 
     obj1_type = obj1.type
     obj2.type = 'uint8' if obj1.type == 'string' else 'string'
@@ -18574,11 +18572,10 @@ def test_CIMQualifier_copy(testcase, obj_kwargs):
     # Verify that the copy is a different object
     assert id(obj2) != id(obj1)
 
-    # Verify that the mutable child objects are different objects
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        if not isinstance(obj1.value, (int, six.string_types)):
-            assert id(obj2.value) != id(obj1.value)
+    # TODO: Decide whether mutable child objects should be copied, and add test:
+    # # Verify that the mutable child objects are different objects
+    #     if not isinstance(obj1.value, (int, six.string_types)):
+    #         assert id(obj2.value) != id(obj1.value)
 
     # Verify that the copy can be modified and the original remains unchanged.
     # Most of the attribute setters don't validate the change, because multiple
@@ -18588,11 +18585,10 @@ def test_CIMQualifier_copy(testcase, obj_kwargs):
     obj2.name = 'SomeNewQual'
     assert obj1.name == obj1_name
 
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        obj1_value = obj1.value
-        obj2.value = None  # avoid going through the types
-        assert obj1.value == obj1_value
+    # TODO: Decide whether value objects should be copied, and add test:
+    # obj1_value = obj1.value
+    # obj2.value = None  # avoid going through the types
+    # assert obj1.value == obj1_value
 
     obj1_type = obj1.type
     obj2.type = 'uint8' if obj1.type == 'string' else 'string'
@@ -30522,11 +30518,10 @@ def test_CIMParameter_copy(testcase, obj_kwargs):
     # Verify that the copy is a different object
     assert id(obj2) != id(obj1)
 
-    # Verify that the mutable child objects are different objects
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        if not isinstance(obj1.value, (int, six.string_types)):
-            assert id(obj2.value) != id(obj1.value)
+    # TODO: Decide whether mutable child objects should be copied, and add test:
+    # # Verify that the mutable child objects are different objects
+    # if not isinstance(obj1.value, (int, six.string_types)):
+    #     assert id(obj2.value) != id(obj1.value)
 
     # Verify that qualifiers are shallow-copied (see CIMParameter.copy())
     if obj1.qualifiers is not None:
@@ -30568,11 +30563,10 @@ def test_CIMParameter_copy(testcase, obj_kwargs):
             if obj1.embedded_object == 'instance' else 'instance'
         assert obj1.embedded_object == obj1_embedded_object
 
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        obj1_value = obj1.value
-        obj2.value = None  # avoid going through the types
-        assert obj1.value == obj1_value
+    # TODO: Decide whether value objects should be copied, and add test:
+    # obj1_value = obj1.value
+    # obj2.value = None  # avoid going through the types
+    # assert obj1.value == obj1_value
 
     obj1_qualifiers = obj1.qualifiers
     obj2.qualifiers = [CIMQualifier('SomeNewQualifier', value=True)]
@@ -37602,11 +37596,10 @@ def test_CIMQualifierDeclaration_copy(testcase, obj_kwargs):
     # Verify that the copy is a different object
     assert id(obj2) != id(obj1)
 
-    # Verify that the mutable child objects are different objects
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        if not isinstance(obj1.value, (int, six.string_types)):
-            assert id(obj2.value) != id(obj1.value)
+    # TODO: Decide whether mutable child objects should be copied, and add test:
+    # # Verify that the mutable child objects are different objects
+    # if not isinstance(obj1.value, (int, six.string_types)):
+    #     assert id(obj2.value) != id(obj1.value)
 
     # Verify that the copy can be modified and the original remains unchanged.
     # Most of the attribute setters don't validate the change, because multiple
@@ -37616,11 +37609,10 @@ def test_CIMQualifierDeclaration_copy(testcase, obj_kwargs):
     obj2.name = 'SomeNewQual'
     assert obj1.name == obj1_name
 
-    if False:
-        # TODO: Re-enable once clarified whether value should be deep-copied
-        obj1_value = obj1.value
-        obj2.value = None  # avoid going through the types
-        assert obj1.value == obj1_value
+    # TODO: Decide whether value objects should be copied, and add test:
+    # obj1_value = obj1.value
+    # obj2.value = None  # avoid going through the types
+    # assert obj1.value == obj1_value
 
     obj1_type = obj1.type
     obj2.type = 'uint8' if obj1.type == 'string' else 'string'
