@@ -3035,7 +3035,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
             pstr="Qualifier Key : boolean = false, "
                  "Scope(property, reference),"
                  "Flavor(DisableOverride, ToSubclass);"
-                  "};",
+                 "};",
             exp_dict=dict(
                 EmbeddedObject='instance',
                 Array=False,

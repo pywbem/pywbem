@@ -216,6 +216,9 @@ doc_dependent_files := \
 # PyLint config file
 pylint_rc_file := pylintrc
 
+# PyLint additional options
+pylint_opts := --disable=fixme
+
 # Flake8 config file
 flake8_rc_file := .flake8
 
@@ -624,7 +627,6 @@ $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 	$(PYTHON_CMD) -c "from pywbem import _mof_compiler; _mof_compiler._build(verbose=True)"
 	@echo "makefile: Done creating the LEX/YACC table modules: $(moftab_files)"
 
-# TODO: Once pylint has no more errors, remove the dash "-"
 # PyLint status codes:
 # * 0 if everything went fine
 # * 1 if fatal messages issued
@@ -634,17 +636,20 @@ $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 # * 16 if convention messages issued
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
-# The make command checks for statuses: 1,2,32
 pylint_$(pymn).done: develop_$(pymn).done makefile $(pylint_rc_file) $(py_src_files)
-ifeq ($(python_mn_version),2.6)
+ifeq ($(python_m_version),2)
+	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
+else
+ifeq ($(python_mn_version),3.4)
 	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
 	@echo "makefile: Running Pylint"
 	-$(call RM_FUNC,$@)
 	pylint --version
-	-pylint --rcfile=$(pylint_rc_file) $(py_src_files)
+	pylint $(pylint_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
 	echo "done" >$@
 	@echo "makefile: Done running Pylint"
+endif
 endif
 
 flake8_$(pymn).done: develop_$(pymn).done makefile $(flake8_rc_file) $(py_src_files)
