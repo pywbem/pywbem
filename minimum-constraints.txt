@@ -94,8 +94,7 @@ PyYAML==5.1; python_version >= '3.4'
 six==1.10.0; python_version < '3.8'
 six==1.12.0; python_version >= '3.8'  # required by virtualenv==20.0.0
 requests==2.20.1
-# TODO: Add nocaselist with final version once released to Pypi
-# nocaselist==1.0.0
+nocaselist==1.0.0
 
 
 # Indirect dependencies for installation (not in requirements.txt)
