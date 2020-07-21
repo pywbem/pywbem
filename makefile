@@ -689,8 +689,7 @@ installtest: $(bdist_file) $(sdist_file) $(test_dir)/installtest/test_install.sh
 ifeq ($(PLATFORM),Windows_native)
 	@echo "makefile: Warning: Skipping install test on native Windows" >&2
 else
-# TODO: Enable installtest again once nocaselist has been released to Pypi.
-	echo $(test_dir)/installtest/test_install.sh $(bdist_file) $(sdist_file) $(PYTHON_CMD)
+	$(test_dir)/installtest/test_install.sh $(bdist_file) $(sdist_file) $(PYTHON_CMD)
 endif
 	@echo "makefile: Done running install tests"
 
