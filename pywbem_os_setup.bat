@@ -76,7 +76,9 @@ echo %myname%: Installing Swig ...
 :: We install it here again for users of pywbem.
 :: TODO: Remove the circumvention once it works in pywbem_os_setup.bat.
 
-set _CMD=choco install -y swig
+:: swig 4.0.2 (at least when used with M2Crypto) is missing the swig.swg file,
+:: so we stay with 4.0.1.
+set _CMD=choco install -y swig --version 4.0.1
 :: The following test ensures that this script still works when downloaded standalone.
 if exist ..\tools\retry.bat set _CMD=..\tools\retry.bat %_CMD%
 echo %_CMD%
