@@ -28,6 +28,10 @@ Released: not yet
   in order to fix an XMLSyntaxError raised when encountering UCS-4 characters.
   (See issue #2337)
 
+* Test: Fixed issue with Swig when installing M2Crypto on native Windows
+  in the Appveyor CI, reporting mssing files swig.swg and python.swg.
+  This was fixed by pinning the swig version to 4.0.1. (See issue #2359)
+  
 **Enhancements:**
 
 **Cleanup:**
