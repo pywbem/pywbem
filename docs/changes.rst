@@ -13,14 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 0.17.4.dev1
-------------------
+pywbem 0.17.4
+-------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-07-24
 
 **Bug fixes:**
 
@@ -32,16 +28,6 @@ Released: not yet
   in the Appveyor CI, reporting mssing files swig.swg and python.swg.
   This was fixed by pinning the swig version to 4.0.1. (See issue #2359)
   
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
-
 
 pywbem 0.17.3
 -------------
