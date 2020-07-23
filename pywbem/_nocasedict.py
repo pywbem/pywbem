@@ -491,5 +491,6 @@ class NocaseDict(object):
         hashable objects which compare equal must have the same hash value.
         This method ensures that that condition is satisfied.
         """
+        raise NotImplementedError
         fs = frozenset([(k, self._data[k][1]) for k in self._data])
         return hash(fs)
