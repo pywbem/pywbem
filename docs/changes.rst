@@ -30,7 +30,7 @@ Released: not yet
   - `OpenWBEMUDSConnection`
 
   They are no longer supported since moving to the 'requests' package.
-  
+
 * Updated the change history of 1.0.0b1 to mention one more incompatible change
   where support was removed for specifying multiple directory paths or file paths
   from the `ca_certs` parameter of `WBEMConnection`. Now, only a single
@@ -39,6 +39,14 @@ Released: not yet
 **Deprecations:**
 
 **Bug fixes:**
+
+* Test: Fixed issue with Swig when installing M2Crypto on native Windows in the
+  Appveyor CI, reporting mssing files swig.swg and python.swg. This was fixed
+  by pinning the swig version to 4.0.1 in pywbem_os_setup.bat. This fix only
+  applies to pywbem versions before 1.0.0, but is needed in 1.0.0 as well,
+  because e.g. pywbemtools pulls the fixed pywbem_os_setup.bat file from the
+  master branch of pywbem (one of the recommended approaches, and the only
+  one with a stable URL) (See issue #2359).
 
 **Enhancements:**
 
@@ -86,10 +94,6 @@ Released: 2020-07-15
   in order to fix an XMLSyntaxError raised when encountering UCS-4 characters.
   (See issue #2337)
 
-* Test: Fixed issue with Swig when installing M2Crypto on native Windows
-  in the Appveyor CI, reporting mssing files swig.swg and python.swg.
-  This was fixed by pinning the swig version to 4.0.1. (See issue #2359)
-  
 **Enhancements:**
 
 * Test: Added support for testing from Pypi/GitHub source distribution archives.
