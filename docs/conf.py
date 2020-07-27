@@ -74,7 +74,10 @@ extensions = [
     'sphinx.ext.viewcode',   # disabed, raises anexception
     'sphinx.ext.ifconfig',
     'sphinx_git',            # requires 'sphinx-git' Python package
-    'sphinxcontrib.fulltoc',
+    # Note: sphinx_rtd_theme is not compatible with sphinxcontrib.fulltoc,
+    # but since it already provides a full TOC in the navigation pane, the
+    # sphinxcontrib.fulltoc extension is not needed.
+    'sphinx_rtd_theme',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -216,13 +219,17 @@ viewcode_import = True
 
 # The theme to use for HTML and HTML Help pages.
 # See https://www.sphinx-doc.org/en/stable/theming.html for built-in themes.
-html_theme = "classic"
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.
 # See https://www.sphinx-doc.org/en/stable/theming.html for the options
 # available for built-in themes.
+# For options of the 'sphinx_rtd_theme', see
+# https://sphinx-rtd-theme.readthedocs.io/en/latest/configuring.html
 html_theme_options = {
+    'style_external_links': False,
+    'collapse_navigation': False,
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
