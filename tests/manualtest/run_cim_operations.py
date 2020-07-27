@@ -4194,7 +4194,7 @@ class PEGASUSCLITestClass(PegasusServerTestBase):
         # TODO create an instance write it, get it and test results
 
 
-class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
+class PegasusTestEmbeddedInstance(RegexpMixin, PegasusServerTestBase):
     """Tests a specific provider implemented pegasus class that
         includes an embedded instance.
     """
@@ -4250,7 +4250,7 @@ class PegasusTestEmbeddedInstance(PegasusServerTestBase, RegexpMixin):
             # getInstance
 
 
-class PyWBEMServerClass(PegasusServerTestBase, RegexpMixin):
+class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
     """
        Test the components of the server class and compare with previous tests
        for openpegasus.  This set of tests runs only on openpegasus.
@@ -5875,7 +5875,7 @@ def consume_indication(indication, host):
     COUNTER_LOCK.release()
 
 
-class TestSubscriptionsClass(PyWBEMServerClass, RegexpMixin):
+class TestSubscriptionsClass(RegexpMixin, PyWBEMServerClass):
     """Test the management of indications with the listener class.
        All of these functions depend on existence of a WBEM server to
        which subscriptions/filters are sent."""
