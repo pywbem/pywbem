@@ -35,7 +35,7 @@ from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
 
 
-class _MockMOFWBEMConnection(BaseRepositoryConnection, ResolverMixin):
+class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
     """
     Create an adaption of the MOF compiler BaseRepositoryConnection class to
     interface through the client API to the FakedWBEMConnection acting as the

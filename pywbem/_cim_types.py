@@ -305,7 +305,7 @@ class Char16(CIMType, six.text_type):
         return super(Char16, cls).__new__(cls, _ensure_unicode(content))
 
 
-class CIMDateTime(CIMType, _CIMComparisonMixin):
+class CIMDateTime(_CIMComparisonMixin, CIMType):
     """
     A value of CIM data type datetime.
 
