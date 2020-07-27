@@ -55,6 +55,9 @@ Released: not yet
 * Changed the order of inheriting from mixin classes to put them after the
   main base class, following Python standards for inheritance (issue #2363).
 
+* Docs: Switched to using the sphinx_rtd_scheme for the HTML docs
+  (See issue #2367).
+
 **Known issues:**
 
 * See `list of open issues`_.
