@@ -52,6 +52,9 @@ Released: not yet
 
 **Cleanup:**
 
+* Changed the order of inheriting from mixin classes to put them after the
+  main base class, following Python standards for inheritance (issue #2363).
+
 **Known issues:**
 
 * See `list of open issues`_.

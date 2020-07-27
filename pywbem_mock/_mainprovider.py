@@ -93,7 +93,7 @@ INSTANCE_RETRIEVE_LOCAL_ONLY = False
 # pylint: disable=invalid-name
 
 
-class MainProvider(BaseProvider, ResolverMixin):
+class MainProvider(ResolverMixin, BaseProvider):
     """
     A CIM provider in the mock support of pywbem creates WBEM server responses
     to operations defined in DSP0200 and implements them using a CIM

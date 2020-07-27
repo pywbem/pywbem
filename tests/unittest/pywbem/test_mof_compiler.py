@@ -934,7 +934,7 @@ class TestRefs(MOFTest):
                                   NAME_SPACE)
 
 
-class TestInstCompile(MOFTest, CIMObjectMixin):
+class TestInstCompile(CIMObjectMixin, MOFTest):
     """ Test the compile of instances defined with a class"""
 
     def test_good_compile(self):
@@ -1120,7 +1120,7 @@ class TestInstCompile(MOFTest, CIMObjectMixin):
     # TODO add test for array value in inst, not scalar
 
 
-class TestTypes(MOFTest, CIMObjectMixin):
+class TestTypes(CIMObjectMixin, MOFTest):
     """Test for all CIM data types in a class mof"""
 
     def test_all(self):
@@ -1234,7 +1234,7 @@ def _build_scope(set_true=None):
     return dict_
 
 
-class TestToInstanceFlavor(MOFTest, CIMObjectMixin):
+class TestToInstanceFlavor(CIMObjectMixin, MOFTest):
     """ Test variations on use of ToInstance Flavor"""
 
     def test_no_toinstance_flavor(self):
