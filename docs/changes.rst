@@ -24,6 +24,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Docs: Fixed the description of return values of the keys(), values() and
+  items() methods of CIMInstanceName to state that they return lists on
+  Python 2, but dictionary views on Python 3. (See issue #2373)
+
 **Enhancements:**
 
 **Cleanup:**
@@ -49,7 +53,7 @@ Released: 2020-07-24
 * Test: Fixed issue with Swig when installing M2Crypto on native Windows
   in the Appveyor CI, reporting mssing files swig.swg and python.swg.
   This was fixed by pinning the swig version to 4.0.1. (See issue #2359)
-  
+
 
 pywbem 0.17.3
 -------------
