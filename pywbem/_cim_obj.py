@@ -1483,18 +1483,24 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def keys(self):
         """
-        Return a copied list of the keybinding names of this CIM instance path.
+        Return the keybinding names of this CIM instance path.
 
-        The keybinding names have their original lexical case.
+        The type of the returned object is consistent with the behavior of
+        the corresponding method of the built-in dict class: On Python 2, a
+        list is returned; on Python 3, a dictionary view is returned.
 
-        The order of keybindings is preserved.
+        The keybinding names have their original lexical case and the order of
+        keybindings is preserved.
         """
         return self.keybindings.keys()
 
     def values(self):
         """
-        Return a copied list of the keybinding values
-        of this CIM instance path.
+        Return the keybinding values of this CIM instance path.
+
+        The type of the returned object is consistent with the behavior of
+        the corresponding method of the built-in dict class: On Python 2, a
+        list is returned; on Python 3, a dictionary view is returned.
 
         The order of keybindings is preserved.
         """
@@ -1502,13 +1508,15 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def items(self):
         """
-        Return a copied list of the keybinding names and values
-        of this CIM instance path.
+        Return the keybinding items as a tuple (name, value) of this
+        CIM instance path.
 
-        Each item in the returned list is a tuple of keybinding name (in the
-        original lexical case) and keybinding value.
+        The type of the returned object is consistent with the behavior of
+        the corresponding method of the built-in dict class: On Python 2, a
+        list is returned; on Python 3, a dictionary view is returned.
 
-        The order of keybindings is preserved.
+        The keybinding names have their original lexical case and the order of
+        keybindings is preserved.
         """
         return self.keybindings.items()
 

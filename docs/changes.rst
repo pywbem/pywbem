@@ -48,6 +48,10 @@ Released: not yet
   master branch of pywbem (one of the recommended approaches, and the only
   one with a stable URL) (See issue #2359).
 
+* Docs: Fixed the description of return values of the keys(), values() and
+  items() methods of CIMInstanceName to state that they return lists on
+  Python 2, but dictionary views on Python 3. (See issue #2373)
+
 **Enhancements:**
 
 **Cleanup:**
