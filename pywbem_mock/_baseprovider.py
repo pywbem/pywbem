@@ -401,10 +401,10 @@ class BaseProvider(object):
 
         # local_only server default is True so True or None remove properties
         if local_only is True or local_only is None:
-            for prop, pvalue in klass.properties.items():
+            for prop, pvalue in list(klass.properties.items()):
                 if pvalue.propagated:
                     del klass.properties[prop]
-            for method, mvalue in klass.methods.items():
+            for method, mvalue in list(klass.methods.items()):
                 if mvalue.propagated:
                     del klass.methods[method]
 
@@ -455,7 +455,7 @@ class BaseProvider(object):
         """
         if property_list is not None:
             property_list = [p.lower() for p in property_list]
-            for pname in obj.properties.keys():
+            for pname in list(obj.properties.keys()):
                 if pname.lower() not in property_list:
                     del obj.properties[pname]
 

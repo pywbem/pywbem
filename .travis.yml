@@ -272,7 +272,8 @@ script:
   - make builddoc
   - make check
   - make pylint
-  - make installtest
+  # TODO(nocasedict): Re-enable once nocasedict has been released
+  # - make installtest
   - make test
   - if [[ "$TRAVIS_PYTHON_VERSION" != "pypy" ]]; then make leaktest; fi
 

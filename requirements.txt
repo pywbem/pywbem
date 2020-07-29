@@ -25,6 +25,7 @@ requests>=2.20.0
 custom-inherit==2.2.2
 yamlloader>=0.5.5
 nocaselist>=1.0.0
+nocasedict>=0.5.0
 
 # Indirect dependencies are no longer specified here, but for testing with a
 # minimum version, they are listed in the minimum-constraints.txt file.
