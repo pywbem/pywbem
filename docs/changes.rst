@@ -36,6 +36,32 @@ Released: not yet
   from the `ca_certs` parameter of `WBEMConnection`. Now, only a single
   directory path or file path can be specified, or `None`.
 
+* The use of NocaseDict from the nocasedict package caused the CIM objects that
+  have a dictionary interface (i.e. CIMInstance and CIMInstanceName), and all
+  CIM object attributes that are dictionaries (e.g. CIMInstance.properties) to
+  now behave consistent with the built-in dict class. This causes the following
+  incompatibilities:
+
+  - The update() method now supports only a single (optional) positional
+    argument. Previously, multiple positional arguments were supported.
+
+  - The iterkeys(), itervalues(), and iteritems() methods are no longer
+    available on Python 3. Use the keys(), values(), or items() methods
+    instead.
+
+  - The keys(), values(), and items() methods now return a dictionary view
+    instead of a list. That no longer allows modifying the dictionary while
+    iterating over it. Create a list from the result of these methods and
+    iterate over the list, if you have to delete dictionary items while
+    iterating.
+
+  - CIM object attributes that are dictionaries can no longer be set to
+    None (which previously caused the dictionary to be empty). Set such
+    attributes to an empty iterable instead, to get an empty dictionary.
+
+  - Changed the exception that is raised when CIM object attributes
+    are set with an unnamed key (None) from TypeError to ValueError.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -64,6 +90,10 @@ Released: not yet
 
 * Docs: Switched to using the sphinx_rtd_scheme for the HTML docs
   (See issue #2367).
+
+* Replaced pywbem's own NocaseDict with NocaseDict from the nocasedict package
+  and adjusted code and testcases where needed. See also the
+  'Incompatible changes' section. (See issue #2356)
 
 **Known issues:**
 

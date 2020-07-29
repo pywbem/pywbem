@@ -452,7 +452,8 @@ max-branches=15
 max-statements=50
 
 # Maximum number of parents for a class (see R0901).
-max-parents=7
+# Note: A class based on NocaseDict and its two mixins has already 10 parents.
+max-parents=14
 
 # Maximum number of attributes for a class (see R0902).
 # TODO AM: Are these just variables, without methods? class & instance? including private? including inherited?

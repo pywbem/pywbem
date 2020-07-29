@@ -318,24 +318,27 @@ def test_dict(testcase, obj, exp_dict):
 
     # Test iterkeys()
 
-    assert len(list(obj.iterkeys())) == 2
+    if six.PY2:
+        assert len(list(obj.iterkeys())) == 2
 
-    for key in exp_dict:
-        assert key in obj.iterkeys()
+        for key in exp_dict:
+            assert key in obj.iterkeys()
 
     # Test itervalues()
 
-    assert len(list(obj.itervalues())) == 2
+    if six.PY2:
+        assert len(list(obj.itervalues())) == 2
 
-    for key in exp_dict:
-        assert exp_dict[key] in obj.itervalues()
+        for key in exp_dict:
+            assert exp_dict[key] in obj.itervalues()
 
     # Test iteritems()
 
-    assert len(list(obj.iteritems())) == 2
+    if six.PY2:
+        assert len(list(obj.iteritems())) == 2
 
-    for key in exp_dict:
-        assert (key, exp_dict[key]) in obj.iteritems()
+        for key in exp_dict:
+            assert (key, exp_dict[key]) in obj.iteritems()
 
     # Test in as test -> __getitem__()
 
@@ -368,11 +371,19 @@ def test_dict(testcase, obj, exp_dict):
         assert obj[key] == exp_dict[key]
     assert len(obj) == 4
 
-    obj.update({'Three': '3', 'Four': '4'}, [('Five', '5')])
-    assert obj['three'] == '3'
-    assert obj['four'] == '4'
-    assert obj['five'] == '5'
-    assert len(obj) == 7
+    if version_info < (1, 0):
+        # Updating from more than one positional arg has been removed in 1.0
+        obj.update({'Three': '3', 'Four': '4'}, [('Five', '5')])
+        assert obj['three'] == '3'
+        assert obj['four'] == '4'
+        assert obj['five'] == '5'
+        assert len(obj) == 7
+    else:
+        obj.update({'Three': '3', 'Four': '4', 'Five': '5'})
+        assert obj['three'] == '3'
+        assert obj['four'] == '4'
+        assert obj['five'] == '5'
+        assert len(obj) == 7
 
     obj.update([('Six', '6')], Seven='7', Eight='8')
     assert obj['six'] == '6'
@@ -6628,7 +6639,8 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             new_value=CIMProperty('Pnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 
     # Tests that set the qualifiers attribute
@@ -6771,7 +6783,8 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             new_value=CIMQualifier('Qnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 
     # Tests that set the path attribute
@@ -13972,7 +13985,8 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=CIMQualifier('Qnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 ]
 
@@ -25709,7 +25723,8 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=CIMProperty('Pnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 
     # Tests that set the methods attribute
@@ -25980,7 +25995,8 @@ TESTCASES_CIMCLASS_SETATTR = [
             new_value=CIMQualifier('Qnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 
     # Tests that set the path attribute
@@ -28202,7 +28218,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=CIMParameter('Pnone', 'boolean'),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 
     # Tests that set the qualifiers attribute
@@ -28345,7 +28362,8 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=CIMQualifier('Qnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 ]
 
@@ -32731,7 +32749,8 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=CIMQualifier('Qnone', True),
             exp_attrs=None,
         ),
-        TypeError, None, True  # None as key in NocaseDict
+        ValueError if version_info >= (1, 0) else TypeError, None, True
+        # None as key in NocaseDict
     ),
 ]
 

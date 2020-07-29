@@ -368,7 +368,7 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     line_pos = indent + 1
 
     mof_quals = []
-    for q in qualifiers.itervalues():
+    for q in qualifiers.values():
         mof_quals.append(q.tomof(indent + 1 + MOF_INDENT, maxline, line_pos))
     delim = ',\n' + _indent_str(indent + 1)
     mof.append(delim.join(mof_quals))
@@ -1528,7 +1528,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The order of keybindings is preserved.
         """
-        return self.keybindings.iterkeys()
+        return six.iterkeys(self.keybindings)
 
     def itervalues(self):
         """
@@ -1536,7 +1536,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The order of keybindings is preserved.
         """
-        return self.keybindings.itervalues()
+        return six.itervalues(self.keybindings)
 
     def iteritems(self):
         """
@@ -1548,7 +1548,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The order of keybindings is preserved.
         """
-        return self.keybindings.iteritems()
+        return six.iteritems(self.keybindings)
 
     # pylint: disable=too-many-branches
     def tocimxml(self, ignore_host=False, ignore_namespace=False):
@@ -2088,7 +2088,7 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         ret.append('.')
 
-        for key in case_sorted(self.keybindings.iterkeys()):
+        for key in case_sorted(self.keybindings.keys()):
             value = self.keybindings[key]
 
             ret.append(key)
@@ -2772,7 +2772,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         The order of properties is preserved.
         """
-        return self.properties.iterkeys()
+        return six.iterkeys(self.properties)
 
     def itervalues(self):
         """
@@ -2780,7 +2780,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         The order of properties is preserved.
         """
-        for _, val in self.properties.iteritems():
+        for _, val in six.iteritems(self.properties):
             yield val.value
 
     def iteritems(self):
@@ -2792,7 +2792,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         The order of properties is preserved.
         """
-        for key, val in self.properties.iteritems():
+        for key, val in six.iteritems(self.properties):
             yield (key, val.value)
 
     def tocimxml(self, ignore_path=False):
@@ -2939,7 +2939,7 @@ class CIMInstance(_CIMComparisonMixin):
 
         mof.append(u' {\n')
 
-        for p in self.properties.itervalues():
+        for p in self.properties.values():
             mof.append(p.tomof(True, MOF_INDENT, maxline))
 
         mof.append(u'};\n')
@@ -4186,11 +4186,11 @@ class CIMClass(_CIMComparisonMixin):
 
         mof.append(u'{\n')
 
-        for p in self.properties.itervalues():
+        for p in self.properties.values():
             mof.append(u'\n')
             mof.append(p.tomof(False, MOF_INDENT, maxline))
 
-        for m in self.methods.itervalues():
+        for m in self.methods.values():
             mof.append(u'\n')
             mof.append(m.tomof(MOF_INDENT, maxline))
 
@@ -5574,7 +5574,7 @@ class CIMMethod(_CIMComparisonMixin):
             mof.append(u'(\n')
 
             mof_parms = []
-            for p in self.parameters.itervalues():
+            for p in self.parameters.values():
                 mof_parms.append(p.tomof(indent + MOF_INDENT, maxline))
             mof.append(u',\n'.join(mof_parms))
 
@@ -7225,7 +7225,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     def scopes(self, scopes):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._scopes = NocaseDict(scopes)
+        self._scopes = NocaseDict()
+        if scopes:
+            self._scopes.update(scopes)
 
     @property
     def tosubclass(self):
