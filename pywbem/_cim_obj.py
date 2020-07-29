@@ -348,7 +348,7 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
 
     Parameters:
 
-      qualifiers (NocaseDict): Qualifiers to format.
+      qualifiers (NocaseDict of CIMQualifier): Qualifiers to format.
 
       indent (:term:`integer`): Number of spaces to indent each line of
         the returned string, counted to the opening bracket in the first line.
