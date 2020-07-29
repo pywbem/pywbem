@@ -1482,57 +1482,70 @@ class CIMInstanceName(_CIMComparisonMixin):
         return self.keybindings.get(key, default)
 
     def keys(self):
+        # pylint: disable=line-too-long
         """
         Return the keybinding names of this CIM instance path.
 
         The type of the returned object is consistent with the behavior of
         the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a dictionary view is returned.
+        list is returned; on Python 3, a
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
+        is returned.
 
         The keybinding names have their original lexical case and the order of
         keybindings is preserved.
-        """
+        """  # noqa: E501
+        # pylint: enable=line-too-long
         return self.keybindings.keys()
 
     def values(self):
+        # pylint: disable=line-too-long
         """
         Return the keybinding values of this CIM instance path.
 
         The type of the returned object is consistent with the behavior of
         the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a dictionary view is returned.
+        list is returned; on Python 3, a
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
+        is returned.
 
         The order of keybindings is preserved.
-        """
+        """  # noqa: E501
+        # pylint: enable=line-too-long
         return self.keybindings.values()
 
     def items(self):
+        # pylint: disable=line-too-long
         """
         Return the keybinding items as a tuple (name, value) of this
         CIM instance path.
 
         The type of the returned object is consistent with the behavior of
         the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a dictionary view is returned.
+        list is returned; on Python 3, a
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
+        is returned.
 
         The keybinding names have their original lexical case and the order of
         keybindings is preserved.
-        """
+        """  # noqa: E501
+        # pylint: enable=line-too-long
         return self.keybindings.items()
 
     def iterkeys(self):
         """
-        Iterate through the keybinding names of this CIM instance path.
+        Return an iterator through the keybinding names of this CIM instance
+        path.
 
-        The keybinding names have their original lexical case.
-
-        The order of keybindings is preserved.
+        The keybinding names have their original lexical case, and the order
+        of keybindings is preserved.
         """
         return six.iterkeys(self.keybindings)
 
     def itervalues(self):
         """
-        Iterate through the keybinding values of this CIM instance path.
+        Return an iterator through the keybinding values of this CIM instance
+        path.
 
         The order of keybindings is preserved.
         """
@@ -1540,13 +1553,11 @@ class CIMInstanceName(_CIMComparisonMixin):
 
     def iteritems(self):
         """
-        Iterate through the keybinding names and values
-        of this CIM instance path.
+        Return an iterator through the keybinding items of this CIM instance
+        path, where each item is a tuple of keybinding name and value.
 
-        Each iteration item is a tuple of the keybinding name (in the original
-        lexical case) and the keybinding value.
-
-        The order of keybindings is preserved.
+        The keybinding names have their original lexical case, and the order
+        of keybindings is preserved.
         """
         return six.iteritems(self.keybindings)
 
@@ -2735,62 +2746,81 @@ class CIMInstance(_CIMComparisonMixin):
         return default if prop is None else prop.value
 
     def keys(self):
+        # pylint: disable=line-too-long
         """
-        Return a copied list of the property names of this CIM instance.
+        Return the property names of this CIM instance.
 
-        The property names have their original lexical case.
+        The type of the returned object is consistent with the behavior of
+        the corresponding method of the built-in dict class: On Python 2, a
+        list is returned; on Python 3, a
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
+        is returned.
 
-        The order of properties is preserved.
-        """
+        The property names have their original lexical case, and the order
+        of properties is preserved.
+        """  # noqa: E501
+        # pylint: enable=line-too-long
         return self.properties.keys()
 
     def values(self):
+        # pylint: disable=line-too-long
         """
-        Return a copied list of the property values of this CIM instance.
+        Return a list of the property values of this CIM instance.
+
+        The property values are the ``value`` attributes of the
+        :class:`~pywbem.CIMProperty` objects.
 
         The order of properties is preserved.
-        """
-        return [v.value for v in self.properties.values()]
+        """  # noqa: E501
+        # pylint: enable=line-too-long
+        return [val.value for val in self.properties.values()]
 
     def items(self):
+        # pylint: disable=line-too-long
         """
-        Return a copied list of the property names and values
-        of this CIM instance.
+        Return a list of the properties of this CIM instance, where each item
+        is a tuple of property name and value.
 
-        Each item in the returned list is a tuple of property name (in the
-        original lexical case) and property value.
+        The property values are the ``value`` attributes of the
+        :class:`~pywbem.CIMProperty` objects.
 
-        The order of properties is preserved.
-        """
-        return [(key, v.value) for key, v in self.properties.items()]
+        The property names have their original lexical case, and the order of
+        properties is preserved.
+        """  # noqa: E501
+        # pylint: enable=line-too-long
+        return [(key, val.value) for key, val in self.properties.items()]
 
     def iterkeys(self):
         """
-        Iterate through the property names of this CIM instance.
+        Return an iterator through the property names of this CIM instance.
 
-        The property names have their original lexical case.
-
-        The order of properties is preserved.
+        The property names have their original lexical case, and the order
+        of properties is preserved.
         """
         return six.iterkeys(self.properties)
 
     def itervalues(self):
         """
-        Iterate through the property values of this CIM instance.
+        Return an iterator through the property values of this CIM instance.
+
+        The property values are the ``value`` attributes of the
+        :class:`~pywbem.CIMProperty` objects.
 
         The order of properties is preserved.
         """
-        for _, val in six.iteritems(self.properties):
+        for val in six.itervalues(self.properties):
             yield val.value
 
     def iteritems(self):
         """
-        Iterate through the property names and values of this CIM instance.
+        Return an iterator through the properties of this CIM instance, where
+        each item is a tuple of property name and value.
 
-        Each iteration item is a tuple of the property name (in the original
-        lexical case) and the property value.
+        The property values are the ``value`` attributes of the
+        :class:`~pywbem.CIMProperty` objects.
 
-        The order of properties is preserved.
+        The property names have their original lexical case, and the order
+        of properties is preserved.
         """
         for key, val in six.iteritems(self.properties):
             yield (key, val.value)
