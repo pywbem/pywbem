@@ -64,6 +64,14 @@ Released: not yet
 
 **Deprecations:**
 
+* Deprecated the iterkeys(), itervalues() and iteritems() methods of
+  CIMInstanceName on Python 3, to be more consistent with the built-in dict
+  class that does not support these methods on Python 3. Use the keys(),
+  values() or items() methods instead. Because the iter..() methods of
+  CIMInstance have a different semantics (they return the property values
+  and not the CIMProperty objects), this has not been done for the iter..()
+  methods of CIMInstance. (See issue #2372)
+
 **Bug fixes:**
 
 * Test: Fixed issue with Swig when installing M2Crypto on native Windows in the
