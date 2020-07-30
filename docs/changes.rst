@@ -83,6 +83,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Test: Enabled coveralls to run on all Python versions in the Travis CI,
+  resulting in a combined coverage for all Python versions.
+
 **Cleanup:**
 
 * Changed the order of inheriting from mixin classes to put them after the
