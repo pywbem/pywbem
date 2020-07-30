@@ -1539,7 +1539,17 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The keybinding names have their original lexical case, and the order
         of keybindings is preserved.
+
+        Deprecated: This method is deprecated on Python 3 and will be removed
+        in a future version of pywbem, consistent with the built-in dict class
+        on Python 3. Use the :meth:`keys` method instead.
         """
+        if six.PY3:
+            warnings.warn(
+                "The iterkeys() method of pywbem.CIMInstanceName has been "
+                "deprecated on Python 3 and will be removed in a future "
+                "version of pywbem",
+                DeprecationWarning, 2)
         return six.iterkeys(self.keybindings)
 
     def itervalues(self):
@@ -1548,7 +1558,17 @@ class CIMInstanceName(_CIMComparisonMixin):
         path.
 
         The order of keybindings is preserved.
+
+        Deprecated: This method is deprecated on Python 3 and will be removed
+        in a future version of pywbem, consistent with the built-in dict class
+        on Python 3. Use the :meth:`values` method instead.
         """
+        if six.PY3:
+            warnings.warn(
+                "The itervalues() method of pywbem.CIMInstanceName has been "
+                "deprecated on Python 3 and will be removed in a future "
+                "version of pywbem",
+                DeprecationWarning, 2)
         return six.itervalues(self.keybindings)
 
     def iteritems(self):
@@ -1558,7 +1578,17 @@ class CIMInstanceName(_CIMComparisonMixin):
 
         The keybinding names have their original lexical case, and the order
         of keybindings is preserved.
+
+        Deprecated: This method is deprecated on Python 3 and will be removed
+        in a future version of pywbem, consistent with the built-in dict class
+        on Python 3. Use the :meth:`items` method instead.
         """
+        if six.PY3:
+            warnings.warn(
+                "The iteritems() method of pywbem.CIMInstanceName has been "
+                "deprecated on Python 3 and will be removed in a future "
+                "version of pywbem",
+                DeprecationWarning, 2)
         return six.iteritems(self.keybindings)
 
     # pylint: disable=too-many-branches
