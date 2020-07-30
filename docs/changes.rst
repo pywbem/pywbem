@@ -52,6 +52,9 @@ Released: not yet
   items() methods of CIMInstanceName to state that they return lists on
   Python 2, but dictionary views on Python 3. (See issue #2373)
 
+* Install: Increased the minimum version of six to 1.14.0 (it was 1.12.0 on
+  Python 3.8 and 1.10.0 below Python 3.8). (See issue #2379)
+
 **Enhancements:**
 
 **Cleanup:**

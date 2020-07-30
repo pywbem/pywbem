@@ -17,8 +17,8 @@ PyYAML>=5.3; python_version == '2.7'
 PyYAML>=5.1,<5.3; python_version == '3.4'
 PyYAML>=5.1; python_version > '3.4'
 # virtualenv 20.0.0 (required on py3.8+) requires six>=0.12.0
-six>=1.10.0; python_version < '3.8'
-six>=1.12.0; python_version >= '3.8'
+# tox 3.17 (used in dev-requirements.txt) requires six>=1.14.0
+six>=1.14.0
 requests>=2.20.0
 # Pinned because this is the current version and the developer
 # is planing to remove python 2.7 support in next version.
