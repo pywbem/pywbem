@@ -292,53 +292,77 @@ def test_dict(testcase, obj, exp_dict):
 
     assert len(obj) == len(exp_dict)
 
-    # Test keys()
+    # Test keys() iteration
 
-    keys = obj.keys()
+    keys = list(obj.keys())
     assert len(keys) == 2
-
     for key in exp_dict:
         assert key in keys
 
-    # Test values()
+    # Test keys() containment
 
-    values = obj.values()
+    for key in exp_dict:
+        assert key in obj.keys()
+
+    # Test values() iteration
+
+    values = list(obj.values())
     assert len(values) == 2
-
     for key in exp_dict:
         assert exp_dict[key] in values
 
-    # Test items()
+    # Test values() containment
 
-    items = obj.items()
+    for key in exp_dict:
+        assert exp_dict[key] in obj.values()
+
+    # Test items() iteration
+
+    items = list(obj.items())
     assert len(items) == 2
-
     for key in exp_dict:
         assert (key, exp_dict[key]) in items
 
-    # Test iterkeys()
+    # Test items() containment
 
-    if six.PY2:
-        assert len(list(obj.iterkeys())) == 2
+    for key in exp_dict:
+        assert (key, exp_dict[key]) in obj.items()
 
-        for key in exp_dict:
-            assert key in obj.iterkeys()
+    # Test iterkeys() iteration
 
-    # Test itervalues()
+    iterkeys = list(obj.iterkeys())
+    assert len(iterkeys) == 2
+    for key in exp_dict:
+        assert key in iterkeys
 
-    if six.PY2:
-        assert len(list(obj.itervalues())) == 2
+    # Test iterkeys() containment
 
-        for key in exp_dict:
-            assert exp_dict[key] in obj.itervalues()
+    for key in exp_dict:
+        assert key in obj.iterkeys()
 
-    # Test iteritems()
+    # Test itervalues() iteration
 
-    if six.PY2:
-        assert len(list(obj.iteritems())) == 2
+    itervalues = list(obj.itervalues())
+    assert len(itervalues) == 2
+    for key in exp_dict:
+        assert exp_dict[key] in itervalues
 
-        for key in exp_dict:
-            assert (key, exp_dict[key]) in obj.iteritems()
+    # Test itervalues() containment
+
+    for key in exp_dict:
+        assert exp_dict[key] in obj.itervalues()
+
+    # Test iteritems() iteration
+
+    iteritems = list(obj.iteritems())
+    assert len(iteritems) == 2
+    for key in exp_dict:
+        assert (key, exp_dict[key]) in iteritems
+
+    # Test iteritems() containment
+
+    for key in exp_dict:
+        assert (key, exp_dict[key]) in obj.iteritems()
 
     # Test in as test -> __getitem__()
 
