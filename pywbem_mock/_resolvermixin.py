@@ -100,7 +100,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         4. Whether the qualifier can be overridden.
         5. Whether the qualifier should be propagated to the subclass.
         """
-        for qname, qvalue in qualifier_list.items():
+        for qname, qual in qualifier_list.items():
             if not qualifier_store.object_exists(qname):
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
@@ -108,13 +108,13 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                             "has no qualifier declaration in repository.",
                             qname, new_class.classname))
             q_decl = qualifier_store.get(qname)
-            if qvalue.type != q_decl.type:
+            if qual.type != q_decl.type:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Qualifier {0!A} used in new class {1!A} has "
                             "invalid type {2!A} (Qualifier declaration type: "
                             "{3!A}).",
-                            qname, new_class.classname, qvalue.type,
+                            qname, new_class.classname, qual.type,
                             q_decl.type))
             if scope not in q_decl.scopes and 'ANY' not in q_decl.scopes:
                 raise CIMError(
@@ -278,15 +278,15 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         # Copy objects from from superclass that are not in new_class
         # Placed after loop with items in new_object so they are not part
         # of that loop.
-        for obj_name, obj_value in six.iteritems(superclass_objects):
+        for obj_name, obj in six.iteritems(superclass_objects):
             if obj_name not in new_objects:
-                new_value = obj_value.copy()
-                new_value.propagated = True
-                assert obj_value.class_origin
-                new_value.class_origin = obj_value.class_origin
-                for qualifier in new_value.qualifiers.values():
+                new_obj = obj.copy()
+                new_obj.propagated = True
+                assert obj.class_origin
+                new_obj.class_origin = obj.class_origin
+                for qualifier in new_obj.qualifiers.values():
                     qualifier.propagated = True
-                new_objects[obj_name] = new_value
+                new_objects[obj_name] = new_obj
 
     def _set_new_object(self, new_obj, inherited_obj, new_class, superclass,
                         qualifier_store, propagated, type_str):
@@ -331,19 +331,19 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         # If propagate flag not set, initialize the qualfiers
         # by setting flavor defaults and propagated False
         if not propagate:
-            for qname, qvalue in new_quals.items():
-                self._init_qualifier(qvalue, qualifier_store)
+            for qname, qual in new_quals.items():
+                self._init_qualifier(qual, qualifier_store)
             return
 
         # resolve qualifiers not in inherited object
-        for qname, qvalue in new_quals.items():
+        for qname, qual in new_quals.items():
             if not inherited_quals or qname not in inherited_quals:
-                self._init_qualifier(qvalue, qualifier_store)
+                self._init_qualifier(qual, qualifier_store)
 
         # resolve qualifiers from inherited object
-        for inh_qname, inh_qvalue in inherited_quals.items():
-            if inh_qvalue.tosubclass:
-                if inh_qvalue.overridable:
+        for inh_qname, inh_qual in inherited_quals.items():
+            if inh_qual.tosubclass:
+                if inh_qual.overridable:
                     # if not in new quals, copy to new quals, else ignore
                     if inh_qname not in new_quals:
                         new_quals[inh_qname] = inherited_quals[inh_qname].copy()
@@ -376,7 +376,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
             else:  # not tosubclass, i.e. restricted.
                 if inh_qname in new_quals:
-                    if inh_qvalue.overridable or inh_qvalue.overridable is None:
+                    if inh_qual.overridable or inh_qual.overridable is None:
                         new_quals[inh_qname].propagated = True
 
                     else:
@@ -450,14 +450,14 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         if qualifier_store:
             self._validate_qualifiers(new_class.qualifiers, qualifier_store,
                                       new_class, 'CLASS')
-            for pvalue in new_class.properties.values():
-                self._validate_qualifiers(pvalue.qualifiers, qualifier_store,
+            for prop in new_class.properties.values():
+                self._validate_qualifiers(prop.qualifiers, qualifier_store,
                                           new_class, 'PROPERTY')
-            for mvalue in new_class.methods.values():
-                self._validate_qualifiers(mvalue.qualifiers, qualifier_store,
+            for meth in new_class.methods.values():
+                self._validate_qualifiers(meth.qualifiers, qualifier_store,
                                           new_class, 'METHOD')
-                for pvalue in mvalue.parameters.values():
-                    self._validate_qualifiers(pvalue.qualifiers,
+                for parm in meth.parameters.values():
+                    self._validate_qualifiers(parm.qualifiers,
                                               qualifier_store,
                                               new_class, 'PARAMETER')
 
