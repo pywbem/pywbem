@@ -16,11 +16,10 @@ funcsigs>=1.0.2; python_version < '3.3'
 # pytest 5.0.0 has removed support for Python < 3.5
 # pytest 4.3.1 solves an issue on Python 3 with minimum package levels
 # pytest==6.0.0 causes pylint to report "not-callable" issues
-# pytest>=6.0.0 on py38 causes pylint to report "abstract-method" issues
+# pytest>=6.0.0 causes pylint to report "abstract-method" issues
 pytest>=4.3.1,<5.0.0; python_version < '3.5'
-pytest>=4.3.1,!=6.0.0; python_version >= '3.5' and python_version <= '3.6'
-pytest>=4.4.0,!=6.0.0; python_version == '3.7'
-pytest>=4.4.0,<6.0.0; python_version >= '3.8'
+pytest>=4.3.1,<6.0.0; python_version >= '3.5' and python_version <= '3.6'
+pytest>=4.4.0,<6.0.0; python_version >= '3.7'
 testfixtures>=6.9.0
 # colorama 0.4.0 removed support for Python 3.4
 colorama>=0.3.9,<0.4.0; python_version <= '3.4'
