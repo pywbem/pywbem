@@ -60,15 +60,20 @@ Released: not yet
   - Changed the exception that is raised when CIM object attributes
     are set with an unnamed key (None) from TypeError to ValueError.
 
+* The dictionary view objects that are now returned on Python 3 by
+  CIMInstance.values() and CIMInstance.items() can no longer be used to iterate
+  over when the underlying properties dictionary is modified in the loop.
+  The returned dictionary view raises RuntimeError if the dictionary is
+  modified while iterating, so that case is properly detected.
+  Put list() around the calls to these methods if you need to modify the
+  underlying properties dictionary in the loop. (See issue #2391)
+
 **Deprecations:**
 
 * Deprecated the iterkeys(), itervalues() and iteritems() methods of
-  CIMInstanceName on Python 3, to be more consistent with the built-in dict
-  class that does not support these methods on Python 3. Use the keys(),
-  values() or items() methods instead. Because the iter..() methods of
-  CIMInstance have a different semantics (they return the property values
-  and not the CIMProperty objects), this has not been done for the iter..()
-  methods of CIMInstance. (See issue #2372)
+  CIMInstance and CIMInstanceName on Python 3, to be more consistent with the
+  built-in dict class that does not support these methods on Python 3. Use the
+  keys(), values() or items() methods instead. (See issue #2372)
 
 **Bug fixes:**
 
@@ -107,6 +112,13 @@ Released: not yet
 * Replaced pywbem's own NocaseDict with NocaseDict from the nocasedict package
   and adjusted code and testcases where needed. See also the
   'Incompatible changes' section. (See issue #2356)
+
+* Improved the values() and items() methods of CIMInstance on Python 3 to
+  return a dictionary view object instead of a list, to improve performance
+  and for consistency with Python 3 behavior of the built-in dictionary. The
+  keys() method already returned a dictionary view object on Python 3.
+  The value item in each iteration is the same as before this change, i.e. the
+  CIMProperty.value attribute. (See issue #2391)
 
 **Known issues:**
 

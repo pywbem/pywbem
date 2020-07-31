@@ -246,11 +246,15 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-from xml.dom.minidom import Element
+try:
+    from collections.abc import ValuesView, ItemsView
+except ImportError:
+    from collections import ValuesView, ItemsView
 try:
     from builtins import type as builtin_type
 except ImportError:  # py2
     from __builtin__ import type as builtin_type
+from xml.dom.minidom import Element
 import six
 
 from . import _cim_xml
@@ -333,6 +337,60 @@ ALL_CIMTYPES = set([
     'real64',
     'reference',
 ])
+
+
+class _DictView(object):
+    # pylint: disable=too-few-public-methods
+    """
+    Base class for directory views, with commmon methods.
+    """
+
+    def __init__(self, dct):
+        self._dict = dct
+
+    def __len__(self):
+        return len(self._dict)
+
+    def __contains__(self, x):
+        # pylint: disable=invalid-name
+        return x in iter(self)
+
+    def __reversed__(self):
+        return reversed(list(iter(self)))
+
+    def __repr__(self):
+        return "{t}({d!r})".format(
+            t=self.__class__.__name__, d=self._dict)
+
+
+class propvalue_values(_DictView, ValuesView):
+    # pylint: disable=too-few-public-methods,invalid-name
+    """
+    Dictionary view returned by CIMInstance.values(), returning the `value`
+    attribute of the CIMProperty objects that are iterated in the view.
+
+    The objects iterated over are the CIMProperty objects in the
+    CIMinstance.properties dictionary.
+   """
+
+    def __iter__(self):
+        for prop in self._dict.values():
+            yield prop.value
+
+
+class propvalue_items(_DictView, ItemsView):
+    # pylint: disable=too-few-public-methods,invalid-name
+    """
+    Dictionary view returned by CIMInstance.items(), returning the `value`
+    attribute of the CIMProperty objects that are iterated in the view.
+
+    The objects iterated over are the CIMProperty objects in the
+    CIMinstance.properties dictionary.
+    """
+
+    def __iter__(self):
+        for pname, prop in self._dict.items():
+            yield pname, prop.value
 
 
 def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
@@ -2795,30 +2853,42 @@ class CIMInstance(_CIMComparisonMixin):
     def values(self):
         # pylint: disable=line-too-long
         """
-        Return a list of the property values of this CIM instance.
+        Return the property values (the ``value`` attribute of the
+        :class:`~pywbem.CIMProperty` object) of this CIM instance.
 
-        The property values are the ``value`` attributes of the
-        :class:`~pywbem.CIMProperty` objects.
+        The type of the returned object is consistent with the behavior of
+        the corresponding method of the built-in dict class: On Python 2, a
+        list is returned; on Python 3, a
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
+        is returned.
 
         The order of properties is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        return [val.value for val in self.properties.values()]
+        if six.PY2:
+            return [val.value for val in self.properties.values()]
+        return propvalue_values(self.properties)
 
     def items(self):
         # pylint: disable=line-too-long
         """
-        Return a list of the properties of this CIM instance, where each item
-        is a tuple of property name and value.
+        Return the properties of this CIM instance, where each item
+        is a tuple of property name and value (the ``value`` attribute of the
+        :class:`~pywbem.CIMProperty` object).
 
-        The property values are the ``value`` attributes of the
-        :class:`~pywbem.CIMProperty` objects.
+        The type of the returned object is consistent with the behavior of
+        the corresponding method of the built-in dict class: On Python 2, a
+        list is returned; on Python 3, a
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
+        is returned.
 
         The property names have their original lexical case, and the order of
         properties is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        return [(key, val.value) for key, val in self.properties.items()]
+        if six.PY2:
+            return [(key, val.value) for key, val in self.properties.items()]
+        return propvalue_items(self.properties)
 
     def iterkeys(self):
         """
@@ -2826,7 +2896,17 @@ class CIMInstance(_CIMComparisonMixin):
 
         The property names have their original lexical case, and the order
         of properties is preserved.
+
+        Deprecated: This method is deprecated on Python 3 and will be removed
+        in a future version of pywbem, consistent with the built-in dict class
+        on Python 3. Use the :meth:`keys` method instead.
         """
+        if six.PY3:
+            warnings.warn(
+                "The iterkeys() method of pywbem.CIMInstance has been "
+                "deprecated on Python 3 and will be removed in a future "
+                "version of pywbem",
+                DeprecationWarning, 2)
         return six.iterkeys(self.properties)
 
     def itervalues(self):
@@ -2837,7 +2917,17 @@ class CIMInstance(_CIMComparisonMixin):
         :class:`~pywbem.CIMProperty` objects.
 
         The order of properties is preserved.
+
+        Deprecated: This method is deprecated on Python 3 and will be removed
+        in a future version of pywbem, consistent with the built-in dict class
+        on Python 3. Use the :meth:`values` method instead.
         """
+        if six.PY3:
+            warnings.warn(
+                "The itervalues() method of pywbem.CIMInstance has been "
+                "deprecated on Python 3 and will be removed in a future "
+                "version of pywbem",
+                DeprecationWarning, 2)
         for val in six.itervalues(self.properties):
             yield val.value
 
@@ -2851,7 +2941,17 @@ class CIMInstance(_CIMComparisonMixin):
 
         The property names have their original lexical case, and the order
         of properties is preserved.
+
+        Deprecated: This method is deprecated on Python 3 and will be removed
+        in a future version of pywbem, consistent with the built-in dict class
+        on Python 3. Use the :meth:`items` method instead.
         """
+        if six.PY3:
+            warnings.warn(
+                "The iteritems() method of pywbem.CIMInstance has been "
+                "deprecated on Python 3 and will be removed in a future "
+                "version of pywbem",
+                DeprecationWarning, 2)
         for key, val in six.iteritems(self.properties):
             yield (key, val.value)
 
