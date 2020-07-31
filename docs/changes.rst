@@ -28,6 +28,10 @@ Released: not yet
   items() methods of CIMInstanceName to state that they return lists on
   Python 2, but dictionary views on Python 3. (See issue #2373)
 
+* Test: Added libffi-devel as an OS-level package on CygWin, it is needed by
+  the Python cffi package which recently started to be needed.
+  (See issue #2394)
+
 **Enhancements:**
 
 **Cleanup:**

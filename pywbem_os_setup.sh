@@ -295,6 +295,7 @@ elif [[ "$distro_family" == "cygwin" ]]; then
     install_cygwin libcrypt-devel
     # For pyzmq (used by Jupyter):
     install_cygwin libzmq-devel
+    install_cygwin libffi-devel
     if [[ "$py_m" == "3" ]]; then
       # For pyzmq, lxml:
       install_cygwin python3-devel
