@@ -89,6 +89,10 @@ Released: not yet
 * Install: Increased the minimum version of six to 1.14.0 (it was 1.12.0 on
   Python 3.8 and 1.10.0 below Python 3.8). (See issue #2379)
 
+* Test: Added libffi-devel as an OS-level package on CygWin, it is needed by
+  the Python cffi package which recently started to be needed.
+  (See issue #2394)
+
 **Enhancements:**
 
 * Test: Enabled coveralls to run on all Python versions in the Travis CI,
