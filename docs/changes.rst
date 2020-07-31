@@ -13,10 +13,8 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.0.dev1
------------------
-
-This version contains all fixes up to pywbem 0.17.x.
+pywbem 1.0.0b4.dev1
+-------------------
 
 Released: not yet
 
