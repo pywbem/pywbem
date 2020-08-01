@@ -13,10 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.0b4.dev1
--------------------
+pywbem 1.0.0b4
+--------------
 
-Released: not yet
+Released: 2020-08-02
 
 **Incompatible changes:**
 
@@ -119,12 +119,6 @@ Released: not yet
   keys() method already returned a dictionary view object on Python 3.
   The value item in each iteration is the same as before this change, i.e. the
   CIMProperty.value attribute. (See issue #2391)
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.0b3
