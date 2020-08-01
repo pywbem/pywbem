@@ -17,7 +17,7 @@ import unittest
 import sys as _sys
 import errno
 import logging as _logging
-from time import time
+from time import time, sleep
 import datetime
 from random import randint
 import requests
@@ -28,10 +28,12 @@ pywbem = import_installed('pywbem')
 from pywbem import WBEMListener  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Verbosity control:
+VERBOSE_DETAILS = False  # Show indications sent and received
+VERBOSE_SUMMARY = False  # Show summary for each run
 
 RCV_COUNT = 0
-RCV_FAIL = False
-VERBOSE = False
+RCV_ERRORS = False
 LISTENER = None
 
 
@@ -95,23 +97,6 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
     return data_template % data
 
 
-def send_indication(url, headers, payload, verbose):
-    """Send a single indication using Python requests"""
-
-    try:
-        response = requests.post(url, headers=headers, data=payload, timeout=4)
-    except Exception as ex:  # pylint: disable=broad-except
-        print('Exception %s' % ex)
-        return False
-
-    if verbose:
-        print('\nResponse code=%s headers=%s data=%s' % (response.status_code,
-                                                         response.headers,
-                                                         response.text))
-
-    return True if(response.status_code == 200) else False
-
-
 def _process_indication(indication, host):
     """
     This function gets called when an indication is received.
@@ -127,19 +112,35 @@ def _process_indication(indication, host):
     if there is a mismatch.
     """
 
+    # Note: Global variables that are modified must be declared global
     global RCV_COUNT  # pylint: disable=global-statement
-    global RCV_FAIL  # pylint: disable=global-statement
+    global RCV_ERRORS  # pylint: disable=global-statement
 
-    counter = indication.properties['SequenceNumber'].value
-    if int(counter) != RCV_COUNT:
-        RCV_FAIL = True
-        print('ERROR in process indication counter=%s, COUNT=%s' % (counter,
-                                                                    RCV_COUNT))
-    # print('counter %s COUNT %s' % (counter, RCV_COUNT))
-    RCV_COUNT += 1
-    if VERBOSE:
-        print("Received indication %s from %s:\n%s" % (RCV_COUNT, host,
-                                                       indication.tomof()))
+    try:
+        if VERBOSE_DETAILS:
+            print("\nListener received indication #{} with:".
+                  format(RCV_COUNT))
+            print("  host={}".format(host))
+            print("  indication(as MOF)={}".
+                  format(indication.tomof().strip('\n')))
+            _sys.stdout.flush()
+
+        send_count = int(indication.properties['SequenceNumber'].value)
+        if send_count != RCV_COUNT:
+            print("Error in process_indication(): Assertion error: "
+                  "Unexpected SequenceNumber in received indication #{}: "
+                  "got {}, expected {}".
+                  format(RCV_COUNT, send_count, RCV_COUNT))
+            _sys.stdout.flush()
+            RCV_ERRORS = True
+
+        RCV_COUNT += 1
+
+    except Exception as exc:  # pylint: disable=broad-except
+        print("Error in process_indication(): {}: {}".
+              format(exc.__class__.__name__, exc))
+        _sys.stdout.flush()
+        RCV_ERRORS = True
 
 
 class TestIndications(unittest.TestCase):
@@ -157,8 +158,8 @@ class TestIndications(unittest.TestCase):
         """
         global RCV_COUNT  # pylint: disable=global-statement
         global LISTENER  # pylint: disable=global-statement
-        global RCV_FAIL  # pylint: disable=global-statement
-        RCV_FAIL = False  # pylint: disable=global-statement
+        global RCV_ERRORS  # pylint: disable=global-statement
+        RCV_ERRORS = False  # pylint: disable=global-statement
 
         _logging.basicConfig(stream=_sys.stderr, level=_logging.WARNING,
                              format='%(levelname)s: %(message)s')
@@ -186,9 +187,8 @@ class TestIndications(unittest.TestCase):
         """
 
         # pylint: disable=global-variable-not-assigned
-        global VERBOSE  # pylint: disable=global-statement
-        global RCV_FAIL  # pylint: disable=global-statement
-        RCV_FAIL = False
+        global RCV_ERRORS  # pylint: disable=global-statement
+        RCV_ERRORS = False
         host = 'localhost'
         try:
             self.createlistener(host, http_port)
@@ -216,26 +216,51 @@ class TestIndications(unittest.TestCase):
                 payload = create_indication_data(msg_id, i, delta_time,
                                                  cim_protocol_version)
 
-                if VERBOSE:
-                    print('headers=%s\n\npayload=%s' % (headers, payload))
+                if VERBOSE_DETAILS:
+                    print("\nTestcase sending indication #{} with:".format(i))
+                    print("  url={}".format(full_url))
+                    print("  headers={}".format(headers))
+                    print("  payload={}".format(payload))
+                    _sys.stdout.flush()
 
-                success = send_indication(full_url, headers, payload, VERBOSE)
+                try:
+                    response = requests.post(
+                        full_url, headers=headers, data=payload, timeout=4)
+                except requests.exceptions.RequestException as exc:
+                    self.fail("Sending indication #{} raised {}: {}".
+                              format(i, exc.__class__.__name__, exc))
 
-                if success:
-                    if VERBOSE:
-                        print('sent # %s' % i)
-                else:
-                    self.fail('Error return from send. Terminating.')
+                if VERBOSE_DETAILS:
+                    print("\nTestcase received response from sending "
+                          "indication #{}:".format(i))
+                    print("  status_code={}".format(response.status_code))
+                    print("  headers={}".format(response.headers))
+                    print("  payload={}".format(response.text))
+                    _sys.stdout.flush()
+
+                if response.status_code != 200:
+                    self.fail("Sending indication #{} failed with: "
+                              "status={}, data={!r}, headers={!r}".
+                              format(i, response.status_code, response.text,
+                                     response.headers))
 
             endtime = timer.elapsed_sec()
-            if VERBOSE:
-                print('Sent %s indications in %s sec or %.2f ind/sec' %
-                      (send_count, endtime, (send_count / endtime)))
 
-            self.assertEqual(send_count, RCV_COUNT,
-                             'Mismatch between sent and rcvd')
-            self.assertFalse(RCV_FAIL, 'Sequence numbers do not match')
-            RCV_FAIL = False
+            # Make sure the listener thread has processed all indications
+            sleep(1)
+
+            if VERBOSE_SUMMARY:
+                print("\nSent {} indications in {} sec or {:.2f} ind/sec".
+                      format(send_count, endtime, (send_count / endtime)))
+                _sys.stdout.flush()
+
+            assert not RCV_ERRORS, \
+                "Errors occurred in process_indication(), as printed to stdout"
+
+            assert send_count == RCV_COUNT, \
+                "Mismatch between total send count {} and receive count {}". \
+                format(send_count, RCV_COUNT)
+
         finally:
             LISTENER.stop()
 
@@ -365,5 +390,4 @@ class TestIndications(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    VERBOSE = False
     unittest.main()
