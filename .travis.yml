@@ -29,25 +29,25 @@ sudo: required
 matrix:
   include:
 
-    - os: linux
-      language: python
-      python: "2.6"
-      dist: trusty
-      env:
-        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "2.6"
+#      dist: trusty
+#      env:
+#        - PACKAGE_LEVEL=minimum
 
-    - os: linux
-      language: python
-      python: "2.6"
-      dist: trusty
-      env:
-        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "2.6"
+#      dist: trusty
+#      env:
+#        - PACKAGE_LEVEL=latest
 
-    - os: linux
-      language: python
-      python: "2.7"
-      env:
-        - PACKAGE_LEVEL=minimum
+#    - os: linux
+#      language: python
+#      python: "2.7"
+#      env:
+#        - PACKAGE_LEVEL=minimum
 
 #    - os: linux
 #      language: python
@@ -61,11 +61,11 @@ matrix:
 #      env:
 #        - PACKAGE_LEVEL=minimum
 
-    - os: linux
-      language: python
-      python: "3.4"
-      env:
-        - PACKAGE_LEVEL=latest
+#    - os: linux
+#      language: python
+#      python: "3.4"
+#      env:
+#        - PACKAGE_LEVEL=latest
 
 #    - os: linux
 #      language: python
@@ -155,21 +155,21 @@ matrix:
 #        - PYTHON=2
 #        - PACKAGE_LEVEL=latest
 
-#    - os: osx
-#      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=3
-#        - PACKAGE_LEVEL=minimum
+    - os: osx
+      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
+      language: generic
+      python:
+      env:
+        - PYTHON=3
+        - PACKAGE_LEVEL=minimum
 
-#    - os: osx
-#      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
-#      language: generic
-#      python:
-#      env:
-#        - PYTHON=3
-#        - PACKAGE_LEVEL=latest
+    - os: osx
+      osx_image: xcode12  # macOS 10.15.5 with python3 @ 3.7.7, upgraded to 3.8.3
+      language: generic
+      python:
+      env:
+        - PYTHON=3
+        - PACKAGE_LEVEL=latest
 
 before_install:
 
@@ -302,12 +302,13 @@ install:
 
 # commands to run builds & tests
 script:
-  - make build
-  - make builddoc
-  - make check
-  - make pylint
-  - make installtest
-  - make test
+#  - make build
+#  - make builddoc
+#  - make check
+#  - make pylint
+#  - make installtest
+  - TESTCASES=test_indicationlistener.py make test
+  - cat test_indicationlistener.log || true
 
 after_success:
 # Note: In case of error 422 (Couldn't find a repository matching this job),
