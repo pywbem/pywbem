@@ -13,13 +13,13 @@
 
 from __future__ import absolute_import
 
-import unittest
-import sys as _sys
+import sys
 import errno
-import logging as _logging
+import logging
 from time import time, sleep
 import datetime
 from random import randint
+import pytest
 import requests
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
@@ -29,12 +29,41 @@ from pywbem import WBEMListener  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Verbosity control:
-VERBOSE_DETAILS = False  # Show indications sent and received
 VERBOSE_SUMMARY = False  # Show summary for each run
 
 RCV_COUNT = 0
 RCV_ERRORS = False
 LISTENER = None
+
+# Log level to be used. To enable logging, change this constant to the desired
+# log level, and add code to set or unset the log level of the root logger
+# globally or specifically in each test case.
+LOGLEVEL = logging.NOTSET  # NOTSET disables logging
+
+# Name of the log file
+LOGFILE = 'test_indicationlistener.log'
+
+
+def configure_root_logger(logfile):
+    """
+    Configure the root logger, except for log level
+    """
+    root_logger = logging.getLogger('')
+    hdlr_exists = False
+    for hdlr in root_logger.handlers:
+        if isinstance(hdlr, logging.FileHandler):
+            hdlr_exists = True
+    if not hdlr_exists:
+        hdlr = logging.FileHandler(logfile)
+        hdlr.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(thread)s %(name)s %(levelname)s %(message)s"))
+        root_logger.addHandler(hdlr)
+
+
+LOGGER = logging.getLogger('test_indicationlistener')
+if LOGLEVEL > logging.NOTSET:
+    configure_root_logger(LOGFILE)
 
 
 class ElapsedTimer(object):
@@ -98,6 +127,7 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
 
 
 def _process_indication(indication, host):
+    # pylint: disable=unused-argument
     """
     This function gets called when an indication is received.
     It receives each indication on a separate thread so the only communication
@@ -116,14 +146,11 @@ def _process_indication(indication, host):
     global RCV_COUNT  # pylint: disable=global-statement
     global RCV_ERRORS  # pylint: disable=global-statement
 
+    LOGGER.debug(
+        "Callback function called for indication #%s: %r",
+        RCV_COUNT, indication.classname)
+
     try:
-        if VERBOSE_DETAILS:
-            print("\nListener received indication #{} with:".
-                  format(RCV_COUNT))
-            print("  host={}".format(host))
-            print("  indication(as MOF)={}".
-                  format(indication.tomof().strip('\n')))
-            _sys.stdout.flush()
 
         send_count = int(indication.properties['SequenceNumber'].value)
         if send_count != RCV_COUNT:
@@ -131,7 +158,7 @@ def _process_indication(indication, host):
                   "Unexpected SequenceNumber in received indication #{}: "
                   "got {}, expected {}".
                   format(RCV_COUNT, send_count, RCV_COUNT))
-            _sys.stdout.flush()
+            sys.stdout.flush()
             RCV_ERRORS = True
 
         RCV_COUNT += 1
@@ -139,11 +166,11 @@ def _process_indication(indication, host):
     except Exception as exc:  # pylint: disable=broad-except
         print("Error in process_indication(): {}: {}".
               format(exc.__class__.__name__, exc))
-        _sys.stdout.flush()
+        sys.stdout.flush()
         RCV_ERRORS = True
 
 
-class TestIndications(unittest.TestCase):
+class TestIndications(object):
     """
     Create a WBEMListener and starts the listener. Note that it resets the
     received indication counter (RCV_COUNT) so that there is an accurate
@@ -160,9 +187,6 @@ class TestIndications(unittest.TestCase):
         global LISTENER  # pylint: disable=global-statement
         global RCV_ERRORS  # pylint: disable=global-statement
         RCV_ERRORS = False  # pylint: disable=global-statement
-
-        _logging.basicConfig(stream=_sys.stderr, level=_logging.WARNING,
-                             format='%(levelname)s: %(message)s')
 
         RCV_COUNT = 0
         LISTENER = WBEMListener(host=host,
@@ -216,33 +240,27 @@ class TestIndications(unittest.TestCase):
                 payload = create_indication_data(msg_id, i, delta_time,
                                                  cim_protocol_version)
 
-                if VERBOSE_DETAILS:
-                    print("\nTestcase sending indication #{} with:".format(i))
-                    print("  url={}".format(full_url))
-                    print("  headers={}".format(headers))
-                    print("  payload={}".format(payload))
-                    _sys.stdout.flush()
+                LOGGER.debug("Testcase sending indication #%s", i)
 
                 try:
                     response = requests.post(
                         full_url, headers=headers, data=payload, timeout=4)
                 except requests.exceptions.RequestException as exc:
-                    self.fail("Sending indication #{} raised {}: {}".
-                              format(i, exc.__class__.__name__, exc))
+                    msg = ("Testcase sending indication #{} raised {}: {}".
+                           format(i, exc.__class__.__name__, exc))
+                    LOGGER.error(msg)
+                    new_exc = AssertionError(msg)
+                    new_exc.__cause__ = None  # Disable to see original tracebck
+                    raise new_exc
 
-                if VERBOSE_DETAILS:
-                    print("\nTestcase received response from sending "
-                          "indication #{}:".format(i))
-                    print("  status_code={}".format(response.status_code))
-                    print("  headers={}".format(response.headers))
-                    print("  payload={}".format(response.text))
-                    _sys.stdout.flush()
+                LOGGER.debug("Testcase received response from sending "
+                             "indication #%s", i)
 
                 if response.status_code != 200:
-                    self.fail("Sending indication #{} failed with: "
-                              "status={}, data={!r}, headers={!r}".
-                              format(i, response.status_code, response.text,
-                                     response.headers))
+                    msg = ("Testcase sending indication #{} failed with HTTP "
+                           "status {}".format(i, response.status_code))
+                    LOGGER.error(msg)
+                    raise AssertionError(msg)
 
             endtime = timer.elapsed_sec()
 
@@ -252,7 +270,7 @@ class TestIndications(unittest.TestCase):
             if VERBOSE_SUMMARY:
                 print("\nSent {} indications in {} sec or {:.2f} ind/sec".
                       format(send_count, endtime, (send_count / endtime)))
-                _sys.stdout.flush()
+                sys.stdout.flush()
 
             assert not RCV_ERRORS, \
                 "Errors occurred in process_indication(), as printed to stdout"
@@ -264,18 +282,22 @@ class TestIndications(unittest.TestCase):
         finally:
             LISTENER.stop()
 
-    def test_send_10(self):
-        """Test with sending 10 indications"""
-        self.send_indications(10, 50000)
+    @pytest.mark.parametrize(
+        "send_count",
+        [10, 100]  # 1000 in some environments takes 30 min
+    )
+    def test_send(self, send_count):
+        """Test with sending N indications"""
 
-    def test_send_100(self):
-        """Test sending 100 indications"""
-        self.send_indications(100, 50000)
+        # Enable logging for this test function
+        if LOGLEVEL > logging.NOTSET:
+            logging.getLogger('').setLevel(LOGLEVEL)
 
-    # Disabled the following tests, because in some environments it takes 30min.
-    # def test_send_1000(self):
-    #     """Test sending 1000 indications"""
-    #     self.send_indications(1000, 50000)
+        self.send_indications(send_count, 50000)
+
+        # Disable logging for this test function
+        if LOGLEVEL > logging.NOTSET:
+            logging.getLogger('').setLevel(logging.NOTSET)
 
     def test_attrs(self):
         # pylint: disable=no-self-use
@@ -293,7 +315,7 @@ class TestIndications(unittest.TestCase):
         assert listener.https_port is None
         assert listener.certfile is None
         assert listener.keyfile is None
-        assert isinstance(listener.logger, _logging.Logger)
+        assert isinstance(listener.logger, logging.Logger)
         assert listener.http_started is False
         assert listener.https_started is False
 
@@ -387,7 +409,3 @@ class TestIndications(unittest.TestCase):
         listener2.start()
         assert listener2.http_started is True
         listener2.stop()
-
-
-if __name__ == '__main__':
-    unittest.main()
