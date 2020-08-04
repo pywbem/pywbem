@@ -24,6 +24,36 @@ from pywbem import WBEMListener  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Log level to be used. To enable logging, change this constant to the desired
+# log level, and add code to set or unset the log level of the root logger
+# globally or specifically in each test case.
+LOGLEVEL = logging.NOTSET  # NOTSET disables logging
+
+# Name of the log file
+LOGFILE = 'test_indicationlistener.log'
+
+
+def configure_root_logger(logfile):
+    """
+    Configure the root logger, except for log level
+    """
+    root_logger = logging.getLogger('')
+    hdlr_exists = False
+    for hdlr in root_logger.handlers:
+        if isinstance(hdlr, logging.FileHandler):
+            hdlr_exists = True
+    if not hdlr_exists:
+        hdlr = logging.FileHandler(logfile)
+        hdlr.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(thread)s %(name)s %(levelname)s %(message)s"))
+        root_logger.addHandler(hdlr)
+
+
+LOGGER = logging.getLogger('test_indicationlistener')
+if LOGLEVEL > logging.NOTSET:
+    configure_root_logger(LOGFILE)
+
 
 class ElapsedTimer(object):
     """
@@ -550,7 +580,6 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
 
 
 # Verbosity in test_WBEMListener_send_indications()
-VERBOSE_DETAILS = False  # Show indications sent and received
 VERBOSE_SUMMARY = False  # Show summary for each run
 
 # Global variables used to communicate between the test case function and
@@ -562,6 +591,7 @@ RCV_ERRORS = False
 
 
 def process_indication(indication, host):
+    # pylint: disable=unused-argument
     """
     This function gets called by the listener when an indication is
     received.
@@ -585,13 +615,11 @@ def process_indication(indication, host):
     global RCV_COUNT  # pylint: disable=global-statement
     global RCV_ERRORS  # pylint: disable=global-statement
 
+    LOGGER.debug(
+        "Callback function called for indication #%s: %r",
+        RCV_COUNT, indication.classname)
+
     try:
-        if VERBOSE_DETAILS:
-            print("\nListener received indication with:")
-            print("  host={}".format(host))
-            print("  indication(as MOF)={}".
-                  format(indication.tomof().strip('\n')))
-            sys.stdout.flush()
 
         send_count = int(indication.properties['SequenceNumber'].value)
         if send_count != RCV_COUNT:
@@ -640,11 +668,12 @@ def test_WBEMListener_send_indications(send_count):
     global RCV_COUNT  # pylint: disable=global-statement
     global RCV_ERRORS  # pylint: disable=global-statement
 
+    # Enable logging for this test function
+    if LOGLEVEL > logging.NOTSET:
+        logging.getLogger('').setLevel(LOGLEVEL)
+
     host = 'localhost'
     http_port = 50000
-
-    logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
-                        format='%(levelname)s: %(message)s')
 
     listener = WBEMListener(host, http_port)
     listener.add_callback(process_indication)
@@ -678,31 +707,27 @@ def test_WBEMListener_send_indications(send_count):
             payload = create_indication_data(msg_id, i, delta_time,
                                              cim_protocol_version)
 
-            if VERBOSE_DETAILS:
-                print("\nTestcase sending indication #{} with:".format(i))
-                print("  url={}".format(url))
-                print("  headers={}".format(headers))
-                print("  payload={}".format(payload))
-                sys.stdout.flush()
+            LOGGER.debug("Testcase sending indication #%s", i)
 
-            response = requests.post(url, headers=headers, data=payload,
-                                     timeout=4)
+            try:
+                response = requests.post(url, headers=headers, data=payload,
+                                         timeout=4)
+            except requests.exceptions.RequestException as exc:
+                msg = ("Testcase sending indication #{} raised {}: {}".
+                       format(i, exc.__class__.__name__, exc))
+                LOGGER.error(msg)
+                new_exc = AssertionError(msg)
+                new_exc.__cause__ = None  # Disable to see original traceback
+                raise new_exc
 
-            if VERBOSE_DETAILS:
-                print("\nTestcase received response from sending indication:")
-                print("  status_code={}".format(response.status_code))
-                print("  headers={}".format(response.headers))
-                print("  payload={}".format(response.text))
-                sys.stdout.flush()
+            LOGGER.debug("Testcase received response from sending "
+                         "indication #%s", i)
 
             if response.status_code != 200:
-                raise AssertionError(
-                    "Sending the indication failed with HTTP status {}: "
-                    "response={!r}".format(response.status_code, response))
-
-            if VERBOSE_DETAILS:
-                print("\nTestcase done sending indication #{}".format(i))
-                sys.stdout.flush()
+                msg = ("Testcase sending indication #{} failed with HTTP "
+                       "status {}".format(i, response.status_code))
+                LOGGER.error(msg)
+                raise AssertionError(msg)
 
         endtime = timer.elapsed_sec()
 
@@ -723,6 +748,10 @@ def test_WBEMListener_send_indications(send_count):
 
     finally:
         listener.stop()
+
+        # Disable logging for this test function
+        if LOGLEVEL > logging.NOTSET:
+            logging.getLogger('').setLevel(logging.NOTSET)
 
 
 @pytest.mark.parametrize(
