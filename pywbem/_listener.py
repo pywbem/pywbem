@@ -136,7 +136,10 @@ import six
 from six.moves import BaseHTTPServer
 from six.moves import socketserver
 from six.moves import http_client
-
+try:
+    from http.server import HTTPStatus
+except ImportError:
+    HTTPStatus = None
 from . import _cim_xml
 from ._version import __version__
 from ._cim_obj import CIMInstance
@@ -187,6 +190,23 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     A request handler for the standard Python HTTP server, with a handler
     method for the HTTP POST method, that acts as a WBEM listener.
     """
+
+    @property
+    def logger(self):
+        """
+        :class:`py:logging.Logger`: Logger object for the listener using this
+        request handler.
+
+        Each listener object has its own separate logger object with the name:
+
+          `'pywbem.listener.{id}'`
+
+        where `{id}` is a unique string for each listener object.
+
+        Users of the listener should not look up the logger object by name, but
+        should use this property to get to it.
+        """
+        return self.server.listener.logger
 
     def invalid_method(self):
         """
@@ -249,6 +269,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         It parses the CIM-XML export message and delivers the contained
         CIM indication to the stored listener object.
         """
+
+        self.logger.debug("Received POST request")
 
         # Accept header check described in DSP0200
         accept = self.headers.get('Accept', 'text/xml')
@@ -410,6 +432,12 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         Send an HTTP response back to the WBEM server that indicates
         an error at the HTTP level.
         """
+
+        self.logger.warning(
+            "Sending HTTP error response with HTTP status %s and headers: "
+            "CIMError: %r, CIMErrorDetails: %r",
+            http_code, cim_error, cim_error_details)
+
         self.send_response(http_code, http_client.responses.get(http_code, ''))
         self.send_header("CIMExport", "MethodResponse")
         if cim_error is not None:
@@ -420,15 +448,18 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             for header, value in headers:
                 self.send_header(header, value)
         self.end_headers()
-        self.log('%s: HTTP status %s; CIMError: %s, CIMErrorDetails: %s',
-                 (self._get_log_prefix(), http_code, cim_error,
-                  cim_error_details),
-                 logging.WARNING)
+
+        self.logger.warning(
+            "Sent HTTP error response with HTTP status %s", http_code)
 
     def send_error_response(self, msgid, methodname, status_code, status_desc,
                             error_insts=None):
         """Send a CIM-XML response message back to the WBEM server that
         indicates error."""
+
+        self.logger.warning(
+            "Sending CIM-XML error response with CIM status %s: %s",
+            _statuscode2name(status_code), status_desc)
 
         resp_xml = _cim_xml.CIM(
             _cim_xml.MESSAGE(
@@ -457,14 +488,17 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("CIMExport", "MethodResponse")
         self.end_headers()
         self.wfile.write(resp_body)
-        self.log('%s: HTTP status %s; CIM error response: %s: %s',
-                 (self._get_log_prefix(), http_code,
-                  _statuscode2name(status_code), status_desc),
-                 logging.WARNING)
+
+        self.logger.warning(
+            "Sent CIM-XML error response with CIM status %s",
+            _statuscode2name(status_code))
 
     def send_success_response(self, msgid, methodname):
         """Send a CIM-XML response message back to the WBEM server that
         indicates success."""
+
+        self.logger.debug(
+            "Sending CIM-XML successful response with msgid=%s", msgid)
 
         resp_xml = _cim_xml.CIM(
             _cim_xml.MESSAGE(
@@ -487,6 +521,9 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("CIMExport", "MethodResponse")
         self.end_headers()
         self.wfile.write(resp_body)
+
+        self.logger.debug(
+            "Sent CIM-XML successful response with msgid=%s", msgid)
 
     @staticmethod
     def parse_export_request(request_str):
@@ -544,47 +581,42 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         return (msgid, methodname, params)
 
-    def log(self, format_, args, level=logging.INFO):
-        """
-        This function is called for anything that needs to get logged.
-        It logs to the logger of this listener.
-
-        It is not defined in the standard handler class; our version
-        has an additional `level` argument that allows to control the
-        logging level in the standard Python logging support.
-
-        Another difference is that the variable arguments are passed
-        in as a tuple.
-        """
-        self.server.listener.logger.log(level, format_, *args)
-
-    # pylint: disable=redefined-builtin
-    def log_message(self, format, *args):
-        """
-        In the standard handler class, this function is called for anything
-        that needs to get logged (e.g. from :meth:`log_request`).
-
-        We override it in order to use our own log function.
-        """
-        self.log(format, args, logging.INFO)
-
     def log_request(self, code='-', size='-'):
-        #  pylint: disable=unused-argument
+        # pylint: disable=unused-argument
         """
-        This function is called during :meth:`send_response`.
+        This function is called in
+        :meth:`~py3:http.server.BaseHTTPRequestHandler.send_response`.
 
         We override it to get a little more information logged in a somewhat
-        better format.  We do not use the size  method argument.
+        better format at the INFO level.
         """
-        self.log('%s: HTTP status %s',
-                 (self._get_log_prefix(), code),
-                 logging.INFO)
+        if HTTPStatus and isinstance(code, HTTPStatus):
+            # On Python 3, it can be an HTTPStatus object
+            code = code.value
+        self.log_message("Sending %s response with HTTP status %s",
+                         self.command, code)
 
-    def _get_log_prefix(self):
-        """Return the prefix components for a log entry"""
-        return _format("{0} {1} from {2}",
-                       self.request_version, self.command,
-                       self.client_address[0])
+    def log_error(self, format, *args):
+        # pylint: disable=redefined-builtin
+        """
+        The :class:`~py3:http.server.BaseHTTPRequestHandler` methods call this
+        method for anything that needs to get logged as an error.
+
+        We override it in order to direct that to our own logger at the ERROR
+        level.
+        """
+        self.logger.error(format, *args)
+
+    def log_message(self, format, *args):
+        # pylint: disable=redefined-builtin
+        """
+        The :class:`~py3:http.server.BaseHTTPRequestHandler` methods call this
+        method for anything that needs to get logged.
+
+        We override it in order to direct that to our own logger at the INFO
+        level.
+        """
+        self.logger.info(format, *args)
 
     def version_string(self):
         """
@@ -866,6 +898,8 @@ class WBEMListener(object):
 
         if self._http_port:
             if not self._http_server:
+                self.logger.info("Starting threaded HTTP server on port %s",
+                                 self._http_port)
                 try:
                     server = ThreadedHTTPServer((self._host, self._http_port),
                                                 ListenerRequestHandler)
@@ -888,6 +922,10 @@ class WBEMListener(object):
                 self._http_server = server
                 self._http_thread = thread
                 thread.start()
+
+                self.logger.info("Started threaded HTTP server on port %s",
+                                 self._http_port)
+
         else:
             # Just in case someone changed self._http_port after init...
             self._http_server = None
@@ -895,6 +933,10 @@ class WBEMListener(object):
 
         if self._https_port:
             if not self._https_server:
+
+                self.logger.info("Starting threaded HTTPS server on port %s",
+                                 self._https_port)
+
                 try:
                     server = ThreadedHTTPServer((self._host, self._https_port),
                                                 ListenerRequestHandler)
@@ -943,6 +985,10 @@ class WBEMListener(object):
                 self._https_server = server
                 self._https_thread = thread
                 thread.start()
+
+                self.logger.info("Started threaded HTTPS server on port %s",
+                                 self._https_port)
+
         else:
             # Just in case someone changed self._https_port after init...
             self._https_server = None
@@ -958,16 +1004,20 @@ class WBEMListener(object):
         # TODO: Describe how the processing threads terminate.
 
         if self._http_server:
+            self.logger.info("Stopping threaded HTTP server")
             self._http_server.shutdown()
             self._http_server.server_close()
             self._http_server = None
             self._http_thread = None
+            self.logger.info("Stopped threaded HTTP server")
 
         if self._https_server:
+            self.logger.info("Stopping threaded HTTPS server")
             self._https_server.shutdown()
             self._https_server.server_close()
             self._https_server = None
             self._https_thread = None
+            self.logger.info("Stopped threaded HTTPS server")
 
     def deliver_indication(self, indication, host):
         """
@@ -990,12 +1040,19 @@ class WBEMListener(object):
             Host name or IP address of WBEM server sending the indication.
         """
         for callback in self._callbacks:
+
+            self.logger.debug("Calling indication delivery callback function "
+                              "%r to deliver %r indication",
+                              callback.__name__, indication.classname)
+
             try:
                 callback(indication, host)
             except Exception as exc:  # pylint: disable=broad-except
-                self.logger.log(logging.ERROR, "Indication delivery callback "
-                                "function raised %s: %s",
-                                exc.__class__.__name__, exc)
+                self.logger.error("Indication delivery callback function "
+                                  "raised %s: %s", exc.__class__.__name__, exc)
+
+            self.logger.debug("Returned from indication delivery callback "
+                              "function %r", callback.__name__)
 
     def add_callback(self, callback):
         """

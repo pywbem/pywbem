@@ -34,6 +34,8 @@ Released: not yet
 
 **Enhancements:**
 
+* Improved logging in WBEM listener and its test module.
+
 **Cleanup:**
 
 **Known issues:**
