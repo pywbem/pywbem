@@ -132,6 +132,10 @@ class FakedWBEMConnection(WBEMConnection):
     facility and can be controlled in the same way as for
     :class:`~pywbem.WBEMConnection`. For details, see
     :ref:`WBEM operation logging`.
+
+    Some of the longer running methods of this class add time statistics to the
+    :attr:`WBEMConnection.statistics`. For details on how to get the statistics,
+    see :ref:`WBEM operation statistics`.
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
@@ -525,16 +529,19 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
-        namespace = namespace or self.default_namespace
-        self._mainprovider.validate_namespace(namespace)
+        stats_name = "compile_mof_file(ns={!r})".format(namespace)
+        with self.statistics(stats_name):
 
-        # issue #2063 refactor this so there is cleaner interface to
-        # WBEMConnection
-        mofcomp = MOFCompiler(self._mofwbemconnection,
-                              search_paths=search_paths,
-                              verbose=verbose, log_func=None)
+            namespace = namespace or self.default_namespace
+            self._mainprovider.validate_namespace(namespace)
 
-        mofcomp.compile_file(mof_file, namespace)
+            # issue #2063 refactor this so there is cleaner interface to
+            # WBEMConnection
+            mofcomp = MOFCompiler(self._mofwbemconnection,
+                                  search_paths=search_paths,
+                                  verbose=verbose, log_func=None)
+
+            mofcomp.compile_file(mof_file, namespace)
 
     def compile_mof_string(self, mof_str, namespace=None, search_paths=None,
                            verbose=None):
@@ -587,15 +594,17 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
-        namespace = namespace or self.default_namespace
+        stats_name = "compile_mof_string(ns={!r})".format(namespace)
+        with self.statistics(stats_name):
 
-        self._mainprovider.validate_namespace(namespace)
+            namespace = namespace or self.default_namespace
+            self._mainprovider.validate_namespace(namespace)
 
-        mofcomp = MOFCompiler(self._mofwbemconnection,
-                              search_paths=search_paths,
-                              verbose=verbose, log_func=None)
+            mofcomp = MOFCompiler(self._mofwbemconnection,
+                                  search_paths=search_paths,
+                                  verbose=verbose, log_func=None)
 
-        mofcomp.compile_string(mof_str, namespace)
+            mofcomp.compile_string(mof_str, namespace)
 
     def compile_schema_classes(self, class_names, schema_pragma_files,
                                namespace=None, verbose=False):
@@ -659,19 +668,23 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable:line-too-long
 
-        if isinstance(schema_pragma_files, six.string_types):
-            schema_pragma_files = [schema_pragma_files]
+        stats_name = "compile_schema_classes(ns={!r})".format(namespace)
+        with self.statistics(stats_name):
 
-        # Build the pragma file and compile for each pragma file in
-        # schema_pragma_files. The search path for each compile is the
-        # directory containing that schema_pragma_file
-        for schema_pragma_file in schema_pragma_files:
-            search_path = os.path.dirname(schema_pragma_file)
-            compile_pragma = build_schema_mof(class_names, schema_pragma_file)
-            self.compile_mof_string(compile_pragma,
-                                    namespace=namespace,
-                                    search_paths=search_path,
-                                    verbose=verbose)
+            if isinstance(schema_pragma_files, six.string_types):
+                schema_pragma_files = [schema_pragma_files]
+
+            # Build the pragma file and compile for each pragma file in
+            # schema_pragma_files. The search path for each compile is the
+            # directory containing that schema_pragma_file
+            for schema_pragma_file in schema_pragma_files:
+                search_path = os.path.dirname(schema_pragma_file)
+                compile_pragma = build_schema_mof(
+                    class_names, schema_pragma_file)
+                self.compile_mof_string(compile_pragma,
+                                        namespace=namespace,
+                                        search_paths=search_path,
+                                        verbose=verbose)
 
     ######################################################################
     #
@@ -727,71 +740,75 @@ class FakedWBEMConnection(WBEMConnection):
             CIM repository.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        namespace = namespace or self.default_namespace
-        self._mainprovider.validate_namespace(namespace)
 
-        if isinstance(objects, list):
-            for obj in objects:
-                self.add_cimobjects(obj, namespace=namespace)
+        stats_name = "add_cimobjects(ns={!r})".format(namespace)
+        with self.statistics(stats_name):
 
-        else:
-            obj = objects
-            if isinstance(obj, CIMClass):
-                cc = obj.copy()
-                if cc.superclass:
-                    if not self._mainprovider.class_exists(namespace,
-                                                           cc.superclass):
-                        raise ValueError(
-                            _format("Class {0!A} defines superclass {1!A} but "
-                                    "the superclass does not exist in the "
-                                    "repository.",
-                                    cc.classname, cc.superclass))
+            namespace = namespace or self.default_namespace
+            self._mainprovider.validate_namespace(namespace)
 
-                # pylint: disable=protected-access
-                cc1 = self._mainprovider._resolve_class(
-                    cc, namespace,
-                    self.cimrepository.get_qualifier_store(namespace),
-                    verbose=False)
-
-                class_store = self.cimrepository.get_class_store(namespace)
-                class_store.create(cc.classname, cc1.copy())
-
-            elif isinstance(obj, CIMInstance):
-                inst = obj.copy()
-                if inst.path is None:
-                    raise ValueError(
-                        _format("Instances added must include a path. "
-                                "Instance {0!A} does not include a path",
-                                inst))
-                if inst.path.namespace is None:
-                    inst.path.namespace = namespace
-                if inst.path.host is not None:
-                    inst.path.host = None
-                instance_store = \
-                    self.cimrepository.get_instance_store(namespace)
-                try:
-                    if instance_store.object_exists(inst.path):
-                        raise ValueError(
-                            _format("Instance {0!A} already exists in "
-                                    "CIM repository", inst))
-                except CIMError as ce:
-                    raise CIMError(
-                        CIM_ERR_FAILED,
-                        _format("Internal failure of add_cimobject operation. "
-                                "Rcvd CIMError {0!A}", ce))
-                instance_store.create(inst.path, inst)
-
-            elif isinstance(obj, CIMQualifierDeclaration):
-                qual = obj.copy()
-                qualifier_store = \
-                    self.cimrepository.get_qualifier_store(namespace)
-                qualifier_store.create(qual.name, qual)
+            if isinstance(objects, list):
+                for obj in objects:
+                    self.add_cimobjects(obj, namespace=namespace)
 
             else:
-                # Internal mocker error
-                assert False, \
-                    _format("Object to add_cimobjects. {0} invalid type",
-                            type(obj))
+                obj = objects
+                if isinstance(obj, CIMClass):
+                    cc = obj.copy()
+                    if cc.superclass:
+                        if not self._mainprovider.class_exists(
+                                namespace, cc.superclass):
+                            raise ValueError(
+                                _format("Class {0!A} defines superclass {1!A} "
+                                        "but the superclass does not exist in "
+                                        "the repository.",
+                                        cc.classname, cc.superclass))
+
+                    # pylint: disable=protected-access
+                    cc1 = self._mainprovider._resolve_class(
+                        cc, namespace,
+                        self.cimrepository.get_qualifier_store(namespace),
+                        verbose=False)
+
+                    class_store = self.cimrepository.get_class_store(namespace)
+                    class_store.create(cc.classname, cc1.copy())
+
+                elif isinstance(obj, CIMInstance):
+                    inst = obj.copy()
+                    if inst.path is None:
+                        raise ValueError(
+                            _format("Instances added must include a path. "
+                                    "Instance {0!A} does not include a path",
+                                    inst))
+                    if inst.path.namespace is None:
+                        inst.path.namespace = namespace
+                    if inst.path.host is not None:
+                        inst.path.host = None
+                    instance_store = \
+                        self.cimrepository.get_instance_store(namespace)
+                    try:
+                        if instance_store.object_exists(inst.path):
+                            raise ValueError(
+                                _format("Instance {0!A} already exists in "
+                                        "CIM repository", inst))
+                    except CIMError as ce:
+                        raise CIMError(
+                            CIM_ERR_FAILED,
+                            _format("Internal failure of add_cimobject "
+                                    "operation. Rcvd CIMError {0!A}", ce))
+                    instance_store.create(inst.path, inst)
+
+                elif isinstance(obj, CIMQualifierDeclaration):
+                    qual = obj.copy()
+                    qualifier_store = \
+                        self.cimrepository.get_qualifier_store(namespace)
+                    qualifier_store.create(qual.name, qual)
+
+                else:
+                    # Internal mocker error
+                    assert False, \
+                        _format("Object to add_cimobjects. {0} invalid type",
+                                type(obj))
 
     def display_repository(self, namespaces=None, dest=None, summary=False,
                            output_format='mof'):
@@ -1063,6 +1080,9 @@ class FakedWBEMConnection(WBEMConnection):
         The methodname input parameters directly translate to the server
         request handler names (i.e. GetClass, ...) including capitalization
         """
+
+        # The statistics is already applied in WBEMConnection.
+
         # Create the local method name
         methodname = '_imeth_' + methodname
         methodnameattr = getattr(self, methodname)
@@ -1084,6 +1104,8 @@ class FakedWBEMConnection(WBEMConnection):
         This function performs the same checks and transformations as
         WBEMConnection._methodcall().
         """
+
+        # The statistics is already applied in WBEMConnection.
 
         # Normalize the target object into either CIMInstanceName or
         # CIMClassName, both with namespace set.
