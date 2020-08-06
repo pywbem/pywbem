@@ -395,7 +395,7 @@ class OperationStatistic(object):
             if not self._stat_start_time:
                 self._stat_start_time = self._start_time
 
-    def stop_timer(self, request_len, reply_len, server_time=None,
+    def stop_timer(self, request_len=None, reply_len=None, server_time=None,
                    exception=False):
         """
         This is a low-level method is called by pywbem at the end of an
@@ -438,8 +438,10 @@ class OperationStatistic(object):
         self._start_time = None
         self._count += 1
         self._time_sum += dt
-        self._request_len_sum += request_len
-        self._reply_len_sum += reply_len
+        if request_len is not None:
+            self._request_len_sum += request_len
+        if reply_len is not None:
+            self._reply_len_sum += reply_len
 
         if exception:
             self._exception_count += 1
@@ -457,15 +459,17 @@ class OperationStatistic(object):
             if dt < self._server_time_min:
                 self._server_time_min = server_time
 
-        if request_len > self._request_len_max:
-            self._request_len_max = request_len
-        if request_len < self._request_len_min:
-            self._request_len_min = request_len
+        if request_len is not None:
+            if request_len > self._request_len_max:
+                self._request_len_max = request_len
+            if request_len < self._request_len_min:
+                self._request_len_min = request_len
 
-        if reply_len > self._reply_len_max:
-            self._reply_len_max = reply_len
-        if reply_len < self._reply_len_min:
-            self._reply_len_min = reply_len
+        if reply_len is not None:
+            if reply_len > self._reply_len_max:
+                self._reply_len_max = reply_len
+            if reply_len < self._reply_len_min:
+                self._reply_len_min = reply_len
 
         return dt
 
@@ -493,19 +497,26 @@ class OperationStatistic(object):
             "max_reply_len={s.max_reply_len!A})",
             s=self)
 
-    _formatted_header_w_svr = \
-        'Count Excep         ClientTime              ServerTime        ' \
-        '     RequestLen                ReplyLen       Operation\n' \
-        '        Cnt     Avg     Min     Max     Avg     Min     Max   ' \
-        ' Avg    Min    Max      Avg      Min      Max\n'
+    @staticmethod
+    def formatted_header(include_server_time, include_lengths):
+        """
+        Return a two-line header.
+        """
+        ret_lines = [
+            'Count Excep         ClientTime      ',
+            '        Cnt     Avg     Min     Max ',
+        ]
+        if include_server_time:
+            ret_lines[0] += '        ServerTime      '
+            ret_lines[1] += '    Avg     Min     Max '
+        if include_lengths:
+            ret_lines[0] += '       RequestLen                ReplyLen       '
+            ret_lines[1] += '   Avg    Min    Max      Avg      Min      Max '
+        ret_lines[0] += 'Operation\n'
+        ret_lines[1] += '\n'
+        return ''.join(ret_lines)
 
-    _formatted_header = \
-        'Count Excep         ClientTime        ' \
-        '     RequestLen              ReplyLen       Operation\n' \
-        '        Cnt     Avg     Min     Max   ' \
-        ' Avg    Min    Max    Avg      Min      Max\n'
-
-    def formatted(self, include_server_time):
+    def formatted(self, include_server_time, include_lengths):
         """
         Return a formatted one-line string with the statistics
         values for the operation for which this statistics object
@@ -514,33 +525,21 @@ class OperationStatistic(object):
         This is a low-level method that is called by
         :meth:`pywbem.Statistics.formatted`.
         """
-        if include_server_time:  # pylint: disable=no-else-return
-            return ('{0:5d} {1:5d} '
-                    '{2:7.3f} {3:7.3f} {4:7.3f} '
-                    '{5:7.3f} {6:7.3f} {7:7.3f} '
-                    '{8:6.0f} {9:6.0f} {10:6.0f} '
-                    '{11:8.0f} {12:8.0f} {13:8.0f} {14}\n'.
-                    format(self.count, self.exception_count,
-                           self.avg_time, self.min_time, self.max_time,
-                           self.avg_server_time, self.min_server_time,
-                           self.max_server_time,
-                           self.avg_request_len, self.min_request_len,
-                           self.max_request_len,
-                           self.avg_reply_len, self.min_reply_len,
-                           self.max_reply_len,
-                           self.name))
-        else:
-            return ('{0:5d} {1:5d} '
-                    '{2:7.3f} {3:7.3f} {4:7.3f} '
-                    '{5:6.0f} {6:6.0f} {7:6.0f} '
-                    '{8:6.0f} {9:8.0f} {10:8.0f} {11}\n'.
-                    format(self.count, self.exception_count,
-                           self.avg_time, self.min_time, self.max_time,
-                           self.avg_request_len, self.min_request_len,
-                           self.max_request_len,
-                           self.avg_reply_len, self.min_reply_len,
-                           self.max_reply_len,
-                           self.name))
+        ret = ('{0:5d} {1:5d} {2:7.3f} {3:7.3f} {4:7.3f} '.
+               format(self.count, self.exception_count,
+                      self.avg_time, self.min_time, self.max_time))
+        if include_server_time:
+            ret += ('{0:7.3f} {1:7.3f} {2:7.3f} '.
+                    format(self.avg_server_time, self.min_server_time,
+                           self.max_server_time))
+        if include_lengths:
+            ret += ('{0:6.0f} {1:6.0f} {2:6.0f} '
+                    '{3:8.0f} {4:8.0f} {5:8.0f} '.
+                    format(self.avg_request_len, self.min_request_len,
+                           self.max_request_len, self.avg_reply_len,
+                           self.min_reply_len, self.max_reply_len))
+        ret += '{0}\n'.format(self.name)
+        return ret
 
 
 class Statistics(object):
@@ -565,6 +564,8 @@ class Statistics(object):
     The enablement state of the :class:`~pywbem.Statistics` object is
     controlled by the statistics enablement state of the connection it belongs
     to (see :meth:`pywbem.WBEMConnection.stats_enabled`)
+
+    This class can also be used as a context manager.
     """
 
     def __init__(self, enable=False):
@@ -578,6 +579,41 @@ class Statistics(object):
         self._enabled = bool(enable)
         self._op_stats = {}
         self._disabled_stats = OperationStatistic(self, "disabled")
+
+        # Used in context manager
+        self._cm_opstat = None
+        self._cm_name = ''
+
+    def __enter__(self):
+        """
+        Enter method when the class is used as a context manager.
+
+        Starts the operation statistics for the name that was previously set
+        via a call::
+
+            stats = Statistics()
+            with stats(name='bla'):
+                # do something
+        """
+        self._cm_opstat = self.start_timer(self._cm_name)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Exit method when the class is used as a context manager.
+
+        Stops the operation statistics that was started in the enter method.
+        """
+        self._cm_opstat.stop_timer()
+        return False  # re-raise any exceptions
+
+    def __call__(self, name):
+        """
+        This allows the `name` parameter to be passed when the class is used
+        as a context manager.
+        """
+        self._cm_name = name
+        return self
 
     @property
     def enabled(self):
@@ -682,6 +718,9 @@ class Statistics(object):
         The three columns for `ServerTime` are included only if the WBEM server
         has returned WBEM server response times.
 
+        The six columns for `RequestLen` and `ReplyLen` are included only if
+        they are non-zero (this allows using this class for other purposes).
+
         Example if statistics are enabled::
 
             Statistics (times in seconds, lengths in Bytes):
@@ -705,18 +744,20 @@ class Statistics(object):
 
             # Test to see if any server time is non-zero
             include_svr = False
-            for name, stats in snapshot:  # pylint: disable=unused-variable
+            include_len = False
+            for _, stats in snapshot:
                 # pylint: disable=protected-access
                 if stats._server_time_stored:
                     include_svr = True
-            # pylint: disable=protected-access
-            if include_svr:
-                ret += OperationStatistic._formatted_header_w_svr
-            else:
-                ret += OperationStatistic._formatted_header
+                # pylint: disable=protected-access
+                if stats._request_len_sum > 0 or stats._reply_len_sum > 0:
+                    include_len = True
 
-            for name, stats in snapshot:  # pylint: disable=unused-variable
-                ret += stats.formatted(include_svr)
+            ret += OperationStatistic.formatted_header(
+                include_svr, include_len)
+            for _, stats in snapshot:
+                ret += stats.formatted(include_svr, include_len)
+
         else:
             ret += "Disabled"
         return ret.strip()

@@ -42,6 +42,10 @@ Released: not yet
   This provides consistency with the way the input parameters of the method
   provider are represented. (See issue #2415)
 
+* Added time statistics support to pywbem_mock, that allows measuring which
+  parts of the setup and execution of a mock environment takes how much time.
+  (Part of issue #2365)
+
 **Cleanup:**
 
 **Known issues:**
