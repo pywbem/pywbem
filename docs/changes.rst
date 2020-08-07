@@ -13,28 +13,14 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.0.dev1
------------------
+pywbem 1.0.0
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
-
-**Bug fixes:**
+Released: 2020-08-08
 
 **Enhancements:**
 
 * Improved logging in WBEM listener and its test module.
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.0b4
