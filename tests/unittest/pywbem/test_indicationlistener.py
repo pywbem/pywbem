@@ -284,7 +284,7 @@ class TestIndications(object):
 
     @pytest.mark.parametrize(
         "send_count",
-        [10, 100]  # 1000 in some environments takes 30 min
+        [10, 10, 100, 100, 100]  # 1000 in some environments takes 30 min
     )
     def test_send(self, send_count):
         """Test with sending N indications"""
