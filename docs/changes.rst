@@ -26,6 +26,12 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed handling of ReturnQueryResultClass=True in
+  WBEMConnection.OpenQueryInstances(). (See issue #2412)
+
+* Mock: In the mock support, fixed multiple errors in the mocked
+  OpenQueryInstances(), and added testcases for it. (See issue #2412)
+
 **Enhancements:**
 
 **Cleanup:**

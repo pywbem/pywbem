@@ -8146,7 +8146,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Exceptions described in :class:`~pywbem.WBEMConnection`.
         """
 
-        @staticmethod
         def _GetQueryRsltClass(result):
             """ Get the QueryResultClass and return it or generate
                 exception.
@@ -8189,6 +8188,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
+            ReturnQueryResultClass = self._iparam_bool(
+                ReturnQueryResultClass, 'ReturnQueryResultClass')
             OperationTimeout = self._iparam_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(

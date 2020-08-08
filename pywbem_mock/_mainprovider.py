@@ -39,6 +39,7 @@ from __future__ import absolute_import, print_function
 import uuid
 from collections import Counter
 from copy import deepcopy
+import re
 import six
 from nocaselist import NocaseList
 
@@ -55,7 +56,8 @@ from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIMQualifierDeclaration, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
+    CIM_ERR_INVALID_QUERY
 from pywbem._utils import _format
 
 from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \
@@ -2506,7 +2508,19 @@ class MainProvider(ResolverMixin, BaseProvider):
             # remove objects from list that are being sent to client
             del objects[0: max_obj_cnt]
 
-        return(rtn_objects, eos, context_id)
+        return (rtn_objects, eos, context_id)
+
+    def _openquery_response(self, namespace, objects, pull_type,
+                            OperationTimeout, MaxObjectCount, ContinueOnError,
+                            QueryResultClass):
+        """
+        Like _open_response(), just adds QueryResultClass to the returned
+        tuple.
+        """
+        rtn_objects, eos, context_id = self._open_response(
+            namespace, objects, pull_type, OperationTimeout, MaxObjectCount,
+            ContinueOnError)
+        return (rtn_objects, eos, context_id, QueryResultClass)
 
     def _pull_response(self, req_type, EnumerationContext, MaxObjectCount):
         """
@@ -3146,16 +3160,28 @@ class MainProvider(ResolverMixin, BaseProvider):
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout)
 
-        # pylint: disable=assignment-from-no-return
         # Issue #2064 TODO/ks implement execquery
-        # Handle ReturnQueryResultClass maybe or make it exception
+        # pylint: disable=assignment-from-no-return
         instances = self.ExecQuery(namespace, FilterQueryLanguage, FilterQuery)
 
-        return self._open_response(namespace, instances,
-                                   'PullInstancesWithPath',
-                                   OperationTimeout,
-                                   MaxObjectCount,
-                                   ContinueOnError)
+        if ReturnQueryResultClass:
+            m = re.search(r' FROM +([^ \(\)\[\]"\'\-\.\*\+]+)', FilterQuery)
+            if not m:
+                raise CIMError(
+                    CIM_ERR_INVALID_QUERY,
+                    _format("{} filter query does not contain 'FROM class' "
+                            "clause: {}", FilterQueryLanguage, FilterQuery))
+            classname = m.group(1)
+            # May raise CIMError:
+            QueryResultClass = self.get_class(
+                namespace, classname, local_only=False,
+                include_qualifiers=False, include_classorigin=False)
+        else:
+            QueryResultClass = None
+
+        return self._openquery_response(
+            namespace, instances, 'PullInstancesWithPath', OperationTimeout,
+            MaxObjectCount, ContinueOnError, QueryResultClass)
 
     def PullInstancesWithPath(self, EnumerationContext, MaxObjectCount):
         """
