@@ -36,6 +36,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
 import six
+from mock import Mock
 import pytest
 from testfixtures import OutputCapture
 
@@ -53,7 +54,8 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
-    CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE  # noqa: E402
+    CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE, \
+    CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
@@ -310,6 +312,7 @@ def assert_classes_equal(cls1, cls2):
     """
     classes_equal(cls1, cls2)
     assert cls1 == cls2
+
 
 ###################################################################
 #
@@ -977,6 +980,13 @@ class TestFakedWBEMConnection(object):
         paths = conn.EnumerateInstanceNames(tst_class)
         path = paths[0]
 
+        # The ExecQuery() operation of the main provider is not implemented.
+        # For this test, we don't care about that because we just want to
+        # verify disable_pull_operations. Therefore, the operation gets mocked
+        # to return an empty query result.
+        # pylint: disable=protected-access
+        conn._mainprovider.ExecQuery = Mock(return_value=[])
+
         if conn.disable_pull_operations is True:
             operation_fail(conn.OpenEnumerateInstances, tst_class)
             operation_fail(conn.OpenEnumerateInstancePaths, tst_class)
@@ -984,9 +994,8 @@ class TestFakedWBEMConnection(object):
             operation_fail(conn.OpenReferenceInstancePaths, path)
             operation_fail(conn.OpenAssociatorInstancePaths, path)
             operation_fail(conn.OpenAssociatorInstancePaths, path)
-            # Future add this tfail(conn.OpenQueryInstances,
-            #                     tst_class, 'WQL', "SELECT FROM CIM_Foo" )
-
+            operation_fail(conn.OpenQueryInstances,
+                           'DMTF:FQL', "SELECT * FROM CIM_Foo")
         else:
             conn.OpenEnumerateInstances(tst_class)
             conn.OpenEnumerateInstancePaths(tst_class)
@@ -994,8 +1003,7 @@ class TestFakedWBEMConnection(object):
             conn.OpenReferenceInstancePaths(path)
             conn.OpenAssociatorInstancePaths(path)
             conn.OpenAssociatorInstancePaths(path)
-            # TFuture conn.OpenQueryInstances
-            #       (tst_class, 'WQL', "SELECT FROM CIM_Foo" )
+            conn.OpenQueryInstances('DMTF:FQL', "SELECT * FROM CIM_Foo")
 
     def test_repr(self):
         # pylint: disable=no-self-use
@@ -5651,6 +5659,114 @@ class TestPullOperations(object):
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "fql, fq, rqrc, exp_rslt",
+        [
+            # fql:  FilterQueryLanguage
+            # fq:   FilterQuery
+            # rqrc: ReturnQueryResultClass
+            # exp_rslt: Expected exception object or return value as a
+            #           tuple with these items (consistent with namedtuple
+            #           returned by WBEMConnection.OpenQueryInstances):
+            #           - instances: query result as list of CIMInstance objects
+            #           - eos: boolean indicating end of sequence
+            #           - context: new enumeration context, or None
+            #           - query_result_class: CIMClass object, or None
+
+            ['DMTF:FQL', 'SELECT * FROM CIM_Foo', False,
+             ([CIMInstance('CIM_Foo')], True, None, None)],
+
+            ['DMTF:FQL', 'SELECT * FROM CIM_Foo', True,
+             ([CIMInstance('CIM_Foo')], True, None, CIMClass('CIM_Foo'))],
+
+            ['DMTF:FQL', 'SELECT * FROM CIM_Foo', False,
+             ([], True, None, None)],
+
+            # Invalid query language
+
+            ['DMTF:CQL', 'SELECT * FROM CIM_Foo', False,
+             CIMError(CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)],
+
+            ['CQL', 'SELECT * FROM CIM_Foo', False,
+             CIMError(CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)],
+
+            ['WQL', 'SELECT * FROM CIM_Foo', False,
+             CIMError(CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)],
+
+            ['FQL', 'SELECT * FROM CIM_Foo', False,
+             CIMError(CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)],
+
+            # Invalid types
+
+            [42, 'SELECT * FROM CIM_Foo', False,
+             TypeError()],
+
+            ['DMTF:FQL', 42, False,
+             TypeError()],
+
+            ['DMTF:FQL', 'SELECT * FROM CIM_Foo', 'invalid',
+             TypeError()],
+        ]
+    )
+    def test_openqueryinstances(self, conn, tst_assoc_mof, ns,
+                                fql, fq, rqrc, exp_rslt):
+        # pylint: disable=no-self-use
+        """
+        Test OpenQueryInstances()
+
+        The OpenQueryInstances() method of the main provider is
+        implemented by calling the ExecQuery() method of the main
+        provider, which is not implemented. Since we want to test
+        OpenQueryInstances(), we mock the ExecQuery() method.
+        """
+        skip_if_moftab_regenerated()
+        conn.compile_mof_string(tst_assoc_mof, namespace=ns)
+
+        if isinstance(exp_rslt, Exception):
+            exp_exc = exp_rslt
+
+            # pylint: disable=protected-access
+            conn._mainprovider.ExecQuery = Mock(return_value=[])
+
+            with pytest.raises(type(exp_exc)) as exec_info:
+
+                # The code to be tested
+                conn.OpenQueryInstances(FilterQueryLanguage=fql,
+                                        FilterQuery=fq,
+                                        ReturnQueryResultClass=rqrc)
+
+            exc = exec_info.value
+            if isinstance(exp_exc, CIMError):
+                assert exc.status_code == exp_exc.status_code
+
+        else:
+            # expecting success
+
+            exp_insts, exp_eos, exp_context, exp_class = exp_rslt
+            exp_ns = ns or conn.default_namespace
+
+            # Add the expected query result class to the repo
+            if exp_class:
+                conn.add_cimobjects(exp_class, exp_ns)
+
+            # pylint: disable=protected-access
+            conn._mainprovider.ExecQuery = Mock(return_value=exp_insts)
+
+            # The code to be tested
+            result_tuple = conn.OpenQueryInstances(FilterQueryLanguage=fql,
+                                                   FilterQuery=fq,
+                                                   ReturnQueryResultClass=rqrc)
+
+            # pylint: disable=protected-access
+            conn._mainprovider.ExecQuery.assert_called_with(exp_ns, fql, fq)
+
+            assert result_tuple.eos == exp_eos
+            assert result_tuple.context == exp_context
+            assert result_tuple.query_result_class == exp_class
+            assert_equal_ciminstancenames(result_tuple.instances, exp_insts)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
