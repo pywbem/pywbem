@@ -33,10 +33,14 @@ from __future__ import absolute_import, print_function
 
 from copy import deepcopy
 import six
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:  # py2
+    from collections import Mapping, Sequence
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND
+    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND, cimtype
 
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
@@ -647,27 +651,46 @@ class ProviderDispatcher(BaseProvider):
         # Map the more flexible way output parameters can be returned from
         # the provider method to what _mock_methodcall() expects
         output_params_dict = NocaseDict()
-        if isinstance(output_params, (tuple, list)):
-            # iterable of CIMParameter
+        if isinstance(output_params, Sequence):
+            # sequence of CIMParameter
             for param in output_params:
-                if isinstance(param, CIMParameter):
-                    output_params_dict[param.name] = param.value
-                else:
+                if not isinstance(param, CIMParameter):
                     raise TypeError(
                         _format("InvokeMethod provider method returned invalid "
                                 "type for item in output parameters "
-                                "list/tuple: {0}. Item type must be "
+                                "sequence: {0}. Item type must be "
                                 "CIMParameter",
                                 type(param)))
-        elif isinstance(output_params, dict):
-            # dict of name:value
+                output_params_dict[param.name] = param.value
+        elif isinstance(output_params, Mapping):
+            # mapping of name:value or name:CIMParameter
             for pname in output_params:
-                output_params_dict[pname] = output_params[pname]
+                pvalue = output_params[pname]
+                if isinstance(pvalue, CIMParameter):
+                    pvalue = pvalue.value
+                else:
+                    # Perform check for valid CIM data type:
+                    try:
+                        cimtype(pvalue)
+                    except TypeError:
+                        new_exc = TypeError(
+                            _format("InvokeMethod provider method returned "
+                                    "invalid type for value in output "
+                                    "parameters mapping: {0}. Value type must "
+                                    "be a CIM data type or CIMParameter",
+                                    type(pvalue)))
+                        new_exc.__cause__ = None
+                        raise new_exc
+                    except ValueError:
+                        # Empty array
+                        pass
+                output_params_dict[pname] = pvalue
         else:
             raise TypeError(
                 _format("InvokeMethod provider method returned invalid type "
                         "for output parameters: {0}. Must be "
-                        "list/tuple(CIMParameter) or dict(name: value)",
+                        "Sequence(CIMParameter) or "
+                        "Mapping(name: value/CIMParameter)",
                         type(output_params)))
 
         return return_value, output_params_dict
