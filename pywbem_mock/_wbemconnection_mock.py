@@ -1147,6 +1147,18 @@ class FakedWBEMConnection(WBEMConnection):
         return [("IRETURNVALUE", {}, objs), enum_ctxt_tuple, eos_tuple]
 
     @staticmethod
+    def _make_openquery_imethod_resp(objs, eos, context_id, result_class):
+        """
+        Create the correct imethod response for the OpenQueryInstances method
+        """
+        eos_tuple = (u'EndOfSequence', None, eos)
+        enum_ctxt_tuple = (u'EnumerationContext', None, context_id)
+        result_class_tuple = (u'QueryResultClass', None, result_class)
+
+        return [("IRETURNVALUE", {}, objs), enum_ctxt_tuple, eos_tuple,
+                result_class_tuple]
+
+    @staticmethod
     def _make_tuple(rtn_value):
         """
         Change the return value from the value consistent with the definition
@@ -1696,11 +1708,11 @@ class FakedWBEMConnection(WBEMConnection):
             namespace=namespace,
             FilterQueryLanguage=params.get('FilterQueryLanguage', None),
             FilterQuery=params.get('FilterQuery', None),
-            ReturnQueryResultClass=params.get('FilterQueryLanguage', None),
+            ReturnQueryResultClass=params.get('ReturnQueryResultClass', None),
             OperationTimeout=params.get('OperationTimeout', None),
             ContinueOnError=params.get('ContinueOnError', None),
             MaxObjectCount=params.get('MaxObjectCount', None))
-        return self._make_pull_imethod_resp(*context_tuple)
+        return self._make_openquery_imethod_resp(*context_tuple)
 
     def _imeth_PullInstancePaths(self, namespace, **params):
         # pylint: disable=unused-argument
