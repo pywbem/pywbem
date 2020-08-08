@@ -231,19 +231,19 @@ class MethodProvider(BaseProvider):
             * return_value (:term:`CIM data type`):
               Return value of the method invocation.
 
-            * out_params (list/tuple or dict):
+            * out_params (:class:`~py3:colletions.abc.Sequence` or :class:`~py3:colletions.abc.Mapping`):
               Output parameters of the method invocation.
 
-              If list/tuple, the items must be :class:`~pywbem.CIMParameter`
+              If ``Sequence``, the items must be :class:`~pywbem.CIMParameter`
               in any order, with these attributes set:
 
                 * name (:term:`string`): Parameter name
                 * value (:term:`CIM data type`): Parameter value
 
-              If dict, the items must be as follows:
+              If ``Mapping``, the items must be as follows:
 
                 * key (:term:`string`): Parameter name
-                * value (:term:`CIM data type`): Parameter value
+                * value (:term:`CIM data type` or :class:`~pywbem.CIMParameter`): Parameter value
 
         Raises:
 

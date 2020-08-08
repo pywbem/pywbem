@@ -34,6 +34,14 @@ Released: not yet
 
 **Enhancements:**
 
+* Mock: Added support for more ways the output parameters can be returned
+  in method providers: The container for the output parameters can now also
+  be a Mapping (including pywbem's internal NocaseDict or nocasedict.NocaseDict),
+  in addition to just the built-in dict. The values in such a Mapping container
+  can now also be CIMParameter objects, in addition to just the CIM data values.
+  This provides consistency with the way the input parameters of the method
+  provider are represented. (See issue #2415)
+
 **Cleanup:**
 
 **Known issues:**
