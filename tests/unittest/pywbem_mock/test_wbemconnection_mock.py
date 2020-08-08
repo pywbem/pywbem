@@ -7085,15 +7085,27 @@ class Method1UserProvider(MethodProvider):
         * InputParam1 = 'namespace_tuple':
           Set the namespace name in OutputParam1 as tuple(CIMParameter) and
           return value 0.
-        * InputParam1 = 'namespace_dict':
+        * InputParam1 = 'namespace_dict_value':
           Set the namespace name in OutputParam1 as dict(name:value) and
           return value 0.
+        * InputParam1 = 'namespace_dict_cimparm':
+          Set the namespace name in OutputParam1 as dict(name:CIMParameter) and
+          return value 0.
+        * InputParam1 = 'namespace_nocasedict_value':
+          Set the namespace name in OutputParam1 as NocaseDict(name:value) and
+          return value 0.
+        * InputParam1 = 'namespace_nocasedict_cimparm':
+          Set the namespace name in OutputParam1 as
+          NocaseDict(name:CIMParameter) and return value 0.
         * InputParam1 = 'methodname':
           Set the method name in OutputParam1 and return value 0.
         * InputParam1 = 'localobject':
           Set the object name in OutputParam1 and return value 0.
         * InputParam1 = 'returnvalue':
           Set value 'returnvalue' in OutputParam1 and return value 1.
+        * In addition, there are several InputParam1 values requesting invalid
+          output parameter returns; they are all named
+          'outparam_invalid{N}_{exc_type}'.
 
         For details on the parameters and return for this provider method,
         see :meth:`pywbem_mock.MethodProvider.InvokeMethod`.
@@ -7152,11 +7164,29 @@ class Method1UserProvider(MethodProvider):
                         CIMParameter(
                             'OutputParam1', 'string', value=namespace),
                     )
-                elif val == 'namespace_dict':
+                elif val == 'namespace_dict_value':
                     # return as dict of name:value
                     out_params = {
                         'OutputParam1': namespace,
                     }
+                elif val == 'namespace_dict_cimparm':
+                    # return as dict of name:CIMParameter
+                    out_params = {
+                        'OutputParam1': CIMParameter(
+                            'OutputParam1', 'string', value=namespace),
+                    }
+                elif val == 'namespace_nocasedict_value':
+                    # return as NocaseDict of name:value
+                    out_params = NocaseDict([
+                        ('OutputParam1', namespace),
+                    ])
+                elif val == 'namespace_nocasedict_cimparm':
+                    # return as NocaseDict of name:CIMParameter
+                    out_params = NocaseDict([
+                        ('OutputParam1',
+                         CIMParameter(
+                             'OutputParam1', 'string', value=namespace)),
+                    ])
                 elif val == 'methodname':
                     out_params = [
                         CIMParameter(
@@ -7177,11 +7207,16 @@ class Method1UserProvider(MethodProvider):
                 elif val == 'outparam_invalid3_typeerror':
                     out_params = [
                         # List item has invalid type
-                        CIMClass('C'),
+                        CIMQualifier('Q', 'invalid_data_type'),
                     ]
                 elif val == 'outparam_invalid4_typeerror':
                     # entire outparams object has invalid type
-                    out_params = CIMClass('C')
+                    out_params = CIMQualifier('Q', 'invalid_data_type')
+                elif val == 'outparam_invalid5_typeerror':
+                    out_params = {
+                        # Dict value has invalid type
+                        'OutputParam1': CIMQualifier('Q', 'invalid_data_type'),
+                    }
                 else:
                     assert val == 'returnvalue'  # testcase error if not
                     return_value = 1
@@ -7224,8 +7259,7 @@ class TestInvokeMethod(object):
         # exp_exc: None if success, or expected exception object
         # condition: True: run test
         #            False: Skip test
-        #            'pdb': Break before
-        #            'pdb-after': Break after
+        #            'pdb': Break before test
 
         (
             'Execution of Method1 method with valid input param requesting '
@@ -7334,13 +7368,56 @@ class TestInvokeMethod(object):
         ),
         (
             'Execution of Method1 method with valid input param requesting '
-            'namespace_dict',
+            'namespace_dict_value',
             {
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
                         keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
-                'Params': [('InputParam1', 'namespace_dict')]},
+                'Params': [('InputParam1', 'namespace_dict_value')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace_dict_cimparm',
+            {
+                'ObjectName':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'namespace_dict_cimparm')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace_nocasedict_value',
+            {
+                'ObjectName':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'namespace_nocasedict_value')]},
+            {
+                'return': 0,
+                'params': {'OutputParam1': 'root/cimv2'}},
+            None, OK
+        ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'namespace_nocasedict_cimparm',
+            {
+                'ObjectName':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1',
+                            'namespace_nocasedict_cimparm')]},
             {
                 'return': 0,
                 'params': {'OutputParam1': 'root/cimv2'}},
@@ -7576,6 +7653,18 @@ class TestInvokeMethod(object):
             None,
             TypeError(), OK
         ),
+        (
+            'Execution of Method1 method with valid input param requesting '
+            'outparam_invalid5_typeerror',
+            {
+                'ObjectName':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                'Params': [('InputParam1', 'outparam_invalid5_typeerror')]},
+            None,
+            TypeError(), OK
+        ),
 
     ]
 
@@ -7597,10 +7686,6 @@ class TestInvokeMethod(object):
         if not condition:
             pytest.skip("This test marked to be skipped")
         skip_if_moftab_regenerated()
-
-        if condition == 'pdb':
-            import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
 
         conn.compile_mof_string(tst_instances_mof, namespace=ns)
 
@@ -7633,6 +7718,11 @@ class TestInvokeMethod(object):
 
         Params = inputs['Params']  # pylint: disable=invalid-name
         assert Params is None or len(Params) <= 1
+
+        if condition == 'pdb':
+            import pdb  # pylint: disable=import-outside-toplevel
+            pdb.set_trace()  # pylint: disable=no-member
+
         if not exp_exc:
             # Two calls to account for **params
             if 'params' in inputs:
@@ -7648,10 +7738,6 @@ class TestInvokeMethod(object):
                 result = conn.InvokeMethod(method_name,
                                            object_name,
                                            Params)
-
-            if condition == 'pdb-after':
-                import pdb  # pylint: disable=import-outside-toplevel
-                pdb.set_trace()  # pylint: disable=no-member
 
             # Test the return values against the input_param value
             return_value = result[0]
