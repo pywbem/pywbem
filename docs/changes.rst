@@ -13,14 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.1.dev1
------------------
+pywbem 1.0.1
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-08-09
 
 **Bug fixes:**
 
@@ -39,14 +35,6 @@ Released: not yet
   can now also be CIMParameter objects, in addition to just the CIM data values.
   This provides consistency with the way the input parameters of the method
   provider are represented. (See issue #2415)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.0
