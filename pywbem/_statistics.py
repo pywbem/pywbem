@@ -580,9 +580,9 @@ class Statistics(object):
         self._op_stats = {}
         self._disabled_stats = OperationStatistic(self, "disabled")
 
-        # Used in context manager
-        self._cm_opstat = None
-        self._cm_name = ''
+        # Used in context manager (which supports nesting)
+        self._cm_stack = []  # items: OperationStatistic object
+        self._cm_name = None  # stored only between __call__() and __enter__()
 
     def __enter__(self):
         """
@@ -594,8 +594,20 @@ class Statistics(object):
             stats = Statistics()
             with stats(name='bla'):
                 # do something
+
+        The class supports nesting of context managers::
+
+            stats = Statistics()
+            with stats(name='bla1'):
+                # do something
+                for i in ...:
+                    with stats(name='bla2'):
+                        # do something
         """
-        self._cm_opstat = self.start_timer(self._cm_name)
+        name = self._cm_name
+        self._cm_name = None
+        op_stat = self.start_timer(name)
+        self._cm_stack.append(op_stat)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -604,7 +616,8 @@ class Statistics(object):
 
         Stops the operation statistics that was started in the enter method.
         """
-        self._cm_opstat.stop_timer()
+        op_stat = self._cm_stack.pop()
+        op_stat.stop_timer()
         return False  # re-raise any exceptions
 
     def __call__(self, name):
@@ -697,7 +710,7 @@ class Statistics(object):
           - stats (:class:`~pywbem.OperationStatistic`): Time statistics for
             the operation
         """
-        return copy.deepcopy(self._op_stats).items()
+        return list(copy.deepcopy(self._op_stats).items())
 
     def __repr__(self):
         """
