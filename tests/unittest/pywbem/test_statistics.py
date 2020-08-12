@@ -262,6 +262,71 @@ def test_Statistics_measure_enabled():
     assert stats.max_time == 0
 
 
+def test_Statistics_measure_disabled_cm():
+    """
+    Test measuring time with disabled statistics, via context manager.
+    """
+
+    statistics = Statistics()
+
+    duration = 0.1
+
+    with statistics('EnumerateInstances'):
+        time.sleep(duration)
+
+    stats_list = statistics.snapshot()
+    assert len(stats_list) == 0
+
+
+def test_Statistics_measure_enabled_cm():
+    """
+    Test measuring time with enabled statistics, via context manager.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 0.1
+
+    with statistics('EnumerateInstances'):
+        time.sleep(duration)
+
+    stats_dict = dict(statistics.snapshot())
+    assert len(stats_dict) == 1
+
+    assert 'EnumerateInstances' in stats_dict
+    stats = stats_dict['EnumerateInstances']
+    assert stats.count == 1
+
+
+def test_Statistics_measure_enabled_nested_cm():
+    """
+    Test measuring time with enabled statistics, via nested context managers.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 0.1
+    inner_count = 3
+
+    with statistics('compile_schema_classes'):
+        for _ in range(0, inner_count):
+            with statistics('compile_mof_string'):
+                time.sleep(duration)
+
+    stats_dict = dict(statistics.snapshot())
+    assert len(stats_dict) == 2
+
+    assert 'compile_schema_classes' in stats_dict
+    stats = stats_dict['compile_schema_classes']
+    assert stats.count == 1
+
+    assert 'compile_mof_string' in stats_dict
+    stats = stats_dict['compile_mof_string']
+    assert stats.count == inner_count
+
+
 def test_Statistics_measure_enabled_with_servertime():
     # pylint: disable=invalid-name
     """
