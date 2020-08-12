@@ -600,11 +600,12 @@ def test_Statistics_print_statistics():
     report = statistics.formatted()
 
     assert re.match(
-        r'Statistics \(times in seconds, lengths in Bytes\)',
+        r'Statistics',
         report)
 
     assert re.search(
-        r"Count Excep *ClientTime *RequestLen *ReplyLen *Operation",
+        r"Count ExcCnt +Time \[s\] +RequestLen \[B\] +ReplyLen \[B\] "
+        r"+Operation",
         report)
 
     assert re.search(
@@ -694,12 +695,12 @@ def test_Statistics_print_stats_svrtime():
     report = statistics.formatted()
 
     assert re.search(
-        r'Count Excep +ClientTime +ServerTime +RequestLen +ReplyLen +'
-        r'Operation',
+        r'Count ExcCnt +Time \[s\] +ServerTime \[s\] +RequestLen \[B\] '
+        r'+ReplyLen \[B\] +Operation',
         report)
 
     assert re.search(
-        r'Cnt +Avg +Min +Max +Avg +Min +Max +Avg +Min +Max',
+        r' +Avg +Min +Max +Avg +Min +Max +Avg +Min +Max',
         report)
 
     assert re.search(

@@ -503,14 +503,14 @@ class OperationStatistic(object):
         Return a two-line header.
         """
         ret_lines = [
-            'Count Excep         ClientTime      ',
-            '        Cnt     Avg     Min     Max ',
+            'Count ExcCnt          Time [s]      ',
+            '                Avg     Min     Max ',
         ]
         if include_server_time:
-            ret_lines[0] += '        ServerTime      '
+            ret_lines[0] += '       ServerTime [s]   '
             ret_lines[1] += '    Avg     Min     Max '
         if include_lengths:
-            ret_lines[0] += '       RequestLen                ReplyLen       '
+            ret_lines[0] += '       RequestLen [B]            ReplyLen [B]   '
             ret_lines[1] += '   Avg    Min    Max      Avg      Min      Max '
         ret_lines[0] += 'Operation\n'
         ret_lines[1] += '\n'
@@ -736,20 +736,20 @@ class Statistics(object):
 
         Example if statistics are enabled::
 
-            Statistics (times in seconds, lengths in Bytes):
-            Count Excep         ClientTime              ServerTime             RequestLen                ReplyLen       Operation
-                    Cnt     Avg     Min     Max     Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
+            Statistics:
+            Count ExcCnt         Time [s]             ServerTime [s]        RequestLen [B]            ReplyLen [B]      Operation
+                            Avg     Min     Max     Avg     Min     Max    Avg    Min    Max      Avg      Min      Max
                 3     0   0.234   0.100   0.401   0.204   0.080   0.361   1233   1000   1500    26667    20000    35000 EnumerateInstances
                 1     0   0.100   0.100   0.100   0.080   0.080   0.080   1200   1200   1200    22000    22000    22000 EnumerateInstanceNames
                 . . .
 
         Example if statistics are disabled::
 
-            Statistics (times in seconds, lengths in Bytes):
+            Statistics:
             Disabled
         """  # noqa: E501
         # pylint: enable=line-too-long
-        ret = "Statistics (times in seconds, lengths in Bytes):\n"
+        ret = "Statistics:\n"
         if self.enabled:
             snapshot = sorted(self.snapshot(),
                               key=lambda item: item[1].avg_time,
