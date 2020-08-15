@@ -402,9 +402,10 @@ def wbem_request(conn, req_data, cimxml_headers):
     # status code 200
     resp_content_type = resp.headers.get('Content-type', None)
     if resp_content_type is not None and \
-            not resp_content_type.startswith('application/xml'):
+            not resp_content_type.startswith('application/xml') and \
+            not resp_content_type.startswith('text/xml'):
         raise HeaderParseError(
-            "pywbem detected invalid content-type in HTTP response: {}".
+            "WBEM server returned invalid Content-type header: {!r}".
             format(resp_content_type),
             conn_id=conn.conn_id, request_data=req_body,
             response_data=resp.text)

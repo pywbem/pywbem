@@ -1,0 +1,294 @@
+-   name: ResponseContentType1
+    description: Response with Content-type 'application/xml'
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Nothing
+            LocalOnly: false
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                            <IPARAMVALUE NAME="LocalOnly">
+                                <VALUE>FALSE</VALUE>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+            Content-type: application/xml
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstances">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
+-   name: ResponseContentType2
+    description: Response with Content-type 'application/xml; charset=UTF-8'
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Nothing
+            LocalOnly: false
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                            <IPARAMVALUE NAME="LocalOnly">
+                                <VALUE>FALSE</VALUE>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+            Content-type: application/xml; charset=UTF-8
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstances">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
+-   name: ResponseContentType3
+    description: Response with Content-type 'text/xml'
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Nothing
+            LocalOnly: false
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                            <IPARAMVALUE NAME="LocalOnly">
+                                <VALUE>FALSE</VALUE>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+            Content-type: text/xml
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstances">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
+-   name: ResponseContentType4
+    description: Response with Content-type 'text/xml; charset="utf-8"'
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Nothing
+            LocalOnly: false
+    pywbem_response:
+        result: []
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                            <IPARAMVALUE NAME="LocalOnly">
+                                <VALUE>FALSE</VALUE>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+            Content-type: text/xml; charset="utf-8"
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstances">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
+-   name: ResponseContentType5
+    description: Response with Content-type 'invalid'
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Nothing
+            LocalOnly: false
+    pywbem_response:
+        exception: HeaderParseError
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Nothing"/>
+                            </IPARAMVALUE>
+                            <IPARAMVALUE NAME="LocalOnly">
+                                <VALUE>FALSE</VALUE>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+            Content-type: invalid
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstances">
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
