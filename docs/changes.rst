@@ -26,6 +26,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed erronously raised HeaderParseError when WBEM server returns
+  Content-type: text/xml. This content-type is valid according to DSP0200.
+  Added testcases. (See issue #2420)
+
 * Fixed handling of ReturnQueryResultClass=True in
   WBEMConnection.OpenQueryInstances(). (See issue #2412)
 
