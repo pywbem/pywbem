@@ -9756,56 +9756,59 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if self._operation_recorders:
                 self.operation_recorder_stage_result(None, exc)
 
+    def is_subclass(self, namespace, klass, superclass):
+        """
+        Return boolean indicating whether a class is a (direct or indirect)
+        subclass of a superclass, or the same class, in the specified
+        namespace.
 
-def is_subclass(ch, ns, super_class, sub):
-    """Determine if one class is a subclass of another class.
+        This test is done by starting at the class and walking its superclasses
+        up to the root.
 
-    Parameters:
+        Parameters:
 
-      ch:
-        A CIMOMHandle.  Either a pycimmb.CIMOMHandle or a
-        :class:`~pywbem.WBEMConnection` object.
+          namespace (:term:`string`): Namespace (case insensitive).
 
-      ns (:term:`string`):
-        Namespace (case independent).
+          klass (:class:`~pywbem.CIMClass` or :term:`string`):
+            The class as a CIM object or as its class name.
 
-      super_class (:term:`string`):
-        Super class name (case independent).
+          superclass (:class:`~pywbem.CIMClass` or :term:`string`):
+            The superclass as a CIM object or as its class name.
 
-      sub:
-        The subclass.  This can either be a string or a
-        :class:`~pywbem.CIMClass` object.
+        Returns:
 
-    Returns:
-        :class:`py:bool`: Boolean True if the assertion is True (sub is a
-        subclass of super_class) or False if it is not a subclass.
+          bool: Boolean indicating whether the class is a (direct or indirect)
+          subclass of the superclass, or the same class.
 
-    Raises:
-        CIMError if the the sub is not a valid class in the repo
-    """
-    lsuper = super_class.lower()
-    if isinstance(sub, CIMClass):
-        subname = sub.classname
-        subclass = sub
-    else:
-        subname = sub
-        subclass = None
-    if subname.lower() == lsuper:
-        return True
-    if subclass is None:
-        subclass = ch.GetClass(subname,
-                               ns,
-                               LocalOnly=True,
-                               IncludeQualifiers=False,
-                               PropertyList=[],
-                               IncludeClassOrigin=False)
-    while subclass.superclass is not None:
-        if subclass.superclass.lower() == lsuper:
+        Raises:
+
+          CIMError: Namespace does not exist.
+          CIMError: The class or superclass does not exist in the namespace.
+        """
+        if isinstance(klass, CIMClass):
+            klassname = klass.classname
+        else:
+            assert isinstance(klass, six.string_types)
+            klassname = klass
+            klass = self.GetClass(
+                klassname,
+                namespace=namespace, LocalOnly=True, PropertyList=[],
+                IncludeQualifiers=False, IncludeClassOrigin=False)
+        if isinstance(superclass, CIMClass):
+            superclass = superclass.classname
+        else:
+            assert isinstance(superclass, six.string_types)
+        superclass_lower = superclass.lower()
+
+        if klassname.lower() == superclass_lower:
             return True
-        subclass = ch.GetClass(subclass.superclass,
-                               ns,
-                               LocalOnly=True,
-                               IncludeQualifiers=False,
-                               PropertyList=[],
-                               IncludeClassOrigin=False)
-    return False
+
+        while klass.superclass is not None:
+            if klass.superclass.lower() == superclass_lower:
+                return True
+            klass = self.GetClass(
+                klass.superclass,
+                namespace=namespace, LocalOnly=True, PropertyList=[],
+                IncludeQualifiers=False, IncludeClassOrigin=False)
+
+        return False

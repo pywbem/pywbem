@@ -19,11 +19,10 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, \
-    CIMError  # noqa: E402
+    CIMError, CIMClass  # noqa: E402
 from pywbem._recorder import LogOperationRecorder  # noqa: E402
 from pywbem._recorder import TestClientRecorder as \
     MyTestClientRecorder  # noqa: E402
-from pywbem._cim_operations import is_subclass  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
@@ -444,22 +443,56 @@ def build_repo():
 
 TESTCASES_IS_SUBCLASS = [
 
-    # Testcases for WBEMConnection.is_subclass(...)
+    # Testcases for WBEMConnection.is_subclass()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * init_args: Tuple of positional arguments to is_subclass.
-    #   * init_kwargs: Dict of keyword arguments to is_subclass.
+    #   * init_args: Tuple of positional arguments to is_subclass().
+    #   * init_kwargs: Dict of keyword arguments to is_subclass().
     #   * exp_attrs: Dict of expected attributes of resulting object.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for
     #   debugger
+
     (
-        "Test of valid call that returns True",
+        "Test of valid call with strings that returns True",
         dict(
-            init_args=['CIM_ManagedElement', 'CIM_ObjectManager'],
+            init_args=['CIM_ObjectManager', 'CIM_ManagedElement'],
+            exp_attrs=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Test of valid call with CIM objects that returns True",
+        dict(
+            init_args=[
+                CIMClass('CIM_ObjectManager', superclass='CIM_WBEMService'),
+                CIMClass('CIM_ManagedElement', superclass=None),
+            ],
+            exp_attrs=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Test of valid call with CIM object and string that returns True",
+        dict(
+            init_args=[
+                CIMClass('CIM_ObjectManager', superclass='CIM_WBEMService'),
+                'CIM_ManagedElement',
+            ],
+            exp_attrs=True,
+        ),
+        None, None, True
+    ),
+    (
+        "Test of valid call with string and CIM object that returns True",
+        dict(
+            init_args=[
+                'CIM_ObjectManager',
+                CIMClass('CIM_ManagedElement', superclass=None),
+            ],
             exp_attrs=True,
         ),
         None, None, True
@@ -467,26 +500,34 @@ TESTCASES_IS_SUBCLASS = [
     (
         "Test of valid call that returns False",
         dict(
-            init_args=['CIM_ObjectManager', 'CIM_ManagedElement'],
+            init_args=['CIM_ManagedElement', 'CIM_ObjectManager'],
             exp_attrs=False,
         ),
         None, None, True
     ),
     (
-        "Test of invalid subclass, not in repo",
-        dict(
-            init_args=['CIM_ManagedElement', 'CIM_Blah'],
-            exp_attrs=True,
-        ),
-        CIMError, None, True
-    ),
-    (
-        "Test of subclass and superclass ==",
+        "Test of class equal to superclass",
         dict(
             init_args=['CIM_ObjectManager', 'CIM_ObjectManager'],
             exp_attrs=True,
         ),
         None, None, True
+    ),
+    (
+        "Test of superclass not in repo, returns False",
+        dict(
+            init_args=['CIM_ManagedElement', 'CIM_Blah'],
+            exp_attrs=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Test of class not in repo (error)",
+        dict(
+            init_args=['CIM_Blah', 'CIM_ManagedElement'],
+            exp_attrs=None,
+        ),
+        CIMError, None, True
     ),
 ]
 
@@ -496,16 +537,16 @@ TESTCASES_IS_SUBCLASS = [
     TESTCASES_IS_SUBCLASS)
 @simplified_test_function
 def test_is_subclass(testcase, init_args, exp_attrs):
-    # pylint: disable no_self_use,unused-argument
+    # pylint: disable=unused-argument
     """
-    Test the method is_subclass(ch, ns, super_class, sub).
+    Test the method WBEMConnection.is_subclass().
     """
 
     skip_if_moftab_regenerated()
 
     conn = build_repo()   # we wanted this to be fixture.
     # The code to be tested
-    result = is_subclass(conn, conn.default_namespace, *init_args)
+    result = conn.is_subclass(conn.default_namespace, *init_args)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions

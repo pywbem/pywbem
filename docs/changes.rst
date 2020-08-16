@@ -50,6 +50,10 @@ Released: not yet
   parts of the setup and execution of a mock environment takes how much time.
   (Part of issue #2365)
 
+* Added a new method ``is_subclass()`` to ``WBEMConnection`` that checks whether
+  a class is a subclass of a class. Both classes can be specified as classnames
+  or as ``CIMClass`` objects.
+
 **Cleanup:**
 
 **Known issues:**
