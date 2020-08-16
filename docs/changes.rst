@@ -54,6 +54,11 @@ Released: not yet
   a class is a subclass of a class. Both classes can be specified as classnames
   or as ``CIMClass`` objects.
 
+* Added support for translating the values of ``PUnit`` and ``Units``
+  qualifiers into human readable SI conformant unit strings, via new
+  functions ``pywbem.siunit_obj()`` and ``pywbem.siunit()``. These new
+  functions are marked as experimental. (See issue #2423)
+
 **Cleanup:**
 
 **Known issues:**
