@@ -13,30 +13,16 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.2.dev1
------------------
+pywbem 1.0.2
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-08-16
 
 **Bug fixes:**
 
 * Fixed erronously raised HeaderParseError when WBEM server returns
   Content-type: text/xml. This content-type is valid according to DSP0200.
   Added testcases. (See issue #2420)
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.1
