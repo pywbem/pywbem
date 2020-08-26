@@ -38,6 +38,16 @@ Released: not yet
 
 **Enhancements:**
 
+* Mock: Added load() methods to the ProviderRegistry and InMemoryRepository
+  classes, in support of caching mock environments. They replace the data of
+  the target object with the data from a second object. That is needed for
+  restoring these objects from a serialization, because multiple other objects
+  have references to these objects which requires that the object state can
+  be set without having to create a new object.
+
+* Mock: Added an iteritems() method to the ProviderRegistry class that
+  iterates through the flattened list of providers, represented as tuples.
+
 * Mock: Added support for more ways the output parameters can be returned
   in method providers: The container for the output parameters can now also
   be a Mapping (including pywbem's internal NocaseDict or nocasedict.NocaseDict),

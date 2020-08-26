@@ -43,6 +43,8 @@ from ._instancewriteprovider import InstanceWriteProvider
 from ._methodprovider import MethodProvider
 from ._utils import _uprint
 
+__all__ = ['ProviderRegistry']
+
 
 class ProviderRegistry(object):
     """
@@ -428,3 +430,41 @@ class ProviderRegistry(object):
           KeyError: if namespace or classname invalid
         """
         return self._registry[namespace][classname][provider_type]
+
+    def iteritems(self):
+        """
+        Return an iterator through the registered provider items. Each item
+        is a tuple(namespace, classname, provider_type, provider_obj),
+        with:
+
+          namespace (:term:`string`):
+            The namespace in which the request will be executed.
+
+          classname (:term:`string`):
+            Name of the class defined for the operation.
+
+          provider_type (:term:`string`):
+            String containing keyword ('instance-write' or 'method') defining
+            the type of provider.
+
+          provider_obj (:class:`~pywbem_mock.BaseProvider`):
+            The registered provider.
+        """
+        ns_dict = self._registry
+        for ns in ns_dict:
+            cln_dict = ns_dict[ns]
+            for cln in cln_dict:
+                pt_dict = cln_dict[cln]
+                for pt in pt_dict:
+                    pobj = pt_dict[pt]
+                    yield (ns, cln, pt, pobj)
+
+    def load(self, other):
+        """
+        Replace the data in this object with the data from the other object.
+
+        This is used to restore the object from a serialized state, without
+        changing its identity.
+        """
+        # pylint: disable=protected-access
+        self._registry = other._registry
