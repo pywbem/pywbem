@@ -18,6 +18,7 @@ using a set of local mock qualifiers, classes, and instances.
 """
 from __future__ import absolute_import, print_function
 
+import pickle
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function
@@ -32,6 +33,59 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import InMemoryRepository  # noqa: E402
 from pywbem_mock._inmemoryrepository import InMemoryObjectStore  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+
+def assert_equal(repo1, repo2):
+    """
+    Assert that two InMemoryObjectStore objects are equal.
+    """
+    assert sorted(repo1.namespaces) == sorted(repo2.namespaces)
+    for ns in repo1.namespaces:
+
+        store1 = repo1.get_class_store(ns)
+        store2 = repo2.get_class_store(ns)
+        assert len(list(store1.iter_names())) == len(list(store2.iter_names()))
+        for name in store1.iter_names():
+            class1 = store1.get(name)
+            class2 = store2.get(name)
+            assert class1 == class2
+
+        store1 = repo1.get_instance_store(ns)
+        store2 = repo2.get_instance_store(ns)
+        # Note that CIMInstanceName does not support sorting
+        assert len(list(store1.iter_names())) == len(list(store2.iter_names()))
+        for name in store1.iter_names():
+            inst1 = store1.get(name)
+            inst2 = store2.get(name)
+            assert inst1 == inst2
+
+        store1 = repo1.get_qualifier_store(ns)
+        store2 = repo2.get_qualifier_store(ns)
+        assert len(list(store1.iter_names())) == len(list(store2.iter_names()))
+        for name in store1.iter_names():
+            qual1 = store1.get(name)
+            qual2 = store2.get(name)
+            assert qual1 == qual2
+
+
+def create_repo(init_namespace, init_objects):
+    """
+    Create a InMemoryRepository object from the init parameters.
+    """
+    repo = InMemoryRepository(initial_namespace=init_namespace)
+    if init_objects:
+        class_store = repo.get_class_store(init_namespace)
+        inst_store = repo.get_instance_store(init_namespace)
+        qual_store = repo.get_qualifier_store(init_namespace)
+        for item in init_objects:
+            if isinstance(item, CIMClass):
+                class_store.create(item.classname, item)
+            elif isinstance(item, CIMInstance):
+                inst_store.create(item.path, item)
+            else:
+                assert isinstance(item, CIMQualifierDeclaration)
+                qual_store.create(item.name, item)
+    return repo
 
 
 ########################################################################
@@ -350,6 +404,14 @@ TEST_OBJECTS = [
     CIMQualifierDeclaration('Qual1', type='string'),
     CIMQualifierDeclaration('Qual2', type='string'), ]
 
+TEST_OBJECTS2 = [
+    CIMClass('Foo', properties=[
+        CIMProperty('P2', None, type='string',
+                    qualifiers=[CIMQualifier('Key', value=True)])]),
+    CIMInstance('Foo', path=CIMInstanceName('Foo',
+                                            keybindings=NocaseDict(P2="P2"))),
+]
+
 
 @pytest.mark.parametrize(
     # Testcases for Inmemory repository object management tests
@@ -599,3 +661,211 @@ def test_repository_method_errs(desc, args, condition, capsys):
 
 # TODO: Tests missing: 1) use of copy parameter
 #                      2. Namespace name None on add an delete.
+
+
+TESTCASES_REPO_PICKLE = [
+
+    # Testcases for pickling and unpickling InMemoryRepository objects
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_namespace: initial_namespace for InMemoryRepository object
+    #   * init_objects: objects to be added to InMemoryRepository object
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty repo with no initial namespace",
+        dict(
+            init_namespace=None,
+            init_objects=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Empty repo with initial namespace",
+        dict(
+            init_namespace="root/blah",
+            init_objects=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Repo with some test objects",
+        dict(
+            init_namespace="root/blah",
+            init_objects=TEST_OBJECTS,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_REPO_PICKLE)
+@simplified_test_function
+def test_InMemoryRepository_pickle(testcase, init_namespace, init_objects):
+    """
+    Test function for pickling and unpickling InMemoryRepository objects
+    """
+
+    repo = create_repo(init_namespace, init_objects)
+
+    # Pickle the object
+    pkl = pickle.dumps(repo)
+
+    # Unpickle the object
+    repo2 = pickle.loads(pkl)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert_equal(repo2, repo)
+
+
+TESTCASES_REPO_LOAD = [
+
+    # Testcases for InMemoryRepository.load()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_namespace: initial_namespace for InMemoryRepository object #1
+    #   * init_objects: objects to be added to InMemoryRepository object #1
+    #   * init_namespace1: initial_namespace for InMemoryRepository object #2
+    #   * init_objects2: objects to be added to InMemoryRepository object #2
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Empty repo loaded with empty repo",
+        dict(
+            init_namespace1=None,
+            init_objects1=[],
+            init_namespace2=None,
+            init_objects2=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Empty repo loaded with repo with initial namespace",
+        dict(
+            init_namespace1=None,
+            init_objects1=[],
+            init_namespace2="root/blah",
+            init_objects2=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Empty repo loaded with repo with some test objects",
+        dict(
+            init_namespace1=None,
+            init_objects1=[],
+            init_namespace2="root/blah",
+            init_objects2=TEST_OBJECTS,
+        ),
+        None, None, True
+    ),
+
+    (
+        "Repo with initial namespace loaded with empty repo",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=[],
+            init_namespace2=None,
+            init_objects2=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Repo with initial namespace loaded with repo with initial namespace",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=[],
+            init_namespace2="root/blah",
+            init_objects2=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Repo with initial namespace loaded with repo with some test objects",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=[],
+            init_namespace2="root/blah",
+            init_objects2=TEST_OBJECTS,
+        ),
+        None, None, True
+    ),
+
+    (
+        "Repo with test objects loaded with empty repo",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=TEST_OBJECTS,
+            init_namespace2=None,
+            init_objects2=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Repo with test objects loaded with repo with initial namespace",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=TEST_OBJECTS,
+            init_namespace2="root/blah",
+            init_objects2=[],
+        ),
+        None, None, True
+    ),
+    (
+        "Repo with test objects loaded with repo with test objects #2",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=TEST_OBJECTS,
+            init_namespace2="root/blah",
+            init_objects2=TEST_OBJECTS2,
+        ),
+        None, None, True
+    ),
+    (
+        "Repo with test objects #2 loaded with repo with test objects",
+        dict(
+            init_namespace1="root/blah",
+            init_objects1=TEST_OBJECTS2,
+            init_namespace2="root/blah",
+            init_objects2=TEST_OBJECTS,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_REPO_LOAD)
+@simplified_test_function
+def test_InMemoryRepository_load(testcase,
+                                 init_namespace1, init_objects1,
+                                 init_namespace2, init_objects2):
+    """
+    Test function for InMemoryRepository.load()
+    """
+
+    repo1 = create_repo(init_namespace1, init_objects1)
+    repo2 = create_repo(init_namespace2, init_objects2)
+
+    # The code to be tested
+    repo1.load(repo2)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert_equal(repo1, repo2)

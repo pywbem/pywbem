@@ -294,3 +294,13 @@ class InMemoryRepository(BaseRepository):
         namespace = namespace.strip('/')
         self.validate_namespace(namespace)
         return self._repository[namespace]['qualifiers']
+
+    def load(self, other):
+        """
+        Replace the data in this object with the data from the other object.
+
+        This is used to restore the object from a serialized state, without
+        changing its identity.
+        """
+        # pylint: disable=protected-access
+        self._repository = other._repository
