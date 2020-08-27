@@ -61,6 +61,10 @@ Released: not yet
 
 **Cleanup:**
 
+* Mock: Cleaned up the output of repr(BaseProvider) to no longer show the
+  CIM repository, and to include the other attributes that were not shown so
+  far. (See issue #2432)
+
 **Known issues:**
 
 * See `list of open issues`_.
