@@ -2477,10 +2477,6 @@ class TestFileErrors(object):
     direct compile or expected in search path.
     """
 
-    def __init__(self):
-        self.logfile = None  # open log file
-        self.mofcomp = None  # MOFCompiler object
-
     def create_mofcompiler(self):
         """ Create the compiler with no search path """
 
@@ -2489,7 +2485,9 @@ class TestFileErrors(object):
             print(msg, file=self.logfile)
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        # pylint: disable=attribute-defined-outside-init
         self.logfile = open(moflog_file, 'w')
+        # pylint: disable=attribute-defined-outside-init
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             verbose=False,
