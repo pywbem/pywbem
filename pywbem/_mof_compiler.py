@@ -2683,6 +2683,24 @@ class MOFCompiler(object):
                 _format("search_paths parameter must be list or tuple, but "
                         "is: {0}", type(search_paths)))
 
+        if verbose:
+            print("Debug: MOFCompiler handle is {} at {}".
+                      format(type(handle), id(handle)))
+            _handle_conn = getattr(handle, 'conn', None)
+            if _handle_conn:
+                print("Debug: MOFCompiler handle.conn is {} at {}".
+                          format(type(_handle_conn), id(_handle_conn)))
+            else:
+                print("Debug: MOFCompiler handle.conn is {!r}".
+                      format(_handle_conn))
+            if conn:
+                print("Debug: MOFCompiler conn is {} at {} and has "
+                      "CIM repo {} at {}".
+                      format(type(conn), id(conn),
+                             type(conn.cimrepository), id(conn.cimrepository)))
+            else:
+                print("Debug: MOFCompiler conn is {!r}".format(conn))
+
         self._log_func = log_func
 
         self.parser = _yacc(verbose)
