@@ -46,8 +46,7 @@ Example :
 """
 
 from abc import abstractmethod, abstractproperty
-from six import add_metaclass, PY2
-from custom_inherit import DocInheritMeta
+from six import PY2
 
 
 def compatibleabstractproperty(func):
@@ -66,7 +65,6 @@ def compatibleabstractproperty(func):
         return property(abstractmethod(func))
 
 
-@add_metaclass(DocInheritMeta(style="google", abstract_base_class=True))
 class BaseObjectStore(object):
     """
     An abstract class that defines the APIs for the methods of an object store
@@ -253,7 +251,6 @@ class BaseObjectStore(object):
         pass
 
 
-@add_metaclass(DocInheritMeta(style="google", abstract_base_class=True))
 class BaseRepository(object):
     """
     An abstract base class defining the required  APIs to provide access to a
