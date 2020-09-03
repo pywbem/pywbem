@@ -155,15 +155,25 @@ class InMemoryObjectStore(BaseObjectStore):
 
 class InMemoryRepository(BaseRepository):
     """
-    A CIM repository that maintains its data in memory.
+    A CIM repository that maintains the data in memory using the
+    methods defined in its superclass (~pywbem_mock:`BaseObjectStore`).
+    This implementation creates the repository as multi-level dictionary
+    elements to define the namespaces and within each
+    namespace the CIM classes, CIM instances, and CIM qualifiers in the
+    repository.
     """
-    # Documentation for the methods and properties inherited from
-    # ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
-    # documentation. Therefore the methods in this class have no documentation
-    # string.
+    # Documentation for the methods and properties  isinherited from
+    # ~pywbem_mock:`BaseObjectStore` by sphinx when building documentaton.
+    # Therefore the methods in this class have no documentation
+    # string unless they add or modify documentation in the parent class or
+    # are not defined in the parent class. Any method that needs to modifyu
+    # the base method documentation must copy the base class documentation.
 
     def __init__(self, initial_namespace=None):
         """
+        Initialize an empty in-memory CIM repository and optionally add a
+        namespace in the repository..
+
         Parameters:
 
           initial_namespace:(:term:`string` or None):
