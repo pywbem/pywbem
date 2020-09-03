@@ -20,9 +20,6 @@ PyYAML>=5.1; python_version > '3.4'
 # tox 3.17 (used in dev-requirements.txt) requires six>=1.14.0
 six>=1.14.0
 requests>=2.20.0
-# Pinned because this is the current version and the developer
-# is planing to remove python 2.7 support in next version.
-custom-inherit==2.2.2
 yamlloader>=0.5.5
 nocaselist>=1.0.0
 nocasedict>=0.5.0

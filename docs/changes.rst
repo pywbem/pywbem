@@ -26,6 +26,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Removed dependency on package custom-inherit and removed package from
+  pywbem.  (see issue #2436)
+
 **Cleanup:**
 
 **Known issues:**
