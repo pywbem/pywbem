@@ -75,6 +75,9 @@ Released: not yet
   CIM repository, and to include the other attributes that were not shown so
   far. (See issue #2432)
 
+* Removed dependency on package custom-inherit and removed package from
+  pywbem.  (see issue # 2436)
+
 **Known issues:**
 
 * See `list of open issues`_.
