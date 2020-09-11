@@ -47,6 +47,7 @@ from ._inmemoryrepository import InMemoryRepository
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
 
 from ._providerregistry import ProviderRegistry
+from ._providerdependentregistry import ProviderDependentRegistry
 
 from ._providerdispatcher import ProviderDispatcher
 
@@ -207,6 +208,9 @@ class FakedWBEMConnection(WBEMConnection):
         # provider type, and provider for each class name defined
         self._provider_registry = ProviderRegistry()
 
+        # Registry for provider dependent files.
+        self._provider_dependent_registry = ProviderDependentRegistry()
+
         # Define the datastore to be used with an initial namespace, the client
         # connection default namespace. This is passed to the mainprovider
         # and not used further in this class.
@@ -264,6 +268,14 @@ class FakedWBEMConnection(WBEMConnection):
         if self._cimrepository is None:
             self._cimrepository = InMemoryRepository(self.default_namespace)
         return self._cimrepository
+
+    @property
+    def provider_dependent_registry(self):
+        """
+        :class:`~pywbem_mock.ProviderDependentRegistry`: The registry for
+        provider dependent files, in context of a mock script.
+        """
+        return self._provider_dependent_registry
 
     @property
     def response_delay(self):

@@ -1179,6 +1179,39 @@ User-defined method providers
    .. rubric:: Details
 
 
+.. _`Registry for provider dependent files`:
+
+Registry for provider dependent files
+-------------------------------------
+
+A faked WBEM connection provides a registry for provider dependent files
+in its :attr:`~pywbem_mock.FakedWBEMConnection.provider_dependent_registry`
+property of type :class:`pywbem_mock.ProviderDependentRegistry`.
+
+This registry can be used by callers to register and look up the path names of
+additional dependent files of a mock script, in context of that mock script.
+
+The pywbemtools project makes use of this registry for validating whether its
+mock cache is up to date w.r.t. additional dependent files a mock script has
+used.
+
+.. autoclass:: pywbem_mock.ProviderDependentRegistry
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem_mock.ProviderDependentRegistry
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem_mock.ProviderDependentRegistry
+      :attributes:
+
+   .. rubric:: Details
+
+
 .. _`Configuration of mocked behavior`:
 
 Configuration of mocked behavior
