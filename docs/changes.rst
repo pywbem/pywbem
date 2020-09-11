@@ -75,6 +75,13 @@ Released: not yet
   functions ``pywbem.siunit_obj()`` and ``pywbem.siunit()``. These new
   functions are marked as experimental. (See issue #2423)
 
+* Mock: Added a new property ``provider_dependent_registry`` to
+  ``FakedWBEMConnection`` which is a registry of provider dependent files. This
+  registry can be used by callers to register and look up the path names of
+  additional files in context of a mock script. This ability is used by the
+  pywbemtools project to validate whether its mock cache is up to date w.r.t.
+  these files.
+
 **Cleanup:**
 
 * Mock: Cleaned up the output of repr(BaseProvider) to no longer show the

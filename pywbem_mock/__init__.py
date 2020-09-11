@@ -33,6 +33,7 @@ from ._baseprovider import *               # noqa: F403,F401
 from ._mainprovider import *               # noqa: F403,F401
 from ._providerdispatcher import *         # noqa: F403,F401
 from ._providerregistry import *           # noqa: F403,F401
+from ._providerdependentregistry import *  # noqa: F403,F401
 from ._instancewriteprovider import *      # noqa: F403,F401
 from ._methodprovider import *             # noqa: F403,F401
 from ._namespaceprovider import *          # noqa: F403,F401
