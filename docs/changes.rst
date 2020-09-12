@@ -26,6 +26,9 @@ Released: not yet
 
 * Windows install: Upgraded WinOpenSSL to 1.1.1h.
 
+* Test: Fixed dependency issues with 'pyrsistent' package on Python 2.7 and
+  Python 3.4.
+
 **Enhancements:**
 
 **Cleanup:**
