@@ -24,6 +24,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Test: Fixed dependency issues with 'pyrsistent' package on Python 2.7 and
+  Python 3.4.
+
 **Enhancements:**
 
 * Removed dependency on package custom-inherit and removed package from
