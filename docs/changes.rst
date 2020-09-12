@@ -36,6 +36,9 @@ Released: not yet
 * Mock: In the mock support, fixed multiple errors in the mocked
   OpenQueryInstances(), and added testcases for it. (See issue #2412)
 
+* Test: Fixed dependency issues with 'pyrsistent' package on Python 2.7 and
+  Python 3.4.
+
 **Enhancements:**
 
 * Mock: Added load() methods to the ProviderRegistry and InMemoryRepository
