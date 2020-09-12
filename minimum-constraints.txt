@@ -93,12 +93,8 @@ PyYAML==5.3; python_version == '2.7'  # PyYAML 5.3 fixes narrow build error
 PyYAML==5.1; python_version >= '3.4'
 six==1.14.0
 requests==2.20.1
-
-# nocaselist==1.0.0
-git+https://github.com/pywbem/nocaselist.git@andy/add-pickle#egg=nocaselist
-# TODO: Upgrade to nocaselist 1.0.2 once released.
-
-nocasedict==0.5.0
+nocaselist==1.0.2
+nocasedict==1.0.0
 
 
 # Indirect dependencies for installation (not in requirements.txt)

@@ -39,6 +39,9 @@ Released: not yet
 * Test: Fixed dependency issues with 'pyrsistent' package on Python 2.7 and
   Python 3.4.
 
+* Increased minimum versions of nocasedict to 1.0.0 and nocaselist to 1.0.2
+  to pick up fixes needed for pywbem.
+
 **Enhancements:**
 
 * Mock: Added load() methods to the ProviderRegistry and InMemoryRepository
