@@ -165,11 +165,47 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
         None, None, True
     ),
     (
-        "Registry with two dependents",
+        "Registry with two dependents, no path",
         dict(
             mock_script='mock1',
             dependents=['dep1', 'dep2'],
             exp_dependents=['dep1', 'dep2'],
+        ),
+        None, None, True
+    ),
+    (
+        "Registry with two dependents, relative path",
+        dict(
+            mock_script='rel1/mock1',
+            dependents=['rel1/dep1', 'rel2/dep2'],
+            exp_dependents=[
+                os.path.join('rel1', 'dep1'),
+                os.path.join('rel2', 'dep2')
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "Registry with two dependents, absolute path",
+        dict(
+            mock_script='/rel1/mock1',
+            dependents=['/rel1/dep1', '/rel2/dep2'],
+            exp_dependents=[
+                os.path.relpath('/rel1/dep1'),
+                os.path.relpath('/rel2/dep2'),
+            ],
+        ),
+        None, None, True
+    ),
+    (
+        "Registry with two dependents, unnormalized path",
+        dict(
+            mock_script='rel1/rel2/../mock1',
+            dependents=['rel1/rel2/../dep1', 'rel2/rel3/../dep2'],
+            exp_dependents=[
+                os.path.join('rel1', 'dep1'),
+                os.path.join('rel2', 'dep2')
+            ],
         ),
         None, None, True
     ),
@@ -199,8 +235,6 @@ def test_ProviderDependentRegistry_add_dependents(
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    cwd_rel_dir = os.path.relpath(os.getcwd(), os.path.expanduser('~'))
-    exp_dependents = [os.path.join(cwd_rel_dir, dep) for dep in exp_dependents]
     assert res_dependents == exp_dependents
 
 
