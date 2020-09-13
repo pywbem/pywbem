@@ -72,6 +72,21 @@ class ProviderDependentRegistry(object):
         normpath = os.path.normcase(normpath)
         return normpath
 
+    @staticmethod
+    def _cwdpath(normpath):
+        """
+        Return the normalized input file or directory path such that it is
+        accessible from the current working directory.
+        """
+        if os.path.isabs(normpath):
+            cwdpath = normpath
+        else:
+            # If relative, it is always relative to the user's home directory
+            home_dir = os.path.expanduser('~')
+            cwdpath = os.path.join(home_dir, normpath)
+            cwdpath = os.path.relpath(cwdpath)
+        return cwdpath
+
     def add_dependents(self, mock_script_path, dependent_paths):
         # pylint: disable=line-too-long
         """
@@ -105,8 +120,13 @@ class ProviderDependentRegistry(object):
 
     def iter_dependents(self, mock_script_path):
         """
-        Iterate through the registered dependent files, in context of a mock
-        script.
+        Iterate through the path names of the dependent files that are
+        registered for a mock script.
+
+        If the mock script is not registered, the iteration is empty.
+
+        The iterated path names are the normalized path names, but with a path
+        that makes them accessible from within the current directory.
 
         Parameters:
 
@@ -116,14 +136,15 @@ class ProviderDependentRegistry(object):
 
         Returns:
 
-          :term:`iterator`: An iterator for the normalized path names of the
-          registered provider dependent files.
+          :term:`iterator`: A generator iterator for the path names of the
+          dependent files.
         """
         mock_script_normpath = self._normpath(mock_script_path)
-        try:
-            return iter(self._registry[mock_script_normpath])
-        except KeyError:
-            return iter([])
+        if mock_script_normpath not in self._registry:
+            return  # yield empty
+        for dep_normpath in self._registry[mock_script_normpath]:
+            dep_path = self._cwdpath(dep_normpath)
+            yield dep_path
 
     def load(self, other):
         """
