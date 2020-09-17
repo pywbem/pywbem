@@ -218,7 +218,13 @@ def pytest_collect_file(parent, path):
     https://docs.pytest.org/en/latest/example/nonpython.html
     """
     if path.ext == ".yaml":
-        return YamlFile(path, parent)
+        if hasattr(YamlFile, 'from_parent'):
+            # pylint: disable=no-member
+            return YamlFile.from_parent(fspath=path, parent=parent)
+        # Direct creation has been deprecated in pytest, but
+        # from_parent() was introduced only in pytest 6.0.0 and we
+        # have to pin to lower pytest versions on py27/py34/py35.
+        return YamlFile(fspath=path, parent=parent)
     return None  # to avoid pylint inconsistent-return-statements
 
 
@@ -246,7 +252,18 @@ class YamlFile(pytest.File):
                 except KeyError:
                     raise ClientTestError("Test case #%s does not have a "
                                           "'name' attribute" % i + 1)
-                yield YamlItem(tc_name, self, testcase, filepath)
+                if hasattr(YamlItem, 'from_parent'):
+                    # pylint: disable=no-member
+                    yield YamlItem.from_parent(
+                        name=tc_name, parent=self,
+                        testcase=testcase, filepath=filepath)
+                else:
+                    # Direct creation has been deprecated in pytest, but
+                    # from_parent() was introduced only in pytest 6.0.0 and we
+                    # have to pin to lower pytest versions on py27/py34/py35.
+                    yield YamlItem(
+                        name=tc_name, parent=self,
+                        testcase=testcase, filepath=filepath)
 
 
 class YamlItem(pytest.Item):

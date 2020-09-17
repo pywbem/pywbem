@@ -91,6 +91,9 @@ Released: not yet
 * Removed dependency on package custom-inherit and removed package from
   pywbem.  (see issue # 2436)
 
+* Test: Changed collection of .yaml files in function tests to address
+  DeprecationWarning issued by pytest (see issue #2430).
+
 **Known issues:**
 
 * See `list of open issues`_.
